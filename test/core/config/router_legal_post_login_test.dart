@@ -86,7 +86,6 @@ void main() {
     final container = await buildAuthContainer(repo: repo);
     addTearDown(() {
       container.read(routerProvider).dispose();
-      container.dispose();
     });
     // Keep the real bootstrap alive so it reacts to the auth change.
     container.listen(appBootstrapProvider, (_, __) {});

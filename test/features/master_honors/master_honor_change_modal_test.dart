@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/master_honors/presentation/providers/master_honor_modal_queue_provider.dart';
 import 'package:sacdia_app/features/master_honors/presentation/widgets/master_honor_change_modal.dart';
+import '../../support/riverpod_test_support.dart';
 
 void main() {
   Widget wrap(Widget child) {
@@ -60,8 +60,7 @@ void main() {
   });
 
   test('master honor modal queue removes current event before continuing', () {
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
+    final container = createTestContainer();
     final notifier = container.read(masterHonorModalQueueProvider.notifier);
 
     notifier.enqueue(

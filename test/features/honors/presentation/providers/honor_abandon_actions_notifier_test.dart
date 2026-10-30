@@ -5,6 +5,7 @@ import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/domain/repositories/honors_repository.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 /// Only [deleteUserHonor] is exercised; any other call fails the test.
 class _AbandonRepository implements HonorsRepository {
@@ -42,7 +43,7 @@ void main() {
   test('abandons the honor and drops it from the enrolled state', () async {
     final repository = _AbandonRepository();
     var serverHonors = [_enrolled()];
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         honorsRepositoryProvider.overrideWithValue(repository),
         activeHonorCatalogClubTypeIdProvider.overrideWith(
@@ -51,7 +52,6 @@ void main() {
         userHonorsProvider.overrideWith((ref) async => serverHonors),
       ],
     );
-    addTearDown(container.dispose);
 
     final sub = container.listen(userHonorForHonorProvider(7), (_, __) {});
     addTearDown(sub.close);
@@ -78,7 +78,7 @@ void main() {
     final repository = _AbandonRepository(
       failure: const ServerFailure(message: 'blocked'),
     );
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         honorsRepositoryProvider.overrideWithValue(repository),
         activeHonorCatalogClubTypeIdProvider.overrideWith(
@@ -87,7 +87,6 @@ void main() {
         userHonorsProvider.overrideWith((ref) async => [_enrolled()]),
       ],
     );
-    addTearDown(container.dispose);
 
     final sub = container.listen(
       honorAbandonActionsNotifierProvider,

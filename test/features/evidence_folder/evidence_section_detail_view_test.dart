@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/features/evidence_folder/domain/entities/evidence_section.dart';
 import 'package:sacdia_app/features/evidence_folder/presentation/views/evidence_section_detail_view.dart';
+import '../../support/riverpod_test_support.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +16,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(
-      ProviderScope(
+      testProviderScope(
         child: MaterialApp(
           home: EvidenceSectionDetailView(
             section: _pendingSection(),
@@ -36,7 +36,7 @@ void main() {
   testWidgets('omits weight and preserves a neutral title hierarchy',
       (tester) async {
     await tester.pumpWidget(
-      ProviderScope(
+      testProviderScope(
         child: MaterialApp(
           home: EvidenceSectionDetailView(
             section: _pendingSection(),

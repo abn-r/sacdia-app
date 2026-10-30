@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
@@ -11,6 +10,7 @@ import 'package:sacdia_app/features/investiture_requests/presentation/views/auth
 import 'package:sacdia_app/features/investiture_requests/presentation/views/own_investiture_view.dart';
 import 'package:sacdia_app/features/investiture_requests/presentation/views/section_investiture_history_view.dart';
 import 'package:sacdia_app/features/investiture_requests/presentation/views/section_investiture_view.dart';
+import '../../support/riverpod_test_support.dart';
 
 class _FakeAuthNotifier extends AuthNotifier {
   @override
@@ -94,7 +94,7 @@ void main() {
       ),
     );
 
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [authNotifierProvider.overrideWith(_FakeAuthNotifier.new)],
     );
     final router = container.read(routerProvider);

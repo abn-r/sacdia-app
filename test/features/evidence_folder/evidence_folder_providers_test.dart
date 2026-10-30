@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/usecases/cancellation_token.dart';
@@ -8,6 +7,7 @@ import 'package:sacdia_app/features/evidence_folder/domain/entities/evidence_fol
 import 'package:sacdia_app/features/evidence_folder/domain/entities/evidence_folder_template_availability.dart';
 import 'package:sacdia_app/features/evidence_folder/domain/repositories/evidence_folder_repository.dart';
 import 'package:sacdia_app/features/evidence_folder/presentation/providers/evidence_folder_providers.dart';
+import '../../support/riverpod_test_support.dart';
 
 class _CountingEvidenceFolderRepository implements EvidenceFolderRepository {
   int getFolderCalls = 0;
@@ -63,12 +63,11 @@ class _CountingEvidenceFolderRepository implements EvidenceFolderRepository {
 void main() {
   test('keeps a loaded folder cached after the view stops listening', () async {
     final repository = _CountingEvidenceFolderRepository();
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         evidenceFolderRepositoryProvider.overrideWithValue(repository),
       ],
     );
-    addTearDown(container.dispose);
 
     final subscription = container.listen(
       evidenceFolderProvider('club-section-1'),

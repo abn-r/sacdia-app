@@ -19,6 +19,7 @@ import 'package:sacdia_app/features/dashboard/domain/repositories/dashboard_repo
 import 'package:sacdia_app/features/dashboard/domain/usecases/get_dashboard_data.dart';
 import 'package:sacdia_app/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:sacdia_app/providers/storage_provider.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _FakeAuthNotifier extends AuthNotifier {
   _FakeAuthNotifier(this.user);
@@ -106,7 +107,7 @@ Future<ProviderContainer> _buildDashboardContainer({
   SharedPreferences.setMockInitialValues(initialPrefs);
   final prefs = await SharedPreferences.getInstance();
 
-  return ProviderContainer(
+  return createTestContainer(
     overrides: [
       authNotifierProvider.overrideWith(() => authNotifier),
       getDashboardSummaryProvider.overrideWithValue(useCase),
@@ -219,7 +220,6 @@ void main() {
           '${key}_cached_at': DateTime.now().millisecondsSinceEpoch,
         },
       );
-      addTearDown(container.dispose);
 
       final result = await container.read(dashboardNotifierProvider.future);
 
@@ -250,7 +250,6 @@ void main() {
               .millisecondsSinceEpoch,
         },
       );
-      addTearDown(container.dispose);
 
       final resultFuture = container.read(dashboardNotifierProvider.future);
       bool buildCompleted = false;
@@ -289,7 +288,6 @@ void main() {
               .millisecondsSinceEpoch,
         },
       );
-      addTearDown(container.dispose);
 
       final resultFuture = container.read(dashboardNotifierProvider.future);
       bool buildCompleted = false;
@@ -336,7 +334,6 @@ void main() {
               .millisecondsSinceEpoch,
         },
       );
-      addTearDown(container.dispose);
 
       await container.read(dashboardNotifierProvider.future);
       await useCase.firstCallStarted.future;
@@ -380,7 +377,6 @@ void main() {
               .millisecondsSinceEpoch,
         },
       );
-      addTearDown(container.dispose);
 
       final resultFuture = container.read(dashboardNotifierProvider.future);
       await useCase.firstCallStarted.future;
@@ -420,7 +416,6 @@ void main() {
               .millisecondsSinceEpoch,
         },
       );
-      addTearDown(container.dispose);
 
       final result = await container.read(dashboardNotifierProvider.future);
 
@@ -459,7 +454,6 @@ void main() {
               .millisecondsSinceEpoch,
         },
       );
-      addTearDown(container.dispose);
 
       final result = await container.read(dashboardNotifierProvider.future);
       expect(result?.clubName, equals('Old'));
@@ -492,7 +486,6 @@ void main() {
           '${key}_cached_at': DateTime.now().millisecondsSinceEpoch,
         },
       );
-      addTearDown(container.dispose);
 
       final result = await container.read(dashboardNotifierProvider.future);
 
@@ -533,7 +526,6 @@ void main() {
           '${keyB}_cached_at': DateTime.now().millisecondsSinceEpoch,
         },
       );
-      addTearDown(container.dispose);
 
       final resultA = await container.read(dashboardNotifierProvider.future);
       expect(resultA?.clubName, equals('Club A'));
@@ -584,7 +576,6 @@ void main() {
               .millisecondsSinceEpoch,
         },
       );
-      addTearDown(container.dispose);
 
       await container.read(dashboardNotifierProvider.future);
       for (var i = 0; i < 20; i++) {

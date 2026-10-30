@@ -1,6 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
@@ -10,6 +9,7 @@ import 'package:sacdia_app/features/profile/domain/entities/user_detail.dart';
 import 'package:sacdia_app/features/profile/presentation/providers/profile_providers.dart';
 
 import '../../../coordinator/coordinator_test_harness.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _FakeAuthNotifier extends AuthNotifier {
   _FakeAuthNotifier(this._user);
@@ -58,7 +58,7 @@ Future<void> _pumpCard(
   required String? gender,
 }) async {
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         authNotifierProvider.overrideWith(
           () => _FakeAuthNotifier(_userWithRole(roleName)),

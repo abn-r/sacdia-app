@@ -31,6 +31,7 @@ import '../../features/auth/presentation/providers/auth_notifier_test_support.da
     show FakeNotificationsRepository;
 import '../../features/family/family_fixtures.dart';
 import '../../features/family/family_test_harness.dart';
+import '../../support/riverpod_test_support.dart';
 
 const _childId = '0d6e6d54-3c1d-4f1c-9a52-1f2b6a7a9c11';
 
@@ -151,7 +152,7 @@ void main() {
           maxDependents: 10,
         ),
       );
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         authNotifierProvider.overrideWith(() => auth),
         appBootstrapProvider.overrideWith(_ReadyBootstrap.new),
@@ -166,7 +167,6 @@ void main() {
     );
     addTearDown(() {
       container.read(routerProvider).dispose();
-      container.dispose();
     });
     if (!coldStart) await container.read(authNotifierProvider.future);
     final push = PushNotificationService(

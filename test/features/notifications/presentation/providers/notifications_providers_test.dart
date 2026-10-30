@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/usecases/cancellation_token.dart';
 import 'package:sacdia_app/features/notifications/domain/entities/notification_item.dart';
 import 'package:sacdia_app/features/notifications/domain/repositories/notifications_repository.dart';
 import 'package:sacdia_app/features/notifications/presentation/providers/notifications_providers.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _SupersededHistoryRepository implements NotificationsRepository {
   final firstStarted = Completer<void>();
@@ -69,12 +69,11 @@ void main() {
   test('ignores a superseded history request instead of surfacing an error',
       () async {
     final repository = _SupersededHistoryRepository();
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         notificationsRepositoryProvider.overrideWithValue(repository),
       ],
     );
-    addTearDown(container.dispose);
 
     container.read(notificationsInboxProvider);
     await repository.firstStarted.future;

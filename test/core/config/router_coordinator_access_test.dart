@@ -13,6 +13,7 @@ import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import '../../support/riverpod_test_support.dart';
 
 UserEntity _user({
   List<String> roles = const ['coordinator'],
@@ -246,7 +247,7 @@ void main() {
           ),
         ),
       );
-      final container = ProviderContainer(
+      final container = createTestContainer(
         overrides: [
           authNotifierProvider.overrideWith(() => _FakeAuthNotifier(user)),
           appBootstrapProvider.overrideWith(_ReadyBootstrap.new),
@@ -254,7 +255,6 @@ void main() {
       );
       addTearDown(() {
         container.read(routerProvider).dispose();
-        container.dispose();
       });
       await container.read(authNotifierProvider.future);
       await container.read(appBootstrapProvider.future);

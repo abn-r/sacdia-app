@@ -17,6 +17,7 @@ import 'package:sacdia_app/features/profile/presentation/widgets/profile_classes
 import 'package:sacdia_app/features/profile/presentation/widgets/profile_quiet_add_chip.dart';
 import 'package:sacdia_app/features/profile/presentation/widgets/profile_section_header_actions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 /// The profile header and the section's empty state must never both offer
 /// "Agregar": exactly one add action in every state.
@@ -35,7 +36,7 @@ void main() {
     required Widget section,
   }) async {
     await tester.pumpWidget(
-      ProviderScope(
+      testProviderScope(
         overrides: overrides,
         child: EasyLocalization(
           supportedLocales: const [Locale('es')],

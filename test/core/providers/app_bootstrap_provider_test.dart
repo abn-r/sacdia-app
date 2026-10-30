@@ -8,6 +8,7 @@ import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/providers/storage_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../support/riverpod_test_support.dart';
 
 /// Builds a [UserEntity] with the given authorization state.
 UserEntity _buildUser({
@@ -53,7 +54,7 @@ UserEntity _buildValidUser() {
 /// `AppBootstrapNotifier.build()`, disposing it while it is still
 /// completing — causing a "disposed during loading state" crash.
 Future<ProviderContainer> _makeContainer(UserEntity? user) async {
-  final container = ProviderContainer(
+  final container = createTestContainer(
     overrides: [
       authNotifierProvider.overrideWith(
         () => _FakeAuthNotifier(user),
@@ -72,7 +73,7 @@ Future<ProviderContainer> _makeFullContainer(
 ) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
-  final container = ProviderContainer(
+  final container = createTestContainer(
     overrides: [
       authNotifierProvider.overrideWith(() => fakeAuth),
       secureStorageProvider.overrideWithValue(_FakeSecureStorage()),
@@ -88,7 +89,6 @@ void main() {
     test('returns AppBootstrapReady when user has valid authorization',
         () async {
       final container = await _makeContainer(_buildValidUser());
-      addTearDown(container.dispose);
 
       final state = await container.read(appBootstrapProvider.future);
       expect(state, isA<AppBootstrapReady>());
@@ -105,7 +105,6 @@ void main() {
           principal: principal,
           authorization: const AuthorizationSnapshot(effectivePermissions: []),
         ));
-        addTearDown(container.dispose);
 
         final state = await container.read(appBootstrapProvider.future);
         expect(state, isA<AppBootstrapReady>(), reason: '${principal.kind}');
@@ -123,7 +122,6 @@ void main() {
           principal: const PrincipalInfo(kind: PrincipalKind.linkedDevice),
           authorization: authorization,
         ));
-        addTearDown(container.dispose);
 
         final state = await container.read(appBootstrapProvider.future);
         expect(state, isA<AppBootstrapReady>(), reason: '$authorization');
@@ -141,7 +139,6 @@ void main() {
         ),
         authorization: const AuthorizationSnapshot(effectivePermissions: []),
       ));
-      addTearDown(container.dispose);
 
       final state = await container.read(appBootstrapProvider.future);
       expect(state, isA<AppBootstrapReady>());
@@ -156,7 +153,6 @@ void main() {
         ),
         authorization: const AuthorizationSnapshot(effectivePermissions: []),
       ));
-      addTearDown(container.dispose);
 
       final state = await container.read(appBootstrapProvider.future);
       expect(state, isA<AppBootstrapError>());
@@ -164,7 +160,6 @@ void main() {
 
     test('returns AppBootstrapUnauthenticated when user is null', () async {
       final container = await _makeContainer(null);
-      addTearDown(container.dispose);
 
       final state = await container.read(appBootstrapProvider.future);
       expect(state, isA<AppBootstrapUnauthenticated>());
@@ -174,7 +169,6 @@ void main() {
         'returns AppBootstrapError when user has empty permissions after retries',
         () async {
       final container = await _makeContainer(_buildUser());
-      addTearDown(container.dispose);
 
       final state = await container.read(appBootstrapProvider.future);
       expect(state, isA<AppBootstrapError>());
@@ -196,7 +190,6 @@ void main() {
       );
 
       final container = await _makeContainer(userWithNoAuth);
-      addTearDown(container.dispose);
 
       final state = await container.read(appBootstrapProvider.future);
       expect(state, isA<AppBootstrapError>());
@@ -225,7 +218,6 @@ void main() {
       );
 
       final container = await _makeContainer(user);
-      addTearDown(container.dispose);
 
       final state = await container.read(appBootstrapProvider.future);
       expect(state, isA<AppBootstrapReady>());
@@ -239,7 +231,6 @@ void main() {
       );
 
       final container = await _makeContainer(user);
-      addTearDown(container.dispose);
 
       final state = await container.read(appBootstrapProvider.future);
       expect(state, isA<AppBootstrapError>());
@@ -254,7 +245,6 @@ void main() {
       final invalidUser = _buildUser(); // empty permissions
       final fakeAuth = _MutableFakeAuthNotifier(invalidUser);
       final container = await _makeFullContainer(fakeAuth);
-      addTearDown(container.dispose);
 
       // Wait for auto-retries to exhaust → error state
       final errorState = await container.read(appBootstrapProvider.future);
@@ -275,7 +265,6 @@ void main() {
       final invalidUser = _buildUser(); // empty permissions
       final fakeAuth = _MutableFakeAuthNotifier(invalidUser);
       final container = await _makeFullContainer(fakeAuth);
-      addTearDown(container.dispose);
 
       // Wait for auto-retries to exhaust → error state
       final errorState = await container.read(appBootstrapProvider.future);

@@ -11,6 +11,7 @@ import 'package:sacdia_app/features/family/presentation/widgets/family_prompt_ho
 import 'package:sacdia_app/features/teen/presentation/widgets/supervision_info_notice_host.dart';
 import 'package:sacdia_app/core/config/pending_navigation.dart';
 import 'package:sacdia_app/providers/storage_provider.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 /// Signed-out session: invalidating user providers must not hit the network.
 class _SignedOutAuthNotifier extends AuthNotifier {
@@ -55,14 +56,13 @@ void main() {
       'unrelated_pref': 'keep',
     });
     final prefs = await SharedPreferences.getInstance();
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         authNotifierProvider.overrideWith(_SignedOutAuthNotifier.new),
         imageCachePurgerProvider.overrideWithValue(() async {}),
       ],
     );
-    addTearDown(container.dispose);
 
     container.read(_logoutCleanupInvoker)();
     await Future<void>.delayed(Duration.zero);
@@ -80,14 +80,13 @@ void main() {
       'other_pref': 'ok',
     });
     final prefs = await SharedPreferences.getInstance();
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         authNotifierProvider.overrideWith(_SignedOutAuthNotifier.new),
         imageCachePurgerProvider.overrideWithValue(() async {}),
       ],
     );
-    addTearDown(container.dispose);
 
     container.read(_logoutCleanupInvoker)();
     await Future<void>.delayed(Duration.zero);
@@ -99,14 +98,13 @@ void main() {
       () async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         authNotifierProvider.overrideWith(_SignedOutAuthNotifier.new),
         imageCachePurgerProvider.overrideWithValue(() async {}),
       ],
     );
-    addTearDown(container.dispose);
     container.read(familyPromptSuppressedProvider.notifier).state = true;
 
     container.read(_logoutCleanupInvoker)();
@@ -123,14 +121,13 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     var purges = 0;
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         authNotifierProvider.overrideWith(_SignedOutAuthNotifier.new),
         imageCachePurgerProvider.overrideWithValue(() async => purges++),
       ],
     );
-    addTearDown(container.dispose);
 
     container.read(_logoutCleanupInvoker)();
     await Future<void>.delayed(Duration.zero);
@@ -145,14 +142,13 @@ void main() {
       'unrelated_pref': 'keep',
     });
     final prefs = await SharedPreferences.getInstance();
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         authNotifierProvider.overrideWith(_SignedOutAuthNotifier.new),
         imageCachePurgerProvider.overrideWithValue(() async {}),
       ],
     );
-    addTearDown(container.dispose);
     container.read(pendingNavigationProvider.notifier).state =
         const PendingNavigation(route: '/notifications');
 

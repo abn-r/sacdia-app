@@ -14,6 +14,7 @@ import 'package:sacdia_app/features/camporees/presentation/providers/camporees_p
 import 'package:sacdia_app/features/dashboard/presentation/widgets/quick_access_grid.dart';
 import 'package:sacdia_app/features/units/domain/entities/unit.dart';
 import 'package:sacdia_app/features/units/presentation/providers/units_providers.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _FakeAuthNotifier extends AuthNotifier {
   _FakeAuthNotifier(this._user);
@@ -85,7 +86,7 @@ Future<void> _pumpQuickAccessGrid(
   List<Override> extraOverrides = const [],
 }) async {
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         authNotifierProvider.overrideWith(() => _FakeAuthNotifier(user)),
         camporeeJudgeAssignmentsProvider.overrideWith((ref) async => const []),

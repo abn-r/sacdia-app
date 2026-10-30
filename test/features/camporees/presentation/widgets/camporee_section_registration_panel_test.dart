@@ -11,6 +11,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_section_registration_panel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -225,7 +226,7 @@ Future<void> _pumpPanel(
       assetLoader: const _FileAssetLoader(),
       fallbackLocale: const Locale('es'),
       startLocale: const Locale('es'),
-      child: ProviderScope(
+      child: testProviderScope(
         child: Builder(
           builder: (context) => MaterialApp(
             theme: brightness == Brightness.light

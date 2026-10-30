@@ -14,6 +14,7 @@ import 'package:sacdia_app/features/virtual_card/domain/entities/virtual_card.da
 import 'package:sacdia_app/features/virtual_card/domain/repositories/virtual_card_repository.dart';
 import 'package:sacdia_app/features/virtual_card/presentation/providers/virtual_card_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../support/riverpod_test_support.dart';
 
 /// C1 (verify 2b): la credencial de un dependiente nunca se persiste en disco
 /// (FP-49, FP-51, FP-53). Usa el repositorio REAL con SharedPreferences
@@ -93,7 +94,7 @@ void main() {
     required _FakeRemote remote,
     VirtualCardRepository? repository,
   }) {
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         authNotifierProvider
             .overrideWith(() => _FakeAuthNotifier(_user(userId))),
@@ -104,7 +105,6 @@ void main() {
           virtualCardRepositoryProvider.overrideWithValue(repository),
       ],
     );
-    addTearDown(container.dispose);
     return container;
   }
 

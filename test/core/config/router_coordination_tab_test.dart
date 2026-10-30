@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
@@ -8,6 +7,7 @@ import 'package:sacdia_app/core/providers/app_bootstrap_provider.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import '../../support/riverpod_test_support.dart';
 
 const _activeClubGrant = AuthorizationGrant(
   assignmentId: 'a1',
@@ -179,7 +179,7 @@ void main() {
   group('coordinator routes', () {
     Future<GoRouter> setUpRouter(WidgetTester tester) async {
       await tester.pumpWidget(const MaterialApp(home: SizedBox()));
-      final container = ProviderContainer(
+      final container = createTestContainer(
         overrides: [
           authNotifierProvider.overrideWith(
             () => _FakeAuthNotifier(
@@ -192,7 +192,6 @@ void main() {
       final router = container.read(routerProvider);
       addTearDown(() {
         router.dispose();
-        container.dispose();
       });
       await container.read(authNotifierProvider.future);
       await container.read(appBootstrapProvider.future);

@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/usecases/cancellation_token.dart';
@@ -9,6 +8,7 @@ import 'package:sacdia_app/features/activities/domain/usecases/get_club_activiti
 import 'package:sacdia_app/features/activities/presentation/providers/activities_providers.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _FakeAuthNotifier extends AuthNotifier {
   _FakeAuthNotifier(this._user);
@@ -38,13 +38,12 @@ class _FakeGetClubActivities implements GetClubActivities {
 void main() {
   test('clubActivitiesProvider does not fetch after logout', () async {
     final fakeGetClubActivities = _FakeGetClubActivities();
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         authNotifierProvider.overrideWith(() => _FakeAuthNotifier(null)),
         getClubActivitiesProvider.overrideWithValue(fakeGetClubActivities),
       ],
     );
-    addTearDown(container.dispose);
 
     await container.read(authNotifierProvider.future);
 

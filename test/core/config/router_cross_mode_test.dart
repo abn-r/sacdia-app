@@ -37,6 +37,7 @@ import '../../features/auth/presentation/providers/auth_notifier_test_support.da
     show FakeNotificationsRepository;
 import '../../features/device_mode/device_test_harness.dart';
 import '../../features/family/family_test_harness.dart';
+import '../../support/riverpod_test_support.dart';
 
 /// Lo que cada modo «cachea» en memoria: un centinela del registro de perfil.
 /// Si la purga de cierre de sesión lo respeta, el modo siguiente lo ve vacío.
@@ -149,7 +150,7 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     final session = ActingForSession();
     final auth = _Auth(_adult());
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         authNotifierProvider.overrideWith(() => auth),
         appBootstrapProvider.overrideWith(_ReadyBootstrap.new),
@@ -174,7 +175,6 @@ void main() {
     );
     addTearDown(() {
       container.read(routerProvider).dispose();
-      container.dispose();
     });
     await container.read(authNotifierProvider.future);
     final router = container.read(routerProvider);

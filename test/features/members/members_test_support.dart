@@ -22,6 +22,7 @@ import 'package:sacdia_app/features/members/domain/entities/join_request.dart';
 import 'package:sacdia_app/features/members/domain/repositories/members_repository.dart';
 import 'package:sacdia_app/core/usecases/cancellation_token.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../support/riverpod_test_support.dart';
 
 /// Traducciones reales (`es`) para comprobar el texto de verdad.
 class FileAssetLoader extends AssetLoader {
@@ -55,7 +56,7 @@ Future<void> pumpMembersApp(
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: overrides,
       child: EasyLocalization(
         supportedLocales: const [Locale('es')],

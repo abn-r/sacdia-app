@@ -1,7 +1,7 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/auth/acting_for_session.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../support/riverpod_test_support.dart';
 
 void main() {
   const ana = ActingDependent(userId: 'ana-1', firstName: 'Ana');
@@ -97,8 +97,7 @@ void main() {
 
   group('actingForSessionProvider', () {
     test('is a single shared instance for the container lifetime', () {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+      final container = createTestContainer();
 
       final a = container.read(actingForSessionProvider);
       final b = container.read(actingForSessionProvider);
@@ -109,12 +108,11 @@ void main() {
     });
 
     test('a new container starts as the guardian', () {
-      final first = ProviderContainer();
+      final first = createTestContainer();
       first.read(actingForSessionProvider).enter(ana);
       first.dispose();
 
-      final second = ProviderContainer();
-      addTearDown(second.dispose);
+      final second = createTestContainer();
       expect(second.read(actingForSessionProvider).isActing, isFalse);
     });
   });

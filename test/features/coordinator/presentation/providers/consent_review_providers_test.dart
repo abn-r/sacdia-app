@@ -10,6 +10,7 @@ import 'package:sacdia_app/features/coordinator/presentation/providers/consent_r
 import 'package:sacdia_app/features/coordinator/presentation/providers/coordinator_providers.dart';
 
 import '../../coordinator_test_support.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 Map<String, Object?> _item(String id, int sectionId, {String name = 'Ana'}) =>
     pendingItemJson(id: id, sectionId: sectionId, name: name);
@@ -23,10 +24,9 @@ void main() {
   setUp(() => repo = FakeCoordinatorRepository());
 
   ProviderContainer container() {
-    final c = ProviderContainer(
+    final c = createTestContainer(
       overrides: [coordinatorRepositoryProvider.overrideWithValue(repo)],
     );
-    addTearDown(c.dispose);
     return c;
   }
 

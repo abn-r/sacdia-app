@@ -54,7 +54,6 @@ void main() {
       final container = await buildAuthContainer(
         repo: _SocialRepo(const Right(user)),
       );
-      addTearDown(container.dispose);
       await container.read(authNotifierProvider.future);
 
       final result = await container
@@ -74,7 +73,6 @@ void main() {
           ServerFailure(message: 'RAW SERVER TEXT', code: 500),
         );
       final container = await buildAuthContainer(repo: repo);
-      addTearDown(container.dispose);
       await container.read(authNotifierProvider.future);
 
       final result = await container
@@ -94,7 +92,6 @@ void main() {
     final container = await buildAuthContainer(
       repo: _SocialRepo(Left(SocialSignInCancelledFailure())),
     );
-    addTearDown(container.dispose);
     await container.read(authNotifierProvider.future);
 
     final result =
@@ -114,7 +111,6 @@ void main() {
         ),
       ),
     );
-    addTearDown(container.dispose);
     await container.read(authNotifierProvider.future);
 
     final result =
@@ -134,7 +130,6 @@ void main() {
       final container = await buildAuthContainer(
         repo: _SocialRepo(const Right(user), gate: gate),
       );
-      addTearDown(container.dispose);
       await container.read(authNotifierProvider.future);
 
       final transitions = <AsyncValue<UserEntity?>>[];
@@ -164,7 +159,6 @@ void main() {
     final container = await buildAuthContainer(
       repo: _SocialRepo(Left(SocialSignInCancelledFailure())),
     );
-    addTearDown(container.dispose);
     await container.read(authNotifierProvider.future);
     final before = container.read(authNotifierProvider);
 
@@ -184,7 +178,6 @@ void main() {
     final container = await buildAuthContainer(
       repo: _SocialRepo(Left(SocialSignInCancelledFailure())),
     );
-    addTearDown(container.dispose);
     await container.read(authNotifierProvider.future);
     final notifier = container.read(authNotifierProvider.notifier);
     notifier.state = AsyncValue.error('error previo', StackTrace.current);

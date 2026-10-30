@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -11,6 +10,7 @@ import 'package:sacdia_app/features/finances/domain/entities/finance_category.da
 import 'package:sacdia_app/features/finances/presentation/providers/finances_providers.dart';
 import 'package:sacdia_app/features/finances/presentation/views/add_transaction_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +31,7 @@ void main() {
     List<FinanceCategory> categories,
   ) async {
     await tester.pumpWidget(
-      ProviderScope(
+      testProviderScope(
         overrides: [
           financeCategoriesProvider.overrideWith((ref) async => categories),
         ],

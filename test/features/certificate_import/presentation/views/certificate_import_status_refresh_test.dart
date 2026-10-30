@@ -1,7 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
@@ -18,6 +17,7 @@ import 'package:sacdia_app/features/certificate_import/presentation/views/certif
 
 import '../../support/catalog_fakes.dart';
 import '../../support/test_app.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 CertificateImportItem _row(String id, {bool active = true}) =>
     CertificateImportItem(
@@ -76,7 +76,7 @@ void main() {
       (tester) async {
     phoneSurface(tester);
     final api = _Api();
-    await tester.pumpWidget(ProviderScope(
+    await tester.pumpWidget(testProviderScope(
       overrides: [
         ...catalogOverrides(),
         getCertificateImportBatchProvider.overrideWithValue(_FakeGet(api)),

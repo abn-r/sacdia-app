@@ -47,7 +47,6 @@ void main() {
       repo: _OnlineRepository(),
       storage: storage,
     );
-    addTearDown(container.dispose);
 
     final user = await container.read(authNotifierProvider.future);
 
@@ -58,7 +57,6 @@ void main() {
 
   test('mark* helpers keep acting/family and a null email', () async {
     final container = await buildAuthContainer(repo: _OnlineRepository());
-    addTearDown(container.dispose);
     await container.read(authNotifierProvider.future);
     final notifier = container.read(authNotifierProvider.notifier);
 
@@ -91,7 +89,6 @@ void main() {
       storage: storage,
       prefs: prefs,
     );
-    addTearDown(container.dispose);
 
     final user = await container.read(authNotifierProvider.future);
 

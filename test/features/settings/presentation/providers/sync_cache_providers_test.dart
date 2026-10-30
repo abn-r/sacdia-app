@@ -24,6 +24,7 @@ import 'package:sacdia_app/providers/catalogs_provider.dart';
 import 'package:sacdia_app/providers/storage_provider.dart';
 import 'package:sacdia_app/shared/data/datasources/catalogs_remote_data_source.dart';
 import 'package:sacdia_app/shared/models/catalogs/catalogs.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _FakeCacheRepository implements CacheRepository {
   int imageClears = 0;
@@ -127,7 +128,7 @@ void main() {
     });
     final prefs = await SharedPreferences.getInstance();
     final repo = _FakeCacheRepository();
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         cacheRepositoryProvider.overrideWithValue(repo),
@@ -145,7 +146,6 @@ void main() {
         allHonorsProvider.overrideWith((ref) async => <Honor>[]),
       ],
     );
-    addTearDown(container.dispose);
 
     final before = await container.read(clubTypesProvider.future);
     expect(before.first.clubTypeId, cached.clubTypeId);
@@ -167,7 +167,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final repo = _FakeCacheRepository();
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         cacheRepositoryProvider.overrideWithValue(repo),
@@ -188,7 +188,6 @@ void main() {
         allHonorsProvider.overrideWith((ref) async => <Honor>[]),
       ],
     );
-    addTearDown(container.dispose);
 
     await container.read(clubTypesProvider.future);
     expect(builds, 1);

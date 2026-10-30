@@ -8,6 +8,7 @@ import 'package:sacdia_app/features/legal/domain/entities/legal_document.dart';
 import 'package:sacdia_app/features/legal/domain/entities/legal_status.dart';
 import 'package:sacdia_app/features/legal/domain/repositories/legal_repository.dart';
 import 'package:sacdia_app/features/legal/presentation/providers/legal_providers.dart';
+import '../../support/riverpod_test_support.dart';
 
 class _RecordingAuthNotifier extends AuthNotifier {
   int accepted = 0;
@@ -75,11 +76,10 @@ const _status = LegalStatus(
 }) _build(Either<Failure, LegalStatus> acceptResult) {
   final auth = _RecordingAuthNotifier();
   final repo = _FakeLegalRepository(acceptResult);
-  final container = ProviderContainer(overrides: [
+  final container = createTestContainer(overrides: [
     authNotifierProvider.overrideWith(() => auth),
     legalRepositoryProvider.overrideWithValue(repo),
   ]);
-  addTearDown(container.dispose);
   return (container: container, auth: auth, repo: repo);
 }
 

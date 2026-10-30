@@ -1,7 +1,6 @@
 /// Tests for CoordinatorReportsView (read-only club reports).
 library;
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
@@ -16,6 +15,7 @@ import 'package:sacdia_app/features/coordinator/presentation/providers/coordinat
 import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_reports_view.dart';
 
 import '../../coordinator_test_harness.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 ReportCompliancePeriod _month(int month, ReportCounts counts) =>
     ReportCompliancePeriod(
@@ -120,7 +120,7 @@ Future<_Calls> _pump(
   final calls = _Calls();
 
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         reportComplianceProvider.overrideWith((ref, query) async {
           calls.compliance.add(query);

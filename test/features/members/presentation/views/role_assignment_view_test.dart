@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -12,6 +11,7 @@ import 'package:sacdia_app/features/members/domain/entities/club_member.dart';
 import 'package:sacdia_app/features/members/presentation/providers/members_providers.dart';
 import 'package:sacdia_app/features/members/presentation/views/role_assignment_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -34,7 +34,7 @@ void main() {
     Future<AssignableRolesResult> Function() load,
   ) async {
     await tester.pumpWidget(
-      ProviderScope(
+      testProviderScope(
         overrides: [
           assignableRolesProvider.overrideWith((ref, params) => load()),
         ],

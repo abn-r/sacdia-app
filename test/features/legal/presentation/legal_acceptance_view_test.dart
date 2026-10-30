@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/auth/acting_for_session.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
@@ -15,6 +14,7 @@ import 'package:sacdia_app/features/legal/domain/entities/legal_status.dart';
 import 'package:sacdia_app/features/legal/domain/repositories/legal_repository.dart';
 import 'package:sacdia_app/features/legal/presentation/providers/legal_providers.dart';
 import 'package:sacdia_app/features/legal/presentation/views/legal_acceptance_view.dart';
+import '../../../support/riverpod_test_support.dart';
 
 LegalStatus _status({
   String terms = '1.0.0',
@@ -122,7 +122,7 @@ Future<_Harness> _pump(
   final auth = _RecordingAuthNotifier();
   final opened = <Uri>[];
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         authNotifierProvider.overrideWith(() => auth),
         legalRepositoryProvider.overrideWithValue(repo),

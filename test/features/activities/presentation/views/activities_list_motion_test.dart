@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -16,6 +15,7 @@ import 'package:sacdia_app/features/activities/presentation/widgets/activity_car
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _FakeAuthNotifier extends AuthNotifier {
   @override
@@ -79,7 +79,7 @@ void main() {
     final activity = buildActivity();
 
     await tester.pumpWidget(
-      ProviderScope(
+      testProviderScope(
         overrides: [
           authNotifierProvider.overrideWith(_FakeAuthNotifier.new),
           clubActivitiesProvider.overrideWith(

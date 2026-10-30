@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
@@ -17,6 +16,7 @@ import 'package:sacdia_app/features/units/domain/unit_access.dart';
 import 'package:sacdia_app/features/units/presentation/providers/units_providers.dart';
 import 'package:sacdia_app/features/units/presentation/views/unit_detail_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _FakeAuthNotifier extends AuthNotifier {
   _FakeAuthNotifier(this.user);
@@ -203,7 +203,7 @@ Future<void> _pumpDetail(
   );
 
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         authNotifierProvider.overrideWith(() => _FakeAuthNotifier(user)),
         unitsNotifierProvider.overrideWith(() => _StaticUnitsNotifier(state)),

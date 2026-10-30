@@ -3,12 +3,12 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/features/support/presentation/views/support_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -36,7 +36,7 @@ void main() {
 
 Future<void> _pumpSupport(WidgetTester tester) async {
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       child: EasyLocalization(
         supportedLocales: const [Locale('es')],
         path: 'assets/translations',

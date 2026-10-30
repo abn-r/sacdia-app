@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/auth/presentation/views/login_view.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _CountingAuthNotifier extends AuthNotifier {
   int signInCalls = 0;
@@ -35,7 +36,7 @@ void main() {
 
     final notifier = _CountingAuthNotifier();
     await tester.pumpWidget(
-      ProviderScope(
+      testProviderScope(
         overrides: [
           authNotifierProvider.overrideWith(() => notifier),
           socialInFlightOverride(socialInFlight),

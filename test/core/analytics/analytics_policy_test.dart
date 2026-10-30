@@ -10,6 +10,7 @@ import 'package:sacdia_app/features/dashboard/domain/entities/dashboard_summary.
 import 'package:sacdia_app/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:sacdia_app/features/profile/domain/entities/user_detail.dart';
 import 'package:sacdia_app/features/profile/presentation/providers/profile_providers.dart';
+import '../../support/riverpod_test_support.dart';
 
 /// Registra lo que la política le pide a la analítica real.
 class _RecordingGateway implements AnalyticsGateway {
@@ -250,7 +251,7 @@ void main() {
       UserEntity? user,
     ) async {
       final recorded = _RecordingGateway();
-      final container = ProviderContainer(
+      final container = createTestContainer(
         overrides: [
           analyticsPolicyProvider
               .overrideWithValue(AnalyticsPolicy(gateway: recorded)),
@@ -262,7 +263,6 @@ void main() {
       );
       addTearDown(() {
         container.read(routerProvider).dispose();
-        container.dispose();
       });
       await container.read(authNotifierProvider.future);
       // El router se crea al leerlo: su arranque aplica la política.
@@ -294,7 +294,7 @@ void main() {
         'a later /auth/me that changes the mode goes through the same policy',
         (tester) async {
       final recorded = _RecordingGateway();
-      final container = ProviderContainer(
+      final container = createTestContainer(
         overrides: [
           analyticsPolicyProvider
               .overrideWithValue(AnalyticsPolicy(gateway: recorded)),
@@ -306,7 +306,6 @@ void main() {
       );
       addTearDown(() {
         container.read(routerProvider).dispose();
-        container.dispose();
       });
       await container.read(authNotifierProvider.future);
       container.read(routerProvider);

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
@@ -11,6 +10,7 @@ import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.d
 import 'package:sacdia_app/features/dashboard/domain/entities/dashboard_summary.dart';
 import 'package:sacdia_app/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:sacdia_app/features/dashboard/presentation/views/dashboard_view.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _NullDashboardNotifier extends DashboardNotifier {
   @override
@@ -51,7 +51,7 @@ Future<GoRouter> _pump(WidgetTester tester, UserEntity user) async {
     ],
   );
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         dashboardNotifierProvider.overrideWith(_NullDashboardNotifier.new),
         authNotifierProvider.overrideWith(() => _AuthNotifier(user)),

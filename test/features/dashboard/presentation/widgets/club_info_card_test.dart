@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
@@ -7,6 +6,7 @@ import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.d
 import 'package:sacdia_app/features/dashboard/presentation/widgets/club_info_card.dart';
 import 'package:sacdia_app/features/profile/domain/entities/user_detail.dart';
 import 'package:sacdia_app/features/profile/presentation/providers/profile_providers.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _FakeAuthNotifier extends AuthNotifier {
   _FakeAuthNotifier(this._user);
@@ -51,7 +51,7 @@ Future<void> _pumpClubInfoCard(
   final user = _userForClubType(clubTypeName);
 
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         authNotifierProvider.overrideWith(() => _FakeAuthNotifier(user)),
         profileNotifierProvider.overrideWith(_NullProfileNotifier.new),

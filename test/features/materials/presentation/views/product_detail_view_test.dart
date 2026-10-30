@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/features/materials/domain/entities/material_category.dart';
@@ -12,6 +11,7 @@ import 'package:sacdia_app/features/materials/domain/entities/material_program.d
 import 'package:sacdia_app/features/materials/presentation/providers/product_detail_provider.dart';
 import 'package:sacdia_app/features/materials/presentation/views/product_detail_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _FileAssetLoader extends AssetLoader {
   const _FileAssetLoader();
@@ -47,7 +47,7 @@ void main() {
 
   Future<void> pumpProduct(WidgetTester tester, String title) async {
     await tester.pumpWidget(
-      ProviderScope(
+      testProviderScope(
         overrides: [
           productDetailProvider('p1').overrideWith((ref) async => _item(title)),
         ],

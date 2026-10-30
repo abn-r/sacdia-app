@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
@@ -14,6 +13,7 @@ import 'package:sacdia_app/features/camporee_supplies/domain/entities/camporee_s
 import 'package:sacdia_app/features/camporee_supplies/presentation/providers/camporee_supplies_providers.dart';
 import 'package:sacdia_app/features/camporee_supplies/presentation/views/camporee_supply_plan_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -154,7 +154,7 @@ Future<void> _pumpPlan(
   CamporeeSupplyPlanEnvelope envelope = _envelope,
 }) async {
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         camporeeSupplyPlanProvider.overrideWith((ref, scope) async => envelope),
       ],

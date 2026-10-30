@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
@@ -14,6 +13,7 @@ import 'package:sacdia_app/features/post_registration/presentation/providers/clu
 import 'package:sacdia_app/features/post_registration/presentation/providers/post_registration_flow_providers.dart';
 
 import '../family/family_test_harness.dart';
+import '../../support/riverpod_test_support.dart';
 
 class _Step3DataSource implements ClubSelectionRemoteDataSource {
   _Step3DataSource(this.step3Error);
@@ -76,7 +76,7 @@ void main() {
   setUpAll(initLocalization);
 
   Future<PostRegistrationFlowResult> runStep3(AppException? error) async {
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         authNotifierProvider.overrideWith(() => FakeAuthNotifier()),
         clubSelectionDataSourceProvider
@@ -87,7 +87,6 @@ void main() {
         selectedClubSectionProvider.overrideWith((ref) => 163),
       ],
     );
-    addTearDown(container.dispose);
     await container.read(authNotifierProvider.future);
     final sub = container.listen(
       postRegistrationFlowNotifierProvider,

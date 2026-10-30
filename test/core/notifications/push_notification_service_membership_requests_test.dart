@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/notifications/push_notification_service.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import '../../support/riverpod_test_support.dart';
 
 class _FakeAuth extends AuthNotifier {
   _FakeAuth(this.user);
@@ -75,10 +76,9 @@ void main() {
       UserEntity user,
     ) async {
       auth = _FakeAuth(user);
-      final container = ProviderContainer(
+      final container = createTestContainer(
         overrides: [authNotifierProvider.overrideWith(() => auth)],
       );
-      addTearDown(container.dispose);
       await container.read(authNotifierProvider.future);
       final service = container.read(
         Provider<PushNotificationService>(

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/acting_providers.dart';
 import 'package:sacdia_app/features/auth/presentation/widgets/acting_notice_listener.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 Widget _app(ProviderContainer container) {
   return UncontrolledProviderScope(
@@ -22,8 +23,7 @@ Widget _app(ProviderContainer container) {
 void main() {
   testWidgets('shows the access-revoked message once and clears the notice',
       (tester) async {
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
+    final container = createTestContainer();
 
     await tester.pumpWidget(_app(container));
     expect(find.byType(SnackBar), findsNothing);
@@ -48,8 +48,7 @@ void main() {
 
   testWidgets('renders its child untouched when there is no notice',
       (tester) async {
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
+    final container = createTestContainer();
 
     await tester.pumpWidget(_app(container));
 

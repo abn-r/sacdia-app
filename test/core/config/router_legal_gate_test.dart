@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/providers/app_bootstrap_provider.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import '../../support/riverpod_test_support.dart';
 
 UserEntity _user({
   bool legalPending = false,
@@ -58,7 +59,7 @@ void main() {
         ),
       ),
     );
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         authNotifierProvider.overrideWith(() => _FakeAuthNotifier(user)),
         appBootstrapProvider.overrideWith(_ReadyBootstrap.new),
@@ -66,7 +67,6 @@ void main() {
     );
     addTearDown(() {
       container.read(routerProvider).dispose();
-      container.dispose();
     });
     await container.read(authNotifierProvider.future);
     await container.read(appBootstrapProvider.future);

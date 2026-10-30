@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -12,6 +11,7 @@ import 'package:sacdia_app/features/camporees/domain/entities/camporee_judge_ass
 import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
 import 'package:sacdia_app/features/camporees/presentation/views/judge_assignments_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -141,7 +141,7 @@ Future<void> _pumpAssignments(
   List<CamporeeJudgeAssignment> assignments,
 ) async {
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         camporeeJudgeAssignmentsProvider.overrideWith(
           (ref) async => assignments,

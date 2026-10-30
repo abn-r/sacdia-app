@@ -18,6 +18,7 @@ import 'package:sacdia_app/features/insurance/presentation/providers/insurance_p
 import 'package:sacdia_app/features/payment_orders/domain/entities/payment_order.dart';
 import 'package:sacdia_app/features/payment_orders/presentation/providers/payment_orders_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _TestAuthNotifier extends AuthNotifier {
   final Future<UserEntity?> Function() loader;
@@ -445,7 +446,7 @@ Future<void> _pumpView(
   required VoidCallback onRegisteredIdsLoad,
 }) async {
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         authNotifierProvider.overrideWith(
           () => _TestAuthNotifier(

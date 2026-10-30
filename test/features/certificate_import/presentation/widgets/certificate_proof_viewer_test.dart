@@ -5,7 +5,6 @@ import 'package:dartz/dartz.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
@@ -21,6 +20,7 @@ import 'package:sacdia_app/features/certificate_import/presentation/views/certif
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_proof_summary.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_proof_viewer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 const _url = 'https://r2.example.com/proof.pdf?sig=abc';
 const _pngBase64 =
@@ -71,7 +71,7 @@ Widget _app(
   CertificateImportBatch? batch,
   Object? batchError,
 }) {
-  return ProviderScope(
+  return testProviderScope(
     overrides: [
       if (signed != null)
         signedCertificateImportDownloadProvider.overrideWithValue(signed),
@@ -406,7 +406,7 @@ void main() {
           ],
         );
 
-    Widget host(GoRouter router) => ProviderScope(
+    Widget host(GoRouter router) => testProviderScope(
           child: EasyLocalization(
             supportedLocales: const [Locale('es')],
             path: 'assets/translations',

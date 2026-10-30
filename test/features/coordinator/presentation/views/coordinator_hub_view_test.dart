@@ -4,7 +4,6 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -23,6 +22,7 @@ import 'package:sacdia_app/features/coordinator/presentation/providers/coordinat
 import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_hub_view.dart';
 
 import '../../coordinator_test_harness.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 const _scope = CoordinatorScope(
   isCoordinator: true,
@@ -169,7 +169,7 @@ Future<void> _pumpHub(
   addTearDown(router.dispose);
 
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         coordinatorScopeProvider
             .overrideWith((ref) async => (scope ?? () => _scope)()),
@@ -461,7 +461,7 @@ void main() {
       useTallSurface(tester);
 
       await tester.pumpWidget(
-        ProviderScope(
+        testProviderScope(
           overrides: [
             coordinatorScopeProvider.overrideWith((ref) => never.future),
           ],

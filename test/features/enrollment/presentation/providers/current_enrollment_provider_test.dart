@@ -1,11 +1,11 @@
 import 'package:dartz/dartz.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/features/enrollment/domain/entities/enrollment.dart';
 import 'package:sacdia_app/features/enrollment/domain/usecases/get_current_enrollment.dart';
 import 'package:sacdia_app/features/enrollment/presentation/providers/enrollment_providers.dart';
 import 'package:sacdia_app/features/members/presentation/providers/members_providers.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _FailingUseCase extends Fake implements GetCurrentEnrollment {
   @override
@@ -21,7 +21,7 @@ class _FailingUseCase extends Fake implements GetCurrentEnrollment {
 /// had. A failed lookup must surface as an error, not as null.
 void main() {
   test('a failed lookup is an error, not "no enrollment"', () async {
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         clubContextProvider.overrideWith(
           (ref) async => const ClubContext(
@@ -35,7 +35,6 @@ void main() {
         ),
       ],
     );
-    addTearDown(container.dispose);
 
     await expectLater(
       container.read(currentEnrollmentProvider.future),

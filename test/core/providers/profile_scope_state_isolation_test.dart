@@ -6,6 +6,7 @@ import 'package:sacdia_app/features/honors/presentation/providers/honors_provide
 import 'package:sacdia_app/features/master_honors/presentation/providers/master_honor_modal_queue_provider.dart';
 import 'package:sacdia_app/features/qr/domain/entities/qr_member_token.dart';
 import 'package:sacdia_app/features/qr/presentation/providers/qr_member_token_provider.dart';
+import '../../support/riverpod_test_support.dart';
 
 /// C2 / W3 (verify 2b): estado sin `autoDispose` que sobrevivía al cambio de
 /// perfil. Usa el registro REAL (`profileScopedProviders`) y la misma
@@ -45,7 +46,7 @@ void main() {
   test(
       'the guardian completion-mode override is not rendered as the '
       "dependent's enrollment after a switch (C2)", () async {
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         // Ana no tiene inscripción en la especialidad 42.
         sectionScopedUserHonorsProvider.overrideWithValue(
@@ -53,7 +54,6 @@ void main() {
         ),
       ],
     );
-    addTearDown(container.dispose);
     container.listen(userHonorForHonorProvider(42), (_, __) {});
 
     // La tutora cambia el modo de cumplimiento de la especialidad 42.
@@ -75,12 +75,11 @@ void main() {
 
   test('the member QR token of the previous profile is dropped (W3)', () async {
     final tokens = ['guardian-token', 'ana-token'];
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         qrMemberTokenProvider.overrideWith(() => _TokenNotifier(tokens)),
       ],
     );
-    addTearDown(container.dispose);
     container.listen(qrMemberTokenProvider, (_, __) {});
 
     expect((await container.read(qrMemberTokenProvider.future)).token,
@@ -96,8 +95,7 @@ void main() {
   });
 
   test('the master honor modal queue is emptied on a switch (W3)', () {
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
+    final container = createTestContainer();
     container.listen(masterHonorModalQueueProvider, (_, __) {});
     container.read(masterHonorModalQueueProvider.notifier).enqueue(
           const MasterHonorModalEvent(

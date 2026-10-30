@@ -7,6 +7,7 @@ import 'package:sacdia_app/features/inventory/domain/entities/inventory_item.dar
 import 'package:sacdia_app/features/inventory/presentation/providers/inventory_providers.dart';
 import 'package:sacdia_app/features/inventory/presentation/views/inventory_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../support/riverpod_test_support.dart';
 
 /// Sin traducciones a propósito: las aserciones leen las llaves crudas.
 class _NoTranslations extends AssetLoader {
@@ -36,14 +37,13 @@ void main() {
     WidgetTester tester, {
     required List<InventoryItem> items,
   }) async {
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         inventoryItemsProvider.overrideWith((ref) async => items),
         canManageInventoryProvider.overrideWith((ref) async => true),
         inventoryCategoriesProvider.overrideWith((ref) async => const []),
       ],
     );
-    addTearDown(container.dispose);
 
     await tester.pumpWidget(
       UncontrolledProviderScope(

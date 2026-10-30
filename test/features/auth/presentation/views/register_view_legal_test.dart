@@ -12,6 +12,7 @@ import 'package:sacdia_app/features/legal/domain/entities/legal_document.dart';
 import 'package:sacdia_app/features/legal/domain/entities/legal_status.dart';
 import 'package:sacdia_app/features/legal/domain/repositories/legal_repository.dart';
 import 'package:sacdia_app/features/legal/presentation/providers/legal_providers.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 List<LegalDocument> _docs({String terms = '1.0.0', String privacy = '1.0.0'}) =>
     [
@@ -90,7 +91,7 @@ Future<_Harness> _pump(
 
   final auth = _RecordingAuthNotifier();
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         authNotifierProvider.overrideWith(() => auth),
         legalRepositoryProvider.overrideWithValue(repo),

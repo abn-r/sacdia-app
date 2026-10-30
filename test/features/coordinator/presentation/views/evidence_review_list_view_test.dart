@@ -4,7 +4,6 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -22,6 +21,7 @@ import 'package:sacdia_app/features/coordinator/presentation/views/evidence_revi
 import 'package:sacdia_app/features/coordinator/presentation/widgets/evidence_review_card.dart';
 
 import '../../coordinator_test_harness.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 EvidenceReviewItem _item(
   String id,
@@ -99,7 +99,7 @@ Future<void> _pumpPaged(
   );
 
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         if (initialFilter != null)
           evidenceTypeFilterProvider.overrideWith((ref) => initialFilter),
@@ -381,7 +381,7 @@ void main() {
       final never = Completer<EvidenceReviewPage>();
       useTallSurface(tester);
       await tester.pumpWidget(
-        ProviderScope(
+        testProviderScope(
           overrides: [
             pendingEvidenceOverride((type, page) => never.future),
           ],

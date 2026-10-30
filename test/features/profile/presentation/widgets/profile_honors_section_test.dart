@@ -5,6 +5,7 @@ import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/master_honors/presentation/providers/master_honors_providers.dart';
 import 'package:sacdia_app/features/profile/presentation/widgets/profile_honors_section.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 void main() {
   group('ProfileHonorsSection', () {
@@ -33,7 +34,7 @@ void main() {
       List<UserHonor> honors,
     ) async {
       await tester.pumpWidget(
-        ProviderScope(
+        testProviderScope(
           overrides: [
             userHonorsProvider.overrideWith((ref) async => honors),
             activeHonorCatalogClubTypeIdProvider.overrideWith(

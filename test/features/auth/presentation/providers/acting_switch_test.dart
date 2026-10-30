@@ -21,6 +21,7 @@ import 'package:sacdia_app/providers/json_file_cache_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'auth_notifier_test_support.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 const _guardian = UserEntity(
   id: 'guardian-1',
@@ -118,7 +119,6 @@ void main() {
         imageCachePurgerProvider.overrideWithValue(() async => imagePurges++),
       ],
     );
-    addTearDown(container.dispose);
     // Mantiene vivo el centinela, como lo haría un provider `keepAlive`.
     container.listen<String>(profileData, (_, __) {});
     await container.read(authNotifierProvider.future);
@@ -338,8 +338,7 @@ void main() {
   });
 
   test('production purges exactly the profile scope registry', () {
-    final plain = ProviderContainer();
-    addTearDown(plain.dispose);
+    final plain = createTestContainer();
 
     expect(plain.read(profileScopedProvidersProvider), profileScopedProviders);
   });
@@ -605,7 +604,6 @@ void main() {
         prefs: prefs,
         extraOverrides: [jsonFileCacheProvider.overrideWithValue(diskCache)],
       );
-      addTearDown(container.dispose);
 
       final user = await container.read(authNotifierProvider.future);
 
@@ -641,7 +639,6 @@ void main() {
         prefs: prefs,
         extraOverrides: [jsonFileCacheProvider.overrideWithValue(diskCache)],
       );
-      addTearDown(container.dispose);
 
       await container.read(authNotifierProvider.future);
 
@@ -670,7 +667,6 @@ void main() {
         prefs: prefs,
         extraOverrides: [jsonFileCacheProvider.overrideWithValue(diskCache)],
       );
-      addTearDown(container.dispose);
 
       await container.read(authNotifierProvider.future);
 
@@ -701,7 +697,6 @@ void main() {
         prefs: prefs,
         extraOverrides: [jsonFileCacheProvider.overrideWithValue(diskCache)],
       );
-      addTearDown(container.dispose);
 
       await container.read(authNotifierProvider.future);
 
@@ -730,7 +725,6 @@ void main() {
           imageCachePurgerProvider.overrideWithValue(() async => imagePurges++),
         ],
       );
-      addTearDown(container.dispose);
 
       await container.read(authNotifierProvider.future);
 

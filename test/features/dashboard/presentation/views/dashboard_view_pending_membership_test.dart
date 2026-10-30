@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/pending_club_membership.dart';
@@ -11,6 +10,7 @@ import 'package:sacdia_app/features/dashboard/presentation/providers/dashboard_p
 import 'package:sacdia_app/features/dashboard/presentation/views/dashboard_view.dart';
 import 'package:sacdia_app/features/profile/domain/entities/user_detail.dart';
 import 'package:sacdia_app/features/profile/presentation/providers/profile_providers.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _NullDashboardNotifier extends DashboardNotifier {
   @override
@@ -104,7 +104,7 @@ void main() {
     'shows pending membership state instead of dashboard load error',
     (tester) async {
       await tester.pumpWidget(
-        ProviderScope(
+        testProviderScope(
           overrides: [
             dashboardNotifierProvider.overrideWith(_NullDashboardNotifier.new),
             authNotifierProvider.overrideWith(_FakeAuthNotifier.new),
@@ -132,7 +132,7 @@ void main() {
       var profileBuilds = 0;
 
       await tester.pumpWidget(
-        ProviderScope(
+        testProviderScope(
           overrides: [
             dashboardNotifierProvider.overrideWith(_NullDashboardNotifier.new),
             authNotifierProvider.overrideWith(_FakeAuthNotifier.new),
@@ -155,7 +155,7 @@ void main() {
   Future<void> pumpTeen(
       WidgetTester tester, AuthNotifier Function() auth) async {
     await tester.pumpWidget(
-      ProviderScope(
+      testProviderScope(
         overrides: [
           dashboardNotifierProvider.overrideWith(_NullDashboardNotifier.new),
           authNotifierProvider.overrideWith(auth),

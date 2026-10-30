@@ -24,6 +24,7 @@ import '../../features/auth/presentation/providers/auth_notifier_test_support.da
     show FakeNotificationsRepository;
 import '../../features/family/family_fixtures.dart';
 import '../../features/family/family_test_harness.dart';
+import '../../support/riverpod_test_support.dart';
 
 /// `AuthNotifier` cuya carga inicial se controla desde el test (arranque en
 /// frío: la sesión del tutor tarda en llegar).
@@ -67,7 +68,7 @@ void main() {
     tester.view.physicalSize = const Size(800, 2000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         authNotifierProvider.overrideWith(() => auth),
         dependentsProvider.overrideWith(
@@ -88,7 +89,6 @@ void main() {
           actingForSessionProvider.overrideWithValue(session),
       ],
     );
-    addTearDown(container.dispose);
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
@@ -368,7 +368,7 @@ void main() {
       );
       addTearDown(router.dispose);
 
-      final container = ProviderContainer(
+      final container = createTestContainer(
         overrides: [
           authNotifierProvider.overrideWith(() => auth),
           if (session != null)
@@ -384,7 +384,6 @@ void main() {
           ),
         ],
       );
-      addTearDown(container.dispose);
       late PushNotificationService service;
       container.read(
         Provider((ref) {

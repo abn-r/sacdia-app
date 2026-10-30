@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/auth/presentation/widgets/social_sign_in_buttons.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _FakeSocialAuthClient implements SocialAuthClient {
   _FakeSocialAuthClient(this.supported);
@@ -49,7 +50,7 @@ Widget _host(
   _FakeAuthNotifier notifier, {
   bool enabled = true,
 }) {
-  return ProviderScope(
+  return testProviderScope(
     overrides: [
       socialAuthClientProvider.overrideWithValue(
         _FakeSocialAuthClient(supported),

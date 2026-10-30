@@ -12,6 +12,7 @@ import 'package:sacdia_app/features/members/presentation/providers/members_provi
 import 'package:sacdia_app/features/units/domain/entities/unit.dart';
 import 'package:sacdia_app/features/units/presentation/views/unit_form_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -88,7 +89,7 @@ Future<void> _openSheet(WidgetTester tester, {Unit? unit}) async {
   addTearDown(tester.view.resetDevicePixelRatio);
 
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         clubContextProvider.overrideWith((ref) async => null),
       ],

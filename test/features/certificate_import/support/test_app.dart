@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/providers/riverpod_aliases.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../support/riverpod_test_support.dart';
 
 /// Reads the real translation files, so tests assert the shipped Spanish copy.
 class FileAssetLoader extends AssetLoader {
@@ -36,7 +37,7 @@ Widget wrapTestApp(
   bool proofRoutes = false,
   List<Override> overrides = const [],
 }) {
-  return ProviderScope(
+  return testProviderScope(
     overrides: overrides,
     child: _localized(child, proofRoutes),
   );

@@ -8,6 +8,7 @@ import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/notifications/domain/entities/notification_item.dart';
 import 'package:sacdia_app/features/notifications/presentation/widgets/notification_card.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _FakeAuth extends AuthNotifier {
   _FakeAuth(this.user);
@@ -104,10 +105,9 @@ Future<_FakeAuth> _pumpConsentCard(
   );
   addTearDown(router.dispose);
 
-  final container = ProviderContainer(
+  final container = createTestContainer(
     overrides: [authNotifierProvider.overrideWith(() => auth)],
   );
-  addTearDown(container.dispose);
   // La sesión ya está cargada cuando se toca una notificación en la app real.
   await container.read(authNotifierProvider.future);
 
@@ -140,7 +140,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      ProviderScope(
+      testProviderScope(
         child: MaterialApp(
           home: Scaffold(
             body: NotificationCard(notification: notification),
@@ -194,7 +194,7 @@ void main() {
     addTearDown(router.dispose);
 
     await tester.pumpWidget(
-      ProviderScope(child: MaterialApp.router(routerConfig: router)),
+      testProviderScope(child: MaterialApp.router(routerConfig: router)),
     );
 
     await tester.tap(find.text('El informe de mayo ya está listo'));
@@ -227,7 +227,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      ProviderScope(
+      testProviderScope(
         child: MaterialApp(
           home: Scaffold(body: NotificationCard(notification: notification)),
         ),

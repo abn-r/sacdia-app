@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
@@ -11,6 +10,7 @@ import 'package:sacdia_app/features/certifications/presentation/providers/certif
 import 'package:sacdia_app/features/profile/presentation/widgets/profile_certifications_section.dart';
 import 'package:sacdia_app/features/profile/presentation/widgets/profile_quiet_add_chip.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +25,7 @@ void main() {
         'should use a quiet add chip instead of a full-width outline CTA',
         (tester) async {
       await tester.pumpWidget(
-        ProviderScope(
+        testProviderScope(
           overrides: [
             userCertificationsProvider.overrideWith((ref) async => const []),
           ],

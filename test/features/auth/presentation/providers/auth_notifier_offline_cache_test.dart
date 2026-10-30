@@ -44,7 +44,6 @@ void main() {
       storage: storage,
       prefs: prefs,
     );
-    addTearDown(container.dispose);
 
     final user = await container.read(authNotifierProvider.future);
 

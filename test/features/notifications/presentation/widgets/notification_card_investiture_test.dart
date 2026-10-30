@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/features/members/presentation/providers/members_providers.dart';
 import 'package:sacdia_app/features/notifications/domain/entities/notification_item.dart';
 import 'package:sacdia_app/features/notifications/presentation/widgets/notification_card.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 NotificationItem _notification(String? source) => NotificationItem(
       logId: 1,
@@ -60,7 +60,7 @@ Future<List<String>> _pumpCard(
   addTearDown(router.dispose);
 
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         clubContextProvider.overrideWith(
           (ref) async => role == null
