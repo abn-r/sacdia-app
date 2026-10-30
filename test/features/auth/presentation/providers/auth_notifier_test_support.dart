@@ -6,6 +6,8 @@ import 'package:sacdia_app/core/auth/social_credential.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/notifications/push_notification_provider.dart';
 import 'package:sacdia_app/core/notifications/push_notification_service.dart';
+// ignore: unnecessary_import
+import 'package:sacdia_app/core/providers/riverpod_aliases.dart';
 import 'package:sacdia_app/core/storage/secure_storage.dart';
 import 'package:sacdia_app/core/storage/image_cache_purge.dart';
 import 'package:sacdia_app/core/usecases/cancellation_token.dart';

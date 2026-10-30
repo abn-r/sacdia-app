@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sacdia_app/core/providers/riverpod_aliases.dart';
 import 'package:sacdia_app/core/widgets/instructor_candidates_provider.dart';
 import 'package:sacdia_app/core/widgets/instructor_selection.dart';
 

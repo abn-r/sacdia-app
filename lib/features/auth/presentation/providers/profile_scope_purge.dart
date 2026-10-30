@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+// ignore: unnecessary_import
+import '../../../../core/providers/riverpod_aliases.dart';
 
 import '../../../../core/providers/profile_scope_registry.dart';
 import '../../../../core/storage/image_cache_purge.dart';

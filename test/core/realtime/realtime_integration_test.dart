@@ -10,6 +10,7 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/core/providers/riverpod_aliases.dart';
 import 'package:sacdia_app/core/realtime/realtime_invalidation_handler.dart';
 import 'package:sacdia_app/core/realtime/realtime_ref.dart';
 import 'package:sacdia_app/core/realtime/realtime_resource_registry.dart';

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'riverpod_aliases.dart';
 
 import '../../features/achievements/presentation/providers/achievements_providers.dart';
 import '../../features/activities/presentation/providers/activities_providers.dart';
