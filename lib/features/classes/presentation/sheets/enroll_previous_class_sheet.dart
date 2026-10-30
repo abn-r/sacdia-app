@@ -517,7 +517,7 @@ class _EnrollPreviousClassSheetState
       BuildContext context, EcclesiasticalYearModel year) async {
     if (_selectedClass == null) return;
 
-    final userId = ref.read(authNotifierProvider).value?.id;
+    final userId = ref.read(authNotifierProvider).valueOrNull?.id;
     if (userId == null) return;
 
     setState(() {

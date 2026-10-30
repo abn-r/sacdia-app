@@ -435,10 +435,16 @@ class _MedicinesSelectionViewState
     ref.listen<AsyncValue<List<MedicineModel>>>(
       userMedicinesProvider,
       (prev, next) {
-        if (next.value != null && !_serverSeeded) {
-          _seedFromServer(next.value!);
+        // Riverpod 2.6 `.value` rethrew an error that has no previous value
+        // (reaching the global error handler, with nothing seeded). Riverpod 3
+        // returns null instead, so the rethrow is kept explicit here.
+        final seed = next.hasError && !next.hasValue
+            ? next.requireValue
+            : next.valueOrNull;
+        if (seed != null && !_serverSeeded) {
+          _seedFromServer(seed);
           ref.read(selectedMedicinesProvider.notifier).state =
-              next.value!.map((m) => m.id).toList();
+              seed.map((m) => m.id).toList();
         }
       },
     );

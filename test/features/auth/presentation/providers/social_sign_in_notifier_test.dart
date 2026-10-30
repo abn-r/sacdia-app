@@ -62,7 +62,7 @@ void main() {
           .signInWithGoogle();
 
       expect(result, SocialSignInResult.success);
-      expect(container.read(authNotifierProvider).value?.id, 'user-1');
+      expect(container.read(authNotifierProvider).valueOrNull?.id, 'user-1');
     },
   );
 
@@ -102,7 +102,7 @@ void main() {
 
     expect(result, SocialSignInResult.cancelled);
     expect(container.read(authNotifierProvider), isNot(isA<AsyncError>()));
-    expect(container.read(authNotifierProvider).value, isNull);
+    expect(container.read(authNotifierProvider).valueOrNull, isNull);
   });
 
   test('failure puts the message in the error state and returns failed',
@@ -156,7 +156,7 @@ void main() {
       await pending;
 
       expect(transitions.any((t) => t.isLoading), isFalse);
-      expect(container.read(authNotifierProvider).value?.id, 'user-1');
+      expect(container.read(authNotifierProvider).valueOrNull?.id, 'user-1');
     },
   );
 
@@ -200,7 +200,7 @@ void main() {
 
     expect(result, SocialSignInResult.cancelled);
     expect(container.read(authNotifierProvider), isA<AsyncData<UserEntity?>>());
-    expect(container.read(authNotifierProvider).value, isNull);
+    expect(container.read(authNotifierProvider).valueOrNull, isNull);
     // Nunca pasa por loading (el router mandaría a /splash).
     expect(transitions.any((t) => t.isLoading), isFalse);
   });

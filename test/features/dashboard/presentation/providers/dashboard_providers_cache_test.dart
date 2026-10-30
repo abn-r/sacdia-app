@@ -265,7 +265,7 @@ void main() {
       useCase.completeAll(Right(remote));
       await Future<void>.delayed(Duration.zero);
 
-      expect(container.read(dashboardNotifierProvider).value?.clubName,
+      expect(container.read(dashboardNotifierProvider).valueOrNull?.clubName,
           equals('Live'));
     });
 
@@ -300,7 +300,7 @@ void main() {
 
       expect(buildCompleted, isTrue);
       expect(useCase.calls, equals(1));
-      expect(container.read(dashboardNotifierProvider).value?.clubName,
+      expect(container.read(dashboardNotifierProvider).valueOrNull?.clubName,
           equals('Cached'));
 
       useCase.completeAll(
@@ -312,7 +312,7 @@ void main() {
 
       final state = container.read(dashboardNotifierProvider);
       expect(state.hasError, isFalse);
-      expect(state.value?.clubName, equals('Cached'));
+      expect(state.valueOrNull?.clubName, equals('Cached'));
     });
 
     test('throttles background refresh attempts after a transient failure',
@@ -429,7 +429,8 @@ void main() {
       String? clubName;
       for (var i = 0; i < 20 && clubName != 'Fresh'; i++) {
         await Future<void>.delayed(Duration.zero);
-        clubName = container.read(dashboardNotifierProvider).value?.clubName;
+        clubName =
+            container.read(dashboardNotifierProvider).valueOrNull?.clubName;
       }
 
       expect(clubName, equals('Fresh'));
@@ -469,7 +470,7 @@ void main() {
 
       final state = container.read(dashboardNotifierProvider);
       expect(state.hasError, isFalse);
-      expect(state.value?.clubName, equals('Old'));
+      expect(state.valueOrNull?.clubName, equals('Old'));
       expect(useCase.calls, equals(1));
     });
 
@@ -590,7 +591,7 @@ void main() {
         await Future<void>.delayed(Duration.zero);
       }
       expect(
-        container.read(dashboardNotifierProvider).value?.clubName,
+        container.read(dashboardNotifierProvider).valueOrNull?.clubName,
         'Live',
         reason: 'the background refresh ran',
       );

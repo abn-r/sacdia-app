@@ -654,7 +654,7 @@ class RequirementNotifier extends AutoDisposeFamilyNotifier<
     }
 
     final authState = ref.read(authNotifierProvider);
-    return authState.value?.id ?? '';
+    return authState.valueOrNull?.id ?? '';
   }
 
   ClassProgressQuery get _query => arg;

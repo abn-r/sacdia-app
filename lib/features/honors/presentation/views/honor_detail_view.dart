@@ -481,7 +481,7 @@ class _HonorDetailContent extends ConsumerWidget {
     // After enrollment, refresh providers so UI switches to enrolled state
     if (!userHonorsLoading &&
         enrollAsync.hasValue &&
-        enrollAsync.value != null) {
+        enrollAsync.valueOrNull != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) {
           ref.invalidate(userHonorsProvider);
@@ -3748,7 +3748,7 @@ class _EnrollCtaButton extends ConsumerWidget {
       backgroundColor: categoryColor,
       textColor: onCategoryPaintColor(categoryColor, onNearWhite: c.text),
       onPressed: () async {
-        final userId = ref.read(authNotifierProvider).value?.id;
+        final userId = ref.read(authNotifierProvider).valueOrNull?.id;
         if (userId == null) return;
         await ref
             .read(honorEnrollmentNotifierProvider.notifier)

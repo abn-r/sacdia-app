@@ -74,7 +74,7 @@ class ProfileNotifier extends AutoDisposeAsyncNotifier<UserDetail?> {
 
   /// Actualizar el perfil del usuario
   Future<bool> updateProfile(Map<String, dynamic> data) async {
-    final currentProfile = state.value;
+    final currentProfile = state.valueOrNull;
     if (currentProfile == null) {
       return false;
     }

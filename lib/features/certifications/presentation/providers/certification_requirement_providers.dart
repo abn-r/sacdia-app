@@ -151,7 +151,7 @@ class CertificationRequirementNotifier extends AutoDisposeFamilyNotifier<
 
   String get _userId {
     final authState = ref.read(authNotifierProvider);
-    return authState.value?.id ?? '';
+    return authState.valueOrNull?.id ?? '';
   }
 
   Future<void> _load() async {
@@ -437,7 +437,7 @@ class CertificationCloseoutNotifier extends AutoDisposeFamilyNotifier<
 
   String get _userId {
     final authState = ref.read(authNotifierProvider);
-    return authState.value?.id ?? '';
+    return authState.valueOrNull?.id ?? '';
   }
 
   /// Sube el comprobante de junta: presign → PUT directo a R2 → confirm.

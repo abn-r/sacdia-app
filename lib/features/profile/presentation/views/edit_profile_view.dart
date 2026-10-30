@@ -71,7 +71,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
   void _loadProfileData() {
     if (_dataLoaded) return;
-    final profile = ref.read(profileNotifierProvider).value;
+    final profile = ref.read(profileNotifierProvider).valueOrNull;
     if (profile != null) {
       _dataLoaded = true;
       _nameController.text = profile.name;
@@ -331,7 +331,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
   @override
   Widget build(BuildContext context) {
     final profileState = ref.watch(profileNotifierProvider);
-    final profile = profileState.value;
+    final profile = profileState.valueOrNull;
     final hPad = Responsive.horizontalPadding(context);
 
     // Load data when provider resolves (handles async timing)
