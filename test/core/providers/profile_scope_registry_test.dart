@@ -88,17 +88,31 @@ String _stripLineComments(String source) =>
 ///  - declaraciones con tipo (`final StateProvider<T> x = ...`), con el tipo
 ///    `AutoDispose*` descartado;
 ///  - miembros `static final` / `late final` y cualquier sangría;
-///  - familias (`.family`), que cuentan igual que su provider base.
+///  - familias (`.family`), que cuentan igual que su provider base;
+///  - las dos formas de declarar `autoDispose`: la de Riverpod 2.x
+///    (`AutoDisposeNotifierProvider<..>(X.new)`, que nunca coincide) y la de
+///    3.x (`NotifierProvider.autoDispose<..>(X.new)`, `.autoDispose.family` y
+///    `.family.autoDispose`, que se descartan como `autoDispose`), tambien con
+///    el tipo explicito `NotifierProvider<..>` (en 3.x ya no lleva prefijo
+///    `AutoDispose`);
+///  - `StateProvider` / `StateNotifierProvider` importados desde
+///    `flutter_riverpod/legacy.dart` (mismo nombre de clase, mismo escaneo).
 /// No confunde `final x = fooProvider;` ni `final x = ref.watch(...)` con una
 /// declaración: tras `=` debe venir el constructor de un provider.
 Set<String> scanNonAutoDisposeStateProviders(Iterable<String> sources) {
+  // `.autoDispose`, `.autoDispose.family` (3.x) y `.family<..>.autoDispose`.
+  const autoDisposeSuffix =
+      r'\.\s*(?:family\s*(?:<[^;=]*?>)?\s*\.\s*)?autoDispose\b';
   final untyped = RegExp(
-    '$_declPrefix(\\w+)\\s*=\\s*($_stateKinds)\\b\\s*(\\.\\s*autoDispose)?',
+    '$_declPrefix(\\w+)\\s*=\\s*($_stateKinds)\\b\\s*($autoDisposeSuffix)?',
     multiLine: true,
   );
+  // En 3.x el tipo explicito de un provider autoDispose es `NotifierProvider`
+  // (sin prefijo `AutoDispose`): se mira tambien el lado derecho.
   final typed = RegExp(
     '$_declPrefix(AutoDispose)?($_stateKinds)(?:Family)?\\b'
-    r'(?:\s*<[^;=]*?>)?\s+(\w+)\s*=',
+    r'(?:\s*<[^;=]*?>)?\s+(\w+)\s*=(?!\s*\w+\s*'
+    '$autoDisposeSuffix)',
     multiLine: true,
   );
   final found = <String>{};
@@ -408,6 +422,91 @@ final bProvider = FutureProvider<int>((ref) async => 1);
 
       expect(missing, isEmpty);
     });
+
+    // --- Riverpod 3 declaration forms (change riverpod-3-migration, R2) -----
+    // Hoy corren sobre 2.6 (inertes: solo el texto fuente cambia); son las
+    // formas que apareceran tras el bump y el guard debe seguir vigilando.
+
+    test('S2.3: the new-form non-autoDispose providers are reported (mutation)',
+        () {
+      final missing = unregisteredNonAutoDispose(
+        [
+          '''
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
+
+final newLeakProvider = NotifierProvider<NewLeak, int>(NewLeak.new);
+final newAsyncLeakProvider =
+    AsyncNotifierProvider<NewAsyncLeak, int>(NewAsyncLeak.new);
+final newFamilyLeakProvider =
+    NotifierProvider.family<NewFamilyLeak, int, String>(NewFamilyLeak.new);
+final legacyStateLeak = StateProvider<int>((ref) => 0);
+final legacyNotifierLeak =
+    StateNotifierProvider<LegacyNotifier, int>((ref) => LegacyNotifier());
+final StateProvider<int> legacyTypedLeak = StateProvider<int>((ref) => 0);
+''',
+        ],
+        registered: const {},
+        allowlisted: const {},
+      );
+
+      expect(missing, {
+        'newLeakProvider',
+        'newAsyncLeakProvider',
+        'newFamilyLeakProvider',
+        'legacyStateLeak',
+        'legacyNotifierLeak',
+        'legacyTypedLeak',
+      });
+    });
+
+    test('S2.3: the new autoDispose forms are NOT reported as non-autoDispose',
+        () {
+      final missing = unregisteredNonAutoDispose(
+        [
+          '''
+final ctorProvider = NotifierProvider.autoDispose<Ok, int>(Ok.new);
+final multiLineProvider = AsyncNotifierProvider
+    .autoDispose<OkAsync, int>(OkAsync.new);
+final familyProvider =
+    NotifierProvider.autoDispose.family<OkFam, int, String>(OkFam.new);
+final asyncFamilyProvider = AsyncNotifierProvider
+    .autoDispose
+    .family<OkAsyncFam, int, String>(OkAsyncFam.new);
+final reversedFamilyProvider =
+    NotifierProvider.family.autoDispose<OkRev, int, String>(OkRev.new);
+final NotifierProvider<Ok, int> typedProvider =
+    NotifierProvider.autoDispose<Ok, int>(Ok.new);
+final legacyAutoProvider = StateProvider.autoDispose<int>((ref) => 0);
+final FutureProvider<int> typedFutureProvider =
+    FutureProvider.autoDispose<int>((ref) async => 1);
+''',
+        ],
+        registered: const {},
+        allowlisted: const {},
+      );
+
+      expect(missing, isEmpty);
+    });
+
+    test('S2.3: old and new forms side by side (only the leaks are reported)',
+        () {
+      final missing = unregisteredNonAutoDispose(
+        [
+          '''
+final oldCtorProvider = AutoDisposeNotifierProvider<Old, int>(Old.new);
+final oldAutoProvider = NotifierProvider.autoDispose<Old2, int>(Old2.new);
+final newAutoProvider = NotifierProvider.autoDispose<New, int>(New.new);
+final oldLeakProvider = NotifierProvider<OldLeak, int>(OldLeak.new);
+final newLeakProvider = AsyncNotifierProvider<NewLeak, int>(NewLeak.new);
+''',
+        ],
+        registered: const {},
+        allowlisted: const {},
+      );
+
+      expect(missing, {'oldLeakProvider', 'newLeakProvider'});
+    });
   });
 
   group('plain Provider holding mutable state (S3)', () {
@@ -597,6 +696,98 @@ final plainProvider = Provider<int>((ref) {
 ''',
         },
         registered: registered,
+        allowlisted: allowlisted,
+      );
+      expect(missing, isEmpty);
+    });
+
+    // --- Riverpod 3 declaration forms (change riverpod-3-migration, R2) -----
+
+    test(
+        'S2.2: an unregistered keepAlive in an AsyncNotifier class is reported',
+        () {
+      final missing = unregisteredKeepAlive(
+        {
+          'a.dart': '''
+final somethingProvider =
+    AsyncNotifierProvider.autoDispose<NewFormNotifier, int>(
+  NewFormNotifier.new,
+);
+
+class NewFormNotifier extends AsyncNotifier<int> {
+  @override
+  Future<int> build() async {
+    final link = ref.keepAlive();
+    return 1;
+  }
+}
+''',
+        },
+        registered: registered,
+        allowlisted: allowlisted,
+      );
+      expect(missing, {'NewFormNotifier'});
+    });
+
+    test('S2.2: same for Notifier, family classes and mixed old/new forms', () {
+      final missing = unregisteredKeepAlive(
+        {
+          'a.dart': '''
+class SyncNotifierNew extends Notifier<int> {
+  @override
+  int build() {
+    ref.keepAlive();
+    return 1;
+  }
+}
+
+class FamilyNotifierNew extends AsyncNotifier<int> {
+  FamilyNotifierNew(this.arg);
+
+  final int arg;
+
+  @override
+  Future<int> build() async {
+    ref.keepAlive();
+    return arg;
+  }
+}
+
+class OldFormNotifier extends AutoDisposeAsyncNotifier<int> {
+  @override
+  Future<int> build() async {
+    ref.keepAlive();
+    return 1;
+  }
+}
+
+class NoKeepAliveNotifier extends AsyncNotifier<int> {
+  @override
+  Future<int> build() async => 1;
+}
+''',
+        },
+        registered: registered,
+        allowlisted: allowlisted,
+      );
+      expect(
+          missing, {'SyncNotifierNew', 'FamilyNotifierNew', 'OldFormNotifier'});
+    });
+
+    test('S2.2: registered or allowlisted new-form notifiers pass', () {
+      final missing = unregisteredKeepAlive(
+        {
+          'a.dart': '''
+class UserClassesNotifier extends AsyncNotifier<int> {
+  @override
+  Future<int> build() async {
+    ref.keepAlive();
+    return 1;
+  }
+}
+''',
+        },
+        registered: const {'UserClassesNotifier'},
         allowlisted: allowlisted,
       );
       expect(missing, isEmpty);
