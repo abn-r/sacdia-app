@@ -194,8 +194,8 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
     final messenger = ScaffoldMessenger.of(context);
 
     try {
-      await Share.shareXFiles(
-        [
+      await SharePlus.instance.share(ShareParams(
+        files: [
           XFile(
             localPath,
             name: _fileName ?? _safePdfFileNameFromSource(widget.pdfSource),
@@ -205,7 +205,7 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
         sharePositionOrigin: _sharePositionOriginForContext(
           _saveButtonKey.currentContext ?? context,
         ),
-      );
+      ));
     } catch (_) {
       if (!mounted) return;
       SacSnackBar.showMessenger(

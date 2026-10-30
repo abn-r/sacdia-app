@@ -250,8 +250,8 @@ class _SacImageViewerState extends State<SacImageViewer> {
       }
 
       if (!mounted) return;
-      await Share.shareXFiles(
-        [
+      await SharePlus.instance.share(ShareParams(
+        files: [
           XFile(
             file.path,
             name: fileName,
@@ -261,7 +261,7 @@ class _SacImageViewerState extends State<SacImageViewer> {
         sharePositionOrigin: _sharePositionOriginForContext(
           _saveButtonKey.currentContext ?? context,
         ),
-      );
+      ));
     } catch (_) {
       if (!mounted) return;
       SacSnackBar.showMessenger(messenger, tr('core.image_viewer.error_load'));

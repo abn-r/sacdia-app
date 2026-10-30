@@ -98,19 +98,16 @@ class CertificateImportUploadRouteView extends ConsumerStatefulWidget {
       pickImageProof(ImageSource.gallery);
 
   static Future<CertificateImportLocalProof?> _pickFileProof() async {
-    final result = await FilePicker.platform.pickFiles(
+    final file = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png', 'webp'],
-      allowMultiple: false,
-      withData: false,
     );
-    if (result == null || result.files.isEmpty) return null;
+    if (file == null) return null;
 
-    final file = result.files.first;
     final path = file.path;
     if (path == null || path.trim().isEmpty) return null;
 
-    final size = file.size > 0 ? file.size : await File(path).length();
+    final size = await file.length() ?? await File(path).length();
     return CertificateImportLocalProof(
       localPath: path,
       fileName: file.name,

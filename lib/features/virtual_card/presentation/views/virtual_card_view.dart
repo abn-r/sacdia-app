@@ -79,15 +79,15 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
       await pngFile.writeAsBytes(pngBytes, flush: true);
       await pdfFile.writeAsBytes(pdfBytes, flush: true);
 
-      await Share.shareXFiles(
-        [
+      await SharePlus.instance.share(ShareParams(
+        files: [
           XFile(pngFile.path, mimeType: 'image/png', name: pngFileName),
           XFile(pdfFile.path, mimeType: 'application/pdf', name: pdfFileName),
         ],
         subject: 'Credencial Digital SACDIA',
         text: 'Mi credencial SACDIA · ${vm.folio}',
         sharePositionOrigin: sharePositionOrigin,
-      );
+      ));
     } catch (e) {
       AppLogger.e('Error al compartir credencial',
           tag: 'VirtualCard', error: e);

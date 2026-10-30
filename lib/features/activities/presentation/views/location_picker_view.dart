@@ -186,7 +186,7 @@ class _LocationPickerViewState extends ConsumerState<LocationPickerView> {
     });
 
     try {
-      final placemarks = await placemarkFromCoordinates(
+      final placemarks = await Geocoding().placemarkFromCoordinates(
         latLng.latitude,
         latLng.longitude,
       );

@@ -208,17 +208,14 @@ class ConsentEvidencePicker {
 
   static Future<({String path, String name, int size})?>
       _defaultPickPdf() async {
-    final result = await FilePicker.platform.pickFiles(
+    final file = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: const ['pdf'],
-      allowMultiple: false,
-      withData: false,
     );
-    if (result == null || result.files.isEmpty) return null;
-    final file = result.files.first;
+    if (file == null) return null;
     final path = file.path;
     if (path == null || path.trim().isEmpty) return null;
-    final size = file.size > 0 ? file.size : await File(path).length();
+    final size = await file.length() ?? await File(path).length();
     return (path: path, name: file.name, size: size);
   }
 

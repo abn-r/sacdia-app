@@ -117,7 +117,7 @@ class _ClaimCodeSectionState extends ConsumerState<ClaimCodeSection> {
             label: 'members.claim_code.share'.tr(),
             onPressed: () async {
               Navigator.of(dialogContext).pop();
-              await Share.share(message);
+              await SharePlus.instance.share(ShareParams(text: message));
             },
           ),
         ],
