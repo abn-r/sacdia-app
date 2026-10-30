@@ -69,14 +69,17 @@ class DashboardView extends ConsumerWidget {
               final statusGrant = membershipGrantForDisplay(
                 user?.authorization,
               );
+              // Adolescente supervisado con solicitud propia en revisión
+              // (`/auth/me.pending_club_membership`): el texto lleva el club.
+              // Tenga o no una concesión pendiente en `authorization`.
+              final pendingClub = (user?.isSupervisedTeen ?? false)
+                  ? user?.pendingClubMembership
+                  : null;
               if (statusGrant?.isPending ?? false) {
-                return const _PendingMembershipDashboardState();
+                return _PendingMembershipDashboardState(
+                    pendingClub: pendingClub);
               }
-              // Adolescente supervisado sin club con solicitud propia en
-              // revisión (`/auth/me.pending_club_membership`): sin concesión
-              // pendiente en `authorization`, así se evita el error genérico.
-              final pendingClub = user?.pendingClubMembership;
-              if (pendingClub != null && (user?.isSupervisedTeen ?? false)) {
+              if (pendingClub != null) {
                 return _PendingMembershipDashboardState(
                     pendingClub: pendingClub);
               }
