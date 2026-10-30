@@ -1993,8 +1993,15 @@ class _MainShell extends ConsumerWidget {
           label: item.label,
         ),
     ];
-    void select(int uiIndex) =>
-        navigationShell.goBranch(filteredItems[uiIndex].branchIndex);
+    // Tapping the active tab again returns to its root (same as the device
+    // shell), so a drill-in like Members is never a dead end.
+    void select(int uiIndex) {
+      final branch = filteredItems[uiIndex].branchIndex;
+      navigationShell.goBranch(
+        branch,
+        initialLocation: branch == navigationShell.currentIndex,
+      );
+    }
 
     if (useRail) {
       return Scaffold(
