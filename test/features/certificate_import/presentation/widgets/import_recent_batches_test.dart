@@ -1,6 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
@@ -11,6 +10,7 @@ import 'package:sacdia_app/features/certificate_import/presentation/views/certif
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/import_recent_batches.dart';
 
 import '../../support/test_app.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 CertificateImportBatchSummary _batch(
   String id,
@@ -41,7 +41,7 @@ Future<void> _pump(
   required Future<CertificateImportBatchList> Function() batches,
 }) async {
   phoneSurface(tester, height: 1400);
-  await tester.pumpWidget(ProviderScope(
+  await tester.pumpWidget(testProviderScope(
     overrides: [
       certificateImportBatchListProvider.overrideWith((ref, args) => batches()),
     ],
@@ -187,7 +187,7 @@ void main() {
 
   testWidgets('the upload screen shows the recent batches it is given',
       (tester) async {
-    await tester.pumpWidget(ProviderScope(
+    await tester.pumpWidget(testProviderScope(
       overrides: [
         certificateImportBatchListProvider.overrideWith(
           (ref, args) async => _list([_batch('fix', 'REJECTED')]),

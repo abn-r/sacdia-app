@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/features/materials/domain/entities/material_category.dart';
@@ -14,6 +13,7 @@ import 'package:sacdia_app/features/materials/presentation/providers/categories_
 import 'package:sacdia_app/features/materials/presentation/providers/programs_provider.dart';
 import 'package:sacdia_app/features/materials/presentation/views/catalog_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 const _category = MaterialCategory(
   id: 'cat-1',
@@ -83,7 +83,7 @@ void main() {
 
   Future<void> pumpCatalog(WidgetTester tester) async {
     await tester.pumpWidget(
-      ProviderScope(
+      testProviderScope(
         overrides: [
           programsProvider.overrideWith(
             (ref) async => const [_programAv, _programCq],

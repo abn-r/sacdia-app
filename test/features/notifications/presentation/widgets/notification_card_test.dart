@@ -140,7 +140,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      ProviderScope(
+      testProviderScope(
         child: MaterialApp(
           home: Scaffold(
             body: NotificationCard(notification: notification),
@@ -194,7 +194,7 @@ void main() {
     addTearDown(router.dispose);
 
     await tester.pumpWidget(
-      ProviderScope(child: MaterialApp.router(routerConfig: router)),
+      testProviderScope(child: MaterialApp.router(routerConfig: router)),
     );
 
     await tester.tap(find.text('El informe de mayo ya está listo'));
@@ -227,7 +227,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      ProviderScope(
+      testProviderScope(
         child: MaterialApp(
           home: Scaffold(body: NotificationCard(notification: notification)),
         ),

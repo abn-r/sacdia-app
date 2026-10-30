@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
@@ -20,6 +19,7 @@ import 'package:sacdia_app/features/enrollment/presentation/providers/enrollment
 import 'package:sacdia_app/features/enrollment/presentation/widgets/enrollment_status_card.dart';
 import 'package:sacdia_app/features/profile/domain/entities/user_detail.dart';
 import 'package:sacdia_app/features/profile/presentation/providers/profile_providers.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _LoadedDashboardNotifier extends DashboardNotifier {
   _LoadedDashboardNotifier(this.summary);
@@ -87,7 +87,7 @@ Future<void> _pumpLoadedDashboard(
   required List<String> permissions,
 }) async {
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         dashboardNotifierProvider.overrideWith(
           () => _LoadedDashboardNotifier(_summary),

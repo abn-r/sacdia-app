@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/auth/social_auth_client.dart';
 import 'package:sacdia_app/core/auth/social_auth_provider.dart';
@@ -9,6 +8,7 @@ import 'package:sacdia_app/core/auth/social_credential.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/auth/domain/entities/delete_account_reauth.dart';
 import 'package:sacdia_app/features/profile/presentation/widgets/delete_account_confirm_dialog.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _FakeSocialAuthClient implements SocialAuthClient {
   _FakeSocialAuthClient(this.supported);
@@ -65,7 +65,7 @@ Future<_Result> _open(
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [socialAuthClientProvider.overrideWithValue(client)],
       child: MaterialApp(
         home: Builder(

@@ -3,13 +3,13 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/features/support/domain/entities/faq_item.dart';
 import 'package:sacdia_app/features/support/presentation/providers/support_providers.dart';
 import 'package:sacdia_app/features/support/presentation/views/faq_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -46,7 +46,7 @@ void main() {
 
 Future<void> _pumpFaq(WidgetTester tester) async {
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         faqItemsProvider.overrideWith(
           (ref) async => const [

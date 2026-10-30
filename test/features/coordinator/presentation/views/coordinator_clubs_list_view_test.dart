@@ -4,7 +4,6 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -22,6 +21,7 @@ import 'package:sacdia_app/features/coordinator/presentation/providers/coordinat
 import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_clubs_list_view.dart';
 
 import '../../coordinator_test_harness.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 const _clubs = [
   CoordinatorClub(
@@ -78,7 +78,7 @@ Future<void> _pumpView(
   );
 
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         coordinatorClubsRawProvider.overrideWith((ref) async => load()),
       ],
@@ -208,7 +208,7 @@ void main() {
       final never = Completer<List<CoordinatorClub>>();
       useTallSurface(tester);
       await tester.pumpWidget(
-        ProviderScope(
+        testProviderScope(
           overrides: [
             coordinatorClubsRawProvider.overrideWith((ref) => never.future),
           ],

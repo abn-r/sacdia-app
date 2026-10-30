@@ -13,6 +13,7 @@ import 'package:sacdia_app/features/legal/domain/entities/legal_status.dart';
 import 'package:sacdia_app/features/legal/domain/repositories/legal_repository.dart';
 import 'package:sacdia_app/features/legal/presentation/providers/legal_providers.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
+import '../../support/riverpod_test_support.dart';
 
 /// FP-65: la fecha de nacimiento es obligatoria y un menor del mínimo nunca
 /// llega a `/auth/register`. El 422 del servidor cae en la misma pantalla.
@@ -85,7 +86,7 @@ Future<_Auth> _pump(WidgetTester tester, {_Auth? auth}) async {
 
   final notifier = auth ?? _Auth();
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         authNotifierProvider.overrideWith(() => notifier),
         legalRepositoryProvider.overrideWithValue(_Legal()),

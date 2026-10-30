@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/features/materials/domain/entities/material_delivery.dart';
@@ -12,6 +11,7 @@ import 'package:sacdia_app/features/materials/domain/entities/order.dart';
 import 'package:sacdia_app/features/materials/presentation/providers/history_provider.dart';
 import 'package:sacdia_app/features/materials/presentation/views/order_history_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _FileAssetLoader extends AssetLoader {
   const _FileAssetLoader();
@@ -47,7 +47,7 @@ void main() {
   Future<void> pumpHistory(
       WidgetTester tester, List<Order> orders, void Function() onFetch) async {
     await tester.pumpWidget(
-      ProviderScope(
+      testProviderScope(
         overrides: [
           historyProvider.overrideWith((ref) async {
             onFetch();

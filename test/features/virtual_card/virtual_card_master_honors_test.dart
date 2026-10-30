@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
@@ -12,6 +11,7 @@ import 'package:sacdia_app/features/virtual_card/domain/entities/virtual_card.da
 import 'package:sacdia_app/features/virtual_card/presentation/providers/virtual_card_providers.dart';
 import 'package:sacdia_app/features/virtual_card/presentation/views/virtual_card_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../support/riverpod_test_support.dart';
 
 class _FakeAuthNotifier extends AuthNotifier {
   _FakeAuthNotifier(this._user);
@@ -95,7 +95,7 @@ void main() {
 
   Future<void> pumpVirtualCard(WidgetTester tester) async {
     await tester.pumpWidget(
-      ProviderScope(
+      testProviderScope(
         overrides: [
           authNotifierProvider
               .overrideWith(() => _FakeAuthNotifier(buildUser())),
@@ -122,7 +122,7 @@ void main() {
 
   Future<void> pumpHistorySection(WidgetTester tester) async {
     await tester.pumpWidget(
-      ProviderScope(
+      testProviderScope(
         overrides: [
           masterHonorsAvailableProvider.overrideWithValue(true),
           userMasterHonorsProvider.overrideWith((ref) async => buildHonors()),

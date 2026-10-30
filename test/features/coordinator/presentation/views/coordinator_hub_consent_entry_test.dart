@@ -6,7 +6,6 @@ library;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
@@ -23,6 +22,7 @@ import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_h
 
 import '../../coordinator_test_harness.dart';
 import '../../coordinator_test_support.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _FakeAuth extends AuthNotifier {
   _FakeAuth(this._permissions, this._globalGrants);
@@ -90,7 +90,7 @@ Future<GoRouter> _pumpHub(
     ],
   );
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         authNotifierProvider
             .overrideWith(() => _FakeAuth(permissions, globalGrants)),

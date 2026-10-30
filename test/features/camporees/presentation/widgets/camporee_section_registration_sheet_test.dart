@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
@@ -13,6 +12,7 @@ import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_section_registration_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -239,7 +239,7 @@ Future<void> _pumpSheet(
       assetLoader: const _FileAssetLoader(),
       fallbackLocale: const Locale('es'),
       startLocale: locale,
-      child: ProviderScope(
+      child: testProviderScope(
         child: Builder(
           builder: (context) => MaterialApp(
             theme: brightness == Brightness.light

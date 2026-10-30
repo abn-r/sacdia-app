@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -21,6 +20,7 @@ import 'package:sacdia_app/features/camporee_orders/presentation/providers/campo
 import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_detail_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _TestAuthNotifier extends AuthNotifier {
   final UserEntity? user;
@@ -435,7 +435,7 @@ Future<void> _pumpDetail(
   var failed = false;
   final loading = Completer<List<CamporeeMember>>();
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         authNotifierProvider.overrideWith(() => _TestAuthNotifier(user)),
         camporeeDetailProvider

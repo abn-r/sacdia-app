@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
@@ -11,6 +10,7 @@ import 'package:sacdia_app/features/classes/domain/entities/progressive_class.da
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
 import 'package:sacdia_app/features/profile/presentation/widgets/class_status_circles.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -24,7 +24,7 @@ void main() {
     testWidgets('should hide class names until a badge is tapped',
         (tester) async {
       await tester.pumpWidget(
-        ProviderScope(
+        testProviderScope(
           overrides: [
             userClassesProvider.overrideWith((ref) async => const []),
             allClassesProvider.overrideWith(
@@ -82,7 +82,7 @@ void main() {
       required int progress,
     }) async {
       await tester.pumpWidget(
-        ProviderScope(
+        testProviderScope(
           overrides: [
             userClassesProvider.overrideWith(
               (ref) async => [

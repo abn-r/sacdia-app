@@ -28,6 +28,7 @@ import 'package:sacdia_app/features/coordinator/presentation/views/evidence_revi
 import 'package:sacdia_app/features/coordinator/presentation/widgets/approval_action_buttons.dart';
 
 import '../../coordinator_test_harness.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 const _sla = SlaDashboard(
   investiture: SlaStat(pending: 0, avgDays: 0, overdue: 0),
@@ -224,7 +225,7 @@ Future<void> _pumpDetail(
   );
 
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [coordinatorRepositoryProvider.overrideWithValue(repo)],
       child: localized((context) => localizedRouterApp(context, router)),
     ),
@@ -500,7 +501,7 @@ void main() {
       final never = Completer<EvidenceReviewItem>();
       useTallSurface(tester);
       await tester.pumpWidget(
-        ProviderScope(
+        testProviderScope(
           overrides: [
             evidenceDetailProvider.overrideWith((ref, key) => never.future),
           ],
@@ -531,7 +532,7 @@ void main() {
       var calls = 0;
       useTallSurface(tester);
       await tester.pumpWidget(
-        ProviderScope(
+        testProviderScope(
           overrides: [
             evidenceDetailProvider.overrideWith((ref, key) async {
               calls++;
@@ -565,7 +566,7 @@ void main() {
     testWidgets('a 403 shows access restricted without retry', (tester) async {
       useTallSurface(tester);
       await tester.pumpWidget(
-        ProviderScope(
+        testProviderScope(
           overrides: [
             evidenceDetailProvider.overrideWith(
               (ref, key) async => throw const CoordinatorLoadException(

@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
@@ -12,6 +11,7 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/features/auth/presentation/views/welcome_carousel_view.dart';
 import 'package:sacdia_app/providers/storage_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -130,7 +130,7 @@ Widget _wrap(SharedPreferences prefs, Widget home) {
     ],
   );
 
-  return ProviderScope(
+  return testProviderScope(
     overrides: [
       sharedPreferencesProvider.overrideWithValue(prefs),
     ],

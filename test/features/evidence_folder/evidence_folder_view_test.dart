@@ -24,6 +24,7 @@ import 'package:sacdia_app/features/evidence_folder/presentation/views/evidence_
 import 'package:sacdia_app/features/evidence_folder/presentation/views/evidence_section_detail_view.dart';
 import 'package:sacdia_app/features/evidence_folder/presentation/widgets/section_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../support/riverpod_test_support.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -64,7 +65,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(
-      ProviderScope(
+      testProviderScope(
         overrides: [
           evidenceFolderProvider('2').overrideWith(
             loadFolder ?? (ref) async => folder ?? _evidenceFolderFixture,

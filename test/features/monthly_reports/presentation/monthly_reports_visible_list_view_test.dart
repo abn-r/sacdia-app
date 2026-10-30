@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
@@ -14,6 +13,7 @@ import 'package:sacdia_app/features/monthly_reports/domain/entities/monthly_repo
 import 'package:sacdia_app/features/monthly_reports/presentation/providers/monthly_reports_providers.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_reports_visible_list_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../support/riverpod_test_support.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -32,7 +32,7 @@ void main() {
 
       final now = DateTime.now();
       await tester.pumpWidget(
-        ProviderScope(
+        testProviderScope(
           overrides: [
             // Sin contexto de club: el historial sale de la lista multi-club.
             clubContextProvider.overrideWith((ref) async => null),

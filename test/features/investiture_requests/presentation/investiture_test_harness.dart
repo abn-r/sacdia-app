@@ -11,6 +11,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:sacdia_app/core/providers/riverpod_aliases.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../support/riverpod_test_support.dart';
 
 /// Carga las traducciones reales (es) para que los tests verifiquen el texto
 /// que ve el usuario y, de paso, que las claves existen.
@@ -32,7 +33,7 @@ Future<void> initInvestitureTestEnv() async {
 }
 
 Widget wrapApp(Widget child, {List<Override> overrides = const []}) {
-  return ProviderScope(
+  return testProviderScope(
     overrides: overrides,
     child: EasyLocalization(
       supportedLocales: const [Locale('es')],
@@ -86,7 +87,7 @@ Future<void> pumpRouterApp(
   addTearDown(tester.view.resetDevicePixelRatio);
   addTearDown(router.dispose);
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: overrides,
       child: EasyLocalization(
         supportedLocales: const [Locale('es')],

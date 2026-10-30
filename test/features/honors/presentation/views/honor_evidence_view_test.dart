@@ -9,6 +9,7 @@ import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/honors/presentation/views/honor_evidence_view.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_signed_evidence_image.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 /// No translations on purpose: the assertions below read the raw keys. The
 /// scope is only there because the date field asks for the locale.
@@ -60,7 +61,7 @@ void main() {
     final currentHonor = honor();
 
     await tester.pumpWidget(
-      ProviderScope(
+      testProviderScope(
         overrides: [
           allHonorsProvider.overrideWith((ref) async => [currentHonor]),
           activeHonorCatalogClubTypeIdProvider.overrideWith(

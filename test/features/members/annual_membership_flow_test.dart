@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
@@ -13,6 +12,7 @@ import 'package:sacdia_app/features/members/domain/entities/annual_continuation.
 import 'package:sacdia_app/features/members/presentation/providers/members_providers.dart';
 import 'package:sacdia_app/features/members/presentation/views/annual_continuations_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../support/riverpod_test_support.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -37,7 +37,7 @@ void main() {
           fallbackLocale: const Locale('es'),
           assetLoader: _TestAssetLoader(translations),
           child: Builder(
-            builder: (context) => ProviderScope(
+            builder: (context) => testProviderScope(
               overrides: [
                 authNotifierProvider.overrideWith(
                   () => _FakeAuthNotifier(_ghostUser()),
@@ -86,7 +86,7 @@ void main() {
           fallbackLocale: const Locale('es'),
           assetLoader: _TestAssetLoader(translations),
           child: Builder(
-            builder: (context) => ProviderScope(
+            builder: (context) => testProviderScope(
               overrides: [
                 annualContinuationsNotifierProvider.overrideWith(
                   () => _FakeContinuationsNotifier(
@@ -137,7 +137,7 @@ void main() {
           fallbackLocale: const Locale('es'),
           assetLoader: _TestAssetLoader(translations),
           child: Builder(
-            builder: (context) => ProviderScope(
+            builder: (context) => testProviderScope(
               overrides: [
                 annualContinuationsNotifierProvider.overrideWith(
                   () => _FakeContinuationsNotifier(

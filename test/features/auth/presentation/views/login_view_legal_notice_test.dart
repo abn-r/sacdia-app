@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/widgets/sac_legal_consent.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/auth/presentation/views/login_view.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _LoggedOutAuthNotifier extends AuthNotifier {
   @override
@@ -19,7 +19,7 @@ void main() {
     addTearDown(tester.view.reset);
 
     await tester.pumpWidget(
-      ProviderScope(
+      testProviderScope(
         overrides: [
           authNotifierProvider.overrideWith(_LoggedOutAuthNotifier.new),
           socialSignInInFlightProvider.overrideWith((ref) => false),

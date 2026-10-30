@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/resources/domain/entities/resource.dart';
 import 'package:sacdia_app/features/resources/presentation/widgets/resource_detail_sheet.dart';
+import '../../support/riverpod_test_support.dart';
 
 void main() {
   group('ResourceDetailSheet media actions', () {
@@ -42,7 +42,7 @@ void main() {
 
 Future<void> _pumpSheet(WidgetTester tester, Resource resource) async {
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       child: MaterialApp(
         home: Scaffold(
           body: ResourceDetailSheet(resource: resource),

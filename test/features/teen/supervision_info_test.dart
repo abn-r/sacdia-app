@@ -14,6 +14,7 @@ import 'package:sacdia_app/providers/storage_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../family/family_test_harness.dart';
+import '../../support/riverpod_test_support.dart';
 
 UserEntity _user(AccountMode mode, {String id = 'teen-1'}) =>
     UserEntity(id: id, postRegisterComplete: true, serverMode: mode);
@@ -142,7 +143,7 @@ void main() {
       final auth = _MutableAuth(initial);
       // El host va en el `builder` del MaterialApp, como en main.dart.
       await tester.pumpWidget(
-        ProviderScope(
+        testProviderScope(
           overrides: [
             authNotifierProvider.overrideWith(() => auth),
             sharedPreferencesProvider.overrideWithValue(prefs),

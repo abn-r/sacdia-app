@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/inventory/domain/entities/inventory_category.dart';
 import 'package:sacdia_app/features/inventory/domain/entities/inventory_item.dart';
@@ -9,6 +8,7 @@ import 'package:sacdia_app/features/inventory/presentation/providers/inventory_p
 import 'package:sacdia_app/features/inventory/presentation/views/inventory_item_detail_view.dart';
 import 'package:sacdia_app/features/members/presentation/providers/members_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../support/riverpod_test_support.dart';
 
 /// Minimal Spanish strings so the bottom bar renders its real labels.
 class _EsLabels extends AssetLoader {
@@ -42,7 +42,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      ProviderScope(
+      testProviderScope(
         overrides: [
           canManageInventoryProvider.overrideWith((ref) async => true),
           inventoryItemDetailProvider(1).overrideWith((ref) async => item),

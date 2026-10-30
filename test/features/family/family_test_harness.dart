@@ -26,6 +26,7 @@ import 'package:sacdia_app/features/post_registration/presentation/providers/per
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'family_fixtures.dart';
+import '../../support/riverpod_test_support.dart';
 
 /// Carga las traducciones reales desde `assets/translations` para que los
 /// tests comprueben el texto en español de verdad (y que las llaves existan).
@@ -358,7 +359,7 @@ Future<GoRouter> pumpFamilyApp(
 }) async {
   final router = GoRouter(initialLocation: initialLocation, routes: routes);
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: overrides,
       child: EasyLocalization(
         supportedLocales: const [Locale('es')],

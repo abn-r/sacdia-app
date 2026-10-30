@@ -601,7 +601,7 @@ void main() {
           assetLoader: const _FileAssetLoader(),
           fallbackLocale: const Locale('es'),
           startLocale: const Locale('es'),
-          child: ProviderScope(
+          child: testProviderScope(
             overrides: [
               paymentOrdersListProvider.overrideWith(
                 (ref, filter) async => const <PaymentOrder>[],
@@ -668,7 +668,7 @@ Future<void> _pumpLocalized(
       assetLoader: const _FileAssetLoader(),
       fallbackLocale: const Locale('es'),
       startLocale: const Locale('es'),
-      child: ProviderScope(
+      child: testProviderScope(
         overrides: overrides,
         child: Builder(
           builder: (context) => MaterialApp(

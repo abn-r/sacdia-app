@@ -11,6 +11,7 @@ import 'package:sacdia_app/features/honors/domain/entities/user_honor_requiremen
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/honors/presentation/views/honor_detail_view.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_badge_image.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 void main() {
   testWidgets(
@@ -95,7 +96,7 @@ Future<void> _pumpDetail(
   );
 
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         honorCategoriesProvider.overrideWith(
           (ref) async => const <HonorCategory>[],

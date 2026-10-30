@@ -5,7 +5,6 @@ import 'dart:async';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
@@ -18,6 +17,7 @@ import 'package:sacdia_app/features/coordinator/presentation/providers/coordinat
 import 'package:sacdia_app/features/coordinator/presentation/views/sla_dashboard_view.dart';
 
 import '../../coordinator_test_harness.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 const _stat = SlaStat(pending: 6, avgDays: 2.5, overdue: 3);
 const _noStat = SlaStat(pending: 0, avgDays: 0, overdue: 0);
@@ -55,7 +55,7 @@ Future<void> _pumpSla(
 ) async {
   useTallSurface(tester);
   await tester.pumpWidget(
-    ProviderScope(
+    testProviderScope(
       overrides: [
         slaDashboardProvider.overrideWith((ref) async => sla()),
       ],
@@ -164,7 +164,7 @@ void main() {
       final never = Completer<SlaDashboard>();
       useTallSurface(tester);
       await tester.pumpWidget(
-        ProviderScope(
+        testProviderScope(
           overrides: [
             slaDashboardProvider.overrideWith((ref) => never.future),
           ],
