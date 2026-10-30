@@ -102,6 +102,13 @@ void main() {
             ),
           ),
           GoRoute(
+            path: RouteNames.homeDashboard,
+            pageBuilder: (context, state) => MaterialPage<void>(
+              key: state.pageKey,
+              child: const Scaffold(body: Text('dashboard')),
+            ),
+          ),
+          GoRoute(
             path: RouteNames.homeMembers,
             pageBuilder: (context, state) {
               visited.add(state.uri.toString());

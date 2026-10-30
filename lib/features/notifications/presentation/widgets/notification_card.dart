@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import 'package:sacdia_app/core/theme/sac_accent.dart';
+import '../../../../core/config/dashboard_drill_in.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../investiture_requests/presentation/utils/investiture_notification_routes.dart';
@@ -174,7 +175,13 @@ class NotificationCard extends ConsumerWidget {
                             text: action.labelKey.tr(),
                             onPressed: () {
                               Navigator.of(sheetContext).pop();
-                              GoRouter.of(context).go(action.route);
+                              final router = GoRouter.of(context);
+                              if (isDashboardDrillIn(action.route)) {
+                                unawaited(
+                                    openDashboardDrillIn(router, action.route));
+                              } else {
+                                router.go(action.route);
+                              }
                             },
                             borderRadius: 16,
                           ),
@@ -252,9 +259,9 @@ class NotificationCard extends ConsumerWidget {
       );
       if (!context.mounted) return;
       if (route != null) {
-        // `go`, not `push`: the inbox is a root route and Members lives in the
-        // shell, so a push would land underneath the inbox.
-        context.go(route);
+        // The inbox is a root route and Members a dashboard drill-in: go to the
+        // dashboard and push Members on top, so back and Inicio still work.
+        unawaited(openDashboardDrillIn(GoRouter.of(context), route));
         return;
       }
     }
