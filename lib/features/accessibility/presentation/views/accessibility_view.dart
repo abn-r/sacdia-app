@@ -207,16 +207,18 @@ class _TextSizePickerSheet extends StatelessWidget {
             final selected = option == current;
             return SacPressable(
               listenOnly: true,
-              child: ListTile(
-                enableFeedback: false,
-                title: Text(label),
-                trailing: selected
-                    ? HugeIcon(
-                        icon: HugeIcons.strokeRoundedTick02,
-                        color: SacAccent.of(context).color)
-                    : null,
-                onTap: () => Navigator.of(context).pop(option),
-              ),
+              child: Material(
+                  type: MaterialType.transparency,
+                  child: ListTile(
+                    enableFeedback: false,
+                    title: Text(label),
+                    trailing: selected
+                        ? HugeIcon(
+                            icon: HugeIcons.strokeRoundedTick02,
+                            color: SacAccent.of(context).color)
+                        : null,
+                    onTap: () => Navigator.of(context).pop(option),
+                  )),
             );
           }),
         ],

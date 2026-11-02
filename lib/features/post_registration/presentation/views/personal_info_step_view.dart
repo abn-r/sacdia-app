@@ -250,30 +250,32 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: SacPressable(
                 listenOnly: true,
-                child: SwitchListTile(
-                  enableFeedback: false,
-                  title: Text(
-                    postRegistrationCopy(
-                        'post_registration.personal_info.baptism.toggle_label',
-                        actingName: actingName),
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  value: formState.baptized,
-                  activeTrackColor: SacAccent.of(context).light,
-                  thumbColor:
-                      WidgetStatePropertyAll(SacAccent.of(context).color),
-                  contentPadding: EdgeInsets.zero,
-                  onChanged: (value) {
-                    ref.read(personalInfoFormProvider.notifier).state =
-                        formState.copyWith(
-                      baptized: value,
-                      baptismDate: value ? formState.baptismDate : null,
-                    );
-                  },
-                ),
+                child: Material(
+                    type: MaterialType.transparency,
+                    child: SwitchListTile(
+                      enableFeedback: false,
+                      title: Text(
+                        postRegistrationCopy(
+                            'post_registration.personal_info.baptism.toggle_label',
+                            actingName: actingName),
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      value: formState.baptized,
+                      activeTrackColor: SacAccent.of(context).light,
+                      thumbColor:
+                          WidgetStatePropertyAll(SacAccent.of(context).color),
+                      contentPadding: EdgeInsets.zero,
+                      onChanged: (value) {
+                        ref.read(personalInfoFormProvider.notifier).state =
+                            formState.copyWith(
+                          baptized: value,
+                          baptismDate: value ? formState.baptismDate : null,
+                        );
+                      },
+                    )),
               ),
             ),
             if (formState.baptized) ...[

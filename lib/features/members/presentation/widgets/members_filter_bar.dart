@@ -419,41 +419,45 @@ class _PickerSheet extends StatelessWidget {
                     final logo = _logoAsset(option);
                     return SacPressable(
                       listenOnly: true,
-                      child: ListTile(
-                        enableFeedback: false,
-                        minLeadingWidth: 24,
-                        horizontalTitleGap: 8,
-                        leading: logo == null
-                            ? null
-                            : Image.asset(
-                                logo,
-                                key: ValueKey(
-                                    'member-filter-class-logo-$option'),
-                                width: 24,
-                                height: 24,
-                                fit: BoxFit.contain,
-                                excludeFromSemantics: true,
+                      child: Material(
+                          type: MaterialType.transparency,
+                          child: ListTile(
+                            enableFeedback: false,
+                            minLeadingWidth: 24,
+                            horizontalTitleGap: 8,
+                            leading: logo == null
+                                ? null
+                                : Image.asset(
+                                    logo,
+                                    key: ValueKey(
+                                        'member-filter-class-logo-$option'),
+                                    width: 24,
+                                    height: 24,
+                                    fit: BoxFit.contain,
+                                    excludeFromSemantics: true,
+                                  ),
+                            title: Text(
+                              label,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                                color: isSelected
+                                    ? SacAccent.of(context).color
+                                    : c.text,
                               ),
-                        title: Text(
-                          label,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight:
-                                isSelected ? FontWeight.w600 : FontWeight.w400,
-                            color: isSelected
-                                ? SacAccent.of(context).color
-                                : c.text,
-                          ),
-                        ),
-                        trailing: isSelected
-                            ? HugeIcon(
-                                icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                                color: SacAccent.of(context).color,
-                                size: 20,
-                              )
-                            : null,
-                        onTap: () => Navigator.pop(context, option),
-                      ),
+                            ),
+                            trailing: isSelected
+                                ? HugeIcon(
+                                    icon: HugeIcons
+                                        .strokeRoundedCheckmarkCircle01,
+                                    color: SacAccent.of(context).color,
+                                    size: 20,
+                                  )
+                                : null,
+                            onTap: () => Navigator.pop(context, option),
+                          )),
                     );
                   },
                   childCount: options.length,
@@ -582,50 +586,57 @@ class _EnrollmentPickerSheet extends StatelessWidget {
           const SizedBox(height: 12),
           SacPressable(
             listenOnly: true,
-            child: ListTile(
-              enableFeedback: false,
-              title: Text(
-                'members.common.enrolled'.tr(),
-                style: TextStyle(
-                  fontSize: 15,
-                  color: current == true ? SacAccent.of(context).color : c.text,
-                  fontWeight:
-                      current == true ? FontWeight.w600 : FontWeight.w400,
-                ),
-              ),
-              trailing: current == true
-                  ? HugeIcon(
-                      icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                      color: SacAccent.of(context).color,
-                      size: 20,
-                    )
-                  : null,
-              onTap: () => Navigator.pop(context, true),
-            ),
+            child: Material(
+                type: MaterialType.transparency,
+                child: ListTile(
+                  enableFeedback: false,
+                  title: Text(
+                    'members.common.enrolled'.tr(),
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: current == true
+                          ? SacAccent.of(context).color
+                          : c.text,
+                      fontWeight:
+                          current == true ? FontWeight.w600 : FontWeight.w400,
+                    ),
+                  ),
+                  trailing: current == true
+                      ? HugeIcon(
+                          icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                          color: SacAccent.of(context).color,
+                          size: 20,
+                        )
+                      : null,
+                  onTap: () => Navigator.pop(context, true),
+                )),
           ),
           SacPressable(
             listenOnly: true,
-            child: ListTile(
-              enableFeedback: false,
-              title: Text(
-                'members.common.not_enrolled'.tr(),
-                style: TextStyle(
-                  fontSize: 15,
-                  color:
-                      current == false ? SacAccent.of(context).color : c.text,
-                  fontWeight:
-                      current == false ? FontWeight.w600 : FontWeight.w400,
-                ),
-              ),
-              trailing: current == false
-                  ? HugeIcon(
-                      icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                      color: SacAccent.of(context).color,
-                      size: 20,
-                    )
-                  : null,
-              onTap: () => Navigator.pop(context, false),
-            ),
+            child: Material(
+                type: MaterialType.transparency,
+                child: ListTile(
+                  enableFeedback: false,
+                  title: Text(
+                    'members.common.not_enrolled'.tr(),
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: current == false
+                          ? SacAccent.of(context).color
+                          : c.text,
+                      fontWeight:
+                          current == false ? FontWeight.w600 : FontWeight.w400,
+                    ),
+                  ),
+                  trailing: current == false
+                      ? HugeIcon(
+                          icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                          color: SacAccent.of(context).color,
+                          size: 20,
+                        )
+                      : null,
+                  onTap: () => Navigator.pop(context, false),
+                )),
           ),
           SizedBox(height: 16 + MediaQuery.of(context).padding.bottom),
         ],

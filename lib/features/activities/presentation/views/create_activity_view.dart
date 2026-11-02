@@ -930,40 +930,42 @@ class _JointActivityToggle extends StatelessWidget {
       ),
       child: SacPressable(
         listenOnly: true,
-        child: SwitchListTile(
-          enableFeedback: false,
-          value: value,
-          onChanged: enabled ? onChanged : null,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          title: Text(
-            'activities.form.joint_toggle_title'.tr(),
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: c.text,
-            ),
-          ),
-          subtitle: Text(
-            'activities.form.joint_toggle_subtitle'.tr(),
-            style: TextStyle(
-              fontSize: 12,
-              color: c.textSecondary,
-            ),
-          ),
-          secondary: Container(
-            padding: const EdgeInsets.all(7),
-            decoration: BoxDecoration(
-              color: value ? SacAccent.of(context).light : c.surfaceVariant,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: HugeIcon(
-              icon: HugeIcons.strokeRoundedUserGroup,
-              size: 18,
-              color: value ? SacAccent.of(context).color : c.textTertiary,
-            ),
-          ),
-        ),
+        child: Material(
+            type: MaterialType.transparency,
+            child: SwitchListTile(
+              enableFeedback: false,
+              value: value,
+              onChanged: enabled ? onChanged : null,
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              title: Text(
+                'activities.form.joint_toggle_title'.tr(),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: c.text,
+                ),
+              ),
+              subtitle: Text(
+                'activities.form.joint_toggle_subtitle'.tr(),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: c.textSecondary,
+                ),
+              ),
+              secondary: Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: value ? SacAccent.of(context).light : c.surfaceVariant,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedUserGroup,
+                  size: 18,
+                  color: value ? SacAccent.of(context).color : c.textTertiary,
+                ),
+              ),
+            )),
       ),
     );
   }

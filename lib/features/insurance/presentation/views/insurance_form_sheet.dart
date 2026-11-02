@@ -801,109 +801,115 @@ class _FilePickerSheet extends StatelessWidget {
           ),
           SacPressable(
             listenOnly: true,
-            child: ListTile(
-              enableFeedback: false,
-              leading: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: SacAccent.of(context).surface,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedCamera01,
-                    size: 22,
-                    color: SacAccent.of(context).color,
+            child: Material(
+                type: MaterialType.transparency,
+                child: ListTile(
+                  enableFeedback: false,
+                  leading: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: SacAccent.of(context).surface,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Center(
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedCamera01,
+                        size: 22,
+                        color: SacAccent.of(context).color,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              title: Text(
-                'insurance.form.picker_camera'.tr(),
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              subtitle: Text('insurance.form.picker_camera_subtitle'.tr()),
-              onTap: () async {
-                Navigator.pop(context);
-                final picker = ImagePicker();
-                final file = await picker.pickImage(
-                  source: ImageSource.camera,
-                  imageQuality: 85,
-                );
-                onSelected(file);
-              },
-            ),
+                  title: Text(
+                    'insurance.form.picker_camera'.tr(),
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text('insurance.form.picker_camera_subtitle'.tr()),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final picker = ImagePicker();
+                    final file = await picker.pickImage(
+                      source: ImageSource.camera,
+                      imageQuality: 85,
+                    );
+                    onSelected(file);
+                  },
+                )),
           ),
           SacPressable(
             listenOnly: true,
-            child: ListTile(
-              enableFeedback: false,
-              leading: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.secondaryLight,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Center(
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedImage01,
-                    size: 22,
-                    color: AppColors.secondary,
+            child: Material(
+                type: MaterialType.transparency,
+                child: ListTile(
+                  enableFeedback: false,
+                  leading: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.secondaryLight,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Center(
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedImage01,
+                        size: 22,
+                        color: AppColors.secondary,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              title: Text(
-                'insurance.form.picker_gallery'.tr(),
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              subtitle: Text('insurance.form.picker_gallery_subtitle'.tr()),
-              onTap: () async {
-                Navigator.pop(context);
-                final picker = ImagePicker();
-                final file = await picker.pickImage(
-                  source: ImageSource.gallery,
-                  imageQuality: 85,
-                );
-                onSelected(file);
-              },
-            ),
+                  title: Text(
+                    'insurance.form.picker_gallery'.tr(),
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text('insurance.form.picker_gallery_subtitle'.tr()),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final picker = ImagePicker();
+                    final file = await picker.pickImage(
+                      source: ImageSource.gallery,
+                      imageQuality: 85,
+                    );
+                    onSelected(file);
+                  },
+                )),
           ),
           SacPressable(
             listenOnly: true,
-            child: ListTile(
-              enableFeedback: false,
-              leading: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF4E0),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedFiles01,
-                    size: 22,
-                    color: AppColors.accentDark,
+            child: Material(
+                type: MaterialType.transparency,
+                child: ListTile(
+                  enableFeedback: false,
+                  leading: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF4E0),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Center(
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedFiles01,
+                        size: 22,
+                        color: AppColors.accentDark,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              title: Text(
-                'insurance.form.picker_pdf'.tr(),
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              subtitle: Text('insurance.form.picker_pdf_subtitle'.tr()),
-              onTap: () async {
-                Navigator.pop(context);
-                final picker = ImagePicker();
-                // image_picker no soporta PDF directamente.
-                // En producción usar file_picker para PDFs.
-                // Por ahora se selecciona desde galería como fallback.
-                final file =
-                    await picker.pickImage(source: ImageSource.gallery);
-                onSelected(file);
-              },
-            ),
+                  title: Text(
+                    'insurance.form.picker_pdf'.tr(),
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text('insurance.form.picker_pdf_subtitle'.tr()),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final picker = ImagePicker();
+                    // image_picker no soporta PDF directamente.
+                    // En producción usar file_picker para PDFs.
+                    // Por ahora se selecciona desde galería como fallback.
+                    final file =
+                        await picker.pickImage(source: ImageSource.gallery);
+                    onSelected(file);
+                  },
+                )),
           ),
           const SizedBox(height: 16),
         ],
