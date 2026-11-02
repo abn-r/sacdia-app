@@ -107,8 +107,17 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # Split by file, not with --total-shards: that flag splits test cases, so
+      # every shard would still compile and load every test file, which is
+      # most of the time.
       - name: Run unit tests
-        run: flutter test --no-pub --total-shards 3 --shard-index ${{ matrix.shard }}
+        env:
+          SHARD: ${{ matrix.shard }}
+          SHARDS: 3
+        run: |
+          mapfile -t files < <(find test -name '*_test.dart' | sort | awk -v s="$SHARD" -v n="$SHARDS" '(NR - 1) % n == s')
+          echo "Shard $SHARD: ${#files[@]} test files"
+          flutter test --no-pub "${files[@]}"
 
   # ──────────────────────────────────────────────────────────────────────────
   # JOB 3: Check Secrets
