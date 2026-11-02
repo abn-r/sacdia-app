@@ -32,7 +32,7 @@ final uploadProfilePictureProvider =
 });
 
 /// Notifier para subir foto de perfil sin acoplar vistas al repositorio.
-class ProfilePhotoUploadNotifier extends AutoDisposeAsyncNotifier<String?> {
+class ProfilePhotoUploadNotifier extends AsyncNotifier<String?> {
   @override
   Future<String?> build() async => null;
 
@@ -68,8 +68,7 @@ final profilePhotoUploadNotifierProvider =
   ProfilePhotoUploadNotifier.new,
 );
 
-class CancelPendingMembershipRequestNotifier
-    extends AutoDisposeAsyncNotifier<void> {
+class CancelPendingMembershipRequestNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
@@ -112,8 +111,7 @@ final completionStatusProvider = AsyncNotifierProvider.autoDispose<
 });
 
 /// Notifier para el estado de completitud del post-registro
-class CompletionStatusNotifier
-    extends AutoDisposeAsyncNotifier<CompletionStatus?> {
+class CompletionStatusNotifier extends AsyncNotifier<CompletionStatus?> {
   @override
   Future<CompletionStatus?> build() async {
     // keepAlive sobrevive al logout: atar el cache al usuario evita que una

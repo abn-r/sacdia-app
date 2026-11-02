@@ -20,7 +20,7 @@ class BirthdayCelebrationState {
 }
 
 class BirthdayCelebrationNotifier
-    extends AutoDisposeAsyncNotifier<BirthdayCelebrationState> {
+    extends AsyncNotifier<BirthdayCelebrationState> {
   @override
   Future<BirthdayCelebrationState> build() async {
     final user = await ref.watch(authNotifierProvider.future);

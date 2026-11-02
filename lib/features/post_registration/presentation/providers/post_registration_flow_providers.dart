@@ -31,7 +31,7 @@ class PostRegistrationFlowResult {
 
 /// Notifier para completar pasos del post-registro sin acoplar el shell a
 /// repositories/data sources.
-class PostRegistrationFlowNotifier extends AutoDisposeAsyncNotifier<void> {
+class PostRegistrationFlowNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 

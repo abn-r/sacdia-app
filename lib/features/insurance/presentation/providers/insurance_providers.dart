@@ -275,7 +275,7 @@ class InsuranceFormState {
 }
 
 /// Notifier para el formulario de registro/edición de seguro.
-class InsuranceFormNotifier extends AutoDisposeNotifier<InsuranceFormState> {
+class InsuranceFormNotifier extends Notifier<InsuranceFormState> {
   @override
   InsuranceFormState build() => const InsuranceFormState();
 

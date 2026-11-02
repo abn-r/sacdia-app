@@ -104,7 +104,7 @@ class EnrollmentFormState {
 
 // ── Create / Update notifier ──────────────────────────────────────────────────
 
-class EnrollmentFormNotifier extends AutoDisposeNotifier<EnrollmentFormState> {
+class EnrollmentFormNotifier extends Notifier<EnrollmentFormState> {
   @override
   EnrollmentFormState build() => const EnrollmentFormState();
 

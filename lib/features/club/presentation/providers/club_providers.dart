@@ -136,7 +136,7 @@ class UpdateClubState {
 }
 
 /// Notifier para gestionar la actualización de la sección de club.
-class UpdateClubNotifier extends AutoDisposeNotifier<UpdateClubState> {
+class UpdateClubNotifier extends Notifier<UpdateClubState> {
   @override
   UpdateClubState build() => const UpdateClubState();
 

@@ -147,8 +147,7 @@ final healthNoneStateProvider =
   HealthNoneStateNotifier.new,
 );
 
-class HealthNoneStateNotifier
-    extends AutoDisposeAsyncNotifier<HealthNoneState> {
+class HealthNoneStateNotifier extends AsyncNotifier<HealthNoneState> {
   @override
   Future<HealthNoneState> build() async {
     final userId = await ref.watch(
@@ -236,8 +235,7 @@ final selectedDiseasesProvider =
 /// IMPORTANT: build() is idempotent — it does NOT push to selectedAllergiesProvider.
 /// The view layer must initialize selectedAllergiesProvider from the data returned
 /// here when it first arrives (e.g., via a ref.listen on userAllergiesProvider).
-class UserAllergiesNotifier
-    extends AutoDisposeAsyncNotifier<List<AllergyModel>> {
+class UserAllergiesNotifier extends AsyncNotifier<List<AllergyModel>> {
   @override
   Future<List<AllergyModel>> build() async {
     final userId = await ref.watch(
@@ -324,8 +322,7 @@ final userAllergiesProvider = AsyncNotifierProvider.autoDispose<
 /// IMPORTANT: build() is idempotent — it does NOT push to selectedDiseasesProvider.
 /// The view layer must initialize selectedDiseasesProvider from the data returned
 /// here when it first arrives (e.g., via a ref.listen on userDiseasesProvider).
-class UserDiseasesNotifier
-    extends AutoDisposeAsyncNotifier<List<DiseaseModel>> {
+class UserDiseasesNotifier extends AsyncNotifier<List<DiseaseModel>> {
   @override
   Future<List<DiseaseModel>> build() async {
     final userId = await ref.watch(
@@ -424,8 +421,7 @@ final selectedMedicinesProvider =
 /// IMPORTANT: build() is idempotent — it does NOT push to selectedMedicinesProvider.
 /// The view layer must initialize selectedMedicinesProvider from the data returned
 /// here when it first arrives (e.g., via a ref.listen on userMedicinesProvider).
-class UserMedicinesNotifier
-    extends AutoDisposeAsyncNotifier<List<MedicineModel>> {
+class UserMedicinesNotifier extends AsyncNotifier<List<MedicineModel>> {
   @override
   Future<List<MedicineModel>> build() async {
     final userId = await ref.watch(
@@ -508,7 +504,7 @@ final userMedicinesProvider = AsyncNotifierProvider.autoDispose<
 
 /// Notifier de contactos de emergencia
 class EmergencyContactsNotifier
-    extends AutoDisposeAsyncNotifier<List<EmergencyContactModel>> {
+    extends AsyncNotifier<List<EmergencyContactModel>> {
   @override
   Future<List<EmergencyContactModel>> build() async {
     final userId = await ref.watch(
@@ -696,7 +692,7 @@ PersonalInfoChanges diffPersonalInfo(
 }
 
 /// Notifier para guardar información personal con loading/error state
-class SavePersonalInfoNotifier extends AutoDisposeAsyncNotifier<void> {
+class SavePersonalInfoNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 

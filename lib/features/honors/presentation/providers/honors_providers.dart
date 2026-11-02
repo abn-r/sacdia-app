@@ -276,7 +276,7 @@ final honorsGroupedByCategoryProvider =
 });
 
 /// Notifier para manejar inscripciones en especialidades
-class HonorEnrollmentNotifier extends AutoDisposeAsyncNotifier<UserHonor?> {
+class HonorEnrollmentNotifier extends AsyncNotifier<UserHonor?> {
   @override
   Future<UserHonor?> build() async => null;
 
@@ -303,7 +303,7 @@ final honorEnrollmentNotifierProvider =
 
 // ── Honor evidence actions ──────────────────────────────────────────────────
 
-class HonorEvidenceActionsNotifier extends AutoDisposeAsyncNotifier<void> {
+class HonorEvidenceActionsNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
@@ -426,7 +426,7 @@ final honorEvidenceActionsNotifierProvider =
 ///
 /// On success it waits for the refreshed list, so the card swaps straight to
 /// the new state. Both methods return null when done, or why they were not.
-class InstructorProposalActionsNotifier extends AutoDisposeAsyncNotifier<void> {
+class InstructorProposalActionsNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
@@ -562,8 +562,7 @@ UserHonor _userHonorWithCompletionMode(
 final honorCompletionModeOverrideProvider =
     StateProvider<Map<int, UserHonor>>((ref) => const <int, UserHonor>{});
 
-class HonorCompletionModeActionsNotifier
-    extends AutoDisposeAsyncNotifier<UserHonor?> {
+class HonorCompletionModeActionsNotifier extends AsyncNotifier<UserHonor?> {
   @override
   Future<UserHonor?> build() async => null;
 
@@ -618,7 +617,7 @@ final honorCompletionModeActionsNotifierProvider = AsyncNotifierProvider
 /// The backend only deactivates the enrollment and rejects honors that are
 /// under review or already approved, so callers gate the action with
 /// [UserHonor.canAbandon].
-class HonorAbandonActionsNotifier extends AutoDisposeAsyncNotifier<void> {
+class HonorAbandonActionsNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
@@ -688,8 +687,7 @@ class HonorRegistrationState {
 }
 
 /// Notifier para manejar el registro completo de especialidades
-class HonorRegistrationNotifier
-    extends AutoDisposeNotifier<HonorRegistrationState> {
+class HonorRegistrationNotifier extends Notifier<HonorRegistrationState> {
   @override
   HonorRegistrationState build() => const HonorRegistrationState();
 

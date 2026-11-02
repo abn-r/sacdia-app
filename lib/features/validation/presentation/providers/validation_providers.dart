@@ -112,8 +112,7 @@ class SubmitValidationState {
   }
 }
 
-class SubmitValidationNotifier
-    extends AutoDisposeNotifier<SubmitValidationState> {
+class SubmitValidationNotifier extends Notifier<SubmitValidationState> {
   @override
   SubmitValidationState build() => const SubmitValidationState();
 

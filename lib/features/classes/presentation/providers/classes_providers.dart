@@ -798,7 +798,7 @@ final requirementNotifierProvider = NotifierProvider.autoDispose
 /// Notifier para manejar actualizaciones de progreso
 // Legacy: superseded by RequirementNotifier for new flows. Kept for
 // section_detail_view and class_modules_view which still use this directly.
-class ClassProgressNotifier extends AutoDisposeAsyncNotifier<ClassProgress?> {
+class ClassProgressNotifier extends AsyncNotifier<ClassProgress?> {
   @override
   Future<ClassProgress?> build() async => null;
 

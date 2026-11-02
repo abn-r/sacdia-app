@@ -648,7 +648,7 @@ final somethingProvider = AsyncNotifierProvider.autoDispose<NewNotifier, int>(
   NewNotifier.new,
 );
 
-class NewNotifier extends AutoDisposeAsyncNotifier<int> {
+class NewNotifier extends AsyncNotifier<int> {
   @override
   Future<int> build() async {
     final link = ref.keepAlive();
@@ -753,7 +753,7 @@ class FamilyNotifierNew extends AsyncNotifier<int> {
   }
 }
 
-class OldFormNotifier extends AutoDisposeAsyncNotifier<int> {
+class OldFormNotifier extends AsyncNotifier<int> {
   @override
   Future<int> build() async {
     ref.keepAlive();

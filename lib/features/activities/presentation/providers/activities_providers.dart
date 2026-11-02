@@ -164,7 +164,7 @@ final activityDetailProvider =
 });
 
 /// Notifier para manejar el registro de asistencia
-class AttendanceNotifier extends AutoDisposeAsyncNotifier<int?> {
+class AttendanceNotifier extends AsyncNotifier<int?> {
   @override
   Future<int?> build() async => null;
 
@@ -227,7 +227,7 @@ class CreateActivityState {
 }
 
 /// Notifier para manejar la creación de actividades
-class CreateActivityNotifier extends AutoDisposeNotifier<CreateActivityState> {
+class CreateActivityNotifier extends Notifier<CreateActivityState> {
   @override
   CreateActivityState build() => const CreateActivityState();
 
@@ -271,7 +271,7 @@ final createActivityNotifierProvider =
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Notifier para manejar la eliminación de actividades
-class DeleteActivityNotifier extends AutoDisposeAsyncNotifier<void> {
+class DeleteActivityNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
@@ -333,7 +333,7 @@ class UpdateActivityState {
 }
 
 /// Notifier para manejar la actualización de actividades
-class UpdateActivityNotifier extends AutoDisposeNotifier<UpdateActivityState> {
+class UpdateActivityNotifier extends Notifier<UpdateActivityState> {
   @override
   UpdateActivityState build() => const UpdateActivityState();
 
@@ -413,7 +413,7 @@ final updateActivityNotifierProvider =
 // ACTIVITY IMAGE UPLOAD
 // ─────────────────────────────────────────────────────────────────────────────
 
-class ActivityImageUploadNotifier extends AutoDisposeAsyncNotifier<String?> {
+class ActivityImageUploadNotifier extends AsyncNotifier<String?> {
   @override
   Future<String?> build() async => null;
 
@@ -519,8 +519,7 @@ class CreateActivitySeriesState {
   }
 }
 
-class CreateActivitySeriesNotifier
-    extends AutoDisposeNotifier<CreateActivitySeriesState> {
+class CreateActivitySeriesNotifier extends Notifier<CreateActivitySeriesState> {
   @override
   CreateActivitySeriesState build() => const CreateActivitySeriesState();
 
@@ -581,7 +580,7 @@ final createActivitySeriesNotifierProvider = NotifierProvider.autoDispose<
   CreateActivitySeriesNotifier.new,
 );
 
-class ActivitySeriesActionsNotifier extends AutoDisposeAsyncNotifier<void> {
+class ActivitySeriesActionsNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 

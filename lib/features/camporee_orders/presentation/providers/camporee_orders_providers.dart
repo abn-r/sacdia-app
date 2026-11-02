@@ -405,8 +405,7 @@ class CamporeeOrderActionsState {
   const CamporeeOrderActionsState({this.isWorking = false, this.errorMessage});
 }
 
-class CamporeeOrderActionsNotifier
-    extends AutoDisposeNotifier<CamporeeOrderActionsState> {
+class CamporeeOrderActionsNotifier extends Notifier<CamporeeOrderActionsState> {
   @override
   CamporeeOrderActionsState build() => const CamporeeOrderActionsState();
 

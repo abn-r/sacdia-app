@@ -26,7 +26,7 @@ class CreateOrderState {
 }
 
 /// Notifier que gestiona el ciclo de vida de la llamada createOrder.
-class CreateOrderNotifier extends AutoDisposeNotifier<CreateOrderState> {
+class CreateOrderNotifier extends Notifier<CreateOrderState> {
   @override
   CreateOrderState build() => const CreateOrderState();
 

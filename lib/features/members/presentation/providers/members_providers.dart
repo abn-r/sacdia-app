@@ -318,10 +318,10 @@ class MembersData {
 // ── Members notifier ──────────────────────────────────────────────────────────
 
 /// Notifier principal para el módulo de miembros.
-/// Usa AutoDisposeAsyncNotifier para que el estado de loading/error sea manejado
+/// Usa AsyncNotifier con autoDispose para que el estado de loading/error sea manejado
 /// automáticamente por AsyncValue, eliminando los campos manuales isLoading/error,
 /// y para liberar memoria cuando el árbol de widgets que lo consume se desmonta.
-class MembersNotifier extends AutoDisposeAsyncNotifier<MembersData> {
+class MembersNotifier extends AsyncNotifier<MembersData> {
   @override
   Future<MembersData> build() async {
     final cancelToken = CancelToken();
@@ -822,7 +822,7 @@ class AnnualContinuationsState {
 
 /// Notifier para la lista de continuaciones anuales de la sección activa.
 class AnnualContinuationsNotifier
-    extends AutoDisposeAsyncNotifier<AnnualContinuationsState> {
+    extends AsyncNotifier<AnnualContinuationsState> {
   @override
   Future<AnnualContinuationsState> build() async {
     final ctx = await ref.watch(clubContextProvider.future);

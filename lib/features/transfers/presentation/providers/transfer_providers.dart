@@ -96,7 +96,7 @@ class CreateTransferState {
   }
 }
 
-class CreateTransferNotifier extends AutoDisposeNotifier<CreateTransferState> {
+class CreateTransferNotifier extends Notifier<CreateTransferState> {
   @override
   CreateTransferState build() => const CreateTransferState();
 

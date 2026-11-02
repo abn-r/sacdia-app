@@ -63,7 +63,7 @@ final myLegalStatusProvider = FutureProvider.autoDispose<LegalStatus>((
 /// - `LEGAL_VERSION_MISMATCH`: invalida [myLegalStatusProvider] para volver a
 ///   pedir las versiones vigentes y deja [legalVersionChangedKey] en el error.
 /// - Cualquier otro fallo: deja [legalAcceptErrorKey] en el error.
-class LegalAcceptanceNotifier extends AutoDisposeAsyncNotifier<void> {
+class LegalAcceptanceNotifier extends AsyncNotifier<void> {
   bool _disposed = false;
 
   @override

@@ -89,8 +89,7 @@ class ConsentReviewState extends Equatable {
 /// la ficha más antigua a la más nueva. Las páginas siguientes se piden con
 /// `offset` = lo ya listado (una ficha verificada sale de la cola del servidor
 /// igual que de la lista, así que el desplazamiento sigue cuadrando).
-class ConsentReviewNotifier
-    extends AutoDisposeAsyncNotifier<ConsentReviewState> {
+class ConsentReviewNotifier extends AsyncNotifier<ConsentReviewState> {
   /// Fichas por página: el valor por defecto del endpoint.
   static const int pageSize = 50;
 

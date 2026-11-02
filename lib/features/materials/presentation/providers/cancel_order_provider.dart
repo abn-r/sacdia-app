@@ -25,7 +25,7 @@ class CancelOrderState {
 }
 
 /// Notifier para cancelar una orden con motivo.
-class CancelOrderNotifier extends AutoDisposeNotifier<CancelOrderState> {
+class CancelOrderNotifier extends Notifier<CancelOrderState> {
   @override
   CancelOrderState build() => const CancelOrderState();
 

@@ -41,8 +41,7 @@ final activeSessionsRepositoryProvider =
 /// - [refresh] fuerza recarga manual.
 /// - [revoke] aplica optimistic remove + rollback si falla.
 /// - [revokeAllOthers] elimina todas las sesiones excepto la actual.
-class ActiveSessionsNotifier
-    extends AutoDisposeAsyncNotifier<List<ActiveSession>> {
+class ActiveSessionsNotifier extends AsyncNotifier<List<ActiveSession>> {
   static const _tag = 'ActiveSessionsNotifier';
 
   @override

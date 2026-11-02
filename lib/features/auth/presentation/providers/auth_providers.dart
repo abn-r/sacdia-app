@@ -130,7 +130,7 @@ final signInWithAppleProvider = Provider<SignInWithApple>((ref) {
 });
 
 /// Notifier para solicitar recuperación de contraseña sin acoplar la vista al repositorio.
-class ForgotPasswordNotifier extends AutoDisposeAsyncNotifier<void> {
+class ForgotPasswordNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 

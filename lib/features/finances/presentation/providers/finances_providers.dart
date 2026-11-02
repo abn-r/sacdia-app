@@ -99,7 +99,7 @@ class SelectedMonth extends Equatable {
   List<Object?> get props => [year, month];
 }
 
-class SelectedMonthNotifier extends AutoDisposeNotifier<SelectedMonth> {
+class SelectedMonthNotifier extends Notifier<SelectedMonth> {
   @override
   SelectedMonth build() => SelectedMonth(
         year: DateTime.now().year,
@@ -257,8 +257,7 @@ class TransactionFormState {
   }
 }
 
-class TransactionFormNotifier
-    extends AutoDisposeNotifier<TransactionFormState> {
+class TransactionFormNotifier extends Notifier<TransactionFormState> {
   @override
   TransactionFormState build() => const TransactionFormState();
 
@@ -522,8 +521,7 @@ const _sentinel = Object();
 ///
 /// All filter changes reset to page 1 and clear the accumulated list before
 /// triggering a fresh fetch.
-class AllTransactionsFilterNotifier
-    extends AutoDisposeNotifier<AllTransactionsState> {
+class AllTransactionsFilterNotifier extends Notifier<AllTransactionsState> {
   @override
   AllTransactionsState build() => const AllTransactionsState();
 

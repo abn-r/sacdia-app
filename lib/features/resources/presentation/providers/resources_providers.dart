@@ -147,7 +147,7 @@ class ResourcesListState {
 }
 
 /// Notifier que gestiona la lista paginada de recursos con carga incremental
-class ResourcesListNotifier extends AutoDisposeNotifier<ResourcesListState> {
+class ResourcesListNotifier extends Notifier<ResourcesListState> {
   static const int _pageSize = 20;
   CancelToken? _cancelToken;
 
@@ -249,7 +249,7 @@ final resourcesListNotifierProvider =
 // ── Signed URL notifier ──────────────────────────────────────────────────────
 
 /// Notifier para gestionar la obtención de URLs firmadas de descarga
-class SignedUrlNotifier extends AutoDisposeNotifier<AsyncValue<String?>> {
+class SignedUrlNotifier extends Notifier<AsyncValue<String?>> {
   @override
   AsyncValue<String?> build() => const AsyncValue.data(null);
 

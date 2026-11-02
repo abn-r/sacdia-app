@@ -348,8 +348,7 @@ class InventoryItemFormState {
   }
 }
 
-class InventoryItemFormNotifier
-    extends AutoDisposeNotifier<InventoryItemFormState> {
+class InventoryItemFormNotifier extends Notifier<InventoryItemFormState> {
   @override
   InventoryItemFormState build() => const InventoryItemFormState();
 
@@ -510,8 +509,7 @@ class InventoryDeleteState {
   });
 }
 
-class InventoryDeleteNotifier
-    extends AutoDisposeNotifier<InventoryDeleteState> {
+class InventoryDeleteNotifier extends Notifier<InventoryDeleteState> {
   @override
   InventoryDeleteState build() => const InventoryDeleteState();
 

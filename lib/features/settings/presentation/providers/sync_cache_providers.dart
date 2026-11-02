@@ -55,7 +55,7 @@ class SyncControllerState {
   }
 }
 
-class SyncController extends AutoDisposeNotifier<SyncControllerState> {
+class SyncController extends Notifier<SyncControllerState> {
   @override
   SyncControllerState build() => const SyncControllerState.idle();
 
@@ -119,7 +119,7 @@ class ClearCacheState {
         errorMessage = null;
 }
 
-class ClearCacheController extends AutoDisposeNotifier<ClearCacheState> {
+class ClearCacheController extends Notifier<ClearCacheState> {
   @override
   ClearCacheState build() => const ClearCacheState.idle();
 

@@ -41,7 +41,7 @@ final notificationPreferencesRepositoryProvider =
 /// - [update] aplica optimistic update: actualiza UI inmediatamente, llama PATCH
 ///   al backend y revierte si falla.
 class NotificationPreferencesNotifier
-    extends AutoDisposeAsyncNotifier<NotificationPreferences> {
+    extends AsyncNotifier<NotificationPreferences> {
   static const _tag = 'NotifPrefsNotifier';
 
   @override
