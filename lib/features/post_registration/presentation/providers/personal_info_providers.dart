@@ -546,7 +546,7 @@ class EmergencyContactsNotifier
     } catch (error) {
       // Restaura la lista previa (si el notifier ya no está montado, no hay
       // nada que restaurar).
-      if (ref.exists(emergencyContactsProvider)) {
+      if (ref.mounted) {
         state = previous.hasValue
             ? AsyncValue.data(previous.requireValue)
             : previous;

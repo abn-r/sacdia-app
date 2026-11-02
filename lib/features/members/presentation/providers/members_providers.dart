@@ -381,7 +381,10 @@ class MembersNotifier extends AsyncNotifier<MembersData> {
       (failure) => failure,
       (success) {
         if (!success) return const UnexpectedFailure(message: '');
-        ref.invalidateSelf();
+        // The role is already assigned. If nobody watches the members list any
+        // more (autoDispose), there is nothing to reload, and Riverpod 3 throws
+        // when a disposed notifier touches its Ref.
+        if (ref.mounted) ref.invalidateSelf();
         return null;
       },
     );
