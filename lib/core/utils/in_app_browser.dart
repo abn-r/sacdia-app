@@ -27,7 +27,7 @@ Future<bool> openInAppDocument(
       if (opened) return true;
     }
 
-    return launch(
+    return await launch(
       uri,
       mode: LaunchMode.externalApplication,
       browserConfiguration: const BrowserConfiguration(),

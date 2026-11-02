@@ -372,7 +372,7 @@ class CamporeeOrderDraftNotifier extends Notifier<CamporeeOrderDraftState> {
                 idempotencyKey:
                     '${arg.camporeeId}-${DateTime.now().microsecondsSinceEpoch}',
               );
-      return result.fold(
+      return result.fold<CamporeeOrder?>(
         (failure) {
           state = state.copyWith(
             isSubmitting: false,
