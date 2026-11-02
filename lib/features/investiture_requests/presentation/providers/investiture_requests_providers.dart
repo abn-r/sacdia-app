@@ -214,6 +214,8 @@ abstract class _SectionActionNotifier extends Notifier<RequestActionState> {
 
 /// Presenta personas en una solicitud nueva.
 class PresentNotifier extends _SectionActionNotifier {
+  PresentNotifier(super.arg);
+
   Future<bool> submit({
     required DateTime investitureDate,
     required List<int> enrollmentIds,
@@ -230,6 +232,8 @@ class PresentNotifier extends _SectionActionNotifier {
 
 /// Agrega personas a la solicitud abierta.
 class AddPeopleNotifier extends _SectionActionNotifier {
+  AddPeopleNotifier(super.arg);
+
   Future<bool> submit({
     required String requestId,
     required DateTime investitureDate,
@@ -246,6 +250,8 @@ class AddPeopleNotifier extends _SectionActionNotifier {
 
 /// Quita a una persona pendiente (sin correo).
 class RemovePersonNotifier extends _SectionActionNotifier {
+  RemovePersonNotifier(super.arg);
+
   Future<bool> submit({
     required String requestId,
     required String personId,
@@ -257,6 +263,8 @@ class RemovePersonNotifier extends _SectionActionNotifier {
 
 /// Cambia la fecha de las personas pendientes seleccionadas.
 class ChangeDatesNotifier extends _SectionActionNotifier {
+  ChangeDatesNotifier(super.arg);
+
   Future<bool> submit({
     required String requestId,
     required DateTime investitureDate,

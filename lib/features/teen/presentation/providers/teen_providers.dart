@@ -74,7 +74,7 @@ class TeenLinkCodeNotifier extends AsyncNotifier<TeenLinkCode?> {
   /// queda en el estado.
   Future<bool> issue() async {
     if (state.isLoading) return false;
-    state = const AsyncLoading<TeenLinkCode?>().copyWithPrevious(state);
+    state = const AsyncLoading<TeenLinkCode?>();
     final Either<Failure, TeenLinkCode> result =
         await ref.read(issueTeenLinkCodeUseCaseProvider)(const NoParams());
     return result.fold(

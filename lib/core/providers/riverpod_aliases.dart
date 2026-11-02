@@ -2,10 +2,11 @@
 /// `package:flutter_riverpod/misc.dart` since Riverpod 3.
 ///
 /// Import this file (alongside the regular `flutter_riverpod.dart` import)
-/// wherever [Override], [ProviderOrFamily] or [ProviderListenable] are named,
+/// wherever [Override], [ProviderBase], [ProviderOrFamily] or
+/// [ProviderListenable] are named,
 /// so any future move of these types only has to change the single `export`
 /// below.
 library;
 
 export 'package:flutter_riverpod/misc.dart'
-    show Override, ProviderOrFamily, ProviderListenable;
+    show Override, ProviderBase, ProviderOrFamily, ProviderListenable;

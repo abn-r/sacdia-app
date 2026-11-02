@@ -1071,6 +1071,4 @@ class RequirementProgressNotifier
 /// Es autoDispose.family keyed por honorId.
 final requirementProgressNotifierProvider = AsyncNotifierProvider.autoDispose
     .family<RequirementProgressNotifier, List<UserHonorRequirementProgress>?,
-        int>(() {
-  return RequirementProgressNotifier();
-});
+        int>(RequirementProgressNotifier.new);

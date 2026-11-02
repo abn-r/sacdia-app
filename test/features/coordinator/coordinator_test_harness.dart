@@ -87,7 +87,7 @@ typedef PendingPageLoader = FutureOr<EvidenceReviewPage> Function(
 
 /// [PendingEvidenceNotifier] with the real paging logic and a fake source.
 class FakePendingEvidenceNotifier extends PendingEvidenceNotifier {
-  FakePendingEvidenceNotifier(this.loader);
+  FakePendingEvidenceNotifier(super.arg, this.loader);
 
   final PendingPageLoader loader;
 
@@ -100,8 +100,8 @@ class FakePendingEvidenceNotifier extends PendingEvidenceNotifier {
 }
 
 Override pendingEvidenceOverride(PendingPageLoader loader) =>
-    pendingEvidenceProvider.overrideWith(
-      () => FakePendingEvidenceNotifier(loader),
+    pendingEvidenceProvider.overrideWith2(
+      (arg) => FakePendingEvidenceNotifier(arg, loader),
     );
 
 /// A queue that fits in one page: the server total is [items.length] unless
