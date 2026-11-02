@@ -242,7 +242,7 @@ class ResourcesListNotifier extends Notifier<ResourcesListState> {
 
 /// Provider del notifier de lista paginada de recursos
 final resourcesListNotifierProvider =
-    AutoDisposeNotifierProvider<ResourcesListNotifier, ResourcesListState>(
+    NotifierProvider.autoDispose<ResourcesListNotifier, ResourcesListState>(
   ResourcesListNotifier.new,
 );
 
@@ -276,7 +276,7 @@ class SignedUrlNotifier extends Notifier<AsyncValue<String?>> {
 
 /// Provider del notifier de URLs firmadas
 final signedUrlNotifierProvider =
-    AutoDisposeNotifierProvider<SignedUrlNotifier, AsyncValue<String?>>(
+    NotifierProvider.autoDispose<SignedUrlNotifier, AsyncValue<String?>>(
   SignedUrlNotifier.new,
 );
 

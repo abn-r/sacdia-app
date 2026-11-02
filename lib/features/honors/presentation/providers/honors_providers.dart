@@ -472,7 +472,7 @@ class InstructorProposalActionsNotifier extends AsyncNotifier<void> {
 }
 
 final instructorProposalActionsNotifierProvider =
-    AutoDisposeAsyncNotifierProvider<InstructorProposalActionsNotifier, void>(
+    AsyncNotifierProvider.autoDispose<InstructorProposalActionsNotifier, void>(
   InstructorProposalActionsNotifier.new,
 );
 

@@ -98,7 +98,7 @@ class SyncController extends Notifier<SyncControllerState> {
 }
 
 final syncControllerProvider =
-    AutoDisposeNotifierProvider<SyncController, SyncControllerState>(
+    NotifierProvider.autoDispose<SyncController, SyncControllerState>(
   SyncController.new,
 );
 
@@ -149,6 +149,6 @@ class ClearCacheController extends Notifier<ClearCacheState> {
 }
 
 final clearCacheControllerProvider =
-    AutoDisposeNotifierProvider<ClearCacheController, ClearCacheState>(
+    NotifierProvider.autoDispose<ClearCacheController, ClearCacheState>(
   ClearCacheController.new,
 );

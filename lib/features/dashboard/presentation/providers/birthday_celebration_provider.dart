@@ -67,7 +67,7 @@ class BirthdayCelebrationNotifier
   }
 }
 
-final birthdayCelebrationProvider = AutoDisposeAsyncNotifierProvider<
+final birthdayCelebrationProvider = AsyncNotifierProvider.autoDispose<
     BirthdayCelebrationNotifier, BirthdayCelebrationState>(
   BirthdayCelebrationNotifier.new,
 );
