@@ -85,6 +85,14 @@ void main() {
   // tiene decenas de providers con red, aquí se usa un centinela.
   final profileData = StateProvider<String>((ref) => 'initial');
 
+  // Igual pero `autoDispose`, como las listas de miembros o los detalles: se
+  // purga con el registro y debe reconstruirse limpio en la siguiente lectura.
+  var autoDisposeBuilds = 0;
+  final profileDataAutoDispose = StateProvider.autoDispose<String>((ref) {
+    autoDisposeBuilds++;
+    return 'initial';
+  });
+
   setUp(() {
     // Salir/entrar de perfil también limpia el widget de la pantalla de inicio.
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -116,7 +124,8 @@ void main() {
       imageCachePurger: () async => imagePurges++,
       extraOverrides: [
         jsonFileCacheProvider.overrideWithValue(diskCache),
-        profileScopedProvidersProvider.overrideWithValue([profileData]),
+        profileScopedProvidersProvider
+            .overrideWithValue([profileData, profileDataAutoDispose]),
       ],
     );
     // Mantiene vivo el centinela, como lo haría un provider `keepAlive`.
@@ -241,17 +250,63 @@ void main() {
       final switching = notifier().switchProfile('ana-1');
       await pumpEventQueue();
 
-      // Riverpod 2.6 conserva el valor previo dentro de `AsyncLoading`, así que
+      // Riverpod 3.x conserva el valor previo dentro de `AsyncLoading`, así que
       // lo que garantiza el aislamiento es `isLoading` (el router manda al
       // splash y `selectAsync` espera) más la purga del registro, no `null`.
       final loading = container.read(authNotifierProvider);
       expect(loading.isLoading, isTrue);
+      expect(loading.isReloading, isTrue);
+      // Tripwire: fija la semántica 3.x (`state = AsyncLoading()` conserva el
+      // valor previo). Si una versión futura lo anula, este expect avisa para
+      // actualizar la nota de CLAUDE.md; el aislamiento de abajo no depende
+      // de él.
+      expect(loading.value?.id, 'guardian-1');
       expect(container.read(profileData), 'initial');
+      expect(container.read(profileDataAutoDispose), 'initial');
       expect(session().dependentUserId, 'ana-1');
 
       gate.complete(Right(_dependent('ana-1', 'Ana')));
       expect(await switching, SwitchProfileOutcome.entered);
       expect(current()?.id, 'ana-1');
+      expect(container.read(authNotifierProvider).isLoading, isFalse);
+    });
+
+    test('a purged autoDispose provider rebuilds fresh on its next read',
+        () async {
+      await boot();
+      final before = autoDisposeBuilds;
+      container.read(profileDataAutoDispose.notifier).state = 'guardian-data';
+      expect(container.read(profileDataAutoDispose), 'guardian-data');
+
+      // Una suscripción pausada es lo que queda de una pantalla tapada por
+      // otra ruta: el provider sigue vivo pero no reconstruye por sí solo.
+      final covered = container.listen<String>(
+        profileDataAutoDispose,
+        (_, __) {},
+      )..pause();
+
+      await notifier().switchProfile('ana-1');
+
+      expect(container.read(profileDataAutoDispose), 'initial');
+      expect(autoDisposeBuilds, greaterThan(before));
+
+      covered.close();
+    });
+
+    test('a purged autoDispose provider with no listener also starts clean',
+        () async {
+      await boot();
+      container.read(profileDataAutoDispose.notifier).state = 'guardian-data';
+      final sub = container.listen<String>(
+        profileDataAutoDispose,
+        (_, __) {},
+      );
+
+      await notifier().switchProfile('ana-1');
+      sub.close();
+      await pumpEventQueue();
+
+      expect(container.read(profileDataAutoDispose), 'initial');
     });
 
     test('entering and exiting purge every virtual_card_cache_ key (C1)',
