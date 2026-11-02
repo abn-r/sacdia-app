@@ -2,9 +2,8 @@
 ///
 /// Every test builds its `ProviderContainer` / `ProviderScope` through these
 /// helpers so that container-level options (notably `retry`) can be changed in
-/// one place. Under Riverpod 2.6 neither constructor has a `retry` parameter,
-/// so [noRetry] is defined but unused. The 3.x bump adds `retry: noRetry` in
-/// the two helper bodies below and nowhere else.
+/// one place. Both pass `retry: noRetry` (Riverpod 3 retries failing providers
+/// by default), and nowhere else in `test/` builds a raw container or scope.
 library;
 
 import 'package:flutter/widgets.dart';
@@ -25,6 +24,7 @@ ProviderContainer createTestContainer({
     parent: parent,
     overrides: overrides,
     observers: observers,
+    retry: noRetry,
   );
   addTearDown(container.dispose);
   return container;
@@ -39,6 +39,7 @@ ProviderScope testProviderScope({
   return ProviderScope(
     overrides: overrides,
     observers: observers,
+    retry: noRetry,
     child: child,
   );
 }
@@ -47,7 +48,6 @@ ProviderScope testProviderScope({
 ///
 /// Riverpod 3.x retries failing providers by default (up to 10 times with
 /// exponential backoff), which leaves tests with pending timers and
-/// `AsyncLoading` instead of `AsyncError`. Unused under Riverpod 2.6; the 3.x
-/// bump passes it as `retry: noRetry` inside [createTestContainer] and
-/// [testProviderScope].
+/// `AsyncLoading` instead of `AsyncError`. Passed as `retry: noRetry` inside
+/// [createTestContainer] and [testProviderScope].
 Duration? noRetry(int retryCount, Object error) => null;

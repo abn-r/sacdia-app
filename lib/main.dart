@@ -252,6 +252,14 @@ Future<void> main() async {
           useOnlyLangCode: false,
           child: SentryWidget(
             child: ProviderScope(
+              // Riverpod 3 reintenta por defecto los providers que fallan
+              // (hasta 10 veces, ~38 s, dejando el estado en AsyncLoading) y
+              // los fallos de la app llegan como Exception genérica, sin
+              // poder separar red de 4xx/403. Se desactiva para conservar el
+              // comportamiento de Riverpod 2.6: el error se muestra al
+              // instante y la recuperación es manual (pull-to-refresh o
+              // invalidate). Único punto de configuración del reintento.
+              retry: (_, __) => null,
               overrides: [
                 // Proporcionamos la instancia de SharedPreferences a la aplicación
                 sharedPreferencesProvider.overrideWithValue(sharedPreferences),
