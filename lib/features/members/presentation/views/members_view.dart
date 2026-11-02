@@ -427,6 +427,10 @@ class _MembersTab extends ConsumerWidget {
         ),
       ),
     );
+    // Desde aquí se puede verificar la ficha de un menor: la lista se
+    // refresca al volver (ver _openConsentVerification).
+    await WidgetsBinding.instance.endOfFrame;
+    if (context.mounted) ref.invalidate(membersNotifierProvider);
   }
 }
 
@@ -606,11 +610,16 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
   }
 
   /// Abre la verificación de la ficha firmada de un menor (FP-76).
+  ///
+  /// La lista se refresca al volver, no desde la verificación, y un frame
+  /// después del pop: mientras la lista está tapada sus providers están en
+  /// pausa, y Riverpod 3.3.2 los reanuda en mitad de un build si algo los
+  /// invalidó en ese tiempo (corregido en 3.4, que pide Dart 3.12).
   Future<void> _openConsentVerification(
     BuildContext context,
     JoinRequest request,
-  ) {
-    return Navigator.push<bool>(
+  ) async {
+    await Navigator.push<bool>(
       context,
       SacSharedAxisRoute<bool>(
         builder: (_) => ConsentVerificationView(
@@ -623,6 +632,8 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
         ),
       ),
     );
+    await WidgetsBinding.instance.endOfFrame;
+    if (mounted) ref.invalidate(membersNotifierProvider);
   }
 
   Future<void> _approveRequest(

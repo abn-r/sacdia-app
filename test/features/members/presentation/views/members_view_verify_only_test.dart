@@ -64,26 +64,6 @@ class _EmptyContinuations extends AnnualContinuationsNotifier {
       const AnnualContinuationsState(items: []);
 }
 
-/// Riverpod 3.3.2 pauses the providers watched by a route that another route
-/// covers and resumes them while the framework is building the pop frame. If
-/// a provider was invalidated meanwhile (the verification view invalidates the
-/// members list) and a derived provider watches it, the resume flush asks the
-/// ProviderScope to `setState` during build. The assertion is debug-only and
-/// reported through the container's error handler; nothing else in the flow
-/// depends on it, so it is the only exception allowed here.
-void _expectRiverpodResumeAssertion(WidgetTester tester) {
-  final reported = tester.takeException();
-  if (reported == null) return;
-  expect(
-    reported,
-    isA<AssertionError>().having(
-      (e) => e.toString(),
-      'message',
-      contains('setState() or markNeedsBuild() called during build'),
-    ),
-  );
-}
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -323,7 +303,6 @@ void main() {
       await tester.tap(find.text('Confirmar verificación'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
-      _expectRiverpodResumeAssertion(tester);
 
       expect(repo.verifyCalls, [
         (assignmentId: '12/membership-requests/req-1', approve: false),
@@ -351,7 +330,6 @@ void main() {
       repo.requests = [];
       await tester.tap(find.text('Confirmar verificación'));
       await tester.pumpAndSettle();
-      _expectRiverpodResumeAssertion(tester);
 
       expect(find.byType(ConsentVerificationView), findsNothing);
       expect(find.text('Ana Pérez'), findsNothing);

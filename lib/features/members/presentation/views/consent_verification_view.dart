@@ -163,8 +163,6 @@ class _ConsentVerificationViewState
           );
     }
     ref.invalidate(joinRequestConsentEvidenceProvider(_assignmentId));
-    // La lista de solicitudes trae `evidence_uploaded`: se refresca.
-    ref.invalidate(membersNotifierProvider);
     setState(() {
       _hasEvidence = true;
       _error = null;
@@ -179,7 +177,6 @@ class _ConsentVerificationViewState
   void _dropNotPending() {
     if (_gone || !mounted) return;
     _gone = true;
-    ref.invalidate(membersNotifierProvider);
     _toast('members.consent.no_longer_pending'.tr(), isError: true);
     Navigator.of(context).pop(false);
   }
@@ -187,7 +184,6 @@ class _ConsentVerificationViewState
   void _onAlreadyVerified() {
     // La ficha vigente y la lista cambiaron: se vuelven a pedir.
     ref.invalidate(joinRequestConsentEvidenceProvider(_assignmentId));
-    ref.invalidate(membersNotifierProvider);
     setState(() {
       _formAlreadyVerified = true;
       // Si estaba verificada, hay una ficha vigente. El archivo descartado ya
@@ -217,11 +213,6 @@ class _ConsentVerificationViewState
           _dropNotPending();
           return;
         }
-        // La solicitud puede haber cambiado desde que se abrió la lista.
-        if (failure.errorCode == 'MR_NOT_FOUND' ||
-            failure.errorCode == 'MR_ALREADY_PENDING') {
-          ref.invalidate(membersNotifierProvider);
-        }
         setState(() {
           _verifying = false;
           _error = failure;
@@ -242,8 +233,6 @@ class _ConsentVerificationViewState
         });
       },
       (verification) {
-        // El consentimiento ya está verificado: la lista cambia de todos modos.
-        ref.invalidate(membersNotifierProvider);
         if (verification.approvalFailed) {
           setState(() {
             _verifying = false;
