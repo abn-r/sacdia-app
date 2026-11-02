@@ -9,7 +9,50 @@ on:
   pull_request:
     branches: [main, preproduction, development]
 
+# A new push to the same PR cancels the run it supersedes. Pushes to the
+# long-lived branches always run to completion.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Analyze, the test shards and the Android build run in parallel: none of them
+# needs another's result, so the wall clock is the slowest job, not the sum.
 jobs:
+  # ──────────────────────────────────────────────────────────────────────────
+  # JOB 0: Changed paths
+  # ──────────────────────────────────────────────────────────────────────────
+  # The release APK only needs rebuilding in CI when something that can break
+  # the native build changed: the Android/iOS projects, dependencies or this
+  # workflow. Pushes to main/preproduction/development always build it.
+  # ──────────────────────────────────────────────────────────────────────────
+  changes:
+    name: Changed paths
+    runs-on: ubuntu-latest
+    outputs:
+      android: ${{ steps.diff.outputs.android }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: diff
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if [ "$EVENT" != "pull_request" ]; then
+            echo "android=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          changed=$(git diff --name-only "origin/${BASE_REF}...HEAD")
+          echo "$changed"
+          if echo "$changed" | grep -Eq '^(android/|ios/|pubspec\.(yaml|lock)$|\.github/workflows/)'; then
+            echo "android=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "android=false" >> "$GITHUB_OUTPUT"
+          fi
+
   # ──────────────────────────────────────────────────────────────────────────
   # JOB 1: Analyze & Format
   # ──────────────────────────────────────────────────────────────────────────
@@ -42,10 +85,14 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   # JOB 2: Tests
   # ──────────────────────────────────────────────────────────────────────────
+  # The suite (~3800 tests) is split across shards that run in parallel.
   test:
-    name: Test
+    name: Test (shard ${{ matrix.shard }})
     runs-on: ubuntu-latest
-    needs: analyze
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -60,8 +107,17 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # Split by file, not with --total-shards: that flag splits test cases, so
+      # every shard would still compile and load every test file, which is
+      # most of the time.
       - name: Run unit tests
-        run: flutter test --no-pub
+        env:
+          SHARD: ${{ matrix.shard }}
+          SHARDS: 3
+        run: |
+          mapfile -t files < <(find test -name '*_test.dart' | sort | awk -v s="$SHARD" -v n="$SHARDS" '(NR - 1) % n == s')
+          echo "Shard $SHARD: ${#files[@]} test files"
+          flutter test --no-pub "${files[@]}"
 
   # ──────────────────────────────────────────────────────────────────────────
   # JOB 3: Check Secrets
@@ -153,8 +209,8 @@ jobs:
   build-android:
     name: Build Android APK
     runs-on: ubuntu-latest
-    needs: [analyze, test, check-secrets, check-api-base-url]
-    if: needs.check-secrets.outputs.has_google_services == 'true' && needs.check-secrets.outputs.has_api_base_url == 'true'
+    needs: [changes, check-secrets, check-api-base-url]
+    if: needs.changes.outputs.android == 'true' && needs.check-secrets.outputs.has_google_services == 'true' && needs.check-secrets.outputs.has_api_base_url == 'true'
     env:
       GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
 
@@ -167,6 +223,18 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+
+      # Gradle distribution, plugins and resolved dependencies. Saved from runs
+      # on the long-lived branches; PRs restore the cache of their base branch.
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('android/gradle/wrapper/gradle-wrapper.properties', 'android/settings.gradle', 'android/build.gradle', 'android/app/build.gradle', 'pubspec.lock') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2

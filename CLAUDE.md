@@ -217,7 +217,7 @@ El servidor reenvía al tutor los push del menor (`data.dependent_user_id`, tít
 
 ## CI y deployment
 
-- GitHub Actions (`.github/workflows/ci.yml`) en push/PR a `development`, `preproduction` y `main`: `dart format`, `flutter analyze`, `flutter test` y build Android (APK; AAB firmado y ofuscado cuando existen los secrets del keystore, con símbolos subidos a Sentry).
+- GitHub Actions (`.github/workflows/ci.yml`) en push/PR a `development`, `preproduction` y `main`: `dart format` + `flutter analyze`, `flutter test` repartido en 3 shards y build Android (APK; AAB firmado y ofuscado cuando existen los secrets del keystore, con símbolos subidos a Sentry). Los jobs corren en paralelo. En un PR el APK solo se construye si cambian `android/`, `ios/`, `pubspec.yaml`/`pubspec.lock` o el workflow; en push a las ramas largas siempre. Un push nuevo al mismo PR cancela la corrida anterior. Gradle se cachea entre corridas.
 - Firma Android: `android/KEYSTORE.md`.
 - Publicación en tiendas: pendiente de cuentas (`docs/store-release-checklist.md`, `docs/store-data-safety.md`). No hay Fastlane en el repo.
 - Flujo de ramas: `development` → `preproduction` (QA) → `main`.
