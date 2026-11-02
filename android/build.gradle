@@ -10,6 +10,21 @@ rootProject.layout.buildDirectory.value(newBuildDir)
 subprojects {
     project.layout.buildDirectory.value(newBuildDir.dir(project.name))
 }
+// Some plugins still hardcode an old compileSdk (secure_application 31,
+// image_cropper 33, home_widget/jni/permission_handler_android 35). AGP 9
+// rejects a library compiled against a lower SDK than its dependencies need
+// (checkReleaseAarMetadata), so every Android library module compiles against
+// the same SDK as the app. compileSdk only picks the API surface used to
+// compile; it does not change minSdk or targetSdk.
+subprojects {
+    afterEvaluate { project ->
+        if (project.plugins.hasPlugin("com.android.library")) {
+            project.android {
+                compileSdk = 36
+            }
+        }
+    }
+}
 subprojects {
     project.evaluationDependsOn(":app")
 }
