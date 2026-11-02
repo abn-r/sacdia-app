@@ -151,7 +151,7 @@ class ConsentReviewNotifier extends AsyncNotifier<ConsentReviewState> {
   /// por traer (todas las cargadas se verificaron), vuelve a pedir desde el
   /// principio.
   Future<void> loadMore() async {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null || !current.hasMore || current.loadingMore) return;
     final generation = _generation;
     final token = _cancelToken;
@@ -169,7 +169,7 @@ class ConsentReviewNotifier extends AsyncNotifier<ConsentReviewState> {
 
     // Se parte del estado VIGENTE, no del de antes del await: mientras tanto
     // pudo verificarse una ficha ([removeRequest]).
-    final latest = state.valueOrNull;
+    final latest = state.value;
     if (latest == null) return;
 
     state = AsyncData(
@@ -209,7 +209,7 @@ class ConsentReviewNotifier extends AsyncNotifier<ConsentReviewState> {
   /// menor (la verificación es por usuario), así que salen todas las filas de
   /// ese `userId`, cada una con su sección.
   void removeRequest(String assignmentId) {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null) return;
     final target = current.items
         .where((item) => item.assignmentId == assignmentId)

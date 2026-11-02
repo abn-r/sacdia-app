@@ -206,8 +206,8 @@ final sectionScopedUserHonorsProvider =
     );
   }
 
-  final activeClubTypeId = activeClubTypeAsync.valueOrNull;
-  final userHonors = userHonorsAsync.valueOrNull ?? const <UserHonor>[];
+  final activeClubTypeId = activeClubTypeAsync.value;
+  final userHonors = userHonorsAsync.value ?? const <UserHonor>[];
   if (activeClubTypeId == null) return AsyncValue.data(userHonors);
 
   return AsyncValue.data(
@@ -741,7 +741,7 @@ final userHonorForHonorProvider =
     Provider.autoDispose.family<UserHonor?, int>((ref, honorId) {
   final userHonor = ref
       .watch(sectionScopedUserHonorsProvider)
-      .valueOrNull
+      .value
       ?.where((h) => h.honorId == honorId)
       .firstOrNull;
 
@@ -870,7 +870,7 @@ final filteredHonorsProvider =
   }
 
   return allHonorsAsync.whenData((honors) {
-    final activeClubTypeId = activeClubTypeAsync.valueOrNull;
+    final activeClubTypeId = activeClubTypeAsync.value;
     final byClubType = activeClubTypeId == null
         ? honors
         : honors
@@ -919,8 +919,8 @@ final honorsWithStatusProvider = Provider.autoDispose<
         userHonorsAsync.error!, userHonorsAsync.stackTrace!);
   }
 
-  final honors = filteredAsync.valueOrNull ?? [];
-  final userHonors = userHonorsAsync.valueOrNull ?? [];
+  final honors = filteredAsync.value ?? [];
+  final userHonors = userHonorsAsync.value ?? [];
 
   final result = honors.map((honor) {
     final uh = userHonors.cast<UserHonor?>().firstWhere(
@@ -1037,7 +1037,7 @@ class RequirementProgressNotifier
   Future<bool> bulkUpdate(List<Map<String, dynamic>> updates) async {
     state = const AsyncValue.loading();
 
-    final userId = ref.read(authNotifierProvider).valueOrNull?.id;
+    final userId = ref.read(authNotifierProvider).value?.id;
     if (userId == null) {
       state = AsyncValue.error(
           tr('errors.user_not_authenticated'), StackTrace.current);

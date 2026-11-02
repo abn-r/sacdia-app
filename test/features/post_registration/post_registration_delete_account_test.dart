@@ -240,7 +240,7 @@ void main() {
     expect(h.auth.deletes.single, isA<PasswordReauth>());
     // La sesión terminó: el router lleva fuera del post-registro.
     expect(where(h.router), isNot(RouteNames.postRegistration));
-    expect(h.auth.state.valueOrNull, isNull);
+    expect(h.auth.state.value, isNull);
   });
 
   testWidgets('cancelling the first confirmation deletes nothing',

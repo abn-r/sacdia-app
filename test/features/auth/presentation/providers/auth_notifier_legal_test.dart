@@ -45,13 +45,13 @@ void main() {
 
     container.read(authNotifierProvider.notifier).markLegalAccepted();
 
-    final updated = container.read(authNotifierProvider).valueOrNull;
+    final updated = container.read(authNotifierProvider).value;
     expect(updated?.legalAcceptancePending, isFalse);
     expect(updated?.id, 'user-1');
     expect(updated?.name, 'Elena');
     // El estado cambia de verdad (el flag participa en la igualdad), así que
     // el router se notifica.
-    expect(states.last.valueOrNull?.legalAcceptancePending, isFalse);
+    expect(states.last.value?.legalAcceptancePending, isFalse);
   }, timeout: const Timeout(Duration(seconds: 15)));
 
   test('markPostRegisterComplete/Incomplete carry the pending flag', () async {
@@ -60,12 +60,12 @@ void main() {
     final notifier = container.read(authNotifierProvider.notifier);
 
     notifier.markPostRegisterComplete();
-    final complete = container.read(authNotifierProvider).valueOrNull;
+    final complete = container.read(authNotifierProvider).value;
     expect(complete?.postRegisterComplete, isTrue);
     expect(complete?.legalAcceptancePending, isTrue);
 
     notifier.markPostRegisterIncomplete();
-    final incomplete = container.read(authNotifierProvider).valueOrNull;
+    final incomplete = container.read(authNotifierProvider).value;
     expect(incomplete?.postRegisterComplete, isFalse);
     expect(incomplete?.legalAcceptancePending, isTrue);
   }, timeout: const Timeout(Duration(seconds: 15)));

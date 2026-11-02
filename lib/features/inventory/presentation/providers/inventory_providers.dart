@@ -301,7 +301,7 @@ class InventorySummary {
 
 final inventorySummaryProvider = Provider.autoDispose<InventorySummary?>((ref) {
   final itemsAsync = ref.watch(inventoryItemsProvider);
-  return itemsAsync.valueOrNull.map((items) {
+  return itemsAsync.value.map((items) {
     return InventorySummary(
       totalItems: items.length,
       totalValue: items.fold(0.0, (sum, i) => sum + (i.estimatedValue ?? 0)),

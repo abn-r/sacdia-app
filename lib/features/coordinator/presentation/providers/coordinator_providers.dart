@@ -135,7 +135,7 @@ final slaDashboardProvider =
 final evidenceOverdueDaysProvider = Provider.autoDispose<int>((ref) {
   final threshold = ref.watch(
     slaDashboardProvider
-        .select((async) => async.valueOrNull?.evidence.overdueThresholdDays),
+        .select((async) => async.value?.evidence.overdueThresholdDays),
   );
   return threshold ?? kEvidenceOverdueDays;
 });
@@ -251,7 +251,7 @@ class PendingEvidenceNotifier extends AsyncNotifier<PendingEvidenceState> {
   /// Carga la página siguiente. No hace nada si ya está cargando, si no hay
   /// más páginas o si la primera página aún no llegó.
   Future<void> loadMore() async {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (state.isLoading ||
         current == null ||
         !current.hasMore ||

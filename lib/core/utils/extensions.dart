@@ -144,8 +144,8 @@ extension ContextExtensions on BuildContext {
 
 /// Extensiones para AsyncValue de Riverpod
 extension AsyncValueExtensions<T> on AsyncValue<T> {
-  // Eliminamos el método valueOrNull ya que ya existe en AsyncValueX de Riverpod
-  // y usaremos ese directamente
+  // No definimos un getter de valor: `AsyncValue.value` ya existe en Riverpod
+  // y usamos ese directamente
 
   /// Verifica si el AsyncValue es exitoso (tiene datos, no está en error ni cargando)
   bool get isSuccess => !isLoading && !hasError && hasValue;

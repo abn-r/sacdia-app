@@ -86,7 +86,7 @@ class DevicesSection extends ConsumerWidget {
     final c = context.sac;
     final textTheme = Theme.of(context).textTheme;
     final devices = ref.watch(linkedDevicesProvider(summary.userId));
-    final data = devices.valueOrNull;
+    final data = devices.value;
     final activeCount = data?.active.length ?? summary.linkedDevicesCount;
     final full = data?.isFull ?? false;
 

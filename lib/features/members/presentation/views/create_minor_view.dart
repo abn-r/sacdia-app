@@ -153,15 +153,15 @@ class _CreateMinorViewState extends ConsumerState<CreateMinorView> {
     final c = context.sac;
     final hPad = Responsive.horizontalPadding(context);
     final legalAsync = ref.watch(currentLegalDocumentsProvider);
-    final legal = legalSnapshotOf(legalAsync.valueOrNull);
+    final legal = legalSnapshotOf(legalAsync.value);
 
     // Si las versiones vigentes cambian, el consentimiento previo ya no vale.
     ref.listen<AsyncValue<List<LegalDocument>>>(currentLegalDocumentsProvider, (
       previous,
       next,
     ) {
-      final before = legalSnapshotOf(previous?.valueOrNull);
-      final after = legalSnapshotOf(next.valueOrNull);
+      final before = legalSnapshotOf(previous?.value);
+      final after = legalSnapshotOf(next.value);
       if (_acceptedLegal &&
           before != null &&
           after != null &&

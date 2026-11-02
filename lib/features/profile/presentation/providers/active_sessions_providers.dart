@@ -76,7 +76,7 @@ class ActiveSessionsNotifier extends AsyncNotifier<List<ActiveSession>> {
   ///
   /// Retorna null en éxito o un mensaje de error localizado.
   Future<String?> revoke(String sessionId) async {
-    final previous = state.valueOrNull;
+    final previous = state.value;
     if (previous == null) {
       return 'profile.active_sessions.errors.no_sessions_loaded'.tr();
     }
@@ -110,7 +110,7 @@ class ActiveSessionsNotifier extends AsyncNotifier<List<ActiveSession>> {
   ///
   /// Retorna el número de sesiones revocadas, o un mensaje de error.
   Future<({int count, String? error})> revokeAllOthers() async {
-    final previous = state.valueOrNull;
+    final previous = state.value;
     if (previous == null) {
       return (
         count: 0,

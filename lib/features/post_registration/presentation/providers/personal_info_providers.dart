@@ -170,7 +170,7 @@ class HealthNoneStateNotifier extends AsyncNotifier<HealthNoneState> {
 
   Future<void> setCategory(HealthNoneCategory category, bool value) async {
     final authState = ref.read(authNotifierProvider);
-    final userId = authState.valueOrNull?.id ??
+    final userId = authState.value?.id ??
         await ref.read(authNotifierProvider.future).then((user) => user?.id);
     if (userId == null) return;
 
@@ -255,7 +255,7 @@ class UserAllergiesNotifier extends AsyncNotifier<List<AllergyModel>> {
 
     state = await AsyncValue.guard(() async {
       final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
+      final userId = authState.value?.id;
 
       if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
@@ -281,7 +281,7 @@ class UserAllergiesNotifier extends AsyncNotifier<List<AllergyModel>> {
 
     state = await AsyncValue.guard(() async {
       final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
+      final userId = authState.value?.id;
 
       if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
@@ -301,7 +301,7 @@ class UserAllergiesNotifier extends AsyncNotifier<List<AllergyModel>> {
 
     state = await AsyncValue.guard(() async {
       final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
+      final userId = authState.value?.id;
 
       if (userId == null) return [];
 
@@ -342,7 +342,7 @@ class UserDiseasesNotifier extends AsyncNotifier<List<DiseaseModel>> {
 
     state = await AsyncValue.guard(() async {
       final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
+      final userId = authState.value?.id;
 
       if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
@@ -367,7 +367,7 @@ class UserDiseasesNotifier extends AsyncNotifier<List<DiseaseModel>> {
 
     state = await AsyncValue.guard(() async {
       final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
+      final userId = authState.value?.id;
 
       if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
@@ -387,7 +387,7 @@ class UserDiseasesNotifier extends AsyncNotifier<List<DiseaseModel>> {
 
     state = await AsyncValue.guard(() async {
       final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
+      final userId = authState.value?.id;
 
       if (userId == null) return [];
 
@@ -441,7 +441,7 @@ class UserMedicinesNotifier extends AsyncNotifier<List<MedicineModel>> {
 
     state = await AsyncValue.guard(() async {
       final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
+      final userId = authState.value?.id;
 
       if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
@@ -466,7 +466,7 @@ class UserMedicinesNotifier extends AsyncNotifier<List<MedicineModel>> {
 
     state = await AsyncValue.guard(() async {
       final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
+      final userId = authState.value?.id;
 
       if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
@@ -486,7 +486,7 @@ class UserMedicinesNotifier extends AsyncNotifier<List<MedicineModel>> {
 
     state = await AsyncValue.guard(() async {
       final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
+      final userId = authState.value?.id;
 
       if (userId == null) return [];
 
@@ -536,7 +536,7 @@ class EmergencyContactsNotifier
     state = const AsyncValue.loading();
 
     try {
-      final userId = ref.read(authNotifierProvider).valueOrNull?.id;
+      final userId = ref.read(authNotifierProvider).value?.id;
       if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
@@ -556,7 +556,7 @@ class EmergencyContactsNotifier
 
   /// Agrega un nuevo contacto de emergencia
   Future<void> addContact(EmergencyContactModel contact) {
-    final currentContacts = state.valueOrNull ?? [];
+    final currentContacts = state.value ?? [];
 
     return _mutate((dataSource, userId) async {
       if (currentContacts.length >= 5) {
@@ -584,7 +584,7 @@ class EmergencyContactsNotifier
 
     state = await AsyncValue.guard(() async {
       final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
+      final userId = authState.value?.id;
 
       if (userId == null) return [];
 
@@ -714,7 +714,7 @@ class SavePersonalInfoNotifier extends AsyncNotifier<void> {
   Future<void> _save() async {
     const tag = 'PersonalInfo';
     final authState = ref.read(authNotifierProvider);
-    final user = authState.valueOrNull;
+    final user = authState.value;
     final userId = user?.id;
 
     if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
@@ -731,7 +731,7 @@ class SavePersonalInfoNotifier extends AsyncNotifier<void> {
     // envía (solo su tutor puede corregirla).
     final changes = diffPersonalInfo(
       formState,
-      ref.read(personalInfoSnapshotProvider).valueOrNull,
+      ref.read(personalInfoSnapshotProvider).value,
       birthdayLocked: user?.principal?.kind == PrincipalKind.supervisedUser,
     );
     if (!changes.isEmpty) {

@@ -226,7 +226,7 @@ class UnitsNotifier extends Notifier<UnitsState> {
     // Las unidades son del club activo: al cambiar de club se recarga. El
     // cambio de sección dentro del mismo club no cambia la lista (se filtra
     // en cliente por sección).
-    ref.watch(clubContextProvider.select((v) => v.valueOrNull?.clubId));
+    ref.watch(clubContextProvider.select((v) => v.value?.clubId));
 
     // Cargar las unidades del club en cuanto se construye el notifier.
     // isLoading arranca en true para que la primera pintura sea el indicador
@@ -1009,7 +1009,7 @@ final unitsNotifierProvider = NotifierProvider<UnitsNotifier, UnitsState>(
 final leadsUnitInActiveSectionProvider = Provider<bool>((ref) {
   final identity = ref.watch(
     authNotifierProvider.select((auth) {
-      final user = auth.valueOrNull;
+      final user = auth.value;
       final eligible = user != null &&
           !auth.isLoading &&
           user.actingFor == null &&
@@ -1025,7 +1025,7 @@ final leadsUnitInActiveSectionProvider = Provider<bool>((ref) {
   if (userId == null) return false;
 
   final sectionId = ref.watch(
-    clubContextProvider.select((ctx) => ctx.valueOrNull?.sectionId),
+    clubContextProvider.select((ctx) => ctx.value?.sectionId),
   );
   if (sectionId == null) return false;
 

@@ -49,7 +49,7 @@ class CurrentClassCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Watch the provider once and reuse the result for both progress and logo.
-    // valueOrNull gives us the data immediately once resolved without forcing
+    // value gives us the data immediately once resolved without forcing
     // a loading/error branch split for the logo.
     final classState = currentClassId != null
         ? ref.watch(
@@ -71,11 +71,10 @@ class CurrentClassCard extends ConsumerWidget {
 
     // ── Logo ─────────────────────────────────────────────────────────────────
     // Resolved on the FIRST frame from the prop — no provider round-trip needed.
-    // imageUrl comes from valueOrNull so it's null while loading (renders asset
+    // imageUrl comes from value so it's null while loading (renders asset
     // directly) and fills in if/when the backend provides a URL.
-    final String? resolvedName =
-        currentClassName ?? classState?.valueOrNull?.name;
-    final String? imageUrl = classState?.valueOrNull?.imageUrl;
+    final String? resolvedName = currentClassName ?? classState?.value?.name;
+    final String? imageUrl = classState?.value?.imageUrl;
 
     final Widget logoWidget = resolvedName != null
         ? AnimatedSwitcher(
@@ -96,7 +95,7 @@ class CurrentClassCard extends ConsumerWidget {
     final int progressPercentage = (progress * 100).toInt();
     final bool isComplete = progress >= 1.0;
     final bool isExpired =
-        initialIsExpired || (classState?.valueOrNull?.isExpired ?? false);
+        initialIsExpired || (classState?.value?.isExpired ?? false);
 
     return SacCard(
       onTap: currentClassId == null ? null : () => _openDetail(context, ref),
@@ -170,7 +169,7 @@ class CurrentClassCard extends ConsumerWidget {
   void _openDetail(BuildContext context, WidgetRef ref) {
     final classId = currentClassId;
     if (classId == null) return;
-    final classes = ref.read(userClassesProvider).valueOrNull;
+    final classes = ref.read(userClassesProvider).value;
     int? enrollmentId;
     if (classes != null) {
       for (final progressiveClass in classes) {

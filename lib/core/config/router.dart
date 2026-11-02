@@ -190,9 +190,9 @@ Page<void> _slideUpBuild(
 /// callback WITHOUT rebuilding the router itself, avoiding race conditions that
 /// stem from constructing a new GoRouter mid-navigation.
 final routerProvider = Provider<GoRouter>((ref) {
-  var wasAuthenticated = ref.read(authNotifierProvider).valueOrNull != null;
+  var wasAuthenticated = ref.read(authNotifierProvider).value != null;
 
-  final initialUser = ref.read(authNotifierProvider).valueOrNull;
+  final initialUser = ref.read(authNotifierProvider).value;
   // La política decide quién se identifica en analítica: nunca un dependiente
   // (FP-49), un adolescente supervisado ni un teléfono vinculado (FP3-30).
   if (initialUser != null) {
@@ -215,7 +215,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // watching would cause the Provider to rebuild and recreate the router.
       final authState = ref.read(authNotifierProvider);
       final isLoading = authState.isLoading;
-      final user = authState.valueOrNull;
+      final user = authState.value;
       final isLoggedIn = user != null;
       final currentPath = state.matchedLocation;
       final bootstrapAsync = ref.read(appBootstrapProvider);
@@ -254,7 +254,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // ── Bootstrap gate (authenticated users only) ──
       if (isLoggedIn) {
         final isBootstrapLoading = bootstrapAsync.isLoading;
-        final bootstrapValue = bootstrapAsync.valueOrNull;
+        final bootstrapValue = bootstrapAsync.value;
 
         // Whether the user is already inside the authenticated shell (any
         // /home/* route or post-registration). In this case, do NOT redirect
@@ -1733,13 +1733,13 @@ final routerProvider = Provider<GoRouter>((ref) {
     if (pending == null) return;
     final authState = ref.read(authNotifierProvider);
     if (authState.isLoading) return;
-    final user = authState.valueOrNull;
+    final user = authState.value;
     if (user == null) {
       ref.read(pendingNavigationProvider.notifier).state = null;
       return;
     }
     final bootstrap = ref.read(appBootstrapProvider);
-    if (bootstrap.isLoading || bootstrap.valueOrNull is! AppBootstrapReady) {
+    if (bootstrap.isLoading || bootstrap.value is! AppBootstrapReady) {
       return;
     }
     final location = currentRouterLocation(router);
@@ -1767,7 +1767,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   // ref.watch() pattern which caused the GoRouter instance to be recreated on
   // every state change, introducing race conditions and double redirects.
   ref.listen<AsyncValue<dynamic>>(authNotifierProvider, (_, next) {
-    final user = next.valueOrNull;
+    final user = next.value;
 
     if (user is UserEntity) {
       wasAuthenticated = true;
@@ -1960,7 +1960,7 @@ class _MainShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
+    final user = ref.watch(authNotifierProvider.select((v) => v.value));
     final authorization = user?.authorization;
 
     final filteredItems = _filterNavItems(_navItemsConfig, user, authorization);

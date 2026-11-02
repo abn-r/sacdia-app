@@ -149,6 +149,6 @@ class AsyncValueLike {
 
   final AsyncValue<UserEntity?> _value;
 
-  UserEntity? get user => _value.valueOrNull;
+  UserEntity? get user => _value.value;
   String? get error => _value.hasError ? _value.error as String : null;
 }

@@ -351,7 +351,7 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
   }) async {
     final name = ref
             .read(dependentDetailProvider(widget.dependentId))
-            .valueOrNull
+            .value
             ?.summary
             .firstName ??
         '—';
@@ -412,7 +412,7 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
     // La gestión del acceso propio la apaga el servidor con una bandera.
     final teenLoginEnabled = ref.watch(
       authNotifierProvider.select(
-        (v) => v.valueOrNull?.familyFeatures?.teenLogin ?? false,
+        (v) => v.value?.familyFeatures?.teenLogin ?? false,
       ),
     );
 
@@ -420,7 +420,7 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
     // Desconocida cuenta como apagada.
     final linkedDeviceEnabled = ref.watch(
       authNotifierProvider.select(
-        (v) => v.valueOrNull?.familyFeatures?.linkedDevice ?? false,
+        (v) => v.value?.familyFeatures?.linkedDevice ?? false,
       ),
     );
 

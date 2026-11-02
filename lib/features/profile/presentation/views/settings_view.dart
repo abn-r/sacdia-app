@@ -157,7 +157,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     final themeMode = ref.watch(themeNotifierProvider);
     final accent = ref.watch(accentNotifierProvider);
     final user = ref.watch(
-      authNotifierProvider.select((v) => v.valueOrNull),
+      authNotifierProvider.select((v) => v.value),
     );
     // Mientras se actúa por un menor no se ofrecen seguridad, sesiones,
     // exportación de datos ni borrado de cuenta: son del tutor (FP-56).
@@ -168,7 +168,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     final teen = user?.isLimitedAccount ?? false;
     // Preferencias de notificación — cargadas desde el servidor con fallback a caché.
     final notifPrefsAsync = ref.watch(notificationPreferencesProvider);
-    final notifPrefs = notifPrefsAsync.valueOrNull;
+    final notifPrefs = notifPrefsAsync.value;
     // Derived from the categories, not `master`: the backend reports
     // master=false as soon as any one category is off.
     final master = notifPrefs?.anyCategoryEnabled ?? true;

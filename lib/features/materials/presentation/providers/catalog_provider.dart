@@ -82,7 +82,7 @@ class CatalogNotifier extends AsyncNotifier<CatalogState> {
 
   /// Carga la siguiente página y la añade a los items existentes.
   Future<void> loadMore() async {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null || !current.hasMore || current.isLoadingMore) return;
 
     state = AsyncData(current.copyWith(isLoadingMore: true));

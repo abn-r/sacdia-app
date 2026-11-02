@@ -398,7 +398,7 @@ class _FilterChips extends ConsumerWidget {
     // loads its first page, which also makes switching chips instant. No
     // count (null) while it loads, if it failed or if the server omitted it.
     int? total(EvidenceReviewType? type) => ref.watch(
-          pendingEvidenceProvider(type).select((q) => q.valueOrNull?.total),
+          pendingEvidenceProvider(type).select((q) => q.value?.total),
         );
 
     final filters = <({String label, EvidenceReviewType? value, int? count})>[

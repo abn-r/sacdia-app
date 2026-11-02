@@ -26,7 +26,7 @@ class ClubContextCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(
-      authNotifierProvider.select((v) => v.valueOrNull),
+      authNotifierProvider.select((v) => v.value),
     );
     final authorization = user?.authorization;
 
@@ -37,7 +37,7 @@ class ClubContextCard extends ConsumerWidget {
 
     final activeGrant = authorization?.activeGrant;
     final userGender = ref.watch(
-      profileNotifierProvider.select((v) => v.valueOrNull?.gender),
+      profileNotifierProvider.select((v) => v.value?.gender),
     );
     final activeRoleName = RoleUtils.translate(
       activeGrant?.roleName,
@@ -46,7 +46,7 @@ class ClubContextCard extends ConsumerWidget {
 
     // Try to get the club type name from the section data
     final sectionAsync = ref.watch(currentClubSectionProvider);
-    final clubTypeName = sectionAsync.valueOrNull?.clubTypeName ??
+    final clubTypeName = sectionAsync.value?.clubTypeName ??
         tr('home.club_context.default_club_type');
 
     final c = context.sac;

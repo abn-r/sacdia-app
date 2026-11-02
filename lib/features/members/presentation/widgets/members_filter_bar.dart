@@ -36,7 +36,7 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
     final filters = ref.watch(memberFiltersProvider);
     final availableClasses = sortClassFilterOptions(
       ref.watch(availableClassesProvider),
-      ref.watch(membersNotifierProvider).valueOrNull?.members ?? const [],
+      ref.watch(membersNotifierProvider).value?.members ?? const [],
       noClassLabel: 'members.errors.no_class'.tr(),
       guideMajorsLabel: 'members.guide_majors_group'.tr(),
     );

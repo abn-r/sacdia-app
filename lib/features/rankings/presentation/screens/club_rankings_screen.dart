@@ -37,7 +37,7 @@ class ClubRankingsScreen extends ConsumerWidget {
         (value) => (
           isLoading: value.isLoading,
           hasError: value.hasError,
-          user: value.valueOrNull,
+          user: value.value,
         ),
       ),
     );

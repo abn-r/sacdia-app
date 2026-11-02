@@ -53,11 +53,11 @@ class _InsuranceViewState extends ConsumerState<InsuranceView> {
     final summaryAsync = ref.watch(insuranceSummaryProvider);
     final filters = ref.watch(insuranceFiltersProvider);
 
-    final canManage = canManageAsync.valueOrNull ?? false;
-    final ordersContext = ref.watch(paymentOrdersContextProvider).valueOrNull;
+    final canManage = canManageAsync.value ?? false;
+    final ordersContext = ref.watch(paymentOrdersContextProvider).value;
     final ordersEnabled = ordersContext?.enabled ?? false;
     final canIssueOrders =
-        ref.watch(canIssuePaymentOrdersProvider).valueOrNull ?? false;
+        ref.watch(canIssuePaymentOrdersProvider).value ?? false;
 
     final showAdd = ordersEnabled ? canIssueOrders : canManage;
 

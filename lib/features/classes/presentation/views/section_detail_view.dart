@@ -42,7 +42,7 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
   @override
   Widget build(BuildContext context) {
     final userId = ref.watch(
-      authNotifierProvider.select((v) => v.valueOrNull?.id),
+      authNotifierProvider.select((v) => v.value?.id),
     );
 
     return Scaffold(

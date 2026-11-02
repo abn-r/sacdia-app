@@ -55,7 +55,7 @@ class _CamporeeRegisterMemberViewState
     final paymentFlow = camporeeRegistrationPaymentFlow(
       isLoading: ordersContextAsync.isLoading,
       hasError: ordersContextAsync.hasError,
-      enabled: ordersContextAsync.valueOrNull?.enabled == true,
+      enabled: ordersContextAsync.value?.enabled == true,
     );
 
     if (paymentFlow == CamporeeRegistrationPaymentFlow.paymentOrder) {
@@ -207,8 +207,8 @@ class _EligibleRegistrationForm extends ConsumerWidget {
     final membersAsync = ref.watch(membersInsuranceProvider);
     final registeredIdsAsync =
         ref.watch(camporeeRegisteredUserIdsProvider(camporeeId));
-    final registeredIds = registeredIdsAsync.valueOrNull ?? const <String>{};
-    final selectedMembers = _selectedMembers(membersAsync.valueOrNull);
+    final registeredIds = registeredIdsAsync.value ?? const <String>{};
+    final selectedMembers = _selectedMembers(membersAsync.value);
     final insuranceIdsByUserId = _eligibleInsuranceIds(
       selectedMembers,
       registeredIds,
@@ -757,8 +757,8 @@ class _MemberPickerSheetState extends ConsumerState<_MemberPickerSheet> {
       );
     }
 
-    final registeredIds = registeredIdsAsync.valueOrNull ?? const <String>{};
-    final members = _filteredMembers(membersAsync.valueOrNull ?? const []);
+    final registeredIds = registeredIdsAsync.value ?? const <String>{};
+    final members = _filteredMembers(membersAsync.value ?? const []);
 
     if (members.isEmpty) {
       return _PickerEmpty(hasQuery: _query.trim().isNotEmpty);

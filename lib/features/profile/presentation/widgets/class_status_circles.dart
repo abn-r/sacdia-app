@@ -36,7 +36,7 @@ class ClassStatusCircles extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final classesAsync = ref.watch(userClassesProvider);
-    final catalog = ref.watch(allClassesProvider).valueOrNull ?? const [];
+    final catalog = ref.watch(allClassesProvider).value ?? const [];
     return classesAsync.when(
       data: (classes) => _buildContent(context, classes, catalog),
       loading: () => const SizedBox(height: 80),

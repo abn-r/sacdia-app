@@ -383,7 +383,7 @@ class _MedicinesSelectionViewState
 
       await ref.read(userMedicinesProvider.notifier).saveAll(entries);
 
-      final updated = ref.read(userMedicinesProvider).valueOrNull ?? [];
+      final updated = ref.read(userMedicinesProvider).value ?? [];
       ref.read(selectedMedicinesProvider.notifier).state =
           updated.map((m) => m.id).toList();
       setState(() {
@@ -438,9 +438,8 @@ class _MedicinesSelectionViewState
         // Riverpod 2.6 `.value` rethrew an error that has no previous value
         // (reaching the global error handler, with nothing seeded). Riverpod 3
         // returns null instead, so the rethrow is kept explicit here.
-        final seed = next.hasError && !next.hasValue
-            ? next.requireValue
-            : next.valueOrNull;
+        final seed =
+            next.hasError && !next.hasValue ? next.requireValue : next.value;
         if (seed != null && !_serverSeeded) {
           _seedFromServer(seed);
           ref.read(selectedMedicinesProvider.notifier).state =
@@ -452,7 +451,7 @@ class _MedicinesSelectionViewState
     final catalogAsync = ref.watch(medicinesCatalogProvider);
     final userAsync = ref.watch(userMedicinesProvider);
     final savedNone =
-        ref.watch(healthNoneStateProvider).valueOrNull?.medicines ?? false;
+        ref.watch(healthNoneStateProvider).value?.medicines ?? false;
     _hydrateSavedNone(savedNone);
     final m = MedicoTokens.of(context);
 
@@ -498,7 +497,7 @@ class _MedicinesSelectionViewState
               ),
             ),
             data: (catalog) {
-              final serverItems = userAsync.valueOrNull ?? [];
+              final serverItems = userAsync.value ?? [];
               if (!_serverSeeded && serverItems.isNotEmpty) {
                 _seedFromServer(serverItems);
               }

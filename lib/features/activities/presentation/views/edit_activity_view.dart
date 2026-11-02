@@ -279,7 +279,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
     }
 
     // Validate joint activity sections when the user is a director
-    final clubCtx = ref.read(clubContextProvider).valueOrNull;
+    final clubCtx = ref.read(clubContextProvider).value;
     final isDirector = clubCtx?.isDirector ?? false;
     if (isDirector && _isJoint && _selectedSectionIds.length < 2) {
       _showError('activities.form.error_joint_min_sections'.tr());
@@ -395,8 +395,8 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
     );
 
     // Only directors can edit joint activity settings
-    final isDirector = clubCtxAsync.valueOrNull?.isDirector ?? false;
-    final ownSectionId = clubCtxAsync.valueOrNull?.sectionId;
+    final isDirector = clubCtxAsync.value?.isDirector ?? false;
+    final ownSectionId = clubCtxAsync.value?.sectionId;
 
     // Sync activity type name once types are loaded
     if (_selectedActivityTypeName == null && activityTypeItems.isNotEmpty) {
@@ -579,10 +579,9 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
                   ],
 
                   ActivityAudienceSection(
-                    sections: ref
-                            .watch(clubSectionsForActivityProvider)
-                            .valueOrNull ??
-                        const [],
+                    sections:
+                        ref.watch(clubSectionsForActivityProvider).value ??
+                            const [],
                     ownSectionId: widget.activity.clubSectionId,
                     isJoint: _isJoint,
                     selectedSectionIds: _selectedSectionIds,

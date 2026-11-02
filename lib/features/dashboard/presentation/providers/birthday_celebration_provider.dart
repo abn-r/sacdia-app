@@ -47,7 +47,7 @@ class BirthdayCelebrationNotifier
   }
 
   Future<void> dismissForToday() async {
-    final current = state.valueOrNull;
+    final current = state.value;
     final key = current?.dismissalKey;
     if (key == null) return;
 

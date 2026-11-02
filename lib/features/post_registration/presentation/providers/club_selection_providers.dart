@@ -37,17 +37,17 @@ final userAgeProvider = Provider.autoDispose<int?>((ref) {
   final birthdate =
       ref.watch(personalInfoFormProvider.select((state) => state.birthdate));
   final authBirthdate = ref.watch(
-    authNotifierProvider.select((state) => state.valueOrNull?.birthday),
+    authNotifierProvider.select((state) => state.value?.birthday),
   );
   // El formulario es autoDispose y el PageView desmonta el paso 2; la sesión
   // no se refresca tras guardarlo. El snapshot persistido cubre ese hueco.
   final savedBirthdate = (birthdate ?? authBirthdate) == null
       ? ref.watch(
           personalInfoSnapshotProvider
-              .select((snapshot) => snapshot.valueOrNull?.birthdate),
+              .select((snapshot) => snapshot.value?.birthdate),
         )
       : null;
-  final currentYear = ref.watch(currentEcclesiasticalYearProvider).valueOrNull;
+  final currentYear = ref.watch(currentEcclesiasticalYearProvider).value;
 
   if (currentYear == null) return null;
 
@@ -154,7 +154,7 @@ final classesProvider =
 /// Provider para el país seleccionado.
 /// Auto-selecciona el único país si la lista tiene exactamente uno.
 final selectedCountryProvider = StateProvider.autoDispose<int?>((ref) {
-  final countries = ref.watch(countriesProvider).valueOrNull;
+  final countries = ref.watch(countriesProvider).value;
   if (countries != null && countries.length == 1) {
     return countries.first.id;
   }
@@ -164,7 +164,7 @@ final selectedCountryProvider = StateProvider.autoDispose<int?>((ref) {
 /// Provider para la unión seleccionada.
 /// Auto-selecciona la única unión si la lista tiene exactamente una.
 final selectedUnionProvider = StateProvider.autoDispose<int?>((ref) {
-  final unions = ref.watch(unionsProvider).valueOrNull;
+  final unions = ref.watch(unionsProvider).value;
   if (unions != null && unions.length == 1) {
     return unions.first.id;
   }
@@ -174,7 +174,7 @@ final selectedUnionProvider = StateProvider.autoDispose<int?>((ref) {
 /// Provider para el campo local seleccionado.
 /// Auto-selecciona el único campo local si la lista tiene exactamente uno.
 final selectedLocalFieldProvider = StateProvider.autoDispose<int?>((ref) {
-  final localFields = ref.watch(localFieldsProvider).valueOrNull;
+  final localFields = ref.watch(localFieldsProvider).value;
   if (localFields != null && localFields.length == 1) {
     return localFields.first.id;
   }
@@ -184,7 +184,7 @@ final selectedLocalFieldProvider = StateProvider.autoDispose<int?>((ref) {
 /// Provider para el club seleccionado.
 /// Auto-selecciona el único club si la lista tiene exactamente uno.
 final selectedClubProvider = StateProvider.autoDispose<int?>((ref) {
-  final clubs = ref.watch(clubsProvider).valueOrNull;
+  final clubs = ref.watch(clubsProvider).value;
   if (clubs != null && clubs.length == 1) {
     return clubs.first.id;
   }
@@ -211,7 +211,7 @@ final selectedClubSectionProvider = Provider.autoDispose<int?>((ref) {
   final sectionsAsync = ref.watch(clubSectionsProvider);
   if (sectionsAsync.isLoading) return null;
 
-  final sections = sectionsAsync.valueOrNull;
+  final sections = sectionsAsync.value;
   if (sections == null || sections.isEmpty) return null;
 
   final requiredClubTypeId = ref.watch(requiredClubTypeIdProvider);
@@ -229,7 +229,7 @@ final selectedClubSectionProvider = Provider.autoDispose<int?>((ref) {
   final heldSectionIds = ref.watch(
     authNotifierProvider.select(
       (value) =>
-          value.valueOrNull?.authorization?.clubAssignments
+          value.value?.authorization?.clubAssignments
               .where((grant) => grant.status == 'active')
               .map((grant) => grant.sectionId)
               .whereType<int>()
@@ -258,7 +258,7 @@ final selectedClubTypeSlugProvider = Provider.autoDispose<String?>((ref) {
   final selectedId = ref.watch(selectedClubSectionProvider);
   if (selectedId == null) return null;
 
-  final sections = ref.watch(clubSectionsProvider).valueOrNull;
+  final sections = ref.watch(clubSectionsProvider).value;
   if (sections == null || sections.isEmpty) return null;
 
   final section = sections.where((s) => s.id == selectedId).firstOrNull;
@@ -276,7 +276,7 @@ final selectedClassProvider = Provider.autoDispose<int?>((ref) {
 
   final clubTypeId = ref
       .watch(clubSectionsProvider)
-      .valueOrNull
+      .value
       ?.where((section) => section.id == clubSectionId)
       .firstOrNull
       ?.clubTypeId;
@@ -285,7 +285,7 @@ final selectedClassProvider = Provider.autoDispose<int?>((ref) {
   final classesAsync = ref.watch(classesProvider);
   if (classesAsync.isLoading) return null;
 
-  final classes = classesAsync.valueOrNull
+  final classes = classesAsync.value
       ?.where((classModel) => classModel.clubTypeId == clubTypeId)
       .toList();
   if (classes == null || classes.isEmpty) return null;

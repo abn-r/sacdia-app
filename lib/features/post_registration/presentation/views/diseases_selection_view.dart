@@ -384,7 +384,7 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
 
       await ref.read(userDiseasesProvider.notifier).saveAll(entries);
 
-      final updated = ref.read(userDiseasesProvider).valueOrNull ?? [];
+      final updated = ref.read(userDiseasesProvider).value ?? [];
       ref.read(selectedDiseasesProvider.notifier).state =
           updated.map((d) => d.id).toList();
       setState(() {
@@ -440,9 +440,8 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
         // Riverpod 2.6 `.value` rethrew an error that has no previous value
         // (reaching the global error handler, with nothing seeded). Riverpod 3
         // returns null instead, so the rethrow is kept explicit here.
-        final seed = next.hasError && !next.hasValue
-            ? next.requireValue
-            : next.valueOrNull;
+        final seed =
+            next.hasError && !next.hasValue ? next.requireValue : next.value;
         if (seed != null && !_serverSeeded) {
           _seedFromServer(seed);
           ref.read(selectedDiseasesProvider.notifier).state =
@@ -454,7 +453,7 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
     final catalogAsync = ref.watch(diseasesCatalogProvider);
     final userAsync = ref.watch(userDiseasesProvider);
     final savedNone =
-        ref.watch(healthNoneStateProvider).valueOrNull?.diseases ?? false;
+        ref.watch(healthNoneStateProvider).value?.diseases ?? false;
     _hydrateSavedNone(savedNone);
     final m = MedicoTokens.of(context);
 
@@ -499,7 +498,7 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
               ),
             ),
             data: (catalog) {
-              final serverItems = userAsync.valueOrNull ?? [];
+              final serverItems = userAsync.value ?? [];
               if (!_serverSeeded && serverItems.isNotEmpty) {
                 _seedFromServer(serverItems);
               }

@@ -58,7 +58,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   bool _isUploadingPhoto = false;
 
   Future<void> _changePhoto() async {
-    final user = ref.read(authNotifierProvider).valueOrNull;
+    final user = ref.read(authNotifierProvider).value;
     if (user == null) return;
 
     try {
@@ -139,7 +139,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     final c = context.sac;
 
     // Use cached data if available so the header shows immediately on re-visits.
-    final cachedProfile = profileState.valueOrNull;
+    final cachedProfile = profileState.value;
     final isFirstLoad = cachedProfile == null && profileState.isLoading;
 
     return Scaffold(
@@ -161,7 +161,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             }
 
             final authUser = ref.watch(
-              authNotifierProvider.select((v) => v.valueOrNull),
+              authNotifierProvider.select((v) => v.value),
             );
 
             final activeGrant = authUser?.authorization?.activeGrant;

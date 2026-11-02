@@ -85,7 +85,7 @@ class ClassDetailWithProgressView extends ConsumerWidget {
                 enrollmentId: enrollmentId ?? classWithProgress.enrollmentId,
                 targetUserId: targetUserId,
                 prerequisites:
-                    prerequisitesAsync.valueOrNull?.prerequisites ?? const [],
+                    prerequisitesAsync.value?.prerequisites ?? const [],
                 onRefresh: () async {
                   ref.invalidate(classWithProgressProvider(progressQuery));
                   ref.invalidate(classDetailProvider(classId));
@@ -290,9 +290,8 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
     // estado que enseguida desaparece. Si falla, se muestra la insignia.
     final ownHistory =
         isOwnView ? ref.watch(ownInvestitureHistoryProvider) : null;
-    final awaitingOwnHistory = ownHistory != null &&
-        ownHistory.isLoading &&
-        ownHistory.valueOrNull == null;
+    final awaitingOwnHistory =
+        ownHistory != null && ownHistory.isLoading && ownHistory.value == null;
     final showInvestedBadge =
         investitureStatus == InvestitureStatus.investido &&
             !hasOwnAuthorization &&
@@ -1103,8 +1102,8 @@ class _ModulesCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final honors = ref.watch(classHonorsProvider(classId)).valueOrNull ??
-        const <ClassHonor>[];
+    final honors =
+        ref.watch(classHonorsProvider(classId)).value ?? const <ClassHonor>[];
     final firstPendingModuleIndex = modules.indexWhere(
       (module) =>
           module.requirements.isNotEmpty &&

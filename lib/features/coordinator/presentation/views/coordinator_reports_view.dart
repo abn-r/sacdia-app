@@ -352,7 +352,7 @@ class _PeriodBody extends StatelessWidget {
     final clubs = compliance.clubs;
     final reportsByClub = groupReportsByClub(
       clubs,
-      reportsAsync.valueOrNull ?? const [],
+      reportsAsync.value ?? const [],
     );
     final locale = Localizations.maybeLocaleOf(context)?.toLanguageTag();
 

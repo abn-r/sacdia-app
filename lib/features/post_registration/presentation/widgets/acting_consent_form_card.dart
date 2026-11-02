@@ -95,7 +95,7 @@ class _ActingConsentFormCardState extends ConsumerState<ActingConsentFormCard> {
     // Mantiene vivo el provider (es autoDispose) mientras la tarjeta existe.
     ref.watch(consentFormPhaseProvider);
     final acting = ref.watch(actingDependentProvider);
-    final user = ref.watch(authNotifierProvider).valueOrNull;
+    final user = ref.watch(authNotifierProvider).value;
     if (!canUploadConsentWhileActing(user, acting: acting)) {
       return const SizedBox.shrink();
     }

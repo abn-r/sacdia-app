@@ -141,7 +141,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
 
   bool _canCreateActivities() {
     final authState = ref.read(authNotifierProvider);
-    final user = authState.valueOrNull;
+    final user = authState.value;
     if (user == null) return false;
     return hasAnyPermission(user, const {'activities:create'});
   }
@@ -550,9 +550,9 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
   @override
   Widget build(BuildContext context) {
     final clubCtxAsync = ref.watch(clubContextProvider);
-    final resolvedClubId = widget.clubId ?? clubCtxAsync.valueOrNull?.clubId;
+    final resolvedClubId = widget.clubId ?? clubCtxAsync.value?.clubId;
     final resolvedSectionId =
-        widget.clubSectionId ?? clubCtxAsync.valueOrNull?.sectionId;
+        widget.clubSectionId ?? clubCtxAsync.value?.sectionId;
 
     final activitiesAsync = resolvedClubId != null
         ? ref.watch(clubActivitiesProvider(ClubActivitiesParams(

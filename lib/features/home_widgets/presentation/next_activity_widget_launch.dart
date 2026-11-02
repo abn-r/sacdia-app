@@ -19,7 +19,7 @@ void Function() bindNextActivityWidgetLaunches(WidgetRef ref) {
 
     final auth = ref.read(authNotifierProvider);
     if (!auth.isLoading) {
-      if (auth.valueOrNull == null) return;
+      if (auth.value == null) return;
       ref.read(routerProvider).go(RouteNames.activityDetailPath(activityId));
       return;
     }
@@ -34,7 +34,7 @@ void Function() bindNextActivityWidgetLaunches(WidgetRef ref) {
         settled = true;
         subscription.close();
         if (identical(authWait, subscription)) authWait = null;
-        if (disposed || next.valueOrNull == null) return;
+        if (disposed || next.value == null) return;
         ref.read(routerProvider).go(RouteNames.activityDetailPath(activityId));
       },
       fireImmediately: true,

@@ -50,7 +50,7 @@ class _GuardianOnlyExitState extends ConsumerState<GuardianOnlyExit> {
     );
     if (confirmed != true || !mounted) return;
 
-    final userId = ref.read(authNotifierProvider).valueOrNull?.id;
+    final userId = ref.read(authNotifierProvider).value?.id;
     setState(() => _busy = true);
     final result = await ref
         .read(postRegistrationFlowNotifierProvider.notifier)
@@ -86,14 +86,14 @@ class _GuardianOnlyExitState extends ConsumerState<GuardianOnlyExit> {
   Widget build(BuildContext context) {
     final acting = ref.watch(actingDependentProvider) != null ||
         ref.watch(
-          authNotifierProvider.select((v) => v.valueOrNull?.actingFor != null),
+          authNotifierProvider.select((v) => v.value?.actingFor != null),
         );
     if (acting) return const SizedBox.shrink();
 
     // Un principal ausente es un adulto de un servidor anterior a la Fase 3.
     final adult = ref.watch(
       authNotifierProvider.select((v) {
-        final user = v.valueOrNull;
+        final user = v.value;
         if (user == null) return true;
         return !user.isLimitedAccount &&
             (user.principal?.kind ?? PrincipalKind.user) == PrincipalKind.user;

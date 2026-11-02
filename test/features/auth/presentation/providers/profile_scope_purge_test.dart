@@ -185,7 +185,7 @@ void main() {
       expect(outcome, SwitchProfileOutcome.entered);
       expect(repo.calls.last, 'ana-1');
       expect(
-        container.read(authNotifierProvider).valueOrNull?.id,
+        container.read(authNotifierProvider).value?.id,
         'ana-1',
       );
       await Future<void>.delayed(Duration.zero);

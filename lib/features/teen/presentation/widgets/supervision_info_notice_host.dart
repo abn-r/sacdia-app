@@ -58,8 +58,8 @@ class SupervisionInfoNoticeHost extends ConsumerWidget {
     ref.listen(authNotifierProvider, (previous, next) {
       final prefs = ref.read(sharedPreferencesProvider);
       if (!shouldShowSupervisionInfo(
-        previous?.valueOrNull,
-        next.valueOrNull,
+        previous?.value,
+        next.value,
         acting: ref.read(actingDependentProvider) != null,
         alreadySeen: prefs.getBool(kSupervisionInfoSeenPrefsKey) ?? false,
       )) {
@@ -76,7 +76,7 @@ class SupervisionInfoNoticeHost extends ConsumerWidget {
     final context = (navigatorKey ?? pushNavigatorKey).currentContext;
     if (context == null || !context.mounted) return;
     // La persona pudo cerrar sesión o dejar de ser supervisada en la espera.
-    if (ref.read(authNotifierProvider).valueOrNull?.mode !=
+    if (ref.read(authNotifierProvider).value?.mode !=
         AccountMode.teenSupervised) {
       return;
     }

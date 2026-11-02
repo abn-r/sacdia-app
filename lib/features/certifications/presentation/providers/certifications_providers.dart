@@ -169,7 +169,7 @@ class CertificationEnrollmentNotifier
 
   String get _userId {
     final authState = ref.read(authNotifierProvider);
-    return authState.valueOrNull?.id ?? '';
+    return authState.value?.id ?? '';
   }
 
   int get _certificationId => arg;
@@ -249,7 +249,7 @@ class SectionProgressNotifier extends Notifier<CertificationEnrollmentState> {
 
   String get _userId {
     final authState = ref.read(authNotifierProvider);
-    return authState.valueOrNull?.id ?? '';
+    return authState.value?.id ?? '';
   }
 
   int get _certificationId => arg;

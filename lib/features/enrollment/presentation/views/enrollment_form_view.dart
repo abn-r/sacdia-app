@@ -196,7 +196,7 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
   void _tryAutoPopulateRoles() {
     if (_rolesAutoPopulated) return;
 
-    final membersData = ref.read(membersNotifierProvider).valueOrNull;
+    final membersData = ref.read(membersNotifierProvider).value;
     if (membersData == null) {
       // Data not ready yet — listen and retry via didChangeDependencies
       return;
@@ -441,7 +441,7 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
     // When members finish loading, auto-populate roles (runs once per session)
     ref.listen<AsyncValue<MembersData>>(membersNotifierProvider, (_, next) {
       if (!_rolesAutoPopulated) {
-        final data = next.valueOrNull;
+        final data = next.value;
         if (data != null) {
           _rolesAutoPopulated = true;
           _autoPopulateRoles(data.members);
@@ -449,8 +449,8 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
       }
     });
 
-    final members = membersAsync.valueOrNull?.members ?? [];
-    final currentUserCtx = clubCtxAsync.valueOrNull;
+    final members = membersAsync.value?.members ?? [];
+    final currentUserCtx = clubCtxAsync.value;
 
     // El director es el usuario actual con rol director (display-only)
     final directorMember = currentUserCtx?.isDirector == true

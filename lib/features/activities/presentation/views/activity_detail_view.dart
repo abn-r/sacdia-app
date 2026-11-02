@@ -497,7 +497,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     final activityAsync = ref.watch(activityDetailProvider(widget.activityId));
     final deleteState = ref.watch(deleteActivityNotifierProvider);
     final user = ref.watch(
-      authNotifierProvider.select((v) => v.valueOrNull),
+      authNotifierProvider.select((v) => v.value),
     );
 
     final canScanAttendance = activityAsync.hasValue &&

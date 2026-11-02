@@ -84,7 +84,7 @@ final ownInvestitureHistoryProvider =
 /// reciente); `null` mientras carga, si falla o si no hay nada que mostrar.
 final ownInvestitureEntryForClassProvider =
     Provider.autoDispose.family<OwnInvestitureEntry?, int>((ref, classId) {
-  final history = ref.watch(ownInvestitureHistoryProvider).valueOrNull;
+  final history = ref.watch(ownInvestitureHistoryProvider).value;
   if (history == null) return null;
   return selectOwnEntryForClass(history, classId);
 });
@@ -116,7 +116,7 @@ final sectionYearbookProvider = FutureProvider.autoDispose
 /// sección no aparece en el mapa y la vista usa un nombre neutro.
 final sectionPeopleNamesProvider =
     Provider.autoDispose<Map<String, String>>((ref) {
-  final members = ref.watch(membersNotifierProvider).valueOrNull?.members;
+  final members = ref.watch(membersNotifierProvider).value?.members;
   if (members == null) return const {};
   return {
     for (final member in members)

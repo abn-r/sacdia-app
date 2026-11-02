@@ -226,7 +226,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
     // Echo the versions the user actually saw (GET /legal/current), never
     // app-side constants.
     final legal = _legalSnapshot(
-      ref.read(currentLegalDocumentsProvider).valueOrNull,
+      ref.read(currentLegalDocumentsProvider).value,
     );
     if (legal == null || !_acceptedLegal || _submitting) return;
 
@@ -282,8 +282,8 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
     // the ones the user checked.
     ref.listen<AsyncValue<List<LegalDocument>>>(currentLegalDocumentsProvider,
         (previous, next) {
-      final before = _legalSnapshot(previous?.valueOrNull);
-      final after = _legalSnapshot(next.valueOrNull);
+      final before = _legalSnapshot(previous?.value);
+      final after = _legalSnapshot(next.value);
       if (_acceptedLegal &&
           before != null &&
           after != null &&
@@ -293,7 +293,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
       }
     });
     final legalAsync = ref.watch(currentLegalDocumentsProvider);
-    final legal = _legalSnapshot(legalAsync.valueOrNull);
+    final legal = _legalSnapshot(legalAsync.value);
     final legalLoadFailed = legal == null && !legalAsync.isLoading;
 
     final errorMessage = _serverError;

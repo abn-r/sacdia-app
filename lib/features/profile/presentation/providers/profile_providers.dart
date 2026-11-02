@@ -74,7 +74,7 @@ class ProfileNotifier extends AsyncNotifier<UserDetail?> {
 
   /// Actualizar el perfil del usuario
   Future<bool> updateProfile(Map<String, dynamic> data) async {
-    final currentProfile = state.valueOrNull;
+    final currentProfile = state.value;
     if (currentProfile == null) {
       return false;
     }

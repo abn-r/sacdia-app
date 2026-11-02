@@ -77,7 +77,7 @@ class SupervisionInfoSlot extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final supervised = ref.watch(
       authNotifierProvider.select(
-        (v) => v.valueOrNull?.mode == AccountMode.teenSupervised,
+        (v) => v.value?.mode == AccountMode.teenSupervised,
       ),
     );
     if (!supervised) return const SizedBox.shrink();

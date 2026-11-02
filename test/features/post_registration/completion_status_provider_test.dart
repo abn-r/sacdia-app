@@ -44,8 +44,7 @@ void main() {
   test('completion status is refetched when the signed-in user changes',
       () async {
     late ProviderContainer container;
-    String currentUserId() =>
-        container.read(authNotifierProvider).valueOrNull!.id;
+    String currentUserId() => container.read(authNotifierProvider).value!.id;
 
     container = createTestContainer(
       overrides: [

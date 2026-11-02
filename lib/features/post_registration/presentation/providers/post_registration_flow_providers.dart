@@ -35,7 +35,7 @@ class PostRegistrationFlowNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
-  String? get _currentUserId => ref.read(authNotifierProvider).valueOrNull?.id;
+  String? get _currentUserId => ref.read(authNotifierProvider).value?.id;
 
   Future<PostRegistrationFlowResult> completeStep1() async {
     final userId = _currentUserId;

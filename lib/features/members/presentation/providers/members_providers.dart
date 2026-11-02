@@ -442,7 +442,7 @@ final membersNotifierProvider =
 
 /// Miembros filtrados según los filtros activos
 final filteredMembersProvider = Provider.autoDispose<List<ClubMember>>((ref) {
-  final data = ref.watch(membersNotifierProvider).valueOrNull;
+  final data = ref.watch(membersNotifierProvider).value;
   final members = data?.members ?? [];
   final filters = ref.watch(memberFiltersProvider);
   return filters.applyTo(members);
@@ -451,7 +451,7 @@ final filteredMembersProvider = Provider.autoDispose<List<ClubMember>>((ref) {
 /// Solicitudes filtradas según los filtros activos
 final filteredJoinRequestsProvider =
     Provider.autoDispose<List<JoinRequest>>((ref) {
-  final data = ref.watch(membersNotifierProvider).valueOrNull;
+  final data = ref.watch(membersNotifierProvider).value;
   final requests = data?.joinRequests ?? [];
   final filters = ref.watch(joinRequestFiltersProvider);
   return filters.applyTo(requests);
@@ -459,15 +459,14 @@ final filteredJoinRequestsProvider =
 
 /// Número de solicitudes pendientes (para el badge del tab)
 final pendingRequestsCountProvider = Provider.autoDispose<int>((ref) {
-  return ref.watch(membersNotifierProvider).valueOrNull?.pendingRequestsCount ??
-      0;
+  return ref.watch(membersNotifierProvider).value?.pendingRequestsCount ?? 0;
 });
 
 /// Clases únicas presentes en la lista de miembros (para el filtro).
 ///
 /// El orden es el de [sortClassFilterOptions]: id de catálogo ascendente.
 final availableClassesProvider = Provider.autoDispose<List<String>>((ref) {
-  final members = ref.watch(membersNotifierProvider).valueOrNull?.members ?? [];
+  final members = ref.watch(membersNotifierProvider).value?.members ?? [];
   final classes = <String>[];
   final seen = <String>{};
   for (final member in members) {
@@ -485,7 +484,7 @@ final availableClassesProvider = Provider.autoDispose<List<String>>((ref) {
 
 /// Roles únicos presentes en la lista de miembros (para el filtro)
 final availableRolesProvider = Provider.autoDispose<List<String>>((ref) {
-  final members = ref.watch(membersNotifierProvider).valueOrNull?.members ?? [];
+  final members = ref.watch(membersNotifierProvider).value?.members ?? [];
   final roles = members
       .map((m) => m.clubRole)
       .whereType<String>()
@@ -842,7 +841,7 @@ class AnnualContinuationsNotifier
   }
 
   void toggleSelection(String userId) {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null) return;
     if (current.items.any((m) => m.userId == userId && m.isBlocked)) {
       return;
@@ -862,7 +861,7 @@ class AnnualContinuationsNotifier
     final ctx = await ref.read(clubContextProvider.future);
     if (ctx == null) return null;
 
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null) return null;
 
     final toSubmit = current.selectedIds

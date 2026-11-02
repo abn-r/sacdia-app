@@ -369,7 +369,7 @@ class _TransferRequestFormViewState
 
   void _syncRequiredClubType() {
     final activeGrant =
-        ref.read(authNotifierProvider).valueOrNull?.authorization?.activeGrant;
+        ref.read(authNotifierProvider).value?.authorization?.activeGrant;
     final clubTypeId = activeGrant?.clubTypeId;
     if (clubTypeId == null) return;
     ref.read(requiredClubTypeIdProvider.notifier).state = clubTypeId;
@@ -377,7 +377,7 @@ class _TransferRequestFormViewState
 
   Future<void> _submit() async {
     final activeGrant =
-        ref.read(authNotifierProvider).valueOrNull?.authorization?.activeGrant;
+        ref.read(authNotifierProvider).value?.authorization?.activeGrant;
     final fromSectionId = activeGrant?.sectionId;
     final toSectionId = ref.read(selectedClubSectionProvider);
 
@@ -407,11 +407,11 @@ class _TransferRequestFormViewState
     final formState = ref.watch(createTransferProvider);
     final activeGrant = ref.watch(
       authNotifierProvider.select(
-        (value) => value.valueOrNull?.authorization?.activeGrant,
+        (value) => value.value?.authorization?.activeGrant,
       ),
     );
     final currentClassName =
-        ref.watch(profileNotifierProvider).valueOrNull?.currentClass;
+        ref.watch(profileNotifierProvider).value?.currentClass;
     final selectedSectionId = ref.watch(selectedClubSectionProvider);
     final requiredClubTypeId = ref.watch(requiredClubTypeIdProvider);
     final c = context.sac;

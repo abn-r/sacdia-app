@@ -125,7 +125,7 @@ void main() {
   }
 
   AuthNotifier notifier() => container.read(authNotifierProvider.notifier);
-  UserEntity? current() => container.read(authNotifierProvider).valueOrNull;
+  UserEntity? current() => container.read(authNotifierProvider).value;
   ActingForSession session() => container.read(actingForSessionProvider);
   FakePushNotificationService push() =>
       container.read(pushNotificationServiceProvider)

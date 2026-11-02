@@ -45,7 +45,7 @@ class CoordinatorClubsListView extends ConsumerWidget {
     final accent = SacAccent.of(context);
     final rawAsync = ref.watch(coordinatorClubsRawProvider);
     final clubsAsync = ref.watch(coordinatorClubsProvider);
-    final total = rawAsync.valueOrNull?.length ?? 0;
+    final total = rawAsync.value?.length ?? 0;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -93,7 +93,7 @@ class CoordinatorClubsListView extends ConsumerWidget {
                       ),
                     ),
               data: (all) {
-                final clubs = clubsAsync.valueOrNull ?? all;
+                final clubs = clubsAsync.value ?? all;
                 if (all.isEmpty) {
                   // Nothing assigned: no search bar, there is nothing to find.
                   return _EmptyScroll(

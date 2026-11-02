@@ -49,7 +49,7 @@ final transferRequestDetailProvider =
     // toClubName, reason, reviewerComment, createdAt, status).
     final cached = ref
         .read(myTransferRequestsProvider)
-        .valueOrNull
+        .value
         ?.where((t) => t.id == requestId)
         .firstOrNull;
     if (cached != null) return cached;

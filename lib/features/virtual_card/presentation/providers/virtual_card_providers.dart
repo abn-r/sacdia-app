@@ -110,7 +110,7 @@ Future<VirtualCard> _buildFallbackCard(
   required bool isOffline,
 }) async {
   final profileValue = ref.read(profileNotifierProvider);
-  UserDetail? profile = profileValue.valueOrNull;
+  UserDetail? profile = profileValue.value;
   if (profile == null) {
     try {
       profile = await ref.read(profileNotifierProvider.future);

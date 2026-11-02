@@ -58,8 +58,8 @@ class FamilyPromptHost extends ConsumerWidget {
     ref.listen(authNotifierProvider, (previous, next) {
       final acting = ref.read(actingDependentProvider) != null;
       if (!shouldPromptFamily(
-        previous?.valueOrNull,
-        next.valueOrNull,
+        previous?.value,
+        next.value,
         acting: acting,
       )) {
         return;

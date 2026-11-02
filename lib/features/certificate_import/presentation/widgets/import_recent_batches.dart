@@ -64,7 +64,7 @@ class ImportRecentBatches extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final batches = ref.watch(certificateImportBatchListProvider(_page));
-    final shown = visible(batches.valueOrNull?.items ?? const []);
+    final shown = visible(batches.value?.items ?? const []);
     if (shown.isEmpty) return const SizedBox.shrink();
 
     final c = context.sac;

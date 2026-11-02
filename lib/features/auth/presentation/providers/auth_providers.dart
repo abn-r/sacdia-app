@@ -222,7 +222,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   /// pasa por el post-registro de cuenta y se registra de inmediato.
   void _registerPush([UserEntity? user]) {
     if (_isActing) return;
-    final current = user ?? state.valueOrNull;
+    final current = user ?? state.value;
     if (current != null && !pushReadyFor(current)) return;
     ref.read(pushNotificationServiceProvider).initialize();
   }
@@ -766,13 +766,13 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   /// debe aplicarse (S1).
   ///
   /// Durante un cambio de perfil `AsyncLoading` conserva el valor previo en
-  /// `valueOrNull`: una llamada tardía del post-registro reescribiría ese valor
+  /// `value`: una llamada tardía del post-registro reescribiría ese valor
   /// como dato y republicaría al perfil anterior (y lo guardaría en caché). Por
   /// eso no se aplica mientras carga ni si [forUserId] —el usuario que inició la
   /// operación— ya no es el vigente.
   UserEntity? _markTarget(String? forUserId) {
     if (state.isLoading) return null;
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null) return null;
     if (forUserId != null && forUserId != current.id) return null;
     return current;
@@ -817,7 +817,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   /// backend confirmed the current versions were accepted, so the router
   /// leaves the gate without a full /auth/me refresh.
   void markLegalAccepted() {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null) return;
     final updatedUser = UserEntity(
       id: current.id,
@@ -903,7 +903,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         return null;
       },
       (user) {
-        final previous = state.valueOrNull;
+        final previous = state.value;
         if (user != null) {
           _cacheUser(user);
         }
@@ -1009,7 +1009,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     // Solo un `user` puede actuar por un menor. Un adolescente supervisado o un
     // teléfono vinculado jamás envía `X-Acting-For` (el servidor lo rechazaría
     // con 403 ACTING_FOR_FORBIDDEN): ni siquiera se entra en el modo.
-    final kind = state.valueOrNull?.principal?.kind;
+    final kind = state.value?.principal?.kind;
     if (kind != null && kind != PrincipalKind.user) {
       AppLogger.w('switchProfile rechazado: el principal no es un tutor',
           tag: _tag);
@@ -1020,7 +1020,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
     // El tutor es quien está en `state` solo cuando aún no se actúa.
     if (!_isActing) {
-      final guardian = state.valueOrNull;
+      final guardian = state.value;
       if (guardian == null || guardian.id == dependentId) {
         return SwitchProfileOutcome.failed;
       }
@@ -1100,7 +1100,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     AppLogger.i('Contexto cambiado. Refrescando usuario...', tag: _tag);
 
     // Capture old activeAssignmentId for diagnostics.
-    final oldActiveId = state.valueOrNull?.authorization?.activeAssignmentId;
+    final oldActiveId = state.value?.authorization?.activeAssignmentId;
 
     final refreshResult = await ref.read(getCurrentUserProvider)(NoParams());
     refreshResult.fold(
@@ -1273,7 +1273,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   /// fallo (sin red, 401...) no toca el estado. [minInterval] limita la
   /// frecuencia. Devuelve `true` si el estado cambió.
   Future<bool> refreshSupervision({Duration? minInterval}) async {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null ||
         state.isLoading ||
         _isActing ||
@@ -1295,7 +1295,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       // El perfil o la sesión cambiaron mientras volaba: la respuesta es vieja.
       if (_session.generation != generation || state.isLoading) return false;
       final fresh = result.fold<UserEntity?>((_) => null, (u) => u);
-      final still = state.valueOrNull;
+      final still = state.value;
       if (fresh == null || still == null || fresh.id != still.id) return false;
       final changed = fresh.principal != still.principal ||
           fresh.mode != still.mode ||
@@ -1371,7 +1371,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   Future<String?> pairDevice(DevicePairingInput input) async {
     if (_isActing ||
         state.isLoading ||
-        state.valueOrNull != null ||
+        state.value != null ||
         await ref.read(authRepositoryProvider).hasLocalToken()) {
       AppLogger.w('Vinculación rechazada: ya hay una sesión', tag: _tag);
       return 'device.pair.errors.session_exists'.tr();

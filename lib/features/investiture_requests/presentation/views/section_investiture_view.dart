@@ -45,7 +45,7 @@ class SectionInvestitureView extends ConsumerWidget {
     final c = context.sac;
     final clubAsync = ref.watch(clubContextProvider);
     final yearAsync = ref.watch(currentEcclesiasticalYearProvider);
-    final club = clubAsync.valueOrNull;
+    final club = clubAsync.value;
     final isBoard = club?.isInvestitureBoard ?? false;
 
     return Scaffold(
@@ -98,7 +98,7 @@ class SectionInvestitureView extends ConsumerWidget {
                 icon: HugeIcons.strokeRoundedLockKey,
               );
             }
-            final year = yearAsync.valueOrNull;
+            final year = yearAsync.value;
             if (year == null) {
               if (yearAsync.hasError) {
                 return InvestitureMessageState(
@@ -343,8 +343,8 @@ class _SectionBodyState extends ConsumerState<_SectionBody> {
       ref.watch(changeDatesNotifierProvider(_query)),
     ].any((state) => state.isLoading);
 
-    final ctx = contextAsync.valueOrNull;
-    final request = requestAsync.valueOrNull;
+    final ctx = contextAsync.value;
+    final request = requestAsync.value;
     if (ctx == null || (request == null && requestAsync.isLoading)) {
       if (contextAsync.hasError || requestAsync.hasError) {
         return InvestitureMessageState(

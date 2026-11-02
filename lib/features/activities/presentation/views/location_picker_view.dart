@@ -89,7 +89,7 @@ class _LocationPickerViewState extends ConsumerState<LocationPickerView> {
   void initState() {
     super.initState();
     _resolvedAddress = '';
-    final section = ref.read(currentClubSectionProvider).valueOrNull;
+    final section = ref.read(currentClubSectionProvider).value;
     _currentCenter = widget.initialLocation ??
         locationPickerFallbackCenter(
           clubLat: section?.lat,

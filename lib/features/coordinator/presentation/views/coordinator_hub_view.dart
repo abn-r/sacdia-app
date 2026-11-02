@@ -93,9 +93,9 @@ class CoordinatorHubView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.sac;
     final accent = SacAccent.of(context);
-    final user = ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
+    final user = ref.watch(authNotifierProvider.select((v) => v.value));
     final scopeAsync = ref.watch(coordinatorScopeProvider);
-    final clubs = ref.watch(coordinatorClubsRawProvider).valueOrNull;
+    final clubs = ref.watch(coordinatorClubsRawProvider).value;
     final subtitle = scopeAsync.whenOrNull(
       data: (scope) => coordinatorScopeSubtitle(scope, clubsFallback: clubs),
     );
@@ -268,14 +268,14 @@ class _ConsentSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final scope = ref.watch(coordinatorScopeProvider).valueOrNull;
+    final scope = ref.watch(coordinatorScopeProvider).value;
     if (scope == null || !scope.hasAssignedSections) {
       return const SizedBox.shrink();
     }
     final c = context.sac;
     final textTheme = Theme.of(context).textTheme;
     // Cheap: asks for a single form, only to read the total.
-    final count = ref.watch(consentPendingCountProvider).valueOrNull;
+    final count = ref.watch(consentPendingCountProvider).value;
 
     return Semantics(
       container: true,
@@ -587,8 +587,8 @@ class _ReviewSection extends ConsumerWidget {
     // The queue total is the count of the list "Ver todas" opens; the SLA
     // dashboard adds overdue and average days, and its own pending count
     // stands in until the queue answers.
-    final queueTotal = pendingAsync.valueOrNull?.total;
-    final pending = queueTotal ?? slaAsync.valueOrNull?.evidence.pending;
+    final queueTotal = pendingAsync.value?.total;
+    final pending = queueTotal ?? slaAsync.value?.evidence.pending;
     final allClear = pending == 0;
 
     final children = <Widget>[];
@@ -979,7 +979,7 @@ class _ClubsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final clubsAsync = ref.watch(coordinatorClubsRawProvider);
-    final count = clubsAsync.valueOrNull?.length ?? 0;
+    final count = clubsAsync.value?.length ?? 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

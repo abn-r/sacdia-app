@@ -77,7 +77,7 @@ class SyncController extends Notifier<SyncControllerState> {
       await bumpCatalogCacheGeneration(storage);
       await clearDashboardSummaryDiskCache(storage);
       await ref.read(jsonFileCacheProvider).deleteAll();
-      final ctx = rtRef.read(clubContextProvider).valueOrNull;
+      final ctx = rtRef.read(clubContextProvider).value;
       RealtimeResourceRegistry.invalidateAll(rtRef, ctx?.sectionId ?? -1);
       invalidateSessionServerCaches(rtRef);
       result = await repo.recordSuccessfulSync(DateTime.now());
@@ -134,7 +134,7 @@ class ClearCacheController extends Notifier<ClearCacheState> {
         await repo.clearAllData();
         ref.read(jsonFileCacheProvider).resetSession();
         final rtRef = RealtimeRef.fromRef(ref);
-        final ctx = ref.read(clubContextProvider).valueOrNull;
+        final ctx = ref.read(clubContextProvider).value;
         RealtimeResourceRegistry.invalidateAll(rtRef, ctx?.sectionId ?? -1);
         invalidateSessionServerCaches(rtRef);
       }

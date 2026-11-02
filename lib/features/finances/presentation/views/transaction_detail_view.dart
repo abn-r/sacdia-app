@@ -34,14 +34,14 @@ class TransactionDetailView extends ConsumerWidget {
     // Se vuelve a pedir al backend para reflejar ediciones; mientras carga
     // se muestra la copia con la que se abrió la pantalla.
     final current =
-        ref.watch(transactionDetailProvider(transaction.id)).valueOrNull ??
+        ref.watch(transactionDetailProvider(transaction.id)).value ??
             transaction;
     final isIncome = current.type.isIncome;
     final color = isIncome ? AppColors.secondary : AppColors.error;
     final canManageAsync = ref.watch(canManageFinancesProvider);
     final financeMonthAsync = ref.watch(financeMonthProvider);
-    final isOpen = financeMonthAsync.valueOrNull?.isOpen ?? true;
-    final canEdit = (canManageAsync.valueOrNull ?? false) && isOpen;
+    final isOpen = financeMonthAsync.value?.isOpen ?? true;
+    final canEdit = (canManageAsync.value ?? false) && isOpen;
 
     return Scaffold(
       extendBodyBehindAppBar: true,

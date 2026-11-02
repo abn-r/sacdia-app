@@ -97,7 +97,7 @@ class HonorAbandonMenuButton extends ConsumerWidget {
     );
     if (confirmed != true || !context.mounted) return;
 
-    final user = ref.read(authNotifierProvider).valueOrNull ??
+    final user = ref.read(authNotifierProvider).value ??
         await ref.read(authNotifierProvider.future);
     if (!navigator.mounted) return;
 

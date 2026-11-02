@@ -111,7 +111,7 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
     final notifier = ref.read(dataExportProvider.notifier);
     await notifier.refresh();
     // Después del refresh, verificar si ya no hay exports en progreso.
-    final current = ref.read(dataExportProvider).valueOrNull ?? [];
+    final current = ref.read(dataExportProvider).value ?? [];
     if (!current.any((e) => e.isInProgress)) {
       _pollingTimer?.cancel();
       _pollingTimer = null;
@@ -156,7 +156,7 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
     } else {
       _showSnackBar('profile.data_export.ui.export_requested'.tr());
       // Iniciar polling para la nueva export en progreso.
-      final current = ref.read(dataExportProvider).valueOrNull ?? [];
+      final current = ref.read(dataExportProvider).value ?? [];
       _startPollingIfNeeded(current);
     }
   }
@@ -180,7 +180,7 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
 
     // Download to a temp file and hand it to the native share sheet, so the
     // user can save it to Files or send it, instead of raw JSON in a browser.
-    final exports = ref.read(dataExportProvider).valueOrNull ?? const [];
+    final exports = ref.read(dataExportProvider).value ?? const [];
     final export = exports.where((e) => e.exportId == exportId).firstOrNull;
     final fileName = dataExportFileName(export?.createdAt ?? DateTime.now());
     final origin = _shareOrigin();

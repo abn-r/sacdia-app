@@ -225,7 +225,7 @@ class InsuranceSummary {
 
 final insuranceSummaryProvider = Provider.autoDispose<InsuranceSummary?>((ref) {
   final itemsAsync = ref.watch(membersInsuranceProvider);
-  return itemsAsync.valueOrNull?.let((items) {
+  return itemsAsync.value?.let((items) {
     return InsuranceSummary(
       total: items.length,
       asegurados:

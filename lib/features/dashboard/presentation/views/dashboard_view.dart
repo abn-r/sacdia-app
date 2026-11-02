@@ -42,7 +42,7 @@ class DashboardView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(
-      authNotifierProvider.select((v) => v.valueOrNull),
+      authNotifierProvider.select((v) => v.value),
     );
     // El coordinador sin club tampoco: su inicio es el panel de coordinación
     // (manda sobre pastor y tutor sin club; «Mi familia» sigue en el perfil).

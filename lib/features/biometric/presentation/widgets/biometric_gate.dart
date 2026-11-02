@@ -26,7 +26,7 @@ class BiometricGate extends ConsumerWidget {
     final authState = ref.watch(authNotifierProvider);
     final locked = shouldShowBiometricLock(
       biometricState: biometricState,
-      isAuthenticated: authState.valueOrNull != null,
+      isAuthenticated: authState.value != null,
     );
 
     // Stack para mantener al `child` montado detrás y evitar re-inicializar

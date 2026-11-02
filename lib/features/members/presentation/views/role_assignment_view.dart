@@ -160,7 +160,7 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
         builder: (_) => ConsentVerificationView(
           request: request,
           canApprove: canApproveJoinRequests(
-            ref.read(authNotifierProvider).valueOrNull,
+            ref.read(authNotifierProvider).value,
           ),
         ),
       ),

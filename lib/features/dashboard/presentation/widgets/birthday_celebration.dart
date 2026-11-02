@@ -63,7 +63,7 @@ class _BirthdayCelebrationGateState
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(birthdayCelebrationProvider).valueOrNull;
+    final state = ref.watch(birthdayCelebrationProvider).value;
     final shouldShow = state?.shouldShowEntryPoint ?? false;
 
     if (shouldShow && !_autoPrompted) {

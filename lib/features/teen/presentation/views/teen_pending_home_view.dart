@@ -130,19 +130,19 @@ class _TeenPendingHomeViewState extends ConsumerState<TeenPendingHomeView> {
     // código nuevo del servidor lo «resucitaría» con el texto viejo.
     ref.listen(supervisionStatusProvider, (_, next) {
       if (next.isLoading || next.hasError) return;
-      if (next.valueOrNull?.openLinkCode == null) {
+      if (next.value?.openLinkCode == null) {
         ref.read(teenLinkCodeProvider.notifier).clear();
       }
     });
     final c = context.sac;
     final textTheme = Theme.of(context).textTheme;
     final hPad = Responsive.horizontalPadding(context);
-    final user = ref.watch(authNotifierProvider).valueOrNull;
+    final user = ref.watch(authNotifierProvider).value;
     final supervisionAsync = ref.watch(supervisionStatusProvider);
     final codeState = ref.watch(teenLinkCodeProvider);
     final generating = codeState.isLoading;
 
-    final fromServer = supervisionAsync.valueOrNull;
+    final fromServer = supervisionAsync.value;
     // El servidor manda: el texto del código que se generó en esta pantalla solo
     // se muestra mientras `open_link_code` siga abierto. Si ya se canjeó (o
     // venció) la tarjeta desaparece, aunque la respuesta del POST siga en
@@ -151,7 +151,7 @@ class _TeenPendingHomeViewState extends ConsumerState<TeenPendingHomeView> {
         !supervisionAsync.isLoading &&
         !supervisionAsync.hasError &&
         fromServer.openLinkCode == null;
-    final issued = serverSaysNoOpenCode ? null : codeState.valueOrNull;
+    final issued = serverSaysNoOpenCode ? null : codeState.value;
     final fromMe = user?.principal?.supervision;
     final now = widget.clock();
     // `/auth/me` ya trae el reloj y los tutores; el endpoint propio añade los

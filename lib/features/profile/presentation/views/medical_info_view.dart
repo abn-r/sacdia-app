@@ -102,12 +102,12 @@ class MedicalInfoView extends ConsumerWidget {
     final profileAsync = ref.watch(profileNotifierProvider);
 
     // Extraer datos crudos para calcular la completitud
-    final rawBlood = profileAsync.valueOrNull?.blood?.trim();
+    final rawBlood = profileAsync.value?.blood?.trim();
     final blood = BloodType.displayFor(rawBlood);
-    final allergies = allergiesAsync.valueOrNull ?? [];
-    final diseases = diseasesAsync.valueOrNull ?? [];
-    final medicines = medicinesAsync.valueOrNull ?? [];
-    final contacts = contactsAsync.valueOrNull ?? [];
+    final allergies = allergiesAsync.value ?? [];
+    final diseases = diseasesAsync.value ?? [];
+    final medicines = medicinesAsync.value ?? [];
+    final contacts = contactsAsync.value ?? [];
 
     // Calcular completitud: 5 secciones posibles
     int filled = 0;

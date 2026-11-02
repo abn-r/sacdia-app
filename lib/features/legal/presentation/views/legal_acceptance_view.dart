@@ -102,7 +102,7 @@ class _LegalAcceptanceViewState extends ConsumerState<LegalAcceptanceView> {
     final isSubmitting = acceptState.isLoading;
     final acting = ref.watch(actingDependentProvider) != null;
 
-    final status = statusAsync.valueOrNull;
+    final status = statusAsync.value;
     if (status != null && !status.requiresAcceptance) _selfHeal();
 
     return PopScope(

@@ -148,11 +148,8 @@ class _SectionSwitcherSheetState extends ConsumerState<_SectionSwitcherSheet> {
 
     // Read the live active id at tap time — not the frozen constructor value —
     // so that "already active" detection is always correct.
-    final liveActiveId = ref
-        .read(authNotifierProvider)
-        .valueOrNull
-        ?.authorization
-        ?.activeAssignmentId;
+    final liveActiveId =
+        ref.read(authNotifierProvider).value?.authorization?.activeAssignmentId;
 
     // Already active — dismiss with no action.
     if (id == liveActiveId) {
@@ -204,7 +201,7 @@ class _SectionSwitcherSheetState extends ConsumerState<_SectionSwitcherSheet> {
     // active context differed from the local snapshot captured at open-time.
     final liveActiveId = ref
         .watch(authNotifierProvider)
-        .valueOrNull
+        .value
         ?.authorization
         ?.activeAssignmentId;
 

@@ -659,7 +659,7 @@ class RequirementNotifier extends Notifier<RequirementOperationState> {
     }
 
     final authState = ref.read(authNotifierProvider);
-    return authState.valueOrNull?.id ?? '';
+    return authState.value?.id ?? '';
   }
 
   ClassProgressQuery get _query => arg;

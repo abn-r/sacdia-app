@@ -46,7 +46,7 @@ class UnitPointsHistoryView extends ConsumerWidget {
               return const Center(child: CircularProgressIndicator());
             }
 
-            final year = yearAsync.valueOrNull;
+            final year = yearAsync.value;
             if (yearAsync.hasError || year == null) {
               return SacEmptyState(
                 icon: HugeIcons.strokeRoundedCalendar01,
@@ -58,7 +58,7 @@ class UnitPointsHistoryView extends ConsumerWidget {
               );
             }
 
-            final ctx = clubAsync.valueOrNull;
+            final ctx = clubAsync.value;
             if (clubAsync.hasError || ctx == null) {
               return SacEmptyState(
                 icon: HugeIcons.strokeRoundedAlertDiamond,

@@ -274,7 +274,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
                     ? null
                     : ref
                         .watch(clubInfoProvider(section.mainClubId))
-                        .valueOrNull
+                        .value
                         ?.name;
                 final resolvedName =
                     (clubName != null && clubName.trim().isNotEmpty)
@@ -310,13 +310,13 @@ class _ClubViewState extends ConsumerState<ClubView> {
     AsyncValue<ClubSection?> sectionAsync,
     bool isUpdating,
   ) {
-    final canEdit = canEditAsync.valueOrNull ?? false;
-    final section = sectionAsync.valueOrNull;
+    final canEdit = canEditAsync.value ?? false;
+    final section = sectionAsync.value;
     String? subtitle;
     if (section != null) {
       final clubName = section.mainClubId.isEmpty
           ? null
-          : ref.watch(clubInfoProvider(section.mainClubId)).valueOrNull?.name;
+          : ref.watch(clubInfoProvider(section.mainClubId)).value?.name;
       final label = clubSectionDisplayLabel(clubName, section.clubTypeName);
       subtitle = label.isEmpty ? section.clubTypeName : label;
     }

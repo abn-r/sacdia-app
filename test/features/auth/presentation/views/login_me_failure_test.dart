@@ -125,7 +125,7 @@ void main() {
     // Sin sesión a medias.
     expect(repo.signOuts, 1);
     expect(repo.signedIn, isFalse);
-    expect(container.read(authNotifierProvider).valueOrNull, isNull);
+    expect(container.read(authNotifierProvider).value, isNull);
   });
 
   testWidgets('a connection failure on /auth/me is explained as such',

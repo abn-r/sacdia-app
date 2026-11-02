@@ -150,7 +150,7 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
         : null;
     final imageUrl = (cachedSigned != null && cachedSigned.isNotEmpty)
         ? cachedSigned
-        : fetched?.valueOrNull;
+        : fetched?.value;
     final initialChildSize = switch (_resource.resourceType) {
       'text' => 0.82,
       'image' => 0.78,

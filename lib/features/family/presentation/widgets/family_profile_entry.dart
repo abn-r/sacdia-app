@@ -30,13 +30,12 @@ class FamilyProfileEntry extends ConsumerWidget {
     // cuenta desconocida no tienen Mi familia ni selector de perfiles (FP3-32):
     // el router también bloquea /family.
     final isTeen = ref.watch(
-      authNotifierProvider
-          .select((v) => v.valueOrNull?.isLimitedAccount ?? false),
+      authNotifierProvider.select((v) => v.value?.isLimitedAccount ?? false),
     );
     if (isTeen) return const SizedBox.shrink();
     final c = context.sac;
     final accent = SacAccent.of(context);
-    final family = ref.watch(authNotifierProvider).valueOrNull?.family;
+    final family = ref.watch(authNotifierProvider).value?.family;
     final count = family?.dependentsCount ?? 0;
 
     return Padding(

@@ -155,7 +155,7 @@ class CertificationRequirementNotifier
 
   String get _userId {
     final authState = ref.read(authNotifierProvider);
-    return authState.valueOrNull?.id ?? '';
+    return authState.value?.id ?? '';
   }
 
   Future<void> _load() async {
@@ -444,7 +444,7 @@ class CertificationCloseoutNotifier
 
   String get _userId {
     final authState = ref.read(authNotifierProvider);
-    return authState.valueOrNull?.id ?? '';
+    return authState.value?.id ?? '';
   }
 
   /// Sube el comprobante de junta: presign → PUT directo a R2 → confirm.

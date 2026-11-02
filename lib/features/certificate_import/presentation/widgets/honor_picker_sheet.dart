@@ -206,8 +206,8 @@ class _HonorPickerSheetState extends ConsumerState<HonorPickerSheet>
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final categories = ref.watch(honorCategoriesProvider).valueOrNull ??
-        const <HonorCategory>[];
+    final categories =
+        ref.watch(honorCategoriesProvider).value ?? const <HonorCategory>[];
     return PopScope(
         canPop: false,
         onPopInvokedWithResult: _onDismissRequested,

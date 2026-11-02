@@ -91,7 +91,7 @@ class DataExportNotifier extends AsyncNotifier<List<DataExport>> {
           tag: _tag,
         );
         // Insertar al frente de la lista (más reciente primero).
-        final current = state.valueOrNull ?? [];
+        final current = state.value ?? [];
         final updated = [newExport, ...current];
         state = AsyncData(updated);
         return null;
@@ -125,7 +125,7 @@ class DataExportNotifier extends AsyncNotifier<List<DataExport>> {
   ///
   /// Útil para aplicar el resultado del polling sin recargar toda la lista.
   void updateExportInList(DataExport updated) {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null) return;
 
     final newList = current

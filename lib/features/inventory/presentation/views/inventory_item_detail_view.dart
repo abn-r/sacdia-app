@@ -35,11 +35,11 @@ class InventoryItemDetailView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final canManageAsync = ref.watch(canManageInventoryProvider);
-    final canManage = canManageAsync.valueOrNull ?? false;
+    final canManage = canManageAsync.value ?? false;
     final deleteState = ref.watch(inventoryDeleteNotifierProvider);
     final detailAsync = ref.watch(inventoryItemDetailProvider(item.id));
-    final detailItem = detailAsync.valueOrNull ?? item;
-    final clubContext = ref.watch(clubContextProvider).valueOrNull;
+    final detailItem = detailAsync.value ?? item;
+    final clubContext = ref.watch(clubContextProvider).value;
     final clubTypeName = _clubTypeNameForItem(detailItem, clubContext);
 
     return Scaffold(

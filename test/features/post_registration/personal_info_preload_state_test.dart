@@ -56,7 +56,7 @@ void main() {
 
       await container.read(healthNoneStateProvider.notifier).setAllergies(true);
 
-      final updated = container.read(healthNoneStateProvider).valueOrNull;
+      final updated = container.read(healthNoneStateProvider).value;
       expect(updated?.allergies, isTrue);
       expect(
         prefs.getBool('post_registration.health_none.user-123.allergies'),

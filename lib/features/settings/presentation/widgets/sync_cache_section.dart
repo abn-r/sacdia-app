@@ -34,7 +34,7 @@ class SyncCacheSection extends ConsumerWidget {
 
     final c = context.sac;
 
-    final info = infoAsync.valueOrNull;
+    final info = infoAsync.value;
     final sizeLabel = info == null ? '—' : formatBytes(info.totalBytes);
     final lastSyncLabel =
         info == null ? '—' : formatRelativeTime(info.lastSyncAt);

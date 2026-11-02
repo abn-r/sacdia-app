@@ -44,7 +44,7 @@ class _EnrollPreviousClassSheetState
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(
-      authNotifierProvider.select((v) => v.valueOrNull),
+      authNotifierProvider.select((v) => v.value),
     );
     final c = context.sac;
 
@@ -297,7 +297,7 @@ class _EnrollPreviousClassSheetState
           );
         }
 
-        final year = yearAsync.valueOrNull;
+        final year = yearAsync.value;
         final canSubmit = _selectedClass != null &&
             year != null &&
             year.ecclesiasticalYearId > 0 &&
@@ -517,7 +517,7 @@ class _EnrollPreviousClassSheetState
       BuildContext context, EcclesiasticalYearModel year) async {
     if (_selectedClass == null) return;
 
-    final userId = ref.read(authNotifierProvider).valueOrNull?.id;
+    final userId = ref.read(authNotifierProvider).value?.id;
     if (userId == null) return;
 
     setState(() {

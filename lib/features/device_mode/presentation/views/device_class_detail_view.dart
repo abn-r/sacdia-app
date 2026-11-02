@@ -52,7 +52,7 @@ class DeviceClassDetailView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: async.valueOrNull?.name ?? className ?? '',
+        title: async.value?.name ?? className ?? '',
       ),
       body: async.when(
         loading: () => const Center(child: SacLoading()),

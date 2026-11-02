@@ -142,8 +142,8 @@ class RealtimeResourceRegistry {
   static void _invalidateActivities(RealtimeRef ref, int sectionId) {
     final ctxAsync = ref.read(clubContextProvider);
 
-    // Use .valueOrNull — safe even when the provider is in loading/error state.
-    final ctx = ctxAsync.valueOrNull;
+    // Use .value — safe even when the provider is in loading/error state.
+    final ctx = ctxAsync.value;
 
     if (ctx == null) {
       AppLogger.i(
@@ -186,8 +186,8 @@ class RealtimeResourceRegistry {
   static void _invalidateMembers(RealtimeRef ref, int sectionId) {
     final ctxAsync = ref.read(clubContextProvider);
 
-    // Use .valueOrNull — safe even when the provider is in loading/error state.
-    final ctx = ctxAsync.valueOrNull;
+    // Use .value — safe even when the provider is in loading/error state.
+    final ctx = ctxAsync.value;
 
     if (ctx == null) {
       AppLogger.i(

@@ -33,13 +33,13 @@ class AuthorizerRequestsView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.sac;
-    final user = ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
+    final user = ref.watch(authNotifierProvider.select((v) => v.value));
     final allowed = canViewScreen(
       subjectFromUser(user),
       'app-investiture-authorizer',
     );
     final yearAsync = ref.watch(currentEcclesiasticalYearProvider);
-    final year = yearAsync.valueOrNull;
+    final year = yearAsync.value;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -101,7 +101,7 @@ class _RequestsBody extends ConsumerWidget {
       }
     }
 
-    final requests = requestsAsync.valueOrNull;
+    final requests = requestsAsync.value;
     if (requests == null) {
       if (requestsAsync.hasError) {
         final error = requestsAsync.error;
