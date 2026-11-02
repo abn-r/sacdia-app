@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../core/auth/acting_for_session.dart';
 import '../../domain/entities/user_entity.dart';

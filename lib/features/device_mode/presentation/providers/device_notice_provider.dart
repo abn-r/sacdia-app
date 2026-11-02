@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 /// Por qué el teléfono volvió a la pantalla de vinculación (FP3-52).
 enum DeviceNotice {
