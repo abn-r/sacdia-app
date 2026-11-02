@@ -1,16 +1,10 @@
-// Riverpod 3.3.2 pausa los providers que escucha una ruta tapada y los reanuda
-// al volver. Si algo los invalidó mientras tanto (o justo al volver), el
-// reanudado marca widgets como sucios en mitad de un build y salta la aserción
-// de debug "setState() or markNeedsBuild() called during build". Corregido en
-// flutter_riverpod 3.4.2+ (pide Flutter 3.44).
-//
-// Workaround de la app: `MembersView` refresca la lista DESPUÉS del pop y de
-// `endOfFrame` (ver `members_view_resume_test.dart` para la ruta real). Aquí se
-// reproduce el problema en un arnés mínimo y se fija el patrón que lo evita.
-//
-// Los dos primeros tests son un tripwire: documentan el bug de 3.3.2. Si fallan
-// tras subir Riverpod, el bug se corrigió: se pueden borrar junto con el
-// diferido de `MembersView` (`await WidgetsBinding.instance.endOfFrame`).
+// Riverpod pausa los providers que escucha una ruta tapada y los reanuda al
+// volver. En 3.3.2, si algo los invalidaba mientras tanto (o justo al volver),
+// el reanudado marcaba widgets como sucios en mitad de un build y saltaba la
+// aserción de debug "setState() or markNeedsBuild() called during build"
+// (corregido en flutter_riverpod 3.4.2). Estos tests fijan que ninguno de los
+// tres momentos de invalidar vuelve a romper si una versión futura lo
+// reintroduce. La ruta real está en `members_view_resume_test.dart`.
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -86,36 +80,18 @@ Future<void> _pushPopAndInvalidate(
   await tester.pumpAndSettle();
 }
 
-Matcher get _setStateDuringBuild => isA<FlutterError>().having(
-      (e) => e.toString(),
-      'message',
-      contains('setState() or markNeedsBuild() called during build'),
-    );
-
 void main() {
   setUp(() => _Counter.builds = 0);
 
-  testWidgets('tripwire: invalidating while covered asserts on resume (3.3.2)',
-      (tester) async {
-    await _pushPopAndInvalidate(tester, _Invalidate.whileCovered);
+  for (final when in _Invalidate.values) {
+    testWidgets(
+        'invalidating ${when.name} resumes without a build-phase '
+        'error and the route refreshes', (tester) async {
+      await _pushPopAndInvalidate(tester, when);
 
-    expect(tester.takeException(), _setStateDuringBuild);
-  });
-
-  testWidgets('tripwire: invalidating right after the pop asserts (3.3.2)',
-      (tester) async {
-    await _pushPopAndInvalidate(tester, _Invalidate.rightAfterPop);
-
-    expect(tester.takeException(), _setStateDuringBuild);
-  });
-
-  testWidgets(
-      'invalidating one frame after the pop (MembersView pattern) is safe '
-      'and the route refreshes', (tester) async {
-    await _pushPopAndInvalidate(tester, _Invalidate.oneFrameAfterPop);
-
-    expect(tester.takeException(), isNull);
-    expect(find.text('A 20 2'), findsOneWidget);
-    expect(_Counter.builds, 2);
-  });
+      expect(tester.takeException(), isNull);
+      expect(find.text('A 20 2'), findsOneWidget);
+      expect(_Counter.builds, 2);
+    });
+  }
 }

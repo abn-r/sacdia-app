@@ -1,9 +1,8 @@
-// Guarda del workaround de Riverpod 3.3.2 en `MembersView`: la lista de
-// solicitudes se refresca DESPUÉS del pop de la verificación y de un frame
-// (`endOfFrame`). Invalidar al volver (o desde la ruta tapada) hace que
-// Riverpod 3.3.2 reanude los providers de la lista en mitad de un build y salte
-// "setState() or markNeedsBuild() called during build". Reproducción mínima del
-// problema en `test/core/providers/riverpod_resume_test.dart`.
+// Volver de la verificación de un menor refresca la lista de solicitudes sin
+// errores de build. En Riverpod 3.3.2 este flujo reanudaba los providers de la
+// lista en mitad de un build ("setState() or markNeedsBuild() called during
+// build"); corregido en 3.4.2. Arnés mínimo en
+// `test/core/providers/riverpod_resume_test.dart`.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
