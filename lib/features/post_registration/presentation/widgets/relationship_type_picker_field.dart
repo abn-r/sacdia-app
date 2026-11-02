@@ -316,36 +316,38 @@ class RelationshipTypePickerSheetState
 
                       return SacPressable(
                         listenOnly: true,
-                        child: ListTile(
-                          enableFeedback: false,
-                          minTileHeight: 48,
-                          leading: HugeIcon(
-                            icon: HugeIcons.strokeRoundedUserGroup,
-                            size: 22,
-                            color: isSelected
-                                ? SacAccent.of(context).color
-                                : context.sac.textSecondary,
-                          ),
-                          title: Text(
-                            type.name,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: isSelected
-                                  ? SacAccent.of(context).color
-                                  : context.sac.text,
-                              fontWeight: isSelected
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
-                            ),
-                          ),
-                          trailing: isSelected
-                              ? HugeIcon(
-                                  icon: HugeIcons.strokeRoundedTick02,
-                                  color: SacAccent.of(context).color,
-                                  size: 20,
-                                )
-                              : null,
-                          onTap: () => widget.onSelected(type.id),
-                        ),
+                        child: Material(
+                            type: MaterialType.transparency,
+                            child: ListTile(
+                              enableFeedback: false,
+                              minTileHeight: 48,
+                              leading: HugeIcon(
+                                icon: HugeIcons.strokeRoundedUserGroup,
+                                size: 22,
+                                color: isSelected
+                                    ? SacAccent.of(context).color
+                                    : context.sac.textSecondary,
+                              ),
+                              title: Text(
+                                type.name,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: isSelected
+                                      ? SacAccent.of(context).color
+                                      : context.sac.text,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
+                                ),
+                              ),
+                              trailing: isSelected
+                                  ? HugeIcon(
+                                      icon: HugeIcons.strokeRoundedTick02,
+                                      color: SacAccent.of(context).color,
+                                      size: 20,
+                                    )
+                                  : null,
+                              onTap: () => widget.onSelected(type.id),
+                            )),
                       );
                     },
                   ),

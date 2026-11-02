@@ -1651,67 +1651,69 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
 
                       return SacPressable(
                         listenOnly: true,
-                        child: ListTile(
-                          enableFeedback: false,
-                          leading: CircleAvatar(
-                            backgroundColor:
-                                SacAccent.of(context).color.withValues(
-                                      alpha: 0.15,
-                                    ),
-                            radius: 18,
-                            child: Text(
-                              member.initials,
-                              style: TextStyle(
-                                color: SacAccent.of(context).color,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                          title: Text(
-                            member.fullName,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              color: c.text,
-                            ),
-                          ),
-                          subtitle: member.clubRole != null
-                              ? Text(
-                                  member.clubRole!,
+                        child: Material(
+                            type: MaterialType.transparency,
+                            child: ListTile(
+                              enableFeedback: false,
+                              leading: CircleAvatar(
+                                backgroundColor:
+                                    SacAccent.of(context).color.withValues(
+                                          alpha: 0.15,
+                                        ),
+                                radius: 18,
+                                child: Text(
+                                  member.initials,
                                   style: TextStyle(
-                                    fontSize: 12,
-                                    color: c.textSecondary,
+                                    color: SacAccent.of(context).color,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 13,
                                   ),
-                                )
-                              : null,
-                          trailing: isSelected
-                              ? HugeIcon(
-                                  icon:
-                                      HugeIcons.strokeRoundedCheckmarkCircle02,
-                                  color: SacAccent.of(context).color,
-                                  size: 22,
-                                )
-                              : null,
-                          enabled: canSelect,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          onTap: () {
-                            setState(() {
-                              if (widget.multiSelect) {
-                                if (isSelected) {
-                                  _selected.remove(member.userId);
-                                } else if (canSelect) {
-                                  _selected.add(member.userId);
-                                }
-                              } else {
-                                _selected = {member.userId};
-                                // Para single select, confirmar de inmediato
-                                Future.microtask(_confirm);
-                              }
-                            });
-                          },
-                        ),
+                                ),
+                              ),
+                              title: Text(
+                                member.fullName,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  color: c.text,
+                                ),
+                              ),
+                              subtitle: member.clubRole != null
+                                  ? Text(
+                                      member.clubRole!,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: c.textSecondary,
+                                      ),
+                                    )
+                                  : null,
+                              trailing: isSelected
+                                  ? HugeIcon(
+                                      icon: HugeIcons
+                                          .strokeRoundedCheckmarkCircle02,
+                                      color: SacAccent.of(context).color,
+                                      size: 22,
+                                    )
+                                  : null,
+                              enabled: canSelect,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              onTap: () {
+                                setState(() {
+                                  if (widget.multiSelect) {
+                                    if (isSelected) {
+                                      _selected.remove(member.userId);
+                                    } else if (canSelect) {
+                                      _selected.add(member.userId);
+                                    }
+                                  } else {
+                                    _selected = {member.userId};
+                                    // Para single select, confirmar de inmediato
+                                    Future.microtask(_confirm);
+                                  }
+                                });
+                              },
+                            )),
                       );
                     },
                   ),

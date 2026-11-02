@@ -226,20 +226,22 @@ class _LocalePickerSheet extends StatelessWidget {
                 (o.locale.countryCode ?? '') == (current.countryCode ?? '');
             return SacPressable(
               listenOnly: true,
-              child: ListTile(
-                enableFeedback: false,
-                leading: _LanguageFlagBadge(option: o),
-                title: Text(
-                  o.label,
-                  style: TextStyle(color: c.text),
-                ),
-                trailing: isCurrent
-                    ? const HugeIcon(
-                        icon: HugeIcons.strokeRoundedTick02,
-                        color: AppColors.secondary)
-                    : null,
-                onTap: () => Navigator.of(context).pop(o.locale),
-              ),
+              child: Material(
+                  type: MaterialType.transparency,
+                  child: ListTile(
+                    enableFeedback: false,
+                    leading: _LanguageFlagBadge(option: o),
+                    title: Text(
+                      o.label,
+                      style: TextStyle(color: c.text),
+                    ),
+                    trailing: isCurrent
+                        ? const HugeIcon(
+                            icon: HugeIcons.strokeRoundedTick02,
+                            color: AppColors.secondary)
+                        : null,
+                    onTap: () => Navigator.of(context).pop(o.locale),
+                  )),
             );
           }),
         ],

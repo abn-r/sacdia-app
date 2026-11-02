@@ -48,16 +48,21 @@ class _SacExpansionTileState extends State<SacExpansionTile> {
       children: [
         SacPressable(
           listenOnly: true,
-          child: ExpansionTile(
-            enableFeedback: false,
-            initiallyExpanded: widget.initiallyExpanded,
-            onExpansionChanged: (open) => setState(() => _open = open),
-            tilePadding: widget.tilePadding,
-            childrenPadding: EdgeInsets.zero,
-            leading: widget.leading,
-            title: widget.title,
-            subtitle: widget.subtitle,
-            children: const <Widget>[],
+          // ExpansionTile's header is a ListTile; callers paint a colored
+          // Container/SacCard behind this widget, which would hide its ink.
+          child: Material(
+            type: MaterialType.transparency,
+            child: ExpansionTile(
+              enableFeedback: false,
+              initiallyExpanded: widget.initiallyExpanded,
+              onExpansionChanged: (open) => setState(() => _open = open),
+              tilePadding: widget.tilePadding,
+              childrenPadding: EdgeInsets.zero,
+              leading: widget.leading,
+              title: widget.title,
+              subtitle: widget.subtitle,
+              children: const <Widget>[],
+            ),
           ),
         ),
         AnimatedSize(

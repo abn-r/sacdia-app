@@ -361,42 +361,44 @@ class _BottomSheetPickerSheetState extends State<BottomSheetPickerSheet> {
 
                       return SacPressable(
                         listenOnly: true,
-                        child: ListTile(
-                          enableFeedback: false,
-                          minTileHeight: 48,
-                          leading: item.logoAsset != null
-                              ? _PickerLogo(
-                                  assetPath: item.logoAsset!,
-                                  isSelected: isSelected,
-                                  fallbackIcon: widget.icon,
-                                )
-                              : HugeIcon(
-                                  icon: widget.icon,
-                                  size: 22,
+                        child: Material(
+                            type: MaterialType.transparency,
+                            child: ListTile(
+                              enableFeedback: false,
+                              minTileHeight: 48,
+                              leading: item.logoAsset != null
+                                  ? _PickerLogo(
+                                      assetPath: item.logoAsset!,
+                                      isSelected: isSelected,
+                                      fallbackIcon: widget.icon,
+                                    )
+                                  : HugeIcon(
+                                      icon: widget.icon,
+                                      size: 22,
+                                      color: isSelected
+                                          ? SacAccent.of(context).color
+                                          : context.sac.textSecondary,
+                                    ),
+                              title: Text(
+                                item.name,
+                                style: theme.textTheme.bodyMedium?.copyWith(
                                   color: isSelected
                                       ? SacAccent.of(context).color
-                                      : context.sac.textSecondary,
+                                      : context.sac.text,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
                                 ),
-                          title: Text(
-                            item.name,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: isSelected
-                                  ? SacAccent.of(context).color
-                                  : context.sac.text,
-                              fontWeight: isSelected
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
-                            ),
-                          ),
-                          trailing: isSelected
-                              ? HugeIcon(
-                                  icon: HugeIcons.strokeRoundedTick02,
-                                  color: SacAccent.of(context).color,
-                                  size: 20,
-                                )
-                              : null,
-                          onTap: () => Navigator.of(context).pop(item.id),
-                        ),
+                              ),
+                              trailing: isSelected
+                                  ? HugeIcon(
+                                      icon: HugeIcons.strokeRoundedTick02,
+                                      color: SacAccent.of(context).color,
+                                      size: 20,
+                                    )
+                                  : null,
+                              onTap: () => Navigator.of(context).pop(item.id),
+                            )),
                       );
                     },
                   ),

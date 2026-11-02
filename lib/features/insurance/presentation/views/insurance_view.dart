@@ -538,27 +538,31 @@ class _SortSheet extends StatelessWidget {
             final isSelected = so == current;
             return SacPressable(
               listenOnly: true,
-              child: ListTile(
-                enableFeedback: false,
-                title: Text(
-                  so.label,
-                  style: TextStyle(
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    color: isSelected ? SacAccent.of(context).color : c.text,
-                  ),
-                ),
-                trailing: isSelected
-                    ? HugeIcon(
-                        icon: HugeIcons.strokeRoundedTick02,
-                        size: 18,
-                        color: SacAccent.of(context).color,
-                      )
-                    : null,
-                onTap: () {
-                  onSelected(so);
-                  Navigator.pop(context);
-                },
-              ),
+              child: Material(
+                  type: MaterialType.transparency,
+                  child: ListTile(
+                    enableFeedback: false,
+                    title: Text(
+                      so.label,
+                      style: TextStyle(
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.w400,
+                        color:
+                            isSelected ? SacAccent.of(context).color : c.text,
+                      ),
+                    ),
+                    trailing: isSelected
+                        ? HugeIcon(
+                            icon: HugeIcons.strokeRoundedTick02,
+                            size: 18,
+                            color: SacAccent.of(context).color,
+                          )
+                        : null,
+                    onTap: () {
+                      onSelected(so);
+                      Navigator.pop(context);
+                    },
+                  )),
             );
           }),
           SizedBox(height: MediaQuery.paddingOf(context).bottom + 8),

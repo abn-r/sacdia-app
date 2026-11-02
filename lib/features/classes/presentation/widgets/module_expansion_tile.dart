@@ -439,7 +439,7 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
         // Expanded requirements list
         SizeTransition(
           sizeFactor: _expandAnimation,
-          axisAlignment: -1,
+          alignment: AlignmentDirectional.topStart,
           child: Container(
             decoration: BoxDecoration(
               color: c.canvas,

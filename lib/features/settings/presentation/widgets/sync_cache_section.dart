@@ -128,30 +128,36 @@ class SyncCacheSection extends ConsumerWidget {
             const SizedBox(height: 12),
             SacPressable(
               listenOnly: true,
-              child: ListTile(
-                enableFeedback: false,
-                leading: HugeIcon(
-                  icon: HugeIcons.strokeRoundedImage01,
-                  color: SacAccent.of(context).color,
-                ),
-                title: Text('settings.clear_cache_images_only'.tr()),
-                onTap: () => Navigator.pop(sheetCtx, ClearCacheMode.imagesOnly),
-              ),
+              child: Material(
+                  type: MaterialType.transparency,
+                  child: ListTile(
+                    enableFeedback: false,
+                    leading: HugeIcon(
+                      icon: HugeIcons.strokeRoundedImage01,
+                      color: SacAccent.of(context).color,
+                    ),
+                    title: Text('settings.clear_cache_images_only'.tr()),
+                    onTap: () =>
+                        Navigator.pop(sheetCtx, ClearCacheMode.imagesOnly),
+                  )),
             ),
             SacPressable(
               listenOnly: true,
-              child: ListTile(
-                enableFeedback: false,
-                leading: const HugeIcon(
-                  icon: HugeIcons.strokeRoundedDelete02,
-                  color: AppColors.error,
-                ),
-                title: Text(
-                  'settings.clear_cache_all_data'.tr(),
-                  style: const TextStyle(color: AppColors.error),
-                ),
-                onTap: () => Navigator.pop(sheetCtx, ClearCacheMode.allData),
-              ),
+              child: Material(
+                  type: MaterialType.transparency,
+                  child: ListTile(
+                    enableFeedback: false,
+                    leading: const HugeIcon(
+                      icon: HugeIcons.strokeRoundedDelete02,
+                      color: AppColors.error,
+                    ),
+                    title: Text(
+                      'settings.clear_cache_all_data'.tr(),
+                      style: const TextStyle(color: AppColors.error),
+                    ),
+                    onTap: () =>
+                        Navigator.pop(sheetCtx, ClearCacheMode.allData),
+                  )),
             ),
           ],
         ),

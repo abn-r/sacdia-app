@@ -218,42 +218,46 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
                     ),
                     child: SacPressable(
                       listenOnly: true,
-                      child: SwitchListTile(
-                        enableFeedback: false,
-                        value: _isPrimary,
-                        onChanged: _isLoading
-                            ? null
-                            : (value) => setState(() => _isPrimary = value),
-                        title: Text(
-                          'post_registration.contact_form.primary_title'.tr(),
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        subtitle: Text(
-                          'post_registration.contact_form.primary_subtitle'
-                              .tr(),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: context.sac.textSecondary,
-                          ),
-                        ),
-                        secondary: HugeIcon(
-                          icon: _isPrimary
-                              ? HugeIcons.strokeRoundedStar
-                              : HugeIcons.strokeRoundedStar,
-                          size: 24,
-                          color: _isPrimary
-                              ? SacAccent.of(context).color
-                              : context.sac.textSecondary,
-                        ),
-                        activeThumbColor: Colors.white,
-                        activeTrackColor: SacAccent.of(context).color,
-                        inactiveThumbColor: Colors.white,
-                        inactiveTrackColor:
-                            context.sac.textTertiary.withValues(alpha: 0.4),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
+                      child: Material(
+                          type: MaterialType.transparency,
+                          child: SwitchListTile(
+                            enableFeedback: false,
+                            value: _isPrimary,
+                            onChanged: _isLoading
+                                ? null
+                                : (value) => setState(() => _isPrimary = value),
+                            title: Text(
+                              'post_registration.contact_form.primary_title'
+                                  .tr(),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            subtitle: Text(
+                              'post_registration.contact_form.primary_subtitle'
+                                  .tr(),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: context.sac.textSecondary,
+                              ),
+                            ),
+                            secondary: HugeIcon(
+                              icon: _isPrimary
+                                  ? HugeIcons.strokeRoundedStar
+                                  : HugeIcons.strokeRoundedStar,
+                              size: 24,
+                              color: _isPrimary
+                                  ? SacAccent.of(context).color
+                                  : context.sac.textSecondary,
+                            ),
+                            activeThumbColor: Colors.white,
+                            activeTrackColor: SacAccent.of(context).color,
+                            inactiveThumbColor: Colors.white,
+                            inactiveTrackColor:
+                                context.sac.textTertiary.withValues(alpha: 0.4),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          )),
                     ),
                   ),
                   const SizedBox(height: 16),

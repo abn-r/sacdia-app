@@ -467,30 +467,33 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
                                 horizontal: 16, vertical: 8),
                             child: SacPressable(
                               listenOnly: true,
-                              child: SwitchListTile(
-                                enableFeedback: false,
-                                title: Text(
-                                  tr('profile.edit.baptism_toggle'),
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                value: _baptized,
-                                activeTrackColor: SacAccent.of(context).light,
-                                thumbColor: WidgetStatePropertyAll(
-                                    SacAccent.of(context).color),
-                                contentPadding: EdgeInsets.zero,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _baptized = value;
-                                    if (!value) {
-                                      _baptismDate = null;
-                                      _baptismDateError = null;
-                                    }
-                                  });
-                                },
-                              ),
+                              child: Material(
+                                  type: MaterialType.transparency,
+                                  child: SwitchListTile(
+                                    enableFeedback: false,
+                                    title: Text(
+                                      tr('profile.edit.baptism_toggle'),
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    value: _baptized,
+                                    activeTrackColor:
+                                        SacAccent.of(context).light,
+                                    thumbColor: WidgetStatePropertyAll(
+                                        SacAccent.of(context).color),
+                                    contentPadding: EdgeInsets.zero,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _baptized = value;
+                                        if (!value) {
+                                          _baptismDate = null;
+                                          _baptismDateError = null;
+                                        }
+                                      });
+                                    },
+                                  )),
                             ),
                           ),
 

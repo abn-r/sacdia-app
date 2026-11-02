@@ -80,38 +80,42 @@ class ActivitySeriesFormSection extends StatelessWidget {
           ),
           child: SacPressable(
             listenOnly: true,
-            child: SwitchListTile(
-              enableFeedback: false,
-              value: repeat,
-              onChanged: enabled ? onRepeatChanged : null,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              title: Text(
-                'activities.series.toggle_title'.tr(),
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: c.text,
-                ),
-              ),
-              subtitle: Text(
-                'activities.series.toggle_subtitle'.tr(),
-                style: TextStyle(fontSize: 12, color: c.textSecondary),
-              ),
-              secondary: Container(
-                padding: const EdgeInsets.all(7),
-                decoration: BoxDecoration(
-                  color:
-                      repeat ? SacAccent.of(context).light : c.surfaceVariant,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedRefresh,
-                  size: 18,
-                  color: repeat ? SacAccent.of(context).color : c.textTertiary,
-                ),
-              ),
-            ),
+            child: Material(
+                type: MaterialType.transparency,
+                child: SwitchListTile(
+                  enableFeedback: false,
+                  value: repeat,
+                  onChanged: enabled ? onRepeatChanged : null,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  title: Text(
+                    'activities.series.toggle_title'.tr(),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: c.text,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'activities.series.toggle_subtitle'.tr(),
+                    style: TextStyle(fontSize: 12, color: c.textSecondary),
+                  ),
+                  secondary: Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: repeat
+                          ? SacAccent.of(context).light
+                          : c.surfaceVariant,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedRefresh,
+                      size: 18,
+                      color:
+                          repeat ? SacAccent.of(context).color : c.textTertiary,
+                    ),
+                  ),
+                )),
           ),
         ),
         if (repeat) ...[

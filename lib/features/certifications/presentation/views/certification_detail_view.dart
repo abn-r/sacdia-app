@@ -520,7 +520,7 @@ class _ModuleRowState extends State<_ModuleRow>
         ),
         SizeTransition(
           sizeFactor: _expandFactor,
-          axisAlignment: -1,
+          alignment: AlignmentDirectional.topStart,
           child: FadeTransition(
             opacity: _expandFactor,
             child: _ModuleSections(module: widget.module),

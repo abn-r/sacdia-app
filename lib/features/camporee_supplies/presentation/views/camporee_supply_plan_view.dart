@@ -1333,27 +1333,30 @@ Future<String?> _pickSupplyOption({
                       final isSelected = option.$1 == selected;
                       return SacPressable(
                         listenOnly: true,
-                        child: ListTile(
-                          enableFeedback: false,
-                          key: Key('camporee-supply-option-${option.$1}'),
-                          title: Text(
-                            option.$2,
-                            style: TextStyle(
-                              fontWeight: isSelected
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
-                              color: c.text,
-                            ),
-                          ),
-                          trailing: isSelected
-                              ? HugeIcon(
-                                  icon: HugeIcons.strokeRoundedTick02,
-                                  size: 20,
-                                  color: theme.colorScheme.primary,
-                                )
-                              : null,
-                          onTap: () => Navigator.pop(sheetContext, option.$1),
-                        ),
+                        child: Material(
+                            type: MaterialType.transparency,
+                            child: ListTile(
+                              enableFeedback: false,
+                              key: Key('camporee-supply-option-${option.$1}'),
+                              title: Text(
+                                option.$2,
+                                style: TextStyle(
+                                  fontWeight: isSelected
+                                      ? FontWeight.w700
+                                      : FontWeight.w500,
+                                  color: c.text,
+                                ),
+                              ),
+                              trailing: isSelected
+                                  ? HugeIcon(
+                                      icon: HugeIcons.strokeRoundedTick02,
+                                      size: 20,
+                                      color: theme.colorScheme.primary,
+                                    )
+                                  : null,
+                              onTap: () =>
+                                  Navigator.pop(sheetContext, option.$1),
+                            )),
                       );
                     },
                   ),

@@ -1,6 +1,6 @@
 name: CI
 
-# Flutter 3.41.6 (stable, 2026-03-25) — pinned to match the Dart SDK ^3.6.1
+# Flutter 3.47.9 (stable, 2026-10-29) — pinned to match the Dart SDK ^3.6.1
 # constraint in pubspec.yaml. Update flutter-version when bumping the SDK floor.
 
 on:
@@ -24,7 +24,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.41.6'
+          flutter-version: '3.47.9'
           channel: stable
           cache: true
 
@@ -53,7 +53,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.41.6'
+          flutter-version: '3.47.9'
           channel: stable
           cache: true
 
@@ -171,7 +171,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.41.6'
+          flutter-version: '3.47.9'
           channel: stable
           cache: true
 

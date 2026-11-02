@@ -162,7 +162,7 @@ final monthlyReportPdfProvider =
     final repo = ref.read(monthlyReportsRepositoryProvider);
     final result =
         await repo.downloadReportPdf(reportId, cancelToken: cancelToken);
-    return result.fold(
+    return result.fold<String>(
       (failure) => throw Exception(failure.message),
       (localPath) => localPath,
     );

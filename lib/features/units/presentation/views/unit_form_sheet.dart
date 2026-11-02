@@ -782,40 +782,42 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                       final isSelected = m.userId == widget.currentUserId;
                       return SacPressable(
                         listenOnly: true,
-                        child: ListTile(
-                          enableFeedback: false,
-                          minTileHeight: 52,
-                          leading: _MemberAvatar(member: m, size: 36),
-                          title: Text(
-                            m.fullName,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: isSelected
-                                  ? SacAccent.of(context).color
-                                  : c.text,
-                              fontWeight: isSelected
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
-                            ),
-                          ),
-                          subtitle: m.clubRole != null
-                              ? Text(
-                                  RoleUtils.translate(
-                                    m.clubRole,
-                                    gender: m.gender,
-                                  ),
-                                  style: theme.textTheme.bodySmall
-                                      ?.copyWith(color: c.textSecondary),
-                                )
-                              : null,
-                          trailing: isSelected
-                              ? HugeIcon(
-                                  icon: HugeIcons.strokeRoundedTick02,
-                                  color: SacAccent.of(context).color,
-                                  size: 20,
-                                )
-                              : null,
-                          onTap: () => Navigator.of(context).pop(m),
-                        ),
+                        child: Material(
+                            type: MaterialType.transparency,
+                            child: ListTile(
+                              enableFeedback: false,
+                              minTileHeight: 52,
+                              leading: _MemberAvatar(member: m, size: 36),
+                              title: Text(
+                                m.fullName,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: isSelected
+                                      ? SacAccent.of(context).color
+                                      : c.text,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
+                                ),
+                              ),
+                              subtitle: m.clubRole != null
+                                  ? Text(
+                                      RoleUtils.translate(
+                                        m.clubRole,
+                                        gender: m.gender,
+                                      ),
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(color: c.textSecondary),
+                                    )
+                                  : null,
+                              trailing: isSelected
+                                  ? HugeIcon(
+                                      icon: HugeIcons.strokeRoundedTick02,
+                                      color: SacAccent.of(context).color,
+                                      size: 20,
+                                    )
+                                  : null,
+                              onTap: () => Navigator.of(context).pop(m),
+                            )),
                       );
                     },
                   ),
@@ -1013,35 +1015,37 @@ class _MultiMemberPickerSheetState extends State<_MultiMemberPickerSheet> {
                       final isSelected = _selected.contains(m.userId);
                       return SacPressable(
                         listenOnly: true,
-                        child: CheckboxListTile(
-                          enableFeedback: false,
-                          value: isSelected,
-                          onChanged: (_) => _toggle(m),
-                          activeColor: SacAccent.of(context).color,
-                          secondary: _MemberAvatar(member: m, size: 36),
-                          title: Text(
-                            m.fullName,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: isSelected
-                                  ? SacAccent.of(context).color
-                                  : c.text,
-                              fontWeight: isSelected
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
-                            ),
-                          ),
-                          subtitle: m.clubRole != null
-                              ? Text(
-                                  RoleUtils.translate(
-                                    m.clubRole,
-                                    gender: m.gender,
-                                  ),
-                                  style: theme.textTheme.bodySmall
-                                      ?.copyWith(color: c.textSecondary),
-                                )
-                              : null,
-                          controlAffinity: ListTileControlAffinity.trailing,
-                        ),
+                        child: Material(
+                            type: MaterialType.transparency,
+                            child: CheckboxListTile(
+                              enableFeedback: false,
+                              value: isSelected,
+                              onChanged: (_) => _toggle(m),
+                              activeColor: SacAccent.of(context).color,
+                              secondary: _MemberAvatar(member: m, size: 36),
+                              title: Text(
+                                m.fullName,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: isSelected
+                                      ? SacAccent.of(context).color
+                                      : c.text,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
+                                ),
+                              ),
+                              subtitle: m.clubRole != null
+                                  ? Text(
+                                      RoleUtils.translate(
+                                        m.clubRole,
+                                        gender: m.gender,
+                                      ),
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(color: c.textSecondary),
+                                    )
+                                  : null,
+                              controlAffinity: ListTileControlAffinity.trailing,
+                            )),
                       );
                     },
                   ),

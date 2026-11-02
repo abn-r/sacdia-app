@@ -45,7 +45,7 @@ class ContactView extends StatelessWidget {
   Future<bool> _tryLaunch(Uri uri) async {
     try {
       if (await canLaunchUrl(uri)) {
-        return launchUrl(uri, mode: LaunchMode.externalApplication);
+        return await launchUrl(uri, mode: LaunchMode.externalApplication);
       }
     } catch (_) {
       // Fall through to the copy hint.
