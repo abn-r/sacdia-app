@@ -792,4 +792,108 @@ class UserClassesNotifier extends AsyncNotifier<int> {
       expect(missing, isEmpty);
     });
   });
+  // S2.4: tras el salto a Riverpod 3 el registro conserva todo lo que tenía en
+  // 2.6. Las listas son la foto previa al bump: quitar una entrada a propósito
+  // obliga a editar esta lista (y a justificarlo en la revisión).
+  group('registry integrity after the Riverpod 3 bump (S2.4)', () {
+    const priorKeepAliveKeys = {
+      'achievementsCatalogProvider',
+      'userAchievementsProvider',
+      'achievementCategoriesProvider',
+      'clubActivitiesProvider',
+      'activityDetailProvider',
+      'currentClubSectionProvider',
+      'certificationsProvider',
+      'eligibilityProvider',
+      'evidenceFolderProvider',
+      'userClassesProvider',
+      'classesByClubTypeProvider',
+      'allClassesProvider',
+      'honorCategoriesProvider',
+      'userHonorsProvider',
+      'honorsGroupedByCategoryProvider',
+      'allHonorsProvider',
+      'userHonorProgressProvider',
+      'userMasterHonorsProvider',
+      'userMasterHonorRoadmapProvider',
+      'monthlyReportPdfProvider',
+      'CompletionStatusNotifier',
+      'annualRankingProgressProvider',
+      'clubRankingsProvider',
+      'memberBreakdownProvider',
+      'myRankingProvider',
+      'sectionMembersProvider',
+      'virtualCardFetcherProvider',
+    };
+    const priorStateKeys = {
+      'dashboardNotifierProvider',
+      'clubContextProvider',
+      'currentEnrollmentProvider',
+      'notificationsInboxProvider',
+      'unreadNotificationsCountProvider',
+      'honorCompletionModeOverrideProvider',
+      'masterHonorModalQueueProvider',
+      'qrMemberTokenProvider',
+      'unitsNotifierProvider',
+      'virtualCardRateLimitNoticeProvider',
+      'supportReportSubmitProvider',
+      'supervisionStatusProvider',
+      'teenLinkCodeProvider',
+      'createdMinorUserIdsProvider',
+      'uploadedFormMinorUserIdsProvider',
+      'actingConsentFormUploadedProvider',
+    };
+
+    test('every keepAlive registry key still resolves to a scanned symbol', () {
+      final scanned = scanKeepAliveSymbols(sources).keys.toSet();
+
+      expect(
+        profileScopedKeepAliveEntries.keys.toSet().difference(scanned),
+        isEmpty,
+        reason: 'a renamed class/variable leaves a stale key',
+      );
+      for (final entry in profileScopedKeepAliveEntries.entries) {
+        expect(entry.value, isNotNull, reason: entry.key);
+      }
+    });
+
+    test('every state registry key still resolves to a scanned provider', () {
+      final scanned = scanNonAutoDisposeStateProviders(readEveryLibSource());
+
+      expect(
+        profileScopedStateEntries.keys.toSet().difference(scanned),
+        isEmpty,
+        reason: 'a renamed provider leaves a stale key',
+      );
+    });
+
+    test('no prior registry entry was dropped', () {
+      expect(
+        priorKeepAliveKeys
+            .difference(profileScopedKeepAliveEntries.keys.toSet()),
+        isEmpty,
+      );
+      expect(
+        priorStateKeys.difference(profileScopedStateEntries.keys.toSet()),
+        isEmpty,
+      );
+    });
+
+    test('profileScopedProviders contains every source entry', () {
+      final expected = <Object>{
+        ...userSpecificProviders,
+        ...profileScopedKeepAliveEntries.values,
+        ...profileScopedStateEntries.values,
+      };
+
+      expect(profileScopedProviders.toSet(), expected);
+      expect(profileScopedProviders, hasLength(expected.length));
+      expect(
+        profileScopedProviders.length,
+        greaterThanOrEqualTo(
+          priorKeepAliveKeys.length + priorStateKeys.length,
+        ),
+      );
+    });
+  });
 }

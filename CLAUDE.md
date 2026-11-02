@@ -38,7 +38,7 @@ Ejemplos de features: `auth`, `biometric`, `dashboard`, `activities`, `classes`,
 
 - **Framework**: Flutter 3.41 (CI fija `3.41.6`; SDK Dart `^3.6.1`)
 - **Arquitectura**: features con capas data/domain/presentation (Clean Architecture por feature)
-- **State / DI**: Riverpod (`flutter_riverpod`)
+- **State / DI**: Riverpod 3.x (`flutter_riverpod`, ver «Riverpod 3.x»)
 - **Navegación**: `go_router` (`lib/core/config/router.dart`, `routerProvider`)
 - **HTTP**: Dio
 - **Almacenamiento local**:
@@ -118,7 +118,15 @@ Un tutor puede crear y gestionar perfiles de menores (sin cuenta propia) y "actu
 - **Mientras se actúa** no se cachea el usuario (`_cacheUser` es no-op), no se registra FCM ni se identifica en PostHog, y se ocultan sesiones, exportación de datos, cambio de contraseña y borrar cuenta (`actingDependentProvider`). `/family/**` redirige a home (`lib/core/config/acting_route_policy.dart`).
 - **Limpieza en arranque en frío**: la bandera `acting_dirty` (`kActingDirtyPrefsKey`, única huella en disco, no identifica a nadie) se pone a `true` al actuar y a `false` al volver con cachés purgados. Si al arrancar sigue en `true` (la app murió actuando) y hay sesión, `AuthNotifier.build` purga los cachés de disco del perfil antes de continuar. El logout también limpia sesión, aviso y bandera.
 - **Banner**: `ActingForBannerHost` se monta en el `builder` de `main.dart` ("Viendo como Ana") y cubre también el post-registro.
-- **Limitación de Riverpod 2.6**: `state = AsyncLoading()` conserva el valor previo, así que el aislamiento depende de `isLoading` + purga del registro + purga de disco, no de que `valueOrNull` sea null.
+- **Semántica de Riverpod 3.x**: `state = AsyncLoading()` conserva el valor previo (`isLoading` y `isReloading` son `true`, `.value` devuelve el valor anterior), así que el aislamiento depende de `isLoading` + purga del registro + purga de disco, no de que `.value` sea null. `acting_switch_test.dart` fija esa semántica (si una versión futura la cambia, el test avisa). Ver «Riverpod 3.x» más abajo.
+
+### Riverpod 3.x (`flutter_riverpod >=3.0.0 <3.4.1`, resuelto 3.3.2)
+
+- **`.value` en vez de `valueOrNull`**: `AsyncValue.value` devuelve el valor actual o el previo, y `null` si no hay (en 2.6 relanzaba el error de un `AsyncError`). `valueOrNull` ya no existe. Quien necesite que el error se propague usa `requireValue`, que en 3.x lo envuelve en `ProviderException` (el original está en `.exception`; leer `container.read(p.future)` sí lanza el error original). Un `AsyncError` con valor previo lo conserva en `.value`: `unwrapPrevious()` lo descarta.
+- **Notifiers**: no hay `AutoDispose*Notifier` ni `*FamilyNotifier`. Un notifier `autoDispose` es `Notifier`/`AsyncNotifier` + `NotifierProvider.autoDispose(...)`; el argumento de una familia llega por constructor (`X(this.arg)`), no en `build(arg)`. `StateProvider` vive en `package:flutter_riverpod/legacy.dart`; `Override`, `ProviderOrFamily` y `ProviderListenable` se importan de `lib/core/providers/riverpod_aliases.dart`.
+- **Reintento desactivado**: Riverpod 3 reintenta por defecto los providers que fallan (10 veces, ~38 s, estado `AsyncLoading`). La app lo apaga en el único `ProviderScope` raíz (`retry: appProviderRetry`, `lib/core/providers/app_provider_retry.dart`) y los tests, con los helpers de `test/support/riverpod_test_support.dart` (`createTestContainer`, `testProviderScope`). No construyas `ProviderContainer`/`ProviderScope` a mano en un test. Un provider concreto puede pedir su propio `retry:` si hace falta.
+- **Igualdad y pausa**: un provider no notifica si el estado nuevo es `==` al anterior (los estados `Equatable` filtran reconstrucciones iguales; las transiciones de carga siguen siendo visibles). Los providers que escucha una ruta tapada se pausan hasta que vuelve.
+- **Aserción de reanudado en 3.3.2**: al reanudar los providers de una ruta tapada, si algo los invalidó mientras tanto (o justo al volver), Riverpod 3.3.2 marca widgets como sucios en mitad de un build y salta, solo en debug, `setState() or markNeedsBuild() called during build`. Workaround en `MembersView`: la lista se refresca DESPUÉS del pop y de `await WidgetsBinding.instance.endOfFrame` (`_openConsentVerification`, `_openRoleAssignment`), y `ConsentVerificationView` ya no invalida `membersNotifierProvider`. Hazlo igual si una ruta que se abre encima de una lista necesita refrescarla al volver. Está corregido en flutter_riverpod 3.4.2+, que exige Flutter 3.44: al subir, borra el diferido. Cubierto por `test/core/providers/riverpod_resume_test.dart` (los dos primeros tests fallarán cuando el bug desaparezca) y `members_view_resume_test.dart`.
 
 ### Registro de providers por perfil (regla obligatoria)
 
