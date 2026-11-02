@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// ignore: unnecessary_import
 import '../providers/riverpod_aliases.dart';
 
 /// Thin read/invalidate adapter used by the realtime invalidation subsystem.

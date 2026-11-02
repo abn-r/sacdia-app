@@ -7,7 +7,6 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/config/router.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/providers/app_bootstrap_provider.dart';
-// ignore: unnecessary_import
 import 'package:sacdia_app/core/providers/riverpod_aliases.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';

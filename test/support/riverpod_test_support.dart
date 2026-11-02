@@ -1,4 +1,3 @@
-// ignore_for_file: unnecessary_import
 /// Single construction point for Riverpod containers and scopes in tests.
 ///
 /// Every test builds its `ProviderContainer` / `ProviderScope` through these

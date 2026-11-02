@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 /// Esquema y host del QR de vinculación (`sacdia://pair?t=<token>`, contrato confirmado del backend).
