@@ -21,6 +21,7 @@ import 'core/config/cache_config.dart';
 import 'core/l10n/sunday_first_material_localizations.dart';
 import 'core/config/router.dart';
 import 'core/onboarding/sac_onboarding.dart';
+import 'core/providers/app_provider_retry.dart';
 import 'core/realtime/feature_flags.dart';
 import 'core/realtime/realtime_invalidation_handler.dart';
 import 'core/realtime/realtime_ref.dart';
@@ -252,14 +253,8 @@ Future<void> main() async {
           useOnlyLangCode: false,
           child: SentryWidget(
             child: ProviderScope(
-              // Riverpod 3 reintenta por defecto los providers que fallan
-              // (hasta 10 veces, ~38 s, dejando el estado en AsyncLoading) y
-              // los fallos de la app llegan como Exception genérica, sin
-              // poder separar red de 4xx/403. Se desactiva para conservar el
-              // comportamiento de Riverpod 2.6: el error se muestra al
-              // instante y la recuperación es manual (pull-to-refresh o
-              // invalidate). Único punto de configuración del reintento.
-              retry: (_, __) => null,
+              // Reintento desactivado a propósito (ver `appProviderRetry`).
+              retry: appProviderRetry,
               overrides: [
                 // Proporcionamos la instancia de SharedPreferences a la aplicación
                 sharedPreferencesProvider.overrideWithValue(sharedPreferences),
