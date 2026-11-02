@@ -212,14 +212,17 @@ class PendingEvidenceState {
 /// Family por [EvidenceReviewType?] — null significa todos los tipos. `build`
 /// carga la primera página; [loadMore] agrega la siguiente. Invalidar el
 /// provider (pull to refresh, aprobar/rechazar) vuelve a la página 1.
-class PendingEvidenceNotifier extends AutoDisposeFamilyAsyncNotifier<
-    PendingEvidenceState, EvidenceReviewType?> {
+class PendingEvidenceNotifier extends AsyncNotifier<PendingEvidenceState> {
+  PendingEvidenceNotifier(this.arg);
+
+  final EvidenceReviewType? arg;
+
   /// Token de la carga actual; se cancela al invalidar o descartar el
   /// provider, así una página que llega tarde no pisa la lista nueva.
   CancelToken? _cancelToken;
 
   @override
-  Future<PendingEvidenceState> build(EvidenceReviewType? arg) async {
+  Future<PendingEvidenceState> build() async {
     final cancelToken = CancelToken();
     _cancelToken = cancelToken;
     ref.onDispose(cancelToken.cancel);
@@ -332,11 +335,13 @@ class EvidenceActionState {
 /// Notifier para aprobar/rechazar una evidencia individual.
 ///
 /// Family por [EvidenceDetailKey].
-class EvidenceReviewNotifier
-    extends AutoDisposeFamilyNotifier<EvidenceActionState, EvidenceDetailKey> {
+class EvidenceReviewNotifier extends Notifier<EvidenceActionState> {
+  EvidenceReviewNotifier(this.arg);
+
+  final EvidenceDetailKey arg;
+
   @override
-  EvidenceActionState build(EvidenceDetailKey arg) =>
-      const EvidenceActionState();
+  EvidenceActionState build() => const EvidenceActionState();
 
   /// Refreshes everything that shows this evidence: the pending list (every
   /// filter), this detail and the hub/SLA counters.

@@ -483,11 +483,14 @@ class ClassCounselorAssignmentActionState {
   }
 }
 
-class ClassCounselorAssignmentsNotifier extends AutoDisposeFamilyNotifier<
-    ClassCounselorAssignmentActionState, ClassCounselorAssignmentsQuery> {
+class ClassCounselorAssignmentsNotifier
+    extends Notifier<ClassCounselorAssignmentActionState> {
+  ClassCounselorAssignmentsNotifier(this.arg);
+
+  final ClassCounselorAssignmentsQuery arg;
+
   @override
-  ClassCounselorAssignmentActionState build(
-          ClassCounselorAssignmentsQuery arg) =>
+  ClassCounselorAssignmentActionState build() =>
       const ClassCounselorAssignmentActionState();
 
   ClassCounselorAssignmentsQuery get _query => arg;
@@ -641,11 +644,13 @@ final classCounselorAssignmentsNotifierProvider = NotifierProvider.autoDispose
 /// Maneja operaciones de subida de archivos, eliminacion y envio a validacion.
 /// Al completar con exito cualquier mutacion, invalida [classWithProgressProvider]
 /// para refrescar datos frescos del backend.
-class RequirementNotifier extends AutoDisposeFamilyNotifier<
-    RequirementOperationState, ClassProgressQuery> {
+class RequirementNotifier extends Notifier<RequirementOperationState> {
+  RequirementNotifier(this.arg);
+
+  final ClassProgressQuery arg;
+
   @override
-  RequirementOperationState build(ClassProgressQuery query) =>
-      const RequirementOperationState();
+  RequirementOperationState build() => const RequirementOperationState();
 
   String get _userId {
     final targetUserId = _query.targetUserId;

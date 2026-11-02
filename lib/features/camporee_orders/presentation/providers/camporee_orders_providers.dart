@@ -328,11 +328,13 @@ List<CamporeeOrderSummaryItem> deriveDraftSummary(
   return grouped.values.toList();
 }
 
-class CamporeeOrderDraftNotifier extends AutoDisposeFamilyNotifier<
-    CamporeeOrderDraftState, CamporeeOrdersScope> {
+class CamporeeOrderDraftNotifier extends Notifier<CamporeeOrderDraftState> {
+  CamporeeOrderDraftNotifier(this.arg);
+
+  final CamporeeOrdersScope arg;
+
   @override
-  CamporeeOrderDraftState build(CamporeeOrdersScope arg) =>
-      const CamporeeOrderDraftState();
+  CamporeeOrderDraftState build() => const CamporeeOrderDraftState();
 
   void upsertLine(CamporeeOrderDraftLine line) {
     final next = [...state.lines];

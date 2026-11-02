@@ -478,10 +478,13 @@ final instructorProposalActionsNotifierProvider =
 
 // ── Requirement evidence actions ───────────────────────────────────────────
 
-class RequirementEvidenceActionsNotifier
-    extends AutoDisposeFamilyAsyncNotifier<void, int> {
+class RequirementEvidenceActionsNotifier extends AsyncNotifier<void> {
+  RequirementEvidenceActionsNotifier(this.arg);
+
+  final int arg;
+
   @override
-  Future<void> build(int arg) async {}
+  Future<void> build() async {}
 
   Future<bool> uploadRequirementEvidence({
     required String userId,
@@ -1020,10 +1023,14 @@ final honorProgressStatsProvider =
 /// Notifier para manejar actualizaciones de progreso de requisitos.
 ///
 /// Keyed por honorId para invalidar el provider de progreso correcto.
-class RequirementProgressNotifier extends AutoDisposeFamilyAsyncNotifier<
-    List<UserHonorRequirementProgress>?, int> {
+class RequirementProgressNotifier
+    extends AsyncNotifier<List<UserHonorRequirementProgress>?> {
+  RequirementProgressNotifier(this.arg);
+
+  final int arg;
+
   @override
-  Future<List<UserHonorRequirementProgress>?> build(int arg) async => null;
+  Future<List<UserHonorRequirementProgress>?> build() async => null;
 
   /// Actualiza el progreso de múltiples requisitos en una sola operación.
   /// Invalida [userHonorProgressProvider] en caso de éxito.

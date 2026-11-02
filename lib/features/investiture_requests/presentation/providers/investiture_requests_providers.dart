@@ -181,10 +181,13 @@ class RequestActionState extends Equatable {
 
 /// Base de los notifiers de escritura de la directiva: ejecuta [run], publica
 /// loading/success/error e invalida las lecturas de la sección si salió bien.
-abstract class _SectionActionNotifier
-    extends AutoDisposeFamilyNotifier<RequestActionState, SectionYearQuery> {
+abstract class _SectionActionNotifier extends Notifier<RequestActionState> {
+  _SectionActionNotifier(this.arg);
+
+  final SectionYearQuery arg;
+
   @override
-  RequestActionState build(SectionYearQuery arg) => const RequestActionState();
+  RequestActionState build() => const RequestActionState();
 
   InvestitureRequestsRepository get _repo =>
       ref.read(investitureRequestsRepositoryProvider);
@@ -316,9 +319,13 @@ class ResolveState extends Equatable {
 
 /// Confirma las decisiones del autorizador sobre una solicitud (family por
 /// `requestId`).
-class ResolveNotifier extends AutoDisposeFamilyNotifier<ResolveState, String> {
+class ResolveNotifier extends Notifier<ResolveState> {
+  ResolveNotifier(this.arg);
+
+  final String arg;
+
   @override
-  ResolveState build(String arg) => const ResolveState();
+  ResolveState build() => const ResolveState();
 
   Future<bool> submit({
     List<InvestDecision> invest = const [],

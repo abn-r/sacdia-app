@@ -1102,12 +1102,15 @@ class MemberOfMonthHistoryParams {
 }
 
 /// Notifier para el historial paginado del Miembro del Mes.
-class MemberOfMonthHistoryNotifier extends AutoDisposeFamilyNotifier<
-    MemberOfMonthHistoryState, MemberOfMonthHistoryParams> {
+class MemberOfMonthHistoryNotifier extends Notifier<MemberOfMonthHistoryState> {
+  MemberOfMonthHistoryNotifier(this.arg);
+
+  final MemberOfMonthHistoryParams arg;
+
   static const _pageSize = 12;
 
   @override
-  MemberOfMonthHistoryState build(MemberOfMonthHistoryParams arg) {
+  MemberOfMonthHistoryState build() {
     // Cargar la primera página al construir
     Future.microtask(() => fetchNextPage());
     return const MemberOfMonthHistoryState();
