@@ -40,8 +40,8 @@ class FinancesView extends ConsumerWidget {
     final summaryAsync = ref.watch(financeSummaryProvider);
     final canManageAsync = ref.watch(canManageFinancesProvider);
 
-    final isOpen = financeMonthAsync.valueOrNull?.isOpen ?? true;
-    final canManage = canManageAsync.valueOrNull ?? false;
+    final isOpen = financeMonthAsync.value?.isOpen ?? true;
+    final canManage = canManageAsync.value ?? false;
     final showAddButton = canManage && isOpen;
 
     return SecureScreen(
@@ -163,9 +163,8 @@ class _FinanceBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isOpen = financeMonth?.isOpen ?? true;
-    final totalBalance = summaryAsync.valueOrNull?.totalBalance ??
-        financeMonth?.totalBalance ??
-        0.0;
+    final totalBalance =
+        summaryAsync.value?.totalBalance ?? financeMonth?.totalBalance ?? 0.0;
     final transactions = financeMonth?.transactions ?? [];
 
     return Column(

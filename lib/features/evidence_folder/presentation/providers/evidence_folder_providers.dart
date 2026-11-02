@@ -121,11 +121,13 @@ final evidenceFolderTemplateAvailabilityProvider = FutureProvider.autoDispose
 // ── Folder creation state ───────────────────────────────────────────────────
 
 /// Estado para crear/inicializar la carpeta de la sección activa.
-class EvidenceFolderCreationNotifier
-    extends AutoDisposeFamilyNotifier<SectionOperationState, String> {
+class EvidenceFolderCreationNotifier extends Notifier<SectionOperationState> {
+  EvidenceFolderCreationNotifier(this.arg);
+
+  final String arg;
+
   @override
-  SectionOperationState build(String clubSectionId) =>
-      const SectionOperationState();
+  SectionOperationState build() => const SectionOperationState();
 
   Future<bool> createFolder() async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
@@ -195,11 +197,13 @@ class SectionOperationState {
 ///
 /// El [arg] es el [clubSectionId] (integer como String). El [folderId] UUID se
 /// obtiene desde la carpeta ya cargada en [evidenceFolderProvider].
-class EvidenceSectionNotifier
-    extends AutoDisposeFamilyNotifier<SectionOperationState, String> {
+class EvidenceSectionNotifier extends Notifier<SectionOperationState> {
+  EvidenceSectionNotifier(this.arg);
+
+  final String arg;
+
   @override
-  SectionOperationState build(String clubSectionId) =>
-      const SectionOperationState();
+  SectionOperationState build() => const SectionOperationState();
 
   String get _clubSectionId => arg;
 

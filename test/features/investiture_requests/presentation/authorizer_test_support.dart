@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/providers/riverpod_aliases.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
@@ -41,11 +40,13 @@ EcclesiasticalYearModel testYear() => EcclesiasticalYearModel(
 List<Override> authorizerOverrides(
   FakeInvestitureRequestsRepository repo, {
   String role = 'pastor',
+  AuthNotifier Function()? authNotifier,
 }) =>
     [
       investitureRequestsRepositoryProvider.overrideWithValue(repo),
-      authNotifierProvider
-          .overrideWith(() => FakeAuthNotifier(globalRoleUser(role))),
+      authNotifierProvider.overrideWith(
+        authNotifier ?? () => FakeAuthNotifier(globalRoleUser(role)),
+      ),
       currentEcclesiasticalYearProvider.overrideWith((ref) async => testYear()),
     ];
 

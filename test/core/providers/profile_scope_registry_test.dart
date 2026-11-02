@@ -89,12 +89,11 @@ String _stripLineComments(String source) =>
 ///    `AutoDispose*` descartado;
 ///  - miembros `static final` / `late final` y cualquier sangría;
 ///  - familias (`.family`), que cuentan igual que su provider base;
-///  - las dos formas de declarar `autoDispose`: la de Riverpod 2.x
-///    (`AutoDisposeNotifierProvider<..>(X.new)`, que nunca coincide) y la de
-///    3.x (`NotifierProvider.autoDispose<..>(X.new)`, `.autoDispose.family` y
+///  - la forma de declarar `autoDispose` de Riverpod 3
+///    (`NotifierProvider.autoDispose<..>(X.new)`, `.autoDispose.family` y
 ///    `.family.autoDispose`, que se descartan como `autoDispose`), tambien con
 ///    el tipo explicito `NotifierProvider<..>` (en 3.x ya no lleva prefijo
-///    `AutoDispose`);
+///    `AutoDispose`; el prefijo se sigue tolerando por si reaparece);
 ///  - `StateProvider` / `StateNotifierProvider` importados desde
 ///    `flutter_riverpod/legacy.dart` (mismo nombre de clase, mismo escaneo).
 /// No confunde `final x = fooProvider;` ni `final x = ref.watch(...)` con una
@@ -363,7 +362,7 @@ final goneProvider =
 final derivedProvider = Provider<int>((ref) => 1);
 final familyProvider = FutureProvider.autoDispose.family<int, int>((r, i) async => i);
 // final commentedProvider = StateProvider<int>((ref) => 0);
-final typedProvider = AutoDisposeNotifierProvider<Baz, int>(Baz.new);
+final typedProvider = NotifierProvider.autoDispose<Baz, int>(Baz.new);
 ''',
         ],
         registered: const {},
@@ -380,7 +379,7 @@ final typedProvider = AutoDisposeNotifierProvider<Baz, int>(Baz.new);
 final StateProvider<int> typedLeak = StateProvider<int>((ref) => 0);
 final NotifierProvider<Foo, int>
     wrappedTypedLeak = NotifierProvider<Foo, int>(Foo.new);
-final AutoDisposeStateProvider<int> typedOk =
+final StateProvider<int> typedOk =
     StateProvider.autoDispose<int>((ref) => 0);
 class Holder {
   static final staticLeak = StateProvider<int>((ref) => 0);
@@ -489,12 +488,12 @@ final FutureProvider<int> typedFutureProvider =
       expect(missing, isEmpty);
     });
 
-    test('S2.3: old and new forms side by side (only the leaks are reported)',
+    test(
+        'S2.3: autoDispose and plain declarations side by side (only the leaks are reported)',
         () {
       final missing = unregisteredNonAutoDispose(
         [
           '''
-final oldCtorProvider = AutoDisposeNotifierProvider<Old, int>(Old.new);
 final oldAutoProvider = NotifierProvider.autoDispose<Old2, int>(Old2.new);
 final newAutoProvider = NotifierProvider.autoDispose<New, int>(New.new);
 final oldLeakProvider = NotifierProvider<OldLeak, int>(OldLeak.new);
@@ -648,7 +647,7 @@ final somethingProvider = AsyncNotifierProvider.autoDispose<NewNotifier, int>(
   NewNotifier.new,
 );
 
-class NewNotifier extends AutoDisposeAsyncNotifier<int> {
+class NewNotifier extends AsyncNotifier<int> {
   @override
   Future<int> build() async {
     final link = ref.keepAlive();
@@ -753,7 +752,7 @@ class FamilyNotifierNew extends AsyncNotifier<int> {
   }
 }
 
-class OldFormNotifier extends AutoDisposeAsyncNotifier<int> {
+class OldFormNotifier extends AsyncNotifier<int> {
   @override
   Future<int> build() async {
     ref.keepAlive();

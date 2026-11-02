@@ -68,7 +68,7 @@ class _MembersViewState extends ConsumerState<MembersView> {
   /// Determina si el usuario actual puede asignar/revocar roles de club.
   bool _canManageClubRoles(WidgetRef ref) {
     final authState = ref.read(authNotifierProvider);
-    final user = authState.valueOrNull;
+    final user = authState.value;
     if (user == null) return false;
     return hasAnyPermission(user, const {
       'club_roles:assign',
@@ -79,7 +79,7 @@ class _MembersViewState extends ConsumerState<MembersView> {
   /// Qué puede hacer el usuario con las solicitudes de ingreso: aprobar (y las
   /// continuaciones anuales), solo verificar fichas (`consent:verify`) o nada.
   JoinRequestsAccess _requestsAccess(WidgetRef ref) =>
-      joinRequestsAccess(ref.read(authNotifierProvider).valueOrNull);
+      joinRequestsAccess(ref.read(authNotifierProvider).value);
 
   /// Abre el alta de un menor; al volver la lista ya se refrescó (la vista
   /// invalida `membersNotifierProvider` al crear).
@@ -117,14 +117,13 @@ class _MembersViewState extends ConsumerState<MembersView> {
     }
     final continuationsAsync =
         canContinue ? ref.watch(annualContinuationsNotifierProvider) : null;
-    final pendingContinuations =
-        continuationsAsync?.valueOrNull?.items.length ?? 0;
+    final pendingContinuations = continuationsAsync?.value?.items.length ?? 0;
     final clubCtxAsync = ref.watch(clubContextProvider);
     final membersAsync = ref.watch(membersNotifierProvider);
     // "Registrar un menor": permiso `dependents:create` Y bandera del servidor.
     final registerSectionId =
-        canRegisterMinor(ref.watch(authNotifierProvider).valueOrNull)
-            ? clubCtxAsync.valueOrNull?.sectionId
+        canRegisterMinor(ref.watch(authNotifierProvider).value)
+            ? clubCtxAsync.value?.sectionId
             : null;
     final onContinuations = canContinue && mode == 2;
     final fadeDuration = SacMotion.reducedFade;
@@ -410,9 +409,8 @@ class _MembersTab extends ConsumerWidget {
     // Un menor con solicitud pendiente y consentimiento sin verificar: si el
     // backend rechaza el cargo (409 MR_CONSENT_NOT_VERIFIED) la vista ofrece
     // abrir la verificación de esa solicitud.
-    final requests =
-        ref.read(membersNotifierProvider).valueOrNull?.joinRequests ??
-            const <JoinRequest>[];
+    final requests = ref.read(membersNotifierProvider).value?.joinRequests ??
+        const <JoinRequest>[];
     final pendingConsent = requests
         .where((r) => r.userId == member.userId && r.consentPending)
         .firstOrNull;
@@ -429,6 +427,10 @@ class _MembersTab extends ConsumerWidget {
         ),
       ),
     );
+    // Desde aquí se puede verificar la ficha de un menor: la lista se
+    // refresca al volver (ver _openConsentVerification).
+    await WidgetsBinding.instance.endOfFrame;
+    if (context.mounted) ref.invalidate(membersNotifierProvider);
   }
 }
 
@@ -608,11 +610,16 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
   }
 
   /// Abre la verificación de la ficha firmada de un menor (FP-76).
+  ///
+  /// La lista se refresca al volver, no desde la verificación, y un frame
+  /// después del pop: mientras la lista está tapada sus providers están en
+  /// pausa, y Riverpod 3.3.2 los reanuda en mitad de un build si algo los
+  /// invalidó en ese tiempo (corregido en 3.4, que pide Dart 3.12).
   Future<void> _openConsentVerification(
     BuildContext context,
     JoinRequest request,
-  ) {
-    return Navigator.push<bool>(
+  ) async {
+    await Navigator.push<bool>(
       context,
       SacSharedAxisRoute<bool>(
         builder: (_) => ConsentVerificationView(
@@ -620,11 +627,13 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
           // Solo verificar: nunca se manda `approve: true` sin el permiso.
           canApprove: !widget.verifyOnly &&
               canApproveJoinRequests(
-                ref.read(authNotifierProvider).valueOrNull,
+                ref.read(authNotifierProvider).value,
               ),
         ),
       ),
     );
+    await WidgetsBinding.instance.endOfFrame;
+    if (mounted) ref.invalidate(membersNotifierProvider);
   }
 
   Future<void> _approveRequest(

@@ -135,7 +135,7 @@ class IssueOrderState {
 }
 
 /// Notifier del flujo de emisión (selección de beneficiarios y submit).
-class IssueOrderNotifier extends AutoDisposeNotifier<IssueOrderState> {
+class IssueOrderNotifier extends Notifier<IssueOrderState> {
   @override
   IssueOrderState build() => const IssueOrderState();
 
@@ -213,7 +213,7 @@ class OrderActionsState {
 }
 
 /// Acciones del detalle de orden. Invalida el detalle y la lista al mutar.
-class OrderActionsNotifier extends AutoDisposeNotifier<OrderActionsState> {
+class OrderActionsNotifier extends Notifier<OrderActionsState> {
   @override
   OrderActionsState build() => const OrderActionsState();
 

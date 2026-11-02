@@ -26,10 +26,10 @@ class DeviceAgendaView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.sac;
     final clubId = ref.watch(
-      authNotifierProvider.select((v) => v.valueOrNull?.deviceClubId),
+      authNotifierProvider.select((v) => v.value?.deviceClubId),
     );
     final pending = ref.watch(
-      authNotifierProvider.select((v) => v.valueOrNull?.pendingClubMembership),
+      authNotifierProvider.select((v) => v.value?.pendingClubMembership),
     );
 
     return Scaffold(

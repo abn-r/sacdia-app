@@ -67,7 +67,7 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
     final c = context.sac;
 
     final envioCentavos = _entrega == MaterialDelivery.envio
-        ? (configAsync.valueOrNull?.envioCentavosDefault ?? 0)
+        ? (configAsync.value?.envioCentavosDefault ?? 0)
         : 0;
     final total = cart.subtotalCentavos + envioCentavos;
 

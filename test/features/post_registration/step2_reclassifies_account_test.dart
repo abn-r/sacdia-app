@@ -92,7 +92,7 @@ class _Auth extends AuthNotifier {
   }) async {
     refreshes++;
     // Tras el paso 3 el servidor ya declara el post-registro completo.
-    final current = state.valueOrNull;
+    final current = state.value;
     final next = (current?.postRegisterComplete ?? false)
         ? UserEntity(
             id: afterStep2.id,
@@ -253,7 +253,7 @@ void main() {
     expect(h.flow.step2Calls, 1);
     expect(h.auth.refreshes, 1, reason: 'step 2 must refetch /auth/me');
     expect(
-      h.auth.state.valueOrNull!.mode,
+      h.auth.state.value!.mode,
       AccountMode.teenPending,
       reason: 'the mode follows the server right after the birthday is saved',
     );
@@ -277,7 +277,7 @@ void main() {
     await _settle(tester);
 
     expect(h.auth.refreshes, 1);
-    expect(h.auth.state.valueOrNull!.mode, AccountMode.adult);
+    expect(h.auth.state.value!.mode, AccountMode.adult);
     expect(where(h.router), RouteNames.postRegistration);
 
     await tester.tap(find.text('Finalizar'));

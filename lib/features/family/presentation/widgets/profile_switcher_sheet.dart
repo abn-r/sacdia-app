@@ -61,7 +61,7 @@ class ProfileSwitcherSheet extends ConsumerWidget {
     final acting = ref.watch(actingDependentProvider);
     // Durante "actuar por" el estado de auth es el menor: el tutor es la foto.
     final me = ref.watch(guardianUserProvider) ??
-        ref.watch(authNotifierProvider).valueOrNull;
+        ref.watch(authNotifierProvider).value;
     final overview = ref.watch(dependentsProvider);
 
     Future<void> select(DependentSummary dependent) async {

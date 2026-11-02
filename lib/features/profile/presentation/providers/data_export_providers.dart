@@ -39,7 +39,7 @@ final dataExportRepositoryProvider = Provider<DataExportRepository>((ref) {
 /// - [refresh] fuerza recarga manual.
 /// - [requestExport] solicita nueva exportación y actualiza la lista optimistamente.
 /// - [download] obtiene la URL presignada de una exportación lista.
-class DataExportNotifier extends AutoDisposeAsyncNotifier<List<DataExport>> {
+class DataExportNotifier extends AsyncNotifier<List<DataExport>> {
   static const _tag = 'DataExportNotifier';
 
   @override
@@ -91,7 +91,7 @@ class DataExportNotifier extends AutoDisposeAsyncNotifier<List<DataExport>> {
           tag: _tag,
         );
         // Insertar al frente de la lista (más reciente primero).
-        final current = state.valueOrNull ?? [];
+        final current = state.value ?? [];
         final updated = [newExport, ...current];
         state = AsyncData(updated);
         return null;
@@ -125,7 +125,7 @@ class DataExportNotifier extends AutoDisposeAsyncNotifier<List<DataExport>> {
   ///
   /// Útil para aplicar el resultado del polling sin recargar toda la lista.
   void updateExportInList(DataExport updated) {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null) return;
 
     final newList = current

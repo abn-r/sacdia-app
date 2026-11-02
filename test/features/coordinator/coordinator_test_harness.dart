@@ -10,7 +10,6 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/providers/riverpod_aliases.dart';
@@ -88,7 +87,7 @@ typedef PendingPageLoader = FutureOr<EvidenceReviewPage> Function(
 
 /// [PendingEvidenceNotifier] with the real paging logic and a fake source.
 class FakePendingEvidenceNotifier extends PendingEvidenceNotifier {
-  FakePendingEvidenceNotifier(this.loader);
+  FakePendingEvidenceNotifier(super.arg, this.loader);
 
   final PendingPageLoader loader;
 
@@ -101,8 +100,8 @@ class FakePendingEvidenceNotifier extends PendingEvidenceNotifier {
 }
 
 Override pendingEvidenceOverride(PendingPageLoader loader) =>
-    pendingEvidenceProvider.overrideWith(
-      () => FakePendingEvidenceNotifier(loader),
+    pendingEvidenceProvider.overrideWith2(
+      (arg) => FakePendingEvidenceNotifier(arg, loader),
     );
 
 /// A queue that fits in one page: the server total is [items.length] unless

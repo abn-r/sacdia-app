@@ -8,7 +8,6 @@
 /// with a capturing stub so we can assert invalidation without a real network.
 library;
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/providers/riverpod_aliases.dart';
 import 'package:sacdia_app/core/realtime/realtime_invalidation_handler.dart';

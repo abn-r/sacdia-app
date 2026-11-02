@@ -76,7 +76,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
             }
           }
           return widget.requirement;
-        }).valueOrNull ??
+        }).value ??
         widget.requirement;
   }
 
@@ -87,7 +87,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
             if (m.id == moduleId) return m.name;
           }
           return 'módulo';
-        }).valueOrNull ??
+        }).value ??
         'módulo';
   }
 
@@ -120,9 +120,9 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
     final classAsync = ref.watch(classWithProgressProvider(_progressQuery));
     final requirement = _liveRequirement(classAsync);
     final isClassExpired =
-        widget.isClassExpired || (classAsync.valueOrNull?.isExpired ?? false);
+        widget.isClassExpired || (classAsync.value?.isExpired ?? false);
     final isClassInvested =
-        widget.isClassInvested || (classAsync.valueOrNull?.isInvested ?? false);
+        widget.isClassInvested || (classAsync.value?.isInvested ?? false);
     // El backend bloquea el progreso de una clase vencida o investida.
     final isReadOnly = isClassExpired || isClassInvested;
     final canModify = requirement.canUploadForClass(isClassExpired: isReadOnly);
@@ -502,7 +502,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
             }
           }
           return 1;
-        }).valueOrNull ??
+        }).value ??
         1;
   }
 
@@ -513,7 +513,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
             if (m.id == req.moduleId) return m.requirements.length;
           }
           return 1;
-        }).valueOrNull ??
+        }).value ??
         1;
   }
 
@@ -543,8 +543,8 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
     final classAsync = ref.read(classWithProgressProvider(_progressQuery));
     final isReadOnly = widget.isClassExpired ||
         widget.isClassInvested ||
-        (classAsync.valueOrNull?.isExpired ?? false) ||
-        (classAsync.valueOrNull?.isInvested ?? false);
+        (classAsync.value?.isExpired ?? false) ||
+        (classAsync.value?.isInvested ?? false);
     if (!req.canSubmitForClass(isClassExpired: isReadOnly)) return;
 
     final success = await ref

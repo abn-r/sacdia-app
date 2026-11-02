@@ -137,8 +137,8 @@ class _IssueOrderForm extends ConsumerWidget {
       );
     }
 
-    final members = membersAsync.valueOrNull ?? const <MemberInsurance>[];
-    final registeredIds = registeredIdsAsync.valueOrNull ?? const <String>{};
+    final members = membersAsync.value ?? const <MemberInsurance>[];
+    final registeredIds = registeredIdsAsync.value ?? const <String>{};
     final eligible = members
         .where(
           (member) => isEligiblePaymentOrderBeneficiary(

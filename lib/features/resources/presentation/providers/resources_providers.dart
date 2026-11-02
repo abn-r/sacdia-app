@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -147,7 +148,7 @@ class ResourcesListState {
 }
 
 /// Notifier que gestiona la lista paginada de recursos con carga incremental
-class ResourcesListNotifier extends AutoDisposeNotifier<ResourcesListState> {
+class ResourcesListNotifier extends Notifier<ResourcesListState> {
   static const int _pageSize = 20;
   CancelToken? _cancelToken;
 
@@ -242,14 +243,14 @@ class ResourcesListNotifier extends AutoDisposeNotifier<ResourcesListState> {
 
 /// Provider del notifier de lista paginada de recursos
 final resourcesListNotifierProvider =
-    AutoDisposeNotifierProvider<ResourcesListNotifier, ResourcesListState>(
+    NotifierProvider.autoDispose<ResourcesListNotifier, ResourcesListState>(
   ResourcesListNotifier.new,
 );
 
 // ── Signed URL notifier ──────────────────────────────────────────────────────
 
 /// Notifier para gestionar la obtención de URLs firmadas de descarga
-class SignedUrlNotifier extends AutoDisposeNotifier<AsyncValue<String?>> {
+class SignedUrlNotifier extends Notifier<AsyncValue<String?>> {
   @override
   AsyncValue<String?> build() => const AsyncValue.data(null);
 
@@ -276,7 +277,7 @@ class SignedUrlNotifier extends AutoDisposeNotifier<AsyncValue<String?>> {
 
 /// Provider del notifier de URLs firmadas
 final signedUrlNotifierProvider =
-    AutoDisposeNotifierProvider<SignedUrlNotifier, AsyncValue<String?>>(
+    NotifierProvider.autoDispose<SignedUrlNotifier, AsyncValue<String?>>(
   SignedUrlNotifier.new,
 );
 

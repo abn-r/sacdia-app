@@ -41,7 +41,11 @@ void main() {
     final previous = AsyncData(
       _registration(CamporeeSectionRegistrationStatus.registered),
     );
+    // Rebuilds the state a provider holds while it reloads (loading + the
+    // previous data). Riverpod 3 marks `copyWithPrevious` @internal and only
+    // reaches this state through a real provider refresh.
     final refreshing = const AsyncLoading<CamporeeSectionRegistration>()
+        // ignore: invalid_use_of_internal_member
         .copyWithPrevious(previous);
 
     expect(camporeeParticipantsAreEnabled(previous), isTrue);

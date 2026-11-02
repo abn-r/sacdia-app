@@ -139,10 +139,14 @@ class CertificationRequirementState extends Equatable {
 /// Notifier que orquesta la ejecución de un requisito: carga inicial (con
 /// restauración de borrador local), edición de componentes, guardado de
 /// borrador remoto, envío a revisión y evidencias de archivo.
-class CertificationRequirementNotifier extends AutoDisposeFamilyNotifier<
-    CertificationRequirementState, CertificationRequirementQuery> {
+class CertificationRequirementNotifier
+    extends Notifier<CertificationRequirementState> {
+  CertificationRequirementNotifier(this.arg);
+
+  final CertificationRequirementQuery arg;
+
   @override
-  CertificationRequirementState build(CertificationRequirementQuery query) {
+  CertificationRequirementState build() {
     Future.microtask(_load);
     return const CertificationRequirementState(isLoading: true);
   }
@@ -151,7 +155,7 @@ class CertificationRequirementNotifier extends AutoDisposeFamilyNotifier<
 
   String get _userId {
     final authState = ref.read(authNotifierProvider);
-    return authState.valueOrNull?.id ?? '';
+    return authState.value?.id ?? '';
   }
 
   Future<void> _load() async {
@@ -427,17 +431,20 @@ class CertificationCloseoutQuery extends Equatable {
 }
 
 /// Notifier del cierre institucional — family por [CertificationCloseoutQuery].
-class CertificationCloseoutNotifier extends AutoDisposeFamilyNotifier<
-    CertificationCloseoutState, CertificationCloseoutQuery> {
+class CertificationCloseoutNotifier
+    extends Notifier<CertificationCloseoutState> {
+  CertificationCloseoutNotifier(this.arg);
+
+  final CertificationCloseoutQuery arg;
+
   @override
-  CertificationCloseoutState build(CertificationCloseoutQuery query) =>
-      const CertificationCloseoutState();
+  CertificationCloseoutState build() => const CertificationCloseoutState();
 
   CertificationCloseoutQuery get _query => arg;
 
   String get _userId {
     final authState = ref.read(authNotifierProvider);
-    return authState.valueOrNull?.id ?? '';
+    return authState.value?.id ?? '';
   }
 
   /// Sube el comprobante de junta: presign → PUT directo a R2 → confirm.

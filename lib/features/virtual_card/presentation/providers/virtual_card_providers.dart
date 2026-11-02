@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../core/auth/acting_for_session.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -110,7 +111,7 @@ Future<VirtualCard> _buildFallbackCard(
   required bool isOffline,
 }) async {
   final profileValue = ref.read(profileNotifierProvider);
-  UserDetail? profile = profileValue.valueOrNull;
+  UserDetail? profile = profileValue.value;
   if (profile == null) {
     try {
       profile = await ref.read(profileNotifierProvider.future);

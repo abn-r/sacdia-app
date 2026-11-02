@@ -46,7 +46,7 @@ class ClubInfoCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authorization = ref.watch(
-      authNotifierProvider.select((v) => v.valueOrNull?.authorization),
+      authNotifierProvider.select((v) => v.value?.authorization),
     );
     final assignments = visibleClubAssignments(
       authorization?.clubAssignments ?? const [],
@@ -59,7 +59,7 @@ class ClubInfoCard extends ConsumerWidget {
     // dashboard-summary props only when the grant is unavailable.
     final resolvedClubType = activeGrant?.clubTypeName ?? clubType;
     final userGender = ref.watch(
-      profileNotifierProvider.select((v) => v.valueOrNull?.gender),
+      profileNotifierProvider.select((v) => v.value?.gender),
     );
     final resolvedRole = activeGrant?.roleName != null
         ? RoleUtils.translate(activeGrant!.roleName, gender: userGender)

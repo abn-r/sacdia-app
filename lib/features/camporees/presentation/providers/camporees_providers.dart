@@ -289,12 +289,16 @@ class RegisterCamporeeSectionState extends Equatable {
 
 /// Inscribe la sección activa resuelta por el backend.
 class RegisterCamporeeSectionNotifier
-    extends AutoDisposeFamilyNotifier<RegisterCamporeeSectionState, int> {
+    extends Notifier<RegisterCamporeeSectionState> {
+  RegisterCamporeeSectionNotifier(this.arg);
+
+  final int arg;
+
   bool _isRegistering = false;
   bool _isDisposed = false;
 
   @override
-  RegisterCamporeeSectionState build(int camporeeId) {
+  RegisterCamporeeSectionState build() {
     _isDisposed = false;
     ref.onDispose(() => _isDisposed = true);
     return const RegisterCamporeeSectionState.idle();
@@ -412,11 +416,13 @@ class CamporeeRegistrationBatchResult {
 /// Notifier para manejar el registro de miembros en camporees.
 ///
 /// Family por [camporeeId].
-class CamporeeRegistrationNotifier
-    extends AutoDisposeFamilyNotifier<CamporeeRegistrationState, int> {
+class CamporeeRegistrationNotifier extends Notifier<CamporeeRegistrationState> {
+  CamporeeRegistrationNotifier(this.arg);
+
+  final int arg;
+
   @override
-  CamporeeRegistrationState build(int camporeeId) =>
-      const CamporeeRegistrationState();
+  CamporeeRegistrationState build() => const CamporeeRegistrationState();
 
   int get _camporeeId => arg;
 
@@ -571,11 +577,13 @@ class CamporeeRemoveMemberState {
 /// Notifier para remover miembros de un camporee.
 ///
 /// Family por [camporeeId].
-class CamporeeRemoveMemberNotifier
-    extends AutoDisposeFamilyNotifier<CamporeeRemoveMemberState, int> {
+class CamporeeRemoveMemberNotifier extends Notifier<CamporeeRemoveMemberState> {
+  CamporeeRemoveMemberNotifier(this.arg);
+
+  final int arg;
+
   @override
-  CamporeeRemoveMemberState build(int camporeeId) =>
-      const CamporeeRemoveMemberState();
+  CamporeeRemoveMemberState build() => const CamporeeRemoveMemberState();
 
   int get _camporeeId => arg;
 
@@ -708,11 +716,14 @@ class CreateCamporeePaymentState {
   }
 }
 
-class CreateCamporeePaymentNotifier extends AutoDisposeFamilyNotifier<
-    CreateCamporeePaymentState, CamporeePaymentParams> {
+class CreateCamporeePaymentNotifier
+    extends Notifier<CreateCamporeePaymentState> {
+  CreateCamporeePaymentNotifier(this.arg);
+
+  final CamporeePaymentParams arg;
+
   @override
-  CreateCamporeePaymentState build(CamporeePaymentParams arg) =>
-      const CreateCamporeePaymentState();
+  CreateCamporeePaymentState build() => const CreateCamporeePaymentState();
 
   Future<bool> create({
     required double amount,
@@ -783,10 +794,13 @@ class EnrollClubState {
   }
 }
 
-class EnrollClubNotifier
-    extends AutoDisposeFamilyNotifier<EnrollClubState, int> {
+class EnrollClubNotifier extends Notifier<EnrollClubState> {
+  EnrollClubNotifier(this.arg);
+
+  final int arg;
+
   @override
-  EnrollClubState build(int camporeeId) => const EnrollClubState();
+  EnrollClubState build() => const EnrollClubState();
 
   int get _camporeeId => arg;
 
@@ -931,11 +945,14 @@ class CamporeeScoreSubmissionState {
   }
 }
 
-class CamporeeScoreSubmissionNotifier extends AutoDisposeFamilyNotifier<
-    CamporeeScoreSubmissionState, CamporeeJudgeScoreParams> {
+class CamporeeScoreSubmissionNotifier
+    extends Notifier<CamporeeScoreSubmissionState> {
+  CamporeeScoreSubmissionNotifier(this.arg);
+
+  final CamporeeJudgeScoreParams arg;
+
   @override
-  CamporeeScoreSubmissionState build(CamporeeJudgeScoreParams arg) =>
-      const CamporeeScoreSubmissionState();
+  CamporeeScoreSubmissionState build() => const CamporeeScoreSubmissionState();
 
   Future<bool> submit({
     required List<CamporeeScoreSubmissionItem> items,

@@ -390,16 +390,16 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
     final unitDetailAsync = _isEditMode
         ? ref.watch(_unitFormDetailProvider(widget.unit!.id))
         : null;
-    final editUnit = unitDetailAsync?.valueOrNull ?? widget.unit;
+    final editUnit = unitDetailAsync?.value ?? widget.unit;
 
     final clubContextAsync = ref.watch(clubContextProvider);
     final targetSectionId =
-        editUnit?.clubSectionId ?? clubContextAsync.valueOrNull?.sectionId;
+        editUnit?.clubSectionId ?? clubContextAsync.value?.sectionId;
 
     final membersAsync = targetSectionId == null
         ? const AsyncValue<List<ClubMember>>.loading()
         : ref.watch(_unitFormMembersProvider(targetSectionId));
-    final allMembers = membersAsync.valueOrNull ?? const <ClubMember>[];
+    final allMembers = membersAsync.value ?? const <ClubMember>[];
 
     final canResolveEditFields =
         _isEditMode && editUnit != null && unitDetailAsync?.hasValue == true;
@@ -408,7 +408,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
         membersAsync.hasValue) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || _didResolveEditFields) return;
-        _resolveEditFields(editUnit, membersAsync.valueOrNull ?? const []);
+        _resolveEditFields(editUnit, membersAsync.value ?? const []);
       });
     }
 

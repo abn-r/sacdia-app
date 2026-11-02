@@ -617,7 +617,7 @@ class _EmptyCamporeesState extends ConsumerWidget {
   }
 
   String _openCamporeeBody(WidgetRef ref) {
-    final name = _firstName(ref.watch(authNotifierProvider).valueOrNull?.name);
+    final name = _firstName(ref.watch(authNotifierProvider).value?.name);
     if (name == null) return 'camporees.list.empty_body_anon'.tr();
     return 'camporees.list.empty_body'.tr(namedArgs: {'name': name});
   }

@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/usecases/cancellation_token.dart';
@@ -253,7 +252,7 @@ void main() {
       expect(success, isTrue);
       expect(repository.callCount, 1);
       expect(repository.capturedMode, HonorCompletionMode.external);
-      expect(state.valueOrNull?.completionMode, HonorCompletionMode.external);
+      expect(state.value?.completionMode, HonorCompletionMode.external);
       expect(
         container.read(userHonorForHonorProvider(7))?.completionMode,
         HonorCompletionMode.external,

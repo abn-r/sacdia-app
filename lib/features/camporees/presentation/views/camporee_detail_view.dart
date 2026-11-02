@@ -157,7 +157,7 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
       ClubRoleNames.counselor,
     };
     final authAsync = ref.watch(authNotifierProvider);
-    final user = authAsync.valueOrNull;
+    final user = authAsync.value;
     final canViewEvents = hasAnyRole(user, eventViewerRoles);
     final registrationAsync =
         ref.watch(camporeeSectionRegistrationProvider(_camporeeId));
@@ -294,7 +294,7 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
               camporeeSectionRegistrationProvider(_camporeeId),
             ),
             onEnroll: () {
-              final registration = registrationAsync.valueOrNull;
+              final registration = registrationAsync.value;
               if (registration == null || !registration.canEnroll) return;
               CamporeeSectionRegistrationSheet.show(
                 context,
@@ -1765,7 +1765,7 @@ class _EnrollmentOrders extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ordersContext = ref.watch(paymentOrdersContextProvider);
-    if (ordersContext.valueOrNull?.enabled != true) {
+    if (ordersContext.value?.enabled != true) {
       return const SizedBox.shrink();
     }
 

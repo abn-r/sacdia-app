@@ -460,7 +460,7 @@ class _HonorDetailContent extends ConsumerWidget {
     final enrollAsync = ref.watch(honorEnrollmentNotifierProvider);
     final modeActionState =
         ref.watch(honorCompletionModeActionsNotifierProvider);
-    final modeActionUserHonor = modeActionState.valueOrNull;
+    final modeActionUserHonor = modeActionState.value;
     final userHonor = modeActionUserHonor?.honorId == honorId
         ? modeActionUserHonor
         : cachedUserHonor;
@@ -481,7 +481,7 @@ class _HonorDetailContent extends ConsumerWidget {
     // After enrollment, refresh providers so UI switches to enrolled state
     if (!userHonorsLoading &&
         enrollAsync.hasValue &&
-        enrollAsync.valueOrNull != null) {
+        enrollAsync.value != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) {
           ref.invalidate(userHonorsProvider);
@@ -626,7 +626,7 @@ class _HonorDetailContent extends ConsumerWidget {
     final confirmed = await _confirmCompletionModeSelection(context, mode);
     if (!confirmed || !context.mounted) return;
 
-    final user = ref.read(authNotifierProvider).valueOrNull ??
+    final user = ref.read(authNotifierProvider).value ??
         await ref.read(authNotifierProvider.future);
 
     if (!context.mounted) return;
@@ -3748,7 +3748,7 @@ class _EnrollCtaButton extends ConsumerWidget {
       backgroundColor: categoryColor,
       textColor: onCategoryPaintColor(categoryColor, onNearWhite: c.text),
       onPressed: () async {
-        final userId = ref.read(authNotifierProvider).valueOrNull?.id;
+        final userId = ref.read(authNotifierProvider).value?.id;
         if (userId == null) return;
         await ref
             .read(honorEnrollmentNotifierProvider.notifier)

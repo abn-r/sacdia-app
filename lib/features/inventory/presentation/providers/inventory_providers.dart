@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
@@ -301,7 +302,7 @@ class InventorySummary {
 
 final inventorySummaryProvider = Provider.autoDispose<InventorySummary?>((ref) {
   final itemsAsync = ref.watch(inventoryItemsProvider);
-  return itemsAsync.valueOrNull.map((items) {
+  return itemsAsync.value.map((items) {
     return InventorySummary(
       totalItems: items.length,
       totalValue: items.fold(0.0, (sum, i) => sum + (i.estimatedValue ?? 0)),
@@ -348,8 +349,7 @@ class InventoryItemFormState {
   }
 }
 
-class InventoryItemFormNotifier
-    extends AutoDisposeNotifier<InventoryItemFormState> {
+class InventoryItemFormNotifier extends Notifier<InventoryItemFormState> {
   @override
   InventoryItemFormState build() => const InventoryItemFormState();
 
@@ -510,8 +510,7 @@ class InventoryDeleteState {
   });
 }
 
-class InventoryDeleteNotifier
-    extends AutoDisposeNotifier<InventoryDeleteState> {
+class InventoryDeleteNotifier extends Notifier<InventoryDeleteState> {
   @override
   InventoryDeleteState build() => const InventoryDeleteState();
 

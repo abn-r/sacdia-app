@@ -483,11 +483,14 @@ class ClassCounselorAssignmentActionState {
   }
 }
 
-class ClassCounselorAssignmentsNotifier extends AutoDisposeFamilyNotifier<
-    ClassCounselorAssignmentActionState, ClassCounselorAssignmentsQuery> {
+class ClassCounselorAssignmentsNotifier
+    extends Notifier<ClassCounselorAssignmentActionState> {
+  ClassCounselorAssignmentsNotifier(this.arg);
+
+  final ClassCounselorAssignmentsQuery arg;
+
   @override
-  ClassCounselorAssignmentActionState build(
-          ClassCounselorAssignmentsQuery arg) =>
+  ClassCounselorAssignmentActionState build() =>
       const ClassCounselorAssignmentActionState();
 
   ClassCounselorAssignmentsQuery get _query => arg;
@@ -641,11 +644,13 @@ final classCounselorAssignmentsNotifierProvider = NotifierProvider.autoDispose
 /// Maneja operaciones de subida de archivos, eliminacion y envio a validacion.
 /// Al completar con exito cualquier mutacion, invalida [classWithProgressProvider]
 /// para refrescar datos frescos del backend.
-class RequirementNotifier extends AutoDisposeFamilyNotifier<
-    RequirementOperationState, ClassProgressQuery> {
+class RequirementNotifier extends Notifier<RequirementOperationState> {
+  RequirementNotifier(this.arg);
+
+  final ClassProgressQuery arg;
+
   @override
-  RequirementOperationState build(ClassProgressQuery query) =>
-      const RequirementOperationState();
+  RequirementOperationState build() => const RequirementOperationState();
 
   String get _userId {
     final targetUserId = _query.targetUserId;
@@ -654,7 +659,7 @@ class RequirementNotifier extends AutoDisposeFamilyNotifier<
     }
 
     final authState = ref.read(authNotifierProvider);
-    return authState.valueOrNull?.id ?? '';
+    return authState.value?.id ?? '';
   }
 
   ClassProgressQuery get _query => arg;
@@ -798,7 +803,7 @@ final requirementNotifierProvider = NotifierProvider.autoDispose
 /// Notifier para manejar actualizaciones de progreso
 // Legacy: superseded by RequirementNotifier for new flows. Kept for
 // section_detail_view and class_modules_view which still use this directly.
-class ClassProgressNotifier extends AutoDisposeAsyncNotifier<ClassProgress?> {
+class ClassProgressNotifier extends AsyncNotifier<ClassProgress?> {
   @override
   Future<ClassProgress?> build() async => null;
 

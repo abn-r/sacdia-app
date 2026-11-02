@@ -84,7 +84,7 @@ class ClassesListView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.sac;
     final hasActiveClub = ref
-            .watch(authNotifierProvider.select((v) => v.valueOrNull))
+            .watch(authNotifierProvider.select((v) => v.value))
             ?.authorization
             ?.activeGrant
             ?.sectionId !=
@@ -136,7 +136,7 @@ class ClassesListViewBody extends ConsumerWidget {
     final theme = Theme.of(context);
 
     final user = ref.watch(
-      authNotifierProvider.select((v) => v.valueOrNull),
+      authNotifierProvider.select((v) => v.value),
     );
     final hasActiveClub = user?.authorization?.activeGrant?.sectionId != null;
     final listTop = (frostedBar ? SacTopBar.frostedInset(context) : 0.0) + 12;

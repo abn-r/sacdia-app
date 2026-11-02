@@ -159,14 +159,17 @@ class CertificationEnrollmentState {
 ///
 /// Es un family por [certificationId] para que cada certificación tenga su propio estado.
 class CertificationEnrollmentNotifier
-    extends AutoDisposeFamilyNotifier<CertificationEnrollmentState, int> {
+    extends Notifier<CertificationEnrollmentState> {
+  CertificationEnrollmentNotifier(this.arg);
+
+  final int arg;
+
   @override
-  CertificationEnrollmentState build(int certificationId) =>
-      const CertificationEnrollmentState();
+  CertificationEnrollmentState build() => const CertificationEnrollmentState();
 
   String get _userId {
     final authState = ref.read(authNotifierProvider);
-    return authState.valueOrNull?.id ?? '';
+    return authState.value?.id ?? '';
   }
 
   int get _certificationId => arg;
@@ -236,15 +239,17 @@ final certificationEnrollmentNotifierProvider = NotifierProvider.autoDispose
 /// Notifier para actualizar el progreso de secciones en una certificación.
 ///
 /// Family por [certificationId].
-class SectionProgressNotifier
-    extends AutoDisposeFamilyNotifier<CertificationEnrollmentState, int> {
+class SectionProgressNotifier extends Notifier<CertificationEnrollmentState> {
+  SectionProgressNotifier(this.arg);
+
+  final int arg;
+
   @override
-  CertificationEnrollmentState build(int certificationId) =>
-      const CertificationEnrollmentState();
+  CertificationEnrollmentState build() => const CertificationEnrollmentState();
 
   String get _userId {
     final authState = ref.read(authNotifierProvider);
-    return authState.valueOrNull?.id ?? '';
+    return authState.value?.id ?? '';
   }
 
   int get _certificationId => arg;

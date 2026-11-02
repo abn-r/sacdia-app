@@ -35,7 +35,7 @@ final masterHonorsRepositoryProvider = Provider<MasterHonorsRepository>((ref) {
 /// server denies `/users/:id/master-honors*` to every other principal (teen,
 /// linked device, guardian acting for a minor), so the app must not ask.
 final masterHonorsAvailableProvider = Provider<bool>((ref) {
-  final user = ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
+  final user = ref.watch(authNotifierProvider.select((v) => v.value));
   if (user == null) return false;
   if (user.mode != AccountMode.adult || user.actingFor != null) return false;
   return ref.watch(actingDependentProvider) == null;

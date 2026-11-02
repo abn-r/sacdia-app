@@ -1026,7 +1026,7 @@ class PushNotificationService {
       );
       return;
     }
-    _dispatchTap(data, auth.valueOrNull);
+    _dispatchTap(data, auth.value);
   }
 
   /// Despacha el toque según el modo de la sesión ([user] solo viene resuelto
@@ -1233,7 +1233,7 @@ class PushNotificationService {
     final String? route;
     try {
       route = await resolveMemberRequestsRoute(
-        readUser: () => _ref.read(authNotifierProvider).valueOrNull,
+        readUser: () => _ref.read(authNotifierProvider).value,
         switchContext: (assignmentId) async {
           final switched = await _ref
               .read(authNotifierProvider.notifier)

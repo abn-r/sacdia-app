@@ -124,7 +124,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
             builder: (context, ref, child) {
               final activeClubTypeAsync =
                   ref.watch(activeHonorCatalogClubTypeIdProvider);
-              final activeClubTypeId = activeClubTypeAsync.valueOrNull;
+              final activeClubTypeId = activeClubTypeAsync.value;
               final selectedCategory = ref.watch(selectedCategoryProvider);
 
               if (activeClubTypeAsync is AsyncLoading) {

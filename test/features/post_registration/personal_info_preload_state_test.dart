@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
@@ -56,7 +55,7 @@ void main() {
 
       await container.read(healthNoneStateProvider.notifier).setAllergies(true);
 
-      final updated = container.read(healthNoneStateProvider).valueOrNull;
+      final updated = container.read(healthNoneStateProvider).value;
       expect(updated?.allergies, isTrue);
       expect(
         prefs.getBool('post_registration.health_none.user-123.allergies'),

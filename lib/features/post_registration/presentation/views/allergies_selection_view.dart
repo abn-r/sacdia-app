@@ -406,7 +406,7 @@ class _AllergiesSelectionViewState
       await ref.read(userAllergiesProvider.notifier).saveAll(entries);
 
       // Re-seed from updated server state
-      final updated = ref.read(userAllergiesProvider).valueOrNull ?? [];
+      final updated = ref.read(userAllergiesProvider).value ?? [];
       ref.read(selectedAllergiesProvider.notifier).state =
           updated.map((a) => a.id).toList();
       setState(() {
@@ -455,10 +455,13 @@ class _AllergiesSelectionViewState
       (prev, next) {
         // Riverpod 2.6 `.value` rethrew an error that has no previous value
         // (reaching the global error handler, with nothing seeded). Riverpod 3
-        // returns null instead, so the rethrow is kept explicit here.
-        final seed = next.hasError && !next.hasValue
-            ? next.requireValue
-            : next.valueOrNull;
+        // returns null instead, so the rethrow is kept explicit here. It must
+        // be the original error: `requireValue` wraps it in a ProviderException,
+        // which the container's error handler silences.
+        if (next.hasError && !next.hasValue) {
+          Error.throwWithStackTrace(next.error!, next.stackTrace!);
+        }
+        final seed = next.value;
         if (seed != null && !_serverSeeded) {
           _seedFromServer(seed);
           // Also init selectedIds provider for backwards compat
@@ -471,7 +474,7 @@ class _AllergiesSelectionViewState
     final catalogAsync = ref.watch(allergiesCatalogProvider);
     final userAsync = ref.watch(userAllergiesProvider);
     final savedNone =
-        ref.watch(healthNoneStateProvider).valueOrNull?.allergies ?? false;
+        ref.watch(healthNoneStateProvider).value?.allergies ?? false;
     _hydrateSavedNone(savedNone);
     final m = MedicoTokens.of(context);
 
@@ -517,7 +520,7 @@ class _AllergiesSelectionViewState
               ),
             ),
             data: (catalog) {
-              final serverItems = userAsync.valueOrNull ?? [];
+              final serverItems = userAsync.value ?? [];
               if (!_serverSeeded && serverItems.isNotEmpty) {
                 _seedFromServer(serverItems);
               }

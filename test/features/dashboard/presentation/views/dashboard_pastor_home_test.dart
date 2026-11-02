@@ -69,9 +69,10 @@ void main() {
       tester,
       const DashboardView(),
       overrides: [
-        ...authorizerOverrides(repo),
-        authNotifierProvider
-            .overrideWith(() => _SyncAuthNotifier(_user(role: 'pastor'))),
+        ...authorizerOverrides(
+          repo,
+          authNotifier: () => _SyncAuthNotifier(_user(role: 'pastor')),
+        ),
         dashboardNotifierProvider.overrideWith(
           () => _CountingDashboardNotifier(() => dashboardBuilds++),
         ),
@@ -93,9 +94,10 @@ void main() {
       tester,
       const DashboardView(),
       overrides: [
-        ...authorizerOverrides(FakeInvestitureRequestsRepository()),
-        authNotifierProvider.overrideWith(
-          () => _SyncAuthNotifier(_user(role: 'pastor', withClub: true)),
+        ...authorizerOverrides(
+          FakeInvestitureRequestsRepository(),
+          authNotifier: () =>
+              _SyncAuthNotifier(_user(role: 'pastor', withClub: true)),
         ),
         dashboardNotifierProvider.overrideWith(
           () => _CountingDashboardNotifier(() => dashboardBuilds++),

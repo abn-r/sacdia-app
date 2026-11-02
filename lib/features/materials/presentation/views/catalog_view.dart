@@ -74,7 +74,7 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
     final programasAsync = ref.watch(programsProvider);
 
     ref.listen<AsyncValue<CatalogState>>(catalogProvider(_query), (_, next) {
-      final data = next.valueOrNull;
+      final data = next.value;
       if (data != null) {
         _lastCatalog = data;
       }
@@ -279,7 +279,7 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
   }
 
   Widget _buildCatalogResults(AsyncValue<CatalogState> catalogAsync) {
-    final fresh = catalogAsync.valueOrNull;
+    final fresh = catalogAsync.value;
     final displayed = fresh ?? (catalogAsync.isLoading ? _lastCatalog : null);
 
     if (catalogAsync.hasError && fresh == null && !catalogAsync.isLoading) {

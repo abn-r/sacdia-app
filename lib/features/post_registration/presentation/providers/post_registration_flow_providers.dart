@@ -31,11 +31,11 @@ class PostRegistrationFlowResult {
 
 /// Notifier para completar pasos del post-registro sin acoplar el shell a
 /// repositories/data sources.
-class PostRegistrationFlowNotifier extends AutoDisposeAsyncNotifier<void> {
+class PostRegistrationFlowNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
-  String? get _currentUserId => ref.read(authNotifierProvider).valueOrNull?.id;
+  String? get _currentUserId => ref.read(authNotifierProvider).value?.id;
 
   Future<PostRegistrationFlowResult> completeStep1() async {
     final userId = _currentUserId;

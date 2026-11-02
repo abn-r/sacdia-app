@@ -135,7 +135,7 @@ class DependentPushTapHandler {
       authNotifierProvider,
       (_, next) {
         if (!next.isLoading && !completer.isCompleted) {
-          completer.complete(next.valueOrNull);
+          completer.complete(next.value);
         }
       },
       fireImmediately: true,

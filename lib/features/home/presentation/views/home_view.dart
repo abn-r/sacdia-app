@@ -26,7 +26,7 @@ class HomeView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dashboardState = ref.watch(dashboardNotifierProvider);
-    final user = ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
+    final user = ref.watch(authNotifierProvider.select((v) => v.value));
     final hPad = Responsive.horizontalPadding(context);
 
     final c = context.sac;

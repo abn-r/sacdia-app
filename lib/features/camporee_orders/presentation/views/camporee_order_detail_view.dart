@@ -86,8 +86,8 @@ class CamporeeOrderDetailView extends ConsumerWidget {
               data: (order) => _OrderDetailBody(
                 order: order,
                 isWorking: actionsState.isWorking,
-                canDistribute: canDistributeAsync.valueOrNull == true &&
-                    order.canDistribute,
+                canDistribute:
+                    canDistributeAsync.value == true && order.canDistribute,
                 onViewPdf: () => _viewPdf(context, ref, order),
                 onUploadProof: () => _pickAndUploadProof(context, ref),
                 onCancel: () => _confirmCancel(context, ref),

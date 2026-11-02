@@ -80,31 +80,31 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
     final isSaving = ref.watch(isSavingStep3Provider);
 
     // Resolved display names for the fields
-    final selectedCountryName = countriesAsync.valueOrNull
+    final selectedCountryName = countriesAsync.value
         ?.where((c) => c.id == selectedCountryId)
         .map((c) => c.name)
         .firstOrNull;
 
-    final selectedUnionName = unionsAsync.valueOrNull
+    final selectedUnionName = unionsAsync.value
         ?.where((u) => u.id == selectedUnionId)
         .map((u) => u.name)
         .firstOrNull;
 
-    final selectedLocalFieldName = localFieldsAsync.valueOrNull
+    final selectedLocalFieldName = localFieldsAsync.value
         ?.where((lf) => lf.id == selectedLocalFieldId)
         .map((lf) => lf.name)
         .firstOrNull;
 
-    final selectedClubName = clubsAsync.valueOrNull
+    final selectedClubName = clubsAsync.value
         ?.where((c) => c.id == selectedClubId)
         .map((c) => c.name)
         .firstOrNull;
 
-    final selectedClassName = classesAsync.valueOrNull
+    final selectedClassName = classesAsync.value
         ?.where((c) => c.id == selectedClassId)
         .map((c) => c.name)
         .firstOrNull;
-    final selectedClassLogoAsset = classesAsync.valueOrNull
+    final selectedClassLogoAsset = classesAsync.value
         ?.where((c) => c.id == selectedClassId)
         .map(progressiveClassLogoAsset)
         .firstOrNull;
@@ -562,7 +562,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
       return const SizedBox.shrink();
     }
 
-    final sections = clubSectionsAsync.valueOrNull;
+    final sections = clubSectionsAsync.value;
     if (sections == null || sections.isEmpty) {
       return const SizedBox.shrink();
     }

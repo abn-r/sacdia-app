@@ -47,7 +47,7 @@ class MemberProfileView extends ConsumerWidget {
 
     final detailAsync = ref.watch(memberDetailProvider(member.userId));
     final authUser = ref.watch(
-      authNotifierProvider.select((v) => v.valueOrNull),
+      authNotifierProvider.select((v) => v.value),
     );
 
     final canViewMedical = hasAnyPermission(

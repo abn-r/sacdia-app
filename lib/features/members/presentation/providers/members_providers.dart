@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../core/auth/club_role_names.dart';
 import '../../../../core/consent/consent_evidence.dart';
@@ -318,10 +319,10 @@ class MembersData {
 // ── Members notifier ──────────────────────────────────────────────────────────
 
 /// Notifier principal para el módulo de miembros.
-/// Usa AutoDisposeAsyncNotifier para que el estado de loading/error sea manejado
+/// Usa AsyncNotifier con autoDispose para que el estado de loading/error sea manejado
 /// automáticamente por AsyncValue, eliminando los campos manuales isLoading/error,
 /// y para liberar memoria cuando el árbol de widgets que lo consume se desmonta.
-class MembersNotifier extends AutoDisposeAsyncNotifier<MembersData> {
+class MembersNotifier extends AsyncNotifier<MembersData> {
   @override
   Future<MembersData> build() async {
     final cancelToken = CancelToken();
@@ -380,7 +381,10 @@ class MembersNotifier extends AutoDisposeAsyncNotifier<MembersData> {
       (failure) => failure,
       (success) {
         if (!success) return const UnexpectedFailure(message: '');
-        ref.invalidateSelf();
+        // The role is already assigned. If nobody watches the members list any
+        // more (autoDispose), there is nothing to reload, and Riverpod 3 throws
+        // when a disposed notifier touches its Ref.
+        if (ref.mounted) ref.invalidateSelf();
         return null;
       },
     );
@@ -442,7 +446,7 @@ final membersNotifierProvider =
 
 /// Miembros filtrados según los filtros activos
 final filteredMembersProvider = Provider.autoDispose<List<ClubMember>>((ref) {
-  final data = ref.watch(membersNotifierProvider).valueOrNull;
+  final data = ref.watch(membersNotifierProvider).value;
   final members = data?.members ?? [];
   final filters = ref.watch(memberFiltersProvider);
   return filters.applyTo(members);
@@ -451,7 +455,7 @@ final filteredMembersProvider = Provider.autoDispose<List<ClubMember>>((ref) {
 /// Solicitudes filtradas según los filtros activos
 final filteredJoinRequestsProvider =
     Provider.autoDispose<List<JoinRequest>>((ref) {
-  final data = ref.watch(membersNotifierProvider).valueOrNull;
+  final data = ref.watch(membersNotifierProvider).value;
   final requests = data?.joinRequests ?? [];
   final filters = ref.watch(joinRequestFiltersProvider);
   return filters.applyTo(requests);
@@ -459,15 +463,14 @@ final filteredJoinRequestsProvider =
 
 /// Número de solicitudes pendientes (para el badge del tab)
 final pendingRequestsCountProvider = Provider.autoDispose<int>((ref) {
-  return ref.watch(membersNotifierProvider).valueOrNull?.pendingRequestsCount ??
-      0;
+  return ref.watch(membersNotifierProvider).value?.pendingRequestsCount ?? 0;
 });
 
 /// Clases únicas presentes en la lista de miembros (para el filtro).
 ///
 /// El orden es el de [sortClassFilterOptions]: id de catálogo ascendente.
 final availableClassesProvider = Provider.autoDispose<List<String>>((ref) {
-  final members = ref.watch(membersNotifierProvider).valueOrNull?.members ?? [];
+  final members = ref.watch(membersNotifierProvider).value?.members ?? [];
   final classes = <String>[];
   final seen = <String>{};
   for (final member in members) {
@@ -485,7 +488,7 @@ final availableClassesProvider = Provider.autoDispose<List<String>>((ref) {
 
 /// Roles únicos presentes en la lista de miembros (para el filtro)
 final availableRolesProvider = Provider.autoDispose<List<String>>((ref) {
-  final members = ref.watch(membersNotifierProvider).valueOrNull?.members ?? [];
+  final members = ref.watch(membersNotifierProvider).value?.members ?? [];
   final roles = members
       .map((m) => m.clubRole)
       .whereType<String>()
@@ -822,7 +825,7 @@ class AnnualContinuationsState {
 
 /// Notifier para la lista de continuaciones anuales de la sección activa.
 class AnnualContinuationsNotifier
-    extends AutoDisposeAsyncNotifier<AnnualContinuationsState> {
+    extends AsyncNotifier<AnnualContinuationsState> {
   @override
   Future<AnnualContinuationsState> build() async {
     final ctx = await ref.watch(clubContextProvider.future);
@@ -842,7 +845,7 @@ class AnnualContinuationsNotifier
   }
 
   void toggleSelection(String userId) {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null) return;
     if (current.items.any((m) => m.userId == userId && m.isBlocked)) {
       return;
@@ -862,7 +865,7 @@ class AnnualContinuationsNotifier
     final ctx = await ref.read(clubContextProvider.future);
     if (ctx == null) return null;
 
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null) return null;
 
     final toSubmit = current.selectedIds

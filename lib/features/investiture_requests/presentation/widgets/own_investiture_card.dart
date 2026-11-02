@@ -162,7 +162,7 @@ class OwnInvestitureEntryCard extends ConsumerWidget {
   /// Nombre del año eclesiástico ("2025-2026"); si el catálogo no lo trae,
   /// el año calendario de la fecha prevista.
   String _yearLabel(WidgetRef ref) {
-    final years = ref.watch(ecclesiasticalYearsProvider(null)).valueOrNull;
+    final years = ref.watch(ecclesiasticalYearsProvider(null)).value;
     if (years != null) {
       for (final year in years) {
         if (year.ecclesiasticalYearId == entry.ecclesiasticalYearId &&

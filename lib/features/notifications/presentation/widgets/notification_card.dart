@@ -244,7 +244,7 @@ class NotificationCard extends ConsumerWidget {
       // reconstruye la sesión y este widget podría desmontarse mientras tanto.
       final container = ProviderScope.containerOf(context, listen: false);
       final route = await resolveMemberRequestsRoute(
-        readUser: () => container.read(authNotifierProvider).valueOrNull,
+        readUser: () => container.read(authNotifierProvider).value,
         switchContext: (assignmentId) async {
           final switched = await container
               .read(authNotifierProvider.notifier)

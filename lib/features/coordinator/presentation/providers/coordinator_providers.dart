@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../../core/errors/failures.dart';
@@ -135,7 +136,7 @@ final slaDashboardProvider =
 final evidenceOverdueDaysProvider = Provider.autoDispose<int>((ref) {
   final threshold = ref.watch(
     slaDashboardProvider
-        .select((async) => async.valueOrNull?.evidence.overdueThresholdDays),
+        .select((async) => async.value?.evidence.overdueThresholdDays),
   );
   return threshold ?? kEvidenceOverdueDays;
 });
@@ -212,14 +213,17 @@ class PendingEvidenceState {
 /// Family por [EvidenceReviewType?] — null significa todos los tipos. `build`
 /// carga la primera página; [loadMore] agrega la siguiente. Invalidar el
 /// provider (pull to refresh, aprobar/rechazar) vuelve a la página 1.
-class PendingEvidenceNotifier extends AutoDisposeFamilyAsyncNotifier<
-    PendingEvidenceState, EvidenceReviewType?> {
+class PendingEvidenceNotifier extends AsyncNotifier<PendingEvidenceState> {
+  PendingEvidenceNotifier(this.arg);
+
+  final EvidenceReviewType? arg;
+
   /// Token de la carga actual; se cancela al invalidar o descartar el
   /// provider, así una página que llega tarde no pisa la lista nueva.
   CancelToken? _cancelToken;
 
   @override
-  Future<PendingEvidenceState> build(EvidenceReviewType? arg) async {
+  Future<PendingEvidenceState> build() async {
     final cancelToken = CancelToken();
     _cancelToken = cancelToken;
     ref.onDispose(cancelToken.cancel);
@@ -248,7 +252,7 @@ class PendingEvidenceNotifier extends AutoDisposeFamilyAsyncNotifier<
   /// Carga la página siguiente. No hace nada si ya está cargando, si no hay
   /// más páginas o si la primera página aún no llegó.
   Future<void> loadMore() async {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (state.isLoading ||
         current == null ||
         !current.hasMore ||
@@ -332,11 +336,13 @@ class EvidenceActionState {
 /// Notifier para aprobar/rechazar una evidencia individual.
 ///
 /// Family por [EvidenceDetailKey].
-class EvidenceReviewNotifier
-    extends AutoDisposeFamilyNotifier<EvidenceActionState, EvidenceDetailKey> {
+class EvidenceReviewNotifier extends Notifier<EvidenceActionState> {
+  EvidenceReviewNotifier(this.arg);
+
+  final EvidenceDetailKey arg;
+
   @override
-  EvidenceActionState build(EvidenceDetailKey arg) =>
-      const EvidenceActionState();
+  EvidenceActionState build() => const EvidenceActionState();
 
   /// Refreshes everything that shows this evidence: the pending list (every
   /// filter), this detail and the hub/SLA counters.

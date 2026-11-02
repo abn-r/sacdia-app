@@ -254,7 +254,7 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
 
     final honor = ref
         .read(allHonorsProvider)
-        .valueOrNull
+        .value
         ?.where((h) => h.id == widget.honorId)
         .firstOrNull;
     final categoryName = honor?.categoryName ??
@@ -419,7 +419,7 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
     HonorRequirement requirement,
     File file,
   ) async {
-    final userId = ref.read(authNotifierProvider).valueOrNull?.id;
+    final userId = ref.read(authNotifierProvider).value?.id;
     if (userId == null) {
       if (!mounted) return;
       SacSnackBar.show(context, 'honors.evidence.no_session'.tr(),
@@ -463,9 +463,8 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
     final userHonor = ref.watch(userHonorForHonorProvider(widget.honorId));
 
     final honorsAsync = ref.watch(allHonorsProvider);
-    final honor = honorsAsync.valueOrNull
-        ?.where((h) => h.id == widget.honorId)
-        .firstOrNull;
+    final honor =
+        honorsAsync.value?.where((h) => h.id == widget.honorId).firstOrNull;
     final categoryName = honor?.categoryName ??
         (honor?.categoryId != null
             ? ref.watch(categoryByIdProvider(honor!.categoryId))?.name

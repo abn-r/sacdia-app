@@ -26,7 +26,7 @@ class InsuranceDetailView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final canManageAsync = ref.watch(canManageInsuranceProvider);
-    final canManage = canManageAsync.valueOrNull ?? false;
+    final canManage = canManageAsync.value ?? false;
 
     return Scaffold(
       extendBodyBehindAppBar: true,

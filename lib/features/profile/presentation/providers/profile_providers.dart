@@ -45,7 +45,7 @@ final updateUserProfileProvider = Provider<UpdateUserProfile>((ref) {
 });
 
 /// Notifier para manejar el perfil del usuario
-class ProfileNotifier extends AutoDisposeAsyncNotifier<UserDetail?> {
+class ProfileNotifier extends AsyncNotifier<UserDetail?> {
   CancelToken _cancelToken = CancelToken();
 
   @override
@@ -74,7 +74,7 @@ class ProfileNotifier extends AutoDisposeAsyncNotifier<UserDetail?> {
 
   /// Actualizar el perfil del usuario
   Future<bool> updateProfile(Map<String, dynamic> data) async {
-    final currentProfile = state.valueOrNull;
+    final currentProfile = state.value;
     if (currentProfile == null) {
       return false;
     }

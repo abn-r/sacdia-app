@@ -76,7 +76,7 @@ class CartState extends Equatable {
 /// Gestiona el estado del carrito de materiales.
 ///
 /// v1: en memoria solamente. Sin persistencia local.
-class CartNotifier extends AutoDisposeNotifier<CartState> {
+class CartNotifier extends Notifier<CartState> {
   @override
   CartState build() => const CartState();
 

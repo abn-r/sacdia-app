@@ -53,7 +53,7 @@ class _DeviceRequirementViewState extends ConsumerState<DeviceRequirementView> {
       );
 
   ClassRequirement? _find(AsyncValue<dynamic> async) {
-    final klass = async.valueOrNull;
+    final klass = async.value;
     if (klass == null) return null;
     for (final module in klass.modules) {
       for (final requirement in module.requirements) {
@@ -79,7 +79,7 @@ class _DeviceRequirementViewState extends ConsumerState<DeviceRequirementView> {
     final notifier = ref.watch(requirementNotifierProvider(_query));
     final online = isDeviceOnline(ref.watch(deviceOnlineProvider));
     final requirement = _find(async);
-    final expired = async.valueOrNull?.isExpired ?? false;
+    final expired = async.value?.isExpired ?? false;
 
     ref.listen(requirementNotifierProvider(_query), (_, next) {
       if (next.errorMessage == null || !mounted) return;

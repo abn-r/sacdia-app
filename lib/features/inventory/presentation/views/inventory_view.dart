@@ -52,7 +52,7 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
     final canManageAsync = ref.watch(canManageInventoryProvider);
     final filters = ref.watch(inventoryFiltersProvider);
 
-    final canManage = canManageAsync.valueOrNull ?? false;
+    final canManage = canManageAsync.value ?? false;
 
     return Scaffold(
       extendBodyBehindAppBar: true,

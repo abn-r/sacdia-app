@@ -216,7 +216,7 @@ final monthlyReportMutationProvider = NotifierProvider.autoDispose<
 );
 
 class MonthlyReportMutationNotifier
-    extends AutoDisposeNotifier<MonthlyReportMutationState> {
+    extends Notifier<MonthlyReportMutationState> {
   @override
   MonthlyReportMutationState build() => const MonthlyReportMutationState();
 

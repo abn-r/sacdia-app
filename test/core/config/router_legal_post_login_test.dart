@@ -98,7 +98,7 @@ void main() {
     // Bootstrap invalidates itself on every auth change; wait until it
     // converges on Ready (retry loop: first attempt has no delay).
     for (var i = 0; i < 50; i++) {
-      final value = container.read(appBootstrapProvider).valueOrNull;
+      final value = container.read(appBootstrapProvider).value;
       final auth = container.read(authNotifierProvider);
       if (value is AppBootstrapReady && !auth.isLoading) return;
       await Future<void>.delayed(const Duration(milliseconds: 10));
@@ -139,10 +139,9 @@ void main() {
 
         // Bootstrap saw incomplete authorization and refetched /auth/me.
         expect(app.repo.meCalls, greaterThan(meCallsBeforeLogin));
+        expect(c.read(appBootstrapProvider).value, isA<AppBootstrapReady>());
         expect(
-            c.read(appBootstrapProvider).valueOrNull, isA<AppBootstrapReady>());
-        expect(
-          c.read(authNotifierProvider).valueOrNull?.legalAcceptancePending,
+          c.read(authNotifierProvider).value?.legalAcceptancePending,
           isTrue,
         );
 
@@ -176,7 +175,7 @@ void main() {
 
         expect(app.repo.meCalls, greaterThan(meCallsBeforeLogin));
         expect(
-          c.read(authNotifierProvider).valueOrNull?.legalAcceptancePending,
+          c.read(authNotifierProvider).value?.legalAcceptancePending,
           isTrue,
         );
         expect(

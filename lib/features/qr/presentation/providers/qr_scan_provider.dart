@@ -22,7 +22,7 @@ final _qrScanRepositoryProvider = Provider<QrRepository>((ref) {
 
 /// Submits a scanned token to the backend. One-shot use per scan — callers
 /// should map to their own UI state, not reuse across scans.
-class QrScanNotifier extends AutoDisposeAsyncNotifier<QrScanResult?> {
+class QrScanNotifier extends AsyncNotifier<QrScanResult?> {
   @override
   Future<QrScanResult?> build() async => null;
 

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -32,7 +33,7 @@ final uploadProfilePictureProvider =
 });
 
 /// Notifier para subir foto de perfil sin acoplar vistas al repositorio.
-class ProfilePhotoUploadNotifier extends AutoDisposeAsyncNotifier<String?> {
+class ProfilePhotoUploadNotifier extends AsyncNotifier<String?> {
   @override
   Future<String?> build() async => null;
 
@@ -68,8 +69,7 @@ final profilePhotoUploadNotifierProvider =
   ProfilePhotoUploadNotifier.new,
 );
 
-class CancelPendingMembershipRequestNotifier
-    extends AutoDisposeAsyncNotifier<void> {
+class CancelPendingMembershipRequestNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
@@ -112,13 +112,12 @@ final completionStatusProvider = AsyncNotifierProvider.autoDispose<
 });
 
 /// Notifier para el estado de completitud del post-registro
-class CompletionStatusNotifier
-    extends AutoDisposeAsyncNotifier<CompletionStatus?> {
+class CompletionStatusNotifier extends AsyncNotifier<CompletionStatus?> {
   @override
   Future<CompletionStatus?> build() async {
     // keepAlive sobrevive al logout: atar el cache al usuario evita que una
     // cuenta nueva herede el paso del usuario anterior.
-    ref.watch(authNotifierProvider.select((state) => state.valueOrNull?.id));
+    ref.watch(authNotifierProvider.select((state) => state.value?.id));
     ref.keepAlive();
     final cancelToken = CancelToken();
     ref.onDispose(() => cancelToken.cancel());

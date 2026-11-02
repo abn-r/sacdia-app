@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 /// Avisos de una sola vez que la pantalla de login muestra tras perder la
 /// sesión por una causa que la persona debe entender.

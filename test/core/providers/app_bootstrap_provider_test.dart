@@ -257,7 +257,7 @@ void main() {
       await container.read(appBootstrapProvider.notifier).retry();
 
       // Should be ready now
-      final state = container.read(appBootstrapProvider).valueOrNull;
+      final state = container.read(appBootstrapProvider).value;
       expect(state, isA<AppBootstrapReady>());
     }, timeout: const Timeout(Duration(seconds: 20)));
 
@@ -274,7 +274,7 @@ void main() {
       await container.read(appBootstrapProvider.notifier).retry();
 
       // Should be unauthenticated after nuclear reset
-      final state = container.read(appBootstrapProvider).valueOrNull;
+      final state = container.read(appBootstrapProvider).value;
       expect(state, isA<AppBootstrapUnauthenticated>());
     }, timeout: const Timeout(Duration(seconds: 20)));
   });

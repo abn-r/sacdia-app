@@ -31,8 +31,8 @@ class TeachingScopeView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final clubContextAsync = ref.watch(clubContextProvider);
-    final activeClubContext = clubContextAsync.valueOrNull;
-    final user = ref.watch(authNotifierProvider).valueOrNull;
+    final activeClubContext = clubContextAsync.value;
+    final user = ref.watch(authNotifierProvider).value;
     final canReadAssignments = hasAnyPermission(user, const {
       'club_roles:read',
     });
@@ -52,7 +52,7 @@ class TeachingScopeView extends ConsumerWidget {
         ? yearId
         : ref
                 .watch(classProgressScopeProvider(actionScopeQuery))
-                .valueOrNull
+                .value
                 ?.ecclesiasticalYearId ??
             yearId;
 

@@ -27,7 +27,7 @@ class MembershipStatusBanner extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authNotifierProvider).valueOrNull;
+    final user = ref.watch(authNotifierProvider).value;
     final statusGrant = membershipGrantForDisplay(user?.authorization);
 
     // Nothing to show if there's no grant or grant is active.
@@ -304,7 +304,7 @@ Future<void> _cancelPendingRequest(BuildContext context, WidgetRef ref) async {
 
   if (confirmed != true || !context.mounted) return;
 
-  final userId = ref.read(authNotifierProvider).valueOrNull?.id;
+  final userId = ref.read(authNotifierProvider).value?.id;
   if (userId == null) {
     SacSnackBar.show(context, tr('errors.user_not_authenticated'));
     return;

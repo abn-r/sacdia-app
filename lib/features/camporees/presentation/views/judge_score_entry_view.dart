@@ -185,7 +185,7 @@ class _JudgeScoreEntryViewState extends ConsumerState<JudgeScoreEntryView> {
       extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: (officialAsync.valueOrNull != null
+        title: (officialAsync.value != null
                 ? 'camporees.judge.official_title'
                 : 'camporees.judge.score_title')
             .tr(),

@@ -7,7 +7,6 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/config/router.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/providers/app_bootstrap_provider.dart';
-// ignore: unnecessary_import
 import 'package:sacdia_app/core/providers/riverpod_aliases.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
@@ -99,7 +98,7 @@ void main() {
       )));
       final c = await build(repo);
       expect(
-        c.read(authNotifierProvider).valueOrNull!.mode,
+        c.read(authNotifierProvider).value!.mode,
         AccountMode.teenPending,
       );
 
@@ -112,7 +111,7 @@ void main() {
 
       expect(changed, isTrue);
       expect(
-        c.read(authNotifierProvider).valueOrNull!.mode,
+        c.read(authNotifierProvider).value!.mode,
         AccountMode.teenSupervised,
       );
     });
@@ -124,14 +123,13 @@ void main() {
         status: SupervisionStatus.pendingGuardian,
       )));
       final c = await build(repo);
-      final before = c.read(authNotifierProvider).valueOrNull;
+      final before = c.read(authNotifierProvider).value;
 
       final changed =
           await c.read(authNotifierProvider.notifier).refreshSupervision();
 
       expect(changed, isFalse);
-      expect(
-          identical(c.read(authNotifierProvider).valueOrNull, before), isTrue);
+      expect(identical(c.read(authNotifierProvider).value, before), isTrue);
     });
 
     test('an adult never triggers a request', () async {
@@ -159,7 +157,7 @@ void main() {
 
       expect(changed, isFalse);
       expect(
-        c.read(authNotifierProvider).valueOrNull!.mode,
+        c.read(authNotifierProvider).value!.mode,
         AccountMode.teenPending,
       );
     });
@@ -180,7 +178,7 @@ void main() {
           await c.read(authNotifierProvider.notifier).refreshSupervision();
 
       expect(changed, isFalse);
-      expect(c.read(authNotifierProvider).valueOrNull!.id, 'teen-1');
+      expect(c.read(authNotifierProvider).value!.id, 'teen-1');
     });
 
     test('the minimum interval throttles scope-denied storms', () async {

@@ -20,7 +20,7 @@ class BirthdayCelebrationState {
 }
 
 class BirthdayCelebrationNotifier
-    extends AutoDisposeAsyncNotifier<BirthdayCelebrationState> {
+    extends AsyncNotifier<BirthdayCelebrationState> {
   @override
   Future<BirthdayCelebrationState> build() async {
     final user = await ref.watch(authNotifierProvider.future);
@@ -47,7 +47,7 @@ class BirthdayCelebrationNotifier
   }
 
   Future<void> dismissForToday() async {
-    final current = state.valueOrNull;
+    final current = state.value;
     final key = current?.dismissalKey;
     if (key == null) return;
 
@@ -67,7 +67,7 @@ class BirthdayCelebrationNotifier
   }
 }
 
-final birthdayCelebrationProvider = AutoDisposeAsyncNotifierProvider<
+final birthdayCelebrationProvider = AsyncNotifierProvider.autoDispose<
     BirthdayCelebrationNotifier, BirthdayCelebrationState>(
   BirthdayCelebrationNotifier.new,
 );

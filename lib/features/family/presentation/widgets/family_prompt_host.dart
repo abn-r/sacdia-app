@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -58,8 +59,8 @@ class FamilyPromptHost extends ConsumerWidget {
     ref.listen(authNotifierProvider, (previous, next) {
       final acting = ref.read(actingDependentProvider) != null;
       if (!shouldPromptFamily(
-        previous?.valueOrNull,
-        next.valueOrNull,
+        previous?.value,
+        next.value,
         acting: acting,
       )) {
         return;

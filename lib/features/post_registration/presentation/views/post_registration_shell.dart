@@ -85,7 +85,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
   }
 
   Future<void> _loadCompletionStatus() async {
-    final userId = ref.read(authNotifierProvider).valueOrNull?.id;
+    final userId = ref.read(authNotifierProvider).value?.id;
     final CompletionStatus? status;
     try {
       status = await ref.read(completionStatusProvider.future);
@@ -103,7 +103,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     // Sin fecha de nacimiento el servidor aún no libera la cuenta, aunque el
     // post-registro figure completo: salir al inicio rebotaría aquí otra vez.
     // Se queda en el paso 2, que es donde se guarda la fecha.
-    final awaitingBirthday = ref.read(authNotifierProvider).valueOrNull?.mode ==
+    final awaitingBirthday = ref.read(authNotifierProvider).value?.mode ==
         AccountMode.profileIncomplete;
 
     if (status.isComplete && !awaitingBirthday) {
@@ -200,7 +200,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
 
   Future<void> _completeStep2() async {
     final authState = ref.read(authNotifierProvider);
-    final user = authState.valueOrNull;
+    final user = authState.value;
     final userId = user?.id;
     if (userId == null) return;
     final awaitingBirthday = user?.mode == AccountMode.profileIncomplete;
@@ -225,7 +225,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
         // Una cuenta sin fecha de nacimiento que sigue así no puede continuar:
         // el paso 3 sería rechazado con 403 hasta que el servidor la libere.
         final stillRestricted = awaitingBirthday &&
-            (fresh ?? ref.read(authNotifierProvider).valueOrNull)?.mode ==
+            (fresh ?? ref.read(authNotifierProvider).value)?.mode ==
                 AccountMode.profileIncomplete;
         if (stillRestricted) {
           SacSnackBar.show(
@@ -285,7 +285,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     }
     if (!canFinish || !mounted) return;
 
-    final userId = ref.read(authNotifierProvider).valueOrNull?.id;
+    final userId = ref.read(authNotifierProvider).value?.id;
     final result = await ref
         .read(postRegistrationFlowNotifierProvider.notifier)
         .completeStep3();
@@ -390,8 +390,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
         ref.read(currentStepProvider.notifier).state = currentStep;
       });
     }
-    final authUser =
-        ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
+    final authUser = ref.watch(authNotifierProvider.select((v) => v.value));
     // Mientras se actúa por un menor, o para un adolescente supervisado, la
     // cuenta no es de quien tiene el teléfono en la mano.
     final canDeleteAccount = canDeleteAccountInPostRegistration(

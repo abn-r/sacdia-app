@@ -53,7 +53,7 @@ void main() {
 
       expect(ok, isTrue);
       expect(repo.identifiers, ['ana-7kq4m9']);
-      expect(container.read(authNotifierProvider).valueOrNull?.id, 'teen-1');
+      expect(container.read(authNotifierProvider).value?.id, 'teen-1');
     });
 
     test('a failure leaves a message keyed by the business code, not raw text',
@@ -109,7 +109,7 @@ void main() {
 
       container.read(authNotifierProvider.notifier).onSupervisedAccessRevoked();
 
-      expect(container.read(authNotifierProvider).valueOrNull, isNull);
+      expect(container.read(authNotifierProvider).value, isNull);
       expect(
         container.read(loginNoticeProvider),
         LoginNotice.supervisedAccessRevoked,

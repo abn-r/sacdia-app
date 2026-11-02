@@ -64,7 +64,7 @@ class _PairDeviceViewState extends ConsumerState<PairDeviceView> {
     super.dispose();
   }
 
-  bool get _loggedIn => ref.read(authNotifierProvider).valueOrNull != null;
+  bool get _loggedIn => ref.read(authNotifierProvider).value != null;
 
   /// Un enlace que llegó con la app arrancando. Con una sesión de cuenta se
   /// descarta sin usarlo (la pantalla ya se niega).
@@ -146,9 +146,9 @@ class _PairDeviceViewState extends ConsumerState<PairDeviceView> {
       if (next != null) _adoptPendingLink();
     });
     final loggedIn =
-        ref.watch(authNotifierProvider.select((v) => v.valueOrNull != null));
+        ref.watch(authNotifierProvider.select((v) => v.value != null));
     final notice = ref.watch(deviceNoticeProvider);
-    final meta = ref.watch(devicePairingMetaProvider).valueOrNull;
+    final meta = ref.watch(devicePairingMetaProvider).value;
 
     if (_token != null && !_labelTouched && meta != null) {
       if (_labelController.text.isEmpty && meta.defaultLabel.isNotEmpty) {

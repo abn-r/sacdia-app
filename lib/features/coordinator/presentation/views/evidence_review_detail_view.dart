@@ -68,7 +68,7 @@ class EvidenceReviewDetailView extends ConsumerWidget {
     // Only a successfully loaded, still pending evidence can be reviewed. The
     // bar lives in `bottomNavigationBar` so floating snack bars (a failed
     // action) appear above it instead of covering the buttons.
-    final pending = detailAsync.hasError ? null : detailAsync.valueOrNull;
+    final pending = detailAsync.hasError ? null : detailAsync.value;
     final showActions =
         pending != null && pending.status == EvidenceReviewStatus.pending;
 

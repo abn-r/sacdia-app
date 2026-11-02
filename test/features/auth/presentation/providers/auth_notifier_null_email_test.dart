@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/features/auth/domain/entities/acting_for_info.dart';
@@ -61,18 +60,18 @@ void main() {
     final notifier = container.read(authNotifierProvider.notifier);
 
     notifier.markPostRegisterComplete();
-    var current = container.read(authNotifierProvider).valueOrNull;
+    var current = container.read(authNotifierProvider).value;
     expect(current?.email, isNull);
     expect(current?.actingFor?.dependentUserId, 'dep-1');
     expect(current?.family?.dependentsCount, 1);
 
     notifier.markLegalAccepted();
-    current = container.read(authNotifierProvider).valueOrNull;
+    current = container.read(authNotifierProvider).value;
     expect(current?.actingFor, isNotNull);
     expect(current?.family, isNotNull);
 
     notifier.markPostRegisterIncomplete();
-    current = container.read(authNotifierProvider).valueOrNull;
+    current = container.read(authNotifierProvider).value;
     expect(current?.actingFor, isNotNull);
     expect(current?.family, isNotNull);
   }, timeout: const Timeout(Duration(seconds: 15)));

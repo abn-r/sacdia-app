@@ -71,7 +71,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
   void _loadProfileData() {
     if (_dataLoaded) return;
-    final profile = ref.read(profileNotifierProvider).valueOrNull;
+    final profile = ref.read(profileNotifierProvider).value;
     if (profile != null) {
       _dataLoaded = true;
       _nameController.text = profile.name;
@@ -99,7 +99,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
   // ── F4: Photo change logic ────────────────────────────────────────────────
 
   Future<void> _changePhoto() async {
-    final user = ref.read(authNotifierProvider).valueOrNull;
+    final user = ref.read(authNotifierProvider).value;
     if (user == null) return;
 
     try {
@@ -331,7 +331,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
   @override
   Widget build(BuildContext context) {
     final profileState = ref.watch(profileNotifierProvider);
-    final profile = profileState.valueOrNull;
+    final profile = profileState.value;
     final hPad = Responsive.horizontalPadding(context);
 
     // Load data when provider resolves (handles async timing)

@@ -122,7 +122,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
   }
 
   DateTime _yearEnd() {
-    final year = ref.read(currentEcclesiasticalYearProvider).valueOrNull;
+    final year = ref.read(currentEcclesiasticalYearProvider).value;
     final end = year?.endDate.toLocal();
     if (end == null) {
       final now = DateTime.now();
@@ -416,7 +416,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
                 imageFile: File(_pickedImageFile!.path),
               );
       if (uploadSuccess && createdIds.length > 1) {
-        final url = ref.read(activityImageUploadNotifierProvider).valueOrNull;
+        final url = ref.read(activityImageUploadNotifierProvider).value;
         if (url != null) {
           for (final id in createdIds.skip(1)) {
             await ref.read(updateActivityNotifierProvider.notifier).update(
@@ -484,7 +484,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
     );
 
     // Only directors can create joint activities
-    final isDirector = clubCtxAsync.valueOrNull?.isDirector ?? false;
+    final isDirector = clubCtxAsync.value?.isDirector ?? false;
 
     // Mostrar error del notifier si hay uno nuevo
     ref.listen<CreateActivityState>(
@@ -660,7 +660,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
                   ],
 
                   ActivityAudienceSection(
-                    sections: sectionsAsync.valueOrNull ?? const [],
+                    sections: sectionsAsync.value ?? const [],
                     ownSectionId: widget.clubSectionId,
                     isJoint: _isJoint,
                     selectedSectionIds: _selectedSectionIds,

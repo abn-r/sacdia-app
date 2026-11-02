@@ -43,8 +43,11 @@ MaterialItem _item({
 }
 
 class _TestCatalogNotifier extends CatalogNotifier {
+  _TestCatalogNotifier(super.arg);
+
   @override
-  Future<CatalogState> build(CatalogQuery query) async {
+  Future<CatalogState> build() async {
+    final query = arg;
     if (query.cat == _category.slug) {
       return const CatalogState(
         errorMessage: 'Sin conexión con el servidor.',
@@ -91,7 +94,7 @@ void main() {
           categoriesProvider.overrideWith(
             (ref) async => const [_category],
           ),
-          catalogProvider.overrideWith(_TestCatalogNotifier.new),
+          catalogProvider.overrideWith2(_TestCatalogNotifier.new),
         ],
         child: EasyLocalization(
           supportedLocales: const [Locale('es')],

@@ -55,7 +55,7 @@ class SyncControllerState {
   }
 }
 
-class SyncController extends AutoDisposeNotifier<SyncControllerState> {
+class SyncController extends Notifier<SyncControllerState> {
   @override
   SyncControllerState build() => const SyncControllerState.idle();
 
@@ -77,7 +77,7 @@ class SyncController extends AutoDisposeNotifier<SyncControllerState> {
       await bumpCatalogCacheGeneration(storage);
       await clearDashboardSummaryDiskCache(storage);
       await ref.read(jsonFileCacheProvider).deleteAll();
-      final ctx = rtRef.read(clubContextProvider).valueOrNull;
+      final ctx = rtRef.read(clubContextProvider).value;
       RealtimeResourceRegistry.invalidateAll(rtRef, ctx?.sectionId ?? -1);
       invalidateSessionServerCaches(rtRef);
       result = await repo.recordSuccessfulSync(DateTime.now());
@@ -98,7 +98,7 @@ class SyncController extends AutoDisposeNotifier<SyncControllerState> {
 }
 
 final syncControllerProvider =
-    AutoDisposeNotifierProvider<SyncController, SyncControllerState>(
+    NotifierProvider.autoDispose<SyncController, SyncControllerState>(
   SyncController.new,
 );
 
@@ -119,7 +119,7 @@ class ClearCacheState {
         errorMessage = null;
 }
 
-class ClearCacheController extends AutoDisposeNotifier<ClearCacheState> {
+class ClearCacheController extends Notifier<ClearCacheState> {
   @override
   ClearCacheState build() => const ClearCacheState.idle();
 
@@ -134,7 +134,7 @@ class ClearCacheController extends AutoDisposeNotifier<ClearCacheState> {
         await repo.clearAllData();
         ref.read(jsonFileCacheProvider).resetSession();
         final rtRef = RealtimeRef.fromRef(ref);
-        final ctx = ref.read(clubContextProvider).valueOrNull;
+        final ctx = ref.read(clubContextProvider).value;
         RealtimeResourceRegistry.invalidateAll(rtRef, ctx?.sectionId ?? -1);
         invalidateSessionServerCaches(rtRef);
       }
@@ -149,6 +149,6 @@ class ClearCacheController extends AutoDisposeNotifier<ClearCacheState> {
 }
 
 final clearCacheControllerProvider =
-    AutoDisposeNotifierProvider<ClearCacheController, ClearCacheState>(
+    NotifierProvider.autoDispose<ClearCacheController, ClearCacheState>(
   ClearCacheController.new,
 );

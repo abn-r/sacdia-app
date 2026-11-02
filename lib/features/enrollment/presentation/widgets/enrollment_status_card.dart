@@ -33,7 +33,7 @@ class EnrollmentStatusCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final enrollmentAsync = ref.watch(currentEnrollmentProvider);
     final clubContextAsync = ref.watch(clubContextProvider);
-    final user = ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
+    final user = ref.watch(authNotifierProvider.select((v) => v.value));
     final acting = ref.watch(actingDependentProvider) != null;
     // The club's yearly enrollment is staff business: a supervised teen or a
     // guardian viewing as a minor can't act on it, so the banner is noise.

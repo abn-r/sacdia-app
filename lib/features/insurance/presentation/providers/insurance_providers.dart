@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../providers/dio_provider.dart';
@@ -225,7 +226,7 @@ class InsuranceSummary {
 
 final insuranceSummaryProvider = Provider.autoDispose<InsuranceSummary?>((ref) {
   final itemsAsync = ref.watch(membersInsuranceProvider);
-  return itemsAsync.valueOrNull?.let((items) {
+  return itemsAsync.value?.let((items) {
     return InsuranceSummary(
       total: items.length,
       asegurados:
@@ -275,7 +276,7 @@ class InsuranceFormState {
 }
 
 /// Notifier para el formulario de registro/edición de seguro.
-class InsuranceFormNotifier extends AutoDisposeNotifier<InsuranceFormState> {
+class InsuranceFormNotifier extends Notifier<InsuranceFormState> {
   @override
   InsuranceFormState build() => const InsuranceFormState();
 

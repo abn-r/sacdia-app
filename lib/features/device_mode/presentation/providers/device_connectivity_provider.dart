@@ -16,4 +16,4 @@ final deviceOnlineProvider = StreamProvider.autoDispose<bool>((ref) async* {
 });
 
 /// `true` salvo que se sepa que NO hay red (mientras carga se asume que sí).
-bool isDeviceOnline(AsyncValue<bool> value) => value.valueOrNull ?? true;
+bool isDeviceOnline(AsyncValue<bool> value) => value.value ?? true;

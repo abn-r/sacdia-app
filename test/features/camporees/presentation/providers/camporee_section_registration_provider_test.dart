@@ -362,9 +362,7 @@ void main() {
         const RegisterCamporeeSectionState.failure(failure),
       );
       expect(
-        container
-            .read(camporeeSectionRegistrationProvider(_camporeeId))
-            .valueOrNull,
+        container.read(camporeeSectionRegistrationProvider(_camporeeId)).value,
         contextualData,
       );
       expect(repository.contextualCalls, contextualCallsBeforeMutation);

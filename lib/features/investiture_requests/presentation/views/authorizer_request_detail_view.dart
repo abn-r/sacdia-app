@@ -151,7 +151,7 @@ class _AuthorizerRequestDetailViewState
     final requestAsync = ref.watch(authorizerRequestProvider(_requestId));
     // Mantiene vivo el notifier mientras exista la pantalla.
     final busy = ref.watch(resolveNotifierProvider(_requestId)).isLoading;
-    final request = requestAsync.valueOrNull;
+    final request = requestAsync.value;
 
     return Scaffold(
       extendBodyBehindAppBar: true,

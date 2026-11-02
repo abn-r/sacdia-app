@@ -110,7 +110,7 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
 
   Future<void> _uploadPhoto(String filePath) async {
     final authState = ref.read(authNotifierProvider);
-    final user = authState.valueOrNull;
+    final user = authState.value;
     if (user == null) return;
 
     final success =

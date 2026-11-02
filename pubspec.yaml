@@ -32,7 +32,7 @@ dependencies:
   gal: ^2.3.0  # Guardar QR en galería desde long-press
 
   # Gestión de estado
-  flutter_riverpod: ^2.6.1
+  flutter_riverpod: '>=3.0.0 <3.4.1'
 
   # HTTP Client
   dio: ^5.8.0+1

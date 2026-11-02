@@ -31,7 +31,7 @@ class ClassModulesView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final modulesAsync = ref.watch(classModulesProvider(classId));
     final userId = ref.watch(
-      authNotifierProvider.select((v) => v.valueOrNull?.id),
+      authNotifierProvider.select((v) => v.value?.id),
     );
 
     return Scaffold(

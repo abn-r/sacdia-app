@@ -6,7 +6,6 @@ import 'package:sacdia_app/core/auth/social_credential.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/notifications/push_notification_provider.dart';
 import 'package:sacdia_app/core/notifications/push_notification_service.dart';
-// ignore: unnecessary_import
 import 'package:sacdia_app/core/providers/riverpod_aliases.dart';
 import 'package:sacdia_app/core/storage/secure_storage.dart';
 import 'package:sacdia_app/core/storage/image_cache_purge.dart';
@@ -179,6 +178,7 @@ Future<ProviderContainer> buildAuthContainer({
   required AuthRepository repo,
   FakeSecureStorage? storage,
   SharedPreferences? prefs,
+  Future<void> Function()? imageCachePurger,
   List<Override> extraOverrides = const [],
 }) async {
   final resolvedPrefs = prefs ??
@@ -197,7 +197,8 @@ Future<ProviderContainer> buildAuthContainer({
         (ref) => FakePushNotificationService(ref: ref, prefs: resolvedPrefs),
       ),
       // Sin esto la purga de imágenes crea el CacheManager real (path_provider).
-      imageCachePurgerProvider.overrideWithValue(() async {}),
+      imageCachePurgerProvider
+          .overrideWithValue(imageCachePurger ?? () async {}),
       ...extraOverrides,
     ],
   );

@@ -159,7 +159,7 @@ class ClassCounselorAssignmentsView extends ConsumerWidget {
     final actionState = ref.watch(
       classCounselorAssignmentsNotifierProvider(query),
     );
-    final user = ref.watch(authNotifierProvider).valueOrNull;
+    final user = ref.watch(authNotifierProvider).value;
     final canAssign = hasAnyPermission(user, const {'club_roles:assign'});
     final canRevoke = hasAnyPermission(user, const {'club_roles:revoke'});
 
@@ -228,9 +228,8 @@ class ClassCounselorAssignmentsView extends ConsumerWidget {
     ClassCounselorAssignment? initialAssignment,
   }) async {
     final isEditing = initialAssignment != null;
-    final classes = classesAsync?.valueOrNull ?? const <ProgressiveClass>[];
-    final candidates = (membersAsync.valueOrNull?.members ??
-            const <ClubMember>[])
+    final classes = classesAsync?.value ?? const <ProgressiveClass>[];
+    final candidates = (membersAsync.value?.members ?? const <ClubMember>[])
         .where(_isAssignableResponsible)
         .toList()
       ..sort((a, b) => a.fullName.compareTo(b.fullName));

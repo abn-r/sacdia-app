@@ -67,18 +67,22 @@ class CatalogState extends Equatable {
 ///
 /// La primera carga se dispara automáticamente en [build].
 /// Llama [loadMore] para añadir la siguiente página.
-class CatalogNotifier
-    extends AutoDisposeFamilyAsyncNotifier<CatalogState, CatalogQuery> {
+class CatalogNotifier extends AsyncNotifier<CatalogState> {
+  CatalogNotifier(this.arg);
+
+  final CatalogQuery arg;
+
   static const _pageSize = 20;
 
   @override
-  Future<CatalogState> build(CatalogQuery query) async {
+  Future<CatalogState> build() async {
+    final query = arg;
     return _fetchPage(query: query, page: 1, existing: const []);
   }
 
   /// Carga la siguiente página y la añade a los items existentes.
   Future<void> loadMore() async {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null || !current.hasMore || current.isLoadingMore) return;
 
     state = AsyncData(current.copyWith(isLoadingMore: true));

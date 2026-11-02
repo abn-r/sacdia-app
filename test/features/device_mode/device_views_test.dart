@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
-// ignore: unnecessary_import
 import 'package:sacdia_app/core/providers/riverpod_aliases.dart';
 import 'package:sacdia_app/core/widgets/evidence_staging/evidence_staging_manager.dart';
 import 'package:sacdia_app/features/activities/domain/entities/activity.dart';
@@ -47,9 +46,10 @@ class _FakeQr extends QrMemberTokenNotifier {
 }
 
 class _FakeRequirementNotifier extends RequirementNotifier {
+  _FakeRequirementNotifier(super.arg);
+
   @override
-  RequirementOperationState build(ClassProgressQuery arg) =>
-      const RequirementOperationState();
+  RequirementOperationState build() => const RequirementOperationState();
 
   void emit(RequirementOperationState next) => state = next;
 }
@@ -69,6 +69,8 @@ void main() {
     FakeDeviceAuth? authOverride,
     int? clubId = 7,
     PendingClubMembership? pending,
+    void Function()? onClassesLoad,
+    Future<ClassWithProgress> Function()? classDetail,
   }) {
     auth = authOverride ??
         FakeDeviceAuth(
@@ -77,6 +79,7 @@ void main() {
     return [
       authNotifierProvider.overrideWith(() => auth),
       userClassesProvider.overrideWith((ref) async {
+        onClassesLoad?.call();
         if (classesError != null) throw classesError;
         return classes;
       }),
@@ -92,8 +95,10 @@ void main() {
           ],
         ),
       ),
-      classWithProgressProvider
-          .overrideWith((ref, query) async => classWithProgress()),
+      classWithProgressProvider.overrideWith(
+        (ref, query) async =>
+            classDetail != null ? classDetail() : classWithProgress(),
+      ),
       qrMemberTokenProvider.overrideWith(() => _FakeQr(fail: qrFails)),
       deviceOnlineProvider.overrideWith((ref) => Stream.value(online)),
     ];
@@ -149,10 +154,7 @@ void main() {
     addTearDown(tester.view.reset);
     await pumpFamilyApp(
       tester,
-      overrides: [
-        ...base(),
-        classWithProgressProvider.overrideWith((ref, query) => pending.future),
-      ],
+      overrides: base(classDetail: () => pending.future),
       routes: [GoRoute(path: '/', builder: (_, __) => view)],
     );
     await tester.pump();
@@ -178,13 +180,7 @@ void main() {
       await pump(
         tester,
         const DeviceHomeView(),
-        overrides: [
-          ...base(),
-          userClassesProvider.overrideWith((ref) async {
-            loads++;
-            return const [mathClass];
-          }),
-        ],
+        overrides: base(onClassesLoad: () => loads++),
       );
       expect(loads, 1);
 
@@ -411,18 +407,15 @@ void main() {
     });
 
     testWidgets("the reviewer's observation is shown", (tester) async {
-      final overrides = base()
-        ..add(
-          classWithProgressProvider.overrideWith(
-            (ref, query) async => classWithProgress(requirements: [
-              requirement(
-                10,
-                status: RequirementStatus.observado,
-                observation: 'Falta la foto del cuaderno',
-              ),
-            ]),
+      final overrides = base(
+        classDetail: () async => classWithProgress(requirements: [
+          requirement(
+            10,
+            status: RequirementStatus.observado,
+            observation: 'Falta la foto del cuaderno',
           ),
-        );
+        ]),
+      );
       await pump(
         tester,
         const DeviceRequirementView(
@@ -448,7 +441,7 @@ void main() {
           overrides: [
             ...base(),
             requirementNotifierProvider
-                .overrideWith(_FakeRequirementNotifier.new),
+                .overrideWith2(_FakeRequirementNotifier.new),
           ],
         );
         final container = ProviderScope.containerOf(

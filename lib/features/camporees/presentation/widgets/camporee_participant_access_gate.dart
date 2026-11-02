@@ -14,13 +14,13 @@ import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_sect
 
 /// Sólo un valor resuelto exitosamente puede abrir la frontera.
 ///
-/// No usa `valueOrNull`: durante refresh/error Riverpod puede conservar un
+/// No usa `value`: durante refresh/error Riverpod puede conservar un
 /// valor anterior y ese dato obsoleto no debe sostener acciones de mutación.
 bool camporeeParticipantsAreEnabled(
   AsyncValue<CamporeeSectionRegistration> registrationAsync,
 ) {
   if (registrationAsync.isLoading || registrationAsync.hasError) return false;
-  return registrationAsync.valueOrNull?.enablesParticipants ?? false;
+  return registrationAsync.value?.enablesParticipants ?? false;
 }
 
 /// Autoridad exacta para mutar participantes del Camporí.
@@ -46,7 +46,7 @@ bool canRemoveCamporeeParticipants(
 ) {
   return _activeCamporeeGrant(registrationAsync, authAsync) != null &&
       hasAnyPermission(
-        authAsync.valueOrNull,
+        authAsync.value,
         const {'attendance:manage'},
       );
 }
@@ -61,8 +61,8 @@ AuthorizationGrant? _activeCamporeeGrant(
     return null;
   }
 
-  final registration = registrationAsync.valueOrNull;
-  final authorization = authAsync.valueOrNull?.authorization;
+  final registration = registrationAsync.value;
+  final authorization = authAsync.value?.authorization;
   final activeGrant = authorization?.activeGrant;
   if (registration == null ||
       activeGrant == null ||
@@ -110,7 +110,7 @@ class CamporeeParticipantAccessGate extends StatelessWidget {
                 registrationAsync.stackTrace!,
               )
             : registrationAsync;
-    final registration = displayAsync.valueOrNull;
+    final registration = displayAsync.value;
 
     return Center(
       child: SingleChildScrollView(

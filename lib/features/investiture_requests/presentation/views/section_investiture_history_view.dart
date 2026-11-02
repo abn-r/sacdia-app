@@ -45,7 +45,7 @@ class _SectionInvestitureHistoryViewState
   Widget build(BuildContext context) {
     final c = context.sac;
     final clubAsync = ref.watch(clubContextProvider);
-    final club = clubAsync.valueOrNull;
+    final club = clubAsync.value;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -145,7 +145,7 @@ class _Body extends ConsumerWidget {
     );
 
     Widget content;
-    if (loading.valueOrNull == null) {
+    if (loading.value == null) {
       if (loading.hasError) {
         content = SizedBox(
           height: 360,
@@ -188,7 +188,7 @@ class _Body extends ConsumerWidget {
 
 /// Nombre del año eclesiástico del catálogo; respaldo neutro si no está.
 String _yearLabel(WidgetRef ref, int yearId) {
-  final years = ref.watch(ecclesiasticalYearsProvider(null)).valueOrNull;
+  final years = ref.watch(ecclesiasticalYearsProvider(null)).value;
   if (years != null) {
     for (final year in years) {
       if (year.ecclesiasticalYearId == yearId && year.name.trim().isNotEmpty) {

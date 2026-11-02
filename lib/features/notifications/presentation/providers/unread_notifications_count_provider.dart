@@ -37,8 +37,7 @@ class UnreadNotificationsCountNotifier extends Notifier<int> {
   /// tipo desconocido): el servidor le niega el inbox con 403
   /// `PRINCIPAL_SCOPE_DENIED` y solo se generaría ruido.
   Future<void> refresh() async {
-    if (ref.read(authNotifierProvider).valueOrNull?.isRestrictedAccount ??
-        false) {
+    if (ref.read(authNotifierProvider).value?.isRestrictedAccount ?? false) {
       return;
     }
     final result = await _repository.getUnreadCount();

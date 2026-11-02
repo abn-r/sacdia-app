@@ -77,7 +77,7 @@ class UploadReceiptState {
 /// Notifier que maneja la subida de un comprobante de pago.
 ///
 /// Expone el progreso de upload (0.0–1.0) para mostrar una barra de progreso.
-class UploadReceiptNotifier extends AutoDisposeNotifier<UploadReceiptState> {
+class UploadReceiptNotifier extends Notifier<UploadReceiptState> {
   @override
   UploadReceiptState build() => const UploadReceiptState();
 
@@ -114,5 +114,5 @@ class UploadReceiptNotifier extends AutoDisposeNotifier<UploadReceiptState> {
 }
 
 final uploadReceiptNotifierProvider =
-    AutoDisposeNotifierProvider<UploadReceiptNotifier, UploadReceiptState>(
+    NotifierProvider.autoDispose<UploadReceiptNotifier, UploadReceiptState>(
         UploadReceiptNotifier.new);

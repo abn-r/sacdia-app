@@ -375,7 +375,7 @@ void main() {
       expect(_sentinelBuilds, greaterThan(before),
           reason: 'the device profile cache did not survive the logout');
       // Ya sin sesión, el login de cuentas no hereda nada del niño.
-      expect(app.container.read(authNotifierProvider).valueOrNull, isNull);
+      expect(app.container.read(authNotifierProvider).value, isNull);
       expect(location(app.router), isNot(RouteNames.deviceHome));
     });
   });

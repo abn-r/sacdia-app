@@ -44,7 +44,7 @@ class OwnInvestitureView extends ConsumerWidget {
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) {
-            final history = historyAsync.valueOrNull;
+            final history = historyAsync.value;
             if (history == null) {
               if (historyAsync.hasError) {
                 return Padding(

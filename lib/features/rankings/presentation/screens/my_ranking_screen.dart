@@ -39,7 +39,7 @@ class MyRankingScreen extends ConsumerWidget {
     // required permission (e.g., via a push notification link or direct URL),
     // show a friendly empty state instead of a raw 403 from the backend.
     final user = ref.watch(
-      authNotifierProvider.select((v) => v.valueOrNull),
+      authNotifierProvider.select((v) => v.value),
     );
     if (!canViewMyRanking(user)) {
       return Scaffold(

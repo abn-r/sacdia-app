@@ -84,12 +84,12 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
     final auth = ref.read(authNotifierProvider);
     if (clubAsync.isLoading || auth.isLoading) return;
 
-    final user = auth.valueOrNull;
+    final user = auth.value;
     final visible = _filterUnitsByRole(
       state.units,
       hasAnyPermission(user, const {'units:create'}),
       user?.id,
-      clubAsync.valueOrNull?.sectionId,
+      clubAsync.value?.sectionId,
     );
     if (visible.length != 1) return;
 
@@ -139,9 +139,9 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
     // Resolve club context for role-based features (non-blocking — async)
     final clubContextAsync = ref.watch(clubContextProvider);
     final authAsync = ref.watch(authNotifierProvider);
-    final currentUser = authAsync.valueOrNull;
+    final currentUser = authAsync.value;
 
-    final sectionId = clubContextAsync.valueOrNull?.sectionId;
+    final sectionId = clubContextAsync.value?.sectionId;
     final userId = currentUser?.id;
     final canManage = hasAnyPermission(currentUser, const {'units:update'});
     final canCreate = hasAnyPermission(currentUser, const {'units:create'});

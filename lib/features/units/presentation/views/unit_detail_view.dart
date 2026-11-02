@@ -180,7 +180,7 @@ class UnitDetailView extends ConsumerWidget {
   }
 
   bool _canRegisterPoints(WidgetRef ref, Unit unit) {
-    final user = ref.watch(authNotifierProvider).valueOrNull;
+    final user = ref.watch(authNotifierProvider).value;
     return canRegisterUnitPoints(user, unit);
   }
 
@@ -348,7 +348,7 @@ class _WeekActivitiesBanner extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.sac;
-    final ctx = ref.watch(clubContextProvider).valueOrNull;
+    final ctx = ref.watch(clubContextProvider).value;
     if (ctx == null) return const SizedBox.shrink();
 
     final activitiesAsync = ref.watch(

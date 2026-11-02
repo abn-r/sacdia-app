@@ -41,7 +41,7 @@ final notificationPreferencesRepositoryProvider =
 /// - [update] aplica optimistic update: actualiza UI inmediatamente, llama PATCH
 ///   al backend y revierte si falla.
 class NotificationPreferencesNotifier
-    extends AutoDisposeAsyncNotifier<NotificationPreferences> {
+    extends AsyncNotifier<NotificationPreferences> {
   static const _tag = 'NotifPrefsNotifier';
 
   @override
@@ -78,7 +78,7 @@ class NotificationPreferencesNotifier
   ///
   /// Retorna null en éxito o un mensaje de error localizado.
   Future<String?> patch(Map<String, bool> delta) async {
-    final previous = state.valueOrNull;
+    final previous = state.value;
     if (previous == null) {
       return 'profile.notification_preferences.errors.no_prefs_loaded'.tr();
     }

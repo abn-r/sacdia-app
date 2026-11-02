@@ -461,7 +461,7 @@ class _NoFolderBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.sac;
-    final user = ref.watch(authNotifierProvider).valueOrNull;
+    final user = ref.watch(authNotifierProvider).value;
     final canCreate = hasAnyPermission(user, {'evidence_folders:update'});
     final creationState =
         ref.watch(evidenceFolderCreationNotifierProvider(clubSectionId));
@@ -474,7 +474,7 @@ class _NoFolderBody extends ConsumerWidget {
         ? ref.watch(evidenceFolderTemplateAvailabilityProvider(clubSectionId))
         : null;
     final isCheckingTemplate = availabilityAsync?.isLoading ?? false;
-    final availability = availabilityAsync?.valueOrNull;
+    final availability = availabilityAsync?.value;
     final templateMissing = availability != null && !availability.isAvailable;
     final showCreate = canCreate && !isCheckingTemplate && !templateMissing;
 

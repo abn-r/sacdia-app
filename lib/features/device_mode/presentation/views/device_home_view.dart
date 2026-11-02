@@ -65,7 +65,7 @@ class _DeviceHomeViewState extends ConsumerState<DeviceHomeView>
   /// tragan aquí: la tarjeta de cada bloque ya los muestra, y un 401 lo
   /// resuelve el interceptor de sesión.
   Future<void> _reload() async {
-    final clubId = ref.read(authNotifierProvider).valueOrNull?.deviceClubId;
+    final clubId = ref.read(authNotifierProvider).value?.deviceClubId;
     ref.invalidate(userClassesProvider);
     ref.invalidate(qrMemberTokenProvider);
     final pending = <Future<Object?>>[
@@ -87,7 +87,7 @@ class _DeviceHomeViewState extends ConsumerState<DeviceHomeView>
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final user = ref.watch(authNotifierProvider).valueOrNull;
+    final user = ref.watch(authNotifierProvider).value;
     final name = (user?.name ?? '').trim();
     final label = user?.principal?.device?.label;
     final classes = ref.watch(userClassesProvider);
@@ -258,7 +258,7 @@ class _NextActivityCard extends ConsumerWidget {
     final activities = ref.watch(
       clubActivitiesProvider(ClubActivitiesParams(clubId: clubId)),
     );
-    final list = activities.valueOrNull;
+    final list = activities.value;
     final Activity? next =
         list == null ? null : nextUpcomingActivity(list, DateTime.now());
     return SacCard(

@@ -36,7 +36,7 @@ class SectionRankingScreen extends ConsumerWidget {
     final ctxAsync = ref.watch(clubContextProvider);
     final authView = ref.watch(
       authNotifierProvider.select(
-        (value) => (isLoading: value.isLoading, user: value.valueOrNull),
+        (value) => (isLoading: value.isLoading, user: value.value),
       ),
     );
 
@@ -65,7 +65,7 @@ class SectionRankingScreen extends ConsumerWidget {
                     reason: RankingEmptyReason.noData);
               }
 
-              final ctx = ctxAsync.valueOrNull;
+              final ctx = ctxAsync.value;
               final user = authView.user;
               if (ctx == null || !canViewSectionRankings(user)) {
                 if (ctxAsync.isLoading || authView.isLoading) {

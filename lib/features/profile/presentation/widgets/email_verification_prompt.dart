@@ -72,7 +72,7 @@ class _EmailVerificationPromptState
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(
-      authNotifierProvider.select((value) => value.valueOrNull),
+      authNotifierProvider.select((value) => value.value),
     );
     final email = user?.email;
     if (user == null || email == null || !user.needsEmailVerification) {

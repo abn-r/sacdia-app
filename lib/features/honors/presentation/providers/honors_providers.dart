@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/widgets/instructor_selection.dart';
@@ -206,8 +207,8 @@ final sectionScopedUserHonorsProvider =
     );
   }
 
-  final activeClubTypeId = activeClubTypeAsync.valueOrNull;
-  final userHonors = userHonorsAsync.valueOrNull ?? const <UserHonor>[];
+  final activeClubTypeId = activeClubTypeAsync.value;
+  final userHonors = userHonorsAsync.value ?? const <UserHonor>[];
   if (activeClubTypeId == null) return AsyncValue.data(userHonors);
 
   return AsyncValue.data(
@@ -276,7 +277,7 @@ final honorsGroupedByCategoryProvider =
 });
 
 /// Notifier para manejar inscripciones en especialidades
-class HonorEnrollmentNotifier extends AutoDisposeAsyncNotifier<UserHonor?> {
+class HonorEnrollmentNotifier extends AsyncNotifier<UserHonor?> {
   @override
   Future<UserHonor?> build() async => null;
 
@@ -303,7 +304,7 @@ final honorEnrollmentNotifierProvider =
 
 // ── Honor evidence actions ──────────────────────────────────────────────────
 
-class HonorEvidenceActionsNotifier extends AutoDisposeAsyncNotifier<void> {
+class HonorEvidenceActionsNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
@@ -426,7 +427,7 @@ final honorEvidenceActionsNotifierProvider =
 ///
 /// On success it waits for the refreshed list, so the card swaps straight to
 /// the new state. Both methods return null when done, or why they were not.
-class InstructorProposalActionsNotifier extends AutoDisposeAsyncNotifier<void> {
+class InstructorProposalActionsNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
@@ -472,16 +473,19 @@ class InstructorProposalActionsNotifier extends AutoDisposeAsyncNotifier<void> {
 }
 
 final instructorProposalActionsNotifierProvider =
-    AutoDisposeAsyncNotifierProvider<InstructorProposalActionsNotifier, void>(
+    AsyncNotifierProvider.autoDispose<InstructorProposalActionsNotifier, void>(
   InstructorProposalActionsNotifier.new,
 );
 
 // ── Requirement evidence actions ───────────────────────────────────────────
 
-class RequirementEvidenceActionsNotifier
-    extends AutoDisposeFamilyAsyncNotifier<void, int> {
+class RequirementEvidenceActionsNotifier extends AsyncNotifier<void> {
+  RequirementEvidenceActionsNotifier(this.arg);
+
+  final int arg;
+
   @override
-  Future<void> build(int arg) async {}
+  Future<void> build() async {}
 
   Future<bool> uploadRequirementEvidence({
     required String userId,
@@ -562,8 +566,7 @@ UserHonor _userHonorWithCompletionMode(
 final honorCompletionModeOverrideProvider =
     StateProvider<Map<int, UserHonor>>((ref) => const <int, UserHonor>{});
 
-class HonorCompletionModeActionsNotifier
-    extends AutoDisposeAsyncNotifier<UserHonor?> {
+class HonorCompletionModeActionsNotifier extends AsyncNotifier<UserHonor?> {
   @override
   Future<UserHonor?> build() async => null;
 
@@ -618,7 +621,7 @@ final honorCompletionModeActionsNotifierProvider = AsyncNotifierProvider
 /// The backend only deactivates the enrollment and rejects honors that are
 /// under review or already approved, so callers gate the action with
 /// [UserHonor.canAbandon].
-class HonorAbandonActionsNotifier extends AutoDisposeAsyncNotifier<void> {
+class HonorAbandonActionsNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
@@ -688,8 +691,7 @@ class HonorRegistrationState {
 }
 
 /// Notifier para manejar el registro completo de especialidades
-class HonorRegistrationNotifier
-    extends AutoDisposeNotifier<HonorRegistrationState> {
+class HonorRegistrationNotifier extends Notifier<HonorRegistrationState> {
   @override
   HonorRegistrationState build() => const HonorRegistrationState();
 
@@ -740,7 +742,7 @@ final userHonorForHonorProvider =
     Provider.autoDispose.family<UserHonor?, int>((ref, honorId) {
   final userHonor = ref
       .watch(sectionScopedUserHonorsProvider)
-      .valueOrNull
+      .value
       ?.where((h) => h.honorId == honorId)
       .firstOrNull;
 
@@ -869,7 +871,7 @@ final filteredHonorsProvider =
   }
 
   return allHonorsAsync.whenData((honors) {
-    final activeClubTypeId = activeClubTypeAsync.valueOrNull;
+    final activeClubTypeId = activeClubTypeAsync.value;
     final byClubType = activeClubTypeId == null
         ? honors
         : honors
@@ -918,8 +920,8 @@ final honorsWithStatusProvider = Provider.autoDispose<
         userHonorsAsync.error!, userHonorsAsync.stackTrace!);
   }
 
-  final honors = filteredAsync.valueOrNull ?? [];
-  final userHonors = userHonorsAsync.valueOrNull ?? [];
+  final honors = filteredAsync.value ?? [];
+  final userHonors = userHonorsAsync.value ?? [];
 
   final result = honors.map((honor) {
     final uh = userHonors.cast<UserHonor?>().firstWhere(
@@ -1022,17 +1024,21 @@ final honorProgressStatsProvider =
 /// Notifier para manejar actualizaciones de progreso de requisitos.
 ///
 /// Keyed por honorId para invalidar el provider de progreso correcto.
-class RequirementProgressNotifier extends AutoDisposeFamilyAsyncNotifier<
-    List<UserHonorRequirementProgress>?, int> {
+class RequirementProgressNotifier
+    extends AsyncNotifier<List<UserHonorRequirementProgress>?> {
+  RequirementProgressNotifier(this.arg);
+
+  final int arg;
+
   @override
-  Future<List<UserHonorRequirementProgress>?> build(int arg) async => null;
+  Future<List<UserHonorRequirementProgress>?> build() async => null;
 
   /// Actualiza el progreso de múltiples requisitos en una sola operación.
   /// Invalida [userHonorProgressProvider] en caso de éxito.
   Future<bool> bulkUpdate(List<Map<String, dynamic>> updates) async {
     state = const AsyncValue.loading();
 
-    final userId = ref.read(authNotifierProvider).valueOrNull?.id;
+    final userId = ref.read(authNotifierProvider).value?.id;
     if (userId == null) {
       state = AsyncValue.error(
           tr('errors.user_not_authenticated'), StackTrace.current);
@@ -1065,6 +1071,4 @@ class RequirementProgressNotifier extends AutoDisposeFamilyAsyncNotifier<
 /// Es autoDispose.family keyed por honorId.
 final requirementProgressNotifierProvider = AsyncNotifierProvider.autoDispose
     .family<RequirementProgressNotifier, List<UserHonorRequirementProgress>?,
-        int>(() {
-  return RequirementProgressNotifier();
-});
+        int>(RequirementProgressNotifier.new);

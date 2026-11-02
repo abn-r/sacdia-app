@@ -111,7 +111,7 @@ class _ResourceCardState extends ConsumerState<ResourceCard> {
         : null;
     final imageUrl = (cachedSigned != null && cachedSigned.isNotEmpty)
         ? cachedSigned
-        : fetched?.valueOrNull;
+        : fetched?.value;
     final videoThumb = videoPreviewUrl(resource.externalUrl);
 
     return Semantics(

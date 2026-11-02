@@ -84,7 +84,7 @@ final ownInvestitureHistoryProvider =
 /// reciente); `null` mientras carga, si falla o si no hay nada que mostrar.
 final ownInvestitureEntryForClassProvider =
     Provider.autoDispose.family<OwnInvestitureEntry?, int>((ref, classId) {
-  final history = ref.watch(ownInvestitureHistoryProvider).valueOrNull;
+  final history = ref.watch(ownInvestitureHistoryProvider).value;
   if (history == null) return null;
   return selectOwnEntryForClass(history, classId);
 });
@@ -116,7 +116,7 @@ final sectionYearbookProvider = FutureProvider.autoDispose
 /// sección no aparece en el mapa y la vista usa un nombre neutro.
 final sectionPeopleNamesProvider =
     Provider.autoDispose<Map<String, String>>((ref) {
-  final members = ref.watch(membersNotifierProvider).valueOrNull?.members;
+  final members = ref.watch(membersNotifierProvider).value?.members;
   if (members == null) return const {};
   return {
     for (final member in members)
@@ -181,10 +181,13 @@ class RequestActionState extends Equatable {
 
 /// Base de los notifiers de escritura de la directiva: ejecuta [run], publica
 /// loading/success/error e invalida las lecturas de la sección si salió bien.
-abstract class _SectionActionNotifier
-    extends AutoDisposeFamilyNotifier<RequestActionState, SectionYearQuery> {
+abstract class _SectionActionNotifier extends Notifier<RequestActionState> {
+  _SectionActionNotifier(this.arg);
+
+  final SectionYearQuery arg;
+
   @override
-  RequestActionState build(SectionYearQuery arg) => const RequestActionState();
+  RequestActionState build() => const RequestActionState();
 
   InvestitureRequestsRepository get _repo =>
       ref.read(investitureRequestsRepositoryProvider);
@@ -211,6 +214,8 @@ abstract class _SectionActionNotifier
 
 /// Presenta personas en una solicitud nueva.
 class PresentNotifier extends _SectionActionNotifier {
+  PresentNotifier(super.arg);
+
   Future<bool> submit({
     required DateTime investitureDate,
     required List<int> enrollmentIds,
@@ -227,6 +232,8 @@ class PresentNotifier extends _SectionActionNotifier {
 
 /// Agrega personas a la solicitud abierta.
 class AddPeopleNotifier extends _SectionActionNotifier {
+  AddPeopleNotifier(super.arg);
+
   Future<bool> submit({
     required String requestId,
     required DateTime investitureDate,
@@ -243,6 +250,8 @@ class AddPeopleNotifier extends _SectionActionNotifier {
 
 /// Quita a una persona pendiente (sin correo).
 class RemovePersonNotifier extends _SectionActionNotifier {
+  RemovePersonNotifier(super.arg);
+
   Future<bool> submit({
     required String requestId,
     required String personId,
@@ -254,6 +263,8 @@ class RemovePersonNotifier extends _SectionActionNotifier {
 
 /// Cambia la fecha de las personas pendientes seleccionadas.
 class ChangeDatesNotifier extends _SectionActionNotifier {
+  ChangeDatesNotifier(super.arg);
+
   Future<bool> submit({
     required String requestId,
     required DateTime investitureDate,
@@ -316,9 +327,13 @@ class ResolveState extends Equatable {
 
 /// Confirma las decisiones del autorizador sobre una solicitud (family por
 /// `requestId`).
-class ResolveNotifier extends AutoDisposeFamilyNotifier<ResolveState, String> {
+class ResolveNotifier extends Notifier<ResolveState> {
+  ResolveNotifier(this.arg);
+
+  final String arg;
+
   @override
-  ResolveState build(String arg) => const ResolveState();
+  ResolveState build() => const ResolveState();
 
   Future<bool> submit({
     List<InvestDecision> invest = const [],

@@ -70,15 +70,14 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
       ref.listen<AsyncValue<PersonalInfoSnapshot?>>(
         personalInfoSnapshotProvider,
         (_, next) {
-          final snapshot = next.valueOrNull;
+          final snapshot = next.value;
           if (snapshot != null) _seedPersonalInfo(snapshot);
         },
       );
       ref.watch(personalInfoSnapshotProvider);
     }
 
-    final authUser =
-        ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
+    final authUser = ref.watch(authNotifierProvider.select((v) => v.value));
     final formState = ref.watch(personalInfoFormProvider);
     final contactsAsync = ref.watch(emergencyContactsProvider);
     final selectedAllergies = ref.watch(selectedAllergiesProvider);
@@ -102,15 +101,14 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
     final userMedicinesAsync =
         canReadHealth ? ref.watch(userMedicinesProvider) : null;
     final healthNone = canReadHealth
-        ? ref.watch(healthNoneStateProvider).valueOrNull ??
-            const HealthNoneState()
+        ? ref.watch(healthNoneStateProvider).value ?? const HealthNoneState()
         : const HealthNoneState();
     final allergiesCount =
-        userAllergiesAsync?.valueOrNull?.length ?? selectedAllergies.length;
+        userAllergiesAsync?.value?.length ?? selectedAllergies.length;
     final diseasesCount =
-        userDiseasesAsync?.valueOrNull?.length ?? selectedDiseases.length;
+        userDiseasesAsync?.value?.length ?? selectedDiseases.length;
     final medicinesCount =
-        userMedicinesAsync?.valueOrNull?.length ?? selectedMedicines.length;
+        userMedicinesAsync?.value?.length ?? selectedMedicines.length;
 
     // Responsive title style — smaller on very small phones
     final titleStyle = Responsive.isSmallPhone(context)
@@ -124,7 +122,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
     // su tutor. Se muestra en solo lectura.
     final birthdayLocked = ref.watch(
       authNotifierProvider.select(
-        (v) => v.valueOrNull?.principal?.kind == PrincipalKind.supervisedUser,
+        (v) => v.value?.principal?.kind == PrincipalKind.supervisedUser,
       ),
     );
 
@@ -309,7 +307,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
               title: tr(
                   'post_registration.personal_info.emergency_contacts.section_title'),
               isCompleted: contactsAsync.hasValue &&
-                  (contactsAsync.valueOrNull?.isNotEmpty ?? false),
+                  (contactsAsync.value?.isNotEmpty ?? false),
             ),
             const SizedBox(height: 8),
             Text(

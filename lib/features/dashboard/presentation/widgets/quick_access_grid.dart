@@ -166,7 +166,7 @@ const _judgeQuickAccessItem = _QuickAccessItemConfig(
 /// Watches the full [AsyncValue] from [authNotifierProvider] to distinguish
 /// three states:
 ///   - loading  → show skeleton placeholders (avoids the flip-flop where
-///                 `valueOrNull == null` while the Future is still in flight)
+///                 `value == null` while the Future is still in flight)
 ///   - data with authorization → filter items by screen catalog and render grid
 ///   - data without authorization (genuinely empty) → SizedBox.shrink()
 class QuickAccessGrid extends ConsumerWidget {
@@ -176,7 +176,7 @@ class QuickAccessGrid extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authView = ref.watch(
       authNotifierProvider.select(
-        (value) => (isLoading: value.isLoading, user: value.valueOrNull),
+        (value) => (isLoading: value.isLoading, user: value.value),
       ),
     );
 

@@ -203,7 +203,7 @@ class _CertificateImportItemEditorSheetState
     final name = typed.isNotEmpty ? typed : (catalogName ?? '');
     final clubName = ref
         .read(clubTypesProvider)
-        .valueOrNull
+        .value
         ?.where((t) => t.clubTypeId == _clubTypeId)
         .map((t) => t.name)
         .firstOrNull;
@@ -302,7 +302,7 @@ class _CertificateImportItemEditorSheetState
   }
 
   Future<void> _pickCategory() async {
-    final categories = ref.read(honorCategoriesProvider).valueOrNull ?? [];
+    final categories = ref.read(honorCategoriesProvider).value ?? [];
     final choice = await showHonorCategoryPicker(
       context,
       categories: categories,

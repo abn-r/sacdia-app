@@ -41,8 +41,7 @@ final activeSessionsRepositoryProvider =
 /// - [refresh] fuerza recarga manual.
 /// - [revoke] aplica optimistic remove + rollback si falla.
 /// - [revokeAllOthers] elimina todas las sesiones excepto la actual.
-class ActiveSessionsNotifier
-    extends AutoDisposeAsyncNotifier<List<ActiveSession>> {
+class ActiveSessionsNotifier extends AsyncNotifier<List<ActiveSession>> {
   static const _tag = 'ActiveSessionsNotifier';
 
   @override
@@ -77,7 +76,7 @@ class ActiveSessionsNotifier
   ///
   /// Retorna null en éxito o un mensaje de error localizado.
   Future<String?> revoke(String sessionId) async {
-    final previous = state.valueOrNull;
+    final previous = state.value;
     if (previous == null) {
       return 'profile.active_sessions.errors.no_sessions_loaded'.tr();
     }
@@ -111,7 +110,7 @@ class ActiveSessionsNotifier
   ///
   /// Retorna el número de sesiones revocadas, o un mensaje de error.
   Future<({int count, String? error})> revokeAllOthers() async {
-    final previous = state.valueOrNull;
+    final previous = state.value;
     if (previous == null) {
       return (
         count: 0,

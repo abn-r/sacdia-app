@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/datasources/personal_info_remote_data_source.dart';
 import '../../data/health_none_disk_cache.dart';
@@ -147,8 +148,7 @@ final healthNoneStateProvider =
   HealthNoneStateNotifier.new,
 );
 
-class HealthNoneStateNotifier
-    extends AutoDisposeAsyncNotifier<HealthNoneState> {
+class HealthNoneStateNotifier extends AsyncNotifier<HealthNoneState> {
   @override
   Future<HealthNoneState> build() async {
     final userId = await ref.watch(
@@ -171,7 +171,7 @@ class HealthNoneStateNotifier
 
   Future<void> setCategory(HealthNoneCategory category, bool value) async {
     final authState = ref.read(authNotifierProvider);
-    final userId = authState.valueOrNull?.id ??
+    final userId = authState.value?.id ??
         await ref.read(authNotifierProvider.future).then((user) => user?.id);
     if (userId == null) return;
 
@@ -236,8 +236,7 @@ final selectedDiseasesProvider =
 /// IMPORTANT: build() is idempotent — it does NOT push to selectedAllergiesProvider.
 /// The view layer must initialize selectedAllergiesProvider from the data returned
 /// here when it first arrives (e.g., via a ref.listen on userAllergiesProvider).
-class UserAllergiesNotifier
-    extends AutoDisposeAsyncNotifier<List<AllergyModel>> {
+class UserAllergiesNotifier extends AsyncNotifier<List<AllergyModel>> {
   @override
   Future<List<AllergyModel>> build() async {
     final userId = await ref.watch(
@@ -257,7 +256,7 @@ class UserAllergiesNotifier
 
     state = await AsyncValue.guard(() async {
       final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
+      final userId = authState.value?.id;
 
       if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
@@ -283,7 +282,7 @@ class UserAllergiesNotifier
 
     state = await AsyncValue.guard(() async {
       final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
+      final userId = authState.value?.id;
 
       if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
@@ -303,7 +302,7 @@ class UserAllergiesNotifier
 
     state = await AsyncValue.guard(() async {
       final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
+      final userId = authState.value?.id;
 
       if (userId == null) return [];
 
@@ -324,8 +323,7 @@ final userAllergiesProvider = AsyncNotifierProvider.autoDispose<
 /// IMPORTANT: build() is idempotent — it does NOT push to selectedDiseasesProvider.
 /// The view layer must initialize selectedDiseasesProvider from the data returned
 /// here when it first arrives (e.g., via a ref.listen on userDiseasesProvider).
-class UserDiseasesNotifier
-    extends AutoDisposeAsyncNotifier<List<DiseaseModel>> {
+class UserDiseasesNotifier extends AsyncNotifier<List<DiseaseModel>> {
   @override
   Future<List<DiseaseModel>> build() async {
     final userId = await ref.watch(
@@ -345,7 +343,7 @@ class UserDiseasesNotifier
 
     state = await AsyncValue.guard(() async {
       final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
+      final userId = authState.value?.id;
 
       if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
@@ -370,7 +368,7 @@ class UserDiseasesNotifier
 
     state = await AsyncValue.guard(() async {
       final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
+      final userId = authState.value?.id;
 
       if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
@@ -390,7 +388,7 @@ class UserDiseasesNotifier
 
     state = await AsyncValue.guard(() async {
       final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
+      final userId = authState.value?.id;
 
       if (userId == null) return [];
 
@@ -424,8 +422,7 @@ final selectedMedicinesProvider =
 /// IMPORTANT: build() is idempotent — it does NOT push to selectedMedicinesProvider.
 /// The view layer must initialize selectedMedicinesProvider from the data returned
 /// here when it first arrives (e.g., via a ref.listen on userMedicinesProvider).
-class UserMedicinesNotifier
-    extends AutoDisposeAsyncNotifier<List<MedicineModel>> {
+class UserMedicinesNotifier extends AsyncNotifier<List<MedicineModel>> {
   @override
   Future<List<MedicineModel>> build() async {
     final userId = await ref.watch(
@@ -445,7 +442,7 @@ class UserMedicinesNotifier
 
     state = await AsyncValue.guard(() async {
       final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
+      final userId = authState.value?.id;
 
       if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
@@ -470,7 +467,7 @@ class UserMedicinesNotifier
 
     state = await AsyncValue.guard(() async {
       final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
+      final userId = authState.value?.id;
 
       if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
@@ -490,7 +487,7 @@ class UserMedicinesNotifier
 
     state = await AsyncValue.guard(() async {
       final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
+      final userId = authState.value?.id;
 
       if (userId == null) return [];
 
@@ -508,7 +505,7 @@ final userMedicinesProvider = AsyncNotifierProvider.autoDispose<
 
 /// Notifier de contactos de emergencia
 class EmergencyContactsNotifier
-    extends AutoDisposeAsyncNotifier<List<EmergencyContactModel>> {
+    extends AsyncNotifier<List<EmergencyContactModel>> {
   @override
   Future<List<EmergencyContactModel>> build() async {
     final userId = await ref.watch(
@@ -540,7 +537,7 @@ class EmergencyContactsNotifier
     state = const AsyncValue.loading();
 
     try {
-      final userId = ref.read(authNotifierProvider).valueOrNull?.id;
+      final userId = ref.read(authNotifierProvider).value?.id;
       if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
@@ -549,7 +546,7 @@ class EmergencyContactsNotifier
     } catch (error) {
       // Restaura la lista previa (si el notifier ya no está montado, no hay
       // nada que restaurar).
-      if (ref.exists(emergencyContactsProvider)) {
+      if (ref.mounted) {
         state = previous.hasValue
             ? AsyncValue.data(previous.requireValue)
             : previous;
@@ -560,7 +557,7 @@ class EmergencyContactsNotifier
 
   /// Agrega un nuevo contacto de emergencia
   Future<void> addContact(EmergencyContactModel contact) {
-    final currentContacts = state.valueOrNull ?? [];
+    final currentContacts = state.value ?? [];
 
     return _mutate((dataSource, userId) async {
       if (currentContacts.length >= 5) {
@@ -588,7 +585,7 @@ class EmergencyContactsNotifier
 
     state = await AsyncValue.guard(() async {
       final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
+      final userId = authState.value?.id;
 
       if (userId == null) return [];
 
@@ -696,7 +693,7 @@ PersonalInfoChanges diffPersonalInfo(
 }
 
 /// Notifier para guardar información personal con loading/error state
-class SavePersonalInfoNotifier extends AutoDisposeAsyncNotifier<void> {
+class SavePersonalInfoNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
@@ -718,7 +715,7 @@ class SavePersonalInfoNotifier extends AutoDisposeAsyncNotifier<void> {
   Future<void> _save() async {
     const tag = 'PersonalInfo';
     final authState = ref.read(authNotifierProvider);
-    final user = authState.valueOrNull;
+    final user = authState.value;
     final userId = user?.id;
 
     if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
@@ -735,7 +732,7 @@ class SavePersonalInfoNotifier extends AutoDisposeAsyncNotifier<void> {
     // envía (solo su tutor puede corregirla).
     final changes = diffPersonalInfo(
       formState,
-      ref.read(personalInfoSnapshotProvider).valueOrNull,
+      ref.read(personalInfoSnapshotProvider).value,
       birthdayLocked: user?.principal?.kind == PrincipalKind.supervisedUser,
     );
     if (!changes.isEmpty) {

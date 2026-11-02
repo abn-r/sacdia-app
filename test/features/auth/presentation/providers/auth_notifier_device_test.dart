@@ -201,7 +201,9 @@ void main() {
 
       expect(error, isNull);
       expect(h.pairing.calls, 1);
-      await Future<void>.delayed(Duration.zero);
+      // Riverpod 3 needs more microtask hops than one event-loop turn for the
+      // purged provider to resolve its auth selector and refetch.
+      await pumpEventQueue();
       expect(h.achievementCalls[0], greaterThan(before),
           reason: 'the mounted registry provider was purged and rebuilt');
       expect(sentinelAtPair, 2,
@@ -216,7 +218,7 @@ void main() {
       expect(await h.storage.read(AppConstants.sessionModeKey), 'device');
       expect(h.container.read(sessionModeProvider), SessionMode.device);
 
-      final user = h.container.read(authNotifierProvider).valueOrNull;
+      final user = h.container.read(authNotifierProvider).value;
       expect(user!.id, 'kid-1');
       expect(user.isLinkedDevice, isTrue);
       expect(h.repo.meCalls, 1, reason: 'one /auth/me, after pairing');
@@ -270,7 +272,7 @@ void main() {
       expect(error, isNot(contains('RAW')));
       expect(await h.storage.contains(AppConstants.tokenKey), isFalse);
       expect(await h.storage.contains(AppConstants.sessionModeKey), isFalse);
-      expect(h.container.read(authNotifierProvider).valueOrNull, isNull);
+      expect(h.container.read(authNotifierProvider).value, isNull);
       expect(h.container.read(sessionModeProvider), SessionMode.account);
     });
 
@@ -312,7 +314,7 @@ void main() {
       expect(await h.storage.contains(AppConstants.refreshTokenKey), isFalse);
       expect(await h.storage.contains(AppConstants.sessionModeKey), isFalse);
       expect(h.container.read(sessionModeProvider), SessionMode.account);
-      expect(h.container.read(authNotifierProvider).valueOrNull, isNull);
+      expect(h.container.read(authNotifierProvider).value, isNull);
     });
 
     test('an empty /auth/me is also rolled back', () async {
@@ -323,7 +325,7 @@ void main() {
 
       expect(error, isNotNull);
       expect(h.repo.signOuts, 1);
-      expect(h.container.read(authNotifierProvider).valueOrNull, isNull);
+      expect(h.container.read(authNotifierProvider).value, isNull);
     });
 
     test('an /auth/me that is not a device principal is rolled back', () async {
@@ -338,7 +340,7 @@ void main() {
       expect(error, isNotNull);
       expect(h.repo.signOuts, 1);
       expect(await h.storage.contains(AppConstants.sessionModeKey), isFalse);
-      expect(h.container.read(authNotifierProvider).valueOrNull, isNull);
+      expect(h.container.read(authNotifierProvider).value, isNull);
     });
 
     test('pairing clears a stale unpaired notice', () async {
@@ -386,7 +388,7 @@ void main() {
         ),
       );
 
-      final user = h.container.read(authNotifierProvider).valueOrNull;
+      final user = h.container.read(authNotifierProvider).value;
       expect(user!.isLinkedDevice, isFalse);
       expect(h.container.read(sessionModeProvider), SessionMode.account);
       await Future<void>.delayed(Duration.zero);
@@ -416,7 +418,7 @@ void main() {
         me: const UserEntity(id: 'kid-1', postRegisterComplete: true),
       );
 
-      final user = h.container.read(authNotifierProvider).valueOrNull!;
+      final user = h.container.read(authNotifierProvider).value!;
       expect(user.mode, AccountMode.restricted);
       expect(user.isLinkedDevice, isFalse);
       expect(user.canIdentifyInAnalytics, isFalse);
@@ -426,7 +428,7 @@ void main() {
       final h = await boot(stored: {AppConstants.sessionModeKey: 'device'});
 
       await Future<void>.delayed(Duration.zero);
-      expect(h.container.read(authNotifierProvider).valueOrNull, isNull);
+      expect(h.container.read(authNotifierProvider).value, isNull);
       expect(h.container.read(sessionModeProvider), SessionMode.account);
       expect(await h.storage.contains(AppConstants.sessionModeKey), isFalse);
     });
@@ -457,7 +459,7 @@ void main() {
 
       h.auth.onDeviceUnpaired();
 
-      expect(h.container.read(authNotifierProvider).valueOrNull, isNull);
+      expect(h.container.read(authNotifierProvider).value, isNull);
       expect(h.container.read(deviceNoticeProvider), DeviceNotice.unpaired);
       expect(h.container.read(sessionModeProvider), SessionMode.account);
       await Future<void>.delayed(Duration.zero);
@@ -483,7 +485,7 @@ void main() {
       expect(ok, isTrue);
       expect(h.repo.signOuts, 1);
       expect(h.container.read(sessionModeProvider), SessionMode.account);
-      expect(h.container.read(authNotifierProvider).valueOrNull, isNull);
+      expect(h.container.read(authNotifierProvider).value, isNull);
       expect(await h.storage.contains(AppConstants.sessionModeKey), isFalse);
       expect(h.container.read(deviceNoticeProvider), isNull,
           reason:
