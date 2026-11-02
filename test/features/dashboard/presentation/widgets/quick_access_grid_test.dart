@@ -81,13 +81,15 @@ UserEntity _userWithPermissions(
 Future<void> _pumpQuickAccessGrid(
   WidgetTester tester,
   UserEntity user, {
+  List<CamporeeJudgeAssignment> judgeAssignments = const [],
   List<Override> extraOverrides = const [],
 }) async {
   await tester.pumpWidget(
     testProviderScope(
       overrides: [
         authNotifierProvider.overrideWith(() => _FakeAuthNotifier(user)),
-        camporeeJudgeAssignmentsProvider.overrideWith((ref) async => const []),
+        camporeeJudgeAssignmentsProvider
+            .overrideWith((ref) async => judgeAssignments),
         ...extraOverrides,
       ],
       child: const MaterialApp(
@@ -197,19 +199,15 @@ void main() {
         await _pumpQuickAccessGrid(
           tester,
           user,
-          extraOverrides: [
-            camporeeJudgeAssignmentsProvider.overrideWith(
-              (ref) async => const [
-                CamporeeJudgeAssignment(
-                  assignmentId: 'asg-1',
-                  eventId: 9,
-                  judgeId: 'judge-1',
-                  clubSectionId: 2,
-                  judgeRole: 'primary',
-                  active: true,
-                  canSubmitScore: true,
-                ),
-              ],
+          judgeAssignments: const [
+            CamporeeJudgeAssignment(
+              assignmentId: 'asg-1',
+              eventId: 9,
+              judgeId: 'judge-1',
+              clubSectionId: 2,
+              judgeRole: 'primary',
+              active: true,
+              canSubmitScore: true,
             ),
           ],
         );

@@ -147,6 +147,10 @@ void main() {
       ],
     );
 
+    // SyncCacheSection watches the controller while the sync runs; Riverpod 3
+    // disposes an unlistened autoDispose notifier mid-await, so listen too.
+    container.listen(syncControllerProvider, (_, __) {});
+
     final before = await container.read(clubTypesProvider.future);
     expect(before.first.clubTypeId, cached.clubTypeId);
     expect(dataSource.clubTypesCalls, 0);

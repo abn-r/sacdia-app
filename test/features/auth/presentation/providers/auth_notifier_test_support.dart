@@ -178,6 +178,7 @@ Future<ProviderContainer> buildAuthContainer({
   required AuthRepository repo,
   FakeSecureStorage? storage,
   SharedPreferences? prefs,
+  Future<void> Function()? imageCachePurger,
   List<Override> extraOverrides = const [],
 }) async {
   final resolvedPrefs = prefs ??
@@ -196,7 +197,8 @@ Future<ProviderContainer> buildAuthContainer({
         (ref) => FakePushNotificationService(ref: ref, prefs: resolvedPrefs),
       ),
       // Sin esto la purga de imágenes crea el CacheManager real (path_provider).
-      imageCachePurgerProvider.overrideWithValue(() async {}),
+      imageCachePurgerProvider
+          .overrideWithValue(imageCachePurger ?? () async {}),
       ...extraOverrides,
     ],
   );

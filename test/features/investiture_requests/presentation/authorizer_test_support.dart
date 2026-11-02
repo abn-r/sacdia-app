@@ -40,11 +40,13 @@ EcclesiasticalYearModel testYear() => EcclesiasticalYearModel(
 List<Override> authorizerOverrides(
   FakeInvestitureRequestsRepository repo, {
   String role = 'pastor',
+  AuthNotifier Function()? authNotifier,
 }) =>
     [
       investitureRequestsRepositoryProvider.overrideWithValue(repo),
-      authNotifierProvider
-          .overrideWith(() => FakeAuthNotifier(globalRoleUser(role))),
+      authNotifierProvider.overrideWith(
+        authNotifier ?? () => FakeAuthNotifier(globalRoleUser(role)),
+      ),
       currentEcclesiasticalYearProvider.overrideWith((ref) async => testYear()),
     ];
 

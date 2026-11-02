@@ -10,7 +10,6 @@ import 'package:sacdia_app/core/constants/app_constants.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/providers/profile_scope_registry.dart';
 import 'package:sacdia_app/core/notifications/push_notification_provider.dart';
-import 'package:sacdia_app/core/storage/image_cache_purge.dart';
 import 'package:sacdia_app/core/storage/json_file_cache.dart';
 import 'package:sacdia_app/features/auth/domain/entities/acting_for_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
@@ -114,10 +113,10 @@ void main() {
       repo: repo,
       storage: storage,
       prefs: prefs,
+      imageCachePurger: () async => imagePurges++,
       extraOverrides: [
         jsonFileCacheProvider.overrideWithValue(diskCache),
         profileScopedProvidersProvider.overrideWithValue([profileData]),
-        imageCachePurgerProvider.overrideWithValue(() async => imagePurges++),
       ],
     );
     // Mantiene vivo el centinela, como lo haría un provider `keepAlive`.
@@ -721,9 +720,9 @@ void main() {
         repo: repo,
         storage: storage,
         prefs: prefs,
+        imageCachePurger: () async => imagePurges++,
         extraOverrides: [
           jsonFileCacheProvider.overrideWithValue(diskCache),
-          imageCachePurgerProvider.overrideWithValue(() async => imagePurges++),
         ],
       );
 

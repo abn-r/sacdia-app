@@ -201,7 +201,9 @@ void main() {
 
       expect(error, isNull);
       expect(h.pairing.calls, 1);
-      await Future<void>.delayed(Duration.zero);
+      // Riverpod 3 needs more microtask hops than one event-loop turn for the
+      // purged provider to resolve its auth selector and refetch.
+      await pumpEventQueue();
       expect(h.achievementCalls[0], greaterThan(before),
           reason: 'the mounted registry provider was purged and rebuilt');
       expect(sentinelAtPair, 2,

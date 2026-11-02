@@ -85,9 +85,9 @@ void main() {
   // swallowed as an empty list) and the failure keeps reaching the global
   // error handler, exactly as with Riverpod 2.6 (`.value` rethrew there).
   //
-  // The error is forced synchronously inside `runZonedGuarded`: Riverpod runs
-  // listeners with `Zone.current.runBinaryGuarded`, so a throwing listener
-  // lands in that zone's uncaught-error handler (in the app: Sentry).
+  // Riverpod 3 runs listeners through the container's error handler, which the
+  // ProviderScope wires to `FlutterError.reportError` (in the app: Sentry), so
+  // the original error shows up as the test's reported exception.
   testWidgets(
       'S4.1: allergies in AsyncError with no prior value seed nothing and '
       'surface the error', (tester) async {
@@ -95,19 +95,15 @@ void main() {
     final container = await pump(tester, () => never.future, settle: false);
     expect(container.read(userAllergiesProvider).isLoading, isTrue);
 
-    final uncaught = <Object>[];
-    runZonedGuarded(
-      () => (container.read(userAllergiesProvider.notifier) as _FixedAllergies)
-          .fail(StateError('allergies-load-failed')),
-      (error, _) => uncaught.add(error),
-    );
+    (container.read(userAllergiesProvider.notifier) as _FixedAllergies)
+        .fail(StateError('allergies-load-failed'));
     await tester.pump(const Duration(milliseconds: 100));
+    final reported = tester.takeException();
 
     expect(container.read(userAllergiesProvider).hasError, isTrue);
     expect(container.read(userAllergiesProvider).hasValue, isFalse);
-    expect(uncaught, hasLength(1));
-    expect(uncaught.single, isA<StateError>());
-    expect((uncaught.single as StateError).message, 'allergies-load-failed');
+    expect(reported, isA<StateError>());
+    expect((reported! as StateError).message, 'allergies-load-failed');
     expect(container.read(selectedAllergiesProvider), isEmpty);
     // The catalog still renders: a failed user lookup does not blank the view.
     expect(find.text('Polen'), findsOneWidget);
