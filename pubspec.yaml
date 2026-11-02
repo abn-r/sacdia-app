@@ -133,6 +133,14 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
 
+  # iOS plugins stay on CocoaPods. Flutter 3.47 turns Swift Package Manager on
+  # by default, but SPM can't resolve today: firebase_messaging 17 pulls
+  # firebase-ios-sdk 13 (gtm-session-fetcher >=4) and google_sign_in_ios 6.3.8,
+  # the latest, pulls GoogleSignIn 9 (gtm-session-fetcher <4). Re-enable once
+  # google_sign_in_ios moves to GoogleSignIn 10.
+  config:
+    enable-swift-package-manager: false
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
