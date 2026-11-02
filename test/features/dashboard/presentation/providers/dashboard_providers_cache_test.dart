@@ -98,6 +98,26 @@ class _ControlledGetDashboardSummary implements GetDashboardSummary {
       );
 }
 
+class _SequencedGetDashboardSummary implements GetDashboardSummary {
+  _SequencedGetDashboardSummary(this._responses);
+
+  final List<DashboardSummary> _responses;
+  int calls = 0;
+
+  @override
+  Future<Either<Failure, DashboardSummary>> call(
+    NoParams params, {
+    Object? cancelToken,
+  }) async {
+    return Right(_responses[calls++]);
+  }
+
+  @override
+  DashboardRepository get repository => throw UnimplementedError(
+        'repository is intentionally unused in tests',
+      );
+}
+
 Future<ProviderContainer> _buildDashboardContainer({
   required _FakeAuthNotifier authNotifier,
   required GetDashboardSummary useCase,
@@ -601,6 +621,80 @@ void main() {
       await openDashboard(session: session);
 
       expect(widgetCalls, isEmpty);
+    });
+  });
+  group('invalidate refreshes the dashboard (S5.1)', () {
+    late SharedPreferences prefs;
+    late _SequencedGetDashboardSummary useCase;
+    late ProviderContainer container;
+    final cacheKey = _dashboardCacheKey(
+      userId: 'user-1',
+      assignmentId: 'assign-a',
+    );
+
+    setUp(() async {
+      useCase = _SequencedGetDashboardSummary([
+        _summary(userName: 'Ana', clubName: 'First'),
+        _summary(userName: 'Ana', clubName: 'Second'),
+        _summary(userName: 'Ana', clubName: 'Third'),
+      ]);
+      container = await _buildDashboardContainer(
+        authNotifier: _FakeAuthNotifier(
+          _buildUser(userId: 'user-1', activeAssignmentId: 'assign-a'),
+        ),
+        useCase: useCase,
+        initialPrefs: const {},
+      );
+      prefs = await SharedPreferences.getInstance();
+    });
+
+    // El resumen fresco se sirve desde la caché (TTL); para forzar la red se
+    // borra la entrada, como hace el cambio de perfil con la caché de disco.
+    Future<void> dropCache() async {
+      await prefs.remove(cacheKey);
+      await prefs.remove('${cacheKey}_cached_at');
+    }
+
+    test('with an active listener it passes through loading and re-fetches',
+        () async {
+      final seen = <AsyncValue<DashboardSummary?>>[];
+      container.listen(
+        dashboardNotifierProvider,
+        (_, next) => seen.add(next),
+      );
+      expect(
+        (await container.read(dashboardNotifierProvider.future))?.clubName,
+        'First',
+      );
+      seen.clear();
+      await dropCache();
+
+      container.invalidate(dashboardNotifierProvider);
+      final refreshed = await container.read(dashboardNotifierProvider.future);
+
+      expect(refreshed?.clubName, 'Second');
+      expect(useCase.calls, 2);
+      expect(
+        seen.any((s) => s.isLoading),
+        isTrue,
+        reason: 'the invalidation is observable as a loading transition',
+      );
+      expect(seen.last.value?.clubName, 'Second');
+    });
+
+    test('with no listener it re-fetches on the next read, never the old value',
+        () async {
+      await container.read(dashboardNotifierProvider.future);
+      await dropCache();
+
+      container.invalidate(dashboardNotifierProvider);
+      await Future<void>.delayed(Duration.zero);
+      expect(useCase.calls, 1, reason: 'nothing listens: no eager fetch');
+
+      final next = await container.read(dashboardNotifierProvider.future);
+
+      expect(next?.clubName, 'Second');
+      expect(useCase.calls, 2);
     });
   });
 }
