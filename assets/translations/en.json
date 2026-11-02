@@ -483,6 +483,7 @@
     "mr_consent_confirmation_required": "Confirm that you reviewed the signed form before verifying.",
     "mr_not_found": "The request no longer exists or does not belong to this section.",
     "mr_already_pending": "This request has already been processed.",
+    "mr_already_processed": "This request has already been processed.",
     "guard_permission_denied": "You do not have permission to do this.",
     "file_required": "Select a file.",
     "file_type_invalid": "File type not allowed. Use JPG, PNG, WebP or PDF.",

@@ -483,6 +483,7 @@
     "mr_consent_confirmation_required": "Confirma que revisaste la ficha firmada antes de verificar.",
     "mr_not_found": "La solicitud ya no existe o no pertenece a esta sección.",
     "mr_already_pending": "Esta solicitud ya fue procesada.",
+    "mr_already_processed": "Esta solicitud ya fue procesada.",
     "guard_permission_denied": "No tienes permiso para realizar esta acción.",
     "file_required": "Selecciona un archivo.",
     "file_type_invalid": "Tipo de archivo no permitido. Usa JPG, PNG, WebP o PDF.",
