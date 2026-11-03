@@ -177,6 +177,14 @@ La app puede estar en cuatro modos. El servidor decide cuál es: `GET /auth/me` 
 - **Cambio de perfil por un push de un menor** (`DependentPushTapHandler`): el diálogo «¿cambiar a su perfil?» solo se ofrece a quien puede actuar (`mayConfirmProfileSwitch`: `user` o `guardian_acting`). Adolescentes, dispositivos y cuentas restringidas ignoran `dependent_user_id`.
 - **Arranque en frío**: si el router aún está en `splash`, el destino se guarda en `pendingNavigationProvider` y se entrega cuando la sesión está lista, solo si la política del modo lo permite.
 
+### Push: FID (Firebase Installation ID)
+
+- **Qué se envía**: desde `firebase_messaging` 17 la app NO manda el token FCM legacy sino el FID: `POST /users/me/fcm-tokens` con `{ token: <fid>, kind: 'fid' }`. El FID llega por `onRegistered` tras `register()` (se re-emite en cada `initialize()`). Se guarda en `flutter_secure_storage` en `fcm_registered_token` / `fcm_registered_token_id`, y el tipo en `fcm_registered_kind` (ausente = `token`, instalación anterior a la migración). Si había un token legacy guardado, tras registrar el FID se borra su fila (`DELETE` por id, o por valor si no hay id).
+- **Costura**: `FcmRegistrar` (`lib/core/notifications/fcm_registrar.dart`, `fcmRegistrarProvider`) envuelve `register/unregister/onRegistered/onUnregistered/getAPNSToken`. Los listeners de mensajes siguen en `FirebaseMessaging`. Los tests inyectan un registrar falso (`push_notification_service_fid_test.dart`).
+- **Logout / borrar cuenta**: `unregisterToken` mantiene el `DELETE` al backend y además llama `unregister()` (best-effort, 3 s de tope, nunca bloquea). `clearLocalRegistration` usa `unregister()` en lugar de `deleteToken()`.
+- **Modos**: sin cambios. No se registra mientras se actúa por un dependiente (también lo comprueba el servicio); un teléfono vinculado se registra de inmediato.
+- **iOS**: `ios/Runner/Info.plist` lleva `FirebaseMessagingInstallationIdEnabled = true`. Con esa clave el `getToken()` legacy falla, así que no lo uses. El FID en iOS SIGUE necesitando el token APNs: se conserva la espera de `getAPNSToken()` y en el simulador (o sin APNs) se degrada en silencio.
+
 ### Mi familia (`lib/features/family/`)
 
 Feature `data/domain/presentation` con 7 use cases (`list_dependents`, `get_dependent_detail`, `create_dependent`, `issue_link_code`, `redeem_link_code`, `revoke_guardianship`, `get_deletion_impact`). Los providers de la feature no usan `keepAlive`.

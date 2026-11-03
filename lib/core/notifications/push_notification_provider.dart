@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/dio_provider.dart';
 import '../../providers/storage_provider.dart';
+import 'fcm_registrar.dart';
 import 'push_notification_service.dart';
 
 /// Global navigator key.
@@ -36,5 +37,6 @@ final pushNotificationServiceProvider =
     prefs: prefs,
     ref: ref,
     navigatorKey: pushNavigatorKey,
+    registrar: ref.watch(fcmRegistrarProvider),
   );
 });

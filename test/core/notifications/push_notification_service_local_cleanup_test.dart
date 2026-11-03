@@ -16,6 +16,7 @@ void main() {
       FlutterSecureStorage.setMockInitialValues({
         'fcm_registered_token': 'fcm-token',
         'fcm_registered_token_id': 'token-id',
+        'fcm_registered_kind': 'fid',
       });
       final adapter = JsonAdapter(200, <String, dynamic>{});
       final dio = Dio()..httpClientAdapter = adapter;
@@ -24,13 +25,14 @@ void main() {
       );
       final container = createTestContainer();
 
-      // Firebase no está inicializado en tests: deleteToken() falla y el
+      // Firebase no está inicializado en tests: unregister() falla y el
       // servicio debe tragarse el error (best-effort).
       await container.read(provider).clearLocalRegistration();
 
       const storage = FlutterSecureStorage();
       expect(await storage.read(key: 'fcm_registered_token'), isNull);
       expect(await storage.read(key: 'fcm_registered_token_id'), isNull);
+      expect(await storage.read(key: 'fcm_registered_kind'), isNull);
       expect(
         adapter.lastRequest,
         isNull,
