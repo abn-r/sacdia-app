@@ -174,9 +174,14 @@ class _LanguageFlagBadge extends StatelessWidget {
     return const [Color(0xFF1F3F8B), Colors.white, Color(0xFFB22234)];
   }
 
+  /// The code sits on the middle stripe. On a white stripe (English, French)
+  /// it needs dark text: white-on-white left English unlabeled, so it looked
+  /// like the French flag. Coloured stripes keep white text.
   static Color _textColorFor(Locale locale) {
-    if (locale.languageCode == 'fr') return const Color(0xFF111827);
-    return Colors.white;
+    final middleStripe = _colorsFor(locale)[1];
+    return middleStripe.computeLuminance() > 0.9
+        ? const Color(0xFF111827)
+        : Colors.white;
   }
 }
 
