@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/providers/keep_alive_during.dart';
 import '../../../../core/widgets/instructor_selection.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../../providers/json_file_cache_provider.dart';
@@ -492,30 +493,33 @@ class RequirementEvidenceActionsNotifier extends AsyncNotifier<void> {
     required int honorId,
     required int requirementId,
     required File file,
-  }) async {
-    state = const AsyncValue.loading();
+  }) =>
+      // Callers only `ref.read` this notifier: keep it alive until the upload
+      // settles (see keepAliveDuring).
+      ref.keepAliveDuring(() async {
+        state = const AsyncValue.loading();
 
-    final result = await ref.read(uploadRequirementEvidenceProvider)(
-      UploadRequirementEvidenceParams(
-        userId: userId,
-        honorId: honorId,
-        requirementId: requirementId,
-        file: file,
-      ),
-    );
+        final result = await ref.read(uploadRequirementEvidenceProvider)(
+          UploadRequirementEvidenceParams(
+            userId: userId,
+            honorId: honorId,
+            requirementId: requirementId,
+            file: file,
+          ),
+        );
 
-    return result.fold(
-      (failure) {
-        state = AsyncValue.error(failure.message, StackTrace.current);
-        return false;
-      },
-      (_) {
-        state = const AsyncValue.data(null);
-        ref.invalidate(userHonorProgressProvider(honorId));
-        return true;
-      },
-    );
-  }
+        return result.fold<bool>(
+          (failure) {
+            state = AsyncValue.error(failure.message, StackTrace.current);
+            return false;
+          },
+          (_) {
+            state = const AsyncValue.data(null);
+            ref.invalidate(userHonorProgressProvider(honorId));
+            return true;
+          },
+        );
+      });
 }
 
 final requirementEvidenceActionsNotifierProvider = AsyncNotifierProvider
@@ -1035,36 +1039,39 @@ class RequirementProgressNotifier
 
   /// Actualiza el progreso de múltiples requisitos en una sola operación.
   /// Invalida [userHonorProgressProvider] en caso de éxito.
-  Future<bool> bulkUpdate(List<Map<String, dynamic>> updates) async {
-    state = const AsyncValue.loading();
+  Future<bool> bulkUpdate(List<Map<String, dynamic>> updates) =>
+      // Callers only `ref.read` this notifier: keep it alive until the update
+      // settles (see keepAliveDuring).
+      ref.keepAliveDuring(() async {
+        state = const AsyncValue.loading();
 
-    final userId = ref.read(authNotifierProvider).value?.id;
-    if (userId == null) {
-      state = AsyncValue.error(
-          tr('errors.user_not_authenticated'), StackTrace.current);
-      return false;
-    }
+        final userId = ref.read(authNotifierProvider).value?.id;
+        if (userId == null) {
+          state = AsyncValue.error(
+              tr('errors.user_not_authenticated'), StackTrace.current);
+          return false;
+        }
 
-    final result = await ref.read(updateRequirementProgressProvider)(
-      UpdateRequirementProgressParams(
-        userId: userId,
-        honorId: arg,
-        updates: updates,
-      ),
-    );
+        final result = await ref.read(updateRequirementProgressProvider)(
+          UpdateRequirementProgressParams(
+            userId: userId,
+            honorId: arg,
+            updates: updates,
+          ),
+        );
 
-    return result.fold(
-      (failure) {
-        state = AsyncValue.error(failure.message, StackTrace.current);
-        return false;
-      },
-      (updated) {
-        state = AsyncValue.data(updated);
-        ref.invalidate(userHonorProgressProvider(arg));
-        return true;
-      },
-    );
-  }
+        return result.fold<bool>(
+          (failure) {
+            state = AsyncValue.error(failure.message, StackTrace.current);
+            return false;
+          },
+          (updated) {
+            state = AsyncValue.data(updated);
+            ref.invalidate(userHonorProgressProvider(arg));
+            return true;
+          },
+        );
+      });
 }
 
 /// Provider para [RequirementProgressNotifier].
