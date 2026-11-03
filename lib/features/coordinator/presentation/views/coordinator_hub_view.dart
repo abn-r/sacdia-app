@@ -31,6 +31,7 @@ import 'package:sacdia_app/features/coordinator/presentation/providers/consent_r
 import 'package:sacdia_app/features/coordinator/presentation/providers/coordinator_providers.dart';
 import 'package:sacdia_app/features/coordinator/presentation/providers/coordinator_reports_providers.dart';
 import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_reports_view.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// `when` that keeps showing stale data while a refresh/invalidation reloads,
 /// so pull-to-refresh does not flash skeletons. After an error (no value) the
@@ -240,7 +241,7 @@ class _NotificationsAction extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                 decoration: BoxDecoration(
                   color: c.error,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 ),
                 constraints: const BoxConstraints(minWidth: 16),
                 child: Text(
@@ -506,7 +507,7 @@ class _Bone extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.sac.border,
         shape: circle ? BoxShape.circle : BoxShape.rectangle,
-        borderRadius: circle ? null : BorderRadius.circular(6),
+        borderRadius: circle ? null : BorderRadius.circular(AppTheme.radius2XS),
       ),
     );
   }
@@ -1058,7 +1059,7 @@ class _ClubRow extends StatelessWidget {
             height: 44,
             decoration: BoxDecoration(
               color: accent.light,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             ),
             alignment: Alignment.center,
             child: ExcludeSemantics(

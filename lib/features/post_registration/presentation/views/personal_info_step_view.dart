@@ -23,6 +23,7 @@ import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
 import '../utils/acting_copy.dart';
 import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista del paso 2: Información Personal - Estilo "Scout Vibrante"
 ///
@@ -167,7 +168,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                     child: Text(
                       tr('post_registration.personal_info.admin_restricted_notice'),
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: SacFontSize.bodyMedium,
                         color: AppColors.accentDark,
                         height: 1.3,
                       ),
@@ -259,7 +260,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                             'post_registration.personal_info.baptism.toggle_label',
                             actingName: actingName),
                         style: const TextStyle(
-                          fontSize: 15,
+                          fontSize: SacFontSize.titleMedium,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -338,7 +339,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                         color: contacts.isEmpty
                             ? context.sac.surfaceVariant
                             : SacAccent.of(context).light,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                       ),
                       child: Center(
                         child: HugeIcon(
@@ -362,7 +363,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                                 : 'post_registration.personal_info.emergency_contacts.count'
                                     .plural(contacts.length, name: 'count'),
                             style: const TextStyle(
-                              fontSize: 15,
+                              fontSize: SacFontSize.titleMedium,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -370,7 +371,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                             Text(
                               tr('post_registration.personal_info.emergency_contacts.required_hint'),
                               style: const TextStyle(
-                                fontSize: 12,
+                                fontSize: SacFontSize.bodySmall,
                                 color: AppColors.accent,
                               ),
                             ),
@@ -411,7 +412,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                       color: allergiesCount > 0 || healthNone.allergies
                           ? AppColors.errorLight
                           : context.sac.surfaceVariant,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     ),
                     child: Center(
                       child: HugeIcon(
@@ -434,7 +435,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                               : tr(
                                   'post_registration.personal_info.health.allergies_empty'),
                       style: const TextStyle(
-                        fontSize: 15,
+                        fontSize: SacFontSize.titleMedium,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -458,7 +459,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                       color: diseasesCount > 0 || healthNone.diseases
                           ? AppColors.accentLight
                           : context.sac.surfaceVariant,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     ),
                     child: Center(
                       child: HugeIcon(
@@ -481,7 +482,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                               : tr(
                                   'post_registration.personal_info.health.diseases_empty'),
                       style: const TextStyle(
-                        fontSize: 15,
+                        fontSize: SacFontSize.titleMedium,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -505,7 +506,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                       color: medicinesCount > 0 || healthNone.medicines
                           ? AppColors.secondaryLight
                           : context.sac.surfaceVariant,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     ),
                     child: Center(
                       child: HugeIcon(
@@ -528,7 +529,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                               : tr(
                                   'post_registration.personal_info.health.medicines_empty'),
                       style: const TextStyle(
-                        fontSize: 15,
+                        fontSize: SacFontSize.titleMedium,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -560,7 +561,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                     child: Text(
                       tr('post_registration.personal_info.validation.complete_required'),
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: SacFontSize.bodyMedium,
                         color: AppColors.accentDark,
                       ),
                     ),
@@ -688,7 +689,7 @@ class _SectionHeader extends StatelessWidget {
           Text(
             '($subtitle)',
             style: TextStyle(
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               color: context.sac.textTertiary,
             ),
           ),
@@ -740,7 +741,7 @@ class _GenderChip extends StatelessWidget {
           decoration: BoxDecoration(
             color:
                 isSelected ? SacAccent.of(context).light : context.sac.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             border: Border.all(
               color:
                   isSelected ? SacAccent.of(context).color : context.sac.border,
@@ -761,7 +762,7 @@ class _GenderChip extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: SacFontSize.titleSmall,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   color: isSelected
                       ? SacAccent.of(context).color
@@ -807,7 +808,7 @@ class _DatePickerCard extends StatelessWidget {
               color: date != null
                   ? SacAccent.of(context).light
                   : context.sac.surfaceVariant,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: buildIcon(
               icon,
@@ -825,7 +826,7 @@ class _DatePickerCard extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: SacFontSize.bodySmall,
                     color: context.sac.textTertiary,
                   ),
                 ),
@@ -837,7 +838,7 @@ class _DatePickerCard extends StatelessWidget {
                         ).format(date!)
                       : tr('post_registration.personal_info.birth.select_date'),
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: SacFontSize.titleMedium,
                     fontWeight: FontWeight.w500,
                     color: date != null
                         ? context.sac.text
@@ -880,7 +881,7 @@ class _BloodTypeCard extends StatelessWidget {
             decoration: BoxDecoration(
               color:
                   selected ? AppColors.errorLight : context.sac.surfaceVariant,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Center(
               child: HugeIcon(
@@ -897,7 +898,7 @@ class _BloodTypeCard extends StatelessWidget {
                   ? bloodType!.display
                   : tr('post_registration.personal_info.blood.empty'),
               style: TextStyle(
-                fontSize: 15,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 color: selected ? context.sac.text : context.sac.textTertiary,
                 letterSpacing: selected ? 0.4 : 0,
@@ -927,7 +928,8 @@ class _ErrorCard extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       child: Text(
         message,
-        style: const TextStyle(color: AppColors.errorDark, fontSize: 13),
+        style: const TextStyle(
+            color: AppColors.errorDark, fontSize: SacFontSize.bodyMedium),
       ),
     );
   }

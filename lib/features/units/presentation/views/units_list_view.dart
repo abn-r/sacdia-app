@@ -457,7 +457,7 @@ class _MemberOfMonthCard extends StatelessWidget {
               const Color(0xFFF5C842).withValues(alpha: 0.10),
             ],
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(
             color: const Color(0xFFD4A017).withValues(alpha: 0.4),
             width: 1.5,
@@ -634,12 +634,15 @@ class _TieAvatarStack extends StatelessWidget {
                         fit: BoxFit.cover,
                         memCacheWidth: 80,
                         memCacheHeight: 80,
-                        placeholder: (_, __) =>
-                            _MomInitials(initials: initials, fontSize: 12),
-                        errorWidget: (_, __, ___) =>
-                            _MomInitials(initials: initials, fontSize: 12),
+                        placeholder: (_, __) => _MomInitials(
+                            initials: initials,
+                            fontSize: SacFontSize.bodySmall),
+                        errorWidget: (_, __, ___) => _MomInitials(
+                            initials: initials,
+                            fontSize: SacFontSize.bodySmall),
                       )
-                    : _MomInitials(initials: initials, fontSize: 12),
+                    : _MomInitials(
+                        initials: initials, fontSize: SacFontSize.bodySmall),
               ),
             ),
           );
@@ -849,7 +852,7 @@ class _UnitIdentityMark extends StatelessWidget {
                 accent.withValues(alpha: 0.08),
               ],
             ),
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(AppTheme.radiusLG),
             border: Border.all(color: accent.withValues(alpha: 0.16)),
           ),
           alignment: Alignment.center,
@@ -959,7 +962,7 @@ class _UnitActionsSheet extends StatelessWidget {
       decoration: BoxDecoration(
         color: c.surface,
         borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(28),
+          top: Radius.circular(AppTheme.radiusXL),
         ),
       ),
       child: Column(
@@ -1047,7 +1050,7 @@ class _DeleteUnitSheet extends StatelessWidget {
       decoration: BoxDecoration(
         color: c.surface,
         borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(28),
+          top: Radius.circular(AppTheme.radiusXL),
         ),
       ),
       child: Column(

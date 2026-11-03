@@ -18,6 +18,7 @@ import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_ord
 import 'package:sacdia_app/features/camporee_orders/presentation/providers/camporee_orders_providers.dart';
 import 'package:sacdia_app/features/camporee_orders/presentation/views/camporee_order_catalog_view.dart';
 import 'package:sacdia_app/features/payment_orders/presentation/widgets/payment_order_widgets.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 const _proofAllowedExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'webp'];
 const _proofMaxSizeBytes = 10 * 1024 * 1024;
@@ -71,7 +72,9 @@ class CamporeeOrderDetailView extends ConsumerWidget {
                       Text(
                         camporeeOrdersErrorMessage(error),
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 13, color: c.textSecondary),
+                        style: TextStyle(
+                            fontSize: SacFontSize.bodyMedium,
+                            color: c.textSecondary),
                       ),
                       const SizedBox(height: 14),
                       SacButton.outline(
@@ -237,7 +240,7 @@ class _OrderDetailBody extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: c.surface,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
               border: Border.all(color: c.border),
             ),
             child: Column(
@@ -249,7 +252,7 @@ class _OrderDetailBody extends StatelessWidget {
                       child: Text(
                         order.folioReference,
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: SacFontSize.headlineSmall,
                           fontWeight: FontWeight.w800,
                           color: c.text,
                         ),
@@ -281,7 +284,7 @@ class _OrderDetailBody extends StatelessWidget {
             Text(
               'camporee_orders.review.summary_title'.tr(),
               style: TextStyle(
-                fontSize: 15,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.w800,
                 color: c.text,
               ),
@@ -294,7 +297,8 @@ class _OrderDetailBody extends StatelessWidget {
                   item.optionLabelSnapshot == null
                       ? '${item.productTitleSnapshot} × ${item.qty}'
                       : '${item.productTitleSnapshot} (${item.optionLabelSnapshot}) × ${item.qty}',
-                  style: TextStyle(fontSize: 13.5, color: c.text),
+                  style: TextStyle(
+                      fontSize: SacFontSize.bodyMedium, color: c.text),
                 ),
               ),
           ],
@@ -303,7 +307,7 @@ class _OrderDetailBody extends StatelessWidget {
             Text(
               'camporee_orders.review.named_title'.tr(),
               style: TextStyle(
-                fontSize: 15,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.w800,
                 color: c.text,
               ),
@@ -380,7 +384,7 @@ class _NamedDeliverRow extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: c.border),
       ),
       child: Column(
@@ -388,14 +392,14 @@ class _NamedDeliverRow extends StatelessWidget {
         children: [
           Text(
             '${line.beneficiaryNameSnapshot} — ${line.productTitleSnapshot}$option × ${line.qty}',
-            style: TextStyle(fontSize: 13, color: c.text),
+            style: TextStyle(fontSize: SacFontSize.bodyMedium, color: c.text),
           ),
           if (line.deliveredToMember) ...[
             const SizedBox(height: 6),
             Text(
               'camporee_orders.detail.delivered_to_member'.tr(),
               style: TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w700,
                 color: AppColors.secondary,
               ),
@@ -437,7 +441,8 @@ class _DetailRow extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TextStyle(fontSize: 13, color: c.textSecondary),
+            style: TextStyle(
+                fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
           ),
           Flexible(
             child: Text(

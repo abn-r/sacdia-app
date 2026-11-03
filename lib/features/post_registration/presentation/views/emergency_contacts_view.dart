@@ -16,6 +16,7 @@ import '../widgets/contact_card.dart';
 import 'add_edit_contact_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista para gestionar contactos de emergencia
 class EmergencyContactsView extends ConsumerWidget {
@@ -186,7 +187,7 @@ class EmergencyContactsView extends ConsumerWidget {
                                     'current': contacts.length.toString()
                                   }),
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: SacFontSize.titleSmall,
                               color: contacts.length >= 5
                                   ? AppColors.accentDark
                                   : SacAccent.of(context).dark,

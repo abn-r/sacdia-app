@@ -21,6 +21,7 @@ import '../../domain/entities/transfer_request.dart';
 import '../providers/transfer_providers.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Pantalla principal de solicitudes de traslado.
 ///
@@ -123,7 +124,7 @@ class _TransferCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(color: c.border),
           boxShadow: [
             BoxShadow(
@@ -141,7 +142,7 @@ class _TransferCard extends StatelessWidget {
               height: 40,
               decoration: BoxDecoration(
                 color: statusConfig.bg,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
               ),
               child: Center(
                 child: HugeIcon(
@@ -163,7 +164,7 @@ class _TransferCard extends StatelessWidget {
                     Text(
                       request.toClubName!,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: SacFontSize.titleSmall,
                         fontWeight: FontWeight.w700,
                         color: c.text,
                       ),
@@ -174,7 +175,7 @@ class _TransferCard extends StatelessWidget {
                     Text(
                       request.toSectionName!,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: SacFontSize.bodySmall,
                         color: c.textSecondary,
                       ),
                       maxLines: 1,
@@ -185,7 +186,7 @@ class _TransferCard extends StatelessWidget {
                       tr('transfers.list.section_number',
                           namedArgs: {'id': '${request.toSectionId}'}),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: SacFontSize.bodySmall,
                         color: c.textSecondary,
                       ),
                     ),
@@ -265,12 +266,12 @@ class _StatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
       ),
       child: Text(
         status.label,
         style: TextStyle(
-          fontSize: 11,
+          fontSize: SacFontSize.labelSmall,
           fontWeight: FontWeight.w600,
           color: fg,
         ),
@@ -323,7 +324,7 @@ class _ErrorBody extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14),
+              style: const TextStyle(fontSize: SacFontSize.titleSmall),
             ),
             const SizedBox(height: 16),
             SacButton.primary(
@@ -491,7 +492,7 @@ class _InlineError extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.errorLight,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
       ),
       child: Row(
         children: [
@@ -505,7 +506,7 @@ class _InlineError extends StatelessWidget {
             child: Text(
               message,
               style: const TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 color: AppColors.error,
               ),
             ),

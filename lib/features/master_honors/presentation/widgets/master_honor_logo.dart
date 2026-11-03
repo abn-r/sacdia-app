@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_network_image.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 class MasterHonorLogo extends StatelessWidget {
   const MasterHonorLogo({
@@ -60,14 +61,14 @@ class MasterHonorInitialsBox extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: color.withAlpha(20),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
         border: Border.all(color: color.withAlpha(60), width: 1.5),
       ),
       child: Center(
         child: Text(
           initials,
           style: TextStyle(
-            fontSize: 24,
+            fontSize: SacFontSize.displaySmall,
             fontWeight: FontWeight.w800,
             color: color,
           ),

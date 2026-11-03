@@ -17,6 +17,7 @@ import '../../domain/repositories/achievements_repository.dart';
 import '../providers/achievements_providers.dart';
 import '../widgets/achievement_grid_card.dart';
 import 'achievement_detail_sheet.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Misma composición que Maestrías: barra esmerilada y grilla de tarjetas.
 class AchievementsView extends ConsumerWidget {
@@ -168,14 +169,16 @@ class _ErrorState extends StatelessWidget {
               'achievements.views.error_title'.tr(),
               style: TextStyle(
                 color: context.sac.text,
-                fontSize: 16,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               'achievements.views.error_subtitle'.tr(),
-              style: TextStyle(color: context.sac.textSecondary, fontSize: 13),
+              style: TextStyle(
+                  color: context.sac.textSecondary,
+                  fontSize: SacFontSize.bodyMedium),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),

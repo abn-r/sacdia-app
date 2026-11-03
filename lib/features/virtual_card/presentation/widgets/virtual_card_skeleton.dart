@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 class VirtualCardSkeleton extends StatelessWidget {
   const VirtualCardSkeleton({super.key});
@@ -11,7 +12,7 @@ class VirtualCardSkeleton extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXL),
       ),
       padding: const EdgeInsets.all(24),
       child: LayoutBuilder(
@@ -122,7 +123,7 @@ class VirtualCardSkeleton extends StatelessWidget {
       height: height,
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
       ),
     );
   }
@@ -150,7 +151,7 @@ class VirtualCardSkeleton extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
       ),
     );
   }

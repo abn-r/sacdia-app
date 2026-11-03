@@ -14,6 +14,7 @@ import '../providers/unread_notifications_count_provider.dart';
 import '../widgets/notification_card.dart';
 
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Pantalla de historial/bandeja de notificaciones.
 ///
@@ -128,14 +129,15 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.error,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusXS),
                         ),
                         constraints: const BoxConstraints(minWidth: 16),
                         child: Text(
                           unreadCount > 99 ? '99+' : '$unreadCount',
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 9,
+                            fontSize: SacFontSize.micro,
                             fontWeight: FontWeight.w700,
                           ),
                           textAlign: TextAlign.center,
@@ -269,7 +271,8 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
             const SizedBox(height: 8),
             Text(
               'notifications.inbox.empty_subtitle'.tr(),
-              style: TextStyle(fontSize: 14, color: c.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.titleSmall, color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
           ],
@@ -305,7 +308,8 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
             const SizedBox(height: 8),
             Text(
               msg,
-              style: TextStyle(fontSize: 14, color: c.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.titleSmall, color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -356,7 +360,8 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
                   color: SacAccent.of(context).color),
               label: Text(
                 'notifications.inbox.load_more_error'.tr(),
-                style: TextStyle(fontSize: 13, color: c.textSecondary),
+                style: TextStyle(
+                    fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
               ),
             ),
           ),
@@ -371,7 +376,8 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
         child: Center(
           child: Text(
             '— Fin del historial —',
-            style: TextStyle(fontSize: 12, color: c.textTertiary),
+            style: TextStyle(
+                fontSize: SacFontSize.bodySmall, color: c.textTertiary),
           ),
         ),
       );

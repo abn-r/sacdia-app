@@ -138,7 +138,7 @@ class RelationshipTypePickerField extends StatelessWidget {
                   'post_registration.contact_form.relationship_required'.tr(),
               style: TextStyle(
                 color: theme.colorScheme.error,
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w500,
               ),
             ),

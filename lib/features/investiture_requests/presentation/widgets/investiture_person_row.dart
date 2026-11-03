@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Fila de persona de las pantallas de investidura: casilla opcional, avatar
 /// con iniciales (color de su clase), nombre, detalle y contenido extra.
@@ -48,7 +49,7 @@ class InvestiturePersonRow extends StatelessWidget {
     final content = Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(
           color: isSelected ? classColor.withValues(alpha: 0.6) : c.ink150,
           width: isSelected ? 1.5 : 1,
@@ -125,16 +126,16 @@ class InvestiturePersonRow extends StatelessWidget {
 
     final card = Material(
       color: c.paper,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(AppTheme.radiusLG),
       child: selectable
           ? SacInkWell(
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(AppTheme.radiusLG),
               onTap: () => onSelectedChanged!(!isSelected),
               child: content,
             )
           : onTap != null
               ? SacInkWell(
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusLG),
                   onTap: onTap,
                   child: content,
                 )

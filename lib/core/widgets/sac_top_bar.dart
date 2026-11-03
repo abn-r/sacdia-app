@@ -7,6 +7,7 @@ import 'package:haze/haze.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../theme/sac_colors.dart';
 import 'sac_back_button.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// iOS-inspired SACDIA top navigation primitives.
 ///
@@ -325,7 +326,7 @@ class SacFloatingTopBar extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppTheme.radiusLG),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
             child: Container(
@@ -333,7 +334,7 @@ class SacFloatingTopBar extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
               decoration: BoxDecoration(
                 color: backgroundColor ?? c.surface.withValues(alpha: 0.86),
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(AppTheme.radiusLG),
                 border: Border.all(color: c.border.withValues(alpha: 0.8)),
                 boxShadow: [
                   BoxShadow(
@@ -503,7 +504,7 @@ class _IconBadge extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: SacAccent.of(context).light,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       ),
       child: IconTheme(
         data: IconThemeData(color: SacAccent.of(context).color, size: 22),

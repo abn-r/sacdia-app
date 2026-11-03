@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Widget reutilizable para campos de texto en vistas de autenticación
 class AuthTextField extends StatefulWidget {
@@ -64,7 +65,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
               )
             : null,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         ),
         contentPadding: const EdgeInsets.symmetric(vertical: 16),
       ),

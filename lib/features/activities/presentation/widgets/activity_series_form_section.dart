@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/features/activities/domain/entities/activity_series.dart';
 import 'package:sacdia_app/features/activities/presentation/widgets/activity_form_widgets.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 class ActivitySeriesFormSection extends StatelessWidget {
   final bool enabled;
@@ -63,7 +64,7 @@ class ActivitySeriesFormSection extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             color: c.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             border: Border.all(
               color: repeat
                   ? SacAccent.of(context).color.withValues(alpha: 0.45)
@@ -91,14 +92,16 @@ class ActivitySeriesFormSection extends StatelessWidget {
                   title: Text(
                     'activities.series.toggle_title'.tr(),
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: SacFontSize.titleSmall,
                       fontWeight: FontWeight.w600,
                       color: c.text,
                     ),
                   ),
                   subtitle: Text(
                     'activities.series.toggle_subtitle'.tr(),
-                    style: TextStyle(fontSize: 12, color: c.textSecondary),
+                    style: TextStyle(
+                        fontSize: SacFontSize.bodySmall,
+                        color: c.textSecondary),
                   ),
                   secondary: Container(
                     padding: const EdgeInsets.all(7),
@@ -106,7 +109,7 @@ class ActivitySeriesFormSection extends StatelessWidget {
                       color: repeat
                           ? SacAccent.of(context).light
                           : c.surfaceVariant,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     ),
                     child: HugeIcon(
                       icon: HugeIcons.strokeRoundedRefresh,
@@ -159,7 +162,7 @@ class ActivitySeriesFormSection extends StatelessWidget {
                   child: Text(
                     'activities.series.every_days'.tr(),
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       fontWeight: FontWeight.w600,
                       color: c.text,
                     ),
@@ -168,7 +171,7 @@ class ActivitySeriesFormSection extends StatelessWidget {
                 Container(
                   decoration: BoxDecoration(
                     color: c.surface,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                     border: Border.all(color: c.border),
                   ),
                   child: Row(
@@ -202,7 +205,7 @@ class ActivitySeriesFormSection extends StatelessWidget {
                           '$intervalDays',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: SacFontSize.titleMedium,
                             fontWeight: FontWeight.w700,
                             color: c.text,
                           ),
@@ -248,12 +251,14 @@ class ActivitySeriesFormSection extends StatelessWidget {
           if (previewLoading)
             Text(
               'activities.series.preview_loading'.tr(),
-              style: TextStyle(fontSize: 13, color: c.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
             )
           else if (previewError != null)
             Text(
               'activities.series.preview_error'.tr(),
-              style: TextStyle(fontSize: 13, color: AppColors.error),
+              style: TextStyle(
+                  fontSize: SacFontSize.bodyMedium, color: AppColors.error),
             )
           else if (preview != null)
             _SeriesPreviewChips(preview: preview!),
@@ -281,15 +286,15 @@ class _WeekdayChip extends StatelessWidget {
     final c = context.sac;
     return Material(
       color: selected ? SacAccent.of(context).light : c.surface,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(AppTheme.radiusXS),
       child: SacInkWell(
         onTap: enabled ? onTap : null,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
         child: Container(
           height: 44,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             border: Border.all(
               color: selected
                   ? SacAccent.of(context).color.withValues(alpha: 0.55)
@@ -300,7 +305,7 @@ class _WeekdayChip extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: SacFontSize.labelSmall,
               fontWeight: FontWeight.w600,
               color: selected ? SacAccent.of(context).dark : c.textSecondary,
             ),
@@ -335,7 +340,7 @@ class _SeriesPreviewChips extends StatelessWidget {
             namedArgs: {'count': '${preview.count}'},
           ),
           style: TextStyle(
-            fontSize: 13,
+            fontSize: SacFontSize.bodyMedium,
             fontWeight: FontWeight.w600,
             color: c.text,
           ),
@@ -352,7 +357,8 @@ class _SeriesPreviewChips extends StatelessWidget {
                 'activities.series.preview_more'.tr(
                   namedArgs: {'count': '$remaining'},
                 ),
-                style: TextStyle(fontSize: 12, color: c.textSecondary),
+                style: TextStyle(
+                    fontSize: SacFontSize.bodySmall, color: c.textSecondary),
               ),
             if (last != null) _DateChip(date: last, emphasis: true),
           ],
@@ -375,12 +381,12 @@ class _DateChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: emphasis ? SacAccent.of(context).light : c.surfaceVariant,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
       ),
       child: Text(
         date,
         style: TextStyle(
-          fontSize: 11,
+          fontSize: SacFontSize.labelSmall,
           fontFamily: 'monospace',
           fontWeight: emphasis ? FontWeight.w600 : FontWeight.w400,
           color: emphasis ? SacAccent.of(context).dark : c.textSecondary,

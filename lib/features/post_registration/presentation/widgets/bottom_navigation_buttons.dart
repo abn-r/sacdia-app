@@ -89,7 +89,7 @@ class BottomNavigationButtons extends StatelessWidget {
             //       'Omitir por ahora',
             //       style: TextStyle(
             //         color: context.sac.textTertiary,
-            //         fontSize: 14,
+            //         fontSize: SacFontSize.titleSmall,
             //         fontWeight: FontWeight.w500,
             //       ),
             //     ),

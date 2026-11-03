@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../theme/roadmap_tokens.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Header de cada track (Aventureros / Conquistadores / Guías Mayores).
 class VATrackHeader extends StatelessWidget {
@@ -37,7 +38,7 @@ class VATrackHeader extends StatelessWidget {
           colors: [soft, Colors.white],
         ),
         border: Border.all(color: accent.withValues(alpha: 0.2)),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -53,7 +54,7 @@ class VATrackHeader extends StatelessWidget {
             height: 36,
             decoration: BoxDecoration(
               color: accent,
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(AppTheme.radius2XS),
             ),
           ),
           const SizedBox(width: 12),
@@ -64,7 +65,7 @@ class VATrackHeader extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 17,
+                    fontSize: SacFontSize.titleLarge,
                     fontWeight: FontWeight.w800,
                     color: RoadmapTokens.textPrimary,
                   ),
@@ -73,7 +74,7 @@ class VATrackHeader extends StatelessWidget {
                 Text(
                   '$subtitle · $total clases',
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: SacFontSize.bodySmall,
                     color: RoadmapTokens.textSecondary,
                   ),
                 ),
@@ -86,14 +87,14 @@ class VATrackHeader extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: RoadmapTokens.statusCurrent.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                 border: Border.all(
                     color: RoadmapTokens.statusCurrent.withValues(alpha: 0.4)),
               ),
               child: Text(
                 'classes.roadmap.track_current_pill'.tr(),
                 style: const TextStyle(
-                  fontSize: 11,
+                  fontSize: SacFontSize.labelSmall,
                   fontWeight: FontWeight.w700,
                   color: RoadmapTokens.statusCurrent,
                 ),
@@ -105,13 +106,13 @@ class VATrackHeader extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
             decoration: BoxDecoration(
               color: accent.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(999),
+              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
               border: Border.all(color: accent.withValues(alpha: 0.3)),
             ),
             child: Text(
               '$done/$total',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w700,
                 color: accent,
               ),

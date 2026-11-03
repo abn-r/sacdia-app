@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor_requirement.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// A single row in the hierarchical requirements tree.
 ///
@@ -170,12 +171,12 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: c.surfaceVariant,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                   ),
                   child: Text(
                     label,
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: SacFontSize.labelSmall,
                       fontWeight: FontWeight.w700,
                       color: c.textSecondary,
                     ),
@@ -197,7 +198,7 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
                             duration: expandDuration,
                             curve: SacMotion.easeOut,
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: SacFontSize.titleSmall,
                               height: 1.45,
                               fontWeight: FontWeight.w500,
                               color: widget.completed ? c.textTertiary : c.text,
@@ -223,7 +224,7 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
                                   ? 'honors.requirements.see_less'.tr()
                                   : 'honors.requirements.see_more'.tr(),
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: SacFontSize.bodyMedium,
                                 fontWeight: FontWeight.w600,
                                 color: c.textSecondary,
                               ),
@@ -279,7 +280,7 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
                         'honors.requirements.response_required'.tr(),
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.error,
-                          fontSize: 12,
+                          fontSize: SacFontSize.bodySmall,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -427,7 +428,7 @@ class _RequirementEvidenceAction extends StatelessWidget {
       textColor: hasEvidence ? AppColors.success : categoryColor,
       borderColor: (hasEvidence ? AppColors.success : categoryColor)
           .withValues(alpha: 0.45),
-      fontSize: 12,
+      fontSize: SacFontSize.bodySmall,
       iconSize: 18,
       borderRadius: 10,
     );
@@ -473,7 +474,7 @@ class _ReferenceAccordion extends StatelessWidget {
                 Text(
                   'honors.requirements.reference_label'.tr(),
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: SacFontSize.bodyMedium,
                     fontWeight: FontWeight.w600,
                     color: c.textSecondary,
                   ),
@@ -505,13 +506,14 @@ class _ReferenceAccordion extends StatelessWidget {
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: c.surfaceVariant,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusSM),
                           border: Border.all(color: c.border),
                         ),
                         child: Text(
                           referenceText,
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: SacFontSize.bodyMedium,
                             height: 1.5,
                             color: c.textSecondary,
                           ),

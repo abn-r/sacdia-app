@@ -131,7 +131,7 @@ class SacFilterChip extends StatelessWidget {
                       duration: colorDuration,
                       curve: SacMotion.easeOut,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: SacFontSize.bodyMedium,
                         height: 1.15,
                         fontWeight: FontWeight.w700,
                         color: fg,
@@ -148,7 +148,7 @@ class SacFilterChip extends StatelessWidget {
                         duration: colorDuration,
                         curve: SacMotion.easeOut,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: SacFontSize.bodySmall,
                           height: 1.15,
                           fontWeight: FontWeight.w700,
                           color: fg.withValues(alpha: 0.85),

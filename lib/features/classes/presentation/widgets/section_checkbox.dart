@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 import '../../domain/entities/class_section.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Checkbox circular de sección - Estilo "Scout Vibrante"
 ///
@@ -89,7 +90,7 @@ class _SectionCheckboxState extends State<SectionCheckbox> {
                   duration: reduce ? SacMotion.reducedFade : SacMotion.press,
                   curve: SacMotion.easeOut,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                     decoration: completed ? TextDecoration.lineThrough : null,
                     color: labelColor,
                   ),

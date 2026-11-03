@@ -9,6 +9,7 @@ import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/datasources/email_verification_remote_data_source.dart';
 import 'setting_tile.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 final emailVerificationDataSourceProvider =
     Provider<EmailVerificationRemoteDataSource>((ref) {
@@ -90,7 +91,7 @@ class _EmailVerificationPromptState
       child: Container(
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(color: c.border, width: 1),
         ),
         child: SettingTile(

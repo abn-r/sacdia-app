@@ -190,7 +190,7 @@ class _ResourcesSectionState extends State<ResourcesSection> {
                               Text(
                                 tr('home.resources.view_all'),
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: SacFontSize.bodyMedium,
                                   fontWeight: FontWeight.w600,
                                   color: SacAccent.of(context).color,
                                 ),
@@ -221,7 +221,7 @@ class _ResourcesSectionState extends State<ResourcesSection> {
                   Text(
                     tr('home.resources.recent_files'),
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: SacFontSize.titleSmall,
                       fontWeight: FontWeight.w600,
                       color: c.textSecondary,
                     ),
@@ -234,7 +234,8 @@ class _ResourcesSectionState extends State<ResourcesSection> {
                             child: Text(
                               tr('home.resources.no_files_in_category'),
                               style: TextStyle(
-                                  fontSize: 13, color: c.textTertiary),
+                                  fontSize: SacFontSize.bodyMedium,
+                                  color: c.textTertiary),
                             ),
                           )
                         : ListView.separated(
@@ -253,7 +254,7 @@ class _ResourcesSectionState extends State<ResourcesSection> {
                   Text(
                     tr('home.resources.categories'),
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: SacFontSize.titleSmall,
                       fontWeight: FontWeight.w600,
                       color: c.textSecondary,
                     ),
@@ -446,7 +447,7 @@ class _FileCard extends StatelessWidget {
                           child: Text(
                             _typeLabel,
                             style: const TextStyle(
-                              fontSize: 7,
+                              fontSize: SacFontSize.nano,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
                             ),
@@ -461,7 +462,7 @@ class _FileCard extends StatelessWidget {
                 Text(
                   file.name,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: SacFontSize.bodySmall,
                     fontWeight: FontWeight.w600,
                     color: c.text,
                     height: 1.3,
@@ -474,7 +475,7 @@ class _FileCard extends StatelessWidget {
                 Text(
                   file.size,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: SacFontSize.labelSmall,
                     color: c.textTertiary,
                     fontWeight: FontWeight.w500,
                   ),
@@ -548,7 +549,7 @@ class _CategoryCard extends StatelessWidget {
                       Text(
                         category.name,
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: SacFontSize.bodyMedium,
                           fontWeight: FontWeight.w700,
                           color: c.text,
                         ),
@@ -559,7 +560,7 @@ class _CategoryCard extends StatelessWidget {
                       Text(
                         '${category.fileCount} archivos',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: SacFontSize.labelSmall,
                           color: c.textTertiary,
                           fontWeight: FontWeight.w500,
                         ),

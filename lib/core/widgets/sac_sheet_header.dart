@@ -92,7 +92,7 @@ class SacSheetHeader extends StatelessWidget {
                     Text(
                       title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontSize: 17,
+                            fontSize: SacFontSize.titleLarge,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -0.2,
                             color: c.text,
@@ -105,7 +105,7 @@ class SacSheetHeader extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontSize: 13,
+                              fontSize: SacFontSize.bodyMedium,
                               color: c.textSecondary,
                               height: 1.35,
                             ),

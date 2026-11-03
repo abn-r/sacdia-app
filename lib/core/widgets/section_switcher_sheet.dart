@@ -353,7 +353,8 @@ class _OptionCard extends StatelessWidget {
                           height: 40,
                           decoration: BoxDecoration(
                             color: color.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusXS),
                           ),
                           child: Center(
                             child: logoAsset != null
@@ -502,12 +503,12 @@ class _SectionBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
       ),
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 10,
+          fontSize: SacFontSize.caption,
           fontWeight: FontWeight.w600,
           color: fg,
         ),
@@ -548,7 +549,7 @@ class _StatusLabel extends StatelessWidget {
     return Text(
       '· $label',
       style: TextStyle(
-        fontSize: 10,
+        fontSize: SacFontSize.caption,
         fontWeight: FontWeight.w500,
         color: color,
       ),

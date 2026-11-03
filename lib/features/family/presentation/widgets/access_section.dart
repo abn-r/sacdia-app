@@ -9,6 +9,7 @@ import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_card.dart';
 import '../../domain/entities/dependent.dart';
 import '../../domain/entities/supervised_login.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Sección "Acceso" del detalle de un menor (FP3-33).
 ///
@@ -207,7 +208,7 @@ class _AgeNudge extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.primary.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

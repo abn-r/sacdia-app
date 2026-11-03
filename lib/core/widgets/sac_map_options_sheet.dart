@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Opens Google Maps / Apple Maps / Waze for a place or lat/lng pair.
 Future<void> showSacMapOptions(
@@ -152,7 +153,8 @@ class _SacMapOptionsSheet extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(0, 0, 0, 20 + bottomPadding),
       decoration: BoxDecoration(
         color: sac.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppTheme.radiusXL)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -219,7 +221,7 @@ class _MapOptionTile extends StatelessWidget {
       color: Colors.transparent,
       child: SacInkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: Row(

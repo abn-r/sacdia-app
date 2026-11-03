@@ -20,6 +20,7 @@ import '../../domain/entities/honor.dart';
 import '../../domain/entities/user_honor.dart';
 import '../providers/honors_providers.dart';
 import '../widgets/honor_card.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista de "Mis Honores" - Estilo "Scout Vibrante"
 ///
@@ -111,8 +112,9 @@ class MyHonorsView extends ConsumerWidget {
                         const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     child: Text(
                       'honors.my_honors.stats_error'.tr(),
-                      style:
-                          const TextStyle(color: AppColors.error, fontSize: 12),
+                      style: const TextStyle(
+                          color: AppColors.error,
+                          fontSize: SacFontSize.bodySmall),
                     ),
                   ),
                 ),
@@ -127,13 +129,13 @@ class MyHonorsView extends ConsumerWidget {
                   margin: EdgeInsets.symmetric(horizontal: hPad),
                   decoration: BoxDecoration(
                     color: context.sac.surfaceVariant,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   ),
                   child: TabBar(
                     enableFeedback: false,
                     indicator: BoxDecoration(
                       color: context.sac.surface,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                       boxShadow: [
                         BoxShadow(
                           color: context.sac.shadow,
@@ -147,7 +149,7 @@ class MyHonorsView extends ConsumerWidget {
                     labelColor: SacAccent.of(context).color,
                     unselectedLabelColor: context.sac.textSecondary,
                     labelStyle: const TextStyle(
-                      fontSize: 14,
+                      fontSize: SacFontSize.titleSmall,
                       fontWeight: FontWeight.w600,
                     ),
                     tabs: [
@@ -176,7 +178,7 @@ class MyHonorsView extends ConsumerWidget {
                             Text(
                               'honors.my_honors.empty_title'.tr(),
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: SacFontSize.titleMedium,
                                 color: context.sac.textSecondary,
                               ),
                             ),
@@ -184,7 +186,7 @@ class MyHonorsView extends ConsumerWidget {
                             Text(
                               'honors.my_honors.empty_subtitle'.tr(),
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: SacFontSize.titleSmall,
                                 color: context.sac.textTertiary,
                               ),
                             ),
@@ -269,7 +271,7 @@ class MyHonorsView extends ConsumerWidget {
         child: Text(
           emptyMessage,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: SacFontSize.titleSmall,
             color: context.sac.textSecondary,
           ),
         ),
@@ -351,7 +353,7 @@ class _StatMini extends StatelessWidget {
             AnimatedCounter(
               value: value,
               style: TextStyle(
-                fontSize: 22,
+                fontSize: SacFontSize.headlineLarge,
                 fontWeight: FontWeight.w700,
                 color: color,
               ),
@@ -360,7 +362,7 @@ class _StatMini extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: SacFontSize.labelSmall,
                 fontWeight: FontWeight.w500,
                 color: context.sac.textSecondary,
               ),

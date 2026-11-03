@@ -3,6 +3,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Variantes del badge
 enum SacBadgeVariant { primary, secondary, accent, error, neutral }
@@ -89,7 +90,7 @@ class SacBadge extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: _backgroundColor(context),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -106,7 +107,7 @@ class SacBadge extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w500,
                 color: fg,
                 height: 1.2,

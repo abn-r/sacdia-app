@@ -27,7 +27,8 @@ class InventoryFilterSheet extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.background,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppTheme.radiusXL)),
       ),
       child: SafeArea(
         top: false,
@@ -43,7 +44,7 @@ class InventoryFilterSheet extends ConsumerWidget {
                 height: 4,
                 decoration: BoxDecoration(
                   color: c.border,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
                 ),
               ),
             ),
@@ -216,7 +217,7 @@ class _SortChip extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 fontWeight: FontWeight.w600,
                 color: isSelected
                     ? SacAccent.of(context).color
@@ -255,7 +256,7 @@ class _ConditionChip extends StatelessWidget {
         decoration: BoxDecoration(
           color:
               isSelected ? color.withValues(alpha: 0.12) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppTheme.radiusLG),
           border: Border.all(
             color: isSelected ? color : Theme.of(context).dividerColor,
             width: isSelected ? 1.5 : 1,
@@ -275,7 +276,7 @@ class _ConditionChip extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 fontWeight: FontWeight.w600,
                 color: isSelected ? color : null,
               ),

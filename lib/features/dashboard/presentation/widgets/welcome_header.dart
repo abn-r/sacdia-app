@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Encabezado de bienvenida del dashboard - Estilo "Scout Vibrante"
 ///
@@ -130,7 +131,7 @@ class WelcomeHeader extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: AppColors.error,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                       ),
                       constraints: const BoxConstraints(minWidth: 16),
                       child: Text(
@@ -139,7 +140,7 @@ class WelcomeHeader extends StatelessWidget {
                             : '$unreadNotificationsCount',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 9,
+                          fontSize: SacFontSize.micro,
                           fontWeight: FontWeight.w700,
                         ),
                         textAlign: TextAlign.center,
@@ -204,7 +205,7 @@ class _AvatarFallback extends StatelessWidget {
       child: Text(
         initial.isNotEmpty ? initial[0].toUpperCase() : 'U',
         style: TextStyle(
-          fontSize: 18,
+          fontSize: SacFontSize.headlineSmall,
           fontWeight: FontWeight.w700,
           color: SacAccent.of(context).color,
         ),

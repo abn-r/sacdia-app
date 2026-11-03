@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Card de estadística del dashboard - Estilo "Scout Vibrante"
 class DashboardCard extends StatelessWidget {
@@ -34,7 +35,7 @@ class DashboardCard extends StatelessWidget {
             height: 48,
             decoration: BoxDecoration(
               color: tint.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             ),
             child: buildIcon(icon, color: tint, size: 24),
           ),
@@ -46,7 +47,7 @@ class DashboardCard extends StatelessWidget {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: SacFontSize.bodyMedium,
                     fontWeight: FontWeight.w500,
                     color: context.sac.textSecondary,
                   ),

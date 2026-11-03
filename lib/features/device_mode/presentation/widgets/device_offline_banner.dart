@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Franja «Sin conexión»: lo que se ve es lo último guardado y es de solo
 /// lectura.
@@ -29,7 +30,7 @@ class DeviceOfflineBanner extends StatelessWidget {
           Expanded(
             child: Text(
               'device.offline'.tr(),
-              style: TextStyle(color: c.text, fontSize: 13),
+              style: TextStyle(color: c.text, fontSize: SacFontSize.bodyMedium),
             ),
           ),
         ],

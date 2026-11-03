@@ -21,6 +21,7 @@ import '../../../profile/presentation/widgets/medico/medico_section_card.dart';
 import '../../../profile/presentation/widgets/medico/medical_chip.dart';
 import '../utils/health_selection_state.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Redesigned view for managing user medicines.
 /// Mint tone. Inline dose editor. None toggle above search.
@@ -254,7 +255,8 @@ class _MedicinesSelectionViewState
       context: context,
       backgroundColor: m.paper,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLG)),
       ),
       builder: (ctx) {
         return SafeArea(
@@ -594,7 +596,7 @@ class _MedicinesSelectionViewState
                                     'post_registration.health.medicines.add_new_section'
                                         .tr(),
                                     style: TextStyle(
-                                      fontSize: 18,
+                                      fontSize: SacFontSize.headlineSmall,
                                       fontWeight: FontWeight.w800,
                                       color: m.iconMuted,
                                     ),
@@ -608,7 +610,7 @@ class _MedicinesSelectionViewState
                                     onChanged: (v) =>
                                         setState(() => _searchQuery = v),
                                     style: TextStyle(
-                                      fontSize: 15,
+                                      fontSize: SacFontSize.titleMedium,
                                       fontWeight: FontWeight.w500,
                                       color: m.textPrimary,
                                     ),
@@ -617,7 +619,8 @@ class _MedicinesSelectionViewState
                                           'post_registration.health.medicines.search_hint'
                                               .tr(),
                                       hintStyle: TextStyle(
-                                          color: m.textSecondary, fontSize: 15),
+                                          color: m.textSecondary,
+                                          fontSize: SacFontSize.titleMedium),
                                       prefixIconConstraints:
                                           FixedInputIconSlot.constraints,
                                       prefixIcon: FixedInputIconSlot(
@@ -649,17 +652,20 @@ class _MedicinesSelectionViewState
                                           const EdgeInsets.symmetric(
                                               horizontal: 16, vertical: 14),
                                       border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(
+                                            AppTheme.radiusSM),
                                         borderSide: BorderSide.none,
                                       ),
                                       focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(
+                                            AppTheme.radiusSM),
                                         borderSide: const BorderSide(
                                             color: MedicoTokens.coral500,
                                             width: 1.5),
                                       ),
                                       enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(
+                                            AppTheme.radiusSM),
                                         borderSide: BorderSide.none,
                                       ),
                                     ),
@@ -698,7 +704,7 @@ class _MedicinesSelectionViewState
                                       'post_registration.health.medicines.none_active_caption'
                                           .tr(),
                                       style: TextStyle(
-                                        fontSize: 13,
+                                        fontSize: SacFontSize.bodyMedium,
                                         color: m.textSecondary,
                                       ),
                                     ),
@@ -915,7 +921,7 @@ class _MedicineTile extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 1),
       decoration: BoxDecoration(
         color: isSelected ? m.mintSoft : m.paper,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border(
           left: isSelected
               ? BorderSide(color: m.mintFg, width: 3)
@@ -932,7 +938,7 @@ class _MedicineTile extends StatelessWidget {
           children: [
             SacInkWell(
               onTap: onTap,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -942,7 +948,7 @@ class _MedicineTile extends StatelessWidget {
                       child: Text(
                         name,
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: SacFontSize.titleMedium,
                           fontWeight:
                               isSelected ? FontWeight.w600 : FontWeight.w500,
                           color: m.textPrimary,
@@ -1076,7 +1082,7 @@ class _InfoBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1087,7 +1093,7 @@ class _InfoBanner extends StatelessWidget {
             child: Text(
               text,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 color: fgColor,
                 height: 1.25,
               ),
@@ -1126,7 +1132,7 @@ class _NoneToggleCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: isActive ? m.mintSoft : m.paper,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           border: Border.all(
             color: isActive ? m.mintFg : m.border,
           ),
@@ -1140,7 +1146,7 @@ class _NoneToggleCard extends StatelessWidget {
                   Text(
                     label,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: SacFontSize.titleSmall,
                       fontWeight: FontWeight.w600,
                       color: m.textPrimary,
                     ),
@@ -1149,7 +1155,7 @@ class _NoneToggleCard extends StatelessWidget {
                   Text(
                     helper,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: SacFontSize.bodySmall,
                       color: m.textSecondary,
                     ),
                   ),
@@ -1228,7 +1234,7 @@ class _StickyFooter extends StatelessWidget {
             child: Text(
               _counterText(),
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 fontWeight: FontWeight.w500,
                 color: m.iconMuted,
               ),

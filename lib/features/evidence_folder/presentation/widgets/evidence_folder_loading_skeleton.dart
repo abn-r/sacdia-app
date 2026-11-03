@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 class EvidenceFolderLoadingSkeleton extends StatefulWidget {
   const EvidenceFolderLoadingSkeleton({super.key});
@@ -89,7 +90,7 @@ class _EvidenceFolderLoadingSkeletonState
         color: Theme.of(context).brightness == Brightness.dark
             ? const Color(0xFF1A1A1A)
             : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,7 +107,8 @@ class _EvidenceFolderLoadingSkeletonState
               _SkeletonBox(
                 width: 68,
                 height: 24,
-                borderRadius: const BorderRadius.all(Radius.circular(20)),
+                borderRadius:
+                    const BorderRadius.all(Radius.circular(AppTheme.radiusLG)),
                 shimmerValue: sv,
               ),
             ],
@@ -134,7 +136,8 @@ class _EvidenceFolderLoadingSkeletonState
                 child: _SkeletonBox(
                   width: double.infinity,
                   height: 5,
-                  borderRadius: const BorderRadius.all(Radius.circular(4)),
+                  borderRadius: const BorderRadius.all(
+                      Radius.circular(AppTheme.radius2XS)),
                   shimmerValue: sv,
                 ),
               ),
@@ -150,7 +153,8 @@ class _EvidenceFolderLoadingSkeletonState
               _SkeletonBox(
                 width: 13,
                 height: 13,
-                borderRadius: const BorderRadius.all(Radius.circular(4)),
+                borderRadius:
+                    const BorderRadius.all(Radius.circular(AppTheme.radius2XS)),
                 shimmerValue: sv,
               ),
               const SizedBox(width: 5),
@@ -178,7 +182,7 @@ class _EvidenceFolderLoadingSkeletonState
                 color: Theme.of(context).brightness == Brightness.dark
                     ? const Color(0xFF1A1A1A)
                     : const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -208,7 +212,7 @@ class _EvidenceFolderLoadingSkeletonState
           color: Theme.of(context).brightness == Brightness.dark
               ? const Color(0xFF1A1A1A)
               : const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         ),
         child: Row(
           children: [
@@ -216,7 +220,8 @@ class _EvidenceFolderLoadingSkeletonState
             _SkeletonBox(
               width: 38,
               height: 38,
-              borderRadius: const BorderRadius.all(Radius.circular(10)),
+              borderRadius:
+                  const BorderRadius.all(Radius.circular(AppTheme.radiusXS)),
               shimmerValue: sv,
             ),
             const SizedBox(width: 12),
@@ -237,8 +242,8 @@ class _EvidenceFolderLoadingSkeletonState
                       _SkeletonBox(
                         width: 50,
                         height: 18,
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(20)),
+                        borderRadius: const BorderRadius.all(
+                            Radius.circular(AppTheme.radiusLG)),
                         shimmerValue: sv,
                       ),
                     ],
@@ -250,7 +255,8 @@ class _EvidenceFolderLoadingSkeletonState
             _SkeletonBox(
               width: 16,
               height: 16,
-              borderRadius: const BorderRadius.all(Radius.circular(4)),
+              borderRadius:
+                  const BorderRadius.all(Radius.circular(AppTheme.radius2XS)),
               shimmerValue: sv,
             ),
           ],
@@ -271,7 +277,8 @@ class _SkeletonBox extends StatelessWidget {
   const _SkeletonBox({
     required this.width,
     required this.height,
-    this.borderRadius = const BorderRadius.all(Radius.circular(8)),
+    this.borderRadius =
+        const BorderRadius.all(Radius.circular(AppTheme.radiusXS)),
     required this.shimmerValue,
   });
 

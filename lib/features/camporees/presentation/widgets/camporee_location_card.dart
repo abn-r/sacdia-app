@@ -74,7 +74,7 @@ class CamporeeLocationCard extends StatelessWidget {
                         'camporees.detail.location_title'.tr(),
                         style: TextStyle(
                           color: c.textTertiary,
-                          fontSize: 12,
+                          fontSize: SacFontSize.bodySmall,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.3,
                         ),
@@ -84,7 +84,7 @@ class CamporeeLocationCard extends StatelessWidget {
                         camporee.place,
                         style: TextStyle(
                           color: c.text,
-                          fontSize: 16,
+                          fontSize: SacFontSize.titleMedium,
                           fontWeight: FontWeight.w700,
                           height: 1.3,
                         ),
@@ -96,7 +96,7 @@ class CamporeeLocationCard extends StatelessWidget {
                           Text(
                             'camporees.detail.open_in_maps'.tr(),
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: SacFontSize.titleSmall,
                               fontWeight: FontWeight.w700,
                               color: SacAccent.of(context).color,
                             ),
@@ -191,7 +191,7 @@ class _LocationPreviewFallback extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: c.textSecondary,
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               fontWeight: FontWeight.w700,
             ),
           ),

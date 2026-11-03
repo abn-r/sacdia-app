@@ -764,7 +764,7 @@ class _JointActivityToggle extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(
           color: value
               ? SacAccent.of(context).color.withValues(alpha: 0.4)
@@ -792,7 +792,7 @@ class _JointActivityToggle extends StatelessWidget {
               title: Text(
                 'activities.form.joint_toggle_title'.tr(),
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: SacFontSize.titleSmall,
                   fontWeight: FontWeight.w600,
                   color: c.text,
                 ),
@@ -800,7 +800,7 @@ class _JointActivityToggle extends StatelessWidget {
               subtitle: Text(
                 'activities.form.joint_toggle_subtitle'.tr(),
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: SacFontSize.bodySmall,
                   color: c.textSecondary,
                 ),
               ),
@@ -808,7 +808,7 @@ class _JointActivityToggle extends StatelessWidget {
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
                   color: value ? SacAccent.of(context).light : c.surfaceVariant,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 ),
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedUserGroup,
@@ -857,7 +857,7 @@ class _SectionMultiPicker extends ConsumerWidget {
         Text(
           'activities.form.sections_hint'.tr(),
           style: TextStyle(
-            fontSize: 12,
+            fontSize: SacFontSize.bodySmall,
             color: c.textSecondary,
           ),
         ),
@@ -874,7 +874,7 @@ class _SectionMultiPicker extends ConsumerWidget {
           error: (_, __) => Text(
             'activities.form.sections_error_load'.tr(),
             style: TextStyle(
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               color: c.textSecondary,
             ),
           ),
@@ -882,7 +882,8 @@ class _SectionMultiPicker extends ConsumerWidget {
             if (sections.isEmpty) {
               return Text(
                 'activities.form.sections_empty'.tr(),
-                style: TextStyle(fontSize: 12, color: c.textSecondary),
+                style: TextStyle(
+                    fontSize: SacFontSize.bodySmall, color: c.textSecondary),
               );
             }
             return Wrap(
@@ -921,7 +922,7 @@ class _SectionMultiPicker extends ConsumerWidget {
           Text(
             'activities.form.sections_min_hint'.tr(),
             style: TextStyle(
-              fontSize: 11,
+              fontSize: SacFontSize.labelSmall,
               color: AppColors.error,
               fontWeight: FontWeight.w500,
             ),
@@ -969,7 +970,7 @@ class _JointActivityReadOnlyBadge extends StatelessWidget {
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: SacAccent.of(context).color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: HugeIcon(
               icon: HugeIcons.strokeRoundedUserGroup,
@@ -1003,7 +1004,8 @@ class _JointActivityReadOnlyBadge extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: c.surface,
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius:
+                                  BorderRadius.circular(AppTheme.radiusLG),
                               border: Border.all(
                                 color: SacAccent.of(context)
                                     .color
@@ -1013,7 +1015,7 @@ class _JointActivityReadOnlyBadge extends StatelessWidget {
                             child: Text(
                               name,
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: SacFontSize.bodySmall,
                                 fontWeight: FontWeight.w500,
                                 color: SacAccent.of(context).dark,
                               ),
@@ -1027,7 +1029,7 @@ class _JointActivityReadOnlyBadge extends StatelessWidget {
                   Text(
                     'activities.edit.joint_badge_fallback'.tr(),
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: SacFontSize.bodySmall,
                       color: c.textSecondary,
                     ),
                   ),

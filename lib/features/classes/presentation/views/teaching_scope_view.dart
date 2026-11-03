@@ -19,6 +19,7 @@ import '../widgets/class_identity_badge.dart';
 import 'class_counselor_assignments_view.dart';
 import 'class_members_progress_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 class TeachingScopeView extends ConsumerWidget {
   final int? yearId;
@@ -232,7 +233,7 @@ class _ScopeHeader extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: SacAccent.of(context).color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(
             color: SacAccent.of(context).color.withValues(alpha: 0.18)),
       ),
@@ -244,7 +245,7 @@ class _ScopeHeader extends StatelessWidget {
             height: 44,
             decoration: BoxDecoration(
               color: SacAccent.of(context).color.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             ),
             child: Center(
               child: HugeIcon(
@@ -299,14 +300,14 @@ class _ClassScopeTile extends StatelessWidget {
 
     return Material(
       color: c.paper,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(AppTheme.radiusLG),
       child: SacInkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(AppTheme.radiusLG),
             border: Border.all(color: classColor.withValues(alpha: 0.18)),
           ),
           child: Row(

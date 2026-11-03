@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Canonical empty / no-data placeholder.
 ///
@@ -47,7 +48,7 @@ class SacEmptyState extends StatelessWidget {
             Text(
               title,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontSize: 17,
+                    fontSize: SacFontSize.titleLarge,
                     fontWeight: FontWeight.w600,
                     color: c.text,
                   ),
@@ -58,7 +59,7 @@ class SacEmptyState extends StatelessWidget {
               Text(
                 body!,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontSize: 14,
+                      fontSize: SacFontSize.titleSmall,
                       color: c.textSecondary,
                     ),
                 textAlign: TextAlign.center,

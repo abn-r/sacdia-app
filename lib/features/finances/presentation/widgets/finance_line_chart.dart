@@ -8,6 +8,7 @@ import '../../domain/entities/finance_month.dart';
 import '../../domain/entities/finance_summary.dart';
 import '../providers/finances_providers.dart';
 import 'period_selector.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Area line chart that overlays income (green) and expense (red) lines.
 ///
@@ -38,7 +39,7 @@ class FinanceLineChart extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: chartSurface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -344,7 +345,7 @@ class _ChartView extends StatelessWidget {
                     '\$${_formatAmount(spot.y)}',
                     TextStyle(
                       color: isIncome ? _incomeColor : _expenseColor,
-                      fontSize: 11,
+                      fontSize: SacFontSize.labelSmall,
                       fontWeight: FontWeight.w600,
                     ),
                   );
@@ -413,7 +414,7 @@ class _ChartView extends StatelessWidget {
       child: Text(
         _formatYValue(value),
         style: TextStyle(
-          fontSize: 9,
+          fontSize: SacFontSize.micro,
           color: labelColor,
           fontWeight: FontWeight.w400,
         ),
@@ -470,7 +471,7 @@ class _ChartView extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 9,
+          fontSize: SacFontSize.micro,
           color: labelColor,
           fontWeight: FontWeight.w400,
         ),
@@ -578,7 +579,7 @@ class _LegendDot extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: SacFontSize.labelSmall,
             fontWeight: FontWeight.w500,
             color: context.sac.textSecondary,
           ),

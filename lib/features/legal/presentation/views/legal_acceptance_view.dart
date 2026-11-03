@@ -331,7 +331,8 @@ class _ErrorCard extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(color: AppColors.errorDark, fontSize: 14),
+              style: const TextStyle(
+                  color: AppColors.errorDark, fontSize: SacFontSize.titleSmall),
             ),
           ),
         ],

@@ -14,6 +14,7 @@ import '../../domain/entities/enrollment.dart';
 import '../providers/enrollment_providers.dart';
 import '../views/enrollment_form_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 const _enrollmentCreatePermissions = {'club_instances:create'};
 
@@ -216,7 +217,7 @@ class _PendingCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.accentLight,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
       ),
       padding: const EdgeInsets.all(16),
@@ -227,7 +228,7 @@ class _PendingCard extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               color: AppColors.accent.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: const Center(
               child: HugeIcon(
@@ -245,7 +246,7 @@ class _PendingCard extends StatelessWidget {
                 Text(
                   'enrollment.status.title_pending'.tr(),
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                     fontWeight: FontWeight.w700,
                     color: AppColors.accentDark,
                   ),
@@ -254,7 +255,7 @@ class _PendingCard extends StatelessWidget {
                 Text(
                   subtitle,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: SacFontSize.bodySmall,
                     color: AppColors.accentDark.withValues(alpha: 0.8),
                   ),
                 ),

@@ -34,6 +34,7 @@ import '../widgets/welcome_header.dart';
 import '../../../enrollment/presentation/widgets/enrollment_status_card.dart';
 import '../../../coordinator/presentation/views/coordinator_hub_view.dart';
 import '../../../investiture_requests/presentation/views/authorizer_requests_view.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista principal del dashboard - Estilo "Scout Vibrante"
 class DashboardView extends ConsumerWidget {
@@ -107,7 +108,7 @@ class DashboardView extends ConsumerWidget {
                     Text(
                       tr('dashboard.load_null_error'),
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: SacFontSize.titleMedium,
                         color: c.textSecondary,
                       ),
                     ),
@@ -243,7 +244,7 @@ class DashboardView extends ConsumerWidget {
                   Text(
                     error.toString(),
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: SacFontSize.titleSmall,
                       color: c.textSecondary,
                     ),
                     textAlign: TextAlign.center,
@@ -347,7 +348,7 @@ class _PendingMembershipDashboardState extends ConsumerWidget {
               height: 72,
               decoration: BoxDecoration(
                 color: SacAccent.of(context).color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(AppTheme.radiusXL),
               ),
               child: Center(
                 child: HugeIcon(
@@ -449,7 +450,7 @@ class _GuardianWithoutClubDashboardState extends StatelessWidget {
               height: 72,
               decoration: BoxDecoration(
                 color: accent.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(AppTheme.radiusXL),
               ),
               child: Center(
                 child: HugeIcon(

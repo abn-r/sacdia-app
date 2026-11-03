@@ -19,6 +19,7 @@ import '../../domain/utils/device_label.dart';
 import '../providers/device_meta_provider.dart';
 import '../providers/device_notice_provider.dart';
 import 'pairing_qr_scanner_view.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Pantalla para vincular este teléfono como el de un menor de 13 (FP3-52).
 ///
@@ -354,7 +355,7 @@ class _PairBody extends StatelessWidget {
                     message,
                     style: const TextStyle(
                       color: AppColors.errorDark,
-                      fontSize: 14,
+                      fontSize: SacFontSize.titleSmall,
                     ),
                   ),
                 ),
@@ -422,7 +423,8 @@ class _NoticeCard extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: TextStyle(color: context.sac.text, fontSize: 14),
+              style: TextStyle(
+                  color: context.sac.text, fontSize: SacFontSize.titleSmall),
             ),
           ),
           IconButton(

@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import '../../domain/entities/order.dart';
 import '../utils/money_format.dart';
 import 'material_status_badge.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Card de resumen de una orden en el historial.
 class OrderCard extends StatelessWidget {
@@ -30,7 +31,7 @@ class OrderCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(color: c.border.withValues(alpha: 0.75)),
         ),
         child: Column(
@@ -42,7 +43,7 @@ class OrderCard extends StatelessWidget {
                   child: Text(
                     folio,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: SacFontSize.titleSmall,
                       fontWeight: FontWeight.w800,
                       fontFamily: hasFolio ? 'monospace' : null,
                       color: hasFolio ? c.text : c.textTertiary,
@@ -59,7 +60,7 @@ class OrderCard extends StatelessWidget {
             Text(
               _formatDate(order.createdAt),
               style: TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w500,
                 color: c.textSecondary,
               ),
@@ -71,7 +72,7 @@ class OrderCard extends StatelessWidget {
                   child: Text(
                     formatMxn(order.totalCentavos),
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: SacFontSize.titleMedium,
                       fontWeight: FontWeight.w800,
                       color: SacAccent.of(context).color,
                       letterSpacing: -0.2,

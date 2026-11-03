@@ -273,7 +273,7 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
               'camporees.detail.history_notice'.tr(),
               style: TextStyle(
                 color: context.sac.textSecondary,
-                fontSize: 14,
+                fontSize: SacFontSize.titleSmall,
                 height: 1.35,
                 fontWeight: FontWeight.w600,
               ),
@@ -445,7 +445,7 @@ class _DetailTabBar extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: c.border,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       ),
       child: Padding(
         padding: const EdgeInsets.all(3),
@@ -480,7 +480,8 @@ class _DetailTabBar extends StatelessWidget {
                         child: DecoratedBox(
                           decoration: BoxDecoration(
                             color: SacAccent.of(context).color,
-                            borderRadius: BorderRadius.circular(9),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusXS),
                           ),
                         ),
                       ),
@@ -492,7 +493,8 @@ class _DetailTabBar extends StatelessWidget {
                         child: IgnorePointer(
                           child: ExcludeSemantics(
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(9),
+                              borderRadius:
+                                  BorderRadius.circular(AppTheme.radiusXS),
                               child: OverflowBox(
                                 alignment: Alignment.topLeft,
                                 minWidth: constraints.maxWidth,
@@ -772,7 +774,7 @@ class _EventHonorsSection extends StatelessWidget {
           'camporees.detail.event_honors_subtitle'.tr(),
           style: TextStyle(
             color: context.sac.textSecondary,
-            fontSize: 13,
+            fontSize: SacFontSize.bodyMedium,
             height: 1.35,
             fontWeight: FontWeight.w600,
           ),
@@ -803,7 +805,7 @@ class _EventHonorCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             child: imageUrl != null && imageUrl.isNotEmpty
                 ? Image.network(
                     imageUrl,
@@ -832,7 +834,7 @@ class _EventHonorCard extends StatelessWidget {
                     category,
                     style: TextStyle(
                       color: c.textSecondary,
-                      fontSize: 12,
+                      fontSize: SacFontSize.bodySmall,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -849,7 +851,7 @@ class _EventHonorCard extends StatelessWidget {
                       'camporees.detail.event_honor_open_pdf'.tr(),
                       style: TextStyle(
                         color: SacAccent.of(context).color,
-                        fontSize: 13,
+                        fontSize: SacFontSize.bodyMedium,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -859,7 +861,7 @@ class _EventHonorCard extends StatelessWidget {
                     'camporees.detail.event_honor_no_pdf'.tr(),
                     style: TextStyle(
                       color: c.textSecondary,
-                      fontSize: 12,
+                      fontSize: SacFontSize.bodySmall,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -909,7 +911,7 @@ class _EventsSection extends StatelessWidget {
             'camporees.detail.events_subtitle'.tr(),
             style: TextStyle(
               color: context.sac.textSecondary,
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               height: 1.35,
               fontWeight: FontWeight.w600,
             ),
@@ -984,7 +986,7 @@ class _AgendaSection extends StatelessWidget {
             'camporees.detail.agenda_subtitle'.tr(),
             style: TextStyle(
               color: context.sac.textSecondary,
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               height: 1.35,
               fontWeight: FontWeight.w600,
             ),
@@ -1039,7 +1041,7 @@ class _AgendaSection extends StatelessWidget {
                           'camporees.detail.agenda_pending'.tr(),
                           style: TextStyle(
                             color: context.sac.text,
-                            fontSize: 13,
+                            fontSize: SacFontSize.bodyMedium,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
@@ -1104,7 +1106,7 @@ class _AgendaDayHeader extends StatelessWidget {
             ),
             style: TextStyle(
               color: c.text,
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               fontWeight: FontWeight.w800,
               height: 1.2,
             ),
@@ -1115,7 +1117,7 @@ class _AgendaDayHeader extends StatelessWidget {
               dateLabel,
               style: TextStyle(
                 color: c.textSecondary,
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w600,
                 height: 1.2,
               ),
@@ -1157,13 +1159,13 @@ class _AgendaRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: c.surfaceVariant,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border),
       ),
       child: Material(
         color: Colors.transparent,
         child: SacInkWell(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           onTap: () => _openCamporeeEvent(context, event),
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -1178,7 +1180,7 @@ class _AgendaRow extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: c.text,
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       fontWeight: FontWeight.w800,
                       height: 1.2,
                       fontFeatures: const [FontFeature.tabularFigures()],
@@ -1202,7 +1204,7 @@ class _AgendaRow extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: c.text,
-                          fontSize: 14,
+                          fontSize: SacFontSize.titleSmall,
                           fontWeight: FontWeight.w800,
                           height: 1.25,
                         ),
@@ -1215,7 +1217,7 @@ class _AgendaRow extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             color: c.textSecondary,
-                            fontSize: 12,
+                            fontSize: SacFontSize.bodySmall,
                             fontWeight: FontWeight.w600,
                             height: 1.25,
                           ),
@@ -1248,13 +1250,13 @@ class _EventTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: c.surfaceVariant,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border),
       ),
       child: Material(
         color: Colors.transparent,
         child: SacInkWell(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           onTap: () => _openCamporeeEvent(context, event),
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -1274,7 +1276,7 @@ class _EventTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: c.text,
-                      fontSize: 14,
+                      fontSize: SacFontSize.titleSmall,
                       fontWeight: FontWeight.w800,
                       height: 1.25,
                     ),
@@ -1285,7 +1287,7 @@ class _EventTile extends StatelessWidget {
                   pointsLabel,
                   style: TextStyle(
                     color: c.textSecondary,
-                    fontSize: 13,
+                    fontSize: SacFontSize.bodyMedium,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -1580,7 +1582,7 @@ class _ScheduleBlocksPreview extends StatelessWidget {
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: c.surface,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
               border: Border.all(color: c.border),
             ),
             child: Column(
@@ -1592,7 +1594,7 @@ class _ScheduleBlocksPreview extends StatelessWidget {
                       : 'camporees.detail.schedule_block'.tr(),
                   style: TextStyle(
                     color: c.text,
-                    fontSize: 12,
+                    fontSize: SacFontSize.bodySmall,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -1626,7 +1628,7 @@ class _ScheduleBlocksPreview extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: c.textSecondary,
-                      fontSize: 11,
+                      fontSize: SacFontSize.labelSmall,
                       height: 1.3,
                       fontWeight: FontWeight.w600,
                     ),
@@ -1667,7 +1669,7 @@ class _MiniMeta extends StatelessWidget {
           label,
           style: TextStyle(
             color: c.textSecondary,
-            fontSize: 12,
+            fontSize: SacFontSize.bodySmall,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -1792,15 +1794,17 @@ class _EnrollmentOrders extends ConsumerWidget {
           ),
           error: (_, __) => Text(
             'camporees.detail.enrollment_orders_error'.tr(),
-            style:
-                TextStyle(fontSize: 13, color: c.textSecondary, height: 1.35),
+            style: TextStyle(
+                fontSize: SacFontSize.bodyMedium,
+                color: c.textSecondary,
+                height: 1.35),
           ),
           data: (orders) {
             if (orders.isEmpty) {
               return Text(
                 'camporees.detail.enrollment_orders_empty'.tr(),
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   color: c.textSecondary,
                   height: 1.35,
                 ),
@@ -1831,16 +1835,16 @@ class _EnrollmentOrderRow extends StatelessWidget {
     final c = context.sac;
     return Material(
       color: c.background,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       child: InkWell(
         onTap: () => context.push(
           RouteNames.paymentOrderDetailPath(order.orderId),
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             border: Border.all(color: c.border),
           ),
           child: Row(
@@ -1852,7 +1856,7 @@ class _EnrollmentOrderRow extends StatelessWidget {
                     Text(
                       order.folioReference,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: SacFontSize.titleSmall,
                         fontWeight: FontWeight.w700,
                         color: c.text,
                       ),
@@ -1860,7 +1864,9 @@ class _EnrollmentOrderRow extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       formatCentavos(order.totalCentavos, order.currency),
-                      style: TextStyle(fontSize: 12.5, color: c.textSecondary),
+                      style: TextStyle(
+                          fontSize: SacFontSize.bodySmall,
+                          color: c.textSecondary),
                     ),
                   ],
                 ),
@@ -1928,7 +1934,7 @@ class _ParticipantsLockedState extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: context.sac.surfaceVariant,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           border: Border.all(color: context.sac.borderLight),
         ),
         child: Row(
@@ -1980,13 +1986,13 @@ class _MembersPreview extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: c.surfaceVariant,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           border: Border.all(color: c.borderLight),
         ),
         child: Text(
           'camporees.detail.no_members_yet'.tr(),
           style: TextStyle(
-            fontSize: 14,
+            fontSize: SacFontSize.titleSmall,
             height: 1.45,
             color: c.textSecondary,
             fontWeight: FontWeight.w600,
@@ -2049,7 +2055,7 @@ class _EmptyInlineState extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: c.surfaceVariant,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: c.borderLight),
       ),
       child: Row(
@@ -2060,7 +2066,7 @@ class _EmptyInlineState extends StatelessWidget {
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: SacFontSize.titleSmall,
                 height: 1.45,
                 color: c.textSecondary,
                 fontWeight: FontWeight.w600,
@@ -2091,7 +2097,7 @@ class _InlineRetryState extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: c.error.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: c.error.withValues(alpha: 0.18)),
       ),
       child: Row(
@@ -2106,7 +2112,7 @@ class _InlineRetryState extends StatelessWidget {
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 color: c.textSecondary,
                 fontWeight: FontWeight.w700,
               ),
@@ -2148,7 +2154,7 @@ class _MemberPreviewTile extends StatelessWidget {
                 Text(
                   member.userName ?? member.userId,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: SacFontSize.titleMedium,
                     fontWeight: FontWeight.w700,
                     color: c.text,
                     height: 1.25,
@@ -2161,7 +2167,7 @@ class _MemberPreviewTile extends StatelessWidget {
                   Text(
                     member.clubName!,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       color: c.textTertiary,
                       fontWeight: FontWeight.w600,
                     ),
@@ -2214,7 +2220,7 @@ class _FactRow extends StatelessWidget {
                   label,
                   style: TextStyle(
                     color: c.textTertiary,
-                    fontSize: 12,
+                    fontSize: SacFontSize.bodySmall,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.2,
                     height: 1.25,
@@ -2225,7 +2231,7 @@ class _FactRow extends StatelessWidget {
                   value,
                   style: TextStyle(
                     color: c.text,
-                    fontSize: 16,
+                    fontSize: SacFontSize.titleMedium,
                     fontWeight: FontWeight.w700,
                     height: 1.35,
                   ),
@@ -2365,13 +2371,13 @@ class _Badge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
         border: Border.all(color: color.withValues(alpha: 0.22)),
       ),
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: SacFontSize.bodySmall,
           fontWeight: FontWeight.w800,
           color: color,
           height: 1.1,
@@ -2524,7 +2530,8 @@ class _ErrorBody extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               message,
-              style: TextStyle(fontSize: 14, color: c.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.titleSmall, color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),

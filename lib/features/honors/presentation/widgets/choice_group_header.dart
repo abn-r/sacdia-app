@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Badge-style header for a choice group requirement.
 ///
@@ -42,7 +43,7 @@ class ChoiceGroupHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
         border: Border.all(
           color: accentColor.withValues(alpha: 0.35),
           width: 1,
@@ -65,7 +66,7 @@ class ChoiceGroupHeader extends StatelessWidget {
               'total': '$totalChildren',
             }),
             style: TextStyle(
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               fontWeight: FontWeight.w600,
               color:
                   _isSatisfied ? AppColors.secondaryDark : AppColors.accentDark,
@@ -86,7 +87,7 @@ class ChoiceGroupHeader extends StatelessWidget {
                   : 'honors.choice_group.completed_other'
                       .tr(namedArgs: {'count': '$completedChildren'}),
               style: TextStyle(
-                fontSize: 11,
+                fontSize: SacFontSize.labelSmall,
                 fontWeight: FontWeight.w500,
                 color: context.sac.textSecondary,
               ),

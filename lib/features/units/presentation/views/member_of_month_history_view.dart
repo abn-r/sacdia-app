@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../../domain/entities/member_of_month.dart';
 import '../providers/units_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Pantalla de historial del Miembro del Mes para una sección.
 ///
@@ -208,7 +209,7 @@ class _MonthEntry extends StatelessWidget {
                 height: 18,
                 decoration: BoxDecoration(
                   color: const Color(0xFFD4A017),
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
                 ),
               ),
               const SizedBox(width: 8),
@@ -226,7 +227,7 @@ class _MonthEntry extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
                     color: const Color(0xFFD4A017).withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                   ),
                   child: Text(
                     'units.member_of_month.tie_badge'.tr(),
@@ -369,7 +370,7 @@ class _MomInitials extends StatelessWidget {
         style: const TextStyle(
           color: Color(0xFFB8860B),
           fontWeight: FontWeight.w700,
-          fontSize: 14,
+          fontSize: SacFontSize.titleSmall,
         ),
       ),
     );

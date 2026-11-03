@@ -21,6 +21,7 @@ import 'class_honor_actions.dart';
 import 'mini_ring.dart';
 import 'requirement_card.dart';
 import 'section_checkbox.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Módulo expandible — Estilo original (legacy, usado en pantallas antiguas).
 ///
@@ -66,7 +67,7 @@ class ModuleExpansionTile extends StatelessWidget {
               color: isComplete
                   ? AppColors.secondaryLight
                   : SacAccent.of(context).light,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: SacStateSwap(
               duration: SacMotion.standard,
@@ -81,7 +82,7 @@ class ModuleExpansionTile extends StatelessWidget {
                       '$completedCount/$totalCount',
                       key: ValueKey('module-badge-$completedCount-$totalCount'),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: SacFontSize.bodySmall,
                         fontWeight: FontWeight.w700,
                         color: SacAccent.of(context).color,
                       ),
@@ -125,7 +126,7 @@ class ModuleExpansionTile extends StatelessWidget {
                   child: Text(
                     'Especialidades',
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: SacFontSize.labelSmall,
                       color: context.sac.ink500,
                       fontWeight: FontWeight.w700,
                     ),
@@ -226,7 +227,7 @@ class _TrackSectionHeader extends StatelessWidget {
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: SacFontSize.labelSmall,
                 color: c.ink500,
                 fontWeight: FontWeight.w700,
               ),
@@ -236,7 +237,7 @@ class _TrackSectionHeader extends StatelessWidget {
             Text(
               subtitle,
               style: TextStyle(
-                fontSize: 10.5,
+                fontSize: SacFontSize.caption,
                 color: c.ink400,
               ),
             ),
@@ -357,7 +358,7 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                       Text(
                         module.name,
                         style: TextStyle(
-                          fontSize: 14.5,
+                          fontSize: SacFontSize.titleSmall,
                           fontWeight: FontWeight.w600,
                           color: c.ink900,
                         ),
@@ -369,7 +370,7 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                           Text(
                             '${module.completedCount}/${module.requirements.length}',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: SacFontSize.bodySmall,
                               fontWeight: FontWeight.w600,
                               color: c.ink500,
                               fontFeatures: const [
@@ -382,7 +383,7 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                             child: Text(
                               '·',
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: SacFontSize.bodySmall,
                                 color: c.ink300,
                               ),
                             ),
@@ -391,7 +392,7 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                             'classes.detail_with_progress.module_pending_count'
                                 .plural(pending),
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: SacFontSize.bodySmall,
                               color: c.ink500,
                             ),
                           ),
@@ -402,7 +403,7 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                               child: Text(
                                 '·',
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: SacFontSize.bodySmall,
                                   color: c.ink300,
                                 ),
                               ),
@@ -411,7 +412,7 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                               'classes.detail_with_progress.module_honors_count'
                                   .plural(widget.honors.length),
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: SacFontSize.bodySmall,
                                 color: c.ink500,
                               ),
                             ),
@@ -456,7 +457,7 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                     child: Text(
                       'classes.detail_with_progress.empty_requirements'.tr(),
                       style: TextStyle(
-                        fontSize: 12.5,
+                        fontSize: SacFontSize.bodySmall,
                         color: c.ink400,
                       ),
                     ),
@@ -479,7 +480,7 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                               Text(
                                 'classes.honors.module_section'.tr(),
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: SacFontSize.labelSmall,
                                   fontWeight: FontWeight.w700,
                                   color: c.ink500,
                                   letterSpacing: 0.6,

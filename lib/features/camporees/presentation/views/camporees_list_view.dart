@@ -23,6 +23,7 @@ import 'package:sacdia_app/features/camporees/domain/utils/camporee_period.dart'
 import '../providers/camporees_providers.dart';
 import 'camporee_detail_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista de lista de camporees.
 ///
@@ -270,7 +271,7 @@ class _CamporeeCard extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               color: c.surface,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(AppTheme.radiusLG),
               border: Border.all(color: c.borderLight),
             ),
             child: Column(
@@ -289,7 +290,7 @@ class _CamporeeCard extends StatelessWidget {
                         camporee.name,
                         style: TextStyle(
                           color: c.text,
-                          fontSize: 17,
+                          fontSize: SacFontSize.titleLarge,
                           fontWeight: FontWeight.w800,
                           height: 1.25,
                           letterSpacing: -0.3,
@@ -303,7 +304,7 @@ class _CamporeeCard extends StatelessWidget {
                           camporee.localFieldName!,
                           style: TextStyle(
                             color: c.textSecondary,
-                            fontSize: 13,
+                            fontSize: SacFontSize.bodyMedium,
                             fontWeight: FontWeight.w600,
                           ),
                           maxLines: 1,
@@ -328,7 +329,7 @@ class _CamporeeCard extends StatelessWidget {
                                 currencyFormatter,
                               ),
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: SacFontSize.titleMedium,
                                 fontWeight: FontWeight.w800,
                                 color: camporee.registrationCost == 0
                                     ? c.success
@@ -422,7 +423,7 @@ class _CardBanner extends StatelessWidget {
                       .tr()
                       .toUpperCase(),
                   style: TextStyle(
-                    fontSize: 10.5,
+                    fontSize: SacFontSize.caption,
                     fontWeight: FontWeight.w800,
                     color: Colors.white.withValues(alpha: 0.75),
                     letterSpacing: 1.4,
@@ -433,7 +434,7 @@ class _CardBanner extends StatelessWidget {
                 Text(
                   dateRange,
                   style: const TextStyle(
-                    fontSize: 19,
+                    fontSize: SacFontSize.headlineSmall,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
                     letterSpacing: -0.3,
@@ -472,7 +473,7 @@ class _MetaRow extends StatelessWidget {
           child: Text(
             text,
             style: TextStyle(
-              fontSize: 13.5,
+              fontSize: SacFontSize.bodyMedium,
               color: c.textSecondary,
               height: 1.3,
               fontWeight: FontWeight.w600,
@@ -558,12 +559,12 @@ class _Badge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
       ),
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 11.5,
+          fontSize: SacFontSize.labelSmall,
           fontWeight: FontWeight.w700,
           color: color,
           height: 1.2,
@@ -664,7 +665,8 @@ class _ErrorState extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               message,
-              style: TextStyle(fontSize: 14, color: c.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.titleSmall, color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -697,7 +699,7 @@ class _CamporeesSkeleton extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
           color: c.surfaceVariant,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppTheme.radiusLG),
           border: Border.all(color: c.borderLight),
         ),
       ),

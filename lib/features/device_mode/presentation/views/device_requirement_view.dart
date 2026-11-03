@@ -19,6 +19,7 @@ import '../../../classes/domain/entities/class_requirement.dart';
 import '../../../classes/presentation/providers/classes_providers.dart';
 import '../../../classes/presentation/widgets/requirement_status_badge.dart';
 import '../providers/device_connectivity_provider.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Evidencias de un requisito: el menor toma o elige fotos (o un PDF), las sube
 /// y las ENVÍA a validación; el coordinador o el campo local validan como
@@ -190,7 +191,7 @@ class _DeviceRequirementViewState extends ConsumerState<DeviceRequirementView> {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: AppColors.accentLight,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   ),
                   child: Text(feedback, style: textTheme.bodyMedium),
                 ),

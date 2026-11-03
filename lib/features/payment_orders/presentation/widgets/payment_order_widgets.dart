@@ -5,6 +5,7 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 import '../../domain/entities/payment_order.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Formatea centavos como moneda (ej. 15000 → "$150.00").
 String formatCentavos(int centavos, [String currency = 'MXN']) {
@@ -63,13 +64,13 @@ class PaymentOrderStatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         paymentOrderStatusLabel(status),
         style: TextStyle(
-          fontSize: 11,
+          fontSize: SacFontSize.labelSmall,
           fontWeight: FontWeight.w700,
           color: color,
         ),
@@ -216,7 +217,7 @@ class _TimelineRow extends StatelessWidget {
             child: Text(
               step.label,
               style: TextStyle(
-                fontSize: 13.5,
+                fontSize: SacFontSize.bodyMedium,
                 fontWeight: step.done ? FontWeight.w700 : FontWeight.w500,
                 color: step.done ? c.text : c.textTertiary,
               ),

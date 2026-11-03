@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/features/post_registration/data/models/medicine_model.dart';
 import 'medico_tokens.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Fila para un medicamento — nombre destacado + dosis abajo (si tiene).
 /// Fondo mint suave para diferenciarlo visualmente del resto.
@@ -29,7 +30,7 @@ class MedicamentTile extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       color: m.mintInk,
-                      fontSize: 14,
+                      fontSize: SacFontSize.titleSmall,
                     ),
                   ),
                   if (medicine.dose != null && medicine.dose!.isNotEmpty) ...[
@@ -37,7 +38,7 @@ class MedicamentTile extends StatelessWidget {
                     Text(
                       medicine.dose!,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: SacFontSize.bodySmall,
                         color: m.mintInkSoft,
                       ),
                     ),

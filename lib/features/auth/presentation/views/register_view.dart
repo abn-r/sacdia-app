@@ -529,7 +529,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                                         errorMessage,
                                         style: const TextStyle(
                                           color: AppColors.errorDark,
-                                          fontSize: 14,
+                                          fontSize: SacFontSize.titleSmall,
                                         ),
                                       ),
                                     ),
@@ -630,7 +630,7 @@ class _AgeGatePanel extends StatelessWidget {
                       'auth.register.age_gate.title'.tr(),
                       style: const TextStyle(
                         color: AppColors.accentDark,
-                        fontSize: 16,
+                        fontSize: SacFontSize.titleMedium,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -642,7 +642,7 @@ class _AgeGatePanel extends StatelessWidget {
                 'auth.register.age_gate.message'.tr(),
                 style: const TextStyle(
                   color: AppColors.accentDark,
-                  fontSize: 15,
+                  fontSize: SacFontSize.titleMedium,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -651,7 +651,7 @@ class _AgeGatePanel extends StatelessWidget {
                 'auth.register.age_gate.hint'.tr(),
                 style: const TextStyle(
                   color: AppColors.accentDark,
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   height: 1.3,
                 ),
               ),
@@ -694,7 +694,8 @@ class _LegalLoadError extends StatelessWidget {
         Expanded(
           child: Text(
             'auth.legal.load_error'.tr(),
-            style: const TextStyle(color: AppColors.errorDark, fontSize: 14),
+            style: const TextStyle(
+                color: AppColors.errorDark, fontSize: SacFontSize.titleSmall),
           ),
         ),
         SacButton.ghost(
@@ -790,7 +791,7 @@ class _PasswordStrengthIndicator extends StatelessWidget {
                 margin: EdgeInsets.only(right: index < 3 ? 4 : 0),
                 decoration: BoxDecoration(
                   color: _segmentColor(index, context),
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
                 ),
               ),
             );
@@ -800,7 +801,7 @@ class _PasswordStrengthIndicator extends StatelessWidget {
         Text(
           _label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: SacFontSize.bodySmall,
             fontWeight: FontWeight.w500,
             color: _labelColor(context),
           ),

@@ -100,7 +100,7 @@ class _TimePickerSheetState extends State<_TimePickerSheet> {
                   style: (TextButton.styleFrom(
                     foregroundColor: SacAccent.of(context).color,
                     textStyle: const TextStyle(
-                      fontSize: 16,
+                      fontSize: SacFontSize.titleMedium,
                       fontWeight: FontWeight.w700,
                     ),
                     padding: const EdgeInsets.symmetric(
@@ -158,7 +158,7 @@ class _TimePickerSheetState extends State<_TimePickerSheet> {
                             child: Text(
                               i.toString().padLeft(2, '0'),
                               style: TextStyle(
-                                fontSize: 22,
+                                fontSize: SacFontSize.headlineLarge,
                                 fontWeight: FontWeight.w600,
                                 color: c.text,
                               ),
@@ -174,7 +174,7 @@ class _TimePickerSheetState extends State<_TimePickerSheet> {
                       child: Text(
                         ':',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: SacFontSize.displaySmall,
                           fontWeight: FontWeight.w700,
                           color: c.text,
                         ),
@@ -196,7 +196,7 @@ class _TimePickerSheetState extends State<_TimePickerSheet> {
                             child: Text(
                               i.toString().padLeft(2, '0'),
                               style: TextStyle(
-                                fontSize: 22,
+                                fontSize: SacFontSize.headlineLarge,
                                 fontWeight: FontWeight.w600,
                                 color: c.text,
                               ),
@@ -243,7 +243,7 @@ class ActivitySectionHeader extends StatelessWidget {
           padding: const EdgeInsets.all(7),
           decoration: BoxDecoration(
             color: SacAccent.of(context).light,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
           ),
           child: HugeIcon(
               icon: icon, size: 16, color: SacAccent.of(context).color),
@@ -252,7 +252,7 @@ class ActivitySectionHeader extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: SacFontSize.titleSmall,
             fontWeight: FontWeight.w700,
             color: c.text,
           ),
@@ -360,7 +360,7 @@ class ActivityLocationPickerField extends StatelessWidget {
                             Text(
                               result!.name,
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: SacFontSize.titleSmall,
                                 fontWeight: FontWeight.w500,
                                 color: c.text,
                                 height: 1.3,
@@ -372,7 +372,7 @@ class ActivityLocationPickerField extends StatelessWidget {
                             Text(
                               '${result!.lat.toStringAsFixed(5)}, ${result!.long.toStringAsFixed(5)}',
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: SacFontSize.labelSmall,
                                 color: c.textTertiary,
                                 fontFeatures: const [
                                   FontFeature.tabularFigures()
@@ -384,7 +384,7 @@ class ActivityLocationPickerField extends StatelessWidget {
                       : Text(
                           'activities.widgets.location_hint'.tr(),
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: SacFontSize.titleSmall,
                             color: c.textTertiary,
                           ),
                         ),
@@ -406,7 +406,7 @@ class ActivityLocationPickerField extends StatelessWidget {
               'activities.widgets.location_error'.tr(),
               style: TextStyle(
                 color: theme.colorScheme.error,
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -504,7 +504,7 @@ class ActivityDatePickerField extends StatelessWidget {
                   child: Text(
                     formatted ?? 'activities.widgets.date_hint'.tr(),
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: SacFontSize.titleSmall,
                       fontWeight:
                           hasValue ? FontWeight.w500 : FontWeight.normal,
                       color: hasValue ? c.text : c.textTertiary,
@@ -537,7 +537,7 @@ class ActivityDatePickerField extends StatelessWidget {
               errorText!,
               style: TextStyle(
                 color: theme.colorScheme.error,
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -600,7 +600,7 @@ class ActivitySegmentedSelector<T> extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
                     color: isSelected ? SacAccent.of(context).color : c.surface,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     border: Border.all(
                       color:
                           isSelected ? SacAccent.of(context).color : c.border,
@@ -617,7 +617,7 @@ class ActivitySegmentedSelector<T> extends StatelessWidget {
                   child: Text(
                     opt.label,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: SacFontSize.titleSmall,
                       fontWeight: FontWeight.w600,
                       color: isSelected ? Colors.white : c.textSecondary,
                     ),
@@ -745,7 +745,7 @@ class _ActivityUploadingBody extends StatelessWidget {
           Text(
             'activities.widgets.image_uploading'.tr(),
             style: TextStyle(
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               color: c.textSecondary,
               fontWeight: FontWeight.w500,
             ),
@@ -817,7 +817,7 @@ class _ActivityImageSourceButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
           color: SacAccent.of(context).light,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXS),
           border: Border.all(
             color: SacAccent.of(context).color.withValues(alpha: 0.25),
           ),
@@ -834,7 +834,7 @@ class _ActivityImageSourceButton extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 fontWeight: FontWeight.w600,
                 color: SacAccent.of(context).color,
               ),
@@ -869,7 +869,7 @@ class _ActivityPreviewBody extends StatelessWidget {
           Stack(
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 child: Image(
                   image: imageProvider,
                   height: 120,
@@ -911,7 +911,7 @@ class _ActivityPreviewBody extends StatelessWidget {
               Text(
                 'activities.widgets.image_loaded'.tr(),
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: SacFontSize.bodySmall,
                   fontWeight: FontWeight.w600,
                   color: AppColors.secondary,
                 ),
@@ -974,7 +974,7 @@ class _ActivityRepickMenu extends StatelessWidget {
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: 0.55),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXS),
         ),
         child: const HugeIcon(
           icon: HugeIcons.strokeRoundedEdit02,

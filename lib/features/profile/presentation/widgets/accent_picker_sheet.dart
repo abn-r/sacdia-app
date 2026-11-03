@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Selector de acento. El swatch muestra el color canónico, no el tono
 /// aclarado del modo oscuro.
@@ -129,7 +130,7 @@ class _AccentGroup extends StatelessWidget {
           child: Text(
             title.toUpperCase(),
             style: TextStyle(
-              fontSize: 11,
+              fontSize: SacFontSize.labelSmall,
               color: c.textTertiary,
               letterSpacing: 0.8,
               fontWeight: FontWeight.w600,
@@ -183,7 +184,7 @@ class _AccentRow extends StatelessWidget {
                 child: Text(
                   accent.labelKey.tr(),
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: SacFontSize.titleMedium,
                     fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                     color: c.text,
                   ),

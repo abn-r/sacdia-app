@@ -20,6 +20,7 @@ import '../../domain/entities/create_minor.dart';
 import '../providers/members_providers.dart';
 import '../utils/create_minor_errors.dart';
 import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Alta de un menor por un director desde una sección del club (FP3-61/64).
 ///
@@ -401,7 +402,7 @@ class _ErrorBox extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.errorLight,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       ),
       child: Text(
         message,

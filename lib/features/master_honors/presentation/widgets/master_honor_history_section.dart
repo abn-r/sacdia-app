@@ -11,6 +11,7 @@ import 'package:sacdia_app/features/master_honors/presentation/providers/master_
 
 import 'master_honor_badge.dart';
 import 'master_honor_roadmap_grid.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Strip horizontal de maestrías para la Tarjeta Virtual.
 class MasterHonorBadgeStrip extends ConsumerWidget {
@@ -109,7 +110,7 @@ class _MasterHonorProfileSummary extends StatelessWidget {
             Text(
               'MAESTRÍAS',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 2.2,
                 color: context.sac.textTertiary,
@@ -123,7 +124,7 @@ class _MasterHonorProfileSummary extends StatelessWidget {
               Text(
                 '$totalAwarded',
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: SacFontSize.headlineLarge,
                   fontWeight: FontWeight.w800,
                   color: context.sac.text,
                   height: 1,
@@ -133,7 +134,7 @@ class _MasterHonorProfileSummary extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: SacFontSize.titleMedium,
                   fontWeight: FontWeight.w400,
                   color: context.sac.textSecondary,
                   height: 1,
@@ -146,7 +147,7 @@ class _MasterHonorProfileSummary extends StatelessWidget {
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     color: context.sac.surfaceVariant,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                   ),
                   child: HugeIcon(
                     icon: HugeIcons.strokeRoundedGridView,
@@ -162,7 +163,7 @@ class _MasterHonorProfileSummary extends StatelessWidget {
             Text(
               'Aún no tienes maestrías',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 color: context.sac.textTertiary,
               ),
             )
@@ -219,7 +220,7 @@ class _MasterHonorHistoryLine extends StatelessWidget {
           Text(
             '${honor.name} · ${_statusLabel(honor)}',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               fontWeight: FontWeight.w600,
               color: textColor,
             ),
@@ -227,17 +228,20 @@ class _MasterHonorHistoryLine extends StatelessWidget {
           if (honor.awardedAt != null)
             Text(
               'Concedida: ${_formatShortDate(honor.awardedAt!)}',
-              style: TextStyle(fontSize: 11, color: tertiary),
+              style:
+                  TextStyle(fontSize: SacFontSize.labelSmall, color: tertiary),
             ),
           if (honor.revokedAt != null)
             Text(
               'Revocada: ${_formatShortDate(honor.revokedAt!)}',
-              style: TextStyle(fontSize: 11, color: tertiary),
+              style:
+                  TextStyle(fontSize: SacFontSize.labelSmall, color: tertiary),
             ),
           if (honor.recoveredAt != null)
             Text(
               'Recuperada: ${_formatShortDate(honor.recoveredAt!)}',
-              style: TextStyle(fontSize: 11, color: tertiary),
+              style:
+                  TextStyle(fontSize: SacFontSize.labelSmall, color: tertiary),
             ),
         ],
       ),
@@ -266,7 +270,7 @@ class _MasterHonorProfileError extends StatelessWidget {
             Text(
               'MAESTRÍAS',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 2.2,
                 color: context.sac.textTertiary,
@@ -285,7 +289,7 @@ class _MasterHonorProfileError extends StatelessWidget {
               Text(
                 'No pudimos cargar tus maestrías',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   color: context.sac.textTertiary,
                 ),
               ),
@@ -303,7 +307,7 @@ class _MasterHonorProfileError extends StatelessWidget {
                   child: Text(
                     'Reintentar',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       color: context.sac.info,
                     ),
                   ),
@@ -368,7 +372,7 @@ class _MasterHonorStripSkeleton extends StatelessWidget {
               color: _isDark(context)
                   ? AppColors.darkSurfaceVariant
                   : AppColors.lightSurfaceVariant,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             ),
           ),
         ),
@@ -398,7 +402,7 @@ class _MasterHonorProfileSkeleton extends StatelessWidget {
               height: 12,
               decoration: BoxDecoration(
                 color: context.sac.surfaceVariant,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(AppTheme.radius2XS),
               ),
             ),
             const SizedBox(height: 16),
@@ -410,7 +414,7 @@ class _MasterHonorProfileSkeleton extends StatelessWidget {
                 height: 22,
                 decoration: BoxDecoration(
                   color: context.sac.surfaceVariant,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(AppTheme.radius2XS),
                 ),
               ),
               const SizedBox(width: 8),
@@ -419,7 +423,7 @@ class _MasterHonorProfileSkeleton extends StatelessWidget {
                 height: 14,
                 decoration: BoxDecoration(
                   color: context.sac.surfaceVariant,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(AppTheme.radius2XS),
                 ),
               ),
               const Spacer(),
@@ -428,7 +432,7 @@ class _MasterHonorProfileSkeleton extends StatelessWidget {
                 height: 30,
                 decoration: BoxDecoration(
                   color: context.sac.surfaceVariant,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 ),
               ),
             ],

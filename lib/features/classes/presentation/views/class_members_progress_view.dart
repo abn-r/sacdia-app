@@ -14,6 +14,7 @@ import '../providers/classes_providers.dart';
 import '../widgets/class_identity_badge.dart';
 import 'class_detail_with_progress_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 class ClassMembersProgressView extends ConsumerWidget {
   final int clubId;
@@ -156,7 +157,7 @@ class _MembersHeader extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: c.paper,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(color: classColor.withValues(alpha: 0.18)),
       ),
       child: Row(
@@ -215,14 +216,14 @@ class _MemberProgressTile extends StatelessWidget {
 
     return Material(
       color: c.paper,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(AppTheme.radiusLG),
       child: SacInkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(AppTheme.radiusLG),
             border: Border.all(color: c.ink150),
           ),
           child: Column(
@@ -286,7 +287,7 @@ class _MemberProgressTile extends StatelessWidget {
                   Text(
                     '$safeProgress%',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: SacFontSize.titleMedium,
                       fontWeight: FontWeight.w900,
                       color: classColor,
                     ),
@@ -295,7 +296,7 @@ class _MemberProgressTile extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               ClipRRect(
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                 child: LinearProgressIndicator(
                   minHeight: 8,
                   value: safeProgress / 100,
@@ -334,7 +335,7 @@ class _CrossTypeChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: classColor.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(AppTheme.radius2XS),
         border: Border.all(color: classColor.withValues(alpha: 0.30)),
       ),
       child: Text(
@@ -342,7 +343,7 @@ class _CrossTypeChip extends StatelessWidget {
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: classColor,
               fontWeight: FontWeight.w700,
-              fontSize: 10,
+              fontSize: SacFontSize.caption,
             ),
       ),
     );

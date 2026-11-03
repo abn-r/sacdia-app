@@ -160,7 +160,7 @@ class _ResourceCardState extends ConsumerState<ResourceCard> {
                       Text(
                         resource.title,
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: SacFontSize.bodyMedium,
                           fontWeight: FontWeight.w700,
                           color: c.text,
                           height: 1.2,
@@ -174,7 +174,7 @@ class _ResourceCardState extends ConsumerState<ResourceCard> {
                         Text(
                           meta,
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: SacFontSize.labelSmall,
                             fontWeight: FontWeight.w500,
                             color: c.textTertiary,
                             height: 1.2,
@@ -293,7 +293,7 @@ class ResourcePreviewPane extends StatelessWidget {
           maxLines: textMaxLines,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: SacFontSize.bodyMedium,
             height: 1.4,
             color: c.textSecondary,
             fontWeight: FontWeight.w500,
@@ -342,7 +342,7 @@ class _TypeGlyph extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 10,
+                fontSize: SacFontSize.caption,
                 fontWeight: FontWeight.w600,
                 color: c.textTertiary,
               ),
@@ -370,7 +370,7 @@ class _TypeBadge extends StatelessWidget {
       child: Text(
         label,
         style: const TextStyle(
-          fontSize: 10,
+          fontSize: SacFontSize.caption,
           fontWeight: FontWeight.w700,
           color: Colors.white,
           height: 1.1,

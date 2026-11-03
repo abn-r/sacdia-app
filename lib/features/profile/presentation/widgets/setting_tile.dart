@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Fila de configuración estilo iOS Settings.app:
 /// - Ícono en contenedor cuadrado redondeado con color propio
@@ -58,7 +59,7 @@ class SettingTile extends StatelessWidget {
               height: 34,
               decoration: BoxDecoration(
                 color: effectiveBg,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
               ),
               child: Center(
                 child: HugeIcon(
@@ -77,7 +78,7 @@ class SettingTile extends StatelessWidget {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: SacFontSize.titleMedium,
                       fontWeight: FontWeight.w500,
                       color: titleColor ??
                           (iconColor == AppColors.error
@@ -90,7 +91,7 @@ class SettingTile extends StatelessWidget {
                     Text(
                       subtitle!,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: SacFontSize.bodySmall,
                         color: c.textTertiary,
                       ),
                     ),

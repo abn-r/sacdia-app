@@ -17,6 +17,7 @@ import '../../../post_registration/presentation/widgets/relationship_type_picker
 import '../../domain/usecases/redeem_link_code.dart';
 import '../family_error_messages.dart';
 import '../providers/family_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Canjear un código de vinculación (segundo tutor o reclamo del director).
 ///
@@ -177,7 +178,7 @@ class _RedeemLinkCodeViewState extends ConsumerState<RedeemLinkCodeView> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: AppColors.errorLight,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

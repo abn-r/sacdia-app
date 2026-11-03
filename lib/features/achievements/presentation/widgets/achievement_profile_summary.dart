@@ -11,6 +11,7 @@ import '../../domain/entities/user_achievement.dart';
 import '../../domain/repositories/achievements_repository.dart';
 import '../providers/achievements_providers.dart';
 import 'achievement_badge.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// YouVersion-style achievements section for the profile screen.
 ///
@@ -79,7 +80,7 @@ class _AchievementProfileData extends StatelessWidget {
               Text(
                 '$totalUnlocked',
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: SacFontSize.headlineLarge,
                   fontWeight: FontWeight.w800,
                   color: context.sac.text,
                   height: 1,
@@ -90,7 +91,7 @@ class _AchievementProfileData extends StatelessWidget {
               Text(
                 'achievements.views.profile_summary_label'.tr(),
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: SacFontSize.titleMedium,
                   fontWeight: FontWeight.w400,
                   color: context.sac.textSecondary,
                   height: 1,
@@ -104,7 +105,7 @@ class _AchievementProfileData extends StatelessWidget {
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     color: context.sac.surfaceVariant,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                   ),
                   child: HugeIcon(
                     icon: HugeIcons.strokeRoundedGridView,
@@ -123,7 +124,7 @@ class _AchievementProfileData extends StatelessWidget {
             Text(
               'achievements.views.profile_summary_empty'.tr(),
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 color: context.sac.textTertiary,
               ),
             )
@@ -184,7 +185,7 @@ class _AchievementProfileError extends StatelessWidget {
           Text(
             'No pudimos cargar tus logros',
             style: TextStyle(
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               color: context.sac.textTertiary,
             ),
           ),
@@ -201,7 +202,7 @@ class _AchievementProfileError extends StatelessWidget {
               child: Text(
                 'Reintentar',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   color: context.sac.info,
                 ),
               ),
@@ -235,7 +236,7 @@ class _AchievementProfileSkeleton extends StatelessWidget {
                 width: 40,
                 decoration: BoxDecoration(
                   color: skeletonColor,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(AppTheme.radius2XS),
                 ),
               ),
               const SizedBox(width: 8),
@@ -244,7 +245,7 @@ class _AchievementProfileSkeleton extends StatelessWidget {
                 width: 70,
                 decoration: BoxDecoration(
                   color: skeletonColor,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(AppTheme.radius2XS),
                 ),
               ),
               const Spacer(),
@@ -253,7 +254,7 @@ class _AchievementProfileSkeleton extends StatelessWidget {
                 height: 30,
                 decoration: BoxDecoration(
                   color: skeletonColor,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 ),
               ),
             ],

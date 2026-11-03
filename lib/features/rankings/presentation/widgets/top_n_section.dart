@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/member_ranking.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Sección que muestra el top-N anonimizado de la sección del miembro.
 ///
@@ -116,7 +117,7 @@ class _TopNRow extends StatelessWidget {
       decoration: BoxDecoration(
         color:
             isCurrentUser ? SacAccent.of(context).surface : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
       ),
       child: Row(
         children: [
@@ -175,14 +176,14 @@ class _CompositeBadge extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: tierColor.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
       ),
       child: Text(
         formatScore(score),
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
               fontWeight: FontWeight.w600,
               color: tierColor,
-              fontSize: 11,
+              fontSize: SacFontSize.labelSmall,
             ),
       ),
     );

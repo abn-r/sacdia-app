@@ -11,6 +11,7 @@ import '../../domain/entities/user_achievement.dart';
 import '../../domain/repositories/achievements_repository.dart';
 import '../widgets/achievement_badge.dart';
 import '../widgets/achievement_progress_bar.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Detail sheet v2 — badge hero, status meta, inset groups, SacMotion enter.
 class AchievementDetailSheet extends StatefulWidget {
@@ -89,7 +90,8 @@ class _AchievementDetailSheetState extends State<AchievementDetailSheet>
         return Container(
           decoration: BoxDecoration(
             color: c.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppTheme.radiusXL)),
             boxShadow: [
               BoxShadow(
                 color: c.shadow,
@@ -99,7 +101,8 @@ class _AchievementDetailSheetState extends State<AchievementDetailSheet>
             ],
           ),
           child: ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppTheme.radiusXL)),
             child: Stack(
               children: [
                 // Tier wash — reads bronze/silver/gold/… without fighting content.
@@ -131,7 +134,8 @@ class _AchievementDetailSheetState extends State<AchievementDetailSheet>
                       height: 4,
                       decoration: BoxDecoration(
                         color: c.border.withValues(alpha: 0.9),
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusHairline),
                       ),
                     ),
                     Expanded(
@@ -162,7 +166,7 @@ class _AchievementDetailSheetState extends State<AchievementDetailSheet>
                                 Text(
                                   isSecret ? '???' : achievement.name,
                                   style: TextStyle(
-                                    fontSize: 24,
+                                    fontSize: SacFontSize.displaySmall,
                                     fontWeight: FontWeight.w800,
                                     letterSpacing: -0.4,
                                     height: 1.15,
@@ -219,7 +223,7 @@ class _AchievementDetailSheetState extends State<AchievementDetailSheet>
                                       'achievements.views.detail_secret_hint'
                                           .tr(),
                                       style: TextStyle(
-                                        fontSize: 15,
+                                        fontSize: SacFontSize.titleMedium,
                                         height: 1.45,
                                         color: c.textSecondary,
                                         fontWeight: FontWeight.w400,
@@ -236,7 +240,7 @@ class _AchievementDetailSheetState extends State<AchievementDetailSheet>
                                     child: Text(
                                       achievement.description!,
                                       style: TextStyle(
-                                        fontSize: 15,
+                                        fontSize: SacFontSize.titleMedium,
                                         height: 1.45,
                                         color: c.textSecondary,
                                         fontWeight: FontWeight.w400,
@@ -412,7 +416,7 @@ class _MetaChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -422,7 +426,7 @@ class _MetaChip extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               fontWeight: FontWeight.w700,
               color: foreground,
               height: 1.1,
@@ -449,7 +453,7 @@ class _InsetCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: c.surfaceVariant.withValues(alpha: 0.65),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border.withValues(alpha: 0.55)),
       ),
       child: child,
@@ -487,7 +491,7 @@ class _CompletedCaption extends StatelessWidget {
     return Text(
       parts.join('  ·  '),
       style: TextStyle(
-        fontSize: 13,
+        fontSize: SacFontSize.bodyMedium,
         fontWeight: FontWeight.w500,
         color: c.textTertiary,
         height: 1.3,
@@ -527,7 +531,7 @@ class _ProgressSection extends StatelessWidget {
             Text(
               'achievements.views.detail_progress'.tr(),
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 fontWeight: FontWeight.w700,
                 color: context.sac.text,
               ),
@@ -536,7 +540,7 @@ class _ProgressSection extends StatelessWidget {
             Text(
               '${userAchievement.progressValue}/${userAchievement.progressTarget}',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 fontWeight: FontWeight.w700,
                 color: tierColor,
               ),
@@ -620,7 +624,7 @@ class _CollectionContent extends StatelessWidget {
             Text(
               'achievements.views.detail_collection'.tr(),
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 fontWeight: FontWeight.w700,
                 color: c.text,
               ),
@@ -644,7 +648,7 @@ class _CollectionContent extends StatelessWidget {
                       child: Text(
                         item,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: SacFontSize.titleSmall,
                           fontWeight:
                               isCollected ? FontWeight.w600 : FontWeight.w400,
                           color: isCollected ? c.text : c.textSecondary,
@@ -684,7 +688,7 @@ class _StreakContent extends StatelessWidget {
         Text(
           'achievements.views.detail_streak'.tr(),
           style: TextStyle(
-            fontSize: 13,
+            fontSize: SacFontSize.bodyMedium,
             fontWeight: FontWeight.w700,
             color: c.text,
           ),
@@ -698,7 +702,7 @@ class _StreakContent extends StatelessWidget {
             Text(
               '$currentStreak',
               style: TextStyle(
-                fontSize: 40,
+                fontSize: SacFontSize.metricSmall,
                 fontWeight: FontWeight.w900,
                 letterSpacing: -1.2,
                 height: 1,
@@ -709,7 +713,7 @@ class _StreakContent extends StatelessWidget {
               Text(
                 ' / $requiredStreak',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: SacFontSize.headlineSmall,
                   fontWeight: FontWeight.w600,
                   color: c.textSecondary,
                 ),
@@ -718,7 +722,7 @@ class _StreakContent extends StatelessWidget {
               Text(
                 'achievements.views.detail_streak_unit'.tr(),
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   fontWeight: FontWeight.w500,
                   color: c.textTertiary,
                 ),
@@ -757,7 +761,7 @@ class _PrerequisiteCard extends StatelessWidget {
                 namedArgs: {'id': '$prerequisiteId'},
               ),
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 fontWeight: FontWeight.w500,
                 color: c.text,
               ),

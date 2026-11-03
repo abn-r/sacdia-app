@@ -11,6 +11,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_order.dart';
 import 'package:sacdia_app/features/camporee_orders/presentation/providers/camporee_orders_providers.dart';
 import 'package:sacdia_app/features/payment_orders/presentation/widgets/payment_order_widgets.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Consolidado derivado + emisión. El cliente no envía montos.
 class CamporeeOrderReviewView extends ConsumerWidget {
@@ -58,7 +59,9 @@ class CamporeeOrderReviewView extends ConsumerWidget {
                       child: Text(
                         'camporee_orders.review.empty'.tr(),
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 14, color: c.textSecondary),
+                        style: TextStyle(
+                            fontSize: SacFontSize.titleSmall,
+                            color: c.textSecondary),
                       ),
                     ),
                   )
@@ -76,7 +79,8 @@ class CamporeeOrderReviewView extends ConsumerWidget {
                                 decoration: BoxDecoration(
                                   color:
                                       AppColors.error.withValues(alpha: 0.08),
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius:
+                                      BorderRadius.circular(AppTheme.radiusSM),
                                   border: Border.all(
                                     color:
                                         AppColors.error.withValues(alpha: 0.3),
@@ -85,7 +89,7 @@ class CamporeeOrderReviewView extends ConsumerWidget {
                                 child: Text(
                                   draft.errorMessage!,
                                   style: const TextStyle(
-                                    fontSize: 13,
+                                    fontSize: SacFontSize.bodyMedium,
                                     color: AppColors.error,
                                   ),
                                 ),
@@ -95,7 +99,7 @@ class CamporeeOrderReviewView extends ConsumerWidget {
                             Text(
                               'camporee_orders.review.summary_title'.tr(),
                               style: TextStyle(
-                                fontSize: 15,
+                                fontSize: SacFontSize.titleMedium,
                                 fontWeight: FontWeight.w800,
                                 color: c.text,
                               ),
@@ -109,7 +113,7 @@ class CamporeeOrderReviewView extends ConsumerWidget {
                             Text(
                               'camporee_orders.review.named_title'.tr(),
                               style: TextStyle(
-                                fontSize: 15,
+                                fontSize: SacFontSize.titleMedium,
                                 fontWeight: FontWeight.w800,
                                 color: c.text,
                               ),
@@ -161,7 +165,7 @@ class _SummaryCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border),
       ),
       child: Column(
@@ -176,13 +180,14 @@ class _SummaryCard extends StatelessWidget {
                       item.optionLabelSnapshot == null
                           ? '${item.productTitleSnapshot} × ${item.qty}'
                           : '${item.productTitleSnapshot} (${item.optionLabelSnapshot}) × ${item.qty}',
-                      style: TextStyle(fontSize: 13.5, color: c.text),
+                      style: TextStyle(
+                          fontSize: SacFontSize.bodyMedium, color: c.text),
                     ),
                   ),
                   Text(
                     formatCentavos(item.subtotalCentavos),
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       fontWeight: FontWeight.w700,
                       color: c.text,
                     ),
@@ -197,7 +202,7 @@ class _SummaryCard extends StatelessWidget {
                 child: Text(
                   'camporee_orders.detail.total'.tr(),
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                     fontWeight: FontWeight.w800,
                     color: c.text,
                   ),
@@ -206,7 +211,7 @@ class _SummaryCard extends StatelessWidget {
               Text(
                 formatCentavos(totalCentavos),
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: SacFontSize.titleMedium,
                   fontWeight: FontWeight.w800,
                   color: c.text,
                 ),
@@ -233,12 +238,12 @@ class _NamedLineTile extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: c.border),
       ),
       child: Text(
         '${line.memberName} — ${line.productTitle}$option × ${line.qty}',
-        style: TextStyle(fontSize: 13, color: c.text),
+        style: TextStyle(fontSize: SacFontSize.bodyMedium, color: c.text),
       ),
     );
   }

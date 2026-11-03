@@ -18,6 +18,7 @@ import '../providers/classes_providers.dart';
 import '../utils/status_meta.dart';
 import '../widgets/requirement_status_badge.dart';
 import '../sheets/requirement_status_history_sheet.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista de detalle de un requerimiento de clase progresiva — rediseño handoff
 /// (Variante E).
@@ -240,7 +241,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                                 Text(
                                   '${moduleName.toUpperCase()} · ${_fmt2(moduleIndex)} / ${_fmt2(moduleTotal)}',
                                   style: TextStyle(
-                                    fontSize: 11,
+                                    fontSize: SacFontSize.labelSmall,
                                     fontWeight: FontWeight.w700,
                                     color: c.ink400,
                                     letterSpacing: 0.88,
@@ -250,7 +251,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                                 Text(
                                   requirement.name,
                                   style: TextStyle(
-                                    fontSize: 20,
+                                    fontSize: SacFontSize.headlineMedium,
                                     fontWeight: FontWeight.w700,
                                     color: c.ink900,
                                     letterSpacing: -0.2,
@@ -331,7 +332,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                                       Text(
                                         'ARCHIVOS ADJUNTOS',
                                         style: TextStyle(
-                                          fontSize: 11,
+                                          fontSize: SacFontSize.labelSmall,
                                           fontWeight: FontWeight.w700,
                                           color: c.ink400,
                                           letterSpacing: 1.32,
@@ -340,7 +341,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                                       Text(
                                         '${requirement.files.length}/${requirement.maxFiles}',
                                         style: TextStyle(
-                                          fontSize: 11,
+                                          fontSize: SacFontSize.labelSmall,
                                           fontWeight: FontWeight.w700,
                                           color: c.ink800,
                                           fontFeatures: const [
@@ -604,13 +605,13 @@ class _ClosedRequirementBanner extends StatelessWidget {
         color: isDark
             ? accent.withValues(alpha: 0.2)
             : accent.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: accent.withValues(alpha: 0.35)),
       ),
       child: Text(
         messageKey.tr(),
         style: TextStyle(
-          fontSize: 12.5,
+          fontSize: SacFontSize.bodySmall,
           fontWeight: FontWeight.w600,
           color: isError ? AppColors.errorDark : AppColors.secondaryDark,
           height: 1.35,
@@ -654,7 +655,7 @@ class _BannerEstado extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: borderColor),
       ),
       child: Row(
@@ -685,7 +686,7 @@ class _BannerEstado extends StatelessWidget {
                 Text(
                   headline,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                     fontWeight: FontWeight.w700,
                     color: titleColor,
                   ),
@@ -694,7 +695,7 @@ class _BannerEstado extends StatelessWidget {
                 Text(
                   subtext,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: SacFontSize.bodySmall,
                     color: iconColor,
                   ),
                 ),
@@ -738,7 +739,7 @@ class _ObservationCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: c.paper,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.ink150),
       ),
       child: Column(
@@ -758,7 +759,7 @@ class _ObservationCard extends StatelessWidget {
                   child: Text(
                     initials,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: SacFontSize.bodySmall,
                       fontWeight: FontWeight.w700,
                       color: avatarText,
                     ),
@@ -773,7 +774,7 @@ class _ObservationCard extends StatelessWidget {
                     Text(
                       instructorName,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: SacFontSize.bodyMedium,
                         fontWeight: FontWeight.w700,
                         color: c.ink800,
                       ),
@@ -783,7 +784,7 @@ class _ObservationCard extends StatelessWidget {
                           ? 'Instructor · ${_timeAgo(timestamp)}'
                           : 'Instructor',
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: SacFontSize.labelSmall,
                         color: c.ink400,
                       ),
                     ),
@@ -802,12 +803,12 @@ class _ObservationCard extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: c.canvas,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSM),
               ),
               child: Text(
                 '"$comment"',
                 style: TextStyle(
-                  fontSize: 13.5,
+                  fontSize: SacFontSize.bodyMedium,
                   color: c.ink700,
                   fontStyle: FontStyle.italic,
                   height: 1.45,
@@ -907,7 +908,7 @@ class _FileRow extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: c.paper,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: c.ink150),
       ),
       child: Row(
@@ -918,7 +919,7 @@ class _FileRow extends StatelessWidget {
             height: 36,
             decoration: BoxDecoration(
               color: iconBg,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Center(
               child: HugeIcon(
@@ -942,7 +943,7 @@ class _FileRow extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: SacFontSize.bodyMedium,
                     fontWeight: FontWeight.w600,
                     color: c.ink800,
                   ),
@@ -953,7 +954,7 @@ class _FileRow extends StatelessWidget {
                     Text(
                       _timeAgo(uploadedAt),
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: SacFontSize.labelSmall,
                         color: c.ink400,
                       ),
                     ),
@@ -970,12 +971,12 @@ class _FileRow extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: badgeBg,
-              borderRadius: BorderRadius.circular(999),
+              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
             ),
             child: Text(
               badgeLabel,
               style: TextStyle(
-                fontSize: 10.5,
+                fontSize: SacFontSize.caption,
                 fontWeight: FontWeight.w700,
                 color: badgeColor,
               ),
@@ -1018,11 +1019,11 @@ class _EmptyFileSlot extends StatelessWidget {
         ),
         child: Material(
           color: c.paper,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           clipBehavior: Clip.antiAlias,
           child: SacInkWell(
             onTap: onTap,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Row(
@@ -1032,7 +1033,7 @@ class _EmptyFileSlot extends StatelessWidget {
                     height: 36,
                     decoration: BoxDecoration(
                       color: c.ink100,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     ),
                     child: Center(
                       child: HugeIcon(
@@ -1046,7 +1047,7 @@ class _EmptyFileSlot extends StatelessWidget {
                   Text(
                     'Subir archivo',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       fontWeight: FontWeight.w600,
                       color: c.ink500,
                     ),
@@ -1139,7 +1140,7 @@ class _BigCTA extends StatelessWidget {
           color: isLoading
               ? AppColors.coral500.withValues(alpha: 0.6)
               : AppColors.coral500,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           boxShadow: [
             BoxShadow(
               color: AppColors.coral500.withValues(alpha: 0.5),
@@ -1171,7 +1172,7 @@ class _BigCTA extends StatelessWidget {
             const Text(
               'Reenviar archivos corregidos',
               style: TextStyle(
-                fontSize: 14.5,
+                fontSize: SacFontSize.titleSmall,
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
               ),
@@ -1198,13 +1199,13 @@ class _DescriptionCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: c.paper,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.ink150),
       ),
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 13.5,
+          fontSize: SacFontSize.bodyMedium,
           color: c.ink700,
           height: 1.5,
         ),
@@ -1230,12 +1231,12 @@ class _StatusChip extends StatelessWidget {
       label: 'Estado: ${meta.label}. Toca para ver historial.',
       child: SacInkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
             color: meta.bg,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             border: Border.all(
               color: meta.color.withValues(alpha: 0.4),
               width: 1,

@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 
 import '../../domain/entities/activity.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Attendees section — read-only display of activity participants.
 ///
@@ -82,12 +83,12 @@ class ActivityAttendeesSection extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
                 color: SacAccent.of(context).light,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(AppTheme.radiusLG),
               ),
               child: Text(
                 '$count',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: SacFontSize.labelSmall,
                   fontWeight: FontWeight.w700,
                   color: SacAccent.of(context).dark,
                 ),

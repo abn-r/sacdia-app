@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_leaderboard.dart';
 import 'package:sacdia_app/features/camporees/domain/utils/camporee_score_format.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 class CamporeeLeaderboardPanel extends StatelessWidget {
   final AsyncValue<CamporeeLeaderboard> leaderboardAsync;
@@ -30,7 +31,7 @@ class CamporeeLeaderboardPanel extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.borderLight),
       ),
       child: Column(
@@ -61,7 +62,7 @@ class CamporeeLeaderboardPanel extends StatelessWidget {
             'camporees.detail.leaderboard_subtitle'.tr(),
             style: TextStyle(
               color: c.textSecondary,
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               height: 1.35,
               fontWeight: FontWeight.w600,
             ),
@@ -121,7 +122,7 @@ class _LeaderboardRowTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         color: c.surfaceVariant,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: c.borderLight),
       ),
       child: Row(
@@ -132,7 +133,7 @@ class _LeaderboardRowTile extends StatelessWidget {
               '#${row.rank}',
               style: TextStyle(
                 color: c.text,
-                fontSize: 14,
+                fontSize: SacFontSize.titleSmall,
                 fontWeight: FontWeight.w800,
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
@@ -148,7 +149,7 @@ class _LeaderboardRowTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: c.text,
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -159,7 +160,7 @@ class _LeaderboardRowTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: c.textSecondary,
-                    fontSize: 12,
+                    fontSize: SacFontSize.bodySmall,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -174,7 +175,7 @@ class _LeaderboardRowTile extends StatelessWidget {
                 '$awarded / $max',
                 style: TextStyle(
                   color: c.text,
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   fontWeight: FontWeight.w800,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
@@ -183,7 +184,7 @@ class _LeaderboardRowTile extends StatelessWidget {
                 '$percent%',
                 style: TextStyle(
                   color: c.textSecondary,
-                  fontSize: 12,
+                  fontSize: SacFontSize.bodySmall,
                   fontWeight: FontWeight.w700,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
@@ -209,7 +210,7 @@ class _LeaderboardEmpty extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: c.surfaceVariant,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: c.borderLight),
       ),
       child: Row(
@@ -224,7 +225,7 @@ class _LeaderboardEmpty extends StatelessWidget {
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: SacFontSize.titleSmall,
                 height: 1.45,
                 color: c.textSecondary,
                 fontWeight: FontWeight.w600,
@@ -254,7 +255,7 @@ class _LeaderboardRetry extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: c.error.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: c.error.withValues(alpha: 0.18)),
       ),
       child: Row(
@@ -269,7 +270,7 @@ class _LeaderboardRetry extends StatelessWidget {
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 color: c.textSecondary,
                 fontWeight: FontWeight.w700,
               ),

@@ -13,6 +13,7 @@ import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../../../core/widgets/sac_text_field.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../biometric/presentation/providers/biometric_provider.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Diálogo de cambio de contraseña con su flujo completo: pide la actual y la
 /// nueva, confirma con biometría si está activada y llama a
@@ -70,7 +71,7 @@ Future<void> runChangePasswordFlow(
               padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
               decoration: BoxDecoration(
                 color: ctx.sac.surface,
-                borderRadius: BorderRadius.circular(28),
+                borderRadius: BorderRadius.circular(AppTheme.radiusXL),
                 border: Border.all(color: ctx.sac.border),
                 boxShadow: [
                   BoxShadow(
@@ -93,7 +94,8 @@ Future<void> runChangePasswordFlow(
                       ),
                       decoration: BoxDecoration(
                         color: ctx.sac.surfaceVariant,
-                        borderRadius: BorderRadius.circular(999),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusFull),
                         border: Border.all(color: ctx.sac.border),
                       ),
                       child: Row(
@@ -111,7 +113,7 @@ Future<void> runChangePasswordFlow(
                             style: TextStyle(
                               color: ctx.sac.text,
                               fontWeight: FontWeight.w700,
-                              fontSize: 14,
+                              fontSize: SacFontSize.titleSmall,
                             ),
                           ),
                         ],
@@ -152,13 +154,13 @@ Future<void> runChangePasswordFlow(
                       ),
                       decoration: BoxDecoration(
                         color: AppColors.errorLight,
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                       ),
                       child: Text(
                         errorText!,
                         style: const TextStyle(
                           color: AppColors.errorDark,
-                          fontSize: 13,
+                          fontSize: SacFontSize.bodyMedium,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

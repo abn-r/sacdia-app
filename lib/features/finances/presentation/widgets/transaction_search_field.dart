@@ -7,6 +7,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Debounced search field for the All Transactions screen.
 ///
@@ -86,7 +87,7 @@ class _TransactionSearchFieldState extends State<TransactionSearchField> {
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
             color: borderColor, width: _focusNode.hasFocus ? 1.5 : 1),
       ),
@@ -107,14 +108,14 @@ class _TransactionSearchFieldState extends State<TransactionSearchField> {
               cursorColor: SacAccent.of(context).color,
               onChanged: _onChanged,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: SacFontSize.titleSmall,
                 fontWeight: FontWeight.w400,
                 color: context.sac.text,
               ),
               decoration: InputDecoration(
                 hintText: 'finances.widgets.search_hint'.tr(),
                 hintStyle: TextStyle(
-                  fontSize: 14,
+                  fontSize: SacFontSize.titleSmall,
                   fontWeight: FontWeight.w400,
                   color: context.sac.textTertiary,
                 ),

@@ -17,6 +17,7 @@ import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_ord
 import 'package:sacdia_app/features/camporee_orders/presentation/providers/camporee_orders_providers.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
 import 'package:sacdia_app/features/payment_orders/presentation/widgets/payment_order_widgets.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Captura nominada: roster del camporee + artículo/talla por persona.
 class CamporeeMemberOrderView extends ConsumerWidget {
@@ -170,7 +171,7 @@ class _MemberCaptureCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border),
       ),
       child: Theme(
@@ -181,7 +182,7 @@ class _MemberCaptureCard extends StatelessWidget {
           title: Text(
             name,
             style: TextStyle(
-              fontSize: 14.5,
+              fontSize: SacFontSize.titleSmall,
               fontWeight: FontWeight.w800,
               color: c.text,
             ),
@@ -192,7 +193,8 @@ class _MemberCaptureCard extends StatelessWidget {
                   'camporee_orders.capture.lines_count'.tr(
                     namedArgs: {'count': lines.length.toString()},
                   ),
-                  style: TextStyle(fontSize: 12, color: c.textSecondary),
+                  style: TextStyle(
+                      fontSize: SacFontSize.bodySmall, color: c.textSecondary),
                 ),
           children: [
             for (final offering in offerings)
@@ -274,7 +276,7 @@ class _OfferingCaptureRow extends StatelessWidget {
                 child: Text(
                   offering.product.title,
                   style: TextStyle(
-                    fontSize: 13.5,
+                    fontSize: SacFontSize.bodyMedium,
                     fontWeight: FontWeight.w700,
                     color: c.text,
                   ),
@@ -283,7 +285,7 @@ class _OfferingCaptureRow extends StatelessWidget {
               Text(
                 formatCentavos(offering.priceCentavos),
                 style: TextStyle(
-                  fontSize: 12.5,
+                  fontSize: SacFontSize.bodySmall,
                   fontWeight: FontWeight.w700,
                   color: c.textSecondary,
                 ),
@@ -343,7 +345,7 @@ class _QtyRow extends StatelessWidget {
           Expanded(
             child: Text(
               priceLabel == null ? title : '$title · $priceLabel',
-              style: TextStyle(fontSize: 13, color: c.text),
+              style: TextStyle(fontSize: SacFontSize.bodyMedium, color: c.text),
             ),
           ),
           SacPressable(
@@ -362,7 +364,7 @@ class _QtyRow extends StatelessWidget {
           Text(
             '$qty',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: SacFontSize.titleSmall,
               fontWeight: FontWeight.w800,
               color: c.text,
             ),
@@ -416,7 +418,8 @@ class _CaptureFooter extends StatelessWidget {
                         'count': lineCount.toString(),
                       })} · ${formatCentavos(totalCentavos)}',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, color: c.textSecondary),
+            style: TextStyle(
+                fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
           ),
           const SizedBox(height: 10),
           SacButton.primary(
@@ -453,7 +456,9 @@ class _CaptureError extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: context.sac.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.bodyMedium,
+                  color: context.sac.textSecondary),
             ),
             if (onRetry != null) ...[
               const SizedBox(height: 14),

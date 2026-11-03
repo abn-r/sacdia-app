@@ -43,6 +43,7 @@ import '../widgets/honor_badge_image.dart';
 import '../widgets/honor_completion_details.dart';
 import '../widgets/honor_signed_evidence_image.dart';
 import '../widgets/instructor_proposal_card.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Evidence & progress screen for an enrolled honor in EXTERNAL mode.
 ///
@@ -203,7 +204,8 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     showSacSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppTheme.radiusMD)),
       ),
       builder: (ctx) => SafeArea(
         child: Column(
@@ -215,7 +217,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
               height: 4,
               decoration: BoxDecoration(
                 color: AppColors.pendingColor,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
               ),
             ),
             const SizedBox(height: 16),
@@ -636,7 +638,7 @@ class _ModeGuardScaffold extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: context.sac.text,
-                      fontSize: 18,
+                      fontSize: SacFontSize.headlineSmall,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -646,7 +648,7 @@ class _ModeGuardScaffold extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: context.sac.textSecondary,
-                      fontSize: 14,
+                      fontSize: SacFontSize.titleSmall,
                       height: 1.5,
                     ),
                   ),
@@ -866,7 +868,7 @@ class _EvidenceIdentity extends StatelessWidget {
             fallbackColor: c.textTertiary,
             fallbackBackgroundColor: c.surfaceVariant,
             fallbackIconSize: 22,
-            fallbackBorderRadius: BorderRadius.circular(12),
+            fallbackBorderRadius: BorderRadius.circular(AppTheme.radiusSM),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -957,7 +959,7 @@ Widget _iconWell({
     height: 32,
     decoration: BoxDecoration(
       color: iconColor.withValues(alpha: 0.10),
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(AppTheme.radiusXS),
     ),
     child: HugeIcon(icon: icon, color: iconColor, size: 16),
   );
@@ -1014,7 +1016,7 @@ class _WorkRowState extends State<_WorkRow> {
                 Text(
                   widget.title,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: SacFontSize.titleMedium,
                     fontWeight: FontWeight.w700,
                     color: c.text,
                     height: 1.25,
@@ -1024,7 +1026,7 @@ class _WorkRowState extends State<_WorkRow> {
                 Text(
                   widget.subtitle,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: SacFontSize.bodyMedium,
                     color: c.textSecondary,
                     height: 1.35,
                   ),
@@ -1140,7 +1142,7 @@ class _EvidenceWorkCard extends StatelessWidget {
                       child: Text(
                         'honors.evidence.replace_completed_format'.tr(),
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: SacFontSize.bodyMedium,
                           fontWeight: FontWeight.w700,
                           color: categoryColor,
                         ),
@@ -1170,7 +1172,7 @@ class _EvidenceWorkCard extends StatelessWidget {
                         child: Text(
                           'honors.evidence.general_section_title'.tr(),
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: SacFontSize.titleMedium,
                             fontWeight: FontWeight.w700,
                             color: c.text,
                           ),
@@ -1179,7 +1181,7 @@ class _EvidenceWorkCard extends StatelessWidget {
                       Text(
                         '${userHonor.generalEvidenceCount}/10',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: SacFontSize.bodyMedium,
                           fontWeight: FontWeight.w600,
                           color: categoryColor,
                         ),
@@ -1338,7 +1340,7 @@ class _AddEvidenceCellState extends State<_AddEvidenceCell> {
           child: Container(
             decoration: BoxDecoration(
               color: context.sac.surfaceVariant,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1352,7 +1354,7 @@ class _AddEvidenceCellState extends State<_AddEvidenceCell> {
                 Text(
                   'honors.evidence.add_cell_label'.tr(),
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: SacFontSize.labelSmall,
                     fontWeight: FontWeight.w600,
                     color: widget.categoryColor,
                   ),
@@ -1406,7 +1408,7 @@ class _EvidenceThumbnail extends StatelessWidget {
             }
           : null,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -1426,7 +1428,7 @@ class _EvidenceThumbnail extends StatelessWidget {
                     Text(
                       'PDF',
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: SacFontSize.caption,
                         fontWeight: FontWeight.w600,
                         color: AppColors.error,
                       ),
@@ -1534,7 +1536,7 @@ class _RejectionCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.error.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
           color: AppColors.error.withValues(alpha: 0.25),
           width: 1,
@@ -1556,7 +1558,7 @@ class _RejectionCard extends StatelessWidget {
                 Text(
                   'honors.evidence.rejection_title'.tr(),
                   style: const TextStyle(
-                    fontSize: 13,
+                    fontSize: SacFontSize.bodyMedium,
                     fontWeight: FontWeight.w700,
                     color: AppColors.error,
                   ),
@@ -1567,7 +1569,7 @@ class _RejectionCard extends StatelessWidget {
                       ? reason!
                       : 'honors.evidence.rejection_no_reason'.tr(),
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: SacFontSize.bodySmall,
                     height: 1.5,
                     color: AppColors.error,
                   ),
@@ -1576,7 +1578,7 @@ class _RejectionCard extends StatelessWidget {
                 Text(
                   'honors.evidence.rejection_hint'.tr(),
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: SacFontSize.labelSmall,
                     color: AppColors.error.withValues(alpha: 0.70),
                     fontWeight: FontWeight.w500,
                   ),

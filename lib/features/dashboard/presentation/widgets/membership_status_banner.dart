@@ -15,6 +15,7 @@ import '../../../auth/domain/entities/authorization_snapshot.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../post_registration/presentation/providers/post_registration_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Banner that shows the membership status of the user's active club assignment.
 ///
@@ -227,7 +228,7 @@ class _BannerContainer extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: backgroundColor,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(color: borderColor),
         ),
         padding: const EdgeInsets.all(16),
@@ -239,7 +240,7 @@ class _BannerContainer extends StatelessWidget {
               height: 40,
               decoration: BoxDecoration(
                 color: iconBackgroundColor,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
               ),
               child: Center(
                 child: HugeIcon(
@@ -257,7 +258,7 @@ class _BannerContainer extends StatelessWidget {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: SacFontSize.titleSmall,
                       fontWeight: FontWeight.w700,
                       color: titleColor,
                     ),
@@ -267,7 +268,7 @@ class _BannerContainer extends StatelessWidget {
                     Text(
                       subtitle!,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: SacFontSize.bodySmall,
                         color:
                             subtitleColor ?? titleColor.withValues(alpha: 0.8),
                       ),

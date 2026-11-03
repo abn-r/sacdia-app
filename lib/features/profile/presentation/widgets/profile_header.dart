@@ -5,6 +5,7 @@ import 'package:sacdia_app/core/utils/responsive.dart';
 
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Placeholder de iniciales cuando la foto 404 o no existe.
 class _AvatarInitials extends StatelessWidget {
@@ -167,7 +168,7 @@ class ProfileHeader extends StatelessWidget {
             Text(
               email!,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: SacFontSize.titleSmall,
                 color: c.textSecondary,
                 fontWeight: FontWeight.w400,
               ),

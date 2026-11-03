@@ -21,6 +21,7 @@ import 'package:sacdia_app/core/widgets/sac_tweened_bar.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/certification_progress.dart';
 
 import '../providers/certifications_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista de progreso detallado de una certificación.
 ///
@@ -153,7 +154,9 @@ class _ProgressBody extends ConsumerWidget {
                 child: Center(
                   child: Text(
                     'certifications.progress.no_modules'.tr(),
-                    style: TextStyle(fontSize: 14, color: c.textSecondary),
+                    style: TextStyle(
+                        fontSize: SacFontSize.titleSmall,
+                        color: c.textSecondary),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -215,7 +218,7 @@ class _GlobalProgressCard extends StatelessWidget {
               ? [AppColors.secondary, AppColors.secondaryDark]
               : [SacAccent.of(context).color, SacAccent.of(context).dark],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         boxShadow: [
           BoxShadow(
             color:
@@ -245,7 +248,7 @@ class _GlobalProgressCard extends StatelessWidget {
                       ? 'certifications.progress.completed'.tr()
                       : 'certifications.progress.in_progress'.tr(),
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
@@ -254,7 +257,7 @@ class _GlobalProgressCard extends StatelessWidget {
               Text(
                 '${percentage.toStringAsFixed(0)}%',
                 style: const TextStyle(
-                  fontSize: 22,
+                  fontSize: SacFontSize.headlineLarge,
                   fontWeight: FontWeight.w800,
                   color: Colors.white,
                 ),
@@ -285,7 +288,7 @@ class _GlobalProgressCard extends StatelessWidget {
                   'total': '${progress.modules.length}',
                 }),
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: SacFontSize.bodySmall,
                   color: Colors.white70,
                   fontWeight: FontWeight.w500,
                 ),
@@ -350,7 +353,7 @@ class _ModuleProgressSectionState
       margin: const EdgeInsets.fromLTRB(16, 6, 16, 6),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border),
       ),
       child: Column(
@@ -364,7 +367,7 @@ class _ModuleProgressSectionState
               padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
               decoration: BoxDecoration(
                 color: isComplete ? AppColors.secondaryLight : c.surfaceVariant,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMD),
               ),
               child: Row(
                 children: [
@@ -378,7 +381,7 @@ class _ModuleProgressSectionState
                       color: isComplete
                           ? AppColors.secondary
                           : SacAccent.of(context).color,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                     ),
                     child: SacStateSwap(
                       duration: SacMotion.standard,
@@ -395,7 +398,7 @@ class _ModuleProgressSectionState
                                 'cert-module-${module.completedSections}-${module.totalSections}',
                               ),
                               style: const TextStyle(
-                                fontSize: 11,
+                                fontSize: SacFontSize.labelSmall,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.white,
                               ),
@@ -451,7 +454,8 @@ class _ModuleProgressSectionState
                 padding: const EdgeInsets.all(14),
                 child: Text(
                   'certifications.progress.no_sections_module'.tr(),
-                  style: TextStyle(fontSize: 13, color: c.textSecondary),
+                  style: TextStyle(
+                      fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
                 ),
               )
             else
@@ -561,7 +565,7 @@ class _SectionCheckTileState extends ConsumerState<_SectionCheckTile> {
                   decoration: BoxDecoration(
                     color:
                         isCompleted ? AppColors.secondary : Colors.transparent,
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(AppTheme.radius2XS),
                     border: Border.all(
                       color: isCompleted ? AppColors.secondary : c.border,
                       width: 2,
@@ -583,7 +587,7 @@ class _SectionCheckTileState extends ConsumerState<_SectionCheckTile> {
                   duration: reduce ? SacMotion.reducedFade : SacMotion.press,
                   curve: SacMotion.easeOut,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: SacFontSize.bodyMedium,
                     color: labelColor,
                     fontWeight: isCompleted ? FontWeight.w600 : FontWeight.w400,
                     decoration: isCompleted
@@ -701,7 +705,7 @@ class _ErrorBody extends StatelessWidget {
             Text(
               message,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: SacFontSize.titleSmall,
                 color: context.sac.textSecondary,
               ),
               textAlign: TextAlign.center,

@@ -15,6 +15,7 @@ import '../../../../core/utils/relative_time.dart';
 import '../../../profile/presentation/widgets/setting_tile.dart';
 import '../providers/sync_cache_providers.dart';
 import 'clear_cache_dialog.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Drop-in Settings section with the 3 sync/cache tiles:
 ///   1. Limpiar caché — shows total size; menu picks images-only vs all.
@@ -104,7 +105,8 @@ class SyncCacheSection extends ConsumerWidget {
       builder: (sheetCtx) => Container(
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppTheme.radiusLG)),
         ),
         padding: EdgeInsets.only(
           top: 12,
@@ -121,7 +123,7 @@ class SyncCacheSection extends ConsumerWidget {
                 height: 5,
                 decoration: BoxDecoration(
                   color: Colors.black12,
-                  borderRadius: BorderRadius.circular(3),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
                 ),
               ),
             ),
@@ -214,7 +216,7 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         title,
         style: TextStyle(
-          fontSize: 11,
+          fontSize: SacFontSize.labelSmall,
           fontWeight: FontWeight.w600,
           color: context.sac.textTertiary,
           letterSpacing: 0.8,
@@ -233,7 +235,7 @@ class _GroupContainer extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: context.sac.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: context.sac.border, width: 1),
       ),
       child: Column(children: children),

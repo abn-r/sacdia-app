@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
 import '../../domain/entities/dashboard_summary.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Card de próximas actividades - Estilo "Scout Vibrante"
 ///
@@ -50,7 +51,7 @@ class UpcomingActivitiesCard extends StatelessWidget {
                   child: Text(
                     tr('dashboard.activities.view_all'),
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       fontWeight: FontWeight.w600,
                       color: SacAccent.of(context).color,
                     ),
@@ -75,7 +76,7 @@ class UpcomingActivitiesCard extends StatelessWidget {
                     Text(
                       tr('dashboard.activities.empty'),
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: SacFontSize.titleSmall,
                         color: context.sac.textSecondary,
                       ),
                     ),
@@ -144,14 +145,14 @@ class _ActivityRow extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   decoration: BoxDecoration(
                     color: SacAccent.of(context).light,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                   ),
                   child: Column(
                     children: [
                       Text(
                         _dayFormatter.format(activity.activityDate),
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: SacFontSize.headlineSmall,
                           fontWeight: FontWeight.w700,
                           color: SacAccent.of(context).color,
                           height: 1,
@@ -162,7 +163,7 @@ class _ActivityRow extends StatelessWidget {
                             .format(activity.activityDate)
                             .toUpperCase(),
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: SacFontSize.caption,
                           fontWeight: FontWeight.w600,
                           color: SacAccent.of(context).color,
                         ),
@@ -190,7 +191,7 @@ class _ActivityRow extends StatelessWidget {
                           Text(
                             '${_formatRelativeDate(activity.activityDate)} · ${activity.activityTime ?? '—'}',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: SacFontSize.bodySmall,
                               color: context.sac.textSecondary,
                             ),
                           ),
@@ -198,7 +199,7 @@ class _ActivityRow extends StatelessWidget {
                             Text(
                               ' · ',
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: SacFontSize.bodySmall,
                                 color: context.sac.textTertiary,
                               ),
                             ),
@@ -206,7 +207,7 @@ class _ActivityRow extends StatelessWidget {
                               child: Text(
                                 activity.location!,
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: SacFontSize.bodySmall,
                                   color: context.sac.textSecondary,
                                 ),
                                 overflow: TextOverflow.ellipsis,

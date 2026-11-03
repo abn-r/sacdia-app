@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import 'package:sacdia_app/core/theme/sac_accent.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Shows a bottom sheet asking the user to pick an image source.
 ///
@@ -15,7 +16,8 @@ Future<ImageSource?> showImageSourceDialog(BuildContext context) {
   return showSacSheet<ImageSource>(
     context: context,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      borderRadius:
+          BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLG)),
     ),
     builder: (ctx) => SafeArea(
       child: Column(
@@ -33,7 +35,7 @@ Future<ImageSource?> showImageSourceDialog(BuildContext context) {
                 height: 40,
                 decoration: BoxDecoration(
                   color: SacAccent.of(context).light,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 ),
                 child: Center(
                   child: HugeIcon(
@@ -58,7 +60,7 @@ Future<ImageSource?> showImageSourceDialog(BuildContext context) {
                 height: 40,
                 decoration: BoxDecoration(
                   color: SacAccent.of(context).light,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 ),
                 child: Center(
                   child: HugeIcon(

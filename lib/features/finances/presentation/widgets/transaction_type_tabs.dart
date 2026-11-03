@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/transaction.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Segmented tab control for filtering transactions by type:
 /// Todo / Ingresos / Egresos.
@@ -38,7 +39,7 @@ class TransactionTypeTabs extends StatelessWidget {
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         color: containerColor,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       ),
       child: Row(
         children: [
@@ -51,13 +52,13 @@ class TransactionTypeTabs extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 9),
                   decoration: BoxDecoration(
                     color: selected == type ? activeColor : Colors.transparent,
-                    borderRadius: BorderRadius.circular(11),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   ),
                   child: Text(
                     label,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       fontWeight:
                           selected == type ? FontWeight.w600 : FontWeight.w400,
                       color: selected == type

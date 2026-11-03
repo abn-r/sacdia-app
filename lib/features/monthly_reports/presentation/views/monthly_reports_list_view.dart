@@ -14,6 +14,7 @@ import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import '../../domain/entities/monthly_report.dart';
 import '../providers/monthly_reports_providers.dart';
 import 'monthly_report_detail_view.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 final _monthlyReportsByYearProvider = Provider.autoDispose
     .family<AsyncValue<List<_YearReportsGroup>>, String>((ref, enrollmentId) {
@@ -135,7 +136,7 @@ class _YearHeader extends StatelessWidget {
           Text(
             year.toString(),
             style: TextStyle(
-              fontSize: 14,
+              fontSize: SacFontSize.titleSmall,
               fontWeight: FontWeight.w700,
               color: c.textSecondary,
             ),
@@ -167,7 +168,7 @@ class _ReportCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(color: c.border),
           boxShadow: [
             BoxShadow(
@@ -185,13 +186,13 @@ class _ReportCard extends StatelessWidget {
               height: 46,
               decoration: BoxDecoration(
                 color: statusCfg.bg,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
               ),
               child: Center(
                 child: Text(
                   report.month.toString().padLeft(2, '0'),
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: SacFontSize.headlineSmall,
                     fontWeight: FontWeight.w800,
                     color: statusCfg.fg,
                   ),
@@ -207,7 +208,7 @@ class _ReportCard extends StatelessWidget {
                   Text(
                     '${report.monthName} ${report.year}',
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: SacFontSize.titleMedium,
                       fontWeight: FontWeight.w700,
                       color: c.text,
                     ),
@@ -220,7 +221,7 @@ class _ReportCard extends StatelessWidget {
                         'members': '${report.totalMembers ?? 0}',
                       }),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: SacFontSize.bodySmall,
                         color: c.textTertiary,
                       ),
                     ),
@@ -237,12 +238,12 @@ class _ReportCard extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: statusCfg.bg,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLG),
                   ),
                   child: Text(
                     report.reportStatus.label,
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: SacFontSize.labelSmall,
                       fontWeight: FontWeight.w600,
                       color: statusCfg.fg,
                     ),
@@ -347,7 +348,7 @@ class _ErrorBody extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14),
+              style: const TextStyle(fontSize: SacFontSize.titleSmall),
             ),
             const SizedBox(height: 16),
             SacPressable(

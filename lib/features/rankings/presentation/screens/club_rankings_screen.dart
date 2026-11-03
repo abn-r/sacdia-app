@@ -26,6 +26,7 @@ import '../providers/annual_ranking_progress_provider.dart';
 import '../utils/ranking_tier_medal_assets.dart';
 import '../widgets/ranking_empty_state.dart';
 import '../widgets/ranking_skeleton.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 class ClubRankingsScreen extends ConsumerWidget {
   const ClubRankingsScreen({super.key});
@@ -293,7 +294,7 @@ class _ProgressHeroCard extends StatelessWidget {
                             .toUpperCase(),
                         style: TextStyle(
                           color: c.textSecondary,
-                          fontSize: 11,
+                          fontSize: SacFontSize.labelSmall,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.8,
                           height: 1.1,
@@ -304,7 +305,7 @@ class _ProgressHeroCard extends StatelessWidget {
                         clubLine,
                         style: TextStyle(
                           color: c.text,
-                          fontSize: 14,
+                          fontSize: SacFontSize.titleSmall,
                           fontWeight: FontWeight.w700,
                           height: 1.25,
                           letterSpacing: -0.1,
@@ -317,7 +318,7 @@ class _ProgressHeroCard extends StatelessWidget {
                         value: progress.currentPoints,
                         style: TextStyle(
                           color: fillColor,
-                          fontSize: 44,
+                          fontSize: SacFontSize.metric,
                           fontWeight: FontWeight.w800,
                           letterSpacing: -1.6,
                           height: 1,
@@ -329,7 +330,7 @@ class _ProgressHeroCard extends StatelessWidget {
                         pointsOfTotal,
                         style: TextStyle(
                           color: c.textSecondary,
-                          fontSize: 13,
+                          fontSize: SacFontSize.bodyMedium,
                           fontWeight: FontWeight.w600,
                           height: 1.25,
                         ),
@@ -458,7 +459,7 @@ class _TierTrack extends StatelessWidget {
           percentLabel,
           style: TextStyle(
             color: c.text,
-            fontSize: 13,
+            fontSize: SacFontSize.bodyMedium,
             fontWeight: FontWeight.w800,
             height: 1,
             letterSpacing: -0.2,
@@ -586,7 +587,7 @@ class _TierLadderRow extends StatelessWidget {
                 name,
                 style: TextStyle(
                   color: locked ? c.textSecondary : c.text,
-                  fontSize: 14,
+                  fontSize: SacFontSize.titleSmall,
                   fontWeight: FontWeight.w800,
                   height: 1.15,
                   letterSpacing: -0.2,
@@ -598,7 +599,7 @@ class _TierLadderRow extends StatelessWidget {
                   hint!,
                   style: TextStyle(
                     color: c.textSecondary,
-                    fontSize: 12.5,
+                    fontSize: SacFontSize.bodySmall,
                     fontWeight: FontWeight.w600,
                     height: 1.3,
                   ),
@@ -652,7 +653,7 @@ class _TopTierRow extends StatelessWidget {
               tr('rankings.annual_progress.top_tier_reached'),
               style: TextStyle(
                 color: c.textSecondary,
-                fontSize: 12.5,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w600,
                 height: 1.3,
               ),
@@ -839,7 +840,7 @@ class _AxisSection extends StatelessWidget {
                     axis.label,
                     style: TextStyle(
                       color: c.text,
-                      fontSize: 14.5,
+                      fontSize: SacFontSize.titleSmall,
                       fontWeight: FontWeight.w800,
                       height: 1.2,
                       letterSpacing: -0.15,
@@ -850,7 +851,7 @@ class _AxisSection extends StatelessWidget {
                 _RatioText(
                   earned: axis.earnedPoints,
                   max: axis.maxPoints,
-                  fontSize: 12.5,
+                  fontSize: SacFontSize.bodySmall,
                   strong: _valueColorFor(percent, c),
                   muted: c.textTertiary,
                 ),
@@ -903,7 +904,7 @@ class _ComponentRow extends StatelessWidget {
               component.label,
               style: TextStyle(
                 color: c.text,
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 fontWeight: FontWeight.w600,
                 height: 1.25,
               ),
@@ -932,7 +933,7 @@ class _ComponentRow extends StatelessWidget {
               child: _RatioText(
                 earned: component.earnedPoints,
                 max: component.maxPoints,
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 strong: _valueColorFor(percent, c),
                 muted: c.textTertiary,
               ),
@@ -1063,7 +1064,7 @@ class _PendingEmptyRow extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: c.success.withValues(alpha: 0.14),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           ),
           child: HugeIcon(
             icon: HugeIcons.strokeRoundedCheckmarkCircle02,
@@ -1077,7 +1078,7 @@ class _PendingEmptyRow extends StatelessWidget {
             tr('rankings.annual_progress.pending.empty'),
             style: TextStyle(
               color: c.textSecondary,
-              fontSize: 13.5,
+              fontSize: SacFontSize.bodyMedium,
               fontWeight: FontWeight.w600,
               height: 1.35,
             ),
@@ -1108,7 +1109,7 @@ class _PendingItemTile extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: tone.background,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           ),
           child: HugeIcon(icon: tone.icon, size: 18, color: tone.foreground),
         ),
@@ -1123,7 +1124,7 @@ class _PendingItemTile extends StatelessWidget {
                 item.title,
                 style: TextStyle(
                   color: c.text,
-                  fontSize: 14,
+                  fontSize: SacFontSize.titleSmall,
                   fontWeight: FontWeight.w700,
                   height: 1.25,
                 ),
@@ -1160,7 +1161,7 @@ class _PendingItemTile extends StatelessWidget {
                     ),
                     style: TextStyle(
                       color: c.textSecondary,
-                      fontSize: 12.5,
+                      fontSize: SacFontSize.bodySmall,
                       fontWeight: FontWeight.w600,
                       height: 1.3,
                     ),
@@ -1187,13 +1188,13 @@ class _StatusChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
         color: tone.background,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
       ),
       child: Text(
         label,
         style: TextStyle(
           color: tone.foreground,
-          fontSize: 11,
+          fontSize: SacFontSize.labelSmall,
           fontWeight: FontWeight.w700,
           height: 1.2,
         ),
@@ -1215,13 +1216,13 @@ class _CountPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: _trackColorOf(c),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
       ),
       child: Text(
         '$count',
         style: TextStyle(
           color: c.textSecondary,
-          fontSize: 11.5,
+          fontSize: SacFontSize.labelSmall,
           fontWeight: FontWeight.w800,
           height: 1.2,
           fontFeatures: const [FontFeature.tabularFigures()],
@@ -1322,7 +1323,7 @@ class _SectionHeading extends StatelessWidget {
       title,
       style: TextStyle(
         color: c.text,
-        fontSize: 15,
+        fontSize: SacFontSize.titleMedium,
         fontWeight: FontWeight.w800,
         height: 1.15,
         letterSpacing: -0.2,

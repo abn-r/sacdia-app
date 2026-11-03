@@ -14,6 +14,7 @@ import '../../domain/entities/certification_requirement_component.dart';
 import '../providers/certification_requirement_providers.dart';
 import '../widgets/certification_component_field.dart';
 import '../widgets/certification_requirement_status_badge.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista de ejecución de un requisito (sección) de una certificación
 /// configurable.
@@ -128,7 +129,7 @@ class _RequirementBody extends ConsumerWidget {
                         'certifications.requirement_detail.unsaved_changes'
                             .tr(),
                         style: TextStyle(
-                          fontSize: 11.5,
+                          fontSize: SacFontSize.labelSmall,
                           color: c.textTertiary,
                           fontStyle: FontStyle.italic,
                         ),
@@ -209,7 +210,7 @@ class _RequirementBody extends ConsumerWidget {
         child: Text(
           'certifications.requirement_detail.history_title'.tr(),
           style: TextStyle(
-            fontSize: 11,
+            fontSize: SacFontSize.labelSmall,
             fontWeight: FontWeight.w700,
             color: c.textTertiary,
             letterSpacing: 0.6,
@@ -222,7 +223,7 @@ class _RequirementBody extends ConsumerWidget {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: c.surfaceVariant,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -240,7 +241,7 @@ class _RequirementBody extends ConsumerWidget {
                     Text(
                       _eventLabel(event.eventType),
                       style: TextStyle(
-                        fontSize: 12.5,
+                        fontSize: SacFontSize.bodySmall,
                         fontWeight: FontWeight.w600,
                         color: c.text,
                       ),
@@ -251,7 +252,7 @@ class _RequirementBody extends ConsumerWidget {
                         child: Text(
                           event.comment!,
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: SacFontSize.bodySmall,
                             color: c.textSecondary,
                             fontStyle: FontStyle.italic,
                           ),
@@ -345,7 +346,7 @@ class _ChangesRequestedBanner extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.observedBg,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border:
             Border.all(color: AppColors.observedColor.withValues(alpha: 0.4)),
       ),
@@ -366,7 +367,7 @@ class _ChangesRequestedBanner extends StatelessWidget {
                   'certifications.requirement_detail.changes_requested_title'
                       .tr(),
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: SacFontSize.bodyMedium,
                     fontWeight: FontWeight.w700,
                     color: AppColors.observedDark,
                   ),
@@ -375,7 +376,7 @@ class _ChangesRequestedBanner extends StatelessWidget {
                 Text(
                   comment,
                   style: TextStyle(
-                    fontSize: 12.5,
+                    fontSize: SacFontSize.bodySmall,
                     color: AppColors.observedDark,
                     height: 1.4,
                   ),
@@ -411,7 +412,7 @@ class _ErrorBody extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               message,
-              style: const TextStyle(fontSize: 14),
+              style: const TextStyle(fontSize: SacFontSize.titleSmall),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),

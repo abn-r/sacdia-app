@@ -16,6 +16,7 @@ import '../../../../core/widgets/sac_image_viewer.dart';
 import '../../domain/entities/transaction.dart';
 import '../providers/finances_providers.dart';
 import 'add_transaction_sheet.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista de detalle de un movimiento financiero.
 ///
@@ -256,7 +257,7 @@ class _AmountHero extends StatelessWidget {
             color.withValues(alpha: 0.05),
           ],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Column(
@@ -284,7 +285,7 @@ class _AmountHero extends StatelessWidget {
                 ? 'finances.transaction_detail.income'.tr()
                 : 'finances.transaction_detail.expense'.tr(),
             style: TextStyle(
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               fontWeight: FontWeight.w600,
               color: color.withValues(alpha: 0.8),
             ),
@@ -293,7 +294,7 @@ class _AmountHero extends StatelessWidget {
           Text(
             formatted,
             style: TextStyle(
-              fontSize: 32,
+              fontSize: SacFontSize.displayLarge,
               fontWeight: FontWeight.w800,
               color: color,
             ),
@@ -320,7 +321,7 @@ class _EvidenceCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
           color: Theme.of(context).dividerColor.withValues(alpha: 0.4),
         ),
@@ -387,16 +388,16 @@ class _EvidenceThumb extends StatelessWidget {
       color: Colors.transparent,
       child: SacInkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         child: Ink(
           width: 92,
           height: 92,
           decoration: BoxDecoration(
             color: context.sac.surfaceVariant,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             child: Image.network(
               url,
               fit: BoxFit.cover,
@@ -422,7 +423,7 @@ class _DetailCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
           color: Theme.of(context).dividerColor.withValues(alpha: 0.4),
         ),
@@ -435,7 +436,7 @@ class _DetailCard extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         child: Column(children: children),
       ),
     );

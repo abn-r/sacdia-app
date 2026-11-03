@@ -19,6 +19,7 @@ import '../widgets/club_context_card.dart';
 import '../widgets/dashboard_card.dart';
 import '../widgets/recent_activity_list.dart';
 import '../widgets/resources_section.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 class HomeView extends ConsumerWidget {
   const HomeView({super.key});
@@ -59,7 +60,7 @@ class HomeView extends ConsumerWidget {
                   Text(
                     error.toString(),
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: SacFontSize.titleSmall,
                       color: c.textSecondary,
                     ),
                     textAlign: TextAlign.center,
@@ -104,7 +105,7 @@ class HomeView extends ConsumerWidget {
                               Text(
                                 user.name ?? user.email ?? '',
                                 style: TextStyle(
-                                  fontSize: 15,
+                                  fontSize: SacFontSize.titleMedium,
                                   color: c.textSecondary,
                                 ),
                                 maxLines: 1,
@@ -170,7 +171,7 @@ class HomeView extends ConsumerWidget {
                             child: Text(
                               tr('home.no_upcoming_activities'),
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: SacFontSize.titleSmall,
                                 color: c.textSecondary,
                               ),
                             ),

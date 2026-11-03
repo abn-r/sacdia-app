@@ -14,6 +14,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/features/auth/domain/entities/delete_account_reauth.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Segunda confirmación del borrado de cuenta: el usuario escribe la palabra
 /// de confirmación y se reautentica con su contraseña o, si la cuenta tiene un
@@ -190,7 +191,8 @@ class _DeleteAccountConfirmDialogState
             const SizedBox(height: 16),
             Text(
               'profile.settings.delete_account_enter_password'.tr(),
-              style: TextStyle(fontSize: 14, color: c.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.titleSmall, color: c.textSecondary),
             ),
             const SizedBox(height: 8),
             SacTextField(
@@ -204,7 +206,8 @@ class _DeleteAccountConfirmDialogState
               const SizedBox(height: 16),
               Text(
                 'profile.settings.delete_account_or_confirm_with'.tr(),
-                style: TextStyle(fontSize: 14, color: c.textSecondary),
+                style: TextStyle(
+                    fontSize: SacFontSize.titleSmall, color: c.textSecondary),
               ),
               const SizedBox(height: 8),
               for (final provider in providers) ...[
@@ -226,7 +229,8 @@ class _DeleteAccountConfirmDialogState
               const SizedBox(height: 8),
               Text(
                 _fieldError!,
-                style: const TextStyle(color: AppColors.error, fontSize: 13),
+                style: const TextStyle(
+                    color: AppColors.error, fontSize: SacFontSize.bodyMedium),
               ),
             ],
           ],

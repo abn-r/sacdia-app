@@ -25,6 +25,7 @@ import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Pantalla principal del módulo de Finanzas.
 ///
@@ -397,7 +398,7 @@ class _TransactionsSectionHeader extends StatelessWidget {
           Text(
             'finances.view.recent_transactions'.tr(),
             style: TextStyle(
-              fontSize: 15,
+              fontSize: SacFontSize.titleMedium,
               fontWeight: FontWeight.w700,
               color: c.text,
             ),
@@ -407,7 +408,7 @@ class _TransactionsSectionHeader extends StatelessWidget {
             child: Text(
               'finances.view.view_all'.tr(),
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 fontWeight: FontWeight.w500,
                 color: c.textTertiary,
               ),

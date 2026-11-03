@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/widgets/sac_network_image.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
 
 import '../../domain/entities/progressive_class.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Card de clase progresiva - Estilo "Scout Vibrante"
 ///
@@ -54,11 +55,11 @@ class ClassCard extends StatelessWidget {
                 height: 44,
                 decoration: BoxDecoration(
                   color: classColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                 ),
                 child: progressiveClass.imageUrl != null
                     ? ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                         child: SacNetworkImage(
                           imageUrl: progressiveClass.imageUrl!,
                           memCacheWidth: 132, // 44 * 3 (max device pixel ratio)
@@ -135,7 +136,7 @@ class ClassCard extends StatelessWidget {
                       Text(
                         'classes.class_card.expired_description'.tr(),
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: SacFontSize.bodySmall,
                           color: AppColors.errorDark,
                           height: 1.25,
                         ),
@@ -148,7 +149,7 @@ class ClassCard extends StatelessWidget {
                       Text(
                         progressiveClass.description!,
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: SacFontSize.bodyMedium,
                           color: context.sac.textSecondary,
                         ),
                         maxLines: 1,
@@ -178,7 +179,7 @@ class ClassCard extends StatelessWidget {
               Text(
                 '$progressPercent%',
                 style: TextStyle(
-                  fontSize: 26,
+                  fontSize: SacFontSize.displaySmall,
                   fontWeight: FontWeight.w800,
                   height: 1,
                   color: classColor,

@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 
 import '../providers/club_selection_providers.dart';
 import '../utils/club_selection_age_rules.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Widget para mostrar recomendación de clase progresiva basada en edad
 class ClassRecommendation extends ConsumerWidget {
@@ -34,7 +35,7 @@ class ClassRecommendation extends ConsumerWidget {
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
             color: SacAccent.of(context).light,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             border: Border.all(
                 color: SacAccent.of(context).color.withValues(alpha: 0.3)),
           ),
@@ -53,7 +54,7 @@ class ClassRecommendation extends ConsumerWidget {
                     Text(
                       'post_registration.recommendation.recommended_class'.tr(),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: SacFontSize.bodySmall,
                         fontWeight: FontWeight.w600,
                         color: SacAccent.of(context).dark,
                       ),
@@ -65,7 +66,7 @@ class ClassRecommendation extends ConsumerWidget {
                         'class_name': recommendedClass.name,
                       }),
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: SacFontSize.bodyMedium,
                         color: SacAccent.of(context).dark,
                       ),
                     ),
@@ -79,7 +80,7 @@ class ClassRecommendation extends ConsumerWidget {
                             'max': recommendedClass.maxAge.toString(),
                           }),
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: SacFontSize.labelSmall,
                             color: SacAccent.of(context).color,
                             fontStyle: FontStyle.italic,
                           ),

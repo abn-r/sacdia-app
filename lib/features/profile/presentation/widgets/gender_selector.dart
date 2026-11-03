@@ -5,6 +5,7 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Género soportado por el backend (`gender` en `UpdateUserDto`).
 ///
@@ -132,7 +133,7 @@ class _GenderChip extends StatelessWidget {
             decoration: BoxDecoration(
               color:
                   selected ? SacAccent.of(context).light : context.sac.surface,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
               border: Border.all(
                 color:
                     selected ? SacAccent.of(context).color : context.sac.border,
@@ -153,7 +154,7 @@ class _GenderChip extends StatelessWidget {
                 Text(
                   gender.display(context),
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                     fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                     color: selected
                         ? SacAccent.of(context).color

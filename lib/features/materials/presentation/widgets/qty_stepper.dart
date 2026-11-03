@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Stepper de cantidad − / qty / + con límites [min] y [max].
 class QtyStepper extends StatelessWidget {
@@ -39,7 +40,7 @@ class QtyStepper extends StatelessWidget {
             child: Text(
               '$value',
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -78,7 +79,7 @@ class _StepButton extends StatelessWidget {
         height: 32,
         decoration: BoxDecoration(
           color: enabled ? SacAccent.of(context).light : AppColors.lightBorder,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXS),
         ),
         alignment: Alignment.center,
         child: HugeIcon(icon: icon, size: 18, color: color),

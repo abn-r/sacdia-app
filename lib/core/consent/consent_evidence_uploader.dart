@@ -18,6 +18,7 @@ import '../widgets/sac_pressable.dart';
 import '../widgets/sac_sheet.dart';
 import 'consent_error_messages.dart';
 import 'consent_evidence.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Sube el archivo y devuelve el recibo o el fallo (con su `errorCode`).
 typedef ConsentUploadCallback = Future<Either<Failure, ConsentEvidenceReceipt>>
@@ -28,7 +29,8 @@ Future<ConsentSource?> showConsentSourceSheet(BuildContext context) {
   return showSacSheet<ConsentSource>(
     context: context,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      borderRadius:
+          BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLG)),
     ),
     builder: (ctx) => SafeArea(
       child: Column(
@@ -85,7 +87,7 @@ class _SourceTile extends StatelessWidget {
           height: 40,
           decoration: BoxDecoration(
             color: accent.light,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
           ),
           child: Center(
             child: HugeIcon(icon: icon, size: 22, color: accent.color),
@@ -329,7 +331,7 @@ class _FilePreview extends StatelessWidget {
     Widget thumb;
     if (file.isImage && file.problem == null) {
       thumb = ClipRRect(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
         child: Image.file(
           File(file.path),
           width: 64,
@@ -405,7 +407,7 @@ class _PlaceholderThumb extends StatelessWidget {
       height: 64,
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
       ),
       child: Center(child: HugeIcon(icon: icon, size: 28, color: color)),
     );

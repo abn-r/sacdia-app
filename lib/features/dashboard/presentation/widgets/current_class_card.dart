@@ -11,6 +11,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_ring.dart';
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Card de clase actual con SacProgressRing - Estilo "Scout Vibrante"
 ///
@@ -151,7 +152,7 @@ class CurrentClassCard extends ConsumerWidget {
               child: Text(
                 '$progressPercentage%',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: SacFontSize.caption,
                   fontWeight: FontWeight.w700,
                   color: context.sac.text,
                 ),
@@ -200,11 +201,11 @@ class CurrentClassCard extends ConsumerWidget {
       height: 40,
       decoration: BoxDecoration(
         color: classColor.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
       ),
       child: imageUrl != null
           ? ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
               child: SacNetworkImage(
                 imageUrl: imageUrl,
                 memCacheWidth: 120, // 40 * 3 (max device pixel ratio)
@@ -259,7 +260,7 @@ class _ExpiredBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: const Color(0xFFFFF1F2),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(color: AppColors.error.withValues(alpha: 0.35)),
       ),
       child: Row(
@@ -274,7 +275,7 @@ class _ExpiredBadge extends StatelessWidget {
           Text(
             tr('dashboard.class_card.expired_badge'),
             style: TextStyle(
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               fontWeight: FontWeight.w500,
               color: AppColors.errorDark,
             ),
@@ -296,7 +297,7 @@ class _CompletadaBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: AppColors.secondaryLight,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -310,7 +311,7 @@ class _CompletadaBadge extends StatelessWidget {
           Text(
             tr('dashboard.class_card.completed'),
             style: TextStyle(
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               fontWeight: FontWeight.w500,
               color: AppColors.secondaryDark,
             ),

@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/utils/icon_helper.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/finance_month.dart';
 import '../providers/finances_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Header de saldo sin contenedor — layout centrado directamente
 /// sobre el fondo de la pantalla.
@@ -45,7 +46,7 @@ class BalanceHeaderCard extends ConsumerWidget {
           Text(
             'finances.widgets.balance_total'.tr(),
             style: TextStyle(
-              fontSize: 11,
+              fontSize: SacFontSize.labelSmall,
               fontWeight: FontWeight.w600,
               letterSpacing: 1.5,
               color: c.textTertiary,
@@ -58,7 +59,7 @@ class BalanceHeaderCard extends ConsumerWidget {
           Text(
             _formatCurrency(balance),
             style: TextStyle(
-              fontSize: 42,
+              fontSize: SacFontSize.metricSmall,
               fontWeight: FontWeight.w800,
               letterSpacing: -1.0,
               color: c.text,
@@ -81,7 +82,7 @@ class BalanceHeaderCard extends ConsumerWidget {
               Text(
                 monthLabel,
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: SacFontSize.titleMedium,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.2,
                   color: c.text,
@@ -186,7 +187,7 @@ class _ActivitySummary extends StatelessWidget {
     const expenseRed = Color(0xFFDC2626);
 
     final base = TextStyle(
-      fontSize: 13,
+      fontSize: SacFontSize.bodyMedium,
       fontWeight: FontWeight.w400,
       color: textColor,
     );

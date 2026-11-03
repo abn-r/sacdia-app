@@ -21,6 +21,7 @@ import '../providers/honors_providers.dart';
 import '../utils/honor_work_navigation.dart';
 import '../widgets/honor_card.dart';
 import '../widgets/honor_category_chip.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 // ── HonorCard with progress ───────────────────────────────────────────────────
 
@@ -185,7 +186,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
       child: Container(
         decoration: BoxDecoration(
           color: context.sac.surface,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppTheme.radiusLG),
           border: Border.all(color: context.sac.borderLight),
           boxShadow: [
             BoxShadow(
@@ -203,7 +204,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
               child: Text(
                 'honors.catalog.category_filter_label'.tr(),
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: SacFontSize.labelSmall,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.2,
                   color: context.sac.textTertiary,
@@ -264,7 +265,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                     child: Text(
                       'honors.catalog.title'.tr(),
                       style: TextStyle(
-                          fontSize: 20,
+                          fontSize: SacFontSize.headlineMedium,
                           fontWeight: FontWeight.w700,
                           color: AppColors.error),
                     ),
@@ -278,7 +279,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                       ),
                       decoration: BoxDecoration(
                         color: context.sac.surfaceVariant,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                         border: Border.all(color: context.sac.borderLight),
                       ),
                       child: RichText(
@@ -287,7 +288,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                             TextSpan(
                               text: '$completed',
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: SacFontSize.titleSmall,
                                 fontWeight: FontWeight.w700,
                                 color: context.sac.text,
                               ),
@@ -295,7 +296,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                             TextSpan(
                               text: '/$total',
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: SacFontSize.titleSmall,
                                 fontWeight: FontWeight.w500,
                                 color: context.sac.textSecondary,
                               ),
@@ -312,12 +313,13 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
               TextField(
                 controller: _searchController,
                 onChanged: _onSearchChanged,
-                style: TextStyle(color: context.sac.text, fontSize: 14),
+                style: TextStyle(
+                    color: context.sac.text, fontSize: SacFontSize.titleSmall),
                 decoration: InputDecoration(
                   hintText: 'honors.catalog.search_hint'.tr(),
                   hintStyle: TextStyle(
                     color: context.sac.textTertiary,
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                   ),
                   prefixIconConstraints: FixedInputIconSlot.constraints,
                   prefixIcon: FixedInputIconSlot(
@@ -347,7 +349,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                     vertical: 10,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
@@ -429,7 +431,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
             Text(
               'honors.catalog.empty'.tr(),
               style: TextStyle(
-                fontSize: 16,
+                fontSize: SacFontSize.titleMedium,
                 color: context.sac.textSecondary,
               ),
             ),
@@ -473,7 +475,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
           Text(
             'honors.catalog.error_load'.tr(),
             style: TextStyle(
-              fontSize: 16,
+              fontSize: SacFontSize.titleMedium,
               fontWeight: FontWeight.w600,
               color: context.sac.text,
             ),

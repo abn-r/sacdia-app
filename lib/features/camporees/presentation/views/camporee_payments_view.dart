@@ -17,6 +17,7 @@ import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../domain/entities/camporee_payment.dart';
 import '../providers/camporees_providers.dart';
 import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista de pagos de un miembro en un camporee.
 ///
@@ -160,7 +161,7 @@ class _SummaryCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: SacAccent.of(context).light,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
             color: SacAccent.of(context).color.withValues(alpha: 0.3)),
       ),
@@ -170,7 +171,7 @@ class _SummaryCard extends StatelessWidget {
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: SacAccent.of(context).color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: HugeIcon(
               icon: HugeIcons.strokeRoundedMoney01,
@@ -186,14 +187,14 @@ class _SummaryCard extends StatelessWidget {
                 Text(
                   'camporees.payments.total_paid'.tr(),
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: SacFontSize.bodySmall,
                     color: SacAccent.of(context).dark,
                   ),
                 ),
                 Text(
                   currencyFmt.format(totalAmount),
                   style: TextStyle(
-                    fontSize: 22,
+                    fontSize: SacFontSize.headlineLarge,
                     fontWeight: FontWeight.w800,
                     color: SacAccent.of(context).color,
                   ),
@@ -205,7 +206,7 @@ class _SummaryCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: SacAccent.of(context).color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(AppTheme.radiusLG),
             ),
             child: Text(
               paymentCount == 1
@@ -214,7 +215,7 @@ class _SummaryCard extends StatelessWidget {
                   : 'camporees.payments.payment_count_other'
                       .tr(namedArgs: {'count': '$paymentCount'}),
               style: TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w700,
                 color: SacAccent.of(context).color,
               ),
@@ -248,7 +249,7 @@ class _PaymentCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border),
         boxShadow: [
           BoxShadow(
@@ -267,7 +268,7 @@ class _PaymentCard extends StatelessWidget {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: statusCfg.bg,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 ),
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedMoney01,
@@ -283,7 +284,7 @@ class _PaymentCard extends StatelessWidget {
                     Text(
                       _paymentTypeLabel(payment.paymentType),
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: SacFontSize.titleSmall,
                         fontWeight: FontWeight.w700,
                         color: c.text,
                       ),
@@ -292,7 +293,7 @@ class _PaymentCard extends StatelessWidget {
                       Text(
                         dateFmt.format(payment.paymentDate!.toLocal()),
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: SacFontSize.bodySmall,
                           color: c.textTertiary,
                         ),
                       ),
@@ -302,7 +303,7 @@ class _PaymentCard extends StatelessWidget {
               Text(
                 currencyFmt.format(payment.amount),
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: SacFontSize.titleMedium,
                   fontWeight: FontWeight.w800,
                   color: SacAccent.of(context).color,
                 ),
@@ -322,7 +323,7 @@ class _PaymentCard extends StatelessWidget {
                 Text(
                   'Ref: ${payment.reference}',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: SacFontSize.bodySmall,
                     color: c.textTertiary,
                   ),
                 ),
@@ -334,7 +335,7 @@ class _PaymentCard extends StatelessWidget {
             Text(
               payment.notes!,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 color: c.textSecondary,
               ),
             ),
@@ -345,12 +346,12 @@ class _PaymentCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: statusCfg.bg,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(AppTheme.radiusLG),
             ),
             child: Text(
               payment.paymentStatus.label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: SacFontSize.labelSmall,
                 fontWeight: FontWeight.w600,
                 color: statusCfg.fg,
               ),
@@ -456,7 +457,8 @@ class _CamporeePaymentFormSheetState
     return Container(
       decoration: BoxDecoration(
         color: c.background,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppTheme.radiusLG)),
       ),
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -477,7 +479,7 @@ class _CamporeePaymentFormSheetState
                 Text(
                   'camporees.payments.form_title'.tr(),
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: SacFontSize.headlineSmall,
                     fontWeight: FontWeight.w800,
                     color: c.text,
                   ),
@@ -490,7 +492,7 @@ class _CamporeePaymentFormSheetState
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: AppColors.errorLight,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     ),
                     child: Row(
                       children: [
@@ -504,7 +506,7 @@ class _CamporeePaymentFormSheetState
                           child: Text(
                             formState.errorMessage!,
                             style: const TextStyle(
-                              fontSize: 13,
+                              fontSize: SacFontSize.bodyMedium,
                               color: AppColors.error,
                             ),
                           ),
@@ -542,7 +544,7 @@ class _CamporeePaymentFormSheetState
                 Text(
                   'camporees.payments.payment_type_label'.tr(),
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: SacFontSize.bodyMedium,
                     fontWeight: FontWeight.w600,
                     color: c.textSecondary,
                   ),
@@ -551,7 +553,7 @@ class _CamporeePaymentFormSheetState
                 Container(
                   decoration: BoxDecoration(
                     border: Border.all(color: c.border),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                     color: c.surface,
                   ),
                   child: DropdownButtonHideUnderline(
@@ -562,7 +564,7 @@ class _CamporeePaymentFormSheetState
                         value: _paymentType,
                         isExpanded: true,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                         items: _paymentTypes
                             .map(
                               (t) => DropdownMenuItem(
@@ -593,7 +595,7 @@ class _CamporeePaymentFormSheetState
                 Text(
                   'camporees.payments.payment_date_label'.tr(),
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: SacFontSize.bodyMedium,
                     fontWeight: FontWeight.w600,
                     color: c.textSecondary,
                   ),
@@ -606,7 +608,7 @@ class _CamporeePaymentFormSheetState
                         horizontal: 16, vertical: 14),
                     decoration: BoxDecoration(
                       border: Border.all(color: c.border),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                       color: c.surface,
                     ),
                     child: Row(
@@ -623,7 +625,7 @@ class _CamporeePaymentFormSheetState
                                   .format(_paymentDate!)
                               : 'camporees.payments.select_date'.tr(),
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: SacFontSize.titleSmall,
                             color:
                                 _paymentDate != null ? c.text : c.textTertiary,
                           ),
@@ -745,7 +747,7 @@ class _ErrorBody extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14),
+              style: const TextStyle(fontSize: SacFontSize.titleSmall),
             ),
             const SizedBox(height: 16),
             SacButton.primary(

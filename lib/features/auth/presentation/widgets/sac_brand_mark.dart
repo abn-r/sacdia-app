@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Marca SACDIA a partir de `logo-sacdia.png`.
 ///
@@ -80,7 +81,7 @@ class SacBrandHairline extends StatelessWidget {
         height: 3,
         decoration: BoxDecoration(
           color: AppColors.loginBrandGold,
-          borderRadius: BorderRadius.circular(2),
+          borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
         ),
       ),
     );

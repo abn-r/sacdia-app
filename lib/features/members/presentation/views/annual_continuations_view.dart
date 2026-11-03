@@ -16,6 +16,7 @@ import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 
 import '../../domain/entities/annual_continuation.dart';
 import '../providers/members_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Lista de no inscritos del año vigente para la sección activa.
 ///
@@ -114,7 +115,7 @@ class AnnualContinuationsBody extends ConsumerWidget {
               child: Text(
                 tr('members.continuations.subtitle'),
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   color: context.sac.textSecondary,
                   height: 1.35,
                 ),
@@ -235,7 +236,7 @@ class _ContinuationItem extends StatelessWidget {
                 : isSelected
                     ? SacAccent.of(context).color.withValues(alpha: 0.06)
                     : c.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             border: Border.all(
               color: blocked
                   ? c.border
@@ -282,7 +283,7 @@ class _ContinuationItem extends StatelessWidget {
                     Text(
                       item.name,
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: SacFontSize.titleMedium,
                         fontWeight: FontWeight.w600,
                         color: c.text,
                         height: 1.2,
@@ -295,7 +296,7 @@ class _ContinuationItem extends StatelessWidget {
                       Text(
                         metaParts.join(' · '),
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: SacFontSize.bodySmall,
                           height: 1.2,
                           color: blocked ? c.textSecondary : c.textTertiary,
                         ),
@@ -312,12 +313,12 @@ class _ContinuationItem extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: AppColors.accent.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLG),
                   ),
                   child: Text(
                     tr('members.continuations.blocked'),
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: SacFontSize.labelSmall,
                       fontWeight: FontWeight.w600,
                       color: AppColors.accentDark,
                     ),
@@ -376,7 +377,7 @@ class _ErrorView extends StatelessWidget {
             Text(
               tr('members.continuations.errors.fetch'),
               style: TextStyle(
-                fontSize: 16,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.w600,
                 color: c.text,
               ),
@@ -385,7 +386,8 @@ class _ErrorView extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               message,
-              style: TextStyle(fontSize: 13, color: c.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),

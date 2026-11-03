@@ -19,6 +19,7 @@ import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../domain/entities/payment_order.dart';
 import '../providers/payment_orders_providers.dart';
 import '../widgets/payment_order_widgets.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 const _proofAllowedExtensions = ['pdf', 'jpg', 'jpeg', 'png'];
 const _proofMaxSizeBytes = 10 * 1024 * 1024;
@@ -71,7 +72,9 @@ class PaymentOrderDetailView extends ConsumerWidget {
                       Text(
                         error.toString().replaceFirst('Exception: ', ''),
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 13, color: c.textSecondary),
+                        style: TextStyle(
+                            fontSize: SacFontSize.bodyMedium,
+                            color: c.textSecondary),
                       ),
                       const SizedBox(height: 14),
                       SacButton.outline(
@@ -228,7 +231,7 @@ class _OrderDetailBody extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: c.surface,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
               border: Border.all(color: c.border),
             ),
             child: Column(
@@ -240,7 +243,7 @@ class _OrderDetailBody extends StatelessWidget {
                       child: Text(
                         order.folioReference,
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: SacFontSize.headlineSmall,
                           fontWeight: FontWeight.w800,
                           color: c.text,
                         ),
@@ -276,7 +279,7 @@ class _OrderDetailBody extends StatelessWidget {
           Text(
             'payment_orders.detail.timeline_title'.tr(),
             style: TextStyle(
-              fontSize: 15,
+              fontSize: SacFontSize.titleMedium,
               fontWeight: FontWeight.w800,
               color: c.text,
             ),
@@ -290,7 +293,7 @@ class _OrderDetailBody extends StatelessWidget {
             Text(
               'payment_orders.detail.proof_title'.tr(),
               style: TextStyle(
-                fontSize: 15,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.w800,
                 color: c.text,
               ),
@@ -301,7 +304,7 @@ class _OrderDetailBody extends StatelessWidget {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: c.surface,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                 border: Border.all(color: c.border),
               ),
               child: Column(
@@ -320,7 +323,8 @@ class _OrderDetailBody extends StatelessWidget {
                           proof.fileName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 13, color: c.text),
+                          style: TextStyle(
+                              fontSize: SacFontSize.bodyMedium, color: c.text),
                         ),
                       ),
                     ],
@@ -333,7 +337,7 @@ class _OrderDetailBody extends StatelessWidget {
                         namedArgs: {'reason': proof.rejectReason!},
                       ),
                       style: const TextStyle(
-                        fontSize: 12.5,
+                        fontSize: SacFontSize.bodySmall,
                         color: AppColors.error,
                       ),
                     ),
@@ -403,7 +407,8 @@ class _DetailRow extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TextStyle(fontSize: 13, color: c.textSecondary),
+            style: TextStyle(
+                fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
           ),
           Text(
             value,

@@ -16,6 +16,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Pantalla del carrito de materiales.
 ///
@@ -171,7 +172,7 @@ class _CartLineItem extends StatelessWidget {
             height: 56,
             decoration: BoxDecoration(
               color: SacAccent.of(context).surface,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             alignment: Alignment.center,
             child: Text(
@@ -179,7 +180,7 @@ class _CartLineItem extends StatelessWidget {
                   ? line.productTitle[0].toUpperCase()
                   : '?',
               style: TextStyle(
-                fontSize: 22,
+                fontSize: SacFontSize.headlineLarge,
                 fontWeight: FontWeight.bold,
                 color: SacAccent.of(context).color,
               ),

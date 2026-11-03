@@ -99,7 +99,8 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
     return Container(
       decoration: BoxDecoration(
         color: c.background,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppTheme.radiusXL)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -111,7 +112,7 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
             height: 4,
             decoration: BoxDecoration(
               color: c.border,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
             ),
           ),
 
@@ -392,7 +393,8 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: AppColors.error.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusXS),
                             border: Border.all(
                               color: AppColors.error.withValues(alpha: 0.3),
                             ),
@@ -401,7 +403,7 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
                             formState.errorMessage!,
                             style: const TextStyle(
                               color: AppColors.error,
-                              fontSize: 13,
+                              fontSize: SacFontSize.bodyMedium,
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -592,7 +594,7 @@ class _SectionHeader extends StatelessWidget {
           height: 28,
           decoration: BoxDecoration(
             color: SacAccent.of(context).surface,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
           ),
           child: Center(
             child: HugeIcon(
@@ -686,7 +688,7 @@ class _ConditionSelector extends StatelessWidget {
                       Text(
                         cond.shortLabel,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: SacFontSize.bodySmall,
                           fontWeight: FontWeight.w700,
                           color: isSelected ? color : context.sac.textSecondary,
                         ),
@@ -821,7 +823,7 @@ class _CategoryPickerField extends StatelessWidget {
             color: Colors.transparent,
             child: SacInkWell(
               onTap: onTap,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
               child: Ink(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
@@ -831,7 +833,7 @@ class _CategoryPickerField extends StatelessWidget {
                   color: Theme.of(
                     context,
                   ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                   border: Border.all(
                     color: borderColor,
                     width: errorText != null ? 1.4 : 1,
@@ -844,7 +846,7 @@ class _CategoryPickerField extends StatelessWidget {
                       height: 36,
                       decoration: BoxDecoration(
                         color: SacAccent.of(context).surface,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                       ),
                       child: HugeIcon(
                         icon: HugeIcons.strokeRoundedTag01,
@@ -926,7 +928,8 @@ class _CategoryPickerSheet extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: context.sac.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppTheme.radiusXL)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -937,7 +940,7 @@ class _CategoryPickerSheet extends StatelessWidget {
               height: 4,
               decoration: BoxDecoration(
                 color: context.sac.border,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
               ),
             ),
             Padding(
@@ -949,7 +952,7 @@ class _CategoryPickerSheet extends StatelessWidget {
                     height: 40,
                     decoration: BoxDecoration(
                       color: SacAccent.of(context).surface,
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                     ),
                     child: HugeIcon(
                       icon: HugeIcons.strokeRoundedTag01,
@@ -1025,12 +1028,12 @@ class _CategoryPickerOption extends StatelessWidget {
         color: Colors.transparent,
         child: SacInkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           child: Ink(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: background,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
               border: Border.all(
                 color: isSelected
                     ? SacAccent.of(context).color.withValues(alpha: 0.24)
@@ -1046,7 +1049,7 @@ class _CategoryPickerOption extends StatelessWidget {
                     color: isSelected
                         ? SacAccent.of(context).surface
                         : context.sac.surfaceVariant,
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                   ),
                   child: HugeIcon(
                     icon: HugeIcons.strokeRoundedTag01,
@@ -1162,13 +1165,13 @@ class _EvidenceAddTile extends StatelessWidget {
       color: Colors.transparent,
       child: SacInkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         child: Ink(
           width: 92,
           height: 92,
           decoration: BoxDecoration(
             color: context.sac.surfaceVariant,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             border: Border.all(
               color: SacAccent.of(context).color.withValues(alpha: 0.35),
             ),
@@ -1214,7 +1217,7 @@ class _EvidenceTile extends StatelessWidget {
           );
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       child: Stack(
         children: [
           SizedBox(width: 92, height: 92, child: image),
@@ -1287,7 +1290,8 @@ class _CategoryError extends StatelessWidget {
         Expanded(
           child: Text(
             'inventory.form.categories_error'.tr(),
-            style: const TextStyle(color: AppColors.error, fontSize: 13),
+            style: const TextStyle(
+                color: AppColors.error, fontSize: SacFontSize.bodyMedium),
           ),
         ),
         SacPressable(

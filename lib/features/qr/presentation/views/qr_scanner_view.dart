@@ -12,6 +12,7 @@ import '../providers/qr_scan_provider.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 class QrScannerView extends ConsumerStatefulWidget {
   const QrScannerView({super.key, this.activityId});
@@ -238,12 +239,13 @@ class _HintCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       ),
       child: Text(
         label,
         textAlign: TextAlign.center,
-        style: const TextStyle(color: Colors.white, fontSize: 13),
+        style: const TextStyle(
+            color: Colors.white, fontSize: SacFontSize.bodyMedium),
       ),
     );
   }
@@ -262,7 +264,7 @@ class _ScanOverlay extends StatelessWidget {
             width: side,
             height: side,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
               border: Border.all(color: Colors.white, width: 3),
             ),
           ),
@@ -281,7 +283,8 @@ class _ScanResultSheet extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLG)),
       ),
       padding: EdgeInsets.only(
         left: 20,
@@ -366,7 +369,7 @@ class _SuccessBody extends StatelessWidget {
               color: attendance!.alreadyPresent
                   ? Colors.orange.withValues(alpha: 0.1)
                   : Colors.green.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Text(
               attendanceLabel,

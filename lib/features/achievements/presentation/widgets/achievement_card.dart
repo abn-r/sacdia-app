@@ -8,6 +8,7 @@ import '../../domain/entities/user_achievement.dart';
 import '../../domain/repositories/achievements_repository.dart';
 import 'achievement_badge.dart';
 import 'achievement_progress_bar.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Card de un logro individual.
 ///
@@ -114,7 +115,7 @@ class AchievementCard extends StatelessWidget {
                     displayDescription,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: context.sac.textSecondary,
-                          fontSize: 11,
+                          fontSize: SacFontSize.labelSmall,
                         ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -145,7 +146,7 @@ class AchievementCard extends StatelessWidget {
                       Text(
                         '${achievement.points} pts',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: SacFontSize.labelSmall,
                           fontWeight: FontWeight.w600,
                           color: tierColor,
                         ),

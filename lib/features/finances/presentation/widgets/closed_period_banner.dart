@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Banner que aparece cuando el período está cerrado.
 class ClosedPeriodBanner extends StatelessWidget {
@@ -15,7 +16,7 @@ class ClosedPeriodBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.accentLight,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
       ),
       child: Row(
@@ -30,7 +31,7 @@ class ClosedPeriodBanner extends StatelessWidget {
             child: Text(
               'finances.widgets.closed_period_banner'.tr(),
               style: TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w500,
                 color: AppColors.accentDark,
                 height: 1.4,

@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 
 import '../../domain/entities/class_honor.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Acciones de especialidad anclada a un módulo: PDF + inscribir/continuar.
 class ClassHonorActionsRow extends StatelessWidget {
@@ -29,7 +30,7 @@ class ClassHonorActionsRow extends StatelessWidget {
                 Text(
                   honor.honorName,
                   style: TextStyle(
-                    fontSize: 13.5,
+                    fontSize: SacFontSize.bodyMedium,
                     fontWeight: FontWeight.w700,
                     color: c.ink800,
                   ),
@@ -38,7 +39,7 @@ class ClassHonorActionsRow extends StatelessWidget {
                 Text(
                   honor.relationType.label,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: SacFontSize.labelSmall,
                     color: c.ink500,
                     fontWeight: FontWeight.w600,
                   ),

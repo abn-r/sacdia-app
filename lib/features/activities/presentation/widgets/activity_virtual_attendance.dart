@@ -16,6 +16,7 @@ import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../domain/entities/activity_rsvp.dart';
 import '../providers/activities_providers.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Virtual activities: members mark intention. Staff confirms real attendance
 /// among every section member.
@@ -404,7 +405,8 @@ class _VirtualAttendanceSheetState
         builder: (context, scrollController) {
           return Material(
             color: context.sac.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppTheme.radiusLG)),
             child: Column(
               children: [
                 const SizedBox(height: 8),
@@ -413,7 +415,7 @@ class _VirtualAttendanceSheetState
                   height: 4,
                   decoration: BoxDecoration(
                     color: context.sac.border,
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(AppTheme.radius2XS),
                   ),
                 ),
                 Padding(

@@ -123,7 +123,7 @@ class _ClubDetailBody extends StatelessWidget {
                 child: Text(
                   'club.detail_note'.tr(),
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: SacFontSize.bodyMedium,
                     color: c.text,
                     height: 1.4,
                   ),
@@ -158,7 +158,7 @@ class _SectionHeader extends StatelessWidget {
           padding: const EdgeInsets.all(7),
           decoration: BoxDecoration(
             color: SacAccent.of(context).light,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
           ),
           child: Center(
             child: HugeIcon(
@@ -169,7 +169,7 @@ class _SectionHeader extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: SacFontSize.titleSmall,
             fontWeight: FontWeight.w700,
             color: c.text,
           ),
@@ -224,7 +224,7 @@ class _InfoRow extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: SacFontSize.labelSmall,
                     fontWeight: FontWeight.w600,
                     color: c.textTertiary,
                     letterSpacing: 0.4,
@@ -234,7 +234,7 @@ class _InfoRow extends StatelessWidget {
                 Text(
                   value,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: SacFontSize.titleMedium,
                     fontWeight: FontWeight.w500,
                     color: valueColor ?? c.text,
                     height: 1.3,
@@ -281,7 +281,8 @@ class _ErrorBody extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               message,
-              style: TextStyle(fontSize: 14, color: c.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.titleSmall, color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),

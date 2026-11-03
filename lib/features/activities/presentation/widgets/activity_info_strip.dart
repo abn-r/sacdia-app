@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 import '../../domain/entities/activity.dart';
 import 'activity_audience_line.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Primary info strip for the activity detail screen.
 ///
@@ -80,7 +81,7 @@ class ActivityInfoStrip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           decoration: BoxDecoration(
             color: sac.surface,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             border: Border.all(color: sac.borderLight, width: 1),
           ),
           child: IntrinsicHeight(
@@ -113,7 +114,7 @@ class ActivityInfoStrip extends StatelessWidget {
         Text(
           'activities.form.audience_label'.tr(),
           style: TextStyle(
-            fontSize: 12,
+            fontSize: SacFontSize.bodySmall,
             fontWeight: FontWeight.w600,
             color: sac.textSecondary,
           ),
@@ -164,7 +165,7 @@ class ActivityInfoStrip extends StatelessWidget {
           child: Text(
             '·',
             style: TextStyle(
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               fontWeight: FontWeight.w700,
               color: sac.textTertiary,
               height: 1,
@@ -209,7 +210,7 @@ class _MetaItem {
         Text(
           text,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: SacFontSize.bodySmall,
             color: color,
             fontWeight: weight,
             letterSpacing: 0.1,
@@ -248,7 +249,7 @@ class _InfoCell extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: SacFontSize.caption,
                   fontWeight: FontWeight.w700,
                   color: sac.textTertiary,
                   letterSpacing: 0.6,
@@ -258,7 +259,7 @@ class _InfoCell extends StatelessWidget {
               Text(
                 value,
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: SacFontSize.titleMedium,
                   fontWeight: FontWeight.w800,
                   color: sac.text,
                   height: 1.2,

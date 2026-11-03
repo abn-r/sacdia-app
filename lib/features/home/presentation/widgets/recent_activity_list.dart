@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Lista de actividades recientes - Estilo "Scout Vibrante"
 class RecentActivityList extends StatelessWidget {
@@ -39,7 +40,7 @@ class RecentActivityList extends StatelessWidget {
                     height: 36,
                     decoration: BoxDecoration(
                       color: SacAccent.of(context).light,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     ),
                     child: Center(
                       child: HugeIcon(
@@ -66,7 +67,7 @@ class RecentActivityList extends StatelessWidget {
                         Text(
                           plural('home.recent_activity.hours_ago', index + 1),
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: SacFontSize.bodySmall,
                             color: context.sac.textSecondary,
                           ),
                         ),

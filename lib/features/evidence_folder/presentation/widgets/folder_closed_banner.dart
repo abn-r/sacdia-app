@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/evidence_folder.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Banner prominente que se muestra cuando la Carpeta Anual de Evidencias no está abierta.
 ///
@@ -43,7 +44,7 @@ class _EvaluatedBanner extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.secondaryLight,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
           color: AppColors.secondary.withValues(alpha: 0.5),
           width: 1.5,
@@ -56,7 +57,7 @@ class _EvaluatedBanner extends StatelessWidget {
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: AppColors.secondary.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Center(
               child: HugeIcon(
@@ -112,7 +113,7 @@ class _ClosedBanner extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.accentLight,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
           color: AppColors.accent.withValues(alpha: 0.5),
           width: 1.5,
@@ -125,7 +126,7 @@ class _ClosedBanner extends StatelessWidget {
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: AppColors.accent.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Center(
               child: HugeIcon(

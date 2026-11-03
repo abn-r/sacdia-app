@@ -23,6 +23,7 @@ import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/enrollment.dart';
 import '../providers/enrollment_providers.dart';
 import '../../../../core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Pantalla para crear o actualizar la inscripción anual al club.
@@ -506,7 +507,8 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
                 const SizedBox(height: 4),
                 Text(
                   'enrollment.form.schedule_hint'.tr(),
-                  style: TextStyle(fontSize: 12, color: c.textTertiary),
+                  style: TextStyle(
+                      fontSize: SacFontSize.bodySmall, color: c.textTertiary),
                 ),
                 const SizedBox(height: 12),
 
@@ -721,7 +723,7 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: AppColors.errorLight,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     ),
                     child: Row(
                       children: [
@@ -735,7 +737,7 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
                           child: Text(
                             formState.errorMessage!,
                             style: const TextStyle(
-                              fontSize: 13,
+                              fontSize: SacFontSize.bodyMedium,
                               color: AppColors.error,
                             ),
                           ),
@@ -788,7 +790,7 @@ class _SectionHeader extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: SacFontSize.titleSmall,
             fontWeight: FontWeight.w700,
             color: c.text,
           ),
@@ -815,7 +817,7 @@ class _FieldLabel extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: SacFontSize.bodyMedium,
             fontWeight: FontWeight.w600,
             color: c.textSecondary,
           ),
@@ -826,12 +828,12 @@ class _FieldLabel extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
             decoration: BoxDecoration(
               color: SacAccent.of(context).color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Text(
               badge!,
               style: TextStyle(
-                fontSize: 10,
+                fontSize: SacFontSize.caption,
                 fontWeight: FontWeight.w700,
                 color: SacAccent.of(context).color,
               ),
@@ -868,7 +870,7 @@ class _LocationPickerField extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           border: Border.all(
             color: hasError
                 ? AppColors.error
@@ -898,7 +900,7 @@ class _LocationPickerField extends StatelessWidget {
                         Text(
                           result!.name,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: SacFontSize.titleSmall,
                             fontWeight: FontWeight.w500,
                             color: c.text,
                           ),
@@ -908,7 +910,9 @@ class _LocationPickerField extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           '${result!.lat.toStringAsFixed(5)}, ${result!.long.toStringAsFixed(5)}',
-                          style: TextStyle(fontSize: 11, color: c.textTertiary),
+                          style: TextStyle(
+                              fontSize: SacFontSize.labelSmall,
+                              color: c.textTertiary),
                         ),
                       ],
                     )
@@ -917,7 +921,7 @@ class _LocationPickerField extends StatelessWidget {
                           ? 'enrollment.form.location_error_hint'.tr()
                           : 'enrollment.form.location_hint'.tr(),
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: SacFontSize.titleSmall,
                         color: hasError ? AppColors.error : c.textTertiary,
                       ),
                     ),
@@ -968,13 +972,13 @@ class _DayScheduleChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
             color: c.surface,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppTheme.radiusLG),
             border: Border.all(color: c.border, width: 1.5),
           ),
           child: Text(
             day,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               fontWeight: FontWeight.w600,
               color: c.textSecondary,
             ),
@@ -988,7 +992,7 @@ class _DayScheduleChip extends StatelessWidget {
       duration: const Duration(milliseconds: 150),
       decoration: BoxDecoration(
         color: SacAccent.of(context).color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(color: SacAccent.of(context).color, width: 1.5),
       ),
       child: Row(
@@ -1011,7 +1015,7 @@ class _DayScheduleChip extends StatelessWidget {
                   Text(
                     day,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       fontWeight: FontWeight.w700,
                       color: SacAccent.of(context).color,
                     ),
@@ -1043,7 +1047,7 @@ class _DayScheduleChip extends StatelessWidget {
                   Text(
                     time ?? '09:00',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       fontWeight: FontWeight.w600,
                       color:
                           SacAccent.of(context).color.withValues(alpha: 0.85),
@@ -1084,7 +1088,7 @@ class _ToggleRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: c.border),
       ),
       child: Row(
@@ -1102,7 +1106,7 @@ class _ToggleRow extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                     fontWeight: FontWeight.w600,
                     color: c.text,
                   ),
@@ -1110,7 +1114,9 @@ class _ToggleRow extends StatelessWidget {
                 if (subtitle != null)
                   Text(
                     subtitle!,
-                    style: TextStyle(fontSize: 12, color: c.textSecondary),
+                    style: TextStyle(
+                        fontSize: SacFontSize.bodySmall,
+                        color: c.textSecondary),
                   ),
               ],
             ),
@@ -1145,7 +1151,7 @@ class _ReadOnlyMemberField extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: c.surface.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: c.border),
       ),
       child: Row(
@@ -1164,7 +1170,7 @@ class _ReadOnlyMemberField extends StatelessWidget {
                       Text(
                         member!.fullName,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: SacFontSize.titleSmall,
                           fontWeight: FontWeight.w500,
                           color: c.text,
                         ),
@@ -1172,13 +1178,17 @@ class _ReadOnlyMemberField extends StatelessWidget {
                       Text(
                         member!.clubRole ??
                             'enrollment.form.role_director'.tr(),
-                        style: TextStyle(fontSize: 12, color: c.textSecondary),
+                        style: TextStyle(
+                            fontSize: SacFontSize.bodySmall,
+                            color: c.textSecondary),
                       ),
                     ],
                   )
                 : Text(
                     placeholder,
-                    style: TextStyle(fontSize: 14, color: c.textTertiary),
+                    style: TextStyle(
+                        fontSize: SacFontSize.titleSmall,
+                        color: c.textTertiary),
                   ),
           ),
           if (member != null)
@@ -1186,12 +1196,12 @@ class _ReadOnlyMemberField extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
                 color: SacAccent.of(context).color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
               ),
               child: Text(
                 'enrollment.form.badge_automatic'.tr(),
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: SacFontSize.caption,
                   fontWeight: FontWeight.w600,
                   color: SacAccent.of(context).color,
                 ),
@@ -1240,7 +1250,7 @@ class _SingleMemberSelector extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           border: Border.all(
             color: selected != null ? SacAccent.of(context).color : c.border,
             width: selected != null ? 1.5 : 1,
@@ -1266,7 +1276,7 @@ class _SingleMemberSelector extends StatelessWidget {
                         Text(
                           selected.fullName,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: SacFontSize.titleSmall,
                             fontWeight: FontWeight.w500,
                             color: c.text,
                           ),
@@ -1275,7 +1285,7 @@ class _SingleMemberSelector extends StatelessWidget {
                           Text(
                             selected.clubRole!,
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: SacFontSize.bodySmall,
                               color: c.textSecondary,
                             ),
                           ),
@@ -1283,7 +1293,9 @@ class _SingleMemberSelector extends StatelessWidget {
                     )
                   : Text(
                       members.isEmpty ? emptyMessage : placeholder,
-                      style: TextStyle(fontSize: 14, color: c.textTertiary),
+                      style: TextStyle(
+                          fontSize: SacFontSize.titleSmall,
+                          color: c.textTertiary),
                     ),
             ),
             if (selected != null && onClear != null)
@@ -1359,7 +1371,7 @@ class _MultiMemberSelector extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           border: Border.all(
             color: selectedMembers.isNotEmpty
                 ? SacAccent.of(context).color
@@ -1378,7 +1390,9 @@ class _MultiMemberSelector extends StatelessWidget {
                   const SizedBox(width: 12),
                   Text(
                     members.isEmpty ? emptyMessage : placeholder,
-                    style: TextStyle(fontSize: 14, color: c.textTertiary),
+                    style: TextStyle(
+                        fontSize: SacFontSize.titleSmall,
+                        color: c.textTertiary),
                   ),
                   const Spacer(),
                   if (members.isNotEmpty)
@@ -1407,7 +1421,7 @@ class _MultiMemberSelector extends StatelessWidget {
                             child: Text(
                               m.fullName,
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: SacFontSize.titleSmall,
                                 fontWeight: FontWeight.w500,
                                 color: c.text,
                               ),
@@ -1421,7 +1435,7 @@ class _MultiMemberSelector extends StatelessWidget {
                   Text(
                     'enrollment.form.tap_to_edit'.tr(),
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: SacFontSize.bodySmall,
                       color: SacAccent.of(context).color,
                       fontWeight: FontWeight.w500,
                     ),
@@ -1521,7 +1535,8 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
       ),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppTheme.radiusLG)),
       ),
       child: Column(
         children: [
@@ -1534,7 +1549,7 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                 height: 4,
                 decoration: BoxDecoration(
                   color: c.border,
-                  borderRadius: BorderRadius.circular(100),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                 ),
               ),
             ),
@@ -1554,7 +1569,7 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                           ? 'enrollment.picker.title_members'.tr()
                           : 'enrollment.picker.title_member'.tr(),
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: SacFontSize.titleMedium,
                         fontWeight: FontWeight.w700,
                         color: c.text,
                       ),
@@ -1567,7 +1582,9 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                             'max': '${widget.maxSelect}',
                           },
                         ),
-                        style: TextStyle(fontSize: 12, color: c.textSecondary),
+                        style: TextStyle(
+                            fontSize: SacFontSize.bodySmall,
+                            color: c.textSecondary),
                       ),
                   ],
                 ),
@@ -1579,7 +1596,7 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                       foregroundColor: SacAccent.of(context).color,
                       textStyle: const TextStyle(
                         fontWeight: FontWeight.w700,
-                        fontSize: 15,
+                        fontSize: SacFontSize.titleMedium,
                       ),
                     )).copyWith(enableFeedback: false),
                     child: Text('enrollment.picker.done'.tr()),
@@ -1606,15 +1623,15 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                 filled: true,
                 fillColor: c.background,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                   borderSide: BorderSide(color: c.border),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                   borderSide: BorderSide(color: c.border),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                   borderSide: BorderSide(
                     color: SacAccent.of(context).color,
                     width: 1.5,
@@ -1666,7 +1683,7 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                                   style: TextStyle(
                                     color: SacAccent.of(context).color,
                                     fontWeight: FontWeight.w700,
-                                    fontSize: 13,
+                                    fontSize: SacFontSize.bodyMedium,
                                   ),
                                 ),
                               ),
@@ -1681,7 +1698,7 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                                   ? Text(
                                       member.clubRole!,
                                       style: TextStyle(
-                                        fontSize: 12,
+                                        fontSize: SacFontSize.bodySmall,
                                         color: c.textSecondary,
                                       ),
                                     )
@@ -1696,7 +1713,8 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                                   : null,
                               enabled: canSelect,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius:
+                                    BorderRadius.circular(AppTheme.radiusXS),
                               ),
                               onTap: () {
                                 setState(() {

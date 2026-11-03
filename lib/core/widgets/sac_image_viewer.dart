@@ -16,6 +16,7 @@ import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Visor de imagenes fullscreen con zoom (pinch-to-zoom).
 ///
@@ -320,7 +321,7 @@ class _SacImageViewerState extends State<SacImageViewer> {
             height: 7,
             decoration: BoxDecoration(
               color: selected ? Colors.white : Colors.white38,
-              borderRadius: BorderRadius.circular(999),
+              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
             ),
           );
         }),

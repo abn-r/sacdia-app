@@ -4,6 +4,7 @@ import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Intrinsic-width mode switcher. Sliding clip shows a duplicate active row.
 class MembersModeSwitcher extends StatefulWidget {
@@ -172,7 +173,7 @@ class _MembersModeSwitcherState extends State<MembersModeSwitcher>
       height: 44,
       decoration: BoxDecoration(
         color: c.surfaceVariant,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       ),
       padding: const EdgeInsets.all(2),
       child: SingleChildScrollView(
@@ -206,11 +207,12 @@ class _MembersModeSwitcherState extends State<MembersModeSwitcher>
                     offset: Offset(rect.left, 0),
                     child: IgnorePointer(
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                         child: DecoratedBox(
                           decoration: BoxDecoration(
                             color: c.surface,
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusXS),
                             boxShadow: [
                               BoxShadow(
                                 color: c.shadow,
@@ -283,7 +285,7 @@ class _ModeSlot extends StatelessWidget {
               maxLines: 1,
               softWrap: false,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 fontWeight: active ? FontWeight.w700 : FontWeight.w600,
                 color: active ? c.text : c.textSecondary,
               ),
@@ -310,12 +312,12 @@ class _ModeBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: AppColors.error,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
       ),
       child: Text(
         count > 99 ? '99+' : '$count',
         style: const TextStyle(
-          fontSize: 10,
+          fontSize: SacFontSize.caption,
           fontWeight: FontWeight.w700,
           color: Colors.white,
         ),

@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 
 import '../../domain/entities/material_item.dart';
 import '../utils/money_format.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Tarjeta de producto del catálogo (grid 2 columnas).
 class ProductCard extends StatelessWidget {
@@ -33,7 +34,7 @@ class ProductCard extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: c.surface,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             border: Border.all(color: c.border.withValues(alpha: 0.75)),
           ),
           clipBehavior: Clip.antiAlias,
@@ -61,7 +62,7 @@ class ProductCard extends StatelessWidget {
                     Text(
                       item.title,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: SacFontSize.bodyMedium,
                         fontWeight: FontWeight.w700,
                         color: c.text,
                         height: 1.2,
@@ -73,7 +74,7 @@ class ProductCard extends StatelessWidget {
                     Text(
                       formatMxn(item.priceCentavos),
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: SacFontSize.titleMedium,
                         fontWeight: FontWeight.w800,
                         color: SacAccent.of(context).color,
                         letterSpacing: -0.2,
@@ -83,7 +84,7 @@ class ProductCard extends StatelessWidget {
                     Text(
                       _stockLabel(hasStock: hasStock, stock: item.stock),
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: SacFontSize.labelSmall,
                         fontWeight: FontWeight.w600,
                         color: hasStock
                             ? (item.stock <= 5

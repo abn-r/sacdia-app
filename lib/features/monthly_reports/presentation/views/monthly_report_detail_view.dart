@@ -16,6 +16,7 @@ import '../../domain/entities/monthly_report.dart';
 import '../providers/monthly_reports_providers.dart';
 import '../widgets/monthly_report_motion.dart';
 import 'monthly_report_manual_data_form_view.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 const _tag = 'MonthlyReportDetailView';
 
@@ -427,7 +428,7 @@ class _ReportHeaderCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(color: c.border.withValues(alpha: 0.7)),
       ),
       child: Column(
@@ -447,7 +448,7 @@ class _ReportHeaderCard extends StatelessWidget {
             period,
             style: TextStyle(
               color: c.text,
-              fontSize: 24,
+              fontSize: SacFontSize.displaySmall,
               fontWeight: FontWeight.w900,
               letterSpacing: -0.45,
               height: 1.05,
@@ -458,7 +459,7 @@ class _ReportHeaderCard extends StatelessWidget {
             _statusMessage(),
             style: TextStyle(
               color: c.textSecondary,
-              fontSize: 14,
+              fontSize: SacFontSize.titleSmall,
               height: 1.35,
               fontWeight: FontWeight.w500,
             ),
@@ -469,7 +470,7 @@ class _ReportHeaderCard extends StatelessWidget {
               clubContext,
               style: TextStyle(
                 color: c.textTertiary,
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 height: 1.3,
                 fontWeight: FontWeight.w600,
               ),
@@ -496,14 +497,14 @@ class _PeriodPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
         color: SacAccent.of(context).color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
       ),
       child: Text(
         label,
         style: TextStyle(
           color: SacAccent.of(context).color,
           fontWeight: FontWeight.w800,
-          fontSize: 12,
+          fontSize: SacFontSize.bodySmall,
           letterSpacing: 0.1,
         ),
       ),
@@ -525,7 +526,7 @@ class _GeneratedNote extends StatelessWidget {
       ),
       style: TextStyle(
         color: c.textTertiary,
-        fontSize: 12,
+        fontSize: SacFontSize.bodySmall,
         height: 1.2,
         fontWeight: FontWeight.w600,
       ),
@@ -610,7 +611,7 @@ class _KpiCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border),
       ),
       child: Column(
@@ -624,7 +625,7 @@ class _KpiCard extends StatelessWidget {
               Text(
                 value,
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: SacFontSize.headlineLarge,
                   fontWeight: FontWeight.w900,
                   color: c.text,
                   height: 1,
@@ -634,7 +635,8 @@ class _KpiCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 label,
-                style: TextStyle(fontSize: 11, color: c.textTertiary),
+                style: TextStyle(
+                    fontSize: SacFontSize.labelSmall, color: c.textTertiary),
               ),
             ],
           ),
@@ -663,7 +665,7 @@ class _ExpandableSection extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(color: c.border),
       ),
       clipBehavior: Clip.antiAlias,
@@ -678,7 +680,7 @@ class _ExpandableSection extends StatelessWidget {
           title: Text(
             title,
             style: TextStyle(
-              fontSize: 15,
+              fontSize: SacFontSize.titleMedium,
               fontWeight: FontWeight.w800,
               color: c.text,
             ),
@@ -708,7 +710,7 @@ class _InfoRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: c.background,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(color: c.border.withValues(alpha: 0.55)),
         ),
         child: Column(
@@ -717,7 +719,7 @@ class _InfoRow extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 height: 1.25,
                 color: c.textTertiary,
                 fontWeight: FontWeight.w700,
@@ -728,7 +730,7 @@ class _InfoRow extends StatelessWidget {
               value,
               textAlign: TextAlign.left,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: SacFontSize.titleMedium,
                 height: 1.28,
                 fontWeight: FontWeight.w800,
                 color: valueColor ?? c.text,
@@ -756,7 +758,7 @@ class _Paragraph extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: c.background,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border.withValues(alpha: 0.55)),
       ),
       child: Column(
@@ -765,7 +767,7 @@ class _Paragraph extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               height: 1.25,
               color: c.textTertiary,
               fontWeight: FontWeight.w700,
@@ -774,7 +776,8 @@ class _Paragraph extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             value,
-            style: TextStyle(fontSize: 15, color: c.text, height: 1.5),
+            style: TextStyle(
+                fontSize: SacFontSize.titleMedium, color: c.text, height: 1.5),
           ),
         ],
       ),
@@ -796,7 +799,7 @@ class _MiniListTile extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: c.background,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: c.border.withValues(alpha: 0.6)),
       ),
       child: Column(
@@ -809,7 +812,8 @@ class _MiniListTile extends StatelessWidget {
           if (subtitle != null && subtitle!.isNotEmpty)
             Text(
               subtitle!,
-              style: TextStyle(fontSize: 12, color: c.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.bodySmall, color: c.textSecondary),
             ),
         ],
       ),
@@ -829,12 +833,12 @@ class _StatusPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
         color: cfg.bg,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
       ),
       child: Text(
         status.label,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: SacFontSize.bodySmall,
           fontWeight: FontWeight.w800,
           color: cfg.fg,
           letterSpacing: 0.1,
@@ -898,7 +902,7 @@ class _ErrorBody extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14),
+              style: const TextStyle(fontSize: SacFontSize.titleSmall),
             ),
             const SizedBox(height: 16),
             SacButton.primary(

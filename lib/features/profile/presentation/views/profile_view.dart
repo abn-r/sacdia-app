@@ -43,6 +43,7 @@ import 'edit_profile_view.dart';
 import 'medical_info_view.dart';
 import 'settings_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 
@@ -153,7 +154,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 child: Text(
                   'profile.view.load_profile_error'.tr(),
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: SacFontSize.titleMedium,
                     color: c.textSecondary,
                   ),
                 ),
@@ -239,7 +240,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   Text(
                     error.toString(),
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: SacFontSize.titleSmall,
                       color: c.textSecondary,
                     ),
                     textAlign: TextAlign.center,
@@ -420,7 +421,7 @@ class _ProfileScrollBody extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   color: c.surface,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                   border: Border.all(color: c.border, width: 1),
                 ),
                 child: SettingTile(
@@ -464,7 +465,7 @@ class _ProfileScrollBody extends StatelessWidget {
                     Container(
                       decoration: BoxDecoration(
                         color: c.surface,
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                         border: Border.all(
                           color: c.border,
                           width: 1,
@@ -558,7 +559,7 @@ class _ProfileScrollBody extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   color: c.surface,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                   border: Border.all(color: c.border, width: 1),
                 ),
                 child: SettingTile(
@@ -607,7 +608,7 @@ class _ProfileFirstLoadSkeleton extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
                 color: skeletonColor,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMD),
               ),
             ),
 
@@ -617,7 +618,7 @@ class _ProfileFirstLoadSkeleton extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
                 color: skeletonColor,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMD),
               ),
             ),
 
@@ -633,7 +634,7 @@ class _ProfileFirstLoadSkeleton extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
                 color: skeletonColor,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMD),
               ),
             ),
 
@@ -649,7 +650,7 @@ class _ProfileFirstLoadSkeleton extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 8),
               decoration: BoxDecoration(
                 color: skeletonColor,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
               ),
             ),
             Row(
@@ -666,7 +667,7 @@ class _ProfileFirstLoadSkeleton extends StatelessWidget {
                       margin: const EdgeInsets.only(bottom: 20),
                       decoration: BoxDecoration(
                         color: skeletonColor,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                       ),
                     ),
                   ),
@@ -686,7 +687,7 @@ class _ProfileFirstLoadSkeleton extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 8),
               decoration: BoxDecoration(
                 color: skeletonColor,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
               ),
             ),
             Row(
@@ -702,7 +703,7 @@ class _ProfileFirstLoadSkeleton extends StatelessWidget {
                       height: 90,
                       decoration: BoxDecoration(
                         color: skeletonColor,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                       ),
                     ),
                   ),
@@ -1012,7 +1013,7 @@ class _MetaRow extends StatelessWidget {
           child: Text(
             text,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               fontWeight: FontWeight.w500,
               color: context.sac.textSecondary,
             ),
@@ -1036,7 +1037,7 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       label.toUpperCase(),
       style: TextStyle(
-        fontSize: 11,
+        fontSize: SacFontSize.labelSmall,
         fontWeight: FontWeight.w600,
         color: context.sac.textTertiary,
         letterSpacing: 0.8,

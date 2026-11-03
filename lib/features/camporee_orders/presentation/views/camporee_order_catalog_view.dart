@@ -18,6 +18,7 @@ import 'package:sacdia_app/features/camporee_orders/presentation/providers/campo
 import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_participant_access_gate.dart';
 import 'package:sacdia_app/features/payment_orders/presentation/widgets/payment_order_widgets.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// CTA de Pedidos en el detalle del camporee. Oculto si no hay settings o
 /// la sección no está inscrita.
@@ -134,7 +135,7 @@ class _CtaButton extends StatelessWidget {
             closedHint,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 12.5,
+              fontSize: SacFontSize.bodySmall,
               color: context.sac.textSecondary,
             ),
           ),
@@ -271,7 +272,7 @@ class _CatalogBody extends ConsumerWidget {
         Text(
           'camporee_orders.catalog.history_title'.tr(),
           style: TextStyle(
-            fontSize: 15,
+            fontSize: SacFontSize.titleMedium,
             fontWeight: FontWeight.w800,
             color: c.text,
           ),
@@ -293,7 +294,8 @@ class _CatalogBody extends ConsumerWidget {
                 child: Text(
                   'camporee_orders.catalog.empty'.tr(),
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: c.textSecondary),
+                  style: TextStyle(
+                      fontSize: SacFontSize.titleSmall, color: c.textSecondary),
                 ),
               );
             }
@@ -328,15 +330,15 @@ class _OrderHistoryCard extends StatelessWidget {
     final c = context.sac;
     return Material(
       color: c.surface,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       child: SacInkWell(
         key: Key('camporee-order-folio-${order.folioReference}'),
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             border: Border.all(color: c.border),
           ),
           child: Column(
@@ -348,7 +350,7 @@ class _OrderHistoryCard extends StatelessWidget {
                     child: Text(
                       order.folioReference,
                       style: TextStyle(
-                        fontSize: 14.5,
+                        fontSize: SacFontSize.titleSmall,
                         fontWeight: FontWeight.w800,
                         color: c.text,
                       ),
@@ -363,13 +365,15 @@ class _OrderHistoryCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       camporeeOrderDistributionLabel(order.distributionStatus),
-                      style: TextStyle(fontSize: 12.5, color: c.textSecondary),
+                      style: TextStyle(
+                          fontSize: SacFontSize.bodySmall,
+                          color: c.textSecondary),
                     ),
                   ),
                   Text(
                     formatCentavos(order.totalCentavos, order.currency),
                     style: TextStyle(
-                      fontSize: 13.5,
+                      fontSize: SacFontSize.bodyMedium,
                       fontWeight: FontWeight.w800,
                       color: c.text,
                     ),
@@ -397,13 +401,13 @@ class _Banner extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: color.withValues(alpha: 0.28)),
       ),
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 13,
+          fontSize: SacFontSize.bodyMedium,
           fontWeight: FontWeight.w600,
           color: context.sac.text,
         ),
@@ -425,7 +429,9 @@ class _InlineError extends StatelessWidget {
         Text(
           message,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13, color: context.sac.textSecondary),
+          style: TextStyle(
+              fontSize: SacFontSize.bodyMedium,
+              color: context.sac.textSecondary),
         ),
         const SizedBox(height: 12),
         SacButton.outline(
@@ -461,7 +467,9 @@ class _MessageState extends StatelessWidget {
         Text(
           message,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13, color: context.sac.textSecondary),
+          style: TextStyle(
+              fontSize: SacFontSize.bodyMedium,
+              color: context.sac.textSecondary),
         ),
         if (onRetry != null) ...[
           const SizedBox(height: 14),
@@ -537,13 +545,13 @@ class CamporeeOrderStatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         camporeeOrderStatusLabel(status),
         style: TextStyle(
-          fontSize: 11,
+          fontSize: SacFontSize.labelSmall,
           fontWeight: FontWeight.w700,
           color: color,
         ),

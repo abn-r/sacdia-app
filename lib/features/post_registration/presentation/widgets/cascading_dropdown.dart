@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Widget genérico para dropdown en cascada
 class CascadingDropdown<T> extends StatelessWidget {
@@ -46,7 +47,7 @@ class CascadingDropdown<T> extends StatelessWidget {
             height: 56,
             decoration: BoxDecoration(
               border: Border.all(color: context.sac.border),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Center(
               child: SizedBox(
@@ -69,7 +70,7 @@ class CascadingDropdown<T> extends StatelessWidget {
                     'post_registration.dropdown.select_label'
                         .tr(namedArgs: {'label': label}),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,

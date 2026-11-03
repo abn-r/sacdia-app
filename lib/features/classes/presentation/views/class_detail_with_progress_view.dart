@@ -31,6 +31,7 @@ import '../widgets/module_expansion_tile.dart';
 import '../widgets/progress_ring.dart';
 import '../widgets/requirement_card.dart';
 import 'requirement_detail_view.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista de avances de clase — rediseño handoff (Variante B).
 ///
@@ -454,13 +455,13 @@ class _ExpiredTrajectoryBanner extends StatelessWidget {
         color: isDark
             ? AppColors.error.withValues(alpha: 0.2)
             : const Color(0xFFFFF1F2),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: AppColors.error.withValues(alpha: 0.35)),
       ),
       child: Text(
         'classes.requirement_detail.expired_banner'.tr(),
         style: const TextStyle(
-          fontSize: 12.5,
+          fontSize: SacFontSize.bodySmall,
           fontWeight: FontWeight.w600,
           color: AppColors.errorDark,
           height: 1.35,
@@ -485,7 +486,7 @@ class _PrerequisitesBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.sentBg,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: AppColors.sentColor.withValues(alpha: 0.24)),
       ),
       child: Row(
@@ -501,7 +502,7 @@ class _PrerequisitesBanner extends StatelessWidget {
             child: RichText(
               text: TextSpan(
                 style: const TextStyle(
-                  fontSize: 12.5,
+                  fontSize: SacFontSize.bodySmall,
                   fontWeight: FontWeight.w600,
                   color: AppColors.sentDark,
                   height: 1.4,
@@ -547,7 +548,7 @@ class _HeroCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       decoration: BoxDecoration(
         color: c.paper,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(color: classColor.withValues(alpha: 0.18)),
       ),
       child: Column(
@@ -566,7 +567,7 @@ class _HeroCard extends StatelessWidget {
                     Text(
                       '${classData.name.toUpperCase()} · AVANCE',
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: SacFontSize.labelSmall,
                         fontWeight: FontWeight.w600,
                         color: c.ink400,
                         letterSpacing: 0.88,
@@ -583,7 +584,7 @@ class _HeroCard extends StatelessWidget {
                           value: pct,
                           duration: SacMotion.standard,
                           style: TextStyle(
-                            fontSize: 44,
+                            fontSize: SacFontSize.metric,
                             fontWeight: FontWeight.w800,
                             color: classColor,
                             height: 1,
@@ -594,7 +595,7 @@ class _HeroCard extends StatelessWidget {
                         Text(
                           '%',
                           style: TextStyle(
-                            fontSize: 24,
+                            fontSize: SacFontSize.displaySmall,
                             fontWeight: FontWeight.w800,
                             color: classColor,
                             height: 1,
@@ -607,7 +608,7 @@ class _HeroCard extends StatelessWidget {
                       Text(
                         'Desarrollo + actividades complementarias',
                         style: TextStyle(
-                          fontSize: 11.5,
+                          fontSize: SacFontSize.labelSmall,
                           color: c.ink500,
                           fontWeight: FontWeight.w600,
                         ),
@@ -618,7 +619,7 @@ class _HeroCard extends StatelessWidget {
                       RichText(
                         text: TextSpan(
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: SacFontSize.bodyMedium,
                             color: c.ink500,
                           ),
                           children: [
@@ -770,7 +771,7 @@ class _StatusPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -787,7 +788,7 @@ class _StatusPill extends StatelessWidget {
           Text(
             '$count',
             style: TextStyle(
-              fontSize: 11.5,
+              fontSize: SacFontSize.labelSmall,
               fontWeight: FontWeight.w700,
               color: c.ink800,
               fontFeatures: const [FontFeature.tabularFigures()],
@@ -797,7 +798,7 @@ class _StatusPill extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 11.5,
+              fontSize: SacFontSize.labelSmall,
               fontWeight: FontWeight.w500,
               color: c.ink600,
             ),
@@ -838,7 +839,7 @@ class _AdvancedTrackSection extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
         decoration: BoxDecoration(
           color: c.canvas,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(color: c.ink150),
         ),
         child: Column(
@@ -854,7 +855,7 @@ class _AdvancedTrackSection extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: SacFontSize.bodySmall,
                       color: c.ink800,
                       fontWeight: FontWeight.w800,
                       height: 1.1,
@@ -867,7 +868,7 @@ class _AdvancedTrackSection extends StatelessWidget {
                   suffix: '%',
                   duration: SacMotion.standard,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: SacFontSize.titleMedium,
                     color: c.ink900,
                     fontWeight: FontWeight.w800,
                     height: 1,
@@ -882,7 +883,7 @@ class _AdvancedTrackSection extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: SacFontSize.labelSmall,
                 color: c.ink500,
                 fontWeight: FontWeight.w600,
                 height: 1.2,
@@ -890,7 +891,7 @@ class _AdvancedTrackSection extends StatelessWidget {
             ),
             const SizedBox(height: 9),
             ClipRRect(
-              borderRadius: BorderRadius.circular(999),
+              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
               child: TweenAnimationBuilder<double>(
                 tween: Tween<double>(begin: 0, end: _percentage / 100),
                 duration: SacMotion.reduceMotionOf(context)
@@ -962,13 +963,13 @@ class _SearchBar extends StatelessWidget {
               focusNode: focusNode,
               onChanged: onChanged,
               style: TextStyle(
-                fontSize: 13.5,
+                fontSize: SacFontSize.bodyMedium,
                 color: c.ink800,
               ),
               decoration: InputDecoration(
                 hintText: 'classes.detail_with_progress.search_hint'.tr(),
                 hintStyle: TextStyle(
-                  fontSize: 13.5,
+                  fontSize: SacFontSize.bodyMedium,
                   color: c.ink400,
                 ),
                 border: InputBorder.none,
@@ -1019,7 +1020,7 @@ class _SectionLabel extends StatelessWidget {
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 11,
+          fontSize: SacFontSize.labelSmall,
           fontWeight: FontWeight.w700,
           color: context.sac.ink400,
           letterSpacing: 1.32,
@@ -1113,11 +1114,11 @@ class _ModulesCard extends ConsumerWidget {
     final c = context.sac;
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       child: Container(
         decoration: BoxDecoration(
           color: c.paper,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(color: c.ink150),
         ),
         child: Column(
@@ -1161,11 +1162,11 @@ class _RequirementListCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       child: Container(
         decoration: BoxDecoration(
           color: c.paper,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(color: c.ink150),
         ),
         child: Column(
@@ -1255,7 +1256,7 @@ class _HonorCard extends StatelessWidget {
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: c.paper,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(color: c.ink150),
         ),
         child: Column(
@@ -1264,7 +1265,7 @@ class _HonorCard extends StatelessWidget {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   child: SizedBox(
                     width: double.infinity,
                     height: 64,
@@ -1320,7 +1321,7 @@ class _HonorCard extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 11.5,
+                fontSize: SacFontSize.labelSmall,
                 fontWeight: FontWeight.w700,
                 color: c.ink800,
                 height: 1.25,
@@ -1331,12 +1332,12 @@ class _HonorCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
               decoration: BoxDecoration(
                 color: badgeStyle.background,
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
               ),
               child: Text(
                 honor.relationType.label,
                 style: TextStyle(
-                  fontSize: 9.5,
+                  fontSize: SacFontSize.micro,
                   fontWeight: FontWeight.w800,
                   color: badgeStyle.foreground,
                 ),
@@ -1399,7 +1400,7 @@ class _NoResultsCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
       decoration: BoxDecoration(
         color: c.paper,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.ink150),
       ),
       child: Column(
@@ -1432,7 +1433,7 @@ class _NoResultsCard extends StatelessWidget {
           Text(
             'No encontramos coincidencias',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: SacFontSize.titleMedium,
               fontWeight: FontWeight.w700,
               color: c.ink900,
             ),
@@ -1447,7 +1448,7 @@ class _NoResultsCard extends StatelessWidget {
               'Prueba con otras palabras o revisa los módulos uno por uno desde la lista completa.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 color: c.ink500,
                 height: 1.45,
               ),
@@ -1463,7 +1464,7 @@ class _NoResultsCard extends StatelessWidget {
               child: Text(
                 'SUGERENCIAS',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: SacFontSize.labelSmall,
                   fontWeight: FontWeight.w700,
                   color: c.ink400,
                   letterSpacing: 0.88,
@@ -1486,7 +1487,8 @@ class _NoResultsCard extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: accentColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(999),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusFull),
                         border: Border.all(
                           color: accentColor.withValues(alpha: 0.18),
                         ),
@@ -1494,7 +1496,7 @@ class _NoResultsCard extends StatelessWidget {
                       child: Text(
                         term,
                         style: TextStyle(
-                          fontSize: 12.5,
+                          fontSize: SacFontSize.bodySmall,
                           fontWeight: FontWeight.w600,
                           color: accentColor,
                         ),
@@ -1554,7 +1556,7 @@ class _SearchIllustrationPainter extends CustomPainter {
       text: TextSpan(
         text: '?',
         style: TextStyle(
-          fontSize: 14,
+          fontSize: SacFontSize.titleSmall,
           fontWeight: FontWeight.w700,
           color: accentColor,
           height: 1,
@@ -1658,7 +1660,7 @@ class _EmptyModules extends StatelessWidget {
           Text(
             'classes.detail_with_progress.empty_modules_title'.tr(),
             style: TextStyle(
-              fontSize: 15,
+              fontSize: SacFontSize.titleMedium,
               fontWeight: FontWeight.w600,
               color: c.ink500,
             ),
@@ -1667,7 +1669,7 @@ class _EmptyModules extends StatelessWidget {
           Text(
             'classes.detail_with_progress.empty_modules_body'.tr(),
             style: TextStyle(
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               color: c.ink400,
             ),
             textAlign: TextAlign.center,
@@ -1703,7 +1705,7 @@ class _ErrorBody extends StatelessWidget {
             Text(
               'classes.detail_with_progress.error_loading'.tr(),
               style: TextStyle(
-                fontSize: 16,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.w600,
                 color: context.sac.ink900,
               ),
@@ -1712,7 +1714,8 @@ class _ErrorBody extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               message,
-              style: TextStyle(fontSize: 13, color: context.sac.ink500),
+              style: TextStyle(
+                  fontSize: SacFontSize.bodyMedium, color: context.sac.ink500),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -1725,12 +1728,12 @@ class _ErrorBody extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: AppColors.coral500,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                 ),
                 child: const Text(
                   'Reintentar',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),

@@ -13,6 +13,7 @@ import 'package:sacdia_app/core/widgets/sac_card.dart';
 
 import '../../domain/entities/activity.dart';
 import 'activity_audience_line.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Card de actividad - Estilo moderno inspirado en task management
 ///
@@ -199,7 +200,7 @@ class _MetaItem extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               color: c.textSecondary,
               fontWeight: FontWeight.w500,
             ),

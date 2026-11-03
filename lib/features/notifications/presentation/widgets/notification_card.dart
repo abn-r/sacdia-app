@@ -24,6 +24,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import '../providers/notifications_providers.dart';
 import 'notification_type_badge.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Fila de bandeja para una notificación.
 ///
@@ -65,7 +66,7 @@ class NotificationCard extends ConsumerWidget {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: sheetC.surface,
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXL),
                   border: Border.all(color: sheetC.borderLight),
                   boxShadow: [
                     BoxShadow(
@@ -76,7 +77,7 @@ class NotificationCard extends ConsumerWidget {
                   ],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXL),
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
                     child: Column(
@@ -297,12 +298,12 @@ class NotificationCard extends ConsumerWidget {
           child: Ink(
             decoration: BoxDecoration(
               color: rowColor,
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(AppTheme.radiusLG),
               border: Border.all(color: borderColor),
             ),
             child: SacInkWell(
               onTap: () => _handleTap(context, ref),
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(AppTheme.radiusLG),
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(12, 12, 10, 12),
                 child: Row(
@@ -469,7 +470,7 @@ class _NotificationBodyBlock extends StatelessWidget {
             accent.withValues(alpha: 0.04),
             c.surfaceVariant,
           ),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppTheme.radiusLG),
           border: Border.all(color: c.borderLight),
         ),
         child: Padding(
@@ -622,7 +623,7 @@ class _DetailSection extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(color: c.borderLight),
       ),
       child: Column(
@@ -733,7 +734,7 @@ class _NotificationCardSkeletonState extends State<NotificationCardSkeleton>
             padding: const EdgeInsets.fromLTRB(12, 12, 10, 12),
             decoration: BoxDecoration(
               color: c.surface,
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(AppTheme.radiusLG),
               border: Border.all(color: c.borderLight),
             ),
             child: Row(

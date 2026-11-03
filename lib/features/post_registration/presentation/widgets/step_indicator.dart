@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Indicador de progreso visual para los pasos del post-registro.
 ///
@@ -55,7 +56,7 @@ class StepIndicator extends StatelessWidget {
                   color: isCompleted
                       ? AppColors.secondary
                       : context.sac.borderLight,
-                  borderRadius: BorderRadius.circular(1),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
                 ),
               ),
             );
@@ -115,7 +116,7 @@ class StepIndicator extends StatelessWidget {
                                   ? Colors.white
                                   : context.sac.textTertiary,
                               fontWeight: FontWeight.w600,
-                              fontSize: 11,
+                              fontSize: SacFontSize.labelSmall,
                             ),
                             child: Text('$stepNumber'),
                           ),
@@ -127,7 +128,7 @@ class StepIndicator extends StatelessWidget {
                 duration: stepDuration,
                 curve: SacMotion.easeOut,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: SacFontSize.bodySmall,
                   fontWeight: isActive || isCompleted
                       ? FontWeight.w600
                       : FontWeight.w400,

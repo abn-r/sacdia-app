@@ -8,6 +8,7 @@ import '../../../../core/widgets/sac_badge.dart';
 import '../../../../core/widgets/sac_pressable.dart';
 import '../../domain/entities/investiture_request.dart';
 import '../utils/investiture_dates.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 const _i18n = 'investiture_requests.authorizer';
 
@@ -39,14 +40,14 @@ class AuthorizerRequestCard extends StatelessWidget {
 
     return Material(
       color: c.paper,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(AppTheme.radiusLG),
       child: SacInkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(AppTheme.radiusLG),
             border: Border.all(color: c.ink150),
           ),
           child: Row(

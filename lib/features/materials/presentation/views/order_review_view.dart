@@ -25,6 +25,7 @@ import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Pantalla de revisión de una orden por folio o ID.
 ///
@@ -124,7 +125,7 @@ class _OrdenBody extends ConsumerWidget {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: AppColors.statusInfoBgLight,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 border: Border.all(color: AppColors.statusInfoText, width: 0.5),
               ),
               child: Row(
@@ -155,7 +156,7 @@ class _OrdenBody extends ConsumerWidget {
           Card(
             elevation: 0,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
               side: BorderSide(color: c.border),
             ),
             child: Column(
@@ -177,7 +178,7 @@ class _OrdenBody extends ConsumerWidget {
           Card(
             elevation: 0,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
               side: BorderSide(color: c.border),
             ),
             child: Padding(
@@ -267,7 +268,7 @@ class _ActionCard extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColors.accentLight,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                 border:
                     Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
               ),
@@ -326,7 +327,7 @@ class _ActionCard extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppColors.secondaryLight,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             border:
                 Border.all(color: AppColors.secondary.withValues(alpha: 0.3)),
           ),
@@ -355,7 +356,7 @@ class _ActionCard extends ConsumerWidget {
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: AppColors.secondaryLight,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           ),
           child: Column(
             children: [
@@ -385,7 +386,7 @@ class _ActionCard extends ConsumerWidget {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: AppColors.errorLight,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -502,12 +503,12 @@ class _FolioPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: c.ink100,
-        borderRadius: BorderRadius.circular(100),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
       ),
       child: Text(
         folio,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: SacFontSize.bodySmall,
           fontWeight: FontWeight.w600,
           color: c.ink600,
           fontFamily: 'monospace',
@@ -552,7 +553,7 @@ class _OrdenLineItem extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               color: SacAccent.of(context).surface,
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(AppTheme.radius2XS),
             ),
             alignment: Alignment.center,
             child: Text(
@@ -560,7 +561,7 @@ class _OrdenLineItem extends StatelessWidget {
                   ? line.product.title[0].toUpperCase()
                   : '?',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.bold,
                 color: SacAccent.of(context).color,
               ),
@@ -676,7 +677,7 @@ class _ComprobantesSection extends ConsumerWidget {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: context.sac.ink100,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Text(
               'materials.order.no_receipts'.tr(),
@@ -743,7 +744,7 @@ class _ComprobanteCard extends StatelessWidget {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         side: BorderSide(color: c.border),
       ),
       child: Padding(
@@ -774,12 +775,12 @@ class _ComprobanteCard extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: _statusBg,
-                    borderRadius: BorderRadius.circular(100),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                   ),
                   child: Text(
                     _statusLabel,
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: SacFontSize.labelSmall,
                       fontWeight: FontWeight.w600,
                       color: _statusColor,
                     ),
@@ -801,7 +802,7 @@ class _ComprobanteCard extends StatelessWidget {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: AppColors.errorLight,
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(AppTheme.radius2XS),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,

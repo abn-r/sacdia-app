@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/roadmap_tokens.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Pills de leyenda para la barra superior del roadmap.
 class VAStatusPill extends StatelessWidget {
@@ -23,7 +24,7 @@ class VAStatusPill extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w600,
                 color: RoadmapTokens.textPrimary),
           ),

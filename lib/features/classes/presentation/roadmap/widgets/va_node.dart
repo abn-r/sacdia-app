@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../data/roadmap_data.dart';
 import '../theme/roadmap_tokens.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Nodo individual del roadmap: imagen-escudo + label + badges.
 class VANode extends StatefulWidget {
@@ -130,7 +131,8 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
                               height: 14,
                               decoration: BoxDecoration(
                                 color: Colors.black.withValues(alpha: 0.22),
-                                borderRadius: BorderRadius.circular(50),
+                                borderRadius:
+                                    BorderRadius.circular(AppTheme.radiusFull),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.22),
@@ -247,7 +249,7 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.95),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     border:
                         Border.all(color: Colors.white.withValues(alpha: 0.9)),
                     boxShadow: RoadmapTokens.labelCardShadow,
@@ -257,7 +259,7 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
                       Text(
                         item.name,
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: SacFontSize.bodyMedium,
                           fontWeight: FontWeight.w700,
                           color: isLockedLook
                               ? RoadmapTokens.textMuted
@@ -269,7 +271,7 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
                       Text(
                         ageLabel,
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: SacFontSize.labelSmall,
                           fontWeight: FontWeight.w500,
                           color: isLockedLook
                               ? RoadmapTokens.textLockedBg
@@ -324,12 +326,12 @@ class _NodeChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
         ),
         child: Text(
           label,
           style: const TextStyle(
-            fontSize: 10,
+            fontSize: SacFontSize.caption,
             fontWeight: FontWeight.w700,
             color: Colors.white,
             letterSpacing: 0.4,

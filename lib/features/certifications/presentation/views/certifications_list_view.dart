@@ -18,6 +18,7 @@ import 'package:sacdia_app/features/certifications/domain/entities/certification
 import '../providers/certifications_providers.dart';
 import 'certification_detail_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista de lista de certificaciones (catálogo completo).
 ///
@@ -67,7 +68,7 @@ class CertificationsListView extends ConsumerWidget {
                         Text(
                           'certifications.list.no_certifications'.tr(),
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: SacFontSize.titleMedium,
                             color: c.textSecondary,
                           ),
                         ),
@@ -177,7 +178,9 @@ class CertificationsListView extends ConsumerWidget {
                       const SizedBox(height: 8),
                       Text(
                         error.toString().replaceFirst('Exception: ', ''),
-                        style: TextStyle(fontSize: 14, color: c.textSecondary),
+                        style: TextStyle(
+                            fontSize: SacFontSize.titleSmall,
+                            color: c.textSecondary),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 24),
@@ -266,7 +269,7 @@ class _CertificationCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(color: c.border),
           boxShadow: [
             BoxShadow(
@@ -288,7 +291,7 @@ class _CertificationCard extends StatelessWidget {
                   height: 44,
                   decoration: BoxDecoration(
                     color: SacAccent.of(context).light,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   ),
                   child: Center(
                     child: HugeIcon(
@@ -316,7 +319,7 @@ class _CertificationCard extends StatelessWidget {
                         Text(
                           certification.description!,
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: SacFontSize.bodySmall,
                             color: c.textSecondary,
                             height: 1.4,
                           ),
@@ -337,12 +340,12 @@ class _CertificationCard extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: AppColors.secondaryLight,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusLG),
                     ),
                     child: Text(
                       'certifications.list.enrolled_badge'.tr(),
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: SacFontSize.labelSmall,
                         fontWeight: FontWeight.w600,
                         color: AppColors.secondaryDark,
                       ),
@@ -368,7 +371,7 @@ class _CertificationCard extends StatelessWidget {
                     'count': '${certification.modulesCount}',
                   }),
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: SacFontSize.bodySmall,
                     color: c.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
@@ -385,12 +388,12 @@ class _CertificationCard extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: SacAccent.of(context).color,
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
                       ),
                       child: Text(
                         'certifications.list.enroll_button'.tr(),
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: SacFontSize.bodySmall,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),
@@ -404,7 +407,7 @@ class _CertificationCard extends StatelessWidget {
                       Text(
                         'certifications.list.view_progress'.tr(),
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: SacFontSize.bodySmall,
                           fontWeight: FontWeight.w600,
                           color: SacAccent.of(context).color,
                         ),

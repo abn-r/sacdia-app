@@ -23,6 +23,7 @@ import '../widgets/activity_card.dart';
 import 'activity_detail_view.dart';
 import 'create_activity_view.dart';
 import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista de lista de actividades - Estilo "Scout Vibrante"
 ///
@@ -392,7 +393,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                       ? 'activities.list.empty_this_type'.tr()
                                       : 'activities.list.empty_general'.tr(),
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: SacFontSize.titleMedium,
                                 color: c.textSecondary,
                               ),
                             ),
@@ -579,7 +580,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                     padding: const EdgeInsets.all(9),
                     decoration: BoxDecoration(
                       color: SacAccent.of(context).light,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                     ),
                     child: HugeIcon(
                       icon: HugeIcons.strokeRoundedCalendar01,
@@ -606,7 +607,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                               _monthFormatter.format(month),
                             ),
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: SacFontSize.bodyMedium,
                               color: c.textSecondary,
                             ),
                           ),
@@ -621,11 +622,13 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                       child: Material(
                         color: c.surface,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusSM),
                           side: BorderSide(color: c.border),
                         ),
                         child: SacInkWell(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusSM),
                           onTap: () {
                             Navigator.push(
                               context,
@@ -669,7 +672,8 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                           color: isChronologicalView
                               ? SacAccent.of(context).color
                               : c.surface,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusSM),
                           border: Border.all(
                             color: isChronologicalView
                                 ? SacAccent.of(context).color
@@ -690,7 +694,8 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                         child: Material(
                           color: Colors.transparent,
                           child: SacInkWell(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusSM),
                             splashColor: isChronologicalView
                                 ? Colors.white.withValues(alpha: 0.2)
                                 : null,
@@ -864,7 +869,9 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                                                   )
                                                                   .toUpperCase(),
                                                               style: TextStyle(
-                                                                fontSize: 10,
+                                                                fontSize:
+                                                                    SacFontSize
+                                                                        .caption,
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .w600,
@@ -886,7 +893,9 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                                               _dayNumberFormatter
                                                                   .format(day),
                                                               style: TextStyle(
-                                                                fontSize: 20,
+                                                                fontSize:
+                                                                    SacFontSize
+                                                                        .headlineMedium,
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .w700,
@@ -924,7 +933,8 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                                     SacAccent.of(context).light,
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
-                                                      BorderRadius.circular(12),
+                                                      BorderRadius.circular(
+                                                          AppTheme.radiusSM),
                                                   side: BorderSide(
                                                     color: SacAccent.of(context)
                                                         .color
@@ -935,7 +945,8 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                                 ),
                                                 child: SacInkWell(
                                                   borderRadius:
-                                                      BorderRadius.circular(12),
+                                                      BorderRadius.circular(
+                                                          AppTheme.radiusSM),
                                                   onTap: () =>
                                                       _openDatePicker(context),
                                                   child: Center(
@@ -1011,7 +1022,9 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                                                 const TextStyle(
                                                               color:
                                                                   Colors.white,
-                                                              fontSize: 11,
+                                                              fontSize:
+                                                                  SacFontSize
+                                                                      .labelSmall,
                                                               fontWeight:
                                                                   FontWeight
                                                                       .w600,
@@ -1128,7 +1141,7 @@ class _FilterChipSkeleton extends StatelessWidget {
         height: SacFilterChip.minHeight,
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppTheme.radiusLG),
           border: Border.all(color: c.border),
         ),
       ),
@@ -1156,12 +1169,12 @@ class _DayHeaderItem extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: SacAccent.of(context).color,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(AppTheme.radiusLG),
               ),
               child: Text(
                 label,
                 style: const TextStyle(
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
                 ),
@@ -1171,7 +1184,7 @@ class _DayHeaderItem extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 fontWeight: FontWeight.w700,
                 color: c.textSecondary,
               ),

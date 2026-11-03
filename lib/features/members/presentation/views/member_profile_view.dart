@@ -24,6 +24,7 @@ import '../providers/members_providers.dart';
 import '../utils/member_profile_display.dart';
 
 import '../../../classes/domain/entities/progressive_class.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista de perfil de miembro (solo lectura).
 ///
@@ -76,7 +77,7 @@ class MemberProfileView extends ConsumerWidget {
                   Text(
                     'members.profile_view.read_only'.tr(),
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: SacFontSize.bodySmall,
                       color: c.textTertiary,
                     ),
                   ),
@@ -353,7 +354,7 @@ class _ClassItem extends StatelessWidget {
                 Text(
                   progressiveClass.name,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                     fontWeight: FontWeight.w600,
                     color: c.text,
                   ),
@@ -363,7 +364,7 @@ class _ClassItem extends StatelessWidget {
                     tr('members.profile_view.progress',
                         namedArgs: {'progress': '$progress'}),
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: SacFontSize.bodySmall,
                       color: c.textSecondary,
                     ),
                   ),
@@ -376,12 +377,12 @@ class _ClassItem extends StatelessWidget {
               decoration: BoxDecoration(
                 color: _investitureColor(investitureStatus)
                     .withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(AppTheme.radius2XS),
               ),
               child: Text(
                 investitureStatus.label,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: SacFontSize.labelSmall,
                   fontWeight: FontWeight.w600,
                   color: _investitureColor(investitureStatus),
                 ),
@@ -509,7 +510,7 @@ class _SpecialtiesSubheader extends StatelessWidget {
     return Text(
       label,
       style: TextStyle(
-        fontSize: 11,
+        fontSize: SacFontSize.labelSmall,
         fontWeight: FontWeight.w600,
         color: color,
         letterSpacing: 0.3,
@@ -539,7 +540,7 @@ class _MedicalInfoSection extends ConsumerWidget {
               Text(
                 'members.profile_view.medical_info_title'.tr(),
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: SacFontSize.labelSmall,
                   fontWeight: FontWeight.w600,
                   color: c.textTertiary,
                   letterSpacing: 0.8,
@@ -550,12 +551,12 @@ class _MedicalInfoSection extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: AppColors.error.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(AppTheme.radius2XS),
                 ),
                 child: Text(
                   'members.profile_view.confidential'.tr(),
                   style: TextStyle(
-                    fontSize: 9,
+                    fontSize: SacFontSize.micro,
                     fontWeight: FontWeight.w600,
                     color: AppColors.error,
                     letterSpacing: 0.4,
@@ -617,7 +618,7 @@ class _MedicalCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border, width: 1),
       ),
       child: Column(
@@ -632,7 +633,7 @@ class _MedicalCard extends StatelessWidget {
                   height: 34,
                   decoration: BoxDecoration(
                     color: iconColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                   ),
                   child: Center(
                     child: HugeIcon(
@@ -646,7 +647,7 @@ class _MedicalCard extends StatelessWidget {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: SacFontSize.titleMedium,
                     fontWeight: FontWeight.w600,
                     color: c.text,
                   ),
@@ -819,7 +820,7 @@ class _EmergencyContactsBody extends ConsumerWidget {
                         Text(
                           contact.name,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: SacFontSize.titleSmall,
                             fontWeight: FontWeight.w600,
                             color: c.text,
                           ),
@@ -827,7 +828,7 @@ class _EmergencyContactsBody extends ConsumerWidget {
                         Text(
                           '${contact.relationshipTypeName ?? contact.relationshipTypeId} · ${contact.phone}',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: SacFontSize.bodySmall,
                             color: c.textSecondary,
                           ),
                         ),
@@ -885,7 +886,7 @@ class _ChipWrap extends StatelessWidget {
           label: Text(
             name,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               color: textColor,
               fontWeight: FontWeight.w500,
             ),
@@ -910,7 +911,7 @@ class _EmptyLabel extends StatelessWidget {
     return Text(
       text,
       style: TextStyle(
-        fontSize: 14,
+        fontSize: SacFontSize.titleSmall,
         color: context.sac.textTertiary,
         fontStyle: FontStyle.italic,
       ),
@@ -936,7 +937,8 @@ class _MedicalError extends StatelessWidget {
         Expanded(
           child: Text(
             'members.profile_view.load_error'.tr(),
-            style: TextStyle(fontSize: 13, color: AppColors.error),
+            style: TextStyle(
+                fontSize: SacFontSize.bodyMedium, color: AppColors.error),
           ),
         ),
         SacPressable(
@@ -949,8 +951,8 @@ class _MedicalError extends StatelessWidget {
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             )).copyWith(enableFeedback: false),
-            child:
-                Text('common.retry'.tr(), style: const TextStyle(fontSize: 12)),
+            child: Text('common.retry'.tr(),
+                style: const TextStyle(fontSize: SacFontSize.bodySmall)),
           ),
         ),
       ],
@@ -999,16 +1001,16 @@ class _MemberProfileHeader extends StatelessWidget {
                       memCacheHeight: 176,
                       placeholder: (_, __) => _AvatarInitials(
                         initials: member.initials,
-                        fontSize: 28,
+                        fontSize: SacFontSize.displayMedium,
                       ),
                       errorWidget: (_, __, ___) => _AvatarInitials(
                         initials: member.initials,
-                        fontSize: 28,
+                        fontSize: SacFontSize.displayMedium,
                       ),
                     )
                   : _AvatarInitials(
                       initials: member.initials,
-                      fontSize: 28,
+                      fontSize: SacFontSize.displayMedium,
                     ),
             ),
           ),
@@ -1021,7 +1023,7 @@ class _MemberProfileHeader extends StatelessWidget {
               Text(
                 member.fullName,
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: SacFontSize.headlineSmall,
                   fontWeight: FontWeight.w700,
                   color: c.text,
                   letterSpacing: -0.3,
@@ -1088,7 +1090,7 @@ class _ErrorState extends StatelessWidget {
             Text(
               'members.profile_view.profile_load_error'.tr(),
               style: TextStyle(
-                fontSize: 16,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.w600,
                 color: c.text,
               ),
@@ -1097,7 +1099,8 @@ class _ErrorState extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               message,
-              style: TextStyle(fontSize: 14, color: c.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.titleSmall, color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
           ],

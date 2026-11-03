@@ -147,7 +147,7 @@ class _StatChipState extends State<_StatChip>
                   style: TextStyle(
                     color: widget.iconColor,
                     fontWeight: FontWeight.w800,
-                    fontSize: 15,
+                    fontSize: SacFontSize.titleMedium,
                     height: 1.1,
                   ),
                 ),
@@ -155,7 +155,7 @@ class _StatChipState extends State<_StatChip>
                   widget.label,
                   style: TextStyle(
                     color: widget.iconColor.withValues(alpha: 0.7),
-                    fontSize: 10,
+                    fontSize: SacFontSize.caption,
                     height: 1.1,
                   ),
                 ),
@@ -214,7 +214,7 @@ class _HealthRingChip extends StatelessWidget {
                   child: Text(
                     '$pct%',
                     style: TextStyle(
-                      fontSize: 7,
+                      fontSize: SacFontSize.nano,
                       fontWeight: FontWeight.w800,
                       color: ringColor,
                     ),
@@ -233,7 +233,7 @@ class _HealthRingChip extends StatelessWidget {
                 style: TextStyle(
                   color: ringColor,
                   fontWeight: FontWeight.w800,
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   height: 1.1,
                 ),
               ),
@@ -241,7 +241,7 @@ class _HealthRingChip extends StatelessWidget {
                 'en buen estado',
                 style: TextStyle(
                   color: ringColor.withValues(alpha: 0.7),
-                  fontSize: 9,
+                  fontSize: SacFontSize.micro,
                   height: 1.1,
                 ),
               ),
@@ -333,8 +333,9 @@ class InventoryFilterBar extends StatelessWidget {
               onChanged: onSearchChanged,
               decoration: InputDecoration(
                 hintText: 'inventory.summary_header.search_hint'.tr(),
-                hintStyle:
-                    TextStyle(color: context.sac.textTertiary, fontSize: 14),
+                hintStyle: TextStyle(
+                    color: context.sac.textTertiary,
+                    fontSize: SacFontSize.titleSmall),
                 prefixIconConstraints: FixedInputIconSlot.constraints,
                 prefixIcon: FixedInputIconSlot(
                   icon: HugeIcons.strokeRoundedSearch01,
@@ -362,15 +363,15 @@ class InventoryFilterBar extends StatelessWidget {
                 fillColor: context.sac.surfaceVariant,
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   borderSide: BorderSide(color: context.sac.border),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   borderSide:
                       BorderSide(color: SacAccent.of(context).color, width: 2),
                 ),
@@ -398,7 +399,7 @@ class _FilterButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SacInkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       child: Container(
         width: 46,
         height: 46,
@@ -406,7 +407,7 @@ class _FilterButton extends StatelessWidget {
           color: hasActiveFilters
               ? SacAccent.of(context).surface
               : context.sac.surfaceVariant,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           border: Border.all(
             color: hasActiveFilters
                 ? SacAccent.of(context).color
@@ -530,7 +531,7 @@ class _CategoryChip extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               fontWeight: FontWeight.w600,
               color: isSelected ? Colors.white : context.sac.textSecondary,
             ),

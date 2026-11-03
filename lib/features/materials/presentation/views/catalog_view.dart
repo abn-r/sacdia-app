@@ -23,6 +23,7 @@ import '../providers/categories_provider.dart';
 import '../providers/programs_provider.dart';
 import '../widgets/materials_program_field.dart';
 import '../widgets/product_card.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Pantalla principal del catálogo de materiales.
 class CatalogView extends ConsumerStatefulWidget {
@@ -131,7 +132,7 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
                         '${cartState.itemCount > 9 ? '9+' : cartState.itemCount}',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 9,
+                          fontSize: SacFontSize.micro,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -155,14 +156,16 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
                     child: TextField(
                       controller: _searchController,
                       onChanged: _onSearchChanged,
-                      style:
-                          TextStyle(color: c.text, fontSize: 15, height: 1.2),
+                      style: TextStyle(
+                          color: c.text,
+                          fontSize: SacFontSize.titleMedium,
+                          height: 1.2),
                       decoration: InputDecoration(
                         isDense: true,
                         hintText: 'materials.catalog.search_hint'.tr(),
                         hintStyle: TextStyle(
                           color: c.textSecondary,
-                          fontSize: 15,
+                          fontSize: SacFontSize.titleMedium,
                           height: 1.2,
                         ),
                         filled: true,
@@ -175,15 +178,18 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
                           iconSize: 20,
                         ),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusSM),
                           borderSide: BorderSide(color: c.border),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusSM),
                           borderSide: BorderSide(color: c.border),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusSM),
                           borderSide:
                               BorderSide(color: SacAccent.of(context).color),
                         ),
@@ -223,7 +229,7 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
                               child: Text(
                                 'materials.catalog.filter_category_label'.tr(),
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: SacFontSize.bodyMedium,
                                   fontWeight: FontWeight.w600,
                                   color: c.textSecondary,
                                 ),
@@ -360,7 +366,7 @@ class _CatalogSkeleton extends StatelessWidget {
       itemBuilder: (_, __) => Container(
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(color: c.border.withValues(alpha: 0.7)),
         ),
         child: Column(
@@ -370,7 +376,7 @@ class _CatalogSkeleton extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: c.border.withValues(alpha: 0.35),
                   borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16),
+                    top: Radius.circular(AppTheme.radiusMD),
                   ),
                 ),
               ),
@@ -385,7 +391,7 @@ class _CatalogSkeleton extends StatelessWidget {
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: c.border.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(999),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -394,7 +400,7 @@ class _CatalogSkeleton extends StatelessWidget {
                     width: 72,
                     decoration: BoxDecoration(
                       color: c.border.withValues(alpha: 0.35),
-                      borderRadius: BorderRadius.circular(999),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                     ),
                   ),
                 ],

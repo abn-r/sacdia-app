@@ -14,6 +14,7 @@ import 'package:sacdia_app/features/master_honors/presentation/widgets/master_ho
 import 'package:sacdia_app/features/honors/presentation/utils/user_honor_presentation_extensions.dart';
 import '../utils/profile_honor_navigation.dart';
 import 'profile_quiet_add_chip.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 const Map<String, List<List<dynamic>>> _categoryIcons = {
   'ADRA': HugeIcons.strokeRoundedCharity,
@@ -116,7 +117,8 @@ class ProfileHonorsSection extends ConsumerWidget {
           child: Center(
             child: Text(
               'profile.honors_section.error_load'.tr(),
-              style: TextStyle(color: AppColors.error, fontSize: 14),
+              style: TextStyle(
+                  color: AppColors.error, fontSize: SacFontSize.titleSmall),
             ),
           ),
         ),
@@ -140,7 +142,7 @@ class ProfileHonorsSection extends ConsumerWidget {
                       Text(
                         'profile.honors_section.no_honors'.tr(),
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: SacFontSize.titleMedium,
                           color: context.sac.textSecondary,
                         ),
                         textAlign: TextAlign.center,
@@ -239,7 +241,7 @@ class _CategorySection extends StatelessWidget {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: categoryPaintColor,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                   ),
                   child: HugeIcon(
                     icon: categoryIcon,
@@ -253,7 +255,7 @@ class _CategorySection extends StatelessWidget {
                     categoryName,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 17,
+                      fontSize: SacFontSize.titleLarge,
                       color: categoryTextColor,
                     ),
                   ),
@@ -264,7 +266,7 @@ class _CategorySection extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: categoryPaintColor.withAlpha(20),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLG),
                     border: Border.all(
                       color: categoryPaintColor.withAlpha(60),
                     ),
@@ -272,7 +274,7 @@ class _CategorySection extends StatelessWidget {
                   child: Text(
                     '${userHonors.length}',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       fontWeight: FontWeight.w700,
                       color: categoryTextColor,
                     ),
@@ -364,7 +366,7 @@ class _HonorGridItem extends StatelessWidget {
               name,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: SacFontSize.labelSmall,
                 fontWeight: FontWeight.w600,
                 color: context.sac.text,
                 height: 1.2,
@@ -396,7 +398,7 @@ class _HonorStatusCaption extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
         color: meta.background,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
       ),
       child: Text(
         meta.label,
@@ -404,7 +406,7 @@ class _HonorStatusCaption extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          fontSize: 10,
+          fontSize: SacFontSize.caption,
           fontWeight: FontWeight.w600,
           height: 1.2,
           color: meta.foreground,
@@ -485,7 +487,7 @@ class _InitialsBox extends StatelessWidget {
         child: Text(
           initials,
           style: TextStyle(
-            fontSize: 22,
+            fontSize: SacFontSize.headlineLarge,
             fontWeight: FontWeight.bold,
             color: categoryColor,
           ),
@@ -513,7 +515,7 @@ class _HonorsSkeleton extends StatelessWidget {
             height: 52,
             decoration: BoxDecoration(
               color: skeletonColor,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
           ),
           const SizedBox(height: 10),
@@ -529,7 +531,8 @@ class _HonorsSkeleton extends StatelessWidget {
                           height: 90,
                           decoration: BoxDecoration(
                             color: skeletonColor,
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusXS),
                           ),
                         ),
                       ),
@@ -541,7 +544,7 @@ class _HonorsSkeleton extends StatelessWidget {
             height: 52,
             decoration: BoxDecoration(
               color: skeletonColor,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
           ),
           const SizedBox(height: 10),
@@ -557,7 +560,8 @@ class _HonorsSkeleton extends StatelessWidget {
                           height: 90,
                           decoration: BoxDecoration(
                             color: skeletonColor,
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusXS),
                           ),
                         ),
                       ),

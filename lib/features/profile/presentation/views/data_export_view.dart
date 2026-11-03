@@ -21,6 +21,7 @@ import '../providers/data_export_providers.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -313,7 +314,7 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
             child: Text(
               'profile.data_export.ui.history_header'.tr(),
               style: TextStyle(
-                fontSize: 11,
+                fontSize: SacFontSize.labelSmall,
                 fontWeight: FontWeight.w600,
                 color: c.textTertiary,
                 letterSpacing: 0.8,
@@ -354,7 +355,7 @@ class _CooldownNotice extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border),
       ),
       child: Row(
@@ -369,7 +370,8 @@ class _CooldownNotice extends StatelessWidget {
             child: Text(
               'profile.data_export.ui.cooldown_notice'
                   .tr(namedArgs: {'time': wait}),
-              style: TextStyle(fontSize: 14, color: c.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.titleSmall, color: c.textSecondary),
             ),
           ),
         ],
@@ -389,7 +391,7 @@ class _InfoCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: SacAccent.of(context).color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
           color: SacAccent.of(context).color.withValues(alpha: 0.18),
           width: 1,
@@ -409,7 +411,7 @@ class _InfoCard extends StatelessWidget {
               Text(
                 'profile.data_export.ui.info_title'.tr(),
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: SacFontSize.titleSmall,
                   fontWeight: FontWeight.w700,
                   color: SacAccent.of(context).color,
                 ),
@@ -461,7 +463,7 @@ class _InfoCard extends StatelessWidget {
           child: Text(
             text,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               color: c.textSecondary,
               height: 1.4,
             ),
@@ -484,7 +486,7 @@ class _LoadingSkeleton extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border, width: 1),
       ),
       child: Column(
@@ -572,7 +574,7 @@ class _EmptyState extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border, width: 1),
       ),
       child: Column(
@@ -587,7 +589,7 @@ class _EmptyState extends StatelessWidget {
           Text(
             'profile.data_export.ui.empty_title'.tr(),
             style: TextStyle(
-              fontSize: 14,
+              fontSize: SacFontSize.titleSmall,
               color: c.textSecondary,
             ),
             textAlign: TextAlign.center,
@@ -624,7 +626,8 @@ class _ErrorState extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 15, color: c.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.titleMedium, color: c.textSecondary),
             ),
             const SizedBox(height: 20),
             SacButton(
@@ -659,7 +662,7 @@ class _ExportList extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border, width: 1),
       ),
       child: Column(
@@ -716,7 +719,7 @@ class _ExportCard extends StatelessWidget {
             height: 36,
             decoration: BoxDecoration(
               color: iconBg,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Center(
               child: HugeIcon(
@@ -737,7 +740,7 @@ class _ExportCard extends StatelessWidget {
                 Text(
                   _formatDateTime(export.createdAt),
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                     fontWeight: FontWeight.w500,
                     color: c.text,
                   ),
@@ -750,7 +753,7 @@ class _ExportCard extends StatelessWidget {
                 Text(
                   export.statusLabel,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: SacFontSize.bodySmall,
                     color: statusColor,
                     fontWeight: FontWeight.w500,
                   ),
@@ -762,7 +765,9 @@ class _ExportCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       export.formattedSize!,
-                      style: TextStyle(fontSize: 11, color: c.textTertiary),
+                      style: TextStyle(
+                          fontSize: SacFontSize.labelSmall,
+                          color: c.textTertiary),
                     ),
                   ],
                   if (export.expiresAt != null) ...[
@@ -771,7 +776,9 @@ class _ExportCard extends StatelessWidget {
                       'profile.data_export.ui.expires_on'.tr(namedArgs: {
                         'date': _formatExpiry(export.expiresAt!)
                       }),
-                      style: TextStyle(fontSize: 11, color: c.textTertiary),
+                      style: TextStyle(
+                          fontSize: SacFontSize.labelSmall,
+                          color: c.textTertiary),
                     ),
                   ],
                 ],
@@ -782,7 +789,7 @@ class _ExportCard extends StatelessWidget {
                   Text(
                     'profile.data_export.ui.error_generating'.tr(),
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: SacFontSize.labelSmall,
                       color: AppColors.error.withValues(alpha: 0.8),
                     ),
                   ),
@@ -836,7 +843,7 @@ class _DownloadButton extends StatelessWidget {
         height: 36,
         decoration: BoxDecoration(
           color: SacAccent.of(context).color.withValues(alpha: 0.10),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXS),
         ),
         child: Center(
           child: HugeIcon(

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../providers/insurance_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Resumen de cobertura estilo Health: cifra grande, barra fina,
 /// stats tappable que sustituyen la fila de FilterChips.
@@ -56,12 +57,12 @@ class InsuranceSummaryHeader extends StatelessWidget {
             }),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: c.textTertiary,
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                 ),
           ),
           const SizedBox(height: 12),
           ClipRRect(
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
             child: LinearProgressIndicator(
               value: coverage / 100,
               backgroundColor: c.borderLight,
@@ -177,7 +178,7 @@ class _FilterStatState extends State<_FilterStat> {
                   style: TextStyle(
                     color: color,
                     fontWeight: FontWeight.w700,
-                    fontSize: 20,
+                    fontSize: SacFontSize.headlineMedium,
                     letterSpacing: -0.4,
                     height: 1.1,
                   ),
@@ -191,7 +192,7 @@ class _FilterStatState extends State<_FilterStat> {
                     color: color,
                     fontWeight:
                         widget.selected ? FontWeight.w600 : FontWeight.w500,
-                    fontSize: 11,
+                    fontSize: SacFontSize.labelSmall,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -204,7 +205,8 @@ class _FilterStatState extends State<_FilterStat> {
                     width: 18,
                     decoration: BoxDecoration(
                       color: widget.color,
-                      borderRadius: BorderRadius.circular(1),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.radiusHairline),
                     ),
                   ),
                 ),

@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 class CamporeeSectionRegistrationPanel extends StatelessWidget {
   final AsyncValue<CamporeeSectionRegistration> registrationAsync;
@@ -168,7 +169,7 @@ class _StatusChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: presentation.color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       ),
       child: Row(
         children: [

@@ -12,6 +12,7 @@ import '../../theme/sac_colors.dart';
 import '../sac_dialog.dart';
 import '../sac_button.dart';
 import 'staged_file.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Result returned from the upload progress sheet when it closes.
 enum UploadSheetResult {
@@ -46,7 +47,8 @@ Future<UploadSheetResult?> showUploadProgressSheet({
     enableDrag: false,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      borderRadius:
+          BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLG)),
     ),
     builder: (ctx) => _UploadProgressSheetContent(
       initialFiles: initialFiles,
@@ -190,7 +192,7 @@ class _UploadProgressSheetContentState
           },
         ),
         style: TextStyle(
-          fontSize: 16,
+          fontSize: SacFontSize.titleMedium,
           fontWeight: FontWeight.w700,
           color: c.text,
         ),
@@ -200,7 +202,7 @@ class _UploadProgressSheetContentState
       return Text(
         tr('core.evidence_staging.upload_all_success'),
         style: TextStyle(
-          fontSize: 16,
+          fontSize: SacFontSize.titleMedium,
           fontWeight: FontWeight.w700,
           color: AppColors.secondary,
         ),
@@ -210,7 +212,7 @@ class _UploadProgressSheetContentState
       return Text(
         tr('core.evidence_staging.upload_all_failed'),
         style: TextStyle(
-          fontSize: 16,
+          fontSize: SacFontSize.titleMedium,
           fontWeight: FontWeight.w700,
           color: AppColors.error,
         ),
@@ -227,7 +229,7 @@ class _UploadProgressSheetContentState
         },
       ),
       style: const TextStyle(
-        fontSize: 16,
+        fontSize: SacFontSize.titleMedium,
         fontWeight: FontWeight.w700,
         color: AppColors.accentDark,
       ),
@@ -330,7 +332,7 @@ class _FileProgressRow extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: SacFontSize.bodyMedium,
                     fontWeight: FontWeight.w500,
                     color: c.text,
                   ),
@@ -343,7 +345,7 @@ class _FileProgressRow extends StatelessWidget {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 12,
+                      fontSize: SacFontSize.bodySmall,
                       color: AppColors.error,
                       height: 1.3,
                     ),
@@ -434,7 +436,7 @@ class _AnimatedOverallProgress extends StatelessWidget {
                 '${(animatedProgress * 100).round()}%',
                 key: const ValueKey('upload-overall-progress-value'),
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: SacFontSize.bodySmall,
                   fontWeight: FontWeight.w700,
                   color: AppColors.info,
                 ),
@@ -442,7 +444,7 @@ class _AnimatedOverallProgress extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             ClipRRect(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(AppTheme.radius2XS),
               child: LinearProgressIndicator(
                 key: const ValueKey('upload-overall-progress-bar'),
                 value: animatedProgress,
@@ -492,7 +494,7 @@ class _AnimatedFileUploadStatus extends StatelessWidget {
               '${(animatedProgress * 100).round()}%',
               key: ValueKey('upload-file-progress-value-${file.id}'),
               style: const TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w600,
                 color: AppColors.info,
               ),

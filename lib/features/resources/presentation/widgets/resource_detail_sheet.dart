@@ -168,7 +168,7 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
           decoration: BoxDecoration(
             color: c.surface,
             borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(20),
+              top: Radius.circular(AppTheme.radiusLG),
             ),
           ),
           child: Column(
@@ -200,7 +200,7 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
                       Text(
                         _resource.title,
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: SacFontSize.headlineMedium,
                           fontWeight: FontWeight.w700,
                           color: c.text,
                           height: 1.2,
@@ -228,7 +228,7 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
                         Text(
                           _formatFileSize(_resource.fileSize),
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: SacFontSize.bodyMedium,
                             fontWeight: FontWeight.w500,
                             color: c.textTertiary,
                           ),
@@ -240,7 +240,7 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
                         Text(
                           _resource.description!,
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: SacFontSize.titleMedium,
                             color: c.textSecondary,
                             height: 1.45,
                           ),
@@ -262,7 +262,7 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
                           child: Text(
                             _resource.content!,
                             style: TextStyle(
-                              fontSize: 15,
+                              fontSize: SacFontSize.titleMedium,
                               color: c.text,
                               height: 1.55,
                             ),
@@ -286,7 +286,7 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
                             signedUrlState.error.toString(),
                             style: TextStyle(
                               color: c.error,
-                              fontSize: 13,
+                              fontSize: SacFontSize.bodyMedium,
                             ),
                           ),
                         ),
@@ -570,7 +570,7 @@ class _ResourceAudioPlayerState extends State<_ResourceAudioPlayer> {
             'resources.audio.player_title'.tr(),
             style: TextStyle(
               color: c.text,
-              fontSize: 14,
+              fontSize: SacFontSize.titleSmall,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -598,14 +598,16 @@ class _ResourceAudioPlayerState extends State<_ResourceAudioPlayer> {
             children: [
               Text(
                 _formatDuration(_position),
-                style: TextStyle(fontSize: 12, color: c.textTertiary),
+                style: TextStyle(
+                    fontSize: SacFontSize.bodySmall, color: c.textTertiary),
               ),
               const Spacer(),
               Text(
                 _duration == Duration.zero
                     ? '--:--'
                     : _formatDuration(_duration),
-                style: TextStyle(fontSize: 12, color: c.textTertiary),
+                style: TextStyle(
+                    fontSize: SacFontSize.bodySmall, color: c.textTertiary),
               ),
             ],
           ),

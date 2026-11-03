@@ -15,6 +15,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/birthday_utils.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../providers/birthday_celebration_provider.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 class BirthdayCelebrationGate extends ConsumerStatefulWidget {
   const BirthdayCelebrationGate({super.key});
@@ -124,13 +125,13 @@ class _BirthdayCelebrationBannerState extends State<BirthdayCelebrationBanner>
       child: Material(
         color: Colors.transparent,
         child: SacInkWell(
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(AppTheme.radiusLG),
           onTap: widget.onTap,
           child: Container(
             constraints: const BoxConstraints(minHeight: 96),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(AppTheme.radiusLG),
               border: Border.all(
                 color: AppColors.accent.withValues(alpha: 0.55),
                 width: 1,
@@ -177,7 +178,7 @@ class _BirthdayCelebrationBannerState extends State<BirthdayCelebrationBanner>
                         tr('dashboard.birthday.banner_body'),
                         style: TextStyle(
                           color: c.textSecondary,
-                          fontSize: 10,
+                          fontSize: SacFontSize.caption,
                           height: 1.35,
                         ),
                       ),
@@ -277,7 +278,7 @@ class _BirthdayCelebrationDialogState extends State<_BirthdayCelebrationDialog>
         constraints: const BoxConstraints(maxWidth: 420),
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXL),
           border: Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
           boxShadow: [
             BoxShadow(
@@ -288,7 +289,7 @@ class _BirthdayCelebrationDialogState extends State<_BirthdayCelebrationDialog>
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXL),
           child: Stack(
             children: [
               if (shouldAnimate) const _DecorativeConfettiField(),
@@ -313,7 +314,7 @@ class _BirthdayCelebrationDialogState extends State<_BirthdayCelebrationDialog>
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: c.textSecondary,
-                        fontSize: 15,
+                        fontSize: SacFontSize.titleMedium,
                         height: 1.45,
                       ),
                     ),
@@ -326,7 +327,7 @@ class _BirthdayCelebrationDialogState extends State<_BirthdayCelebrationDialog>
                       ),
                       decoration: BoxDecoration(
                         color: AppColors.accentLight.withValues(alpha: 0.78),
-                        borderRadius: BorderRadius.circular(18),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
                         border: Border.all(
                           color: AppColors.accent.withValues(alpha: 0.45),
                         ),
@@ -362,7 +363,7 @@ class _BirthdayCelebrationDialogState extends State<_BirthdayCelebrationDialog>
                           tr('dashboard.birthday.dismiss_today'),
                           style: const TextStyle(
                             color: AppColors.accentDark,
-                            fontSize: 11,
+                            fontSize: SacFontSize.labelSmall,
                             fontWeight: FontWeight.w600,
                             height: 1.1,
                           ),
@@ -525,7 +526,7 @@ class _DecorativeConfettiField extends StatelessWidget {
                     height: index.isEven ? 6 : 10,
                     decoration: BoxDecoration(
                       color: colors[index % colors.length],
-                      borderRadius: BorderRadius.circular(999),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                     ),
                   ),
                 ),

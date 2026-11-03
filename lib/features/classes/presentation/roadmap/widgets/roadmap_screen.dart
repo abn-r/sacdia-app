@@ -7,6 +7,7 @@ import 'va_node.dart';
 import 'va_path_connector.dart';
 import 'va_track_header.dart';
 import 'theme_sprites.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Pantalla principal del Roadmap de Clases (presentacional pura).
 ///
@@ -177,7 +178,7 @@ class _LegendPills extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         boxShadow: [
           BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -234,7 +235,7 @@ class _Pill extends StatelessWidget {
             label,
             maxLines: 1,
             style: const TextStyle(
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               fontWeight: FontWeight.w600,
               color: RoadmapTokens.textPrimary,
             ),

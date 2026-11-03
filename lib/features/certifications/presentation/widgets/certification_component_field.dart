@@ -8,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
 import '../../domain/entities/certification_requirement_component.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Renderiza el campo de captura correspondiente al
 /// [CertificationRequirementComponent.type] de un componente.
@@ -115,7 +116,7 @@ class _ComponentCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border),
       ),
       child: Column(
@@ -128,7 +129,7 @@ class _ComponentCard extends StatelessWidget {
                 child: Text(
                   component.label,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                     fontWeight: FontWeight.w700,
                     color: c.text,
                     height: 1.3,
@@ -142,12 +143,12 @@ class _ComponentCard extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: AppColors.errorLight,
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                   ),
                   child: Text(
                     'certifications.requirement_detail.required_badge'.tr(),
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: SacFontSize.caption,
                       fontWeight: FontWeight.w700,
                       color: AppColors.errorDark,
                     ),
@@ -239,7 +240,7 @@ class _AttestationField extends StatelessWidget {
       component: component,
       child: SacInkWell(
         onTap: canEdit ? () => onChanged?.call(!confirmed) : null,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: Row(
@@ -252,7 +253,8 @@ class _AttestationField extends StatelessWidget {
               Expanded(
                 child: Text(
                   'certifications.requirement_detail.attestation_label'.tr(),
-                  style: TextStyle(fontSize: 13, color: c.textSecondary),
+                  style: TextStyle(
+                      fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
                 ),
               ),
             ],
@@ -320,7 +322,8 @@ class _LinkedIdFieldState extends State<_LinkedIdField> {
           const SizedBox(height: 6),
           Text(
             widget.label,
-            style: TextStyle(fontSize: 11.5, color: c.textTertiary),
+            style: TextStyle(
+                fontSize: SacFontSize.labelSmall, color: c.textTertiary),
           ),
         ],
       ),
@@ -400,7 +403,8 @@ class _AutoValidationField extends StatelessWidget {
           Expanded(
             child: Text(
               'certifications.requirement_detail.auto_validation_hint'.tr(),
-              style: TextStyle(fontSize: 12.5, color: c.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.bodySmall, color: c.textSecondary),
             ),
           ),
         ],
@@ -432,7 +436,8 @@ class _UnknownComponentField extends StatelessWidget {
           Expanded(
             child: Text(
               'certifications.requirement_detail.unknown_component_hint'.tr(),
-              style: TextStyle(fontSize: 12, color: c.textTertiary),
+              style: TextStyle(
+                  fontSize: SacFontSize.bodySmall, color: c.textTertiary),
             ),
           ),
         ],

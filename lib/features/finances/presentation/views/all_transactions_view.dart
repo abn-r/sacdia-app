@@ -20,6 +20,7 @@ import '../widgets/transaction_search_field.dart';
 import '../widgets/transaction_tile.dart';
 import '../widgets/transaction_type_tabs.dart';
 import 'transaction_detail_view.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 // ── View ───────────────────────────────────────────────────────────────────────
 
@@ -380,7 +381,7 @@ class _LoadMoreIndicator extends StatelessWidget {
           Text(
             'finances.all_transactions.loading_more'.tr(),
             style: TextStyle(
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               fontWeight: FontWeight.w400,
               color: context.sac.textTertiary,
             ),
@@ -443,7 +444,7 @@ class _ErrorState extends StatelessWidget {
             Text(
               message,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 color: context.sac.textSecondary,
               ),
               textAlign: TextAlign.center,
@@ -452,7 +453,7 @@ class _ErrorState extends StatelessWidget {
             Text(
               'finances.all_transactions.error_retry_hint'.tr(),
               style: TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 color: context.sac.textTertiary,
               ),
               textAlign: TextAlign.center,

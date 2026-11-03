@@ -296,7 +296,7 @@ class _BreakdownHero extends StatelessWidget {
                               ?.copyWith(
                                 color: AppColors.accent,
                                 fontWeight: FontWeight.w700,
-                                fontSize: 32,
+                                fontSize: SacFontSize.displayLarge,
                               ),
                         ),
                         const SizedBox(height: 2),
@@ -305,7 +305,7 @@ class _BreakdownHero extends StatelessWidget {
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: Colors.white.withValues(alpha: 0.6),
-                                    fontSize: 12,
+                                    fontSize: SacFontSize.bodySmall,
                                   ),
                         ),
                       ] else
@@ -339,7 +339,7 @@ class _MetaPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
         border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
       ),
       child: Text(
@@ -376,7 +376,7 @@ class _BreakdownExplainerCard extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               color: SacAccent.of(context).surface,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             ),
             child: HugeIcon(
               icon: HugeIcons.strokeRoundedAnalytics01,
@@ -427,14 +427,14 @@ class _CategoryPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       ),
       child: Text(
         name.toUpperCase(),
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.w600,
-              fontSize: 10,
+              fontSize: SacFontSize.caption,
             ),
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
@@ -504,7 +504,7 @@ class _SignalDetailCard extends StatelessWidget {
                       scoreLabel,
                       style:
                           Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontSize: 18,
+                                fontSize: SacFontSize.headlineSmall,
                                 fontWeight: FontWeight.w700,
                                 color: hasScore
                                     ? SacAccent.of(context).color
@@ -516,7 +516,7 @@ class _SignalDetailCard extends StatelessWidget {
                           namedArgs: {'pct': weightPct.toString()}),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: c.textTertiary,
-                            fontSize: 10,
+                            fontSize: SacFontSize.caption,
                           ),
                     ),
                   ],
@@ -525,7 +525,7 @@ class _SignalDetailCard extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             ClipRRect(
-              borderRadius: BorderRadius.circular(999),
+              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
               child: LinearProgressIndicator(
                 value: progress,
                 minHeight: 8,
@@ -551,7 +551,8 @@ class _SignalDetailCard extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: c.surfaceVariant,
-                          borderRadius: BorderRadius.circular(999),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusFull),
                           border: Border.all(color: c.borderLight),
                         ),
                         child: Text(
@@ -618,7 +619,7 @@ class _WeightsSummary extends StatelessWidget {
                   namedArgs: {'source': weights.source}),
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: c.textTertiary,
-                    fontSize: 10,
+                    fontSize: SacFontSize.caption,
                   ),
             ),
           ],
@@ -681,7 +682,7 @@ class _CalculatedAtRow extends StatelessWidget {
         tr('rankings.breakdown.calculated_at', namedArgs: {'date': formatted}),
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: c.textTertiary,
-              fontSize: 10,
+              fontSize: SacFontSize.caption,
             ),
         textAlign: TextAlign.center,
       ),

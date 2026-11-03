@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Bottom sheet for choosing transaction sort order.
 ///
@@ -75,7 +76,8 @@ class _SortBottomSheetState extends State<SortBottomSheet> {
     return Container(
       decoration: BoxDecoration(
         color: context.sac.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppTheme.radiusXL)),
       ),
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
       child: Column(
@@ -88,7 +90,7 @@ class _SortBottomSheetState extends State<SortBottomSheet> {
             child: Text(
               'finances.widgets.sort_title'.tr(),
               style: TextStyle(
-                fontSize: 16,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.w700,
                 color: context.sac.text,
               ),
@@ -177,7 +179,7 @@ class _SortOption extends StatelessWidget {
                   Text(
                     label,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: SacFontSize.titleMedium,
                       fontWeight: FontWeight.w500,
                       color: context.sac.text,
                     ),
@@ -185,7 +187,7 @@ class _SortOption extends StatelessWidget {
                   Text(
                     description,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: SacFontSize.bodySmall,
                       fontWeight: FontWeight.w400,
                       color: context.sac.textSecondary,
                     ),
@@ -225,7 +227,7 @@ class _DragHandle extends StatelessWidget {
         height: 4,
         decoration: BoxDecoration(
           color: context.sac.border,
-          borderRadius: BorderRadius.circular(2),
+          borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
         ),
       ),
     );

@@ -21,6 +21,7 @@ import '../../domain/entities/payment_order.dart';
 import '../../domain/utils/payment_order_eligibility.dart';
 import '../providers/payment_orders_providers.dart';
 import '../widgets/payment_order_widgets.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Flujo de emisión de una orden de pago territorial.
 ///
@@ -167,7 +168,7 @@ class _IssueOrderForm extends ConsumerWidget {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: AppColors.error.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                     border: Border.all(
                       color: AppColors.error.withValues(alpha: 0.3),
                     ),
@@ -175,7 +176,7 @@ class _IssueOrderForm extends ConsumerWidget {
                   child: Text(
                     issueState.errorMessage!,
                     style: const TextStyle(
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       color: AppColors.error,
                     ),
                   ),
@@ -185,7 +186,7 @@ class _IssueOrderForm extends ConsumerWidget {
               Text(
                 'payment_orders.issue.select_members'.tr(),
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: SacFontSize.titleMedium,
                   fontWeight: FontWeight.w800,
                   color: c.text,
                 ),
@@ -195,7 +196,8 @@ class _IssueOrderForm extends ConsumerWidget {
                 purpose == PaymentOrderPurpose.insurance
                     ? 'payment_orders.issue.eligible_hint_insurance'.tr()
                     : 'payment_orders.issue.eligible_hint_camporee'.tr(),
-                style: TextStyle(fontSize: 12.5, color: c.textSecondary),
+                style: TextStyle(
+                    fontSize: SacFontSize.bodySmall, color: c.textSecondary),
               ),
               const SizedBox(height: 12),
               if (eligible.isEmpty)
@@ -204,7 +206,9 @@ class _IssueOrderForm extends ConsumerWidget {
                   child: Text(
                     'payment_orders.issue.no_eligible'.tr(),
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 13, color: c.textSecondary),
+                    style: TextStyle(
+                        fontSize: SacFontSize.bodyMedium,
+                        color: c.textSecondary),
                   ),
                 )
               else
@@ -241,14 +245,14 @@ class _IssueOrderForm extends ConsumerWidget {
                         namedArgs: {'count': selectedCount.toString()},
                       ),
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: SacFontSize.bodyMedium,
                         color: c.textSecondary,
                       ),
                     ),
                     Text(
                       formatCentavos(totalCentavos),
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: SacFontSize.titleMedium,
                         fontWeight: FontWeight.w800,
                         color: c.text,
                       ),
@@ -313,7 +317,7 @@ class _CycleSummaryCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: SacAccent.of(context).color.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
             color: SacAccent.of(context).color.withValues(alpha: 0.25)),
       ),
@@ -323,7 +327,7 @@ class _CycleSummaryCard extends StatelessWidget {
           Text(
             cycle.productName,
             style: TextStyle(
-              fontSize: 14.5,
+              fontSize: SacFontSize.titleSmall,
               fontWeight: FontWeight.w800,
               color: c.text,
             ),
@@ -333,7 +337,8 @@ class _CycleSummaryCard extends StatelessWidget {
             'payment_orders.issue.unit_cost_label'.tr(
               namedArgs: {'cost': formatCentavos(cycle.unitCostCentavos)},
             ),
-            style: TextStyle(fontSize: 12.5, color: c.textSecondary),
+            style: TextStyle(
+                fontSize: SacFontSize.bodySmall, color: c.textSecondary),
           ),
           if (cycle.purchaseDeadline != null)
             Text(
@@ -342,7 +347,8 @@ class _CycleSummaryCard extends StatelessWidget {
                   'date': dateFormat.format(cycle.purchaseDeadline!.toLocal()),
                 },
               ),
-              style: TextStyle(fontSize: 12.5, color: c.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.bodySmall, color: c.textSecondary),
             ),
         ],
       ),
@@ -369,14 +375,14 @@ class _EligibleMemberTile extends StatelessWidget {
       color: selected
           ? SacAccent.of(context).color.withValues(alpha: 0.07)
           : c.surface,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       child: SacInkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             border: Border.all(
               color: selected
                   ? SacAccent.of(context).color.withValues(alpha: 0.45)
@@ -395,7 +401,7 @@ class _EligibleMemberTile extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: SacFontSize.titleSmall,
                         fontWeight: FontWeight.w700,
                         color: c.text,
                       ),
@@ -458,7 +464,8 @@ class _IssueLoadError extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: c.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
             ),
             const SizedBox(height: 14),
             SacButton.outline(
@@ -494,7 +501,8 @@ class _UnavailableState extends StatelessWidget {
             Text(
               'payment_orders.issue.unavailable'.tr(),
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13.5, color: c.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
             ),
           ],
         ),
@@ -516,7 +524,8 @@ class _NoCycleState extends StatelessWidget {
         child: Text(
           'payment_orders.issue.no_cycle'.tr(),
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13.5, color: c.textSecondary),
+          style: TextStyle(
+              fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
         ),
       ),
     );

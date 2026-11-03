@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Tono del aviso: celebra, informa o frena.
 enum InvestitureBannerTone { positive, neutral, caution }
@@ -58,7 +59,7 @@ class InvestitureBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: accent.withValues(alpha: 0.24)),
       ),
       child: Row(
@@ -86,7 +87,7 @@ class InvestitureBanner extends StatelessWidget {
               child: Text(
                 text,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: SacFontSize.titleSmall,
                   fontWeight: FontWeight.w600,
                   color: textColor,
                   height: 1.35,

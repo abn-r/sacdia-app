@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 
 import '../../domain/entities/join_request.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Compact join-request row. Approve/reject sit as trailing icon hits, not a second button row.
 class JoinRequestCard extends StatelessWidget {
@@ -53,7 +54,7 @@ class JoinRequestCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           border: Border.all(color: c.border),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -69,7 +70,7 @@ class JoinRequestCard extends StatelessWidget {
                   Text(
                     request.fullName,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: SacFontSize.titleMedium,
                       fontWeight: FontWeight.w600,
                       color: c.text,
                       height: 1.2,
@@ -82,7 +83,7 @@ class JoinRequestCard extends StatelessWidget {
                     Text(
                       caption!,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: SacFontSize.bodySmall,
                         height: 1.2,
                         color: c.textSecondary,
                       ),
@@ -95,7 +96,7 @@ class JoinRequestCard extends StatelessWidget {
                     Text(
                       dateLabel,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: SacFontSize.bodySmall,
                         height: 1.2,
                         color: c.textSecondary,
                       ),
@@ -219,7 +220,7 @@ class _AvatarInitials extends StatelessWidget {
         child: Text(
           initials,
           style: const TextStyle(
-            fontSize: 12,
+            fontSize: SacFontSize.bodySmall,
             fontWeight: FontWeight.w600,
             color: AppColors.accentDark,
           ),
@@ -276,7 +277,7 @@ class _IconAction extends StatelessWidget {
             height: 28,
             decoration: BoxDecoration(
               color: background,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Center(
               child: HugeIcon(

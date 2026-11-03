@@ -4,6 +4,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/club_type.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Encabezado de una clase en el listado de miembros.
 class MemberClassGroupHeader extends StatelessWidget {
@@ -40,7 +41,7 @@ class MemberClassGroupHeader extends StatelessWidget {
         Text(
           label.toUpperCase(),
           style: TextStyle(
-            fontSize: 11,
+            fontSize: SacFontSize.labelSmall,
             fontWeight: FontWeight.w700,
             color: c.textTertiary,
             letterSpacing: 0.8,
@@ -51,12 +52,12 @@ class MemberClassGroupHeader extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
             color: SacAccent.of(context).color.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
           ),
           child: Text(
             '$count',
             style: TextStyle(
-              fontSize: 11,
+              fontSize: SacFontSize.labelSmall,
               fontWeight: FontWeight.w600,
               color: SacAccent.of(context).color,
             ),

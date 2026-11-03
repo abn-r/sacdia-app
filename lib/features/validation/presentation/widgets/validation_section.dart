@@ -11,6 +11,7 @@ import '../../../../core/widgets/sac_loading.dart';
 import '../../domain/entities/validation.dart';
 import '../providers/validation_providers.dart';
 import 'validation_status_badge.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Sección de validación que se embebe en la vista de detalle de clase u honor.
 ///
@@ -44,7 +45,7 @@ class ValidationSection extends ConsumerWidget {
             Text(
               'validation.section.title'.tr(),
               style: TextStyle(
-                fontSize: 11,
+                fontSize: SacFontSize.labelSmall,
                 fontWeight: FontWeight.w600,
                 color: c.textTertiary,
                 letterSpacing: 0.8,
@@ -100,7 +101,7 @@ class ValidationSection extends ConsumerWidget {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: AppColors.errorLight,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
               ),
               child: Row(
                 children: [
@@ -114,7 +115,7 @@ class ValidationSection extends ConsumerWidget {
                     child: Text(
                       submitState.errorMessage!,
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: SacFontSize.bodySmall,
                         color: AppColors.error,
                       ),
                     ),
@@ -130,13 +131,15 @@ class ValidationSection extends ConsumerWidget {
               const SizedBox(height: 60, child: Center(child: SacLoading())),
           error: (e, _) => Text(
             'validation.section.historyError'.tr(),
-            style: TextStyle(fontSize: 13, color: c.textSecondary),
+            style: TextStyle(
+                fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
           ),
           data: (history) {
             if (history.isEmpty) {
               return Text(
                 'validation.section.emptyHistory'.tr(),
-                style: TextStyle(fontSize: 13, color: c.textTertiary),
+                style: TextStyle(
+                    fontSize: SacFontSize.bodyMedium, color: c.textTertiary),
               );
             }
 
@@ -246,7 +249,9 @@ class _HistoryItem extends StatelessWidget {
                       const Spacer(),
                       Text(
                         dateStr,
-                        style: TextStyle(fontSize: 11, color: c.textTertiary),
+                        style: TextStyle(
+                            fontSize: SacFontSize.labelSmall,
+                            color: c.textTertiary),
                       ),
                     ],
                   ),
@@ -256,7 +261,7 @@ class _HistoryItem extends StatelessWidget {
                       'validation.section.reviewer'
                           .tr(namedArgs: {'name': entry.reviewerName!}),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: SacFontSize.bodySmall,
                         color: c.textSecondary,
                       ),
                     ),
@@ -267,12 +272,12 @@ class _HistoryItem extends StatelessWidget {
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: c.surfaceVariant,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                       ),
                       child: Text(
                         entry.reviewerComment!,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: SacFontSize.bodySmall,
                           color: c.textSecondary,
                           fontStyle: FontStyle.italic,
                         ),

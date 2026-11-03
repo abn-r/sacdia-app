@@ -17,6 +17,7 @@ import 'image_source_dialog.dart';
 import 'staged_file.dart';
 import 'staged_file_grid.dart';
 import 'upload_progress_sheet.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Main orchestrator widget for evidence file staging.
 ///
@@ -782,7 +783,7 @@ class _EmptyFiles extends StatelessWidget {
                 : tr('core.evidence_staging.empty_read_only'),
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: SacFontSize.titleSmall,
               color: c.textSecondary,
               height: 1.4,
             ),

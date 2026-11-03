@@ -19,6 +19,7 @@ import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../domain/entities/user_honor.dart';
 import '../../domain/entities/user_honor_update.dart';
 import '../providers/honors_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Where the card is, from the honor's instructor and its proposal (6.5).
 enum _Stage { none, current, pending, rejected }
@@ -270,7 +271,7 @@ class _InstructorProposalCardState extends ConsumerState<InstructorProposalCard>
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: c.error.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

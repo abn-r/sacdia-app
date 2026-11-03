@@ -22,6 +22,7 @@ import '../widgets/class_card.dart';
 import 'class_detail_with_progress_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 // ── Top-level helper — reachable from AppBar and from ClassesListViewBody ───────
 
@@ -61,7 +62,8 @@ void _openEnrollSheet(BuildContext context) {
     context: context,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      borderRadius:
+          BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLG)),
     ),
     builder: (_) => const EnrollPreviousClassSheet(),
   );
@@ -292,7 +294,8 @@ class ClassesListViewBody extends ConsumerWidget {
               const SizedBox(height: 8),
               Text(
                 error.toString().replaceFirst('Exception: ', ''),
-                style: TextStyle(fontSize: 14, color: c.textSecondary),
+                style: TextStyle(
+                    fontSize: SacFontSize.titleSmall, color: c.textSecondary),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
@@ -325,11 +328,11 @@ class _RoadmapChip extends StatelessWidget {
 
     return Material(
       color: colorScheme.surfaceContainerLow,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       clipBehavior: Clip.antiAlias,
       child: SacInkWell(
         onTap: () => context.push(RouteNames.homeClassesRoadmap),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
@@ -339,7 +342,7 @@ class _RoadmapChip extends StatelessWidget {
                 height: 44,
                 decoration: BoxDecoration(
                   color: SacAccent.of(context).light,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                 ),
                 child: Center(
                   child: HugeIcon(
@@ -398,11 +401,11 @@ class _CertificationsChip extends StatelessWidget {
 
     return Material(
       color: colorScheme.surfaceContainerLow,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       clipBehavior: Clip.antiAlias,
       child: SacInkWell(
         onTap: () => context.push(RouteNames.homeCertifications),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
@@ -412,7 +415,7 @@ class _CertificationsChip extends StatelessWidget {
                 height: 44,
                 decoration: BoxDecoration(
                   color: AppColors.secondaryLight,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                 ),
                 child: const Center(
                   child: HugeIcon(
@@ -511,7 +514,7 @@ class _EmptyBody extends StatelessWidget {
               Text(
                 'classes.list.empty'.tr(),
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: SacFontSize.titleMedium,
                   color: c.textSecondary,
                 ),
               ),
