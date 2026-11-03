@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/providers/keep_alive_during.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../data/datasources/qr_remote_data_source.dart';
 import '../../data/repositories/qr_repository_impl.dart';
@@ -26,13 +27,16 @@ class QrScanNotifier extends AsyncNotifier<QrScanResult?> {
   @override
   Future<QrScanResult?> build() async => null;
 
-  Future<void> submit({required String token, int? activityId}) async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final repo = ref.read(_qrScanRepositoryProvider);
-      return repo.validateToken(token: token, activityId: activityId);
-    });
-  }
+  Future<void> submit({required String token, int? activityId}) =>
+      // Callers only `ref.read` this notifier: keep it alive until the scan
+      // settles (see keepAliveDuring).
+      ref.keepAliveDuring(() async {
+        state = const AsyncValue.loading();
+        state = await AsyncValue.guard(() async {
+          final repo = ref.read(_qrScanRepositoryProvider);
+          return repo.validateToken(token: token, activityId: activityId);
+        });
+      });
 
   void reset() {
     state = const AsyncValue.data(null);
