@@ -7,25 +7,26 @@ import 'package:sacdia_app/core/widgets/sac_network_image.dart';
 import '../../domain/entities/achievement.dart'
     show AchievementTier, kDefaultLockedAchievementBadgeUrl;
 import '../../domain/entities/user_achievement.dart';
+import '../theme/achievement_tokens.dart';
 
 /// Color metálico del tier (glow, borde de badge, fill de progreso).
 Color achievementTierColor(AchievementTier tier) => switch (tier) {
-      AchievementTier.bronze => const Color(0xFFCD7F32),
-      AchievementTier.silver => const Color(0xFFC0C0C0),
-      AchievementTier.gold => const Color(0xFFFFD700),
-      AchievementTier.platinum => const Color(0xFFE5E4E2),
-      AchievementTier.diamond => const Color(0xFFB9F2FF),
+      AchievementTier.bronze => AchievementTokens.tierBronze,
+      AchievementTier.silver => AchievementTokens.tierSilver,
+      AchievementTier.gold => AchievementTokens.tierGold,
+      AchievementTier.platinum => AchievementTokens.tierPlatinum,
+      AchievementTier.diamond => AchievementTokens.tierDiamond,
       AchievementTier.unknown => Colors.grey,
     };
 
 /// Tinta legible del tier para chips/labels (plata/oro/platino claros fallan en UI).
 Color achievementTierInkColor(AchievementTier tier) => switch (tier) {
-      AchievementTier.bronze => const Color(0xFF8B5314),
-      AchievementTier.silver => const Color(0xFF4A5560),
-      AchievementTier.gold => const Color(0xFF9A7200),
-      AchievementTier.platinum => const Color(0xFF4E5664),
-      AchievementTier.diamond => const Color(0xFF0E7FA3),
-      AchievementTier.unknown => const Color(0xFF5A5A5A),
+      AchievementTier.bronze => AchievementTokens.inkBronze,
+      AchievementTier.silver => AchievementTokens.inkSilver,
+      AchievementTier.gold => AchievementTokens.inkGold,
+      AchievementTier.platinum => AchievementTokens.inkPlatinum,
+      AchievementTier.diamond => AchievementTokens.inkDiamond,
+      AchievementTier.unknown => AchievementTokens.inkUnknown,
     };
 
 /// Fondo de chip de tier con contraste suficiente sobre surface clara/oscura.
@@ -34,22 +35,23 @@ Color achievementTierChipBackground(
   final isDark = brightness == Brightness.dark;
   return switch (tier) {
     AchievementTier.bronze => isDark
-        ? const Color(0xFFCD7F32).withValues(alpha: 0.28)
-        : const Color(0xFFF3D9B8),
+        ? AchievementTokens.tierBronze.withValues(alpha: 0.28)
+        : AchievementTokens.chipLightBronze,
     AchievementTier.silver => isDark
-        ? const Color(0xFF9AA3AD).withValues(alpha: 0.32)
-        : const Color(0xFFDDE2E8),
+        ? AchievementTokens.chipDarkSilver.withValues(alpha: 0.32)
+        : AchievementTokens.chipLightSilver,
     AchievementTier.gold => isDark
-        ? const Color(0xFFFFD700).withValues(alpha: 0.28)
-        : const Color(0xFFF8E7A0),
+        ? AchievementTokens.tierGold.withValues(alpha: 0.28)
+        : AchievementTokens.chipLightGold,
     AchievementTier.platinum => isDark
-        ? const Color(0xFFB8BEC8).withValues(alpha: 0.30)
-        : const Color(0xFFE2E6EC),
+        ? AchievementTokens.chipDarkPlatinum.withValues(alpha: 0.30)
+        : AchievementTokens.chipLightPlatinum,
     AchievementTier.diamond => isDark
-        ? const Color(0xFFB9F2FF).withValues(alpha: 0.28)
-        : const Color(0xFFC9EEF8),
-    AchievementTier.unknown =>
-      isDark ? Colors.grey.withValues(alpha: 0.28) : const Color(0xFFE5E5E5),
+        ? AchievementTokens.tierDiamond.withValues(alpha: 0.28)
+        : AchievementTokens.chipLightDiamond,
+    AchievementTier.unknown => isDark
+        ? Colors.grey.withValues(alpha: 0.28)
+        : AchievementTokens.chipLightUnknown,
   };
 }
 

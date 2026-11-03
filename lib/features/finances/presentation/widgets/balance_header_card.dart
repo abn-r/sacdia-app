@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
@@ -182,9 +183,8 @@ class _ActivitySummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final incomeGreen =
-        isDark ? const Color(0xFF4FBF9F) : const Color(0xFF2D8A70);
-    const expenseRed = Color(0xFFDC2626);
+    final incomeGreen = isDark ? context.sac.success : AppColors.secondaryDark;
+    final expenseRed = context.sac.error;
 
     final base = TextStyle(
       fontSize: SacFontSize.bodyMedium,

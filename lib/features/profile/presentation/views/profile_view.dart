@@ -906,9 +906,10 @@ class _ProfileHeaderCard extends StatelessWidget {
                                     Container(
                                       width: avatarRadius * 2,
                                       height: avatarRadius * 2,
-                                      decoration: const BoxDecoration(
+                                      decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: Color(0x80000000),
+                                        color:
+                                            Colors.black.withValues(alpha: 0.5),
                                       ),
                                       child: const Center(
                                         child: SizedBox(

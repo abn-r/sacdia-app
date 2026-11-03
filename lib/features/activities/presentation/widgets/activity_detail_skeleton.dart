@@ -249,11 +249,8 @@ class _SkeletonBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor =
-        isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE8EDF2);
-    final highlightColor =
-        isDark ? const Color(0xFF3A3A3A) : const Color(0xFFF5F8FB);
+    final baseColor = context.sac.skeleton;
+    final highlightColor = context.sac.skeletonHighlight;
 
     return Container(
       width: width,

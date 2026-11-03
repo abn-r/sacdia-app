@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// Skeleton que espeja el layout plano de [InsuranceView]:
 /// cifra de cobertura, barra, stats, búsqueda, lista agrupada.
@@ -137,16 +138,15 @@ class _InsuranceLoadingSkeletonState extends State<InsuranceLoadingSkeleton>
 
   Widget _buildMemberGroup() {
     final sv = _shimmer.value;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
       child: Container(
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFFFFFFF),
+          color: context.sac.surface,
           borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           border: Border.all(
-            color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF1F5F9),
+            color: context.sac.borderLight,
           ),
         ),
         child: Column(
@@ -218,11 +218,8 @@ class _SkeletonBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor =
-        isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE8EDF2);
-    final highlightColor =
-        isDark ? const Color(0xFF3A3A3A) : const Color(0xFFF5F8FB);
+    final baseColor = context.sac.skeleton;
+    final highlightColor = context.sac.skeletonHighlight;
 
     return Container(
       width: width,

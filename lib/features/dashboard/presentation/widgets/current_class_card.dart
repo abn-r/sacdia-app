@@ -259,7 +259,7 @@ class _ExpiredBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF1F2),
+        color: AppColors.primarySurface,
         borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(color: AppColors.error.withValues(alpha: 0.35)),
       ),

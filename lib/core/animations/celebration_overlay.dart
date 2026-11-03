@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/animations/celebration_tokens.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
@@ -74,9 +75,9 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
         SacAccent.of(context).color,
         AppColors.secondary,
         AppColors.accent,
-        Color(0xFFF43F5E), // rose
-        Color(0xFF8B5CF6), // violet
-        Color(0xFF06B6D4), // cyan
+        CelebrationTokens.confettiRose,
+        CelebrationTokens.confettiViolet,
+        CelebrationTokens.confettiCyan,
         Colors.white,
       ];
 

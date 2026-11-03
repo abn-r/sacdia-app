@@ -74,12 +74,12 @@ class _TransactionSearchFieldState extends State<TransactionSearchField> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF8FAFC);
+    final bgColor = isDark ? context.sac.surface : context.sac.ink50;
     final borderColor = _focusNode.hasFocus
         ? SacAccent.of(context).color
         : isDark
-            ? const Color(0xFF252525)
-            : const Color(0xFFE2E8F0);
+            ? context.sac.surfaceVariant
+            : context.sac.ink200;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 160),

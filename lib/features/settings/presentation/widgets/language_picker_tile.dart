@@ -9,6 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import '../theme/settings_tokens.dart';
 
 class LanguagePickerTile extends StatelessWidget {
   const LanguagePickerTile({super.key});
@@ -164,15 +165,31 @@ class _LanguageFlagBadge extends StatelessWidget {
     final country = locale.countryCode;
 
     if (language == 'es') {
-      return const [Color(0xFFAA151B), Color(0xFFF1BF00), Color(0xFFAA151B)];
+      return const [
+        SettingsTokens.flagEsRed,
+        SettingsTokens.flagEsYellow,
+        SettingsTokens.flagEsRed,
+      ];
     }
     if (language == 'pt' && country == 'BR') {
-      return const [Color(0xFF009B3A), Color(0xFFFFDF00), Color(0xFF002776)];
+      return const [
+        SettingsTokens.flagBrGreen,
+        SettingsTokens.flagBrYellow,
+        SettingsTokens.flagBrBlue,
+      ];
     }
     if (language == 'fr') {
-      return const [Color(0xFF0055A4), Colors.white, Color(0xFFEF4135)];
+      return const [
+        SettingsTokens.flagFrBlue,
+        Colors.white,
+        SettingsTokens.flagFrRed,
+      ];
     }
-    return const [Color(0xFF1F3F8B), Colors.white, Color(0xFFB22234)];
+    return const [
+      SettingsTokens.flagUsBlue,
+      Colors.white,
+      SettingsTokens.flagUsRed,
+    ];
   }
 
   /// The code sits on the middle stripe. On a white stripe (English, French)
@@ -181,7 +198,7 @@ class _LanguageFlagBadge extends StatelessWidget {
   static Color _textColorFor(Locale locale) {
     final middleStripe = _colorsFor(locale)[1];
     return middleStripe.computeLuminance() > 0.9
-        ? const Color(0xFF111827)
+        ? SettingsTokens.flagTextOnLight
         : Colors.white;
   }
 }

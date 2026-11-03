@@ -88,9 +88,9 @@ class CartView extends ConsumerWidget {
                 border: Border(
                   top: BorderSide(color: context.sac.border),
                 ),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
-                    color: Color(0x14000000),
+                    color: Colors.black.withValues(alpha: 0.08),
                     blurRadius: 12,
                     offset: Offset(0, -4),
                   ),

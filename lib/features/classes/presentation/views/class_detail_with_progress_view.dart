@@ -454,7 +454,7 @@ class _ExpiredTrajectoryBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark
             ? AppColors.error.withValues(alpha: 0.2)
-            : const Color(0xFFFFF1F2),
+            : AppColors.primarySurface,
         borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: AppColors.error.withValues(alpha: 0.35)),
       ),

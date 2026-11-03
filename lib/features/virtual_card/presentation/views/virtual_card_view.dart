@@ -31,6 +31,7 @@ import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import '../theme/virtual_card_tokens.dart';
 
 class VirtualCardView extends ConsumerStatefulWidget {
   const VirtualCardView({super.key});
@@ -209,7 +210,8 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
                                               'virtual-card-inactive-overlay',
                                             ),
                                             decoration: BoxDecoration(
-                                              color: const Color(0x33C53D3D),
+                                              color: VirtualCardTokens
+                                                  .inactiveOverlay,
                                               borderRadius:
                                                   BorderRadius.circular(
                                                 CredencialTokens.rImmersive,
@@ -331,7 +333,7 @@ class _StatusBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xEE0F1B2D),
+        color: VirtualCardTokens.hintPill,
         borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       ),
       child: Row(

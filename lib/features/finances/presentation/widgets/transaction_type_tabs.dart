@@ -29,10 +29,8 @@ class TransactionTypeTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final containerColor =
-        isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF1F5F9);
-    final activeColor =
-        isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0);
+    final containerColor = isDark ? context.sac.surface : context.sac.ink100;
+    final activeColor = context.sac.ink200;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),

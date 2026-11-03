@@ -173,8 +173,10 @@ class SacFrostedVeil extends StatelessWidget {
   Widget build(BuildContext context) {
     final top = SacTopBar.frostedInset(context);
     final dark = Theme.brightnessOf(context) == Brightness.dark;
-    final wash =
-        tint ?? (dark ? const Color(0xB3000000) : const Color(0xB3FFFFFF));
+    final wash = tint ??
+        (dark
+            ? Colors.black.withValues(alpha: 0.7)
+            : Colors.white.withValues(alpha: 0.7));
 
     return Stack(
       fit: StackFit.expand,

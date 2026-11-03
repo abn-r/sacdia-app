@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// Shimmer-style skeleton that mirrors the ActivitiesListView loaded layout.
 ///
@@ -73,16 +74,15 @@ class _ActivitiesLoadingSkeletonState extends State<ActivitiesLoadingSkeleton>
 
   Widget _buildActivityCard(BuildContext context, int index) {
     final sv = _shimmer.value;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF8FAFC),
+        color: context.sac.skeletonSurface,
         borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
-          color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE8EDF2),
+          color: context.sac.border,
         ),
       ),
       child: Column(
@@ -218,11 +218,8 @@ class _SkeletonBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor =
-        isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE8EDF2);
-    final highlightColor =
-        isDark ? const Color(0xFF3A3A3A) : const Color(0xFFF5F8FB);
+    final baseColor = context.sac.skeleton;
+    final highlightColor = context.sac.skeletonHighlight;
 
     return Container(
       width: width,

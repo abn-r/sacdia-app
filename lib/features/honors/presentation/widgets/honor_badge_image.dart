@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_network_image.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// Displays an honor badge without forcing an oval or circular mask.
 ///
@@ -19,7 +20,7 @@ class HonorBadgeImage extends StatelessWidget {
   final int? memCacheHeight;
   final EdgeInsetsGeometry padding;
   final Color fallbackColor;
-  final Color fallbackBackgroundColor;
+  final Color? fallbackBackgroundColor;
   final double fallbackIconSize;
   final BorderRadiusGeometry fallbackBorderRadius;
 
@@ -32,7 +33,7 @@ class HonorBadgeImage extends StatelessWidget {
     this.memCacheHeight,
     this.padding = EdgeInsets.zero,
     required this.fallbackColor,
-    this.fallbackBackgroundColor = const Color(0xFFF0F4F5),
+    this.fallbackBackgroundColor,
     this.fallbackIconSize = 24,
     this.fallbackBorderRadius =
         const BorderRadius.all(Radius.circular(AppTheme.radiusSM)),
@@ -42,7 +43,7 @@ class HonorBadgeImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!_hasImage) return _fallback();
+    if (!_hasImage) return _fallback(context);
 
     return SizedBox(
       width: width,
@@ -54,18 +55,18 @@ class HonorBadgeImage extends StatelessWidget {
           memCacheWidth: memCacheWidth,
           memCacheHeight: memCacheHeight,
           fit: BoxFit.contain,
-          errorWidget: (_, __, ___) => _fallback(),
+          errorWidget: (ctx, __, ___) => _fallback(ctx),
         ),
       ),
     );
   }
 
-  Widget _fallback() {
+  Widget _fallback(BuildContext context) {
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: fallbackBackgroundColor,
+        color: fallbackBackgroundColor ?? context.sac.ink100,
         borderRadius: fallbackBorderRadius,
       ),
       child: HugeIcon(

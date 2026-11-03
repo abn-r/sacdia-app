@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../theme/virtual_card_tokens.dart';
 
 class VirtualCardQrTile extends StatelessWidget {
   const VirtualCardQrTile({
@@ -40,13 +41,13 @@ class VirtualCardQrTile extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(borderRadius),
-                border: Border.all(color: const Color(0xFFE5E8EE)),
+                border: Border.all(color: VirtualCardTokens.qrTileBorder),
                 boxShadow: showShadow
                     ? const [
                         BoxShadow(
                           blurRadius: 28,
                           offset: Offset(0, 12),
-                          color: Color(0x220F1B2D),
+                          color: VirtualCardTokens.qrShadow,
                         ),
                       ]
                     : null,
