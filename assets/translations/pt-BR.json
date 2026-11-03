@@ -5510,7 +5510,10 @@
     "profile": {
       "entry_title": "Minha família",
       "entry_subtitle": "Cadastre e gerencie os menores sob seus cuidados",
-      "entry_count": "{count} menores sob seus cuidados",
+      "entry_count": {
+        "one": "{count} menor sob seus cuidados",
+        "other": "{count} menores sob seus cuidados"
+      },
       "switch_title": "Trocar de perfil",
       "switch_subtitle": "Ver e completar o perfil de um menor"
     },

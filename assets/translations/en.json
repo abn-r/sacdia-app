@@ -5512,7 +5512,10 @@
     "profile": {
       "entry_title": "My family",
       "entry_subtitle": "Register and manage the minors in your care",
-      "entry_count": "{count} minors in your care",
+      "entry_count": {
+        "one": "{count} minor in your care",
+        "other": "{count} minors in your care"
+      },
       "switch_title": "Switch profile",
       "switch_subtitle": "View and complete a minor's profile"
     },

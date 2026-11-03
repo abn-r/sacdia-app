@@ -226,6 +226,22 @@ void main() {
       expect(find.text('Cambiar de perfil'), findsOneWidget);
     });
 
+    testWidgets('one dependent reads in singular, not "1 menores"',
+        (tester) async {
+      auth.user = const UserEntity(
+        id: 'guardian-1',
+        name: 'María',
+        postRegisterComplete: true,
+        family: FamilySummary(isGuardian: true, dependentsCount: 1),
+      );
+      await pump(
+        tester,
+        body: const FamilyProfileEntry(horizontalPadding: 16),
+      );
+
+      expect(find.text('1 menor a tu cargo'), findsOneWidget);
+    });
+
     testWidgets('with no dependents only Mi familia is offered',
         (tester) async {
       auth.user = const UserEntity(

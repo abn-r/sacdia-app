@@ -52,9 +52,7 @@ class FamilyProfileEntry extends ConsumerWidget {
               icon: HugeIcons.strokeRoundedUserGroup,
               title: 'family.profile.entry_title'.tr(),
               subtitle: count > 0
-                  ? 'family.profile.entry_count'.tr(
-                      namedArgs: {'count': '$count'},
-                    )
+                  ? 'family.profile.entry_count'.plural(count, name: 'count')
                   : 'family.profile.entry_subtitle'.tr(),
               iconColor: accent.color,
               onTap: () => context.push(RouteNames.family),
