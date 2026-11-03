@@ -37,7 +37,11 @@ if (secretsPropertiesFile.exists()) {
 
 android {
     namespace = "com.sacdia.app"
-    compileSdk = flutter.compileSdkVersion
+    // permission_handler_android 14 is compiled against API 37 and AGP rejects
+    // an app with a lower compileSdk. Flutter 3.47 still defaults to 36.
+    // compileSdk only picks the API surface; targetSdk stays on the Flutter
+    // default, so runtime behavior does not change.
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

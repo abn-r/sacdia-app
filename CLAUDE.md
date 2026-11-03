@@ -36,7 +36,7 @@ Ejemplos de features: `auth`, `biometric`, `dashboard`, `activities`, `classes`,
 
 ## Stack
 
-- **Framework**: Flutter 3.47 (CI fija `3.47.9`, Dart 3.13; SDK Dart `^3.6.1` en pubspec). Android: Gradle 9.3.1, AGP 9.1.0, Kotlin 2.4.0, Java 17, con `android.newDsl=false` y `android.builtInKotlin=false` como la plantilla de Flutter 3.47
+- **Framework**: Flutter 3.47 (CI fija `3.47.9`, Dart 3.13; SDK Dart `^3.6.1` en pubspec). Android: Gradle 9.4.1, AGP 9.2.1 (primera con API 37), Kotlin 2.4.0, Java 17, `compileSdk = 37` en la app (lo pide `permission_handler` 13; `targetSdk` sigue en el default de Flutter), con `android.newDsl=false` y `android.builtInKotlin=false` como la plantilla de Flutter 3.47
 - **Arquitectura**: features con capas data/domain/presentation (Clean Architecture por feature)
 - **State / DI**: Riverpod 3.x (`flutter_riverpod`, ver «Riverpod 3.x»)
 - **Navegación**: `go_router` (`lib/core/config/router.dart`, `routerProvider`)

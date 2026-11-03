@@ -15,6 +15,7 @@ subprojects {
 // against a lower SDK than its dependencies need (checkReleaseAarMetadata), so
 // any Android library module below 36 is raised to 36. Modules that already
 // ask for more (permission_handler_android 14 needs 37) keep their value.
+// The app itself compiles against 37 (see app/build.gradle).
 // compileSdk only picks the API surface used to compile; it does not change
 // minSdk or targetSdk.
 subprojects {
