@@ -25,6 +25,7 @@ import '../providers/units_providers.dart';
 import 'member_of_month_history_view.dart';
 import 'unit_detail_view.dart';
 import 'unit_form_sheet.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
 
 // ── Permission helpers ────────────────────────────────────────────────────────
 
@@ -453,13 +454,13 @@ class _MemberOfMonthCard extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFFD4A017).withValues(alpha: 0.15),
-              const Color(0xFFF5C842).withValues(alpha: 0.10),
+              AppColors.gold.withValues(alpha: 0.15),
+              AppColors.goldLight.withValues(alpha: 0.10),
             ],
           ),
           borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(
-            color: const Color(0xFFD4A017).withValues(alpha: 0.4),
+            color: AppColors.gold.withValues(alpha: 0.4),
             width: 1.5,
           ),
         ),
@@ -473,13 +474,13 @@ class _MemberOfMonthCard extends StatelessWidget {
                 HugeIcon(
                   icon: HugeIcons.strokeRoundedAward01,
                   size: 18,
-                  color: const Color(0xFFD4A017),
+                  color: AppColors.gold,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'units.list.member_of_month'.tr(),
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: const Color(0xFFB8860B),
+                        color: AppColors.goldDark,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.3,
                       ),
@@ -528,7 +529,7 @@ class _MemberOfMonthCard extends StatelessWidget {
                           HugeIcon(
                             icon: HugeIcons.strokeRoundedStar,
                             size: 13,
-                            color: const Color(0xFFD4A017),
+                            color: AppColors.gold,
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -670,12 +671,12 @@ class _MomInitials extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFFD4A017).withValues(alpha: 0.2),
+      color: AppColors.gold.withValues(alpha: 0.2),
       alignment: Alignment.center,
       child: Text(
         initials,
         style: TextStyle(
-          color: const Color(0xFFB8860B),
+          color: AppColors.goldDark,
           fontWeight: FontWeight.w700,
           fontSize: fontSize,
         ),

@@ -266,9 +266,9 @@ class _ReportCard extends StatelessWidget {
   _StatusConfig _statusConfig(MonthlyReportStatus status) {
     switch (status) {
       case MonthlyReportStatus.approved:
-        return const _StatusConfig(
-          bg: Color(0xFFD1FAE5),
-          fg: Color(0xFF047857),
+        return _StatusConfig(
+          bg: AppColors.validatedBg,
+          fg: AppColors.validatedDark,
         );
       case MonthlyReportStatus.rejected:
         return _StatusConfig(
@@ -276,14 +276,14 @@ class _ReportCard extends StatelessWidget {
           fg: AppColors.errorDark,
         );
       case MonthlyReportStatus.submitted:
-        return const _StatusConfig(
-          bg: Color(0xFFDBEAFE),
-          fg: Color(0xFF1D4ED8),
+        return _StatusConfig(
+          bg: AppColors.sentBg,
+          fg: AppColors.sentDark,
         );
       case MonthlyReportStatus.generated:
-        return const _StatusConfig(
-          bg: Color(0xFFDCFCE7),
-          fg: Color(0xFF15803D),
+        return _StatusConfig(
+          bg: AppColors.secondaryLight,
+          fg: AppColors.secondaryDark,
         );
       case MonthlyReportStatus.draft:
         return _StatusConfig(

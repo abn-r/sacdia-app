@@ -323,7 +323,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
   }
 
   Widget _buildDescriptionSection(BuildContext context, String description) {
-    const warmGray = Color(0xFF6B7280);
+    final warmGray = context.sac.textSecondary;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

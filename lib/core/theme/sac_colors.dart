@@ -85,6 +85,20 @@ class SacColors {
       _isDark ? AppColors.darkBackground : const Color(0xFFFAFAFB);
 
   // ── Elevation / Shadow ────────────────────────────────────────
+  // ── Loading skeletons ─────────────────────────────────────────
+  /// Base fill of loading skeleton blocks.
+  Color get skeleton =>
+      _isDark ? AppColors.darkSkeleton : const Color(0xFFECEEF2);
+
+  /// Card or container behind skeleton blocks. Stays darker than
+  /// [skeleton] in dark mode so the blocks keep their contrast.
+  Color get skeletonSurface =>
+      _isDark ? AppColors.darkSurface : const Color(0xFFF7F8FA);
+
+  /// Lighter fill for nested or alternating skeleton blocks.
+  Color get skeletonHighlight =>
+      _isDark ? AppColors.darkSkeletonHighlight : const Color(0xFFF7F8FA);
+
   Color get shadow => _isDark
       ? Colors.white.withValues(alpha: 0.04)
       : Colors.black.withValues(alpha: 0.08);

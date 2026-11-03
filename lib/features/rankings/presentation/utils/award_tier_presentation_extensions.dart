@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/award_tier.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../theme/ranking_tokens.dart';
 
 extension AwardTierPresentationX on AwardTier {
   /// Color representativo del tier — consistente con achievementTierColor.
   Color get color {
     switch (this) {
       case AwardTier.bronze:
-        return const Color(0xFFCD7F32);
+        return RankingTokens.awardBronze;
       case AwardTier.silver:
-        return const Color(0xFFC0C0C0);
+        return RankingTokens.awardSilver;
       case AwardTier.gold:
-        return const Color(0xFFFFD700);
+        return RankingTokens.awardGold;
       case AwardTier.diamond:
-        return const Color(0xFFB9F2FF);
+        return RankingTokens.awardDiamond;
       case AwardTier.unknown:
-        return const Color(0xFF303030); // AppColors.darkBorder
+        return AppColors.darkBorder;
     }
   }
 }

@@ -229,13 +229,16 @@ class _SacImageViewerState extends State<SacImageViewer> {
               left: 0,
               right: 0,
               height: MediaQuery.paddingOf(context).top + kToolbarHeight + 24,
-              child: const IgnorePointer(
+              child: IgnorePointer(
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [Color(0xB3000000), Color(0x00000000)],
+                      colors: [
+                        Colors.black.withValues(alpha: 0.7),
+                        Colors.transparent
+                      ],
                     ),
                   ),
                 ),

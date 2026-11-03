@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -54,8 +55,7 @@ class _PeriodChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor =
-        isDark ? const Color(0xFF333333) : const Color(0xFF0F172A);
+    final activeColor = isDark ? AppColors.darkBorder : context.sac.ink900;
 
     return GestureDetector(
       onTap: onTap,

@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/sac_colors.dart';
@@ -19,20 +20,19 @@ class FinanceLineChart extends ConsumerWidget {
   const FinanceLineChart({super.key});
 
   // ── Brand colors ────────────────────────────────────────────────────────────
-  static const _incomeColor = Color(0xFF4FBF9F);
-  static const _expenseColor = Color(0xFFDC2626);
+  static const _incomeColor = AppColors.secondary;
+  static const _expenseColor = AppColors.error;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final period = ref.watch(selectedPeriodProvider);
 
-    final chartSurface =
-        isDark ? const Color(0xFF0A0A0A) : const Color(0xFFFAFBFC);
+    final chartSurface = context.sac.canvas;
     final gridColor = isDark
         ? Colors.white.withValues(alpha: 0.05)
         : Colors.black.withValues(alpha: 0.06);
-    final tooltipBg = isDark ? const Color(0xFF1A1A1A) : Colors.white;
+    final tooltipBg = context.sac.paper;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),

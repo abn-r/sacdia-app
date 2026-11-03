@@ -16,6 +16,8 @@ import '../../../../core/utils/birthday_utils.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../providers/birthday_celebration_provider.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import '../theme/dashboard_tokens.dart';
+import 'package:sacdia_app/core/animations/celebration_tokens.dart';
 
 class BirthdayCelebrationGate extends ConsumerStatefulWidget {
   const BirthdayCelebrationGate({super.key});
@@ -422,7 +424,11 @@ class _AnimatedBirthdayIcon extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: const LinearGradient(
-            colors: [Color(0xFFFFF7D6), Color(0xFFFFD47A), AppColors.accent],
+            colors: [
+              DashboardTokens.birthdayMedallionLight,
+              DashboardTokens.birthdayMedallionMid,
+              AppColors.accent,
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -466,10 +472,10 @@ class _GoldShimmerText extends StatelessWidget {
         return ShaderMask(
           shaderCallback: (bounds) => LinearGradient(
             colors: const [
-              Color(0xFF9A650F),
-              Color(0xFFF8B84E),
-              Color(0xFFFFF6C7),
-              Color(0xFFD88A18),
+              DashboardTokens.goldShimmerDeep,
+              DashboardTokens.goldShimmerBase,
+              DashboardTokens.goldShimmerHighlight,
+              DashboardTokens.goldShimmerWarm,
             ],
             stops: [
               (offset - 0.25).clamp(0.0, 1.0),
@@ -504,8 +510,8 @@ class _DecorativeConfettiField extends StatelessWidget {
       SacAccent.of(context).color,
       AppColors.secondary,
       AppColors.accent,
-      Color(0xFF8B5CF6),
-      Color(0xFF06B6D4),
+      CelebrationTokens.confettiViolet,
+      CelebrationTokens.confettiCyan,
     ];
 
     return Positioned.fill(

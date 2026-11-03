@@ -886,7 +886,7 @@ class _FilePickerSheet extends StatelessWidget {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFF4E0),
+                      color: AppColors.accentLight,
                       borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                     ),
                     child: Center(

@@ -118,6 +118,12 @@ class AppColors {
   /// Divider dark (alias)
   static const Color darkDivider = Color(0xFF303030);
 
+  /// Base de los skeletons de carga — dark
+  static const Color darkSkeleton = Color(0xFF2A2A2A);
+
+  /// Brillo de los skeletons de carga — dark
+  static const Color darkSkeletonHighlight = Color(0xFF3A3A3A);
+
   // ═══════════════════════════════════════════════════════════
   // TEXTO - DARK MODE
   // ═══════════════════════════════════════════════════════════
@@ -238,6 +244,19 @@ class AppColors {
 
   /// Oro de la carpeta del icono — acento de marca en auth
   static const Color loginBrandGold = Color(0xFFF0B000);
+
+  // ═══════════════════════════════════════════════════════════
+  // RECONOCIMIENTO — miembro del mes, primeros lugares
+  // ═══════════════════════════════════════════════════════════
+
+  /// Oro de reconocimiento: iconos, bordes y cifras destacadas
+  static const Color gold = Color(0xFFD4A017);
+
+  /// Oro oscuro: texto sobre fondos dorados claros
+  static const Color goldDark = Color(0xFFB8860B);
+
+  /// Oro claro: degradados y fondos suaves
+  static const Color goldLight = Color(0xFFF5C842);
 
   // ═══════════════════════════════════════════════════════════
   // COLORES DE CLASES (tradición scout - NO cambiar)

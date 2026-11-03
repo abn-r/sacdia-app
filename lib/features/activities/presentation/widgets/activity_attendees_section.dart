@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/features/activities/presentation/theme/activities_tokens.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 
 import '../../domain/entities/activity.dart';
@@ -27,29 +28,6 @@ class ActivityAttendeesSection extends StatelessWidget {
   });
 
   static const int _maxVisible = 5;
-
-  // Warm, distinct color palette for avatar initials
-  static const List<Color> _warmPalette = [
-    Color(0xFFF59E0B), // amber-500
-    Color(0xFFF43F5E), // rose-500
-    Color(0xFF0EA5E9), // sky-500
-    Color(0xFF8B5CF6), // violet-500
-    Color(0xFF10B981), // emerald-500
-    Color(0xFFEF4444), // red-500
-    Color(0xFF3B82F6), // blue-500
-    Color(0xFFEC4899), // pink-500
-  ];
-
-  static const List<Color> _warmPaletteDark = [
-    Color(0xFFD97706), // amber-600
-    Color(0xFFE11D48), // rose-600
-    Color(0xFF0284C7), // sky-600
-    Color(0xFF7C3AED), // violet-600
-    Color(0xFF059669), // emerald-600
-    Color(0xFFDC2626), // red-600
-    Color(0xFF2563EB), // blue-600
-    Color(0xFFDB2777), // pink-600
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -109,8 +87,8 @@ class ActivityAttendeesSection extends StatelessWidget {
           _StackedAvatars(
             attendees: _resolve(),
             maxVisible: _maxVisible,
-            warmPalette: _warmPalette,
-            warmPaletteDark: _warmPaletteDark,
+            warmPalette: ActivitiesTokens.attendeeAvatarPalette,
+            warmPaletteDark: ActivitiesTokens.attendeeAvatarPaletteDark,
           ),
       ],
     );

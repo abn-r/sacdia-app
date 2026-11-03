@@ -14,6 +14,7 @@ import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/welcome_carousel_provider.dart';
 import 'package:sacdia_app/features/auth/presentation/widgets/welcome_carousel_visuals.dart';
+import 'package:sacdia_app/features/auth/presentation/theme/auth_tokens.dart';
 
 /// First-run pre-login carousel. Rare surface: the stage is the product.
 class WelcomeCarouselView extends ConsumerStatefulWidget {
@@ -256,8 +257,8 @@ class _OnboardingWash extends StatelessWidget {
               center: Alignment(-0.55, -0.42),
               radius: 0.95,
               colors: [
-                Color(0x1CFFB020),
-                Color(0x00FFB020),
+                AuthTokens.washGold,
+                AuthTokens.washGoldClear,
               ],
             ),
           ),
@@ -267,8 +268,8 @@ class _OnboardingWash extends StatelessWidget {
                 center: Alignment(0.5, 0.62),
                 radius: 1.05,
                 colors: [
-                  Color(0x140B84F0),
-                  Color(0x000B84F0),
+                  AuthTokens.washBlue,
+                  AuthTokens.washBlueClear,
                 ],
               ),
             ),

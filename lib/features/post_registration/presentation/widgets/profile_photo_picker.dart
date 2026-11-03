@@ -88,9 +88,9 @@ class ProfilePhotoPicker extends StatelessWidget {
                   Container(
                     width: 200,
                     height: 200,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Color(0x80000000),
+                      color: Colors.black.withValues(alpha: 0.5),
                     ),
                     child: const Center(
                       child: SacLoadingSmall(),

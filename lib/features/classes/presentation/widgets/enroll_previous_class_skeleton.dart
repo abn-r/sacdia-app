@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// Shimmer-style skeleton that mirrors the [EnrollPreviousClassSheet] loaded
 /// layout.
@@ -108,14 +109,13 @@ class _EnrollPreviousClassSkeletonState
   // Mirrors the Container pill in _buildYearInfo: calendar icon + label + year.
 
   Widget _buildYearInfoSkeleton(BuildContext context, double sv) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF0F7FF),
+        color: context.sac.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusXS),
         border: Border.all(
-          color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFBFD9F5),
+          color: context.sac.skeleton,
         ),
       ),
       child: Row(
@@ -145,14 +145,13 @@ class _EnrollPreviousClassSkeletonState
   //   radio circle (20×20) + logo square (36×36) + name text (varies)
 
   Widget _buildClassItemSkeleton(BuildContext context, double sv, int index) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF8FAFC),
+        color: context.sac.skeletonSurface,
         borderRadius: BorderRadius.circular(AppTheme.radiusXS),
         border: Border.all(
-          color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE8EDF2),
+          color: context.sac.border,
         ),
       ),
       child: Row(
@@ -214,11 +213,8 @@ class _SkeletonBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor =
-        isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE8EDF2);
-    final highlightColor =
-        isDark ? const Color(0xFF3A3A3A) : const Color(0xFFF5F8FB);
+    final baseColor = context.sac.skeleton;
+    final highlightColor = context.sac.skeletonHighlight;
 
     return Container(
       width: width,

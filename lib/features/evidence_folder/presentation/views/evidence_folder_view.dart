@@ -354,10 +354,10 @@ class _UnderEvaluationBanner extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF8E1),
+        color: AppColors.observedBg,
         borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
-          color: const Color(0xFFF59E0B).withValues(alpha: 0.5),
+          color: AppColors.observedColor.withValues(alpha: 0.5),
           width: 1.5,
         ),
       ),
@@ -367,14 +367,14 @@ class _UnderEvaluationBanner extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+              color: AppColors.observedColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Center(
               child: HugeIcon(
                 icon: HugeIcons.strokeRoundedAnalytics01,
                 size: 22,
-                color: const Color(0xFF92400E),
+                color: AppColors.observedDark,
               ),
             ),
           ),
@@ -387,14 +387,14 @@ class _UnderEvaluationBanner extends StatelessWidget {
                   'evidence_folder.evaluation_banner.title'.tr(),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF92400E),
+                        color: AppColors.observedDark,
                       ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'evidence_folder.evaluation_banner.description'.tr(),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: const Color(0xFF92400E),
+                        color: AppColors.observedDark,
                         height: 1.45,
                       ),
                 ),

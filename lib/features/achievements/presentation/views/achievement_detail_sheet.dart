@@ -12,6 +12,7 @@ import '../../domain/repositories/achievements_repository.dart';
 import '../widgets/achievement_badge.dart';
 import '../widgets/achievement_progress_bar.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import '../theme/achievement_tokens.dart';
 
 /// Detail sheet v2 — badge hero, status meta, inset groups, SacMotion enter.
 class AchievementDetailSheet extends StatefulWidget {
@@ -319,11 +320,11 @@ Color _tierSheetWash({
   }
 
   final base = switch (tier) {
-    AchievementTier.bronze => const Color(0xFFB87333),
-    AchievementTier.silver => const Color(0xFF8E959D),
-    AchievementTier.gold => const Color(0xFFE0B400),
-    AchievementTier.platinum => const Color(0xFF9BA3AE),
-    AchievementTier.diamond => const Color(0xFF5EC8E8),
+    AchievementTier.bronze => AchievementTokens.detailBronze,
+    AchievementTier.silver => AchievementTokens.detailSilver,
+    AchievementTier.gold => AchievementTokens.detailGold,
+    AchievementTier.platinum => AchievementTokens.detailPlatinum,
+    AchievementTier.diamond => AchievementTokens.detailDiamond,
     AchievementTier.unknown => Colors.grey,
   };
 

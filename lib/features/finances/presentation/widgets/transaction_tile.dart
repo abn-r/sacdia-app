@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../theme/finance_tokens.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -33,20 +35,6 @@ class TransactionTile extends StatelessWidget {
     10: HugeIcons.strokeRoundedTag01,
   };
 
-  static const _accentColors = {
-    1: Color(0xFFF59E0B),
-    2: Color(0xFF6366F1),
-    3: Color(0xFF3B82F6),
-    4: Color(0xFFEC4899),
-    5: Color(0xFFEF4444),
-    6: Color(0xFF8B5CF6),
-    7: Color(0xFFF97316),
-    8: Color(0xFF10B981),
-    9: Color(0xFF0EA5E9),
-    10: Color(0xFF64748B),
-  };
-
-  static const _defaultAccent = Color(0xFF6B7280);
   static const HugeIconData _defaultIcon = HugeIcons.strokeRoundedMoney01;
   static final _currencyFormatter = NumberFormat.currency(
     locale: 'en_US',
@@ -60,15 +48,15 @@ class TransactionTile extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isIncome = transaction.type.isIncome;
     final category = transaction.category;
-    final accentColor = _accentColors[category.iconIndex] ?? _defaultAccent;
+    final accentColor = FinanceTokens.categoryAccents[category.iconIndex] ??
+        FinanceTokens.defaultCategoryAccent;
     final icon = _iconFor(category.name, category.iconIndex);
 
-    final transactionSurface =
-        isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF8FAFC);
+    final transactionSurface = isDark ? context.sac.surface : context.sac.ink50;
 
     final amountColor = isIncome
-        ? (isDark ? const Color(0xFF4FBF9F) : const Color(0xFF2D8A70))
-        : const Color(0xFFDC2626);
+        ? (isDark ? context.sac.success : AppColors.secondaryDark)
+        : context.sac.error;
 
     final formatted = _currencyFormatter.format(transaction.amount);
 
@@ -87,7 +75,7 @@ class TransactionTile extends StatelessWidget {
           border: isDark
               ? null
               : Border.all(
-                  color: const Color(0xFFF1F5F9),
+                  color: context.sac.ink100,
                   width: 1,
                 ),
         ),

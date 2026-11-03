@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 class EvidenceFolderLoadingSkeleton extends StatefulWidget {
   const EvidenceFolderLoadingSkeleton({super.key});
@@ -87,9 +88,7 @@ class _EvidenceFolderLoadingSkeletonState
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF1A1A1A)
-            : const Color(0xFFF8FAFC),
+        color: context.sac.skeletonSurface,
         borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       ),
       child: Column(
@@ -179,9 +178,7 @@ class _EvidenceFolderLoadingSkeletonState
               margin: EdgeInsets.only(right: i < 2 ? 8 : 0),
               padding: const EdgeInsets.symmetric(vertical: 8),
               decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFF1A1A1A)
-                    : const Color(0xFFF8FAFC),
+                color: context.sac.skeletonSurface,
                 borderRadius: BorderRadius.circular(AppTheme.radiusXS),
               ),
               child: Column(
@@ -209,9 +206,7 @@ class _EvidenceFolderLoadingSkeletonState
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? const Color(0xFF1A1A1A)
-              : const Color(0xFFF8FAFC),
+          color: context.sac.skeletonSurface,
           borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         ),
         child: Row(
@@ -284,11 +279,8 @@ class _SkeletonBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor =
-        isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE8EDF2);
-    final highlightColor =
-        isDark ? const Color(0xFF3A3A3A) : const Color(0xFFF5F8FB);
+    final baseColor = context.sac.skeleton;
+    final highlightColor = context.sac.skeletonHighlight;
 
     return Container(
       width: width,

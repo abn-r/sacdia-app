@@ -25,6 +25,7 @@ import '../utils/app_logger.dart';
 import 'dependent_push_tap_handler.dart';
 import 'device_push_route.dart';
 import 'family_push_route.dart';
+import 'push_banner_tokens.dart';
 import 'fcm_registrar.dart';
 import '../../features/achievements/presentation/providers/achievements_providers.dart';
 import '../../features/auth/domain/entities/user_entity.dart';
@@ -42,6 +43,7 @@ import '../../features/notifications/presentation/providers/notifications_provid
 import '../../features/notifications/presentation/providers/unread_notifications_count_provider.dart';
 import '../../features/notifications/presentation/widgets/notification_type_badge.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import '../theme/app_colors.dart';
 
 /// Top-level background message handler.
 ///
@@ -672,7 +674,7 @@ class PushNotificationService {
         duration: const Duration(seconds: 6),
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-        backgroundColor: const Color(0xFF1C1C1E),
+        backgroundColor: AppColors.darkSurface,
         elevation: 8,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTheme.radiusLG),
@@ -721,7 +723,7 @@ class PushNotificationService {
                     achievementName,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Color(0xFFE5E5EA)),
+                    style: const TextStyle(color: AppColors.darkText),
                   ),
                   if (tier != null || points != null) ...[
                     const SizedBox(height: 4),
@@ -894,17 +896,17 @@ class PushNotificationService {
   Color _achievementTierColor(String? tier) {
     switch (tier?.toUpperCase()) {
       case 'DIAMOND':
-        return const Color(0xFF7DD3FC);
+        return PushBannerTokens.tierDiamond;
       case 'PLATINUM':
-        return const Color(0xFFE5E7EB);
+        return PushBannerTokens.tierPlatinum;
       case 'GOLD':
-        return const Color(0xFFFBBF24);
+        return PushBannerTokens.tierGold;
       case 'SILVER':
-        return const Color(0xFFD1D5DB);
+        return PushBannerTokens.tierSilver;
       case 'BRONZE':
-        return const Color(0xFFD97706);
+        return PushBannerTokens.tierBronze;
       default:
-        return const Color(0xFFFBBF24);
+        return PushBannerTokens.tierGold;
     }
   }
 

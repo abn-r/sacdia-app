@@ -636,14 +636,14 @@ class _BannerEstado extends StatelessWidget {
     final borderColor = isObserved
         ? (isDark
             ? AppColors.observedColor.withValues(alpha: 0.2)
-            : const Color(0xFFFBE7C2))
+            : AppColors.observedColor.withValues(alpha: 0.3))
         : (isDark
             ? AppColors.rejectedColor.withValues(alpha: 0.2)
-            : const Color(0xFFFBC8D0));
+            : AppColors.rejectedColor.withValues(alpha: 0.3));
     final iconColor =
         isObserved ? AppColors.observedDark : AppColors.rejectedDark;
     final titleColor =
-        isObserved ? const Color(0xFF5C4317) : AppColors.rejectedDark;
+        isObserved ? AppColors.observedDark : AppColors.rejectedDark;
     final headline =
         isObserved ? 'Requiere correcciones' : 'Documento rechazado';
     final subtext = isObserved

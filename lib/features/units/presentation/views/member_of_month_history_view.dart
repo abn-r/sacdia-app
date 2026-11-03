@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import '../../domain/entities/member_of_month.dart';
 import '../providers/units_providers.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
 
 /// Pantalla de historial del Miembro del Mes para una sección.
 ///
@@ -208,7 +209,7 @@ class _MonthEntry extends StatelessWidget {
                 width: 4,
                 height: 18,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFD4A017),
+                  color: AppColors.gold,
                   borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
                 ),
               ),
@@ -226,13 +227,13 @@ class _MonthEntry extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD4A017).withValues(alpha: 0.15),
+                    color: AppColors.gold.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                   ),
                   child: Text(
                     'units.member_of_month.tie_badge'.tr(),
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: const Color(0xFFB8860B),
+                          color: AppColors.goldDark,
                           fontWeight: FontWeight.w600,
                         ),
                   ),
@@ -290,7 +291,7 @@ class _WinnerCard extends StatelessWidget {
                     HugeIcon(
                       icon: HugeIcons.strokeRoundedStar,
                       size: 13,
-                      color: const Color(0xFFD4A017),
+                      color: AppColors.gold,
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -311,7 +312,7 @@ class _WinnerCard extends StatelessWidget {
           HugeIcon(
             icon: HugeIcons.strokeRoundedAward01,
             size: 22,
-            color: const Color(0xFFD4A017),
+            color: AppColors.gold,
           ),
         ],
       ),
@@ -363,12 +364,12 @@ class _MomInitials extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFFD4A017).withValues(alpha: 0.2),
+      color: AppColors.gold.withValues(alpha: 0.2),
       alignment: Alignment.center,
       child: Text(
         initials,
         style: const TextStyle(
-          color: Color(0xFFB8860B),
+          color: AppColors.goldDark,
           fontWeight: FontWeight.w700,
           fontSize: SacFontSize.titleSmall,
         ),

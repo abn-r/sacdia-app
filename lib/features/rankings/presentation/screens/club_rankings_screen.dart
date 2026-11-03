@@ -27,6 +27,7 @@ import '../utils/ranking_tier_medal_assets.dart';
 import '../widgets/ranking_empty_state.dart';
 import '../widgets/ranking_skeleton.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import '../theme/ranking_tokens.dart';
 
 class ClubRankingsScreen extends ConsumerWidget {
   const ClubRankingsScreen({super.key});
@@ -1404,16 +1405,20 @@ Color _tierColorFor(BuildContext context, RankingTier? tier) {
   final key = (tier?.slug ?? tier?.name ?? '').toLowerCase();
 
   if (key.contains('silver') || key.contains('plata')) {
-    return isDark ? const Color(0xFFA3B1C2) : const Color(0xFF5B6B7C);
+    return isDark
+        ? RankingTokens.tierSilverDark
+        : RankingTokens.tierSilverLight;
   }
   if (key.contains('gold') || key.contains('oro')) {
-    return isDark ? const Color(0xFFE0B341) : const Color(0xFF9A6B18);
+    return isDark ? RankingTokens.tierGoldDark : RankingTokens.tierGoldLight;
   }
   if (key.contains('diamond') || key.contains('diamante')) {
-    return isDark ? const Color(0xFF22D3EE) : const Color(0xFF0E7490);
+    return isDark
+        ? RankingTokens.tierDiamondDark
+        : RankingTokens.tierDiamondLight;
   }
   // Bronce, sin rango o desconocido — cálido.
-  return isDark ? const Color(0xFFD28C52) : const Color(0xFFB86A2D);
+  return isDark ? RankingTokens.tierBronzeDark : RankingTokens.tierBronzeLight;
 }
 
 Color _axisAccentFor(String key) {

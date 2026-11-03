@@ -17,7 +17,8 @@ review, the screens' style won: this doc now follows the code, not the other way
 - **Type scale**: tokens live in `SacFontSize`; `titleLarge` 17, `titleMedium` 15, `bodyLarge` 15, `bodyMedium` 13, `labelSmall` 11 (all were 1px+ larger/smaller). Matches Apple's scale. See §3.
 - **Radius**: cards are 14 (was 16); new `radiusHairline` (2) and `radius2XS` (4). See §4.1.
 - **Color**: the primary color is the user-selected accent (`SacAccent`, default "Azul SACDIA"), no longer fixed coral. Light neutrals use the single ink scale; slate is gone. See §2.
-- **Enforcement**: a guard test blocks literal font sizes, radii and new `Color(0x…)` literals. See §18.
+- **Feature palettes**: every hardcoded color moved to a token: `context.sac`, `AppColors` status/brand tokens, or a feature `*_tokens.dart`. New shared tokens: skeleton colors and recognition gold. See §2.7.
+- **Enforcement**: a guard test blocks literal font sizes, radii and `Color(0x…)` literals outside token files. See §18.
 
 ---
 
@@ -221,11 +222,33 @@ c.onError         // Colors.white
 ```
 
 **Known tech-debt — 83-file migration pending:**
-As of 2026-04-16, approximately 83 widget files use `AppColors.error` / `AppColors.success` / `AppColors.warning` or hardcoded `Color(0xFF…)` directly in paint code, bypassing `context.sac`. This is a known violation. Future agents: do NOT add more `AppColors.*` calls in paint code — use `context.sac.*`. The migration of existing files is tracked as a separate task.
+Some widgets still use `AppColors.error` / `AppColors.success` / `AppColors.warning` directly in paint code, bypassing `context.sac`. Future agents: do NOT add more `AppColors.*` calls for colors that must adapt to dark mode — use `context.sac.*`. (Hardcoded `Color(0xFF…)` literals were removed from paint code in v2.)
 
 **2026-09-04 — neutral-scale audit:** `AppColors.inkNNN`, `AppColors.paper` and `AppColors.canvas` are now `@Deprecated`; every screen that used them (Clases module, Investiduras history, Materiales checkout, Honor completion) was migrated to `context.sac.inkNNN` / `paper` / `canvas`. Feature-scoped palettes follow the same rule: `MedicoTokens.of(context)` (`MedicoPalette`) for Información Médica and its edit sub-screens.
 
-**v2 — feature token files.** `AppColors.coral500` now equals `AppColors.primary` (`#F06151`), and `MedicoTokens.coral500` points to it. Feature-scoped `*_tokens.dart` files (`medico_tokens.dart`, `roadmap_tokens.dart`, `credencial_tokens.dart`) are the sanctioned place for a feature's own palette. New `Color(0x…)` literals anywhere else are blocked by the guard test (§18); existing ones are frozen in a per-file baseline and will be migrated over time. Brand-locked surfaces are exempt and documented in place: Credencial digital (gradient card, white QR zone) and the Clases roadmap (sky-gradient background).
+**v2 — feature token files.** `AppColors.coral500` now equals `AppColors.primary` (`#F06151`), and `MedicoTokens.coral500` points to it. A feature's own palette (categorical data, tiers, flags, decorative art) lives in a `*_tokens.dart` file next to the feature, with named `static const` colors:
+
+| File | Holds |
+|------|-------|
+| `profile/.../medico/medico_tokens.dart` | Información Médica palette |
+| `classes/presentation/roadmap/theme/roadmap_tokens.dart` | Roadmap track and status colors |
+| `virtual_card/.../credencial/credencial_tokens.dart`, `virtual_card/presentation/theme/virtual_card_tokens.dart` | Credential artwork, QR tile, overlays |
+| `achievements/presentation/theme/achievement_tokens.dart` | Achievement tiers (bronze → diamond) and their chips |
+| `rankings/presentation/theme/ranking_tokens.dart` | Ranking and award tiers |
+| `finances/presentation/theme/finance_tokens.dart` | Category accents |
+| `activities/presentation/theme/activities_tokens.dart` | Attendee avatar palettes |
+| `dashboard/presentation/theme/dashboard_tokens.dart` | Birthday medallion and gold shimmer |
+| `settings/presentation/theme/settings_tokens.dart` | Language flag stripes |
+| `auth/presentation/theme/auth_tokens.dart` | Welcome carousel washes |
+| `core/animations/celebration_tokens.dart` | Confetti colors shared by every celebration |
+| `core/notifications/push_banner_tokens.dart` | Tier accents on the always-dark push banner |
+
+Shared tokens added in v2:
+
+- `context.sac.skeleton`, `skeletonHighlight` and `skeletonSurface`: loading-skeleton blocks, their lighter fill, and the card behind them (darker than the blocks in dark mode, so they keep contrast).
+- `AppColors.gold`, `goldDark` and `goldLight`: recognition gold (member of the month, first places).
+
+There are no `Color(0x…)` literals outside `lib/core/theme/` and `*_tokens.dart` files; the guard test (§18) keeps it that way. Shadows and scrims use `Colors.black` / `Colors.white` `.withValues(alpha: …)`. Brand-locked surfaces are exempt and documented in place: Credencial digital (gradient card, white QR zone) and the Clases roadmap (sky-gradient background).
 
 ### 2.8 Class-Specific Colors (Scout tradition — do NOT change)
 
@@ -1382,7 +1405,7 @@ and fails on:
 
 - literal `fontSize:` numbers (use `SacFontSize.<step>`, §3). `fontSize: 0` is allowed
 - literal `BorderRadius.circular(n)` / `Radius.circular(n)` (use `AppTheme.radiusX`, §4.1)
-- any NEW `Color(0x…)` literal beyond a per-file frozen baseline (`colorLiteralBaseline` in the test). Existing literals are grandfathered at their current count per file and are migrated over time. The baseline is a ratchet: the test also fails when a file has fewer literals than its baseline, so lower (or remove) the entry in the same change that migrates them
+- any `Color(0x…)` literal (use `context.sac`, `AppColors`, `SacAccent`, or the feature's `*_tokens.dart`, §2.7)
 
 Comment lines (`//`, `///`) are ignored.
 
@@ -1390,7 +1413,7 @@ Exempt files and folders:
 
 - `*_tokens.dart` (feature palettes, §2.7)
 - `*sprites*.dart`
-- `lib/features/auth/presentation/widgets/welcome_carousel_visuals.dart` (illustrations)
+- `lib/features/auth/presentation/widgets/welcome_carousel_visuals.dart` and `welcome_carousel_world.dart` (illustrations)
 - `lib/features/virtual_card/presentation/widgets/credencial/` (fixed-layout credential artwork)
 
 A single line can opt out with a trailing comment:
@@ -1400,4 +1423,4 @@ fontSize: 72, // ds-allow: placeholder initial sized to the image area
 ```
 
 Use it only when no token fits, and always give the reason. When the test fails, fix
-the code (use the token) rather than adding to the baseline.
+the code (use the token); a new palette goes into the feature's `*_tokens.dart`.
