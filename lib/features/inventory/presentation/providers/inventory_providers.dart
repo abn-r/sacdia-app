@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
+import '../../../../core/providers/keep_alive_during.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -514,25 +515,28 @@ class InventoryDeleteNotifier extends Notifier<InventoryDeleteState> {
   @override
   InventoryDeleteState build() => const InventoryDeleteState();
 
-  Future<bool> deleteItem(int itemId) async {
-    state = const InventoryDeleteState(isLoading: true);
+  Future<bool> deleteItem(int itemId) =>
+      // Callers only `ref.read` this notifier: keep it alive until the request
+      // settles (see keepAliveDuring).
+      ref.keepAliveDuring(() async {
+        state = const InventoryDeleteState(isLoading: true);
 
-    final result = await ref.read(deleteInventoryItemUseCaseProvider)(
-      DeleteInventoryItemParams(itemId: itemId),
-    );
+        final result = await ref.read(deleteInventoryItemUseCaseProvider)(
+          DeleteInventoryItemParams(itemId: itemId),
+        );
 
-    return result.fold(
-      (failure) {
-        state = InventoryDeleteState(errorMessage: failure.message);
-        return false;
-      },
-      (_) {
-        state = const InventoryDeleteState(success: true);
-        ref.invalidate(inventoryItemsProvider);
-        return true;
-      },
-    );
-  }
+        return result.fold<bool>(
+          (failure) {
+            state = InventoryDeleteState(errorMessage: failure.message);
+            return false;
+          },
+          (_) {
+            state = const InventoryDeleteState(success: true);
+            ref.invalidate(inventoryItemsProvider);
+            return true;
+          },
+        );
+      });
 }
 
 final inventoryDeleteNotifierProvider =

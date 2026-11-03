@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/providers/keep_alive_during.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../data/datasources/certifications_remote_data_source.dart';
@@ -175,54 +176,59 @@ class CertificationEnrollmentNotifier
   int get _certificationId => arg;
 
   /// Inscribe al usuario en la certificación.
-  Future<bool> enroll() async {
-    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+  Future<bool> enroll() =>
+      // Callers only `ref.read` this notifier: keep it alive until the request
+      // settles (see keepAliveDuring).
+      ref.keepAliveDuring(() async {
+        state =
+            state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final result = await ref
-        .read(certificationsRepositoryProvider)
-        .enrollCertification(_userId, _certificationId);
+        final result = await ref
+            .read(certificationsRepositoryProvider)
+            .enrollCertification(_userId, _certificationId);
 
-    return result.fold(
-      (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
+        return result.fold<bool>(
+          (failure) {
+            state = state.copyWith(
+              isLoading: false,
+              errorMessage: failure.message,
+            );
+            return false;
+          },
+          (_) {
+            state = state.copyWith(isLoading: false, success: true);
+            ref.invalidate(userCertificationsProvider);
+            ref.invalidate(certificationProgressProvider(_certificationId));
+            return true;
+          },
         );
-        return false;
-      },
-      (_) {
-        state = state.copyWith(isLoading: false, success: true);
-        ref.invalidate(userCertificationsProvider);
-        ref.invalidate(certificationProgressProvider(_certificationId));
-        return true;
-      },
-    );
-  }
+      });
 
   /// Desinscribe al usuario de la certificación.
-  Future<bool> unenroll() async {
-    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+  Future<bool> unenroll() => ref.keepAliveDuring(() async {
+        state =
+            state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final result = await ref
-        .read(certificationsRepositoryProvider)
-        .unenrollCertification(_userId, _certificationId);
+        final result = await ref
+            .read(certificationsRepositoryProvider)
+            .unenrollCertification(_userId, _certificationId);
 
-    return result.fold(
-      (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
+        return result.fold<bool>(
+          (failure) {
+            state = state.copyWith(
+              isLoading: false,
+              errorMessage: failure.message,
+            );
+            return false;
+          },
+          (_) {
+            state = state.copyWith(isLoading: false, success: true);
+            ref.invalidate(userCertificationsProvider);
+            ref.invalidate(certificationProgressProvider(_certificationId));
+            return true;
+          },
         );
-        return false;
-      },
-      (_) {
-        state = state.copyWith(isLoading: false, success: true);
-        ref.invalidate(userCertificationsProvider);
-        ref.invalidate(certificationProgressProvider(_certificationId));
-        return true;
-      },
-    );
-  }
+      });
 
   /// Limpia el estado de error / éxito.
   void reset() => state = const CertificationEnrollmentState();
@@ -259,11 +265,14 @@ class SectionProgressNotifier extends Notifier<CertificationEnrollmentState> {
     required int moduleId,
     required int sectionId,
     required bool completed,
-  }) async {
-    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+  }) =>
+      ref.keepAliveDuring(() async {
+        state =
+            state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final result =
-        await ref.read(certificationsRepositoryProvider).updateSectionProgress(
+        final result = await ref
+            .read(certificationsRepositoryProvider)
+            .updateSectionProgress(
               _userId,
               _certificationId,
               moduleId,
@@ -271,22 +280,22 @@ class SectionProgressNotifier extends Notifier<CertificationEnrollmentState> {
               completed,
             );
 
-    return result.fold(
-      (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
+        return result.fold<bool>(
+          (failure) {
+            state = state.copyWith(
+              isLoading: false,
+              errorMessage: failure.message,
+            );
+            return false;
+          },
+          (_) {
+            state = state.copyWith(isLoading: false, success: true);
+            ref.invalidate(certificationProgressProvider(_certificationId));
+            ref.invalidate(userCertificationsProvider);
+            return true;
+          },
         );
-        return false;
-      },
-      (_) {
-        state = state.copyWith(isLoading: false, success: true);
-        ref.invalidate(certificationProgressProvider(_certificationId));
-        ref.invalidate(userCertificationsProvider);
-        return true;
-      },
-    );
-  }
+      });
 
   /// Limpia el estado de error / éxito.
   void reset() => state = const CertificationEnrollmentState();

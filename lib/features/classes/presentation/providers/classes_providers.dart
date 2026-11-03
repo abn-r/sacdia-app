@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../../core/providers/keep_alive_during.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../../providers/json_file_cache_provider.dart';
 import '../../../../core/storage/cache_first.dart';
@@ -809,24 +810,27 @@ class ClassProgressNotifier extends AsyncNotifier<ClassProgress?> {
 
   /// Actualizar progreso de una seccion
   Future<void> updateProgress(
-      String userId, int classId, Map<String, dynamic> progressData,
-      {int? enrollmentId}) async {
-    state = const AsyncValue.loading();
+          String userId, int classId, Map<String, dynamic> progressData,
+          {int? enrollmentId}) =>
+      // Callers only `ref.read` this notifier: keep it alive until the update
+      // settles (see keepAliveDuring).
+      ref.keepAliveDuring(() async {
+        state = const AsyncValue.loading();
 
-    final result = await ref.read(updateClassProgressProvider)(
-      UpdateClassProgressParams(
-        userId: userId,
-        classId: classId,
-        progressData: progressData,
-        enrollmentId: enrollmentId,
-      ),
-    );
+        final result = await ref.read(updateClassProgressProvider)(
+          UpdateClassProgressParams(
+            userId: userId,
+            classId: classId,
+            progressData: progressData,
+            enrollmentId: enrollmentId,
+          ),
+        );
 
-    state = result.fold(
-      (failure) => AsyncValue.error(failure.message, StackTrace.current),
-      (progress) => AsyncValue.data(progress),
-    );
-  }
+        state = result.fold(
+          (failure) => AsyncValue.error(failure.message, StackTrace.current),
+          (progress) => AsyncValue.data(progress),
+        );
+      });
 }
 
 /// Provider para el notifier de progreso de clase

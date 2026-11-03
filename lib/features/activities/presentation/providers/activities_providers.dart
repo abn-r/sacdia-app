@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/providers/keep_alive_during.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../../../../providers/dio_provider.dart';
@@ -357,45 +358,49 @@ class UpdateActivityNotifier extends Notifier<UpdateActivityState> {
     String? image,
     String? audience,
     List<int>? classes,
-  }) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
+  }) =>
+      // Callers only `ref.read` this notifier: keep it alive until the request
+      // settles (see keepAliveDuring).
+      ref.keepAliveDuring(() async {
+        state = state.copyWith(isLoading: true, errorMessage: null);
 
-    final repository = ref.read(activitiesRepositoryProvider);
-    final result = await repository.updateActivity(
-      activityId: activityId,
-      name: name,
-      description: description,
-      lat: lat,
-      long: long,
-      activityTime: activityTime,
-      activityDate: activityDate,
-      activityEndDate: activityEndDate,
-      activityPlace: activityPlace,
-      platform: platform,
-      activityTypeId: activityTypeId,
-      linkMeet: linkMeet,
-      active: active,
-      clearFields: clearFields,
-      clubSectionIds: clubSectionIds,
-      image: image,
-      audience: audience,
-      classes: classes,
-    );
+        final repository = ref.read(activitiesRepositoryProvider);
+        final result = await repository.updateActivity(
+          activityId: activityId,
+          name: name,
+          description: description,
+          lat: lat,
+          long: long,
+          activityTime: activityTime,
+          activityDate: activityDate,
+          activityEndDate: activityEndDate,
+          activityPlace: activityPlace,
+          platform: platform,
+          activityTypeId: activityTypeId,
+          linkMeet: linkMeet,
+          active: active,
+          clearFields: clearFields,
+          clubSectionIds: clubSectionIds,
+          image: image,
+          audience: audience,
+          classes: classes,
+        );
 
-    return result.fold(
-      (failure) {
-        state = state.copyWith(isLoading: false, errorMessage: failure.message);
-        return false;
-      },
-      (activity) {
-        state = state.copyWith(isLoading: false, updatedActivity: activity);
-        // Invalidar los providers para que se recarguen con datos frescos
-        ref.invalidate(clubActivitiesProvider);
-        ref.invalidate(activityDetailProvider(activityId));
-        return true;
-      },
-    );
-  }
+        return result.fold<bool>(
+          (failure) {
+            state =
+                state.copyWith(isLoading: false, errorMessage: failure.message);
+            return false;
+          },
+          (activity) {
+            state = state.copyWith(isLoading: false, updatedActivity: activity);
+            // Invalidar los providers para que se recarguen con datos frescos
+            ref.invalidate(clubActivitiesProvider);
+            ref.invalidate(activityDetailProvider(activityId));
+            return true;
+          },
+        );
+      });
 
   /// Limpia el estado para reutilizar el notifier
   void reset() {
@@ -420,26 +425,30 @@ class ActivityImageUploadNotifier extends AsyncNotifier<String?> {
   Future<bool> upload({
     required int activityId,
     required File imageFile,
-  }) async {
-    state = const AsyncValue.loading();
+  }) =>
+      // Callers only `ref.read` this notifier: keep it alive until the upload
+      // settles (see keepAliveDuring).
+      ref.keepAliveDuring(() async {
+        state = const AsyncValue.loading();
 
-    final result = await ref.read(uploadActivityImageProvider)(
-      UploadActivityImageParams(activityId: activityId, imageFile: imageFile),
-    );
+        final result = await ref.read(uploadActivityImageProvider)(
+          UploadActivityImageParams(
+              activityId: activityId, imageFile: imageFile),
+        );
 
-    return result.fold(
-      (failure) {
-        state = AsyncValue.error(failure.message, StackTrace.current);
-        return false;
-      },
-      (url) {
-        state = AsyncValue.data(url);
-        ref.invalidate(clubActivitiesProvider);
-        ref.invalidate(activityDetailProvider(activityId));
-        return true;
-      },
-    );
-  }
+        return result.fold<bool>(
+          (failure) {
+            state = AsyncValue.error(failure.message, StackTrace.current);
+            return false;
+          },
+          (url) {
+            state = AsyncValue.data(url);
+            ref.invalidate(clubActivitiesProvider);
+            ref.invalidate(activityDetailProvider(activityId));
+            return true;
+          },
+        );
+      });
 }
 
 final activityImageUploadNotifierProvider =

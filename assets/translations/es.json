@@ -5512,7 +5512,10 @@
     "profile": {
       "entry_title": "Mi familia",
       "entry_subtitle": "Registra y administra a los menores a tu cargo",
-      "entry_count": "{count} menores a tu cargo",
+      "entry_count": {
+        "one": "{count} menor a tu cargo",
+        "other": "{count} menores a tu cargo"
+      },
       "switch_title": "Cambiar de perfil",
       "switch_subtitle": "Ver y completar el perfil de un menor"
     },

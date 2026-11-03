@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
+import '../../../../core/providers/keep_alive_during.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -287,150 +288,156 @@ class TransactionFormNotifier extends Notifier<TransactionFormState> {
     required int year,
     required int month,
     int? existingId, // non-null → update
-  }) async {
-    state = state.copyWith(
-      isLoading: true,
-      errorMessage: null,
-      success: false,
-      clearSavedTransaction: true,
-    );
+  }) =>
+      // Callers only `ref.read` this notifier: keep it alive until the request
+      // settles (see keepAliveDuring).
+      ref.keepAliveDuring(() async {
+        state = state.copyWith(
+          isLoading: true,
+          errorMessage: null,
+          success: false,
+          clearSavedTransaction: true,
+        );
 
-    if (existingId != null) {
-      // Update — backend only accepts amount, description, finance_category_id,
-      // finance_date, post_closing_note. No notes field.
-      final result = await ref.read(updateTransactionUseCaseProvider)(
-        UpdateTransactionParams(
-          financeId: existingId,
-          categoryId: categoryId,
-          amount: amount,
-          description: description,
-        ),
-      );
-
-      return result.fold(
-        (failure) {
-          state =
-              state.copyWith(isLoading: false, errorMessage: failure.message);
-          return false;
-        },
-        (transaction) {
-          state = state.copyWith(
-            isLoading: false,
-            success: true,
-            savedTransaction: transaction,
+        if (existingId != null) {
+          // Update — backend only accepts amount, description, finance_category_id,
+          // finance_date, post_closing_note. No notes field.
+          final result = await ref.read(updateTransactionUseCaseProvider)(
+            UpdateTransactionParams(
+              financeId: existingId,
+              categoryId: categoryId,
+              amount: amount,
+              description: description,
+            ),
           );
-          ref.invalidate(financeMonthProvider);
-          ref.invalidate(financeSummaryProvider);
-          ref.invalidate(transactionDetailProvider(existingId));
-          return true;
-        },
-      );
-    } else {
-      // Create — resolve club_section_id and club_type_id from ClubContext.
-      final clubContext = await ref.read(clubContextProvider.future);
-      final clubSectionId = clubContext?.sectionId ?? 0;
-      final clubTypeId = _clubTypeIdFromName(clubContext?.clubTypeName);
 
-      final result = await ref.read(createTransactionUseCaseProvider)(
-        CreateTransactionParams(
-          clubId: clubId,
-          categoryId: categoryId,
-          amount: amount,
-          description: description,
-          date: date,
-          year: year,
-          month: month,
-          clubSectionId: clubSectionId,
-          clubTypeId: clubTypeId,
-        ),
-      );
-
-      return result.fold(
-        (failure) {
-          state =
-              state.copyWith(isLoading: false, errorMessage: failure.message);
-          return false;
-        },
-        (transaction) {
-          state = state.copyWith(
-            isLoading: false,
-            success: true,
-            savedTransaction: transaction,
+          return result.fold<bool>(
+            (failure) {
+              state = state.copyWith(
+                  isLoading: false, errorMessage: failure.message);
+              return false;
+            },
+            (transaction) {
+              state = state.copyWith(
+                isLoading: false,
+                success: true,
+                savedTransaction: transaction,
+              );
+              ref.invalidate(financeMonthProvider);
+              ref.invalidate(financeSummaryProvider);
+              ref.invalidate(transactionDetailProvider(existingId));
+              return true;
+            },
           );
-          ref.invalidate(financeMonthProvider);
-          ref.invalidate(financeSummaryProvider);
-          return true;
-        },
-      );
-    }
-  }
+        } else {
+          // Create — resolve club_section_id and club_type_id from ClubContext.
+          final clubContext = await ref.read(clubContextProvider.future);
+          final clubSectionId = clubContext?.sectionId ?? 0;
+          final clubTypeId = _clubTypeIdFromName(clubContext?.clubTypeName);
 
-  Future<bool> delete({required int financeId}) async {
-    state = state.copyWith(
-      isLoading: true,
-      errorMessage: null,
-      success: false,
-      clearSavedTransaction: true,
-    );
+          final result = await ref.read(createTransactionUseCaseProvider)(
+            CreateTransactionParams(
+              clubId: clubId,
+              categoryId: categoryId,
+              amount: amount,
+              description: description,
+              date: date,
+              year: year,
+              month: month,
+              clubSectionId: clubSectionId,
+              clubTypeId: clubTypeId,
+            ),
+          );
 
-    final result = await ref.read(deleteTransactionUseCaseProvider)(
-      financeId: financeId,
-    );
+          return result.fold<bool>(
+            (failure) {
+              state = state.copyWith(
+                  isLoading: false, errorMessage: failure.message);
+              return false;
+            },
+            (transaction) {
+              state = state.copyWith(
+                isLoading: false,
+                success: true,
+                savedTransaction: transaction,
+              );
+              ref.invalidate(financeMonthProvider);
+              ref.invalidate(financeSummaryProvider);
+              return true;
+            },
+          );
+        }
+      });
 
-    return result.fold(
-      (failure) {
-        state = state.copyWith(isLoading: false, errorMessage: failure.message);
-        return false;
-      },
-      (_) {
-        state = state.copyWith(isLoading: false, success: true);
-        ref.invalidate(financeMonthProvider);
-        ref.invalidate(financeSummaryProvider);
-        ref.invalidate(transactionDetailProvider(financeId));
-        return true;
-      },
-    );
-  }
+  Future<bool> delete({required int financeId}) =>
+      ref.keepAliveDuring(() async {
+        state = state.copyWith(
+          isLoading: true,
+          errorMessage: null,
+          success: false,
+          clearSavedTransaction: true,
+        );
+
+        final result = await ref.read(deleteTransactionUseCaseProvider)(
+          financeId: financeId,
+        );
+
+        return result.fold<bool>(
+          (failure) {
+            state =
+                state.copyWith(isLoading: false, errorMessage: failure.message);
+            return false;
+          },
+          (_) {
+            state = state.copyWith(isLoading: false, success: true);
+            ref.invalidate(financeMonthProvider);
+            ref.invalidate(financeSummaryProvider);
+            ref.invalidate(transactionDetailProvider(financeId));
+            return true;
+          },
+        );
+      });
 
   Future<bool> uploadEvidence({
     required int financeId,
     required String filePath,
     required String fileName,
     required String mimeType,
-  }) async {
-    state = state.copyWith(
-      isLoading: true,
-      errorMessage: null,
-      success: false,
-    );
-
-    final result = await ref.read(uploadFinanceEvidenceUseCaseProvider)(
-      UploadFinanceEvidenceParams(
-        financeId: financeId,
-        filePath: filePath,
-        fileName: fileName,
-        mimeType: mimeType,
-      ),
-    );
-
-    return result.fold(
-      (failure) {
+  }) =>
+      ref.keepAliveDuring(() async {
         state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
+          isLoading: true,
+          errorMessage: null,
           success: false,
         );
-        return false;
-      },
-      (_) {
-        state = state.copyWith(isLoading: false, success: true);
-        ref.invalidate(financeMonthProvider);
-        ref.invalidate(financeSummaryProvider);
-        ref.invalidate(transactionDetailProvider(financeId));
-        return true;
-      },
-    );
-  }
+
+        final result = await ref.read(uploadFinanceEvidenceUseCaseProvider)(
+          UploadFinanceEvidenceParams(
+            financeId: financeId,
+            filePath: filePath,
+            fileName: fileName,
+            mimeType: mimeType,
+          ),
+        );
+
+        return result.fold<bool>(
+          (failure) {
+            state = state.copyWith(
+              isLoading: false,
+              errorMessage: failure.message,
+              success: false,
+            );
+            return false;
+          },
+          (_) {
+            state = state.copyWith(isLoading: false, success: true);
+            ref.invalidate(financeMonthProvider);
+            ref.invalidate(financeSummaryProvider);
+            ref.invalidate(transactionDetailProvider(financeId));
+            return true;
+          },
+        );
+      });
 
   void reset() => state = const TransactionFormState();
 }

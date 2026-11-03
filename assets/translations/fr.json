@@ -5510,7 +5510,10 @@
     "profile": {
       "entry_title": "Ma famille",
       "entry_subtitle": "Inscrivez et gérez les mineurs sous votre responsabilité",
-      "entry_count": "{count} mineurs sous votre responsabilité",
+      "entry_count": {
+        "one": "{count} mineur sous votre responsabilité",
+        "other": "{count} mineurs sous votre responsabilité"
+      },
       "switch_title": "Changer de profil",
       "switch_subtitle": "Voir et compléter le profil d'un mineur"
     },

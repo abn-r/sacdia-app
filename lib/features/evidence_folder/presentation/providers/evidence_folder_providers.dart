@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/providers/keep_alive_during.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/datasources/evidence_folder_remote_data_source.dart';
@@ -231,76 +232,78 @@ class EvidenceSectionNotifier extends Notifier<SectionOperationState> {
   /// Envía la carpeta completa a validación.
   ///
   /// AnnualFolders opera sobre carpeta completa — no por sección individual.
-  Future<bool> submitFolder() async {
-    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+  Future<bool> submitFolder() => ref.keepAliveDuring(() async {
+        state =
+            state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final String folderId;
-    try {
-      folderId = _resolveFolderId();
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: e.toString(),
-      );
-      return false;
-    }
+        final String folderId;
+        try {
+          folderId = _resolveFolderId();
+        } catch (e) {
+          state = state.copyWith(
+            isLoading: false,
+            errorMessage: e.toString(),
+          );
+          return false;
+        }
 
-    final result = await ref.read(submitFolderUseCaseProvider)(
-      SubmitFolderParams(folderId: folderId),
-    );
-
-    return result.fold(
-      (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
+        final result = await ref.read(submitFolderUseCaseProvider)(
+          SubmitFolderParams(folderId: folderId),
         );
-        return false;
-      },
-      (_) {
-        state = state.copyWith(isLoading: false, success: true);
-        ref.invalidate(evidenceFolderProvider(_clubSectionId));
-        return true;
-      },
-    );
-  }
+
+        return result.fold<bool>(
+          (failure) {
+            state = state.copyWith(
+              isLoading: false,
+              errorMessage: failure.message,
+            );
+            return false;
+          },
+          (_) {
+            state = state.copyWith(isLoading: false, success: true);
+            ref.invalidate(evidenceFolderProvider(_clubSectionId));
+            return true;
+          },
+        );
+      });
 
   /// Envía una sección individual a validación.
   ///
   /// [sectionId] es el UUID de la sección dentro de la Carpeta Anual de Evidencias.
-  Future<bool> submitSection(String sectionId) async {
-    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+  Future<bool> submitSection(String sectionId) => ref.keepAliveDuring(() async {
+        state =
+            state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final String folderId;
-    try {
-      folderId = _resolveFolderId();
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: e.toString(),
-      );
-      return false;
-    }
+        final String folderId;
+        try {
+          folderId = _resolveFolderId();
+        } catch (e) {
+          state = state.copyWith(
+            isLoading: false,
+            errorMessage: e.toString(),
+          );
+          return false;
+        }
 
-    final result = await ref.read(submitSectionUseCaseProvider)(
-      SubmitSectionParams(folderId: folderId, sectionId: sectionId),
-    );
-
-    return result.fold(
-      (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
+        final result = await ref.read(submitSectionUseCaseProvider)(
+          SubmitSectionParams(folderId: folderId, sectionId: sectionId),
         );
-        return false;
-      },
-      (_) {
-        state = state.copyWith(isLoading: false, success: true);
-        ref.invalidate(evidenceFolderProvider(_clubSectionId));
-        return true;
-      },
-    );
-  }
+
+        return result.fold<bool>(
+          (failure) {
+            state = state.copyWith(
+              isLoading: false,
+              errorMessage: failure.message,
+            );
+            return false;
+          },
+          (_) {
+            state = state.copyWith(isLoading: false, success: true);
+            ref.invalidate(evidenceFolderProvider(_clubSectionId));
+            return true;
+          },
+        );
+      });
 
   /// Sube un archivo a la sección indicada.
   ///
@@ -316,75 +319,79 @@ class EvidenceSectionNotifier extends Notifier<SectionOperationState> {
     String? notes,
     void Function(double)? onProgress,
     bool skipInvalidation = false,
-  }) async {
-    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+  }) =>
+      ref.keepAliveDuring(() async {
+        state =
+            state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final String folderId;
-    try {
-      folderId = _resolveFolderId();
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: e.toString(),
-      );
-      return false;
-    }
-
-    final result = await ref.read(uploadEvidenceFileUseCaseProvider)(
-      UploadEvidenceFileParams(
-        folderId: folderId,
-        sectionId: sectionId,
-        filePath: pickedFile.path,
-        fileName: pickedFile.name,
-        mimeType: mimeType,
-        notes: notes,
-        onProgress: onProgress,
-      ),
-    );
-
-    return result.fold(
-      (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-        );
-        return false;
-      },
-      (_) {
-        state = state.copyWith(isLoading: false, success: true);
-        if (!skipInvalidation) {
-          ref.invalidate(evidenceFolderProvider(_clubSectionId));
+        final String folderId;
+        try {
+          folderId = _resolveFolderId();
+        } catch (e) {
+          state = state.copyWith(
+            isLoading: false,
+            errorMessage: e.toString(),
+          );
+          return false;
         }
-        return true;
-      },
-    );
-  }
+
+        final result = await ref.read(uploadEvidenceFileUseCaseProvider)(
+          UploadEvidenceFileParams(
+            folderId: folderId,
+            sectionId: sectionId,
+            filePath: pickedFile.path,
+            fileName: pickedFile.name,
+            mimeType: mimeType,
+            notes: notes,
+            onProgress: onProgress,
+          ),
+        );
+
+        return result.fold<bool>(
+          (failure) {
+            state = state.copyWith(
+              isLoading: false,
+              errorMessage: failure.message,
+            );
+            return false;
+          },
+          (_) {
+            state = state.copyWith(isLoading: false, success: true);
+            if (!skipInvalidation) {
+              ref.invalidate(evidenceFolderProvider(_clubSectionId));
+            }
+            return true;
+          },
+        );
+      });
 
   /// Elimina un archivo de evidencia.
   ///
   /// [fileId] es el evidence_id UUID del archivo a eliminar.
-  Future<bool> deleteFile({required String fileId}) async {
-    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+  Future<bool> deleteFile({required String fileId}) =>
+      ref.keepAliveDuring(() async {
+        state =
+            state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final result = await ref.read(deleteEvidenceFileUseCaseProvider)(
-      DeleteEvidenceFileParams(evidenceId: fileId),
-    );
-
-    return result.fold(
-      (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
+        final result = await ref.read(deleteEvidenceFileUseCaseProvider)(
+          DeleteEvidenceFileParams(evidenceId: fileId),
         );
-        return false;
-      },
-      (_) {
-        state = state.copyWith(isLoading: false, success: true);
-        ref.invalidate(evidenceFolderProvider(_clubSectionId));
-        return true;
-      },
-    );
-  }
+
+        return result.fold<bool>(
+          (failure) {
+            state = state.copyWith(
+              isLoading: false,
+              errorMessage: failure.message,
+            );
+            return false;
+          },
+          (_) {
+            state = state.copyWith(isLoading: false, success: true);
+            ref.invalidate(evidenceFolderProvider(_clubSectionId));
+            return true;
+          },
+        );
+      });
 
   /// Limpia el estado de error / éxito.
   void reset() => state = const SectionOperationState();
