@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/providers/keep_alive_during.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../data/datasources/post_registration_remote_data_source.dart';
@@ -40,27 +41,33 @@ class ProfilePhotoUploadNotifier extends AsyncNotifier<String?> {
   Future<bool> upload({
     required String userId,
     required String filePath,
-  }) async {
-    ref.read(isUploadingPhotoProvider.notifier).state = true;
-    state = const AsyncValue.loading();
+  }) =>
+      // Callers only `ref.read` this notifier: keep it alive until the upload
+      // settles (see keepAliveDuring).
+      ref.keepAliveDuring(() async {
+        ref.read(isUploadingPhotoProvider.notifier).state = true;
+        state = const AsyncValue.loading();
 
-    final result = await ref.read(uploadProfilePictureProvider)(
-      UploadProfilePictureParams(userId: userId, filePath: filePath),
-    );
+        try {
+          final result = await ref.read(uploadProfilePictureProvider)(
+            UploadProfilePictureParams(userId: userId, filePath: filePath),
+          );
 
-    ref.read(isUploadingPhotoProvider.notifier).state = false;
-
-    return result.fold(
-      (failure) {
-        state = AsyncValue.error(failure.message, StackTrace.current);
-        return false;
-      },
-      (url) {
-        state = AsyncValue.data(url);
-        return true;
-      },
-    );
-  }
+          return result.fold<bool>(
+            (failure) {
+              state = AsyncValue.error(failure.message, StackTrace.current);
+              return false;
+            },
+            (url) {
+              state = AsyncValue.data(url);
+              return true;
+            },
+          );
+        } finally {
+          // Always clear the flag: a stuck `true` leaves the spinner on.
+          ref.read(isUploadingPhotoProvider.notifier).state = false;
+        }
+      });
 }
 
 /// Provider para upload de foto de perfil.
