@@ -457,9 +457,10 @@ class PushNotificationService {
       return;
     }
 
-    // Legacy registration (pre-FID install), to be removed once the FID is in.
+    // Previous registration to remove once the new FID is in: a legacy token
+    // (pre-FID install) or an older FID that rotated.
     final savedId = await _secureStorage.read(key: _tokenIdPrefKey);
-    final hadLegacy = savedKind == _kindToken &&
+    final hadPrevious = savedToken != fid &&
         ((savedToken != null && savedToken.isNotEmpty) ||
             (savedId != null && savedId.isNotEmpty));
 
@@ -498,8 +499,8 @@ class PushNotificationService {
             tag: _tag);
       }
 
-      if (hadLegacy) {
-        await _removeLegacyRegistration(
+      if (hadPrevious) {
+        await _removePreviousRegistration(
           token: savedToken,
           tokenId: savedId,
           newTokenId: tokenId,
@@ -516,9 +517,10 @@ class PushNotificationService {
     }
   }
 
-  /// Borra en el backend el registro del token FCM legacy una vez que el FID
-  /// quedó registrado, para que la fila vieja no siga acumulándose. Best-effort.
-  Future<void> _removeLegacyRegistration({
+  /// Borra en el backend el registro anterior (token FCM legacy o un FID que
+  /// rotó) una vez que el FID nuevo quedó registrado, para que la fila vieja no
+  /// siga acumulándose. Best-effort.
+  Future<void> _removePreviousRegistration({
     required String? token,
     required String? tokenId,
     required String? newTokenId,
@@ -531,9 +533,9 @@ class PushNotificationService {
       } else if (token != null && token.isNotEmpty) {
         await _dio.delete('/fcm-tokens/by-token', data: {'token': token});
       }
-      AppLogger.i('Token FCM legacy desregistrado', tag: _tag);
+      AppLogger.i('Registro FCM anterior desregistrado', tag: _tag);
     } catch (e) {
-      AppLogger.w('No se pudo desregistrar el token FCM legacy',
+      AppLogger.w('No se pudo desregistrar el registro FCM anterior',
           tag: _tag, error: e);
     }
   }

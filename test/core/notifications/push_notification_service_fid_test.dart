@@ -172,8 +172,9 @@ void main() {
       expect(adapter.where('POST'), hasLength(1));
     });
 
-    test('a different FID is POSTed again and replaces the stored one',
-        () async {
+    test(
+        'a rotated FID is POSTed, replaces the stored one and the old FID row '
+        'is removed', () async {
       build();
       await start();
 
@@ -183,7 +184,9 @@ void main() {
       expect(adapter.where('POST'), hasLength(2));
       expect(await storage.read(key: 'fcm_registered_token'), 'fid-2');
       expect(await storage.read(key: 'fcm_registered_token_id'), 'row-2');
-      expect(adapter.where('DELETE'), isEmpty);
+      final deletes = adapter.where('DELETE').toList();
+      expect(deletes, hasLength(1));
+      expect(deletes.single.path, '/users/me/fcm-tokens/row-1');
     });
 
     test('a failed POST stores nothing and a later emission retries', () async {
