@@ -4,6 +4,7 @@ import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/fixed_input_icon_slot.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Item seleccionable con checkbox
 class SelectableItem {
@@ -166,7 +167,7 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
                     )
                   : null,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSM),
               ),
               filled: true,
               fillColor: context.sac.surfaceVariant,
@@ -195,7 +196,7 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
                       Text(
                         tr('common.no_results'),
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: SacFontSize.titleMedium,
                           color: context.sac.textSecondary,
                         ),
                       ),
@@ -246,7 +247,7 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
               Text(
                 _getSelectionCountText(),
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: SacFontSize.titleSmall,
                   color: context.sac.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),

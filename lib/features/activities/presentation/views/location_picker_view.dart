@@ -421,7 +421,7 @@ class _FloatingAppBar extends StatelessWidget {
                     Text(
                       'activities.location_picker.search_hint'.tr(),
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: SacFontSize.titleSmall,
                         color: c.textTertiary,
                       ),
                     ),
@@ -471,7 +471,7 @@ class _CenterPin extends StatelessWidget {
             height: 4,
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.25),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
           ),
         ],
@@ -505,7 +505,8 @@ class _LocationBottomCard extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + bottomPadding),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppTheme.radiusLG)),
         boxShadow: [
           BoxShadow(
             color: c.shadow,
@@ -525,7 +526,7 @@ class _LocationBottomCard extends StatelessWidget {
               height: 4,
               decoration: BoxDecoration(
                 color: c.border,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
               ),
             ),
           ),
@@ -535,7 +536,7 @@ class _LocationBottomCard extends StatelessWidget {
           Text(
             'activities.location_picker.selected_location'.tr(),
             style: TextStyle(
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               fontWeight: FontWeight.w600,
               color: c.textSecondary,
               letterSpacing: 0.5,
@@ -551,7 +552,7 @@ class _LocationBottomCard extends StatelessWidget {
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
                   color: SacAccent.of(context).light,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 ),
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedLocation01,
@@ -570,7 +571,7 @@ class _LocationBottomCard extends StatelessWidget {
                       Text(
                         address,
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: SacFontSize.titleMedium,
                           fontWeight: FontWeight.w600,
                           color: c.text,
                           height: 1.3,
@@ -580,7 +581,7 @@ class _LocationBottomCard extends StatelessWidget {
                     Text(
                       '${lat.toStringAsFixed(5)}, ${long.toStringAsFixed(5)}',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: SacFontSize.bodySmall,
                         color: c.textTertiary,
                         fontFeatures: const [FontFeature.tabularFigures()],
                       ),
@@ -596,7 +597,7 @@ class _LocationBottomCard extends StatelessWidget {
           SacButton.primary(
             text: 'activities.location_picker.confirm_button'.tr(),
             icon: HugeIcons.strokeRoundedTick02,
-            fontSize: 16,
+            fontSize: SacFontSize.titleMedium,
             onPressed: isLoading ? null : onConfirm,
           ),
         ],
@@ -703,7 +704,7 @@ class _ShimmerLineState extends State<_ShimmerLine>
         height: widget.height,
         decoration: BoxDecoration(
           color: c.border.withValues(alpha: _anim.value),
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(AppTheme.radius2XS),
         ),
       ),
     );
@@ -920,7 +921,7 @@ class _LocationSearchDelegate extends SearchDelegate<LocationSearchResult?> {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: SacAccent.of(context).light,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                   ),
                   child: HugeIcon(
                     icon: HugeIcons.strokeRoundedLocation01,
@@ -933,7 +934,7 @@ class _LocationSearchDelegate extends SearchDelegate<LocationSearchResult?> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: SacFontSize.titleMedium,
                     fontWeight: FontWeight.w500,
                     color: c.text,
                   ),
@@ -943,7 +944,9 @@ class _LocationSearchDelegate extends SearchDelegate<LocationSearchResult?> {
                         subtitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 12, color: c.textSecondary),
+                        style: TextStyle(
+                            fontSize: SacFontSize.bodySmall,
+                            color: c.textSecondary),
                       )
                     : null,
                 onTap: () {
@@ -994,7 +997,7 @@ class _SearchEmptyHint extends StatelessWidget {
           Text(
             'activities.location_picker.search_empty_title'.tr(),
             style: TextStyle(
-              fontSize: 18,
+              fontSize: SacFontSize.headlineSmall,
               fontWeight: FontWeight.bold,
               color: c.text,
             ),
@@ -1004,7 +1007,7 @@ class _SearchEmptyHint extends StatelessWidget {
             'activities.location_picker.search_empty_body'.tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: SacFontSize.titleSmall,
               color: c.textSecondary,
               height: 1.4,
             ),
@@ -1014,7 +1017,7 @@ class _SearchEmptyHint extends StatelessWidget {
             'activities.location_picker.search_empty_tip'.tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               color: c.textTertiary,
               height: 1.4,
             ),
@@ -1065,7 +1068,7 @@ class _SearchStatusMessage extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: SacFontSize.titleMedium,
               fontWeight: FontWeight.bold,
               color: c.text,
             ),
@@ -1075,7 +1078,7 @@ class _SearchStatusMessage extends StatelessWidget {
             subtitle,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               color: c.textSecondary,
               height: 1.4,
             ),

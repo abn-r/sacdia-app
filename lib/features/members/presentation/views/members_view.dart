@@ -35,6 +35,7 @@ import 'consent_verification_view.dart';
 import 'member_profile_view.dart';
 import 'role_assignment_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// The mode the members screen shows. Without `club_members:approve` only
 /// the member list (mode 0) exists; a verify-only reviewer (`consent:verify`)
@@ -489,7 +490,8 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
             padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 8),
             child: Text(
               'members.view.verify_only_hint'.tr(),
-              style: TextStyle(fontSize: 12, color: c.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.bodySmall, color: c.textSecondary),
             ),
           ),
         ColoredBox(
@@ -769,7 +771,7 @@ class _ErrorState extends StatelessWidget {
             Text(
               'members.view.load_error'.tr(),
               style: TextStyle(
-                fontSize: 16,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.w600,
                 color: c.text,
               ),
@@ -777,7 +779,8 @@ class _ErrorState extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               message,
-              style: TextStyle(fontSize: 13, color: c.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
             if (onRetry != null) ...[
@@ -815,7 +818,7 @@ class _NoClubState extends StatelessWidget {
             Text(
               'members.view.no_club_title'.tr(),
               style: TextStyle(
-                fontSize: 17,
+                fontSize: SacFontSize.titleLarge,
                 fontWeight: FontWeight.w600,
                 color: c.text,
               ),
@@ -824,7 +827,7 @@ class _NoClubState extends StatelessWidget {
             Text(
               'members.view.no_club_subtitle'.tr(),
               style: TextStyle(
-                fontSize: 14,
+                fontSize: SacFontSize.titleSmall,
                 color: c.textSecondary,
               ),
               textAlign: TextAlign.center,
@@ -876,7 +879,7 @@ class _JoinRequestSearchBarState extends State<_JoinRequestSearchBar> {
         Container(
           decoration: BoxDecoration(
             color: c.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             border: Border.all(color: c.border),
           ),
           child: TextField(
@@ -884,10 +887,11 @@ class _JoinRequestSearchBarState extends State<_JoinRequestSearchBar> {
             onChanged: (value) {
               widget.onFiltersChanged(filters.copyWith(searchQuery: value));
             },
-            style: TextStyle(fontSize: 14, color: c.text),
+            style: TextStyle(fontSize: SacFontSize.titleSmall, color: c.text),
             decoration: InputDecoration(
               hintText: 'members.view.search_requests_hint'.tr(),
-              hintStyle: TextStyle(color: c.textTertiary, fontSize: 14),
+              hintStyle: TextStyle(
+                  color: c.textTertiary, fontSize: SacFontSize.titleSmall),
               prefixIconConstraints: FixedInputIconSlot.constraints,
               prefixIcon: FixedInputIconSlot(
                 icon: HugeIcons.strokeRoundedSearch01,

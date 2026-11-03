@@ -31,6 +31,7 @@ import '../widgets/activity_virtual_attendance.dart';
 import '../widgets/activity_virtual_banner.dart';
 import 'edit_activity_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Activity detail screen — consolidated layout (revised 2026-04).
 ///
@@ -244,12 +245,12 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
               decoration: BoxDecoration(
                 color: typeColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
               ),
               child: Text(
                 typeText,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: SacFontSize.bodySmall,
                   fontWeight: FontWeight.w700,
                   color: typeColor,
                   height: 1.2,
@@ -260,7 +261,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
               decoration: BoxDecoration(
                 color: platColor.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 border: Border.all(
                   color: platColor.withValues(alpha: 0.35),
                   width: 1,
@@ -269,7 +270,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
               child: Text(
                 platText,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: SacFontSize.bodySmall,
                   fontWeight: FontWeight.w700,
                   color: platColor,
                   height: 1.2,
@@ -281,12 +282,12 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                 decoration: BoxDecoration(
                   color: AppColors.secondaryLight,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 ),
                 child: Text(
                   'activities.series.badge'.tr(),
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: SacFontSize.bodySmall,
                     fontWeight: FontWeight.w700,
                     color: AppColors.secondaryDark,
                     height: 1.2,
@@ -363,7 +364,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                     ? 'activities.detail.see_less'.tr()
                     : 'activities.detail.see_more'.tr(),
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   fontWeight: FontWeight.w600,
                   color: SacAccent.of(context).color,
                 ),
@@ -382,7 +383,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: sac.surfaceVariant,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: sac.border),
       ),
       child: Row(
@@ -804,12 +805,12 @@ class _ActivityActionCard extends StatelessWidget {
       color: Colors.transparent,
       child: SacInkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: fill,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             border: Border.all(color: border),
           ),
           child: Row(

@@ -14,6 +14,7 @@ import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
 import 'package:sacdia_app/features/units/presentation/providers/units_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 class _QuickAccessItemConfig {
   /// Translation key resolved at render time via tr(labelKey).
@@ -298,7 +299,7 @@ class _QuickAccessSkeleton extends StatelessWidget {
           width: 120,
           decoration: BoxDecoration(
             color: shimmerColor,
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(AppTheme.radius2XS),
           ),
         ),
         const SizedBox(height: 12),
@@ -362,7 +363,7 @@ class _QuickAccessTile extends StatelessWidget {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: effectiveColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSM),
               ),
               child: HugeIcon(
                 icon: item.icon,
@@ -374,7 +375,7 @@ class _QuickAccessTile extends StatelessWidget {
             Text(
               tr(item.labelKey),
               style: TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w600,
                 color: c.text,
                 height: 1.3,

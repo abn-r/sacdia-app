@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Horizontal category filter chip for the honors catalog.
 ///
@@ -44,13 +45,13 @@ class HonorCategoryChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? chipColor : context.sac.surfaceVariant,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXS),
           border: Border.all(color: borderColor, width: isSelected ? 1.2 : 0),
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: SacFontSize.bodyMedium,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
             color: isSelected ? activeTextColor : context.sac.textSecondary,
           ),

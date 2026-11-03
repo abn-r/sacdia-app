@@ -11,6 +11,7 @@ import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 class CamporeeSectionRegistrationSheet extends ConsumerStatefulWidget {
   final Camporee camporee;
@@ -141,7 +142,7 @@ class _CamporeeSectionRegistrationSheetState
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: colors.info.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   border: Border.all(
                     color: colors.info.withValues(alpha: 0.24),
                   ),
@@ -182,7 +183,7 @@ class _CamporeeSectionRegistrationSheetState
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: colors.surfaceVariant,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                       border: Border.all(color: colors.error),
                     ),
                     child: Row(
@@ -275,7 +276,7 @@ class _ConfirmationFacts extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: context.sac.surfaceVariant,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: context.sac.border),
       ),
       child: Column(

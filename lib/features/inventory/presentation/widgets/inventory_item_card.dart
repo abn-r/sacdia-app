@@ -140,7 +140,8 @@ class _CardContent extends StatelessWidget {
                             horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: SacAccent.of(context).surface,
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radius2XS),
                         ),
                         child: Text(
                           item.category.name,
@@ -148,7 +149,7 @@ class _CardContent extends StatelessWidget {
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: SacAccent.of(context).dark,
                                     fontWeight: FontWeight.w600,
-                                    fontSize: 10,
+                                    fontSize: SacFontSize.caption,
                                   ),
                         ),
                       ),
@@ -173,7 +174,7 @@ class _CardContent extends StatelessWidget {
                             .tr(namedArgs: {'count': '${item.quantity}'}),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: c.textSecondary,
-                              fontSize: 11,
+                              fontSize: SacFontSize.labelSmall,
                             ),
                       ),
                       if (item.location != null &&
@@ -191,7 +192,7 @@ class _CardContent extends StatelessWidget {
                             style:
                                 Theme.of(context).textTheme.bodySmall?.copyWith(
                                       color: c.textSecondary,
-                                      fontSize: 11,
+                                      fontSize: SacFontSize.labelSmall,
                                     ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -205,7 +206,7 @@ class _CardContent extends StatelessWidget {
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: AppColors.accent,
-                                    fontSize: 11,
+                                    fontSize: SacFontSize.labelSmall,
                                     fontWeight: FontWeight.w600,
                                   ),
                         ),
@@ -280,7 +281,7 @@ class _Placeholder extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         color: SacAccent.of(context).surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       ),
       child: Center(
         child: HugeIcon(
@@ -330,7 +331,7 @@ class _SwipeBackground extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: SacFontSize.labelSmall,
               fontWeight: FontWeight.w700,
               color: labelColor,
             ),

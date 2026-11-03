@@ -20,6 +20,7 @@ import '../sheets/evidence_status_history_sheet.dart';
 import '../widgets/section_status_badge.dart';
 
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista de detalle de una sección de evidencias.
 ///
@@ -388,7 +389,7 @@ class _SectionMetaCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: c.surfaceVariant,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border),
       ),
       child: Column(
@@ -470,7 +471,7 @@ class _MetaItem extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   fontWeight: FontWeight.w500,
                   color: context.sac.textTertiary,
                 ),
@@ -482,7 +483,7 @@ class _MetaItem extends StatelessWidget {
         Text(
           value,
           style: TextStyle(
-            fontSize: 18,
+            fontSize: SacFontSize.headlineSmall,
             fontWeight: FontWeight.w700,
             color: color,
           ),
@@ -520,13 +521,13 @@ class _EvidenceStatusChip extends StatelessWidget {
       ),
       child: SacInkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
             color: bgColor,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             border: Border.all(color: borderColor, width: 1),
           ),
           child: Row(
@@ -537,7 +538,7 @@ class _EvidenceStatusChip extends StatelessWidget {
               Text(
                 _label,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   fontWeight: FontWeight.w600,
                   color: textColor,
                 ),
@@ -651,7 +652,7 @@ class _EvaluationResultCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.secondaryLight,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: AppColors.secondary.withValues(alpha: 0.4)),
       ),
       child: Column(
@@ -664,7 +665,7 @@ class _EvaluationResultCard extends StatelessWidget {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: AppColors.secondary.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 ),
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedStar,
@@ -679,7 +680,7 @@ class _EvaluationResultCard extends StatelessWidget {
                   Text(
                     'evidence_folder.earned_points'.tr(),
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: SacFontSize.labelSmall,
                       fontWeight: FontWeight.w500,
                       color: c.textSecondary,
                     ),
@@ -687,7 +688,7 @@ class _EvaluationResultCard extends StatelessWidget {
                   Text(
                     '${section.earnedPoints} / ${section.pointValue}',
                     style: const TextStyle(
-                      fontSize: 20,
+                      fontSize: SacFontSize.headlineMedium,
                       fontWeight: FontWeight.w800,
                       color: AppColors.secondaryDark,
                     ),
@@ -776,7 +777,7 @@ class _EvaluationResultCard extends StatelessWidget {
             Text(
               'evidence_folder.evaluator_notes'.tr(),
               style: TextStyle(
-                fontSize: 11,
+                fontSize: SacFontSize.labelSmall,
                 fontWeight: FontWeight.w600,
                 color: c.textSecondary,
               ),
@@ -877,7 +878,7 @@ class _ReviewerNoteCalloutState extends State<_ReviewerNoteCallout> {
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
         border: Border.all(color: borderColor),
       ),
       child: Column(
@@ -899,7 +900,7 @@ class _ReviewerNoteCalloutState extends State<_ReviewerNoteCallout> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: SacFontSize.labelSmall,
                     fontWeight: FontWeight.w600,
                     color: labelColor,
                   ),
@@ -914,7 +915,7 @@ class _ReviewerNoteCalloutState extends State<_ReviewerNoteCallout> {
             maxLines: _expanded ? null : 3,
             overflow: _expanded ? null : TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               fontWeight: FontWeight.w400,
               color: noteColor,
               height: 1.45,
@@ -926,7 +927,7 @@ class _ReviewerNoteCalloutState extends State<_ReviewerNoteCallout> {
             text: widget.file.reviewerNote!,
             expanded: _expanded,
             textStyle: TextStyle(
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               fontWeight: FontWeight.w400,
               color: noteColor,
               height: 1.45,
@@ -983,7 +984,7 @@ class _ExpandToggle extends StatelessWidget {
                   ? 'evidence_folder.show_less'.tr()
                   : 'evidence_folder.show_more'.tr(),
               style: TextStyle(
-                fontSize: 11,
+                fontSize: SacFontSize.labelSmall,
                 fontWeight: FontWeight.w600,
                 color: toggleColor,
                 decoration: TextDecoration.underline,

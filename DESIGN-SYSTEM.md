@@ -5,9 +5,19 @@
 > Do NOT invent new patterns — if something is inconsistent across screens, this doc
 > explicitly calls it out and recommends the canonical path.
 
-> **Last audited: 2026-04-16**
+> **DS v2 — 2026-11-03**
 > Design identity: "Scout Vibrante" — Duolingo gamification + Apple Health minimalism.
 > White backgrounds, vibrant accents, progress as protagonist.
+
+### v2 changelog (2026-11-03)
+
+The app's screens had settled on a style that differed from what v1 prescribed. After
+review, the screens' style won: this doc now follows the code, not the other way round.
+
+- **Type scale**: tokens live in `SacFontSize`; `titleLarge` 17, `titleMedium` 15, `bodyLarge` 15, `bodyMedium` 13, `labelSmall` 11 (all were 1px+ larger/smaller). Matches Apple's scale. See §3.
+- **Radius**: cards are 14 (was 16); new `radiusHairline` (2) and `radius2XS` (4). See §4.1.
+- **Color**: the primary color is the user-selected accent (`SacAccent`, default "Azul SACDIA"), no longer fixed coral. Light neutrals use the single ink scale; slate is gone. See §2.
+- **Enforcement**: a guard test blocks literal font sizes, radii and new `Color(0x…)` literals. See §18.
 
 ---
 
@@ -36,14 +46,46 @@
 
 All colors are defined in `lib/core/theme/app_colors.dart`.
 
-### 2.1 Brand Colors
+### 2.1 Brand Colors and the Accent
+
+**The primary color is the user's accent**, not a fixed constant. `SacAccent`
+(`lib/core/theme/sac_accent.dart`) is a `ThemeExtension` registered in the theme;
+`ColorScheme.primary` equals `accent.color`, so `Theme.of(context).colorScheme.primary`
+and `SacAccent.of(context).color` return the same value. Buttons, links, focus
+rings, switches, progress and navigation selection all follow it. The default is
+`SacAccent.logoBlue` ("Azul SACDIA").
+
+```dart
+final accent = SacAccent.of(context);
+accent.color     // main accent: buttons, links, focus
+accent.onColor   // foreground on top of accent.color
+accent.light     // tint for badges, chips, selection (primaryContainer)
+accent.dark      // pressed / secondary-button text (onPrimaryContainer)
+accent.surface   // very subtle selection tint
+```
+
+Accent catalog (`SacAccent.catalog`; the user picks one in Settings):
+
+| Accent | Color | Source |
+|--------|-------|--------|
+| `SacAccent.logoBlue` (default) | `#0B84F0` | `AppColors.loginBrandBlue` |
+| `SacAccent.coral` | `#F06151` | `AppColors.primary` |
+| `SacAccent.aventureros` | `#2EA0DA` | `AppColors.info` |
+| `SacAccent.conquistadores` | `#F06151` | `AppColors.primary` |
+| `SacAccent.guiasMayores` | `#4FBF9F` | `AppColors.secondary` |
+| 15 class accents (`class.*`) | per-class color | `AppColors.color*` (see §2.8) |
+
+Rules:
+- Paint primary actions with the accent (`SacAccent.of(context)` or `colorScheme.primary`), never with the `AppColors.primary` constant. `AppColors.primary` is the fixed coral (also Conquistadores' red) and is only the right choice when you literally mean that coral.
+- `AppColors.primaryLight/primaryDark/primarySurface` below are the coral family's tints. They back `SacAccent.coral`/`conquistadores`; other accents derive their own `light`/`dark`/`surface`.
+- Dark mode and high-contrast adjust the accent through `forBrightness` / `forHighContrast`; do not re-implement that.
 
 | Token | Value | Role |
 |-------|-------|------|
-| `AppColors.primary` | `#F06151` | Primary actions, AppBar title, buttons, links, navigation |
-| `AppColors.primaryLight` | `#FDE8E6` | Badges, chips, selection backgrounds, secondary button bg |
-| `AppColors.primaryDark` | `#D94A3B` | Pressed states, secondary button text |
-| `AppColors.primarySurface` | `#FFF1EF` | Very subtle selection tint |
+| `AppColors.primary` | `#F06151` | Fixed coral: coral accent, Conquistadores red, `coral500` |
+| `AppColors.primaryLight` | `#FDE8E6` | Coral accent's tint (badges, chips, secondary button bg) |
+| `AppColors.primaryDark` | `#D94A3B` | Coral accent's pressed state / secondary button text |
+| `AppColors.primarySurface` | `#FFF1EF` | Coral accent's very subtle selection tint |
 | `AppColors.secondary` | `#4FBF9F` | Success, completed, progress, nature/scout |
 | `AppColors.secondaryLight` | `#E0F5EF` | Success badge background |
 | `AppColors.secondaryDark` | `#2D8A70` | Success text |
@@ -54,17 +96,19 @@ All colors are defined in `lib/core/theme/app_colors.dart`.
 | `AppColors.errorLight` | `#FEE2E2` | Error badge background |
 | `AppColors.errorDark` | `#991B1B` | Error text |
 
-### 2.1b Login brand — `logo-sacdia.png`
+### 2.1b Logo brand — `logo-sacdia.png`
 
-Exclusive to splash/login. Do **not** replace coral `primary` in the rest of the app.
+The logo blue is no longer login-only: it is the default accent (`SacAccent.logoBlue`)
+and so the default primary color across the app. The `AppColors.loginBrand*` tokens
+remain the logo-locked source values.
 
 | Token | Value | Role |
 |-------|-------|------|
-| `AppColors.loginBrandBlue` | `#0B84F0` | Capsule CTA, splash loader |
-| `AppColors.loginBrandBlueDark` | `#0666C9` | Text links on white (contrast) |
+| `AppColors.loginBrandBlue` | `#0B84F0` | Value of `SacAccent.logoBlue.color`; splash/login capsule CTA, splash loader |
+| `AppColors.loginBrandBlueDark` | `#0666C9` | `SacAccent.logoBlue.dark`; text links on white (contrast) |
 | `AppColors.loginBrandGold` | `#F0B000` | Hairline under the wordmark |
 
-These tokens are the same in light and dark (logo-locked). Using `AppColors.loginBrand*` in auth paint is the exception to §2.7.
+These tokens are the same in light and dark (logo-locked). Using `AppColors.loginBrand*` in auth paint (splash/login) is the exception to §2.7; elsewhere use the accent.
 
 ### 2.2 Surface Tokens — Light Mode
 
@@ -72,18 +116,21 @@ These tokens are the same in light and dark (logo-locked). Using `AppColors.logi
 |-------|-------|------|
 | `AppColors.lightBackground` | `#FFFFFF` | Main scaffold background |
 | `AppColors.lightSurface` | `#FFFFFF` | Cards, modals, bottom sheets |
-| `AppColors.lightSurfaceVariant` | `#F8FAFC` | Alternate sections, secondary backgrounds |
-| `AppColors.lightBorder` | `#E2E8F0` | Card borders, dividers |
-| `AppColors.lightBorderLight` | `#F1F5F9` | Very subtle separators |
-| `AppColors.lightDivider` | `#E2E8F0` | Divider alias |
+| `AppColors.lightSurfaceVariant` | `#F7F8FA` | Alternate sections, secondary backgrounds |
+| `AppColors.lightBorder` | `#E3E5EA` | Card borders, dividers |
+| `AppColors.lightBorderLight` | `#F2F4F7` | Very subtle separators |
+| `AppColors.lightDivider` | `#E3E5EA` | Divider alias |
+
+There is ONE neutral scale: the ink scale (`ink50`…`ink900`, see §2.7). Light-mode
+surface/border/text tokens are aliases of its steps; the old slate palette is gone.
 
 ### 2.3 Text Tokens — Light Mode
 
 | Token | Value | Role |
 |-------|-------|------|
-| `AppColors.lightText` | `#0F172A` | Titles, primary text |
-| `AppColors.lightTextSecondary` | `#64748B` | Subtitles, descriptions |
-| `AppColors.lightTextTertiary` | `#94A3B8` | Placeholders, hints, metadata |
+| `AppColors.lightText` | `#131316` | Titles, primary text (= ink900) |
+| `AppColors.lightTextSecondary` | `#6B7280` | Subtitles, descriptions (= ink500) |
+| `AppColors.lightTextTertiary` | `#9AA0AB` | Placeholders, hints, metadata (= ink400) |
 
 ### 2.4 Surface Tokens — Dark Mode (OLED-optimized, no blue undertone)
 
@@ -129,16 +176,16 @@ final c = context.sac;
 // Surfaces
 c.background      // white / #000000 (true black OLED)
 c.surface         // white / #1A1A1A
-c.surfaceVariant  // #F8FAFC / #252525
-c.border          // #E2E8F0 / #303030
+c.surfaceVariant  // #F7F8FA / #252525
+c.border          // #E3E5EA / #303030
 c.divider         // alias for border
-c.borderLight     // #F1F5F9 / #252525
+c.borderLight     // #F2F4F7 / #252525
 c.shadow          // rgba(0,0,0,0.08) / rgba(255,255,255,0.04)
 
 // Text
-c.text            // #0F172A / #F2F2F2
-c.textSecondary   // #64748B / #8C8C8C
-c.textTertiary    // #94A3B8 / #5C5C5C
+c.text            // #131316 / #F2F2F2
+c.textSecondary   // #6B7280 / #8C8C8C
+c.textTertiary    // #9AA0AB / #5C5C5C
 
 // Neutral "ink" scale (theme-resolved replacement for the deprecated
 // light-only AppColors.inkNNN / paper / canvas). Semantics = ink strength:
@@ -176,7 +223,9 @@ c.onError         // Colors.white
 **Known tech-debt — 83-file migration pending:**
 As of 2026-04-16, approximately 83 widget files use `AppColors.error` / `AppColors.success` / `AppColors.warning` or hardcoded `Color(0xFF…)` directly in paint code, bypassing `context.sac`. This is a known violation. Future agents: do NOT add more `AppColors.*` calls in paint code — use `context.sac.*`. The migration of existing files is tracked as a separate task.
 
-**2026-09-04 — neutral-scale audit:** `AppColors.inkNNN`, `AppColors.paper` and `AppColors.canvas` are now `@Deprecated`; every screen that used them (Clases module, Investiduras history, Materiales checkout, Honor completion) was migrated to `context.sac.inkNNN` / `paper` / `canvas`. Feature-scoped palettes follow the same rule: `MedicoTokens.of(context)` (`MedicoPalette`) for Información Médica and its edit sub-screens. Brand-locked surfaces are exempt and documented in place: Credencial digital (gradient card, white QR zone) and the Clases roadmap (sky-gradient background).
+**2026-09-04 — neutral-scale audit:** `AppColors.inkNNN`, `AppColors.paper` and `AppColors.canvas` are now `@Deprecated`; every screen that used them (Clases module, Investiduras history, Materiales checkout, Honor completion) was migrated to `context.sac.inkNNN` / `paper` / `canvas`. Feature-scoped palettes follow the same rule: `MedicoTokens.of(context)` (`MedicoPalette`) for Información Médica and its edit sub-screens.
+
+**v2 — feature token files.** `AppColors.coral500` now equals `AppColors.primary` (`#F06151`), and `MedicoTokens.coral500` points to it. Feature-scoped `*_tokens.dart` files (`medico_tokens.dart`, `roadmap_tokens.dart`, `credencial_tokens.dart`) are the sanctioned place for a feature's own palette. New `Color(0x…)` literals anywhere else are blocked by the guard test (§18); existing ones are frozen in a per-file baseline and will be migrated over time. Brand-locked surfaces are exempt and documented in place: Credencial digital (gradient card, white QR zone) and the Clases roadmap (sky-gradient background).
 
 ### 2.8 Class-Specific Colors (Scout tradition — do NOT change)
 
@@ -220,32 +269,50 @@ fontFamily: '.SF Pro Text'
 SF Pro Text is native on iOS. Falls back gracefully to the system font on Android.
 No custom font files are bundled. No Google Fonts dependency.
 
-### 3.2 Type Scale (Material 3 TextTheme)
+### 3.2 Type Scale (Material 3 TextTheme, v2)
 
-| Style | Size | Weight | Color (light) | Role |
-|-------|------|--------|---------------|------|
-| `displayLarge` | 32px | w700 | lightText | Hero headers, splash |
-| `displayMedium` | 28px | w700 | lightText | Screen main title |
-| `displaySmall` | 24px | w700 | lightText | Section title |
-| `headlineLarge` | 22px | w600 | lightText | Section headers |
-| `headlineMedium` | 20px | w600 | lightText | Card headers |
-| `headlineSmall` | 18px | w600 | lightText | Sub-section headers |
-| `titleLarge` | 18px | w500 | lightText | Card titles |
-| `titleMedium` | 16px | w500 | lightText | List item titles |
-| `titleSmall` | 14px | w500 | lightText | Compact titles |
-| `bodyLarge` | 16px | w400 | lightText | Primary body, height 1.5 |
-| `bodyMedium` | 14px | w400 | lightText | Standard body, height 1.5 |
-| `bodySmall` | 12px | w400 | lightTextSecondary | Metadata, height 1.5 |
-| `labelLarge` | 14px | w600 | lightText | Buttons, badges |
-| `labelMedium` | 12px | w500 | lightTextSecondary | Chips, secondary labels |
-| `labelSmall` | 10px | w500 | lightTextTertiary | Micro labels, footnotes |
+Sizes come from `SacFontSize` (`lib/core/theme/sac_font_size.dart`), which
+`app_theme.dart` re-exports, so importing `app_theme.dart` is enough. The scale
+matches Apple's type scale because the app renders in SF Pro.
+
+| Style | `SacFontSize` | Size | Weight | Color (light) | Role |
+|-------|---------------|------|--------|---------------|------|
+| `displayLarge` | `displayLarge` | 32 | w700 | lightText | Hero headers, splash |
+| `displayMedium` | `displayMedium` | 28 | w700 | lightText | Screen main title |
+| `displaySmall` | `displaySmall` | 24 | w700 | lightText | Section title |
+| `headlineLarge` | `headlineLarge` | 22 | w600 | lightText | Section headers |
+| `headlineMedium` | `headlineMedium` | 20 | w600 | lightText | Card headers, app bar titles |
+| `headlineSmall` | `headlineSmall` | 18 | w600 | lightText | Sub-section headers |
+| `titleLarge` | `titleLarge` | 17 (was 18) | w500 | lightText | Card titles |
+| `titleMedium` | `titleMedium` | 15 (was 16) | w500 | lightText | List-row titles |
+| `titleSmall` | `titleSmall` | 14 | w500 | lightText | Compact titles |
+| `bodyLarge` | `titleMedium` | 15 (was 16) | w400 | lightText | Long-form body, height 1.5 |
+| `bodyMedium` | `bodyMedium` | 13 (was 14) | w400 | lightText | Standard body, height 1.5 |
+| `bodySmall` | `bodySmall` | 12 | w400 | lightTextSecondary | Metadata, height 1.5 |
+| `labelLarge` | `titleSmall` | 14 | w600 | lightText | Buttons, badges |
+| `labelMedium` | `bodySmall` | 12 | w500 | lightTextSecondary | Chips, secondary labels |
+| `labelSmall` | `labelSmall` | 11 (was 10) | w500 | lightTextTertiary | Eyebrows, section labels, micro labels |
+
+Display styles also use `letterSpacing: -0.5`.
+
+Steps in `SacFontSize` that are not `textTheme` roles:
+
+| Step | Size | Purpose |
+|------|------|---------|
+| `nano` | 7 | Digits inside very small badges and avatar overlays |
+| `micro` | 9 | Compact badges and chart axis labels |
+| `caption` | 10 | Smallest regular text: footnotes and dense captions |
+| `metricSmall` | 36 | Large figures in summary cards (balances, scores, stats) |
+| `metric` | 44 | Hero figures, such as a class progress percentage |
 
 ### 3.3 Typography Rules
 
-- AppBar titles: `fontSize: 20, fontWeight: w700, color: AppColors.primary`
-- Prefer `Theme.of(context).textTheme.{style}` over hardcoded `TextStyle`
+- AppBar titles: `fontSize: SacFontSize.headlineMedium` (20), `fontWeight: w700`, text color (set globally by `AppBarTheme`; do not override)
+- Prefer `Theme.of(context).textTheme.<role>` over a hand-built `TextStyle`
+- When a custom `TextStyle` is needed (own weight, tracking or color), use `fontSize: SacFontSize.<step>`
+- Literal `fontSize:` numbers are forbidden outside `lib/core/theme/` (guard test, §18). `fontSize: 0` is the only exception
+- Decimal sizes (11.5, 12.5, 13.5) are not allowed: pick the nearest step
 - Use `.copyWith()` only for overrides (color, weight changes)
-- `letterSpacing: -0.5` on display sizes for tighter look
 
 ---
 
@@ -255,12 +322,23 @@ No custom font files are bundled. No Google Fonts dependency.
 
 ```dart
 // lib/core/theme/app_theme.dart
-AppTheme.radiusXS   = 8.0    // micro elements
-AppTheme.radiusSM   = 12.0   // inputs, buttons, list tiles
-AppTheme.radiusMD   = 16.0   // cards (main card radius)
-AppTheme.radiusLG   = 20.0   // bottom sheets (vertical top only), chips
-AppTheme.radiusXL   = 24.0   // large containers
-AppTheme.radiusFull = 100.0  // pills, FABs, avatars
+AppTheme.radiusHairline = 2.0    // progress bars, hairlines
+AppTheme.radius2XS      = 4.0    // tiny elements
+AppTheme.radiusXS       = 8.0    // micro elements
+AppTheme.radiusSM       = 12.0   // inputs, buttons, list tiles
+AppTheme.radiusMD       = 14.0   // cards (main card radius; SacCard uses it)
+AppTheme.radiusLG       = 20.0   // bottom sheets (vertical top only), chips
+AppTheme.radiusXL       = 24.0   // large containers
+AppTheme.radiusFull     = 100.0  // pills, FABs, avatars
+```
+
+`radiusHairline` and `radius2XS` are new in v2; `radiusMD` was 16.
+
+Literal radii are forbidden outside `lib/core/theme/` (guard test, §18). Use:
+
+```dart
+BorderRadius.circular(AppTheme.radiusMD)
+const Radius.circular(AppTheme.radiusLG)
 ```
 
 ### 4.2 Standard Spacing
@@ -364,10 +442,10 @@ Keyboard activation uses `FocusableActionDetector` (`ActivateIntent`).
 
 | Variant | Background | Foreground | Border |
 |---------|-----------|-----------|--------|
-| `primary` | `AppColors.primary` | white | none |
-| `secondary` | `AppColors.primaryLight` | `AppColors.primaryDark` | none |
-| `outline` | transparent | `AppColors.primary` | `AppColors.primary 1.5px` |
-| `ghost` | transparent | `AppColors.primary` | none |
+| `primary` | `accent.color` | `accent.onColor` | none |
+| `secondary` | `accent.light` | `accent.dark` | none |
+| `outline` | transparent | `accent.color` | `accent.color 1.5px` |
+| `ghost` | transparent | `accent.color` | none |
 | `destructive` | `AppColors.error` | white | none |
 | `success` | `AppColors.secondary` | white | none |
 
@@ -430,7 +508,7 @@ Pill-shaped label for statuses, categories, and counts.
 
 Icon: `dynamic` field dispatched via `buildIcon()` at 14px.
 Border radius: 20px (pill).
-Text: `fontSize: 12, fontWeight: w500`.
+Text: `fontSize: SacFontSize.bodySmall` (12), `fontWeight: w500`.
 
 ```dart
 SacBadge(label: 'Activo', variant: SacBadgeVariant.secondary)
@@ -441,7 +519,7 @@ SacBadge.error(label: 'Error', icon: HugeIcons.strokeRoundedAlertCircle)
 
 **File:** `lib/core/widgets/sac_card.dart`
 
-The standard card container. White/dark surface, `lightBorder`, subtle shadow (`blurRadius: 8, offset: (0,2)`), `radiusMD` (16px).
+The standard card container. White/dark surface, `lightBorder`, subtle shadow (`blurRadius: 8, offset: (0,2)`), `radiusMD` (14px).
 
 **Props:**
 
@@ -526,7 +604,7 @@ SacTextField(
 
 **File:** `lib/core/widgets/sac_dialog.dart`
 
-iOS-inspired dialog. Rounded 20px, surface bg, title in `AppColors.primary`,
+iOS-inspired dialog. Rounded 20px, surface bg, accent-colored icon and actions,
 iOS-style horizontal action buttons separated by 0.5px dividers.
 Scale + fade entrance animation using `SacMotion.modal` (240ms) and
 `SacMotion.easeOut`, from `SacMotion.enterScale` (0.96) to 1.0. With
@@ -725,12 +803,12 @@ The following widget is deprecated and must NOT be used in new code:
 - `lib/core/theme/sac_colors.dart` — `SacColors` extension on `BuildContext`
 - `lib/core/theme/theme_provider.dart` — Riverpod `ThemeNotifier`
 
-**Material 3 is enabled** (`useMaterial3: true`).
+**Material 3 is enabled** (`useMaterial3: true`). `AppTheme.buildLight(SacAccent)` builds the light theme for the chosen accent (`AppTheme.lightTheme` = `SacAccent.logoBlue`); "primary" in the list below means the accent.
 
 **Component themes configured globally** (do not override in individual screens):
-- `AppBarTheme`: white/black bg, elevation 0, `scrolledUnderElevation: 0.5`, `centerTitle: false`, title in `AppColors.primary` w700
-- `CardTheme`: surface bg, elevation 0, radiusMD with border
-- `ElevatedButtonTheme`: primary bg, white fg, 0 elevation, radiusSM, h:48
+- `AppBarTheme`: white/black bg, elevation 0, `scrolledUnderElevation: 0.5`, `centerTitle: false`, title `SacFontSize.headlineMedium` (20) w700 in text color
+- `CardTheme`: surface bg, elevation 0, radiusMD (14) with border
+- `ElevatedButtonTheme`: accent bg, `accent.onColor` fg, 0 elevation, radiusSM, h:48
 - `OutlinedButtonTheme`: primary fg/border, radiusSM, h:48
 - `TextButtonTheme`: primary fg, radiusSM
 - `FilledButtonTheme`: primary bg, white fg, radiusSM
@@ -919,7 +997,7 @@ Center(
       const SizedBox(height: 12),
       Text(
         'Sin registros',
-        style: TextStyle(fontSize: 16, color: c.textSecondary),
+        style: TextStyle(fontSize: SacFontSize.titleMedium, color: c.textSecondary),
       ),
     ],
   ),
@@ -949,7 +1027,7 @@ error: (e, _) => Center(
 
 ```dart
 RefreshIndicator(
-  color: AppColors.primary,
+  color: SacAccent.of(context).color,
   onRefresh: () async {
     await ref.read(myProvider.notifier).refresh();
   },
@@ -1061,7 +1139,7 @@ Bottom sheet radius is always `top: Radius.circular(20)` (from `BottomSheetTheme
 - Gold hairline (`AppColors.loginBrandGold`) under the wordmark
 - `SacTextField` for email/password (do not restyle the field itself)
 - Rate limiting: 3 failed attempts → 30s cooldown with countdown display
-- Capsule CTA using `AppColors.loginBrandBlue` (logo blue; does **not** replace coral `AppColors.primary` elsewhere)
+- Capsule CTA using `AppColors.loginBrandBlue` (logo blue, which is also the default accent `SacAccent.logoBlue`)
 - Entrance: `StaggeredColumn` with `SacMotion` tokens; splash uses fade+scale from `SacMotion.enterScale` (0.96)
 
 ### 12.6 Onboarding / Post-Registration
@@ -1294,3 +1372,32 @@ role_assignments / transfers / units / validation
 
 5. **Icon usage**: The majority of screens use HugeIcons. A few older widgets use
    `Icons.*` (Material). New widgets must use HugeIcons exclusively.
+
+---
+
+## 18. Design token guard
+
+`test/core/theme/design_tokens_guard_test.dart` scans `lib/` (except `lib/core/theme/`)
+and fails on:
+
+- literal `fontSize:` numbers (use `SacFontSize.<step>`, §3). `fontSize: 0` is allowed
+- literal `BorderRadius.circular(n)` / `Radius.circular(n)` (use `AppTheme.radiusX`, §4.1)
+- any NEW `Color(0x…)` literal beyond a per-file frozen baseline (`colorLiteralBaseline` in the test). Existing literals are grandfathered at their current count per file and are migrated over time. The baseline is a ratchet: the test also fails when a file has fewer literals than its baseline, so lower (or remove) the entry in the same change that migrates them
+
+Comment lines (`//`, `///`) are ignored.
+
+Exempt files and folders:
+
+- `*_tokens.dart` (feature palettes, §2.7)
+- `*sprites*.dart`
+- `lib/features/auth/presentation/widgets/welcome_carousel_visuals.dart` (illustrations)
+- `lib/features/virtual_card/presentation/widgets/credencial/` (fixed-layout credential artwork)
+
+A single line can opt out with a trailing comment:
+
+```dart
+fontSize: 72, // ds-allow: placeholder initial sized to the image area
+```
+
+Use it only when no token fits, and always give the reason. When the test fails, fix
+the code (use the token) rather than adding to the baseline.

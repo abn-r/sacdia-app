@@ -324,7 +324,8 @@ class _FilterTag extends StatelessWidget {
       child: Chip(
         label: Text(
           label,
-          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+          style: const TextStyle(
+              fontSize: SacFontSize.labelSmall, fontWeight: FontWeight.w600),
         ),
         onDeleted: onRemove,
         deleteIcon:
@@ -466,7 +467,7 @@ class _SkeletonBoxState extends State<_SkeletonBox>
         height: widget.height,
         decoration: BoxDecoration(
           color: widget.color,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXS),
         ),
       ),
     );

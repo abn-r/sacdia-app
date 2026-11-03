@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 import '../../domain/repositories/achievements_repository.dart';
 import 'achievement_card.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Sección de una categoría de logros con header y lista de cards.
 ///
@@ -87,7 +88,7 @@ class _CategoryHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: headerBg,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
       ),
       child: Row(
         children: [
@@ -121,12 +122,12 @@ class _CategoryHeader extends StatelessWidget {
                       ? AppColors.secondary.withValues(alpha: 0.2)
                       : AppColors.secondaryLight)
                   : context.sac.surfaceVariant,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(AppTheme.radiusLG),
             ),
             child: Text(
               '$completedCount/$totalCount',
               style: TextStyle(
-                fontSize: 11,
+                fontSize: SacFontSize.labelSmall,
                 fontWeight: FontWeight.w600,
                 color: completedCount == totalCount
                     ? (isDark ? AppColors.secondary : AppColors.secondaryDark)

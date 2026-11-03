@@ -12,6 +12,7 @@ import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../providers/history_provider.dart';
 import '../widgets/order_card.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Historial de pedidos del director.
 class OrderHistoryView extends ConsumerWidget {
@@ -139,7 +140,7 @@ class _HistorySkeleton extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(color: c.border.withValues(alpha: 0.7)),
         ),
         child: Column(
@@ -152,7 +153,7 @@ class _HistorySkeleton extends StatelessWidget {
                     height: 14,
                     decoration: BoxDecoration(
                       color: c.border.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(999),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                     ),
                   ),
                 ),
@@ -162,7 +163,7 @@ class _HistorySkeleton extends StatelessWidget {
                   height: 22,
                   decoration: BoxDecoration(
                     color: c.border.withValues(alpha: 0.35),
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                   ),
                 ),
               ],
@@ -173,7 +174,7 @@ class _HistorySkeleton extends StatelessWidget {
               height: 11,
               decoration: BoxDecoration(
                 color: c.border.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
               ),
             ),
             const Spacer(),
@@ -182,7 +183,7 @@ class _HistorySkeleton extends StatelessWidget {
               height: 14,
               decoration: BoxDecoration(
                 color: c.border.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
               ),
             ),
           ],

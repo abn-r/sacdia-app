@@ -22,6 +22,7 @@ import '../../domain/entities/join_request.dart';
 import '../providers/members_providers.dart';
 import '../utils/consent_access.dart';
 import 'consent_verification_view.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista de asignación de rol de club a un miembro.
 /// Accesible solo para Director y Subdirector.
@@ -198,14 +199,14 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
             color: isSelected
                 ? SacAccent.of(context).color.withValues(alpha: 0.08)
                 : c.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             child: SacInkWell(
               onTap:
                   enabled ? () => setState(() => _selectedRole = role) : null,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
               child: Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   border: Border.all(
                     color: isSelected ? SacAccent.of(context).color : c.border,
                     width: isSelected ? 1.5 : 1,
@@ -223,7 +224,7 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
                             RoleUtils.translate(role,
                                 gender: widget.member.gender),
                             style: TextStyle(
-                              fontSize: 15,
+                              fontSize: SacFontSize.titleMedium,
                               fontWeight: isSelected
                                   ? FontWeight.w600
                                   : FontWeight.w400,
@@ -238,7 +239,7 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
                               child: Text(
                                 reason,
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: SacFontSize.bodySmall,
                                   color: c.textSecondary,
                                 ),
                               ),
@@ -299,7 +300,7 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
                             ? Text(
                                 widget.member.initials,
                                 style: TextStyle(
-                                  fontSize: 18,
+                                  fontSize: SacFontSize.headlineSmall,
                                   fontWeight: FontWeight.w700,
                                   color: SacAccent.of(context).color,
                                 ),
@@ -314,7 +315,7 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
                             Text(
                               widget.member.fullName,
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: SacFontSize.titleMedium,
                                 fontWeight: FontWeight.w600,
                                 color: c.text,
                               ),
@@ -328,7 +329,7 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
                                           gender: widget.member.gender)
                                     }),
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: SacFontSize.bodyMedium,
                                   color: c.textSecondary,
                                 ),
                               ),

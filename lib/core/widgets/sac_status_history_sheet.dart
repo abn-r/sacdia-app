@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// One row in a status-history timeline.
 class SacStatusHistoryEntry {
@@ -48,7 +49,8 @@ class SacStatusHistorySheet extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppTheme.radiusXL)),
       ),
       child: SafeArea(
         top: false,
@@ -64,7 +66,7 @@ class SacStatusHistorySheet extends StatelessWidget {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: SacAccent.of(context).color.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 ),
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedTime01,
@@ -105,7 +107,8 @@ Future<void> showSacStatusHistorySheet(
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      borderRadius:
+          BorderRadius.vertical(top: Radius.circular(AppTheme.radiusXL)),
     ),
     builder: (_) => SacStatusHistorySheet(
       title: title,
@@ -139,7 +142,7 @@ class _HistoryEmpty extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-              fontSize: 15,
+              fontSize: SacFontSize.titleMedium,
               fontWeight: FontWeight.w600,
               color: c.text,
             ),
@@ -147,7 +150,8 @@ class _HistoryEmpty extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             body,
-            style: TextStyle(fontSize: 13, color: c.textSecondary),
+            style: TextStyle(
+                fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
             textAlign: TextAlign.center,
           ),
         ],
@@ -259,7 +263,7 @@ class _TimelineRow extends StatelessWidget {
                   Text(
                     entry.label,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: SacFontSize.titleMedium,
                       fontWeight: FontWeight.w700,
                       color: entry.color,
                     ),
@@ -268,7 +272,7 @@ class _TimelineRow extends StatelessWidget {
                   Text(
                     entry.description,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       color: c.textSecondary,
                       height: 1.4,
                     ),
@@ -309,7 +313,7 @@ class _MetaRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: c.surfaceVariant,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
         border: Border.all(color: c.border),
       ),
       child: Row(
@@ -325,7 +329,7 @@ class _MetaRow extends StatelessWidget {
               child: Text(
                 author!,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: SacFontSize.bodySmall,
                   fontWeight: FontWeight.w600,
                   color: c.textSecondary,
                 ),
@@ -356,7 +360,7 @@ class _MetaRow extends StatelessWidget {
               child: Text(
                 dateFormat.format(timestamp!.toLocal()),
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: SacFontSize.bodySmall,
                   color: c.textSecondary,
                 ),
                 overflow: TextOverflow.ellipsis,

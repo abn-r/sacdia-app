@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Short stagger entrance — keep under ~200ms total for frequent screens.
 class MonthlyReportEntrance extends StatefulWidget {
@@ -240,14 +241,14 @@ class _SkeletonBlock extends StatelessWidget {
             MonthlyReportLoadingPulse(
               width: 120,
               height: 14,
-              borderRadius: BorderRadius.circular(999),
+              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
             ),
             if (lines > 1) ...[
               const SizedBox(height: 12),
               MonthlyReportLoadingPulse(
                 width: double.infinity,
                 height: 12,
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
               ),
             ],
             if (lines > 2) ...[
@@ -255,7 +256,7 @@ class _SkeletonBlock extends StatelessWidget {
               MonthlyReportLoadingPulse(
                 width: 180,
                 height: 12,
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
               ),
             ],
             if (lines > 3) ...[
@@ -263,7 +264,7 @@ class _SkeletonBlock extends StatelessWidget {
               MonthlyReportLoadingPulse(
                 width: 230,
                 height: 12,
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
               ),
             ],
           ],

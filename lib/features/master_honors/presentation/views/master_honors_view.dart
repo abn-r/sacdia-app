@@ -11,6 +11,7 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/master_honors/presentation/providers/master_honors_providers.dart';
 import 'package:sacdia_app/features/master_honors/presentation/widgets/master_honor_roadmap_grid.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Pantalla completa con el roadmap de maestrías.
 ///
@@ -107,7 +108,7 @@ class _ErrorState extends StatelessWidget {
               'No pudimos cargar las maestrías',
               style: TextStyle(
                 color: context.sac.text,
-                fontSize: 16,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -116,7 +117,7 @@ class _ErrorState extends StatelessWidget {
               'Intenta nuevamente en unos segundos.',
               style: TextStyle(
                 color: context.sac.textSecondary,
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
               ),
               textAlign: TextAlign.center,
             ),

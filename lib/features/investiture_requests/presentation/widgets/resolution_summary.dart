@@ -9,6 +9,7 @@ import '../../data/investiture_request_error_keys.dart';
 import '../../domain/entities/investiture_request.dart';
 import '../../domain/entities/investiture_resolution.dart';
 import '../../domain/entities/person_status.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 const _i18n = 'investiture_requests.authorizer.summary';
 
@@ -125,7 +126,7 @@ class ResolutionSummary extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: dark ? accent.withValues(alpha: 0.16) : AppColors.sentBg,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: accent.withValues(alpha: 0.24)),
       ),
       child: Column(
@@ -136,7 +137,7 @@ class ResolutionSummary extends StatelessWidget {
             child: Text(
               tr('$_i18n.title'),
               style: TextStyle(
-                fontSize: 16,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.w800,
                 color: c.ink900,
               ),
@@ -210,7 +211,7 @@ class _Group extends StatelessWidget {
               child: Text(
                 title,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: SacFontSize.titleSmall,
                   fontWeight: FontWeight.w800,
                   color: c.ink900,
                 ),
@@ -227,7 +228,7 @@ class _Group extends StatelessWidget {
                 Text(
                   line.name,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                     fontWeight: FontWeight.w600,
                     color: c.ink800,
                   ),
@@ -236,7 +237,7 @@ class _Group extends StatelessWidget {
                   Text(
                     line.detail!,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       color: c.ink600,
                       height: 1.35,
                     ),

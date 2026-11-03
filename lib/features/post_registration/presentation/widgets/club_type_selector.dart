@@ -9,6 +9,7 @@ import '../../data/models/club_section_model.dart';
 import '../providers/club_selection_providers.dart';
 import 'bottom_sheet_picker.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Selector de tipo de club.
 ///
@@ -31,7 +32,7 @@ class ClubTypeSelector extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.accentLight,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
               border:
                   Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
             ),
@@ -47,7 +48,7 @@ class ClubTypeSelector extends ConsumerWidget {
                   child: Text(
                     'post_registration.club_type.no_instances'.tr(),
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       color: AppColors.accentDark,
                       fontWeight: FontWeight.w500,
                     ),

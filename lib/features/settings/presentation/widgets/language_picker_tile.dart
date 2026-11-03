@@ -8,6 +8,7 @@ import '../../../profile/presentation/widgets/setting_tile.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 class LanguagePickerTile extends StatelessWidget {
   const LanguagePickerTile({super.key});
@@ -196,7 +197,8 @@ class _LocalePickerSheet extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppTheme.radiusLG)),
       ),
       padding: EdgeInsets.only(
         top: 12,
@@ -213,7 +215,7 @@ class _LocalePickerSheet extends StatelessWidget {
               height: 5,
               decoration: BoxDecoration(
                 color: c.border,
-                borderRadius: BorderRadius.circular(3),
+                borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
               ),
             ),
           ),

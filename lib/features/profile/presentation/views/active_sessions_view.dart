@@ -16,6 +16,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -231,7 +232,7 @@ class _ErrorState extends StatelessWidget {
               message,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: SacFontSize.titleMedium,
                 color: c.textSecondary,
               ),
             ),
@@ -297,7 +298,7 @@ class _SessionList extends StatelessWidget {
             child: Text(
               'profile.active_sessions.ui.devices_header'.tr(),
               style: TextStyle(
-                fontSize: 11,
+                fontSize: SacFontSize.labelSmall,
                 fontWeight: FontWeight.w600,
                 color: context.sac.textTertiary,
                 letterSpacing: 0.8,
@@ -330,7 +331,7 @@ class _SessionList extends StatelessWidget {
               fullWidth: true,
               textColor: AppColors.error,
               borderColor: AppColors.error.withValues(alpha: 0.6),
-              fontSize: 14,
+              fontSize: SacFontSize.titleSmall,
               isLoading: isRevokingAll,
               onPressed: isRevokingAll ? null : onRevokeAll,
             ),
@@ -380,7 +381,7 @@ class _SessionCard extends StatelessWidget {
             height: 36,
             decoration: BoxDecoration(
               color: iconBg,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Center(
               child: HugeIcon(
@@ -400,7 +401,7 @@ class _SessionCard extends StatelessWidget {
                 Text(
                   session.displayName,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: SacFontSize.titleMedium,
                     fontWeight: FontWeight.w500,
                     color: c.text,
                   ),
@@ -412,7 +413,8 @@ class _SessionCard extends StatelessWidget {
                   session.isCurrent
                       ? 'profile.active_sessions.ui.this_session'.tr()
                       : maskIpAddress(session.ipAddress),
-                  style: TextStyle(fontSize: 12, color: c.textSecondary),
+                  style: TextStyle(
+                      fontSize: SacFontSize.bodySmall, color: c.textSecondary),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -420,7 +422,8 @@ class _SessionCard extends StatelessWidget {
                 Text(
                   'profile.active_sessions.ui.last_used'.tr(
                       namedArgs: {'time': _relativeTime(session.lastActiveAt)}),
-                  style: TextStyle(fontSize: 11, color: c.textTertiary),
+                  style: TextStyle(
+                      fontSize: SacFontSize.labelSmall, color: c.textTertiary),
                 ),
               ],
             ),
@@ -433,12 +436,12 @@ class _SessionCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: AppColors.secondary.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(AppTheme.radius2XS),
               ),
               child: Text(
                 'profile.active_sessions.ui.session_active_badge'.tr(),
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: SacFontSize.labelSmall,
                   fontWeight: FontWeight.w600,
                   color: AppColors.secondary,
                 ),
@@ -483,7 +486,7 @@ class _RevokeButton extends StatelessWidget {
         height: 32,
         decoration: BoxDecoration(
           color: AppColors.error.withValues(alpha: 0.10),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXS),
         ),
         child: Center(
           child: HugeIcon(
@@ -509,7 +512,7 @@ class _GroupContainer extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: context.sac.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: context.sac.border, width: 1),
       ),
       child: Column(children: children),

@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import '../../domain/entities/transaction_filter.dart';
 import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 export '../../domain/entities/transaction_filter.dart' show DateRangePreset;
 
@@ -68,7 +69,8 @@ class _RangeBottomSheetState extends State<RangeBottomSheet> {
     return Container(
       decoration: BoxDecoration(
         color: context.sac.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppTheme.radiusXL)),
       ),
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
       child: Column(
@@ -81,7 +83,7 @@ class _RangeBottomSheetState extends State<RangeBottomSheet> {
             child: Text(
               'finances.widgets.range_title'.tr(),
               style: TextStyle(
-                fontSize: 16,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.w700,
                 color: context.sac.text,
               ),
@@ -161,7 +163,7 @@ class _RangeOption extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.w500,
                 color: context.sac.text,
               ),
@@ -260,7 +262,7 @@ class _DateField extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: context.sac.surfaceVariant,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           border: Border.all(color: context.sac.border),
         ),
         child: Column(
@@ -269,7 +271,7 @@ class _DateField extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: SacFontSize.labelSmall,
                 fontWeight: FontWeight.w500,
                 color: context.sac.textTertiary,
               ),
@@ -278,7 +280,7 @@ class _DateField extends StatelessWidget {
             Text(
               formatted,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 fontWeight: FontWeight.w600,
                 color: context.sac.text,
               ),
@@ -301,7 +303,7 @@ class _DragHandle extends StatelessWidget {
         height: 4,
         decoration: BoxDecoration(
           color: context.sac.border,
-          borderRadius: BorderRadius.circular(2),
+          borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
         ),
       ),
     );

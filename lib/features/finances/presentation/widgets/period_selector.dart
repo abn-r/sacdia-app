@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Chip row for selecting a chart time range.
 ///
@@ -63,12 +64,12 @@ class _PeriodChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
           color: isActive ? activeColor : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         ),
         child: Text(
           period,
           style: TextStyle(
-            fontSize: 10,
+            fontSize: SacFontSize.caption,
             fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
             color: isActive ? Colors.white : context.sac.textTertiary,
           ),

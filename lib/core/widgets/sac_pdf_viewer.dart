@@ -15,6 +15,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// A full-screen PDF viewer that accepts either a local file path or a public
 /// remote URL.
@@ -422,7 +423,8 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
                       height: 7,
                       decoration: BoxDecoration(
                         color: selected ? fg : fg.withValues(alpha: 0.35),
-                        borderRadius: BorderRadius.circular(999),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusFull),
                       ),
                     );
                   }),

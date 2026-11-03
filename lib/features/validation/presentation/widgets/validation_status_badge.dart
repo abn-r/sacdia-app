@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/validation.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Badge compacto que muestra el estado de validación de una entidad.
 class ValidationStatusBadge extends StatelessWidget {
@@ -19,7 +20,7 @@ class ValidationStatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: config.bg,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(color: config.border, width: 1),
       ),
       child: Row(
@@ -34,7 +35,7 @@ class ValidationStatusBadge extends StatelessWidget {
           Text(
             _statusLabel(status),
             style: TextStyle(
-              fontSize: 11,
+              fontSize: SacFontSize.labelSmall,
               fontWeight: FontWeight.w600,
               color: config.fg,
             ),

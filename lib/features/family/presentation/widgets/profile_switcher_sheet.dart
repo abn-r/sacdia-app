@@ -15,6 +15,7 @@ import '../../domain/entities/dependent.dart';
 import '../providers/family_providers.dart';
 import 'consent_badge.dart';
 import 'dependent_avatar.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Cambia al perfil de [dependent] y avisa si no se pudo.
 ///
@@ -210,9 +211,9 @@ class _ProfileTile extends StatelessWidget {
       selected: selected,
       child: Material(
         color: selected ? accent.light : c.surfaceVariant,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         child: InkWell(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           onTap: onTap,
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 60),

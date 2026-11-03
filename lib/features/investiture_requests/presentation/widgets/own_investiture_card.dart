@@ -12,6 +12,7 @@ import '../../domain/entities/person_status.dart';
 import '../providers/investiture_requests_providers.dart';
 import '../utils/investiture_dates.dart';
 import '../utils/own_investiture_selection.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 const _i18n = 'investiture_requests.own';
 
@@ -86,7 +87,7 @@ class OwnInvestitureEntryCard extends ConsumerWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: dark ? accent.withValues(alpha: 0.16) : look.background,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(color: accent.withValues(alpha: 0.24)),
         ),
         child: Row(
@@ -128,7 +129,7 @@ class OwnInvestitureEntryCard extends ConsumerWidget {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: SacFontSize.titleMedium,
                       fontWeight: FontWeight.w800,
                       color: c.ink900,
                       height: 1.25,
@@ -139,7 +140,7 @@ class OwnInvestitureEntryCard extends ConsumerWidget {
                     Text(
                       subtitle,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: SacFontSize.bodyMedium,
                         fontWeight: FontWeight.w500,
                         color: c.ink600,
                         height: 1.3,
@@ -189,7 +190,7 @@ class _CommentQuote extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
       decoration: BoxDecoration(
         color: c.paper.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
         border: Border(left: BorderSide(color: accent, width: 3)),
       ),
       child: Column(
@@ -198,7 +199,7 @@ class _CommentQuote extends StatelessWidget {
           Text(
             tr('$_i18n.comment_title'),
             style: TextStyle(
-              fontSize: 11,
+              fontSize: SacFontSize.labelSmall,
               fontWeight: FontWeight.w700,
               color: c.ink500,
             ),
@@ -207,7 +208,7 @@ class _CommentQuote extends StatelessWidget {
           Text(
             text,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               fontStyle: FontStyle.italic,
               color: c.ink800,
               height: 1.35,

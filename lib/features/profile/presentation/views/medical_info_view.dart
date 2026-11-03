@@ -28,6 +28,7 @@ import '../widgets/medico/contact_tile.dart';
 import '../widgets/medico/medicament_tile.dart';
 import '../widgets/medico/empty_hint.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Mapea [AllergySeverity] a [SeverityTone] para renderizar chips.
 SeverityTone _severityTone(AllergySeverity severity) => switch (severity) {
@@ -380,7 +381,8 @@ class _SectionError extends StatelessWidget {
         Expanded(
           child: Text(
             'profile.medical_info.load_error'.tr(),
-            style: const TextStyle(fontSize: 13, color: AppColors.error),
+            style: const TextStyle(
+                fontSize: SacFontSize.bodyMedium, color: AppColors.error),
           ),
         ),
         SacPressable(
@@ -395,7 +397,7 @@ class _SectionError extends StatelessWidget {
             )).copyWith(enableFeedback: false),
             child: Text(
               'common.retry'.tr(),
-              style: const TextStyle(fontSize: 12),
+              style: const TextStyle(fontSize: SacFontSize.bodySmall),
             ),
           ),
         ),

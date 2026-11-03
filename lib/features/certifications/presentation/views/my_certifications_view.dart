@@ -18,6 +18,7 @@ import 'package:sacdia_app/features/certifications/domain/entities/user_certific
 import '../providers/certifications_providers.dart';
 import 'certification_progress_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista de certificaciones del usuario (inscripciones).
 ///
@@ -51,7 +52,7 @@ class MyCertificationsView extends ConsumerWidget {
                     Text(
                       'certifications.my.empty_title'.tr(),
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: SacFontSize.titleMedium,
                         color: c.textSecondary,
                       ),
                       textAlign: TextAlign.center,
@@ -60,7 +61,7 @@ class MyCertificationsView extends ConsumerWidget {
                     Text(
                       'certifications.my.empty_subtitle'.tr(),
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: SacFontSize.titleSmall,
                         color: c.textTertiary,
                       ),
                     ),
@@ -241,7 +242,9 @@ class MyCertificationsView extends ConsumerWidget {
                   const SizedBox(height: 8),
                   Text(
                     error.toString().replaceFirst('Exception: ', ''),
-                    style: TextStyle(fontSize: 14, color: c.textSecondary),
+                    style: TextStyle(
+                        fontSize: SacFontSize.titleSmall,
+                        color: c.textSecondary),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
@@ -343,7 +346,7 @@ class _UserCertificationCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(
             color: isComplete
                 ? AppColors.secondary.withValues(alpha: 0.3)
@@ -370,7 +373,7 @@ class _UserCertificationCard extends StatelessWidget {
                     color: isComplete
                         ? AppColors.secondaryLight
                         : SacAccent.of(context).light,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   ),
                   child: Center(
                     child: HugeIcon(
@@ -403,7 +406,7 @@ class _UserCertificationCard extends StatelessWidget {
                               .format(uc.enrollmentDate.toLocal()),
                         }),
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: SacFontSize.labelSmall,
                           color: c.textTertiary,
                         ),
                       ),
@@ -420,14 +423,14 @@ class _UserCertificationCard extends StatelessWidget {
                     color: isComplete
                         ? AppColors.secondaryLight
                         : AppColors.accentLight,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLG),
                   ),
                   child: Text(
                     isComplete
                         ? 'certifications.my.status_completed'.tr()
                         : 'certifications.my.status_in_progress'.tr(),
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: SacFontSize.labelSmall,
                       fontWeight: FontWeight.w600,
                       color: isComplete
                           ? AppColors.secondaryDark
@@ -447,7 +450,7 @@ class _UserCertificationCard extends StatelessWidget {
                 Text(
                   'certifications.my.progress_label'.tr(),
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: SacFontSize.bodySmall,
                     fontWeight: FontWeight.w500,
                     color: c.textSecondary,
                   ),
@@ -459,7 +462,7 @@ class _UserCertificationCard extends StatelessWidget {
                     'total': '${uc.modulesTotal}',
                   }),
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: SacFontSize.bodySmall,
                     fontWeight: FontWeight.w600,
                     color: isComplete ? AppColors.secondary : c.text,
                   ),
@@ -496,7 +499,7 @@ class _UserCertificationCard extends StatelessWidget {
                         Text(
                           'certifications.my.unenroll_button'.tr(),
                           style: const TextStyle(
-                            fontSize: 12,
+                            fontSize: SacFontSize.bodySmall,
                             fontWeight: FontWeight.w600,
                             color: AppColors.error,
                           ),
@@ -535,7 +538,7 @@ class _StatMini extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
         child: Column(
@@ -543,7 +546,7 @@ class _StatMini extends StatelessWidget {
             Text(
               '$value',
               style: TextStyle(
-                fontSize: 22,
+                fontSize: SacFontSize.headlineLarge,
                 fontWeight: FontWeight.w800,
                 color: color,
               ),
@@ -552,7 +555,7 @@ class _StatMini extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: SacFontSize.labelSmall,
                 fontWeight: FontWeight.w500,
                 color: c.textSecondary,
               ),

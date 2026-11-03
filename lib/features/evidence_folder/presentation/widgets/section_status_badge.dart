@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/evidence_section.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Badge de color con ícono que indica el estado de la sección.
 ///
@@ -30,7 +31,7 @@ class SectionStatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(color: borderColor, width: 1),
       ),
       child: Row(
@@ -41,7 +42,7 @@ class SectionStatusBadge extends StatelessWidget {
           Text(
             _label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               fontWeight: FontWeight.w600,
               color: textColor,
             ),

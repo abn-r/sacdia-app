@@ -41,6 +41,7 @@ import '../../features/notifications/domain/entities/notification_item.dart';
 import '../../features/notifications/presentation/providers/notifications_providers.dart';
 import '../../features/notifications/presentation/providers/unread_notifications_count_provider.dart';
 import '../../features/notifications/presentation/widgets/notification_type_badge.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Top-level background message handler.
 ///
@@ -674,7 +675,7 @@ class PushNotificationService {
         backgroundColor: const Color(0xFF1C1C1E),
         elevation: 8,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppTheme.radiusLG),
           side: BorderSide(
             color: _achievementTierColor(tier).withValues(alpha: 0.72),
             width: 1.2,
@@ -731,7 +732,7 @@ class PushNotificationService {
                       ].join(' · '),
                       style: TextStyle(
                         color: _achievementTierColor(tier),
-                        fontSize: 12,
+                        fontSize: SacFontSize.bodySmall,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 0.2,
                       ),
@@ -1398,14 +1399,14 @@ class _ForegroundNotificationBanner extends StatelessWidget {
       label: 'Ver notificación: $title',
       child: Material(
         color: c.surface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         child: SacInkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppTheme.radiusLG),
           child: Container(
             padding: const EdgeInsets.fromLTRB(12, 12, 10, 12),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(AppTheme.radiusLG),
               border: Border.all(color: c.borderLight),
               boxShadow: [
                 BoxShadow(
@@ -1475,7 +1476,7 @@ class _ForegroundNotificationBanner extends StatelessWidget {
                       minimumSize: const Size(48, 48),
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                       ),
                       backgroundColor: visual.iconColor.withValues(alpha: 0.08),
                     )).copyWith(enableFeedback: false),

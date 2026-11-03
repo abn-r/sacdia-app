@@ -249,15 +249,15 @@ class _OptionTile extends StatelessWidget {
       selected: selected,
       child: Material(
         color: selected ? color.withValues(alpha: 0.12) : c.paper,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         child: SacInkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           onTap: onTap,
           child: Container(
             constraints: const BoxConstraints(minHeight: 56),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
               border: Border.all(
                 color: selected ? color : c.ink150,
                 width: selected ? 1.5 : 1,
@@ -273,7 +273,7 @@ class _OptionTile extends StatelessWidget {
                   child: Text(
                     label,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: SacFontSize.titleMedium,
                       fontWeight: FontWeight.w800,
                       color: selected ? color : c.ink800,
                     ),

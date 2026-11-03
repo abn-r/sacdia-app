@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// SACDIA custom dialog widget — iOS-inspired design with SACDIA color system.
 ///
@@ -144,7 +145,7 @@ class SacDialog extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               color: context.sac.surface,
-              borderRadius: BorderRadius.circular(28),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXL),
               border: Border.all(
                 color: context.sac.border.withValues(alpha: 0.65),
               ),
@@ -189,7 +190,7 @@ class SacDialog extends StatelessWidget {
                           title,
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 19,
+                            fontSize: SacFontSize.headlineSmall,
                             fontWeight: FontWeight.w800,
                             color: context.sac.text,
                             height: 1.15,
@@ -201,7 +202,7 @@ class SacDialog extends StatelessWidget {
                             content!,
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: SacFontSize.titleSmall,
                               fontWeight: FontWeight.w400,
                               color: context.sac.textSecondary,
                               height: 1.45,
@@ -221,7 +222,8 @@ class SacDialog extends StatelessWidget {
                                   SacAccent.of(context)
                                       .light
                                       .withValues(alpha: 0.65),
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius:
+                                  BorderRadius.circular(AppTheme.radiusMD),
                               border: Border.all(
                                 color:
                                     (iconColor ?? SacAccent.of(context).color)
@@ -232,7 +234,7 @@ class SacDialog extends StatelessWidget {
                               highlight!,
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: SacFontSize.bodyMedium,
                                 fontWeight: FontWeight.w700,
                                 color: iconColor ?? SacAccent.of(context).color,
                                 height: 1.3,
@@ -409,7 +411,7 @@ class _ActionButton extends StatelessWidget {
           text: action.label,
           variant: SacButtonVariant.primary,
           fullWidth: true,
-          fontSize: 14,
+          fontSize: SacFontSize.titleSmall,
           borderRadius: 15,
           backgroundColor: AppColors.coral700,
           labelMaxLines: 2,
@@ -421,7 +423,7 @@ class _ActionButton extends StatelessWidget {
           text: action.label,
           variant: SacButtonVariant.success,
           fullWidth: true,
-          fontSize: 14,
+          fontSize: SacFontSize.titleSmall,
           borderRadius: 15,
           labelMaxLines: 2,
           isLoading: action.isLoading,
@@ -432,7 +434,7 @@ class _ActionButton extends StatelessWidget {
           text: action.label,
           variant: SacButtonVariant.destructive,
           fullWidth: true,
-          fontSize: 14,
+          fontSize: SacFontSize.titleSmall,
           borderRadius: 15,
           labelMaxLines: 2,
           isLoading: action.isLoading,
@@ -443,7 +445,7 @@ class _ActionButton extends StatelessWidget {
           text: action.label,
           variant: SacButtonVariant.ghost,
           fullWidth: true,
-          fontSize: 14,
+          fontSize: SacFontSize.titleSmall,
           borderRadius: 15,
           textColor: context.sac.textSecondary,
           labelMaxLines: 2,

@@ -97,7 +97,7 @@ class UnitDetailView extends ConsumerWidget {
                         'units.detail.bulk_action_button'.tr(),
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
-                          fontSize: 15,
+                          fontSize: SacFontSize.titleMedium,
                         ),
                       ),
                     ],
@@ -209,7 +209,8 @@ class UnitDetailView extends ConsumerWidget {
       isScrollControlled: true,
       backgroundColor: c.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLG)),
       ),
       builder: (sheetContext) {
         return SafeArea(
@@ -380,7 +381,7 @@ class _WeekActivitiesBanner extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
           decoration: BoxDecoration(
             color: c.surfaceVariant,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             border: Border.all(color: c.borderLight),
           ),
           child: Column(
@@ -728,7 +729,8 @@ class _MemberCard extends StatelessWidget {
       showDragHandle: true,
       backgroundColor: context.sac.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLG)),
       ),
       builder: (sheetContext) {
         return SafeArea(
@@ -1061,7 +1063,7 @@ class _MemberAvatar extends StatelessWidget {
       child: Text(
         member.initials,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: SacFontSize.bodySmall,
           fontWeight: FontWeight.w600,
           color: theme.colorScheme.onPrimaryContainer,
         ),

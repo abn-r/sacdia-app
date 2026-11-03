@@ -325,7 +325,8 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                                 errorMessage,
                                                 style: const TextStyle(
                                                   color: AppColors.errorDark,
-                                                  fontSize: 14,
+                                                  fontSize:
+                                                      SacFontSize.titleSmall,
                                                 ),
                                               ),
                                             ),
@@ -367,7 +368,8 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                                 cooldownMessage,
                                                 style: const TextStyle(
                                                   color: AppColors.accentDark,
-                                                  fontSize: 14,
+                                                  fontSize:
+                                                      SacFontSize.titleSmall,
                                                 ),
                                               ),
                                             ),
@@ -504,7 +506,8 @@ class _LoginNoticeCard extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: TextStyle(color: context.sac.text, fontSize: 14),
+              style: TextStyle(
+                  color: context.sac.text, fontSize: SacFontSize.titleSmall),
             ),
           ),
           IconButton(
@@ -614,7 +617,7 @@ class _LoginKeyboardAction extends StatelessWidget {
                     label,
                     style: TextStyle(
                       color: color,
-                      fontSize: 14,
+                      fontSize: SacFontSize.titleSmall,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

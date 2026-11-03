@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Shared date group header for transaction lists.
 ///
@@ -41,7 +42,7 @@ class DateGroupHeader extends StatelessWidget {
           Text(
             capitalizedDate,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: SacFontSize.labelSmall,
               fontWeight: FontWeight.w600,
               color: c.textSecondary,
             ),
@@ -49,7 +50,7 @@ class DateGroupHeader extends StatelessWidget {
           Text(
             totalFormatted,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: SacFontSize.labelSmall,
               fontWeight: FontWeight.w600,
               color: c.textTertiary,
             ),

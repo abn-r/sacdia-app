@@ -16,6 +16,7 @@ import '../widgets/insurance_status_badge.dart';
 import 'insurance_form_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Pantalla de detalle completo del seguro de un miembro.
 class InsuranceDetailView extends ConsumerWidget {
@@ -198,7 +199,7 @@ class _MemberHeaderCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
           color: Theme.of(context).dividerColor.withValues(alpha: 0.4),
         ),
@@ -253,14 +254,14 @@ class _MemberHeaderCard extends StatelessWidget {
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: SacAccent.of(context).surface,
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(AppTheme.radius2XS),
                     ),
                     child: Text(
                       insurance.memberClass!,
                       style: TextStyle(
                         color: SacAccent.of(context).dark,
                         fontWeight: FontWeight.w700,
-                        fontSize: 11,
+                        fontSize: SacFontSize.labelSmall,
                       ),
                     ),
                   ),
@@ -308,7 +309,7 @@ class _AvatarFallback extends StatelessWidget {
           style: TextStyle(
             color: color,
             fontWeight: FontWeight.w800,
-            fontSize: 20,
+            fontSize: SacFontSize.headlineMedium,
           ),
         ),
       ),
@@ -332,7 +333,7 @@ class _StatusSection extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
           color: Theme.of(context).dividerColor.withValues(alpha: 0.4),
         ),
@@ -410,7 +411,7 @@ class _EvidenceSection extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
           color: Theme.of(context).dividerColor.withValues(alpha: 0.4),
         ),
@@ -478,7 +479,7 @@ class _EvidencePreview extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           child: CachedNetworkImage(
             imageUrl: insurance.evidenceFileUrl!,
             width: double.infinity,
@@ -524,12 +525,12 @@ class _PdfTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return SacInkWell(
       onTap: () => _openUrl(fileUrl),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: SacAccent.of(context).surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           border: Border.all(
               color: SacAccent.of(context).color.withValues(alpha: 0.2)),
         ),
@@ -549,7 +550,7 @@ class _PdfTile extends StatelessWidget {
                     fileName,
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       color: SacAccent.of(context).dark,
                     ),
                     maxLines: 2,
@@ -559,7 +560,7 @@ class _PdfTile extends StatelessWidget {
                   Text(
                     'insurance.detail.tap_to_open'.tr(),
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: SacFontSize.labelSmall,
                       color: SacAccent.of(context).color,
                     ),
                   ),
@@ -630,7 +631,7 @@ class _InfoCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
           color: Theme.of(context).dividerColor.withValues(alpha: 0.4),
         ),
@@ -713,7 +714,7 @@ class _InfoRow extends StatelessWidget {
                   label,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontSize: 11,
+                        fontSize: SacFontSize.labelSmall,
                       ),
                 ),
                 const SizedBox(height: 2),

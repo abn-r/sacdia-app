@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../classes/domain/entities/progressive_class.dart';
 import '../../../classes/presentation/providers/classes_providers.dart';
 import '../../domain/entities/activity_club_section.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 final activityClassOptionsProvider = FutureProvider.autoDispose
     .family<List<ProgressiveClass>, String>((ref, key) async {
@@ -222,10 +223,10 @@ class _ModeChip extends StatelessWidget {
     return Material(
       color:
           selected ? SacAccent.of(context).color : SacAccent.of(context).light,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(AppTheme.radiusLG),
       child: SacInkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           child: Text(
@@ -258,7 +259,7 @@ class _ClassLogoTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return SacInkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       child: SizedBox(
         width: 84,
         child: Column(
@@ -299,7 +300,7 @@ class _ClassLogoTile extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 height: 1.15,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 color: selected ? SacAccent.of(context).dark : null,

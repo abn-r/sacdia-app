@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../domain/entities/activity.dart';
 import 'activity_map_options_sheet.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Tap-able address row for presencial / híbrido activities.
 ///
@@ -38,12 +39,12 @@ class ActivityLocationRow extends StatelessWidget {
       child: SacInkWell(
         onTap: () => showActivityMapOptions(context, activity),
         onLongPress: () => _copyAddress(context),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             color: sac.surface,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             border: Border.all(color: sac.borderLight, width: 1),
           ),
           child: Row(
@@ -73,7 +74,7 @@ class ActivityLocationRow extends StatelessWidget {
                     Text(
                       'activities.widgets.location_label_short'.tr(),
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: SacFontSize.caption,
                         fontWeight: FontWeight.w700,
                         color: sac.textTertiary,
                         letterSpacing: 0.6,
@@ -83,7 +84,7 @@ class ActivityLocationRow extends StatelessWidget {
                     Text(
                       activity.activityPlace,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: SacFontSize.titleSmall,
                         fontWeight: FontWeight.w600,
                         color: sac.text,
                         height: 1.25,
@@ -97,7 +98,7 @@ class ActivityLocationRow extends StatelessWidget {
                         Text(
                           'activities.widgets.open_action'.tr(),
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: SacFontSize.bodyMedium,
                             fontWeight: FontWeight.w700,
                             color: SacAccent.of(context).color,
                           ),

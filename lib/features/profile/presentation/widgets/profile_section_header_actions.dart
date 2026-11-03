@@ -12,6 +12,7 @@ import 'package:sacdia_app/features/classes/presentation/providers/classes_provi
 import 'package:sacdia_app/features/classes/presentation/views/classes_list_view.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'profile_quiet_add_chip.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Clases header actions. The empty state of `ProfileClassesSection` already
 /// carries an "Agregar" chip, so the header one is hidden then to keep a
@@ -128,11 +129,11 @@ class ProfileSectionHeaderActions extends StatelessWidget {
           child: Material(
             color: c.surface,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
               side: BorderSide(color: c.border),
             ),
             child: SacInkWell(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
               onTap: onRefresh,
               child: Semantics(
                 label: 'common.retry'.tr(),

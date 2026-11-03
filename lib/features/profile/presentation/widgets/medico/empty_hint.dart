@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'medico_tokens.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Widget de estado vacío para secciones sin datos.
 ///
@@ -25,7 +26,7 @@ class EmptyHint extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: m.tileBg,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,7 +36,7 @@ class EmptyHint extends StatelessWidget {
             style: TextStyle(
               fontStyle: FontStyle.italic,
               color: m.textSecondary,
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
             ),
           ),
           if (actionLabel != null) ...[
@@ -46,7 +47,7 @@ class EmptyHint extends StatelessWidget {
                 actionLabel!,
                 style: TextStyle(
                   color: m.coralAction,
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   fontWeight: FontWeight.w700,
                 ),
               ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Quiet "+ Agregar" chip on profile section headers and empty states.
 /// Toma el acento elegido en Configuración. No es un CTA primario.
@@ -30,7 +31,7 @@ class ProfileQuietAddChip extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: tone.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXS),
           border: Border.all(color: tone.withValues(alpha: 0.16)),
         ),
         child: Padding(
@@ -49,7 +50,7 @@ class ProfileQuietAddChip extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: SacFontSize.titleSmall,
                   fontWeight: FontWeight.w600,
                   color: tone,
                 ),

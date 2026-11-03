@@ -10,6 +10,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../providers/certification_requirement_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista de cierre de una certificación (Task 12): sube el comprobante de
 /// junta (board proof) y envía la inscripción a revisión final.
@@ -76,7 +77,7 @@ class CertificationCloseoutView extends ConsumerWidget {
                         Text(
                           certificationName!,
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: SacFontSize.bodyMedium,
                             fontWeight: FontWeight.w700,
                             color: c.textSecondary,
                           ),
@@ -87,7 +88,8 @@ class CertificationCloseoutView extends ConsumerWidget {
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
                           color: c.surfaceVariant,
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusMD),
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,7 +104,7 @@ class CertificationCloseoutView extends ConsumerWidget {
                               child: Text(
                                 'certifications.closeout.description'.tr(),
                                 style: TextStyle(
-                                  fontSize: 12.5,
+                                  fontSize: SacFontSize.bodySmall,
                                   color: c.textSecondary,
                                   height: 1.45,
                                 ),

@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 
 import '../../domain/entities/activity.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Banner for virtual activities (platform == 1). Height comes from the detail view.
 ///
@@ -84,7 +85,7 @@ class ActivityVirtualBanner extends StatelessWidget {
             'activities.widgets.virtual_fallback'.tr(),
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.3,
             ),

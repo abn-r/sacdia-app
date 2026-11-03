@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/post_registration/presentation/utils/acting_copy.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Widget para seleccionar y mostrar la foto de perfil.
 ///
@@ -140,7 +141,7 @@ class ProfilePhotoPicker extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLG),
                   ),
                 )).copyWith(enableFeedback: false),
                 icon: const HugeIcon(
@@ -152,7 +153,7 @@ class ProfilePhotoPicker extends StatelessWidget {
                   'post_registration.photo.remove'.tr(),
                   style: const TextStyle(
                     color: AppColors.error,
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -186,7 +187,7 @@ class ProfilePhotoPicker extends StatelessWidget {
                       Text(
                         'post_registration.photo.add'.tr(),
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: SacFontSize.bodySmall,
                           color: SacAccent.of(context).color,
                           fontWeight: FontWeight.w500,
                         ),
@@ -219,7 +220,7 @@ class ProfilePhotoPicker extends StatelessWidget {
                       Text(
                         'post_registration.photo.take'.tr(),
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: SacFontSize.titleSmall,
                           fontWeight: FontWeight.w600,
                           color: context.sac.text,
                         ),
@@ -244,7 +245,7 @@ class ProfilePhotoPicker extends StatelessWidget {
                       Text(
                         'post_registration.photo.gallery'.tr(),
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: SacFontSize.titleSmall,
                           fontWeight: FontWeight.w600,
                           color: context.sac.text,
                         ),

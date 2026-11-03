@@ -23,6 +23,7 @@ import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../domain/utils/camporee_registration_payment_flow.dart';
 import '../providers/camporees_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista para seleccionar e inscribir miembros del club activo en un camporee.
 ///
@@ -309,7 +310,7 @@ class _InfoBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.accentLight,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
       ),
       child: Row(
@@ -325,7 +326,7 @@ class _InfoBanner extends StatelessWidget {
             child: Text(
               'camporees.register_member.info_banner'.tr(),
               style: TextStyle(
-                fontSize: 12.5,
+                fontSize: SacFontSize.bodySmall,
                 color: AppColors.accentDark,
                 height: 1.45,
               ),
@@ -349,12 +350,13 @@ class _ErrorBanner extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.error.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
       ),
       child: Text(
         message,
-        style: TextStyle(fontSize: 13, color: AppColors.error),
+        style:
+            TextStyle(fontSize: SacFontSize.bodyMedium, color: AppColors.error),
       ),
     );
   }
@@ -380,7 +382,9 @@ class _AlreadyRegisteredHint extends StatelessWidget {
             'camporees.register_member.already_registered_hint'.tr(
               namedArgs: {'count': count.toString()},
             ),
-            style: TextStyle(fontSize: 12, color: context.sac.textSecondary),
+            style: TextStyle(
+                fontSize: SacFontSize.bodySmall,
+                color: context.sac.textSecondary),
           ),
         ),
       ],
@@ -408,7 +412,7 @@ class _SelectedMembersCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border),
       ),
       child: selectedIds.isEmpty
@@ -428,7 +432,7 @@ class _SelectedMembersCard extends StatelessWidget {
                       child: Text(
                         'camporees.register_member.selection_title'.tr(),
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: SacFontSize.titleSmall,
                           fontWeight: FontWeight.w700,
                           color: c.text,
                         ),
@@ -439,7 +443,7 @@ class _SelectedMembersCard extends StatelessWidget {
                         namedArgs: {'count': selectedIds.length.toString()},
                       ),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: SacFontSize.bodySmall,
                         fontWeight: FontWeight.w700,
                         color: SacAccent.of(context).color,
                       ),
@@ -452,7 +456,9 @@ class _SelectedMembersCard extends StatelessWidget {
                     'camporees.register_member.selection_loading'.tr(
                       namedArgs: {'count': selectedIds.length.toString()},
                     ),
-                    style: TextStyle(fontSize: 12, color: c.textSecondary),
+                    style: TextStyle(
+                        fontSize: SacFontSize.bodySmall,
+                        color: c.textSecondary),
                   )
                 else ...[
                   ...selectedMembers.take(5).map(
@@ -471,7 +477,9 @@ class _SelectedMembersCard extends StatelessWidget {
                           'count': (selectedIds.length - 5).toString(),
                         },
                       ),
-                      style: TextStyle(fontSize: 12, color: c.textSecondary),
+                      style: TextStyle(
+                          fontSize: SacFontSize.bodySmall,
+                          color: c.textSecondary),
                     ),
                 ],
               ],
@@ -494,7 +502,7 @@ class _EmptySelection extends StatelessWidget {
           height: 46,
           decoration: BoxDecoration(
             color: SacAccent.of(context).color.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           ),
           child: Center(
             child: HugeIcon(
@@ -508,7 +516,7 @@ class _EmptySelection extends StatelessWidget {
         Text(
           'camporees.register_member.selected_empty_title'.tr(),
           style: TextStyle(
-            fontSize: 14,
+            fontSize: SacFontSize.titleSmall,
             fontWeight: FontWeight.w700,
             color: c.text,
           ),
@@ -517,7 +525,10 @@ class _EmptySelection extends StatelessWidget {
         Text(
           'camporees.register_member.selected_empty_subtitle'.tr(),
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 12, height: 1.4, color: c.textSecondary),
+          style: TextStyle(
+              fontSize: SacFontSize.bodySmall,
+              height: 1.4,
+              color: c.textSecondary),
         ),
       ],
     );
@@ -551,7 +562,7 @@ class _SelectedMemberTile extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   fontWeight: FontWeight.w700,
                   color: c.text,
                 ),
@@ -560,7 +571,8 @@ class _SelectedMemberTile extends StatelessWidget {
                 member.memberClass ?? 'camporees.register_member.no_class'.tr(),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 11.5, color: c.textSecondary),
+                style: TextStyle(
+                    fontSize: SacFontSize.labelSmall, color: c.textSecondary),
               ),
             ],
           ),
@@ -629,7 +641,8 @@ class _MemberPickerSheetState extends ConsumerState<_MemberPickerSheet> {
         return Container(
           decoration: BoxDecoration(
             color: c.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppTheme.radiusXL)),
           ),
           child: SafeArea(
             top: false,
@@ -641,7 +654,7 @@ class _MemberPickerSheetState extends ConsumerState<_MemberPickerSheet> {
                   height: 5,
                   decoration: BoxDecoration(
                     color: c.border,
-                    borderRadius: BorderRadius.circular(100),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                   ),
                 ),
                 Padding(
@@ -651,7 +664,7 @@ class _MemberPickerSheetState extends ConsumerState<_MemberPickerSheet> {
                       Text(
                         'camporees.register_member.picker_title'.tr(),
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: SacFontSize.headlineMedium,
                           fontWeight: FontWeight.w800,
                           color: c.text,
                         ),
@@ -660,7 +673,9 @@ class _MemberPickerSheetState extends ConsumerState<_MemberPickerSheet> {
                       Text(
                         'camporees.register_member.picker_subtitle'.tr(),
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 13, color: c.textSecondary),
+                        style: TextStyle(
+                            fontSize: SacFontSize.bodyMedium,
+                            color: c.textSecondary),
                       ),
                       const SizedBox(height: 14),
                       TextField(
@@ -677,8 +692,9 @@ class _MemberPickerSheetState extends ConsumerState<_MemberPickerSheet> {
                           ),
                           hintText:
                               'camporees.register_member.search_hint'.tr(),
-                          hintStyle:
-                              TextStyle(fontSize: 13, color: c.textTertiary),
+                          hintStyle: TextStyle(
+                              fontSize: SacFontSize.bodyMedium,
+                              color: c.textTertiary),
                           filled: true,
                           fillColor: c.surfaceVariant,
                           contentPadding: const EdgeInsets.symmetric(
@@ -686,15 +702,18 @@ class _MemberPickerSheetState extends ConsumerState<_MemberPickerSheet> {
                             vertical: 12,
                           ),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusMD),
                             borderSide: BorderSide(color: c.border),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusMD),
                             borderSide: BorderSide(color: c.border),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusMD),
                             borderSide: BorderSide(
                               color: SacAccent.of(context).color,
                               width: 1.5,
@@ -828,14 +847,14 @@ class _MemberPickerTile extends StatelessWidget {
         color: selected && !alreadyRegistered
             ? SacAccent.of(context).color.withValues(alpha: 0.07)
             : c.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         child: SacInkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
               border: Border.all(
                 color: selected && !alreadyRegistered
                     ? SacAccent.of(context).color.withValues(alpha: 0.45)
@@ -860,7 +879,7 @@ class _MemberPickerTile extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 14.5,
+                          fontSize: SacFontSize.titleSmall,
                           fontWeight: FontWeight.w800,
                           color: c.text,
                         ),
@@ -881,7 +900,7 @@ class _MemberPickerTile extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: SacFontSize.bodySmall,
                                 color: c.textSecondary,
                               ),
                             ),
@@ -979,13 +998,13 @@ class _MiniBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
         border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 10.5,
+          fontSize: SacFontSize.caption,
           fontWeight: FontWeight.w700,
           color: color,
         ),
@@ -1044,7 +1063,7 @@ class _AvatarInitials extends StatelessWidget {
       child: Text(
         initials,
         style: TextStyle(
-          fontSize: 13,
+          fontSize: SacFontSize.bodyMedium,
           fontWeight: FontWeight.w800,
           color: SacAccent.of(context).dark,
         ),
@@ -1076,7 +1095,9 @@ class _PickerError extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: context.sac.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.bodyMedium,
+                  color: context.sac.textSecondary),
             ),
             const SizedBox(height: 14),
             SacButton.outline(
@@ -1105,7 +1126,9 @@ class _PickerEmpty extends StatelessWidget {
               ? 'camporees.register_member.empty_search'.tr()
               : 'camporees.register_member.empty_members'.tr(),
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13, color: context.sac.textSecondary),
+          style: TextStyle(
+              fontSize: SacFontSize.bodyMedium,
+              color: context.sac.textSecondary),
         ),
       ),
     );
@@ -1134,7 +1157,7 @@ class _PaymentOrdersContextLoading extends StatelessWidget {
                 title,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: SacFontSize.titleMedium,
                   fontWeight: FontWeight.w700,
                   color: context.sac.text,
                 ),
@@ -1168,7 +1191,7 @@ class _PaymentOrdersContextError extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: c.surface,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
               border: Border.all(color: c.border),
             ),
             child: Column(

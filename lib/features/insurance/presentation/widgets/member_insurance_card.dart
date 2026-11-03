@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 import '../../domain/entities/member_insurance.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Fila de miembro en la lista agrupada de seguros.
 ///
@@ -77,7 +78,7 @@ class _MemberInsuranceCardState extends State<MemberInsuranceCard> {
                             style:
                                 Theme.of(context).textTheme.bodySmall?.copyWith(
                                       color: c.textSecondary,
-                                      fontSize: 13,
+                                      fontSize: SacFontSize.bodyMedium,
                                     ),
                           ),
                         ],
@@ -88,7 +89,7 @@ class _MemberInsuranceCardState extends State<MemberInsuranceCard> {
                             style:
                                 Theme.of(context).textTheme.bodySmall?.copyWith(
                                       color: _expiryColor(insurance),
-                                      fontSize: 12,
+                                      fontSize: SacFontSize.bodySmall,
                                     ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -103,7 +104,7 @@ class _MemberInsuranceCardState extends State<MemberInsuranceCard> {
                     style: TextStyle(
                       color: _statusColor(insurance.status),
                       fontWeight: FontWeight.w500,
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                     ),
                   ),
                   if (_tappable) ...[
@@ -247,7 +248,7 @@ class _InitialsAvatar extends StatelessWidget {
           style: TextStyle(
             color: foreground,
             fontWeight: FontWeight.w600,
-            fontSize: 13,
+            fontSize: SacFontSize.bodyMedium,
           ),
         ),
       ),

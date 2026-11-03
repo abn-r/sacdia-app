@@ -22,6 +22,7 @@ import '../widgets/club_type_selector.dart';
 import '../widgets/guardian_only_exit.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
 import '../utils/acting_copy.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista del paso 3: Selección de club - Estilo "Scout Vibrante"
 ///
@@ -536,7 +537,8 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
       padding: const EdgeInsets.all(12),
       child: Text(
         message,
-        style: const TextStyle(color: AppColors.errorDark, fontSize: 13),
+        style: const TextStyle(
+            color: AppColors.errorDark, fontSize: SacFontSize.bodyMedium),
       ),
     );
   }
@@ -548,7 +550,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
         message,
         style: TextStyle(
           color: context.sac.textTertiary,
-          fontSize: 14,
+          fontSize: SacFontSize.titleSmall,
         ),
       ),
     );

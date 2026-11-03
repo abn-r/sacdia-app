@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Paisaje del emblema de Aventureros, expandido: cielo, cerros, iglesia.
 enum WelcomeWorldKind { clubs, classes, honors, admin, journey }
@@ -141,7 +142,8 @@ class WelcomeWorldPainter extends CustomPainter {
       height: bodyH,
     );
     canvas.drawRRect(
-      RRect.fromRectAndRadius(body, const Radius.circular(3)),
+      RRect.fromRectAndRadius(
+          body, const Radius.circular(AppTheme.radiusHairline)),
       Paint()..color = const Color(0xFFF7F4EE),
     );
 
@@ -182,7 +184,7 @@ class WelcomeWorldPainter extends CustomPainter {
           width: bodyW * 0.22,
           height: bodyH * 0.34,
         ),
-        const Radius.circular(2),
+        const Radius.circular(AppTheme.radiusHairline),
       ),
       Paint()..color = const Color(0xFF6B5344),
     );
@@ -201,7 +203,7 @@ class WelcomeWorldPainter extends CustomPainter {
           width: h * 0.1,
           height: h * 0.22,
         ),
-        const Radius.circular(2),
+        const Radius.circular(AppTheme.radiusHairline),
       ),
       Paint()..color = const Color(0xFF6B4A32),
     );
@@ -315,7 +317,7 @@ class WelcomeDevice extends StatelessWidget {
       height: h,
       decoration: BoxDecoration(
         color: bezel,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXL),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.22),
@@ -330,7 +332,7 @@ class WelcomeDevice extends StatelessWidget {
         children: [
           Positioned.fill(
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(AppTheme.radiusLG),
               child: ColoredBox(
                 color: Colors.white,
                 child: FittedBox(
@@ -354,7 +356,7 @@ class WelcomeDevice extends StatelessWidget {
                 height: 9,
                 decoration: BoxDecoration(
                   color: bezel,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 ),
               ),
             ),
@@ -410,7 +412,7 @@ class _PennantPainter extends CustomPainter {
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(0, 0, 5, size.height),
-        const Radius.circular(2),
+        const Radius.circular(AppTheme.radiusHairline),
       ),
       Paint()..color = const Color(0xFF6B4A32),
     );

@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import '../../domain/entities/achievement.dart';
 import '../../domain/entities/user_achievement.dart';
 import 'achievement_badge.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Overlay de animación de desbloqueo de logro.
 ///
@@ -231,7 +232,7 @@ class _UnlockOverlayState extends State<_UnlockOverlay>
                           horizontal: 16, vertical: 6),
                       decoration: BoxDecoration(
                         color: tierColor.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
                         border:
                             Border.all(color: tierColor.withValues(alpha: 0.5)),
                       ),
@@ -247,7 +248,7 @@ class _UnlockOverlayState extends State<_UnlockOverlay>
                           Text(
                             '¡Nuevo logro en tu camino!',
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: SacFontSize.titleSmall,
                               fontWeight: FontWeight.w700,
                               color: tierColor,
                               letterSpacing: 0.5,
@@ -262,7 +263,7 @@ class _UnlockOverlayState extends State<_UnlockOverlay>
                       child: Text(
                         widget.achievement.name,
                         style: const TextStyle(
-                          fontSize: 20,
+                          fontSize: SacFontSize.headlineMedium,
                           fontWeight: FontWeight.w900,
                           color: Colors.white,
                         ),
@@ -283,7 +284,7 @@ class _UnlockOverlayState extends State<_UnlockOverlay>
                         Text(
                           '${widget.achievement.points} puntos',
                           style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: SacFontSize.bodyMedium,
                             fontWeight: FontWeight.w600,
                             color: AppColors.accent,
                           ),
@@ -294,7 +295,7 @@ class _UnlockOverlayState extends State<_UnlockOverlay>
                     Text(
                       'achievements.views.unlock_tap_to_close'.tr(),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: SacFontSize.bodySmall,
                         color: Colors.white.withValues(alpha: 0.5),
                       ),
                     ),

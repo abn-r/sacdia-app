@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Shimmer-style skeleton that mirrors the ActivityDetailView layout structure.
 ///
@@ -75,7 +76,7 @@ class _ActivityDetailSkeletonState extends State<ActivityDetailSkeleton>
                   width: double.infinity,
                   height: 220,
                   borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(16),
+                    bottom: Radius.circular(AppTheme.radiusMD),
                   ),
                   shimmerValue: _shimmer.value,
                 ),
@@ -99,16 +100,16 @@ class _ActivityDetailSkeletonState extends State<ActivityDetailSkeleton>
                           _SkeletonBox(
                             width: 68,
                             height: 22,
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(8)),
+                            borderRadius: const BorderRadius.all(
+                                Radius.circular(AppTheme.radiusXS)),
                             shimmerValue: _shimmer.value,
                           ),
                           const SizedBox(width: 6),
                           _SkeletonBox(
                             width: 80,
                             height: 22,
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(8)),
+                            borderRadius: const BorderRadius.all(
+                                Radius.circular(AppTheme.radiusXS)),
                             shimmerValue: _shimmer.value,
                           ),
                         ],
@@ -127,8 +128,8 @@ class _ActivityDetailSkeletonState extends State<ActivityDetailSkeleton>
                       _SkeletonBox(
                         width: double.infinity,
                         height: 68,
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(14)),
+                        borderRadius: const BorderRadius.all(
+                            Radius.circular(AppTheme.radiusMD)),
                         shimmerValue: _shimmer.value,
                       ),
                       const SizedBox(height: 10),
@@ -137,8 +138,8 @@ class _ActivityDetailSkeletonState extends State<ActivityDetailSkeleton>
                       _SkeletonBox(
                         width: double.infinity,
                         height: 56,
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(14)),
+                        borderRadius: const BorderRadius.all(
+                            Radius.circular(AppTheme.radiusMD)),
                         shimmerValue: _shimmer.value,
                       ),
                       const SizedBox(height: 24),
@@ -187,7 +188,7 @@ class _ActivityDetailSkeletonState extends State<ActivityDetailSkeleton>
                               width: 36,
                               height: 36,
                               borderRadius: const BorderRadius.all(
-                                Radius.circular(100),
+                                Radius.circular(AppTheme.radiusFull),
                               ),
                               shimmerValue: _shimmer.value,
                             ),
@@ -203,7 +204,7 @@ class _ActivityDetailSkeletonState extends State<ActivityDetailSkeleton>
                             width: 24,
                             height: 24,
                             borderRadius: const BorderRadius.all(
-                              Radius.circular(100),
+                              Radius.circular(AppTheme.radiusFull),
                             ),
                             shimmerValue: _shimmer.value,
                           ),
@@ -241,7 +242,8 @@ class _SkeletonBox extends StatelessWidget {
   const _SkeletonBox({
     required this.width,
     required this.height,
-    this.borderRadius = const BorderRadius.all(Radius.circular(8)),
+    this.borderRadius =
+        const BorderRadius.all(Radius.circular(AppTheme.radiusXS)),
     required this.shimmerValue,
   });
 

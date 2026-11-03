@@ -21,6 +21,7 @@ import '../providers/monthly_reports_providers.dart';
 import '../utils/monthly_report_period.dart';
 import '../widgets/monthly_report_motion.dart';
 import 'monthly_report_detail_view.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 class MonthlyReportsVisibleListView extends ConsumerWidget {
   const MonthlyReportsVisibleListView({super.key});
@@ -70,7 +71,7 @@ class MonthlyReportsVisibleListView extends ConsumerWidget {
                     child: Text(
                       'monthly_reports.visible.history_title'.tr(),
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: SacFontSize.bodyMedium,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.2,
                         color: c.textTertiary,
@@ -225,7 +226,7 @@ class _NextActionBar extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(color: c.border.withValues(alpha: 0.7)),
       ),
       child: Column(
@@ -240,7 +241,7 @@ class _NextActionBar extends ConsumerWidget {
                   color: kind == _NextActionKind.allSet
                       ? const Color(0xFFDCFCE7)
                       : SacAccent.of(context).color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                 ),
                 child: HugeIcon(
                   icon: kind == _NextActionKind.allSet
@@ -262,7 +263,7 @@ class _NextActionBar extends ConsumerWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: SacFontSize.titleMedium,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.2,
                         color: c.text,
@@ -275,7 +276,7 @@ class _NextActionBar extends ConsumerWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: SacFontSize.bodyMedium,
                         fontWeight: FontWeight.w600,
                         color: c.textSecondary,
                       ),
@@ -335,7 +336,7 @@ class _GroupedHistoryList extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(color: c.border.withValues(alpha: 0.7)),
       ),
       clipBehavior: Clip.antiAlias,
@@ -398,7 +399,7 @@ class _VisibleReportRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: SacFontSize.titleMedium,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.2,
                       color: c.text,
@@ -412,7 +413,7 @@ class _VisibleReportRow extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: SacFontSize.bodySmall,
                         height: 1.2,
                         fontWeight: FontWeight.w500,
                         color: c.textTertiary,
@@ -433,7 +434,7 @@ class _VisibleReportRow extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: SacFontSize.labelSmall,
                         height: 1.2,
                         fontWeight: FontWeight.w600,
                         color: c.textTertiary,
@@ -473,14 +474,14 @@ class _VisibleStatusChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: config.bg,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
       ),
       child: Text(
         label,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          fontSize: 11,
+          fontSize: SacFontSize.labelSmall,
           height: 1,
           fontWeight: FontWeight.w800,
           letterSpacing: 0.1,
@@ -503,7 +504,7 @@ class _EmptyHistory extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(color: c.border.withValues(alpha: 0.7)),
       ),
       child: Column(
@@ -524,7 +525,7 @@ class _EmptyHistory extends StatelessWidget {
             'monthly_reports.visible.empty_subtitle'.tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               height: 1.35,
               color: c.textSecondary,
             ),

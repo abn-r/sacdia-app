@@ -7,6 +7,7 @@ import '../../../../core/widgets/sac_pressable.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../qr/presentation/views/qr_scanner_view.dart'
     show QrCameraErrorView;
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Cámara que lee el QR de vinculación del teléfono del tutor.
 ///
@@ -93,7 +94,8 @@ class _PairingQrScannerViewState extends State<PairingQrScannerView> {
                           width: side,
                           height: side,
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusMD),
                             border: Border.all(color: Colors.white, width: 3),
                           ),
                         ),
@@ -111,14 +113,14 @@ class _PairingQrScannerViewState extends State<PairingQrScannerView> {
                       ),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                       ),
                       child: Text(
                         'device.pair.scanner_hint'.tr(),
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 13,
+                          fontSize: SacFontSize.bodyMedium,
                         ),
                       ),
                     ),

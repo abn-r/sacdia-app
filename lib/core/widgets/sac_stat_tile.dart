@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Visual tone of a [SacStatTile]. It tints the icon (and the value for
 /// [error]); it never replaces the label, so meaning is not color-only.
@@ -155,7 +156,7 @@ class _StatTileSkeleton extends StatelessWidget {
           height: height,
           decoration: BoxDecoration(
             color: c.border,
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(AppTheme.radius2XS),
           ),
         );
 

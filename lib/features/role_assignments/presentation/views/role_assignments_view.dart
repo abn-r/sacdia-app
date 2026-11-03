@@ -14,6 +14,7 @@ import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../../domain/entities/role_assignment.dart';
 import '../providers/role_assignments_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista de asignaciones de rol del usuario.
 ///
@@ -72,7 +73,7 @@ class RoleAssignmentsView extends ConsumerWidget {
                           horizontal: 14, vertical: 10),
                       decoration: BoxDecoration(
                         color: AppColors.accentLight,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                         border: Border.all(
                             color: AppColors.accent.withValues(alpha: 0.4)),
                       ),
@@ -89,7 +90,7 @@ class RoleAssignmentsView extends ConsumerWidget {
                             child: Text(
                               'role_assignments.view.admin_note'.tr(),
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: SacFontSize.bodySmall,
                                 color: AppColors.accentDark,
                                 height: 1.4,
                               ),
@@ -134,7 +135,7 @@ class _AssignmentCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
           color: assignment.assignmentStatus == AssignmentStatus.active
               ? SacAccent.of(context).color.withValues(alpha: 0.3)
@@ -157,7 +158,7 @@ class _AssignmentCard extends StatelessWidget {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: statusCfg.bg,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 ),
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedUserStar01,
@@ -175,7 +176,7 @@ class _AssignmentCard extends StatelessWidget {
                           'role_assignments.view.fallback_role'
                               .tr(namedArgs: {'id': '${assignment.roleId}'}),
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: SacFontSize.titleMedium,
                         fontWeight: FontWeight.w700,
                         color: c.text,
                       ),
@@ -186,7 +187,7 @@ class _AssignmentCard extends StatelessWidget {
                             ? '${assignment.clubName} — ${assignment.sectionName}'
                             : assignment.clubName!,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: SacFontSize.bodySmall,
                           color: c.textSecondary,
                         ),
                         maxLines: 1,
@@ -197,7 +198,7 @@ class _AssignmentCard extends StatelessWidget {
                         'role_assignments.view.fallback_section'.tr(
                             namedArgs: {'id': '${assignment.clubSectionId}'}),
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: SacFontSize.bodySmall,
                           color: c.textSecondary,
                         ),
                       ),
@@ -209,12 +210,12 @@ class _AssignmentCard extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: statusCfg.bg,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusLG),
                 ),
                 child: Text(
                   assignment.assignmentStatus.label,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: SacFontSize.labelSmall,
                     fontWeight: FontWeight.w600,
                     color: statusCfg.fg,
                   ),
@@ -258,7 +259,7 @@ class _AssignmentCard extends StatelessWidget {
                   child: Text(
                     assignment.notes!,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: SacFontSize.bodySmall,
                       color: c.textSecondary,
                       height: 1.4,
                     ),
@@ -321,14 +322,14 @@ class _MetaRow extends StatelessWidget {
         Text(
           '$label: ',
           style: TextStyle(
-            fontSize: 12,
+            fontSize: SacFontSize.bodySmall,
             color: c.textTertiary,
           ),
         ),
         Text(
           value,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: SacFontSize.bodySmall,
             fontWeight: FontWeight.w600,
             color: c.textSecondary,
           ),
@@ -376,7 +377,7 @@ class _ErrorBody extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14),
+              style: const TextStyle(fontSize: SacFontSize.titleSmall),
             ),
             const SizedBox(height: 16),
             SacButton.primary(

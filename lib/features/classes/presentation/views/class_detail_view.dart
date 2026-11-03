@@ -13,6 +13,7 @@ import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import '../providers/classes_providers.dart';
 import 'class_modules_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista de detalle de clase - Estilo "Scout Vibrante"
 ///
@@ -92,7 +93,7 @@ class ClassDetailView extends ConsumerWidget {
                                 Text(
                                   'classes.detail.progress_label'.tr(),
                                   style: const TextStyle(
-                                    fontSize: 12,
+                                    fontSize: SacFontSize.bodySmall,
                                     color: Colors.white70,
                                   ),
                                 ),
@@ -145,7 +146,7 @@ class ClassDetailView extends ConsumerWidget {
                         Text(
                           progressiveClass.description!,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: SacFontSize.titleSmall,
                             height: 1.6,
                             color: context.sac.textSecondary,
                           ),
@@ -197,8 +198,9 @@ class ClassDetailView extends ConsumerWidget {
                 const SizedBox(height: 8),
                 Text(
                   error.toString(),
-                  style:
-                      TextStyle(fontSize: 14, color: context.sac.textSecondary),
+                  style: TextStyle(
+                      fontSize: SacFontSize.titleSmall,
+                      color: context.sac.textSecondary),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),

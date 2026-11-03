@@ -1302,7 +1302,7 @@ class _MembersChipGrid extends StatelessWidget {
             avatar: _MemberAvatar(member: m, size: 24),
             label: Text(
               m.fullName,
-              style: const TextStyle(fontSize: 13),
+              style: const TextStyle(fontSize: SacFontSize.bodyMedium),
             ),
             deleteIcon:
                 const HugeIcon(icon: HugeIcons.strokeRoundedCancel01, size: 16),

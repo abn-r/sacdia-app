@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 
 /// Tokens de diseño extraídos del prototipo HTML.
 class RoadmapTokens {
-  // Tipografía base — sustituye fontFamily si usas una fuente custom global.
-  static const String fontFamily = 'sans-serif';
-
   // Colores de marca SACDIA por track
   static const Color avAccent = Color(0xFF4FB37C);
   static const Color cqAccent = Color(0xFF3D6FA5);

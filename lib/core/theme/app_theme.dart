@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
+import 'package:sacdia_app/core/theme/sac_font_size.dart';
+
+export 'package:sacdia_app/core/theme/sac_font_size.dart';
 
 /// SACDIA Design System - ThemeData "Scout Vibrante"
 ///
 /// Minimalista con fondos blancos, acentos vibrantes,
-/// cards redondeadas (16px), botones (12px), inputs (12px).
+/// cards redondeadas (14px), botones (12px), inputs (12px).
 class AppTheme {
   AppTheme._();
 
   // Constantes de diseño
+  static const double radiusHairline = 2.0;
+  static const double radius2XS = 4.0;
   static const double radiusXS = 8.0;
   static const double radiusSM = 12.0;
-  static const double radiusMD = 16.0;
+  static const double radiusMD = 14.0;
   static const double radiusLG = 20.0;
   static const double radiusXL = 24.0;
   static const double radiusFull = 100.0;
@@ -77,72 +82,72 @@ class AppTheme {
       textTheme: const TextTheme(
         // Display - Headers de pantalla principal (28px bold)
         displayLarge: TextStyle(
-          fontSize: 32,
+          fontSize: SacFontSize.displayLarge,
           fontWeight: FontWeight.w700,
           color: AppColors.lightText,
           letterSpacing: -0.5,
         ),
         displayMedium: TextStyle(
-          fontSize: 28,
+          fontSize: SacFontSize.displayMedium,
           fontWeight: FontWeight.w700,
           color: AppColors.lightText,
           letterSpacing: -0.5,
         ),
         displaySmall: TextStyle(
-          fontSize: 24,
+          fontSize: SacFontSize.displaySmall,
           fontWeight: FontWeight.w700,
           color: AppColors.lightText,
         ),
 
         // Headline - Títulos de sección (20px semibold)
         headlineLarge: TextStyle(
-          fontSize: 22,
+          fontSize: SacFontSize.headlineLarge,
           fontWeight: FontWeight.w600,
           color: AppColors.lightText,
         ),
         headlineMedium: TextStyle(
-          fontSize: 20,
+          fontSize: SacFontSize.headlineMedium,
           fontWeight: FontWeight.w600,
           color: AppColors.lightText,
         ),
         headlineSmall: TextStyle(
-          fontSize: 18,
+          fontSize: SacFontSize.headlineSmall,
           fontWeight: FontWeight.w600,
           color: AppColors.lightText,
         ),
 
         // Title - Títulos de cards (16px medium)
         titleLarge: TextStyle(
-          fontSize: 18,
+          fontSize: SacFontSize.titleLarge,
           fontWeight: FontWeight.w500,
           color: AppColors.lightText,
         ),
         titleMedium: TextStyle(
-          fontSize: 16,
+          fontSize: SacFontSize.titleMedium,
           fontWeight: FontWeight.w500,
           color: AppColors.lightText,
         ),
         titleSmall: TextStyle(
-          fontSize: 14,
+          fontSize: SacFontSize.titleSmall,
           fontWeight: FontWeight.w500,
           color: AppColors.lightText,
         ),
 
         // Body - Contenido general (14px regular)
         bodyLarge: TextStyle(
-          fontSize: 16,
+          fontSize: SacFontSize.titleMedium,
           fontWeight: FontWeight.w400,
           color: AppColors.lightText,
           height: 1.5,
         ),
         bodyMedium: TextStyle(
-          fontSize: 14,
+          fontSize: SacFontSize.bodyMedium,
           fontWeight: FontWeight.w400,
           color: AppColors.lightText,
           height: 1.5,
         ),
         bodySmall: TextStyle(
-          fontSize: 12,
+          fontSize: SacFontSize.bodySmall,
           fontWeight: FontWeight.w400,
           color: AppColors.lightTextSecondary,
           height: 1.5,
@@ -150,17 +155,17 @@ class AppTheme {
 
         // Label - Botones, badges, chips
         labelLarge: TextStyle(
-          fontSize: 14,
+          fontSize: SacFontSize.titleSmall,
           fontWeight: FontWeight.w600,
           color: AppColors.lightText,
         ),
         labelMedium: TextStyle(
-          fontSize: 12,
+          fontSize: SacFontSize.bodySmall,
           fontWeight: FontWeight.w500,
           color: AppColors.lightTextSecondary,
         ),
         labelSmall: TextStyle(
-          fontSize: 10,
+          fontSize: SacFontSize.labelSmall,
           fontWeight: FontWeight.w500,
           color: AppColors.lightTextTertiary,
         ),
@@ -507,82 +512,82 @@ class AppTheme {
       // Tipografía - mismos estilos, colores dark
       textTheme: const TextTheme(
         displayLarge: TextStyle(
-          fontSize: 32,
+          fontSize: SacFontSize.displayLarge,
           fontWeight: FontWeight.w700,
           color: AppColors.darkText,
           letterSpacing: -0.5,
         ),
         displayMedium: TextStyle(
-          fontSize: 28,
+          fontSize: SacFontSize.displayMedium,
           fontWeight: FontWeight.w700,
           color: AppColors.darkText,
           letterSpacing: -0.5,
         ),
         displaySmall: TextStyle(
-          fontSize: 24,
+          fontSize: SacFontSize.displaySmall,
           fontWeight: FontWeight.w700,
           color: AppColors.darkText,
         ),
         headlineLarge: TextStyle(
-          fontSize: 22,
+          fontSize: SacFontSize.headlineLarge,
           fontWeight: FontWeight.w600,
           color: AppColors.darkText,
         ),
         headlineMedium: TextStyle(
-          fontSize: 20,
+          fontSize: SacFontSize.headlineMedium,
           fontWeight: FontWeight.w600,
           color: AppColors.darkText,
         ),
         headlineSmall: TextStyle(
-          fontSize: 18,
+          fontSize: SacFontSize.headlineSmall,
           fontWeight: FontWeight.w600,
           color: AppColors.darkText,
         ),
         titleLarge: TextStyle(
-          fontSize: 18,
+          fontSize: SacFontSize.titleLarge,
           fontWeight: FontWeight.w500,
           color: AppColors.darkText,
         ),
         titleMedium: TextStyle(
-          fontSize: 16,
+          fontSize: SacFontSize.titleMedium,
           fontWeight: FontWeight.w500,
           color: AppColors.darkText,
         ),
         titleSmall: TextStyle(
-          fontSize: 14,
+          fontSize: SacFontSize.titleSmall,
           fontWeight: FontWeight.w500,
           color: AppColors.darkText,
         ),
         bodyLarge: TextStyle(
-          fontSize: 16,
+          fontSize: SacFontSize.titleMedium,
           fontWeight: FontWeight.w400,
           color: AppColors.darkText,
           height: 1.5,
         ),
         bodyMedium: TextStyle(
-          fontSize: 14,
+          fontSize: SacFontSize.bodyMedium,
           fontWeight: FontWeight.w400,
           color: AppColors.darkText,
           height: 1.5,
         ),
         bodySmall: TextStyle(
-          fontSize: 12,
+          fontSize: SacFontSize.bodySmall,
           fontWeight: FontWeight.w400,
           color: AppColors.darkTextSecondary,
           height: 1.5,
         ),
         labelLarge: TextStyle(
-          fontSize: 14,
+          fontSize: SacFontSize.titleSmall,
           fontWeight: FontWeight.w600,
           color: AppColors.darkText,
         ),
         labelMedium: TextStyle(
-          fontSize: 12,
+          fontSize: SacFontSize.bodySmall,
           fontWeight: FontWeight.w500,
           color: AppColors.darkTextSecondary,
         ),
         labelSmall: TextStyle(
-          fontSize: 10,
+          fontSize: SacFontSize.labelSmall,
           fontWeight: FontWeight.w500,
           color: AppColors.darkTextTertiary,
         ),

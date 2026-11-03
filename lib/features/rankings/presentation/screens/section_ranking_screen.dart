@@ -20,6 +20,7 @@ import '../providers/section_ranking_provider.dart';
 import '../widgets/member_ranking_list_tile.dart';
 import '../widgets/ranking_empty_state.dart';
 import '../widgets/ranking_skeleton.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Pantalla de ranking de miembros clasificados dentro de una sección.
 ///
@@ -201,7 +202,7 @@ class _SectionRankingHeader extends StatelessWidget {
                   height: 44,
                   decoration: BoxDecoration(
                     color: SacAccent.of(context).surface,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                   ),
                   child: HugeIcon(
                     icon: HugeIcons.strokeRoundedAnalytics01,
@@ -286,7 +287,7 @@ class _HeaderMetric extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: color.withValues(alpha: 0.18)),
       ),
       child: Column(

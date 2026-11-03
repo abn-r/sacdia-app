@@ -12,6 +12,7 @@ import '../../domain/entities/accessibility_settings.dart';
 import '../providers/accessibility_provider.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 class AccessibilityView extends ConsumerWidget {
   const AccessibilityView({super.key});
@@ -125,7 +126,7 @@ class _PreviewCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border, width: 1),
       ),
       child: Column(
@@ -134,7 +135,7 @@ class _PreviewCard extends StatelessWidget {
           Text(
             'accessibility.preview_title'.tr(),
             style: TextStyle(
-              fontSize: 11,
+              fontSize: SacFontSize.labelSmall,
               fontWeight: FontWeight.w600,
               color: c.textTertiary,
               letterSpacing: 0.8,
@@ -173,7 +174,8 @@ class _TextSizePickerSheet extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppTheme.radiusLG)),
       ),
       padding: EdgeInsets.only(
         top: 12,
@@ -190,7 +192,7 @@ class _TextSizePickerSheet extends StatelessWidget {
               height: 5,
               decoration: BoxDecoration(
                 color: c.border,
-                borderRadius: BorderRadius.circular(3),
+                borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
               ),
             ),
           ),
@@ -238,7 +240,7 @@ class _GroupContainer extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: context.sac.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: context.sac.border, width: 1),
       ),
       child: Column(children: children),
@@ -278,7 +280,7 @@ class _SwitchTile extends StatelessWidget {
             height: 34,
             decoration: BoxDecoration(
               color: effectiveBg,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Center(
               child: HugeIcon(
@@ -293,7 +295,7 @@ class _SwitchTile extends StatelessWidget {
             child: Text(
               title,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.w500,
                 color: c.text,
               ),

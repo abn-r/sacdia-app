@@ -15,6 +15,7 @@ import '../../data/models/emergency_contact_model.dart';
 import '../providers/personal_info_providers.dart';
 import '../widgets/relationship_type_picker_field.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista para agregar o editar un contacto de emergencia
 class AddEditContactView extends ConsumerStatefulWidget {
@@ -199,7 +200,7 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
                       color: _isPrimary
                           ? SacAccent.of(context).light
                           : context.sac.surface,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                       boxShadow: [
                         BoxShadow(
                           color: context.sac.shadow,
@@ -236,7 +237,7 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
                               'post_registration.contact_form.primary_subtitle'
                                   .tr(),
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: SacFontSize.bodySmall,
                                 color: context.sac.textSecondary,
                               ),
                             ),
@@ -255,7 +256,8 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
                             inactiveTrackColor:
                                 context.sac.textTertiary.withValues(alpha: 0.4),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius:
+                                  BorderRadius.circular(AppTheme.radiusXS),
                             ),
                           )),
                     ),
@@ -303,7 +305,7 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: SacAccent.of(context).light,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                       border: Border.all(
                           color: SacAccent.of(context)
                               .color
@@ -321,7 +323,7 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
                           child: Text(
                             'post_registration.contact_form.info_note'.tr(),
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: SacFontSize.bodySmall,
                               color: SacAccent.of(context).dark,
                             ),
                           ),

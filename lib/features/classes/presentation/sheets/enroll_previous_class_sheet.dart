@@ -16,6 +16,7 @@ import 'package:sacdia_app/features/classes/presentation/providers/classes_provi
 import 'package:sacdia_app/features/classes/presentation/widgets/enroll_previous_class_skeleton.dart';
 import 'package:sacdia_app/providers/catalogs_provider.dart';
 import 'package:sacdia_app/shared/models/catalogs/ecclesiastical_year_model.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Sheet modal para inscribir al usuario en una clase que completó antes de
 /// unirse a la aplicación.
@@ -97,7 +98,7 @@ class _EnrollPreviousClassSheetState
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: SacAccent.of(context).color.withAlpha(20),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
           ),
           child: HugeIcon(
             icon: HugeIcons.strokeRoundedSchool,
@@ -113,7 +114,7 @@ class _EnrollPreviousClassSheetState
               Text(
                 'classes.enroll_sheet.title'.tr(),
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: SacFontSize.headlineSmall,
                   fontWeight: FontWeight.w700,
                   color: c.text,
                 ),
@@ -121,7 +122,7 @@ class _EnrollPreviousClassSheetState
               Text(
                 'classes.enroll_sheet.subtitle'.tr(),
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   color: c.textSecondary,
                 ),
               ),
@@ -157,7 +158,7 @@ class _EnrollPreviousClassSheetState
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: AppColors.error.withAlpha(15),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXS),
           border: Border.all(color: AppColors.error.withAlpha(60)),
         ),
         child: Row(
@@ -170,7 +171,8 @@ class _EnrollPreviousClassSheetState
             Expanded(
               child: Text(
                 'No se pudo determinar el año eclesiástico actual',
-                style: TextStyle(fontSize: 13, color: AppColors.error),
+                style: TextStyle(
+                    fontSize: SacFontSize.bodyMedium, color: AppColors.error),
               ),
             ),
           ],
@@ -182,7 +184,7 @@ class _EnrollPreviousClassSheetState
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: AppColors.warning.withAlpha(15),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
               border: Border.all(color: AppColors.warning.withAlpha(60)),
             ),
             child: Row(
@@ -195,7 +197,9 @@ class _EnrollPreviousClassSheetState
                 Expanded(
                   child: Text(
                     'No se pudo determinar el año eclesiástico actual',
-                    style: TextStyle(fontSize: 13, color: c.textSecondary),
+                    style: TextStyle(
+                        fontSize: SacFontSize.bodyMedium,
+                        color: c.textSecondary),
                   ),
                 ),
               ],
@@ -212,7 +216,7 @@ class _EnrollPreviousClassSheetState
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: AppColors.secondary.withAlpha(20),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             border: Border.all(color: AppColors.secondary.withAlpha(60)),
           ),
           child: Row(
@@ -224,12 +228,13 @@ class _EnrollPreviousClassSheetState
               const SizedBox(width: 8),
               Text(
                 'Año eclesiástico: ',
-                style: TextStyle(fontSize: 13, color: c.textSecondary),
+                style: TextStyle(
+                    fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
               ),
               Text(
                 yearLabel,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   fontWeight: FontWeight.w700,
                   color: AppColors.secondaryDark,
                 ),
@@ -271,7 +276,8 @@ class _EnrollPreviousClassSheetState
             const SizedBox(height: 4),
             Text(
               error.toString().replaceFirst('Exception: ', ''),
-              style: TextStyle(fontSize: 13, color: c.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -290,7 +296,8 @@ class _EnrollPreviousClassSheetState
             child: Center(
               child: Text(
                 'No hay clases disponibles en el catálogo',
-                style: TextStyle(fontSize: 14, color: c.textSecondary),
+                style: TextStyle(
+                    fontSize: SacFontSize.titleSmall, color: c.textSecondary),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -309,7 +316,7 @@ class _EnrollPreviousClassSheetState
             Text(
               'Selecciona una clase',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 fontWeight: FontWeight.w600,
                 color: c.textSecondary,
               ),
@@ -334,7 +341,7 @@ class _EnrollPreviousClassSheetState
                     onTap: _isSubmitting
                         ? null
                         : () => setState(() => _selectedClass = cls),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
                       padding: const EdgeInsets.symmetric(
@@ -343,7 +350,7 @@ class _EnrollPreviousClassSheetState
                         color: isSelected
                             ? SacAccent.of(context).color.withAlpha(18)
                             : c.surface,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                         border: Border.all(
                           color: isSelected
                               ? SacAccent.of(context).color
@@ -369,11 +376,13 @@ class _EnrollPreviousClassSheetState
                             height: 36,
                             decoration: BoxDecoration(
                               color: classColor.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius:
+                                  BorderRadius.circular(AppTheme.radiusXS),
                             ),
                             child: cls.imageUrl != null
                                 ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.circular(
+                                        AppTheme.radiusXS),
                                     child: SacNetworkImage(
                                       imageUrl: cls.imageUrl!,
                                       memCacheWidth:
@@ -424,7 +433,7 @@ class _EnrollPreviousClassSheetState
                             child: Text(
                               cls.name,
                               style: TextStyle(
-                                fontSize: 15,
+                                fontSize: SacFontSize.titleMedium,
                                 fontWeight: isSelected
                                     ? FontWeight.w600
                                     : FontWeight.normal,
@@ -447,7 +456,7 @@ class _EnrollPreviousClassSheetState
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: AppColors.error.withAlpha(15),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                   border: Border.all(color: AppColors.error.withAlpha(60)),
                 ),
                 child: Row(
@@ -460,7 +469,9 @@ class _EnrollPreviousClassSheetState
                     Expanded(
                       child: Text(
                         _submitError!,
-                        style: TextStyle(fontSize: 13, color: AppColors.error),
+                        style: TextStyle(
+                            fontSize: SacFontSize.bodyMedium,
+                            color: AppColors.error),
                       ),
                     ),
                   ],
@@ -497,7 +508,7 @@ class _EnrollPreviousClassSheetState
             Text(
               'Debés iniciar sesión para inscribir una clase anterior',
               style: TextStyle(
-                fontSize: 15,
+                fontSize: SacFontSize.titleMedium,
                 color: c.textSecondary,
               ),
               textAlign: TextAlign.center,

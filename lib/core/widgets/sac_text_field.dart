@@ -231,7 +231,7 @@ class _SacTextFieldState extends State<SacTextField> {
                   _errorMessage!,
                   style: TextStyle(
                     color: theme.colorScheme.error,
-                    fontSize: 12,
+                    fontSize: SacFontSize.bodySmall,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

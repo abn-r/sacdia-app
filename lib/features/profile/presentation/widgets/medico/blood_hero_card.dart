@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'medico_tokens.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Tarjeta hero con tipo de sangre + barra de completitud.
 ///
@@ -111,7 +112,7 @@ class BloodHeroCard extends StatelessWidget {
         Text(
           'profile.medical_info.hero.eyebrow'.tr(),
           style: TextStyle(
-            fontSize: 11,
+            fontSize: SacFontSize.labelSmall,
             letterSpacing: 1.54, // ~0.14em
             fontWeight: FontWeight.w700,
             color: ink.withValues(alpha: 0.85),
@@ -129,7 +130,7 @@ class BloodHeroCard extends StatelessWidget {
                   bloodType ?? 'profile.medical_info.hero.empty_blood'.tr(),
                   maxLines: 1,
                   style: TextStyle(
-                    fontSize: 44,
+                    fontSize: SacFontSize.metric,
                     fontWeight: FontWeight.w800,
                     color: ink,
                     height: 1,
@@ -148,7 +149,7 @@ class BloodHeroCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       color: ink.withValues(alpha: 0.85),
                     ),
                   ),
@@ -167,7 +168,7 @@ class BloodHeroCard extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         color: ink.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       ),
       child: HugeIcon(
         icon: HugeIcons.strokeRoundedBlood,
@@ -187,7 +188,7 @@ class BloodHeroCard extends StatelessWidget {
             Text(
               'profile.medical_info.hero.completeness_title'.tr(),
               style: TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 color: ink.withValues(alpha: 0.85),
                 fontWeight: FontWeight.w600,
               ),
@@ -200,7 +201,7 @@ class BloodHeroCard extends StatelessWidget {
                 },
               ),
               style: TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 color: ink,
                 fontWeight: FontWeight.w700,
               ),
@@ -209,7 +210,7 @@ class BloodHeroCard extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         ClipRRect(
-          borderRadius: BorderRadius.circular(99),
+          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
           child: Stack(
             children: [
               Container(height: 6, color: ink.withValues(alpha: 0.22)),
@@ -219,7 +220,7 @@ class BloodHeroCard extends StatelessWidget {
                   height: 6,
                   decoration: BoxDecoration(
                     color: ink,
-                    borderRadius: BorderRadius.circular(99),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                     boxShadow: [
                       BoxShadow(
                         color: ink.withValues(alpha: 0.6),

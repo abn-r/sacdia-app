@@ -14,6 +14,7 @@ import '../sac_dialog.dart';
 import '../sac_top_bar.dart';
 import 'staged_file.dart';
 import '../../animations/page_transitions.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Unified grid for displaying both remote (uploaded) and local (staged) files.
 ///
@@ -89,7 +90,7 @@ class StagedFileGrid extends StatelessWidget {
           child: Text(
             '$totalFiles de $maxFiles archivos',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               fontWeight: FontWeight.w500,
               color: excess > 0 ? AppColors.error : c.textSecondary,
             ),
@@ -106,7 +107,7 @@ class StagedFileGrid extends StatelessWidget {
                   .tr(namedArgs: {'count': '$excess'}),
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w600,
                 color: AppColors.error,
               ),
@@ -170,7 +171,7 @@ class _StagedFileCell extends StatelessWidget {
           Container(
             decoration: BoxDecoration(
               color: c.surfaceVariant,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
               border: file.isLocal
                   ? null // Dashed border handled by foregroundDecoration below
                   : Border.all(color: c.border),
@@ -179,7 +180,7 @@ class _StagedFileCell extends StatelessWidget {
             foregroundDecoration: file.isLocal
                 ? _DashedBorderDecoration(
                     color: isExcess ? AppColors.error : AppColors.secondary,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                     strokeWidth: 2,
                     dashWidth: 6,
                     dashGap: 4,
@@ -205,7 +206,7 @@ class _StagedFileCell extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: SacFontSize.caption,
                                 fontWeight: FontWeight.w600,
                                 color: c.text,
                               ),
@@ -221,7 +222,7 @@ class _StagedFileCell extends StatelessWidget {
                                     ),
                                 ].join(' · '),
                                 style: TextStyle(
-                                  fontSize: 9,
+                                  fontSize: SacFontSize.micro,
                                   color: c.textTertiary,
                                 ),
                               ),
@@ -232,7 +233,7 @@ class _StagedFileCell extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: SacFontSize.caption,
                             fontWeight: FontWeight.w600,
                             color: c.text,
                           ),
@@ -280,7 +281,7 @@ class _StagedFileCell extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: isExcess ? AppColors.error : AppColors.secondary,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                   boxShadow: [
                     BoxShadow(
                       color: c.shadow,
@@ -294,7 +295,7 @@ class _StagedFileCell extends StatelessWidget {
                       ? tr('core.evidence_staging.badge_extra')
                       : tr('core.evidence_staging.badge_new'),
                   style: const TextStyle(
-                    fontSize: 9,
+                    fontSize: SacFontSize.micro,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),
@@ -384,7 +385,7 @@ class _StagedFileCell extends StatelessWidget {
             const Text(
               'PDF',
               style: TextStyle(
-                fontSize: 10,
+                fontSize: SacFontSize.caption,
                 fontWeight: FontWeight.w700,
                 color: AppColors.error,
               ),

@@ -4,6 +4,7 @@ import 'package:sacdia_app/core/theme/club_type.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 import 'package:sacdia_app/features/materials/domain/entities/material_program.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Club-type filter. Caption names the axis; chips are the clubs.
 class MaterialsProgramField extends StatelessWidget {
@@ -32,7 +33,7 @@ class MaterialsProgramField extends StatelessWidget {
             child: Text(
               'materials.catalog.filter_program_label'.tr(),
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 fontWeight: FontWeight.w600,
                 color: c.textSecondary,
               ),

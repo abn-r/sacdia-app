@@ -21,6 +21,7 @@ import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 // ── Constantes de validación ──────────────────────────────────────────────────
 
@@ -343,7 +344,7 @@ class _FormBody extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                 border: Border.all(color: c.border),
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(AppTheme.radius2XS),
               ),
               child: Row(
                 children: [
@@ -404,7 +405,7 @@ class _FilePreview extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: SacAccent.of(context).surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(
             color: SacAccent.of(context).color.withValues(alpha: 0.3)),
       ),
@@ -414,7 +415,7 @@ class _FilePreview extends StatelessWidget {
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: SacAccent.of(context).color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: HugeIcon(
                 icon: HugeIcons.strokeRoundedFile01,

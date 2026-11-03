@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Fila con tres tarjetas de señal: Clase, Investidura y Camporees.
 ///
@@ -95,7 +96,7 @@ class _SignalScoreCard extends StatelessWidget {
             Text(
               hasScore ? _formatScore(score!) : '—',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontSize: 18,
+                    fontSize: SacFontSize.headlineSmall,
                     fontWeight: FontWeight.w700,
                     color: hasScore ? c.text : c.textTertiary,
                   ),
@@ -105,7 +106,7 @@ class _SignalScoreCard extends StatelessWidget {
             Text(
               label,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    fontSize: 10,
+                    fontSize: SacFontSize.caption,
                     fontWeight: FontWeight.w500,
                     color: c.textTertiary,
                   ),

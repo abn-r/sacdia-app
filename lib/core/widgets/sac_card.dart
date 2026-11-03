@@ -8,7 +8,7 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Card del design system SACDIA "Scout Vibrante"
 ///
-/// Fondo blanco, borde sutil, sombra muy ligera, radius 16px.
+/// Fondo blanco, borde sutil, sombra muy ligera, radius 14px (`AppTheme.radiusMD`).
 /// Opcional: barra de acento lateral (4px) estilo Google Classroom.
 ///
 /// Novedad: [animate] activa un fade + scale entrance al montar la card.

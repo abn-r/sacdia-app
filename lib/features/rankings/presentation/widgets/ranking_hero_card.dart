@@ -131,7 +131,7 @@ class RankingHeroCard extends StatelessWidget {
                                 ?.copyWith(
                                   color: AppColors.accent,
                                   fontWeight: FontWeight.w700,
-                                  fontSize: 32,
+                                  fontSize: SacFontSize.displayLarge,
                                 ),
                           ),
                           const SizedBox(height: 2),
@@ -142,7 +142,7 @@ class RankingHeroCard extends StatelessWidget {
                                 .bodySmall
                                 ?.copyWith(
                                   color: Colors.white.withValues(alpha: 0.6),
-                                  fontSize: 12,
+                                  fontSize: SacFontSize.bodySmall,
                                 ),
                           ),
                         ] else ...[
@@ -170,7 +170,7 @@ class RankingHeroCard extends StatelessWidget {
                                 .bodyMedium
                                 ?.copyWith(
                                   color: Colors.white.withValues(alpha: 0.85),
-                                  fontSize: 14,
+                                  fontSize: SacFontSize.titleSmall,
                                 ),
                           ),
                         ],
@@ -202,14 +202,14 @@ class _CategoryPill extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         ),
         child: Text(
           name.toUpperCase(),
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
-                fontSize: 10,
+                fontSize: SacFontSize.caption,
               ),
           overflow: TextOverflow.ellipsis,
           maxLines: 1,

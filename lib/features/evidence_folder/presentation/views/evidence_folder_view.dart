@@ -22,6 +22,7 @@ import '../widgets/section_card.dart';
 import 'evidence_section_detail_view.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista principal de la Carpeta Anual de Evidencias.
 ///
@@ -291,7 +292,7 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
                   color: c.surface,
                   clipBehavior: Clip.antiAlias,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                     side: BorderSide(color: c.border),
                   ),
                   child: Column(
@@ -354,7 +355,7 @@ class _UnderEvaluationBanner extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFFFFF8E1),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
           color: const Color(0xFFF59E0B).withValues(alpha: 0.5),
           width: 1.5,
@@ -367,7 +368,7 @@ class _UnderEvaluationBanner extends StatelessWidget {
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Center(
               child: HugeIcon(

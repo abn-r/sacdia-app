@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Skeleton que espeja el layout plano de [InsuranceView]:
 /// cifra de cobertura, barra, stats, búsqueda, lista agrupada.
@@ -80,7 +81,8 @@ class _InsuranceLoadingSkeletonState extends State<InsuranceLoadingSkeleton>
           _SkeletonBox(
             width: double.infinity,
             height: 3,
-            borderRadius: const BorderRadius.all(Radius.circular(2)),
+            borderRadius: const BorderRadius.all(
+                Radius.circular(AppTheme.radiusHairline)),
             shimmerValue: sv,
           ),
           const SizedBox(height: 16),
@@ -112,7 +114,8 @@ class _InsuranceLoadingSkeletonState extends State<InsuranceLoadingSkeleton>
       child: _SkeletonBox(
         width: double.infinity,
         height: 36,
-        borderRadius: const BorderRadius.all(Radius.circular(10)),
+        borderRadius:
+            const BorderRadius.all(Radius.circular(AppTheme.radiusXS)),
         shimmerValue: sv,
       ),
     );
@@ -141,7 +144,7 @@ class _InsuranceLoadingSkeletonState extends State<InsuranceLoadingSkeleton>
       child: Container(
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFFFFFFF),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           border: Border.all(
             color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF1F5F9),
           ),
@@ -163,7 +166,8 @@ class _InsuranceLoadingSkeletonState extends State<InsuranceLoadingSkeleton>
               _SkeletonBox(
                 width: 36,
                 height: 36,
-                borderRadius: const BorderRadius.all(Radius.circular(100)),
+                borderRadius: const BorderRadius.all(
+                    Radius.circular(AppTheme.radiusFull)),
                 shimmerValue: sv,
               ),
               const SizedBox(width: 12),
@@ -207,7 +211,8 @@ class _SkeletonBox extends StatelessWidget {
   const _SkeletonBox({
     required this.width,
     required this.height,
-    this.borderRadius = const BorderRadius.all(Radius.circular(8)),
+    this.borderRadius =
+        const BorderRadius.all(Radius.circular(AppTheme.radiusXS)),
     required this.shimmerValue,
   });
 

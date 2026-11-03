@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Sección de información estilo iOS grouped list.
 /// Sin Card — agrupación de filas con Divider fino, header en uppercase.
@@ -29,7 +30,7 @@ class InfoSection extends StatelessWidget {
           child: Text(
             title.toUpperCase(),
             style: TextStyle(
-              fontSize: 11,
+              fontSize: SacFontSize.labelSmall,
               fontWeight: FontWeight.w600,
               color: context.sac.textTertiary,
               letterSpacing: 0.8,
@@ -40,7 +41,7 @@ class InfoSection extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             color: context.sac.surface,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             border: Border.all(
               color: context.sac.border,
               width: 1,
@@ -102,8 +103,8 @@ class _InfoItemWidget extends StatelessWidget {
     return SacInkWell(
       onTap: item.onTap,
       borderRadius: BorderRadius.vertical(
-        top: isFirst ? const Radius.circular(14) : Radius.zero,
-        bottom: isLast ? const Radius.circular(14) : Radius.zero,
+        top: isFirst ? const Radius.circular(AppTheme.radiusMD) : Radius.zero,
+        bottom: isLast ? const Radius.circular(AppTheme.radiusMD) : Radius.zero,
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
@@ -115,7 +116,7 @@ class _InfoItemWidget extends StatelessWidget {
               height: 32,
               decoration: BoxDecoration(
                 color: context.sac.surfaceVariant,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
               ),
               child: HugeIcon(
                 icon: item.icon,
@@ -132,7 +133,7 @@ class _InfoItemWidget extends StatelessWidget {
                   Text(
                     item.label,
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: SacFontSize.labelSmall,
                       fontWeight: FontWeight.w500,
                       color: context.sac.textTertiary,
                     ),
@@ -142,12 +143,12 @@ class _InfoItemWidget extends StatelessWidget {
                     item.value ?? 'profile.info_section.not_specified'.tr(),
                     style: item.value != null
                         ? TextStyle(
-                            fontSize: 14,
+                            fontSize: SacFontSize.titleSmall,
                             fontWeight: FontWeight.w500,
                             color: context.sac.text,
                           )
                         : TextStyle(
-                            fontSize: 14,
+                            fontSize: SacFontSize.titleSmall,
                             fontWeight: FontWeight.w400,
                             color: context.sac.textTertiary,
                             fontStyle: FontStyle.italic,

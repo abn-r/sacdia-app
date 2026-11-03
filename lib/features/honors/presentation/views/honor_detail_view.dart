@@ -38,6 +38,7 @@ import '../widgets/honor_work_mode_selector.dart';
 import '../../domain/entities/user_honor.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 
@@ -122,7 +123,7 @@ Future<void> _promptCompletionModeChange({
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: c.surface,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           ),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
@@ -134,7 +135,7 @@ Future<void> _promptCompletionModeChange({
                   'honors.detail.change_work_mode_cta'.tr(),
                   style: TextStyle(
                     color: c.text,
-                    fontSize: 18,
+                    fontSize: SacFontSize.headlineSmall,
                     fontWeight: FontWeight.w800,
                     height: 1.2,
                     letterSpacing: -0.3,
@@ -420,7 +421,8 @@ class _ErrorScaffold extends StatelessWidget {
                   Text(
                     'honors.detail.error_load'.tr(),
                     style: TextStyle(
-                        fontSize: 15, color: context.sac.textSecondary),
+                        fontSize: SacFontSize.titleMedium,
+                        color: context.sac.textSecondary),
                   ),
                   const SizedBox(height: 20),
                   SacPressable(
@@ -430,7 +432,9 @@ class _ErrorScaffold extends StatelessWidget {
                       onPressed: onRetry,
                       child: Text(
                         'honors.catalog.retry'.tr(),
-                        style: TextStyle(color: context.sac.text, fontSize: 14),
+                        style: TextStyle(
+                            color: context.sac.text,
+                            fontSize: SacFontSize.titleSmall),
                       ),
                     ),
                   ),
@@ -863,7 +867,7 @@ class _CatalogHonorIdentity extends StatelessWidget {
                 fallbackColor: c.textTertiary,
                 fallbackBackgroundColor: c.surfaceVariant,
                 fallbackIconSize: 40,
-                fallbackBorderRadius: BorderRadius.circular(20),
+                fallbackBorderRadius: BorderRadius.circular(AppTheme.radiusLG),
               ),
             ),
             const SizedBox(height: 14),
@@ -920,12 +924,12 @@ class _CatalogMetaChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
       ),
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: SacFontSize.bodySmall,
           fontWeight: FontWeight.w700,
           color: foreground,
           height: 1,
@@ -1033,7 +1037,7 @@ class _CompletedHonorIdentity extends StatelessWidget {
                 fallbackColor: c.textTertiary,
                 fallbackBackgroundColor: c.surfaceVariant,
                 fallbackIconSize: 40,
-                fallbackBorderRadius: BorderRadius.circular(20),
+                fallbackBorderRadius: BorderRadius.circular(AppTheme.radiusLG),
               ),
             ),
             const SizedBox(height: 14),
@@ -1062,7 +1066,7 @@ class _CompletedHonorIdentity extends StatelessWidget {
                   modeLabel,
                   style: TextStyle(
                     color: c.textSecondary,
-                    fontSize: 13,
+                    fontSize: SacFontSize.bodyMedium,
                     fontWeight: FontWeight.w500,
                     height: 1.3,
                   ),
@@ -1167,7 +1171,7 @@ class _UndecidedWorkModeDetailState extends State<_UndecidedWorkModeDetail> {
                                 'honors.work_mode.title'.tr(),
                                 style: TextStyle(
                                   color: c.text,
-                                  fontSize: 20,
+                                  fontSize: SacFontSize.headlineMedium,
                                   fontWeight: FontWeight.w800,
                                   height: 1.2,
                                   letterSpacing: -0.3,
@@ -1178,7 +1182,7 @@ class _UndecidedWorkModeDetailState extends State<_UndecidedWorkModeDetail> {
                                 'honors.work_mode.subtitle'.tr(),
                                 style: TextStyle(
                                   color: c.textSecondary,
-                                  fontSize: 14,
+                                  fontSize: SacFontSize.titleSmall,
                                   height: 1.45,
                                 ),
                               ),
@@ -1411,7 +1415,7 @@ class _ExternalWorkModeCtaBar extends StatelessWidget {
               'honors.detail.under_review_cta'.tr(),
               style: const TextStyle(
                 color: AppColors.accent,
-                fontSize: 15,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -1466,7 +1470,7 @@ class _WorkModeHonorIdentity extends StatelessWidget {
                 fallbackColor: c.textTertiary,
                 fallbackBackgroundColor: c.surfaceVariant,
                 fallbackIconSize: 40,
-                fallbackBorderRadius: BorderRadius.circular(20),
+                fallbackBorderRadius: BorderRadius.circular(AppTheme.radiusLG),
               ),
             ),
             const SizedBox(height: 14),
@@ -1500,7 +1504,7 @@ class _WorkModeHonorIdentity extends StatelessWidget {
                     caption!,
                     style: TextStyle(
                       color: c.textSecondary,
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       fontWeight: FontWeight.w500,
                       height: 1.3,
                     ),
@@ -1950,7 +1954,7 @@ class _HistoryInfoRow extends StatelessWidget {
             height: 32,
             decoration: BoxDecoration(
               color: well,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: HugeIcon(icon: icon, size: 16, color: accent),
           ),
@@ -1963,7 +1967,7 @@ class _HistoryInfoRow extends StatelessWidget {
                   label,
                   style: TextStyle(
                     color: context.sac.textTertiary,
-                    fontSize: 11,
+                    fontSize: SacFontSize.labelSmall,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.2,
                   ),
@@ -1973,7 +1977,7 @@ class _HistoryInfoRow extends StatelessWidget {
                   value,
                   style: TextStyle(
                     color: context.sac.text,
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                     fontWeight: FontWeight.w600,
                     height: 1.35,
                   ),
@@ -1984,7 +1988,7 @@ class _HistoryInfoRow extends StatelessWidget {
                     detail!,
                     style: TextStyle(
                       color: context.sac.textSecondary,
-                      fontSize: 12,
+                      fontSize: SacFontSize.bodySmall,
                       fontWeight: FontWeight.w600,
                       height: 1.3,
                     ),
@@ -2114,7 +2118,7 @@ class _RequirementsHistoryCard extends StatelessWidget {
                   'honors.detail.requirements_history_empty'.tr(),
                   style: TextStyle(
                     color: context.sac.textSecondary,
-                    fontSize: 13,
+                    fontSize: SacFontSize.bodyMedium,
                     height: 1.45,
                   ),
                 )
@@ -2153,7 +2157,7 @@ class _RequirementsHistoryCard extends StatelessWidget {
           'honors.detail.requirements_history_error'.tr(),
           style: TextStyle(
             color: context.sac.textSecondary,
-            fontSize: 13,
+            fontSize: SacFontSize.bodyMedium,
             height: 1.45,
           ),
         ),
@@ -2186,7 +2190,7 @@ class _HistorySectionHeader extends StatelessWidget {
           height: 36,
           decoration: BoxDecoration(
             color: c.surfaceVariant,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
           ),
           child: HugeIcon(icon: icon, size: 18, color: categoryColor),
         ),
@@ -2207,7 +2211,7 @@ class _HistorySectionHeader extends StatelessWidget {
                 subtitle,
                 style: TextStyle(
                   color: c.textSecondary,
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   height: 1.4,
                 ),
               ),
@@ -2245,7 +2249,7 @@ class _RequirementHistoryItem extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: context.sac.surfaceVariant.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: context.sac.border),
       ),
       child: Column(
@@ -2270,7 +2274,7 @@ class _RequirementHistoryItem extends StatelessWidget {
                     color: requirement.completed
                         ? AppColors.success
                         : categoryColor,
-                    fontSize: 12,
+                    fontSize: SacFontSize.bodySmall,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -2281,7 +2285,7 @@ class _RequirementHistoryItem extends StatelessWidget {
                   requirement.text,
                   style: TextStyle(
                     color: context.sac.text,
-                    fontSize: 13,
+                    fontSize: SacFontSize.bodyMedium,
                     fontWeight: FontWeight.w700,
                     height: 1.35,
                   ),
@@ -2323,7 +2327,7 @@ class _RequirementHistoryItem extends StatelessWidget {
               ),
               style: TextStyle(
                 color: context.sac.textTertiary,
-                fontSize: 11,
+                fontSize: SacFontSize.labelSmall,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -2336,7 +2340,7 @@ class _RequirementHistoryItem extends StatelessWidget {
               ),
               style: TextStyle(
                 color: context.sac.textSecondary,
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -2374,7 +2378,7 @@ class _HistoryTextBlock extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: context.sac.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: context.sac.border),
       ),
       child: Column(
@@ -2384,7 +2388,7 @@ class _HistoryTextBlock extends StatelessWidget {
             label,
             style: TextStyle(
               color: context.sac.textTertiary,
-              fontSize: 11,
+              fontSize: SacFontSize.labelSmall,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.2,
             ),
@@ -2394,7 +2398,7 @@ class _HistoryTextBlock extends StatelessWidget {
             value,
             style: TextStyle(
               color: context.sac.textSecondary,
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               height: 1.45,
             ),
           ),
@@ -2520,7 +2524,7 @@ class _HistoryFileRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: context.sac.surfaceVariant.withValues(alpha: 0.55),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           border: Border.all(color: context.sac.border),
         ),
         child: Row(
@@ -2537,7 +2541,7 @@ class _HistoryFileRow extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: context.sac.text,
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -2548,7 +2552,7 @@ class _HistoryFileRow extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: context.sac.textTertiary,
-                      fontSize: 11,
+                      fontSize: SacFontSize.labelSmall,
                     ),
                   ),
                 ],
@@ -2598,13 +2602,13 @@ class _HistoryImageRow extends StatelessWidget {
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: context.sac.surfaceVariant.withValues(alpha: 0.55),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           border: Border.all(color: context.sac.border),
         ),
         child: Row(
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
               child: HonorSignedEvidenceImage(
                 imageUrl: url,
                 width: 42,
@@ -2630,7 +2634,7 @@ class _HistoryImageRow extends StatelessWidget {
                 title,
                 style: TextStyle(
                   color: context.sac.text,
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -2677,7 +2681,7 @@ class _LockedWorkModeCard extends StatelessWidget {
                   height: 46,
                   decoration: BoxDecoration(
                     color: categoryColor.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                   ),
                   child: HugeIcon(
                     icon: HugeIcons.strokeRoundedLock,
@@ -2691,7 +2695,7 @@ class _LockedWorkModeCard extends StatelessWidget {
                     'honors.detail.work_mode_locked_title'.tr(),
                     style: TextStyle(
                       color: context.sac.text,
-                      fontSize: 18,
+                      fontSize: SacFontSize.headlineSmall,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -2703,7 +2707,7 @@ class _LockedWorkModeCard extends StatelessWidget {
               messageKey.tr(),
               style: TextStyle(
                 color: context.sac.textSecondary,
-                fontSize: 14,
+                fontSize: SacFontSize.titleSmall,
                 height: 1.45,
               ),
             ),
@@ -2842,7 +2846,7 @@ class _PreviewRow extends StatelessWidget {
             height: 32,
             decoration: BoxDecoration(
               color: iconColor.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: HugeIcon(icon: icon, size: 16, color: iconColor),
           ),
@@ -2852,7 +2856,7 @@ class _PreviewRow extends StatelessWidget {
               label,
               style: TextStyle(
                 color: context.sac.text,
-                fontSize: 14,
+                fontSize: SacFontSize.titleSmall,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -2917,7 +2921,7 @@ class _DescriptionSectionState extends State<_DescriptionSection> {
             'honors.detail.description_label'.tr(),
             style: TextStyle(
               color: c.text,
-              fontSize: 16,
+              fontSize: SacFontSize.titleMedium,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -2928,7 +2932,7 @@ class _DescriptionSectionState extends State<_DescriptionSection> {
             overflow: _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
             style: TextStyle(
               color: c.textSecondary,
-              fontSize: 14,
+              fontSize: SacFontSize.titleSmall,
               height: 1.45,
             ),
           ),
@@ -2941,7 +2945,7 @@ class _DescriptionSectionState extends State<_DescriptionSection> {
                   : 'honors.detail.see_more'.tr(),
               style: TextStyle(
                 color: c.text,
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -2989,7 +2993,7 @@ class _HowItWorksCard extends StatelessWidget {
             'honors.detail.how_it_works'.tr(),
             style: TextStyle(
               color: c.text,
-              fontSize: 16,
+              fontSize: SacFontSize.titleMedium,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -2998,7 +3002,7 @@ class _HowItWorksCard extends StatelessWidget {
             'honors.detail.how_it_works_intro'.tr(),
             style: TextStyle(
               color: c.textSecondary,
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               height: 1.4,
             ),
           ),
@@ -3052,13 +3056,13 @@ class _HowItWorksStep extends StatelessWidget {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: c.surfaceVariant,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     ),
                     child: Text(
                       '$index',
                       style: TextStyle(
                         color: categoryPaintColor,
-                        fontSize: 13,
+                        fontSize: SacFontSize.bodyMedium,
                         fontWeight: FontWeight.w800,
                         height: 1,
                       ),
@@ -3089,7 +3093,7 @@ class _HowItWorksStep extends StatelessWidget {
                       title,
                       style: TextStyle(
                         color: c.text,
-                        fontSize: 14,
+                        fontSize: SacFontSize.titleSmall,
                         fontWeight: FontWeight.w700,
                         height: 1.2,
                       ),
@@ -3099,7 +3103,7 @@ class _HowItWorksStep extends StatelessWidget {
                       subtitle,
                       style: TextStyle(
                         color: c.textSecondary,
-                        fontSize: 13,
+                        fontSize: SacFontSize.bodyMedium,
                         height: 1.4,
                       ),
                     ),
@@ -3177,7 +3181,7 @@ class _StatMiniCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       decoration: BoxDecoration(
         color: categoryColor.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
           color: categoryColor.withValues(alpha: 0.15),
           width: 1,
@@ -3189,7 +3193,7 @@ class _StatMiniCard extends StatelessWidget {
             value,
             style: TextStyle(
               color: categoryColor,
-              fontSize: 28,
+              fontSize: SacFontSize.displayMedium,
               fontWeight: FontWeight.w800,
               height: 1,
             ),
@@ -3200,7 +3204,7 @@ class _StatMiniCard extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: context.sac.textTertiary,
-              fontSize: 11,
+              fontSize: SacFontSize.labelSmall,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -3255,7 +3259,7 @@ class _RequirementsPreviewCard extends ConsumerWidget {
                         'honors.detail.requirements_label'.tr(),
                         style: TextStyle(
                           color: context.sac.text,
-                          fontSize: 16,
+                          fontSize: SacFontSize.titleMedium,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -3276,7 +3280,7 @@ class _RequirementsPreviewCard extends ConsumerWidget {
                         .tr(namedArgs: {'count': '$remaining'}),
                     style: TextStyle(
                       color: context.sac.textTertiary,
-                      fontSize: 12,
+                      fontSize: SacFontSize.bodySmall,
                     ),
                   ),
                 ),
@@ -3298,7 +3302,7 @@ class _RequirementsPreviewCard extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
                       border: Border.all(color: categoryColor, width: 1.5),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -3307,7 +3311,7 @@ class _RequirementsPreviewCard extends ConsumerWidget {
                           'honors.detail.complete_requirements'.tr(),
                           style: TextStyle(
                             color: categoryColor,
-                            fontSize: 14,
+                            fontSize: SacFontSize.titleSmall,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -3389,7 +3393,7 @@ class _RequirementPreviewItem extends StatelessWidget {
               '$number. $text',
               style: TextStyle(
                 color: completed ? context.sac.textTertiary : context.sac.text,
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 height: 1.5,
                 decoration: completed ? TextDecoration.lineThrough : null,
                 decorationColor: context.sac.textTertiary,
@@ -3428,7 +3432,7 @@ class _ExternalWorkflowInfoCard extends StatelessWidget {
             height: 44,
             decoration: BoxDecoration(
               color: c.surfaceVariant,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             ),
             child: HugeIcon(
               icon: HugeIcons.strokeRoundedPdf01,
@@ -3445,7 +3449,7 @@ class _ExternalWorkflowInfoCard extends StatelessWidget {
                   'honors.detail.external_mode_title'.tr(),
                   style: TextStyle(
                     color: c.text,
-                    fontSize: 16,
+                    fontSize: SacFontSize.titleMedium,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -3454,7 +3458,7 @@ class _ExternalWorkflowInfoCard extends StatelessWidget {
                   'honors.detail.external_mode_subtitle'.tr(),
                   style: TextStyle(
                     color: c.textSecondary,
-                    fontSize: 13,
+                    fontSize: SacFontSize.bodyMedium,
                     height: 1.45,
                   ),
                 ),
@@ -3505,7 +3509,7 @@ class _EvidenceSection extends StatelessWidget {
                       : 'honors.detail.completed_format_missing'.tr(),
                   style: TextStyle(
                     color: c.text,
-                    fontSize: 16,
+                    fontSize: SacFontSize.titleMedium,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -3522,7 +3526,7 @@ class _EvidenceSection extends StatelessWidget {
                 separatorBuilder: (_, __) => const SizedBox(width: 8),
                 itemBuilder: (context, index) {
                   return ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     child: HonorSignedEvidenceImage(
                       imageUrl: userHonor.images[index],
                       width: 56,
@@ -3553,7 +3557,7 @@ class _EvidenceSection extends StatelessWidget {
             ),
             style: TextStyle(
               color: c.textSecondary,
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               height: 1.4,
             ),
           ),
@@ -3597,7 +3601,7 @@ class _MaterialDownloadCard extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               color: c.surfaceVariant,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: HugeIcon(
               icon: HugeIcons.strokeRoundedPdf01,
@@ -3614,7 +3618,7 @@ class _MaterialDownloadCard extends StatelessWidget {
                   'honors.detail.study_material'.tr(),
                   style: TextStyle(
                     color: c.text,
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -3623,7 +3627,7 @@ class _MaterialDownloadCard extends StatelessWidget {
                   'honors.detail.material_subtitle'.tr(),
                   style: TextStyle(
                     color: c.textTertiary,
-                    fontSize: 12,
+                    fontSize: SacFontSize.bodySmall,
                   ),
                 ),
               ],
@@ -3705,13 +3709,14 @@ class _BottomCtaBar extends ConsumerWidget {
                             margin: const EdgeInsets.only(bottom: 8),
                             decoration: BoxDecoration(
                               color: AppColors.errorLight,
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius:
+                                  BorderRadius.circular(AppTheme.radiusXS),
                             ),
                             child: Text(
                               err.toString().replaceAll('Exception: ', ''),
                               style: const TextStyle(
                                 color: AppColors.errorDark,
-                                fontSize: 12,
+                                fontSize: SacFontSize.bodySmall,
                               ),
                             ),
                           ),
@@ -3804,7 +3809,7 @@ class _EnrolledCtaButton extends StatelessWidget {
         height: 48,
         decoration: BoxDecoration(
           color: AppColors.accent.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(color: AppColors.accent, width: 1.5),
         ),
         alignment: Alignment.center,
@@ -3820,7 +3825,7 @@ class _EnrolledCtaButton extends StatelessWidget {
               'honors.detail.under_review_cta'.tr(),
               style: const TextStyle(
                 color: AppColors.accent,
-                fontSize: 16,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -3840,7 +3845,7 @@ class _EnrolledCtaButton extends StatelessWidget {
         height: 48,
         decoration: BoxDecoration(
           color: context.sac.surfaceVariant,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(color: context.sac.border, width: 1.5),
         ),
         alignment: Alignment.center,
@@ -3848,7 +3853,7 @@ class _EnrolledCtaButton extends StatelessWidget {
           'honors.detail.select_mode_cta'.tr(),
           style: TextStyle(
             color: context.sac.textSecondary,
-            fontSize: 15,
+            fontSize: SacFontSize.titleMedium,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -3885,7 +3890,7 @@ class _EnrolledCtaButton extends StatelessWidget {
         height: 48,
         decoration: BoxDecoration(
           color: categoryColor,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           boxShadow: [
             BoxShadow(
               color: categoryColor.withValues(alpha: 0.30),
@@ -3899,7 +3904,7 @@ class _EnrolledCtaButton extends StatelessWidget {
           label,
           style: TextStyle(
             color: actionForegroundColor,
-            fontSize: 16,
+            fontSize: SacFontSize.titleMedium,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.2,
           ),
@@ -3922,7 +3927,7 @@ class _ShadowCard extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         color: context.sac.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         boxShadow: [
           BoxShadow(
             color: context.sac.shadow,

@@ -30,6 +30,7 @@ import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 class VirtualCardView extends ConsumerStatefulWidget {
   const VirtualCardView({super.key});
@@ -222,7 +223,8 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
                                               textAlign: TextAlign.center,
                                               style: const TextStyle(
                                                 color: Colors.white,
-                                                fontSize: 18,
+                                                fontSize:
+                                                    SacFontSize.headlineSmall,
                                                 fontWeight: FontWeight.w700,
                                               ),
                                             ),
@@ -280,7 +282,7 @@ class _ErrorState extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXL),
         border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
@@ -330,7 +332,7 @@ class _StatusBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
         color: const Color(0xEE0F1B2D),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -342,7 +344,7 @@ class _StatusBanner extends StatelessWidget {
               text,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w600,
               ),
             ),

@@ -153,7 +153,7 @@ class _ContactAvatar extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: color.withValues(alpha: 0.18)),
       ),
       child: Stack(
@@ -239,7 +239,7 @@ class _ActionPill extends StatelessWidget {
         borderColor: color.withValues(alpha: 0.22),
         backgroundColor: color.withValues(alpha: 0.04),
         iconSize: 17,
-        fontSize: 13,
+        fontSize: SacFontSize.bodyMedium,
         borderRadius: 14,
         padding: const EdgeInsets.symmetric(horizontal: 10),
       ),

@@ -19,6 +19,7 @@ import '../../../../core/widgets/secure_screen.dart';
 import '../../domain/entities/linked_device.dart';
 import '../family_error_messages.dart';
 import '../providers/linked_devices_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Muestra el QR para vincular el teléfono de un menor de 13 (FP3-41).
 ///
@@ -230,7 +231,7 @@ class _PairingQrViewState extends ConsumerState<PairingQrView> {
                   familyErrorMessage(_error),
                   style: const TextStyle(
                     color: AppColors.errorDark,
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                   ),
                 ),
               ),
@@ -313,7 +314,7 @@ class _PairingQrViewState extends ConsumerState<PairingQrView> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                 ),
                 child: Stack(
                   alignment: Alignment.center,

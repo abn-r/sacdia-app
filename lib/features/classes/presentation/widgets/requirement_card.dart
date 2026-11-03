@@ -7,6 +7,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/class_requirement.dart';
 import '../utils/status_meta.dart';
 import 'status_glyph.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Fila compacta de un requerimiento dentro de un módulo expandido.
 ///
@@ -65,7 +66,7 @@ class RequirementCard extends StatelessWidget {
                   Text(
                     requirement.name,
                     style: TextStyle(
-                      fontSize: 13.5,
+                      fontSize: SacFontSize.bodyMedium,
                       fontWeight: FontWeight.w500,
                       color: c.ink800,
                       height: 1.4,
@@ -122,7 +123,7 @@ class _ReqMetaRow extends StatelessWidget {
         Text(
           meta.label,
           style: TextStyle(
-            fontSize: 11.5,
+            fontSize: SacFontSize.labelSmall,
             fontWeight: FontWeight.w600,
             color: meta.dark,
           ),
@@ -134,7 +135,7 @@ class _ReqMetaRow extends StatelessWidget {
           child: Text(
             '·',
             style: TextStyle(
-              fontSize: 11.5,
+              fontSize: SacFontSize.labelSmall,
               color: c.ink300,
             ),
           ),
@@ -144,7 +145,7 @@ class _ReqMetaRow extends StatelessWidget {
         Text(
           '$filesUploaded',
           style: TextStyle(
-            fontSize: 11.5,
+            fontSize: SacFontSize.labelSmall,
             fontWeight: FontWeight.w700,
             color: c.ink800,
             fontFeatures: const [FontFeature.tabularFigures()],
@@ -153,7 +154,7 @@ class _ReqMetaRow extends StatelessWidget {
         Text(
           '/$filesRequired archivos',
           style: TextStyle(
-            fontSize: 11.5,
+            fontSize: SacFontSize.labelSmall,
             color: c.ink400,
           ),
         ),

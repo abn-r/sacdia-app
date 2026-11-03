@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 @Deprecated(
     'Use SacTextField from sac_widgets.dart. Will be removed in a future release.')
@@ -201,7 +202,7 @@ class CustomTextFieldState extends State<CustomTextField> {
                   _errorMessage ?? '',
                   style: const TextStyle(
                     color: AppColors.error,
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                   ),
                 ),
               )

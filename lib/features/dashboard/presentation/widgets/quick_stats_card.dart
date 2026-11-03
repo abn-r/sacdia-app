@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Estadísticas principales del dashboard con foco accionable.
 ///
@@ -75,7 +76,7 @@ class _MissionStatsCard extends StatelessWidget {
                 height: 48,
                 decoration: BoxDecoration(
                   color: iconBackground,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                 ),
                 child: buildIcon(
                   HugeIcons.strokeRoundedTarget02,
@@ -146,7 +147,7 @@ class _MissionStatsCard extends StatelessWidget {
                 : 'Tu foco está claro: avanzá una especialidad pendiente a la vez.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: helperColor,
-                  fontSize: 11,
+                  fontSize: SacFontSize.labelSmall,
                   height: 1.3,
                 ),
           ),
@@ -184,7 +185,7 @@ class _MissionPrimaryStat extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: panelBackground,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(color: panelBorder),
       ),
       child: Row(
@@ -193,7 +194,7 @@ class _MissionPrimaryStat extends StatelessWidget {
             value: value,
             style: TextStyle(
               color: valueColor,
-              fontSize: 38,
+              fontSize: SacFontSize.metricSmall,
               fontWeight: FontWeight.w900,
               height: 1,
             ),
@@ -257,7 +258,7 @@ class _MissionMiniStat extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: border),
       ),
       child: Row(
@@ -267,7 +268,7 @@ class _MissionMiniStat extends StatelessWidget {
             height: 32,
             decoration: BoxDecoration(
               color: iconBackground,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: buildIcon(icon, color: color, size: 18),
           ),
@@ -276,7 +277,7 @@ class _MissionMiniStat extends StatelessWidget {
             value: value,
             style: TextStyle(
               color: color,
-              fontSize: 17,
+              fontSize: SacFontSize.titleLarge,
               fontWeight: FontWeight.w900,
             ),
           ),
@@ -285,7 +286,7 @@ class _MissionMiniStat extends StatelessWidget {
               suffix,
               style: TextStyle(
                 color: color,
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -295,7 +296,7 @@ class _MissionMiniStat extends StatelessWidget {
               label,
               style: TextStyle(
                 color: c.textSecondary,
-                fontSize: 11,
+                fontSize: SacFontSize.labelSmall,
                 fontWeight: FontWeight.w700,
               ),
               maxLines: 1,

@@ -11,6 +11,7 @@ import '../../../auth/presentation/providers/acting_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../profile/presentation/widgets/setting_tile.dart';
 import 'profile_switcher_sheet.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Entrada "Mi familia" (y "Cambiar de perfil" si hay menores) del perfil.
 ///
@@ -43,7 +44,7 @@ class FamilyProfileEntry extends ConsumerWidget {
       child: Container(
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(color: c.border, width: 1),
         ),
         child: Column(

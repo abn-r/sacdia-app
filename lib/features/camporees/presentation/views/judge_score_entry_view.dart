@@ -344,7 +344,7 @@ class _ScoreIdentityCard extends StatelessWidget {
                   clubLabel,
                   style: TextStyle(
                     color: c.textSecondary,
-                    fontSize: 13,
+                    fontSize: SacFontSize.bodyMedium,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -392,7 +392,7 @@ class _RubricScoreCard extends StatelessWidget {
             rubric.title,
             style: TextStyle(
               color: c.text,
-              fontSize: 16,
+              fontSize: SacFontSize.titleMedium,
               fontWeight: FontWeight.w700,
               letterSpacing: -0.2,
               height: 1.2,
@@ -406,7 +406,7 @@ class _RubricScoreCard extends StatelessWidget {
               style: TextStyle(
                 color: c.textSecondary,
                 height: 1.35,
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
               ),
             ),
           ],
@@ -440,7 +440,7 @@ class _RubricScoreCard extends StatelessWidget {
                     ],
                     style: TextStyle(
                       color: overMax ? c.error : c.text,
-                      fontSize: 34,
+                      fontSize: SacFontSize.displayLarge,
                       fontWeight: FontWeight.w700,
                       letterSpacing: -0.8,
                       height: 1.1,
@@ -478,7 +478,7 @@ class _RubricScoreCard extends StatelessWidget {
             ),
             style: TextStyle(
               color: overMax ? c.error : c.textSecondary,
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -570,7 +570,7 @@ class _ScoreSubmitBar extends StatelessWidget {
                   '${'camporees.judge.total_caption'.tr()}:',
                   style: TextStyle(
                     color: c.textSecondary,
-                    fontSize: 13,
+                    fontSize: SacFontSize.bodyMedium,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -581,7 +581,7 @@ class _ScoreSubmitBar extends StatelessWidget {
                   ),
                   style: TextStyle(
                     color: c.text,
-                    fontSize: 20,
+                    fontSize: SacFontSize.headlineMedium,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.4,
                   ),
@@ -597,7 +597,7 @@ class _ScoreSubmitBar extends StatelessWidget {
                       maxLines: 2,
                       style: TextStyle(
                         color: c.textSecondary,
-                        fontSize: 13,
+                        fontSize: SacFontSize.bodyMedium,
                         fontWeight: FontWeight.w600,
                         height: 1.25,
                       ),
@@ -701,7 +701,7 @@ class _OfficialScoreView extends StatelessWidget {
                       'camporees.judge.evaluated_by'.tr(),
                       style: TextStyle(
                         color: c.textSecondary,
-                        fontSize: 12,
+                        fontSize: SacFontSize.bodySmall,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -710,7 +710,7 @@ class _OfficialScoreView extends StatelessWidget {
                       evaluator,
                       style: TextStyle(
                         color: c.text,
-                        fontSize: 18,
+                        fontSize: SacFontSize.headlineSmall,
                         fontWeight: FontWeight.w700,
                         letterSpacing: -0.2,
                       ),
@@ -721,7 +721,7 @@ class _OfficialScoreView extends StatelessWidget {
                         _formatScoreDate(submittedAt),
                         style: TextStyle(
                           color: c.textSecondary,
-                          fontSize: 13,
+                          fontSize: SacFontSize.bodyMedium,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -749,7 +749,7 @@ class _OfficialScoreView extends StatelessWidget {
                         item.title,
                         style: TextStyle(
                           color: c.text,
-                          fontSize: 16,
+                          fontSize: SacFontSize.titleMedium,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -789,7 +789,7 @@ class _OfficialScoreView extends StatelessWidget {
                         'camporees.judge.notes_label'.tr(),
                         style: TextStyle(
                           color: c.textSecondary,
-                          fontSize: 12,
+                          fontSize: SacFontSize.bodySmall,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../domain/entities/activity.dart';
 import 'activity_map_options_sheet.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Hero content for the activity detail screen.
 ///
@@ -107,8 +108,9 @@ class ActivityHeroSection extends StatelessWidget {
             style: (TextButton.styleFrom(
               foregroundColor: AppColors.secondaryDark,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              textStyle:
-                  const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              textStyle: const TextStyle(
+                  fontSize: SacFontSize.bodyMedium,
+                  fontWeight: FontWeight.w600),
             )).copyWith(enableFeedback: false),
           ),
         ),
@@ -287,7 +289,7 @@ class _JoinMeetChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: AppColors.info,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppTheme.radiusLG),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.2),
@@ -308,7 +310,7 @@ class _JoinMeetChip extends StatelessWidget {
             Text(
               'activities.widgets.join_button'.tr(),
               style: const TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
               ),

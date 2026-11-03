@@ -11,6 +11,7 @@ import 'package:sacdia_app/features/classes/presentation/views/class_detail_with
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/features/classes/presentation/views/classes_list_view.dart';
 import 'profile_quiet_add_chip.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Section of the profile view that shows the user's enrolled progressive
 /// classes in a 3-column grid, visually consistent with [ProfileHonorsSection].
@@ -32,7 +33,8 @@ class ProfileClassesSection extends ConsumerWidget {
           child: Center(
             child: Text(
               'profile.classes_section.error_load'.tr(),
-              style: TextStyle(color: AppColors.error, fontSize: 14),
+              style: TextStyle(
+                  color: AppColors.error, fontSize: SacFontSize.titleSmall),
             ),
           ),
         ),
@@ -52,7 +54,7 @@ class ProfileClassesSection extends ConsumerWidget {
                   Text(
                     'profile.classes_section.no_classes'.tr(),
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: SacFontSize.titleMedium,
                       color: context.sac.textSecondary,
                     ),
                     textAlign: TextAlign.center,
@@ -149,7 +151,7 @@ class _ClassGridItem extends StatelessWidget {
                 Container(
                   decoration: BoxDecoration(
                     color: classColor.withAlpha(20),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     border: Border.all(
                       color: isExpired
                           ? AppColors.error.withAlpha(120)
@@ -190,13 +192,13 @@ class _ClassGridItem extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: AppColors.error,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                       ),
                       child: Text(
                         'classes.class_card.expired_badge'.tr(),
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 8,
+                          fontSize: SacFontSize.nano,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -213,13 +215,13 @@ class _ClassGridItem extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: classColor,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                       ),
                       child: Text(
                         '$progress%',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 9,
+                          fontSize: SacFontSize.micro,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -252,7 +254,7 @@ class _ClassGridItem extends StatelessWidget {
           progressiveClass.name,
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: SacFontSize.labelSmall,
             fontWeight: FontWeight.w600,
             color: context.sac.text,
           ),
@@ -288,7 +290,8 @@ class _ClassesSkeleton extends StatelessWidget {
                           height: 90,
                           decoration: BoxDecoration(
                             color: skeletonColor,
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusXS),
                           ),
                         ),
                       ),

@@ -443,7 +443,7 @@ class _ClassInfoSheet extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: SacFontSize.headlineMedium,
                         fontWeight: FontWeight.w700,
                         height: 1.15,
                         letterSpacing: -0.4,
@@ -454,7 +454,7 @@ class _ClassInfoSheet extends StatelessWidget {
                     Text(
                       _statusLabel(status),
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: SacFontSize.bodyMedium,
                         fontWeight: FontWeight.w600,
                         height: 1.25,
                         color: _statusColor(status, c),
@@ -465,7 +465,7 @@ class _ClassInfoSheet extends StatelessWidget {
                       Text(
                         meta.join(' · '),
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: SacFontSize.bodyMedium,
                           fontWeight: FontWeight.w500,
                           height: 1.3,
                           color: c.textSecondary,
@@ -482,7 +482,7 @@ class _ClassInfoSheet extends StatelessWidget {
             Text(
               description,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: SacFontSize.titleMedium,
                 height: 1.45,
                 color: c.textSecondary,
               ),
@@ -526,7 +526,7 @@ class _ProgressBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.90),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(AppTheme.radius2XS),
         border: Border.all(
           color: Colors.white.withValues(alpha: 0.8),
           width: 1,
@@ -535,7 +535,7 @@ class _ProgressBadge extends StatelessWidget {
       child: Text(
         '$progress%',
         style: const TextStyle(
-          fontSize: 7,
+          fontSize: SacFontSize.nano,
           fontWeight: FontWeight.w800,
           color: Colors.white,
           height: 1,

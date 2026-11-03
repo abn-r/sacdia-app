@@ -24,6 +24,7 @@ import '../widgets/investiture_message_state.dart';
 import '../widgets/investiture_person_row.dart';
 import '../widgets/investiture_section_label.dart';
 import '../widgets/resolution_summary.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 const _i18n = 'investiture_requests.authorizer';
 
@@ -333,7 +334,7 @@ class _Header extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: c.paper,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(color: c.ink150),
       ),
       child: Column(

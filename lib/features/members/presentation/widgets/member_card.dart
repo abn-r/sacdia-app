@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 
 import '../../domain/entities/club_member.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Compact roster row: name + one meta line. Class label lives on the group header.
 class MemberCard extends StatelessWidget {
@@ -42,7 +43,7 @@ class MemberCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           border: Border.all(color: c.border),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -58,7 +59,7 @@ class MemberCard extends StatelessWidget {
                   Text(
                     member.fullName,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: SacFontSize.titleMedium,
                       fontWeight: FontWeight.w600,
                       color: c.text,
                       height: 1.2,
@@ -99,7 +100,7 @@ class MemberCard extends StatelessWidget {
                             child: Text(
                               roleLabel,
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: SacFontSize.bodySmall,
                                 height: 1.2,
                                 color: c.textSecondary,
                                 fontWeight: FontWeight.w500,
@@ -116,7 +117,7 @@ class MemberCard extends StatelessWidget {
                               child: Text(
                                 '·',
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: SacFontSize.bodySmall,
                                   color: c.textTertiary,
                                 ),
                               ),
@@ -230,7 +231,7 @@ class _AssignRoleButton extends StatelessWidget {
             height: 28,
             decoration: BoxDecoration(
               color: SacAccent.of(context).color.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Center(
               child: HugeIcon(
@@ -260,7 +261,7 @@ class _AvatarInitials extends StatelessWidget {
       child: Text(
         initials,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: SacFontSize.bodySmall,
           fontWeight: FontWeight.w600,
           color: theme.colorScheme.onPrimaryContainer,
         ),

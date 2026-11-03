@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Shimmer-style skeleton that mirrors the FinancesView loaded layout.
 ///
@@ -119,7 +120,8 @@ class _FinancesLoadingSkeletonState extends State<FinancesLoadingSkeleton>
               _SkeletonBox(
                 width: 32,
                 height: 32,
-                borderRadius: const BorderRadius.all(Radius.circular(100)),
+                borderRadius: const BorderRadius.all(
+                    Radius.circular(AppTheme.radiusFull)),
                 shimmerValue: sv,
               ),
               const SizedBox(width: 16),
@@ -128,7 +130,8 @@ class _FinancesLoadingSkeletonState extends State<FinancesLoadingSkeleton>
               _SkeletonBox(
                 width: 32,
                 height: 32,
-                borderRadius: const BorderRadius.all(Radius.circular(100)),
+                borderRadius: const BorderRadius.all(
+                    Radius.circular(AppTheme.radiusFull)),
                 shimmerValue: sv,
               ),
             ],
@@ -162,7 +165,7 @@ class _FinancesLoadingSkeletonState extends State<FinancesLoadingSkeleton>
         color: Theme.of(context).brightness == Brightness.dark
             ? const Color(0xFF0A0A0A)
             : const Color(0xFFFAFBFC),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,14 +180,16 @@ class _FinancesLoadingSkeletonState extends State<FinancesLoadingSkeleton>
                   _SkeletonBox(
                     width: 60,
                     height: 12,
-                    borderRadius: const BorderRadius.all(Radius.circular(6)),
+                    borderRadius: const BorderRadius.all(
+                        Radius.circular(AppTheme.radius2XS)),
                     shimmerValue: sv,
                   ),
                   const SizedBox(width: 12),
                   _SkeletonBox(
                     width: 60,
                     height: 12,
-                    borderRadius: const BorderRadius.all(Radius.circular(6)),
+                    borderRadius: const BorderRadius.all(
+                        Radius.circular(AppTheme.radius2XS)),
                     shimmerValue: sv,
                   ),
                 ],
@@ -197,7 +202,8 @@ class _FinancesLoadingSkeletonState extends State<FinancesLoadingSkeleton>
           _SkeletonBox(
             width: double.infinity,
             height: 180,
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
+            borderRadius:
+                const BorderRadius.all(Radius.circular(AppTheme.radiusXS)),
             shimmerValue: sv,
           ),
           const SizedBox(height: 12),
@@ -213,7 +219,8 @@ class _FinancesLoadingSkeletonState extends State<FinancesLoadingSkeleton>
                     child: _SkeletonBox(
                       width: 42,
                       height: 30,
-                      borderRadius: const BorderRadius.all(Radius.circular(20)),
+                      borderRadius: const BorderRadius.all(
+                          Radius.circular(AppTheme.radiusLG)),
                       shimmerValue: sv,
                     ),
                   ),
@@ -252,7 +259,7 @@ class _FinancesLoadingSkeletonState extends State<FinancesLoadingSkeleton>
         color: Theme.of(context).brightness == Brightness.dark
             ? const Color(0xFF1A1A1A)
             : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Theme.of(context).brightness == Brightness.dark
             ? null
             : Border.all(color: const Color(0xFFF1F5F9), width: 1),
@@ -263,7 +270,8 @@ class _FinancesLoadingSkeletonState extends State<FinancesLoadingSkeleton>
           _SkeletonBox(
             width: 36,
             height: 36,
-            borderRadius: const BorderRadius.all(Radius.circular(10)),
+            borderRadius:
+                const BorderRadius.all(Radius.circular(AppTheme.radiusXS)),
             shimmerValue: sv,
           ),
           const SizedBox(width: 10),
@@ -297,7 +305,8 @@ class _FinancesLoadingSkeletonState extends State<FinancesLoadingSkeleton>
               _SkeletonBox(
                 width: 60,
                 height: 12,
-                borderRadius: const BorderRadius.all(Radius.circular(4)),
+                borderRadius:
+                    const BorderRadius.all(Radius.circular(AppTheme.radius2XS)),
                 shimmerValue: sv,
               ),
             ],
@@ -325,7 +334,8 @@ class _SkeletonBox extends StatelessWidget {
   const _SkeletonBox({
     required this.width,
     required this.height,
-    this.borderRadius = const BorderRadius.all(Radius.circular(8)),
+    this.borderRadius =
+        const BorderRadius.all(Radius.circular(AppTheme.radiusXS)),
     required this.shimmerValue,
   });
 

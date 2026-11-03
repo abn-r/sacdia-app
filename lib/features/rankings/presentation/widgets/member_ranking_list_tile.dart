@@ -5,6 +5,7 @@ import '../utils/award_tier_presentation_extensions.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_card.dart';
 import '../../domain/entities/award_tier.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Fila-card de ranking de un miembro dentro de su sección.
 ///
@@ -127,7 +128,7 @@ class MemberRankingListTile extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               ClipRRect(
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                 child: LinearProgressIndicator(
                   value: progressValue,
                   minHeight: 7,
@@ -168,7 +169,7 @@ class _RankBadge extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       ),
       child: Text(
         '#$rankPosition',
@@ -201,7 +202,7 @@ class _ScoreBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
         color: hasScore ? color.withValues(alpha: 0.12) : c.borderLight,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(
           color: hasScore ? color.withValues(alpha: 0.35) : c.border,
         ),
@@ -219,7 +220,7 @@ class _ScoreBadge extends StatelessWidget {
           Text(
             tr('rankings.section_ranking.score_short'),
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  fontSize: 9,
+                  fontSize: SacFontSize.micro,
                   color: c.textTertiary,
                 ),
           ),
@@ -241,7 +242,7 @@ class _CategoryChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
         border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Text(

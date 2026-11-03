@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/evidence_section.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Timeline horizontal del flujo de estados de una sección:
 /// Pendiente → Enviado → Preaprobado (LF) → Validado.
@@ -214,7 +215,7 @@ class StatusTimeline extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: SacFontSize.labelSmall,
                   fontWeight: FontWeight.w700,
                   height: 1.2,
                   color: step.isActive
@@ -234,7 +235,7 @@ class StatusTimeline extends StatelessWidget {
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: SacFontSize.caption,
                     height: 1.3,
                     color: c.textSecondary,
                   ),

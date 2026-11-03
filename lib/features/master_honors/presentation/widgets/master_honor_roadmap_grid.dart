@@ -8,6 +8,7 @@ import 'package:sacdia_app/features/master_honors/domain/entities/master_honor_r
 import 'package:sacdia_app/features/master_honors/presentation/widgets/master_honor_detail_presentation.dart';
 import 'package:sacdia_app/features/master_honors/presentation/widgets/master_honor_detail_sheet.dart';
 import 'package:sacdia_app/features/master_honors/presentation/widgets/master_honor_logo.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 export 'master_honor_detail_presentation.dart'
     show MasterHonorGridVisual, masterHonorGridVisual;
@@ -186,7 +187,7 @@ class _MasterHonorRoadmapGridItemState extends State<MasterHonorRoadmapGridItem>
             curve: SacMotion.easeOut,
             decoration: BoxDecoration(
               color: surfaceColor,
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(AppTheme.radiusLG),
               border: Border.all(color: borderColor, width: 1),
             ),
             padding: const EdgeInsets.fromLTRB(6, 10, 6, 10),
@@ -238,7 +239,7 @@ class _MasterHonorRoadmapGridItemState extends State<MasterHonorRoadmapGridItem>
                       item.name,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 11.5,
+                        fontSize: SacFontSize.labelSmall,
                         fontWeight: nameWeight,
                         color: nameColor,
                         height: 1.25,
@@ -297,14 +298,14 @@ class _CounterPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
         color: emphasized ? color.withValues(alpha: 0.16) : context.sac.border,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
       ),
       child: Text(
         label,
         textAlign: TextAlign.center,
         style: TextStyle(
           color: emphasized ? color : context.sac.textSecondary,
-          fontSize: 11,
+          fontSize: SacFontSize.labelSmall,
           fontWeight: FontWeight.w700,
           height: 1.1,
         ),
@@ -330,14 +331,14 @@ class _StatusCaption extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
       ),
       child: Text(
         label,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          fontSize: 10,
+          fontSize: SacFontSize.caption,
           fontWeight: FontWeight.w600,
           height: 1.2,
           color: foreground,
@@ -366,7 +367,7 @@ class _ThinProgressBar extends StatelessWidget {
           final fillWidth = totalWidth * progress.clamp(0.0, 1.0);
 
           return ClipRRect(
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
             child: Stack(
               children: [
                 Container(
@@ -382,7 +383,8 @@ class _ThinProgressBar extends StatelessWidget {
                     width: fillWidth,
                     decoration: BoxDecoration(
                       color: color,
-                      borderRadius: BorderRadius.circular(2),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.radiusHairline),
                     ),
                   ),
               ],

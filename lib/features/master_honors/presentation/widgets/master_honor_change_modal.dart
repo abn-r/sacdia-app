@@ -5,6 +5,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 
 import '../providers/master_honor_modal_queue_provider.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Modal compacto para cambios de estado de maestrías recibidos por push.
 class MasterHonorChangeModal extends StatelessWidget {
@@ -22,7 +23,8 @@ class MasterHonorChangeModal extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.radiusLG)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
@@ -44,7 +46,8 @@ class MasterHonorChangeModal extends StatelessWidget {
                         .withValues(alpha: 0.9),
                   ),
                   alignment: Alignment.center,
-                  child: const Text('🏅', style: TextStyle(fontSize: 20)),
+                  child: const Text('🏅',
+                      style: TextStyle(fontSize: SacFontSize.headlineMedium)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -52,7 +55,7 @@ class MasterHonorChangeModal extends StatelessWidget {
                     event.title,
                     style: const TextStyle(
                       fontWeight: FontWeight.w800,
-                      fontSize: 19,
+                      fontSize: SacFontSize.headlineSmall,
                       height: 1.15,
                     ),
                   ),
@@ -62,7 +65,8 @@ class MasterHonorChangeModal extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               event.body,
-              style: const TextStyle(fontSize: 15, height: 1.35),
+              style: const TextStyle(
+                  fontSize: SacFontSize.titleMedium, height: 1.35),
             ),
             if (event.isPlural) ...[
               const SizedBox(height: 10),
@@ -110,7 +114,8 @@ class _SummaryLine extends StatelessWidget {
         Expanded(
           child: Text(
             name,
-            style: const TextStyle(fontSize: 14, height: 1.3),
+            style:
+                const TextStyle(fontSize: SacFontSize.titleSmall, height: 1.3),
           ),
         ),
       ],

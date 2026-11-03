@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Shimmer-style skeleton that mirrors the [EnrollPreviousClassSheet] loaded
 /// layout.
@@ -92,7 +93,8 @@ class _EnrollPreviousClassSkeletonState
             _SkeletonBox(
               width: double.infinity,
               height: 48,
-              borderRadius: const BorderRadius.all(Radius.circular(12)),
+              borderRadius:
+                  const BorderRadius.all(Radius.circular(AppTheme.radiusSM)),
               shimmerValue: sv,
             ),
           ],
@@ -111,7 +113,7 @@ class _EnrollPreviousClassSkeletonState
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF0F7FF),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
         border: Border.all(
           color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFBFD9F5),
         ),
@@ -122,7 +124,8 @@ class _EnrollPreviousClassSkeletonState
           _SkeletonBox(
             width: 15,
             height: 15,
-            borderRadius: const BorderRadius.all(Radius.circular(4)),
+            borderRadius:
+                const BorderRadius.all(Radius.circular(AppTheme.radius2XS)),
             shimmerValue: sv,
           ),
           const SizedBox(width: 8),
@@ -147,7 +150,7 @@ class _EnrollPreviousClassSkeletonState
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
         border: Border.all(
           color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE8EDF2),
         ),
@@ -158,7 +161,8 @@ class _EnrollPreviousClassSkeletonState
           _SkeletonBox(
             width: 20,
             height: 20,
-            borderRadius: const BorderRadius.all(Radius.circular(100)),
+            borderRadius:
+                const BorderRadius.all(Radius.circular(AppTheme.radiusFull)),
             shimmerValue: sv,
           ),
           const SizedBox(width: 10),
@@ -167,7 +171,8 @@ class _EnrollPreviousClassSkeletonState
           _SkeletonBox(
             width: 36,
             height: 36,
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
+            borderRadius:
+                const BorderRadius.all(Radius.circular(AppTheme.radiusXS)),
             shimmerValue: sv,
           ),
           const SizedBox(width: 10),
@@ -202,7 +207,8 @@ class _SkeletonBox extends StatelessWidget {
   const _SkeletonBox({
     required this.width,
     required this.height,
-    this.borderRadius = const BorderRadius.all(Radius.circular(8)),
+    this.borderRadius =
+        const BorderRadius.all(Radius.circular(AppTheme.radiusXS)),
     required this.shimmerValue,
   });
 

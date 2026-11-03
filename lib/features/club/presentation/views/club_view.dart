@@ -23,6 +23,7 @@ import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../activities/presentation/views/location_picker_view.dart';
 import '../../domain/entities/club_info.dart';
 import '../providers/club_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Pantalla principal del módulo Club.
 ///
@@ -360,7 +361,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
             'club.my_club_title'.tr(),
             style: TextStyle(
               color: c.text,
-              fontSize: 17,
+              fontSize: SacFontSize.titleLarge,
               fontWeight: FontWeight.w700,
               letterSpacing: -0.2,
             ),
@@ -372,7 +373,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: c.textSecondary,
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w400,
                 letterSpacing: 0,
               ),
@@ -656,7 +657,7 @@ class _SectionHeader extends StatelessWidget {
           padding: const EdgeInsets.all(7),
           decoration: BoxDecoration(
             color: SacAccent.of(context).light,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
           ),
           child: Center(
             child: HugeIcon(
@@ -667,7 +668,7 @@ class _SectionHeader extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: SacFontSize.titleSmall,
             fontWeight: FontWeight.w700,
             letterSpacing: -0.2,
             color: c.text,
@@ -749,7 +750,7 @@ class _LogoPreview extends StatelessWidget {
         height: 100,
         decoration: BoxDecoration(
           color: c.surfaceVariant,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           boxShadow: [
             BoxShadow(
               color: context.sac.shadow,
@@ -809,7 +810,8 @@ class _ErrorBody extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               message,
-              style: TextStyle(fontSize: 14, color: c.textSecondary),
+              style: TextStyle(
+                  fontSize: SacFontSize.titleSmall, color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -857,7 +859,7 @@ class _EmptyBody extends StatelessWidget {
             Text(
               'club.no_club_assigned'.tr(),
               style: TextStyle(
-                fontSize: 18,
+                fontSize: SacFontSize.headlineSmall,
                 fontWeight: FontWeight.bold,
                 color: c.text,
               ),
@@ -866,8 +868,10 @@ class _EmptyBody extends StatelessWidget {
             Text(
               'club.no_club_description'.tr(),
               textAlign: TextAlign.center,
-              style:
-                  TextStyle(fontSize: 14, color: c.textSecondary, height: 1.4),
+              style: TextStyle(
+                  fontSize: SacFontSize.titleSmall,
+                  color: c.textSecondary,
+                  height: 1.4),
             ),
           ],
         ),

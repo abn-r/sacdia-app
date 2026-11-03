@@ -17,6 +17,7 @@ import '../../domain/entities/payment_obligation.dart';
 import '../../domain/entities/payment_order.dart';
 import '../providers/payment_orders_providers.dart';
 import '../widgets/payment_order_widgets.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Lista de órdenes de pago del club/sección del usuario.
 ///
@@ -62,7 +63,7 @@ class PaymentOrdersView extends ConsumerWidget {
                   Text(
                     'payment_orders.list.title'.tr(),
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: SacFontSize.titleMedium,
                       fontWeight: FontWeight.w800,
                       color: c.text,
                     ),
@@ -120,7 +121,7 @@ class _PendingObligationsSection extends StatelessWidget {
         Text(
           'camporee_orders.pending.title'.tr(),
           style: TextStyle(
-            fontSize: 15,
+            fontSize: SacFontSize.titleMedium,
             fontWeight: FontWeight.w800,
             color: c.text,
           ),
@@ -133,7 +134,8 @@ class _PendingObligationsSection extends StatelessWidget {
           ),
           error: (error, _) => Text(
             camporeeOrdersErrorMessage(error),
-            style: TextStyle(fontSize: 13, color: c.textSecondary),
+            style: TextStyle(
+                fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
           ),
           data: (items) {
             if (items.isEmpty) {
@@ -141,7 +143,8 @@ class _PendingObligationsSection extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Text(
                   'camporee_orders.pending.empty'.tr(),
-                  style: TextStyle(fontSize: 13, color: c.textSecondary),
+                  style: TextStyle(
+                      fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
                 ),
               );
             }
@@ -174,15 +177,15 @@ class _ObligationCard extends StatelessWidget {
     final c = context.sac;
     return Material(
       color: c.surface,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       child: SacInkWell(
         key: Key('pending-obligation-${obligation.sourceId}'),
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             border: Border.all(color: c.border),
           ),
           child: Row(
@@ -194,7 +197,7 @@ class _ObligationCard extends StatelessWidget {
                     Text(
                       obligation.folio,
                       style: TextStyle(
-                        fontSize: 14.5,
+                        fontSize: SacFontSize.titleSmall,
                         fontWeight: FontWeight.w800,
                         color: c.text,
                       ),
@@ -202,7 +205,9 @@ class _ObligationCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       _obligationPurposeLabel(obligation.purpose),
-                      style: TextStyle(fontSize: 12.5, color: c.textSecondary),
+                      style: TextStyle(
+                          fontSize: SacFontSize.bodySmall,
+                          color: c.textSecondary),
                     ),
                   ],
                 ),
@@ -210,7 +215,7 @@ class _ObligationCard extends StatelessWidget {
               Text(
                 formatCentavos(obligation.totalCentavos, obligation.currency),
                 style: TextStyle(
-                  fontSize: 13.5,
+                  fontSize: SacFontSize.bodyMedium,
                   fontWeight: FontWeight.w800,
                   color: c.text,
                 ),
@@ -253,14 +258,14 @@ class _OrderCard extends StatelessWidget {
 
     return Material(
       color: c.surface,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       child: SacInkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             border: Border.all(color: c.border),
           ),
           child: Column(
@@ -272,7 +277,7 @@ class _OrderCard extends StatelessWidget {
                     child: Text(
                       order.folioReference,
                       style: TextStyle(
-                        fontSize: 14.5,
+                        fontSize: SacFontSize.titleSmall,
                         fontWeight: FontWeight.w800,
                         color: c.text,
                       ),
@@ -294,7 +299,9 @@ class _OrderCard extends StatelessWidget {
                   const SizedBox(width: 5),
                   Text(
                     purposeLabel,
-                    style: TextStyle(fontSize: 12.5, color: c.textSecondary),
+                    style: TextStyle(
+                        fontSize: SacFontSize.bodySmall,
+                        color: c.textSecondary),
                   ),
                   const SizedBox(width: 12),
                   HugeIcon(
@@ -307,13 +314,15 @@ class _OrderCard extends StatelessWidget {
                     'payment_orders.list.beneficiaries_count'.tr(
                       namedArgs: {'count': order.lines.length.toString()},
                     ),
-                    style: TextStyle(fontSize: 12.5, color: c.textSecondary),
+                    style: TextStyle(
+                        fontSize: SacFontSize.bodySmall,
+                        color: c.textSecondary),
                   ),
                   const Spacer(),
                   Text(
                     formatCentavos(order.totalCentavos, order.currency),
                     style: TextStyle(
-                      fontSize: 13.5,
+                      fontSize: SacFontSize.bodyMedium,
                       fontWeight: FontWeight.w800,
                       color: c.text,
                     ),
@@ -361,7 +370,9 @@ class _ErrorState extends StatelessWidget {
           Text(
             message,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, color: context.sac.textSecondary),
+            style: TextStyle(
+                fontSize: SacFontSize.bodyMedium,
+                color: context.sac.textSecondary),
           ),
           const SizedBox(height: 14),
           SacButton.outline(text: 'common.retry'.tr(), onPressed: onRetry),

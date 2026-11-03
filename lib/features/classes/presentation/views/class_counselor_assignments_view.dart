@@ -27,6 +27,7 @@ import '../../domain/entities/class_counselor_assignment.dart';
 import '../../domain/entities/progressive_class.dart';
 import '../providers/classes_providers.dart';
 import '../widgets/class_identity_badge.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 const _responsibilityTypes = <String>['primary', 'assistant', 'substitute'];
 
@@ -279,7 +280,8 @@ class ClassCounselorAssignmentsView extends ConsumerWidget {
       useSafeArea: true,
       backgroundColor: context.sac.paper,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppTheme.radiusXL)),
       ),
       builder: (_) => _ClassCounselorAssignmentSheet(
         query: query,
@@ -540,7 +542,7 @@ class _AssignmentAddActionState extends State<_AssignmentAddAction> {
               color: enabled
                   ? SacAccent.of(context).color.withValues(alpha: 0.10)
                   : c.ink50,
-              borderRadius: BorderRadius.circular(999),
+              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -682,7 +684,7 @@ class _AssignmentTile extends StatelessWidget {
                             style:
                                 Theme.of(context).textTheme.bodySmall?.copyWith(
                                       color: AppColors.accentDark,
-                                      fontSize: 11.5,
+                                      fontSize: SacFontSize.labelSmall,
                                       height: 1.3,
                                     ),
                           ),
@@ -699,7 +701,7 @@ class _AssignmentTile extends StatelessWidget {
                 button: true,
                 label: 'nav.more_options'.tr(),
                 child: SacInkWell(
-                  borderRadius: BorderRadius.circular(999),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                   onTap: () => _showActionsSheet(context, personName),
                   child: SizedBox(
                     width: 34,
@@ -731,7 +733,8 @@ class _AssignmentTile extends StatelessWidget {
       context: context,
       backgroundColor: c.canvas,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppTheme.radiusXL)),
       ),
       builder: (sheetContext) => SafeArea(
         top: false,
@@ -809,7 +812,7 @@ class _AssignmentTile extends StatelessWidget {
                 Container(
                   decoration: BoxDecoration(
                     color: c.paper,
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLG),
                     border: Border.all(color: c.ink150),
                   ),
                   clipBehavior: Clip.antiAlias,
@@ -828,7 +831,7 @@ class _AssignmentTile extends StatelessWidget {
                 Container(
                   decoration: BoxDecoration(
                     color: c.paper,
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLG),
                     border: Border.all(
                       color: AppColors.error.withValues(alpha: 0.16),
                     ),
@@ -848,7 +851,7 @@ class _AssignmentTile extends StatelessWidget {
               Container(
                 decoration: BoxDecoration(
                   color: c.ink50,
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusLG),
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: SacInkWell(
@@ -931,7 +934,7 @@ class _SheetActionState extends State<_SheetAction> {
                 height: 36,
                 decoration: BoxDecoration(
                   color: widget.tint.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                 ),
                 child: Center(
                   child: HugeIcon(
@@ -987,7 +990,7 @@ class _PersonIdentityMark extends StatelessWidget {
       height: 44,
       decoration: BoxDecoration(
         color: accent.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: accent.withValues(alpha: 0.14)),
       ),
       clipBehavior: Clip.antiAlias,
@@ -1032,7 +1035,7 @@ class _AssignmentChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
       ),
       child: Text(
         label,
@@ -1150,7 +1153,7 @@ class _ClassCounselorAssignmentSheetState
                   height: 4,
                   decoration: BoxDecoration(
                     color: c.ink150,
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                   ),
                 ),
               ),
@@ -1387,7 +1390,7 @@ class _ReadOnlyField extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: c.ink50,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: c.ink150),
       ),
       child: Column(

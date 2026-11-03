@@ -3,6 +3,7 @@ import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/features/post_registration/data/models/emergency_contact_model.dart';
 import 'medico_tokens.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Fila de contacto de emergencia con avatar de inicial y botones
 /// rápidos de llamar / SMS.
@@ -38,7 +39,7 @@ class ContactTile extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
       decoration: BoxDecoration(
         color: m.tileBg,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       ),
       child: Row(
         children: [
@@ -52,7 +53,7 @@ class ContactTile extends StatelessWidget {
                 Text(
                   contact.name,
                   style: TextStyle(
-                    fontSize: 14.5,
+                    fontSize: SacFontSize.titleSmall,
                     fontWeight: FontWeight.w700,
                     color: m.textPrimary,
                   ),
@@ -63,7 +64,7 @@ class ContactTile extends StatelessWidget {
                 Text(
                   meta,
                   style: TextStyle(
-                    fontSize: 12.5,
+                    fontSize: SacFontSize.bodySmall,
                     color: m.textSecondary,
                   ),
                   maxLines: 1,
@@ -97,14 +98,14 @@ class ContactTile extends StatelessWidget {
       height: 40,
       decoration: BoxDecoration(
         color: m.coralSoft,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       ),
       alignment: Alignment.center,
       child: Text(
         _initial,
         style: TextStyle(
           color: m.coralFg,
-          fontSize: 15,
+          fontSize: SacFontSize.titleMedium,
           fontWeight: FontWeight.w700,
         ),
       ),

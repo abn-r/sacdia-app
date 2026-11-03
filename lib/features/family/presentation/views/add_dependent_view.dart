@@ -24,6 +24,7 @@ import '../legal_versions.dart';
 import '../providers/family_providers.dart';
 import '../widgets/profile_switcher_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Paso 0: alta de un menor sin cuenta (FP-58, FP-59).
 ///
@@ -370,7 +371,7 @@ class _ErrorBox extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.errorLight,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

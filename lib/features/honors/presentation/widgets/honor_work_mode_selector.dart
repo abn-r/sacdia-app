@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Selector explícito del camino de trabajo de una especialidad inscrita.
 ///
@@ -41,7 +42,7 @@ class HonorWorkModeSelector extends StatelessWidget {
             'honors.work_mode.title'.tr(),
             style: TextStyle(
               color: c.text,
-              fontSize: 18,
+              fontSize: SacFontSize.headlineSmall,
               fontWeight: FontWeight.w800,
               height: 1.2,
               letterSpacing: -0.3,
@@ -52,7 +53,7 @@ class HonorWorkModeSelector extends StatelessWidget {
             'honors.work_mode.subtitle'.tr(),
             style: TextStyle(
               color: c.textSecondary,
-              fontSize: 14,
+              fontSize: SacFontSize.titleSmall,
               height: 1.45,
             ),
           ),
@@ -94,7 +95,7 @@ class HonorWorkModeSelector extends StatelessWidget {
                 'honors.work_mode.saving'.tr(),
                 style: TextStyle(
                   color: c.textSecondary,
-                  fontSize: 12,
+                  fontSize: SacFontSize.bodySmall,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -171,7 +172,7 @@ class _ModeOptionCardState extends State<_ModeOptionCard> {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: c.surface,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
               border: Border.all(
                 color: selected ? widget.categoryColor : c.border,
                 width: selected ? 1.5 : 1,
@@ -185,7 +186,7 @@ class _ModeOptionCardState extends State<_ModeOptionCard> {
                   height: 44,
                   decoration: BoxDecoration(
                     color: c.surfaceVariant,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   ),
                   child: HugeIcon(
                     icon: widget.icon,
@@ -202,7 +203,7 @@ class _ModeOptionCardState extends State<_ModeOptionCard> {
                         widget.title,
                         style: TextStyle(
                           color: c.text,
-                          fontSize: 15,
+                          fontSize: SacFontSize.titleMedium,
                           fontWeight: FontWeight.w700,
                           height: 1.25,
                         ),
@@ -212,7 +213,7 @@ class _ModeOptionCardState extends State<_ModeOptionCard> {
                         widget.description,
                         style: TextStyle(
                           color: c.textSecondary,
-                          fontSize: 13,
+                          fontSize: SacFontSize.bodyMedium,
                           height: 1.45,
                         ),
                       ),

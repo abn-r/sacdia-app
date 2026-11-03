@@ -148,7 +148,7 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
                       child: Text(
                         'resources.list_label.search'.tr(),
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: SacFontSize.bodyMedium,
                           fontWeight: FontWeight.w700,
                           color: c.textTertiary,
                         ),
@@ -176,7 +176,7 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
                         child: Text(
                           'resources.no_more'.tr(),
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: SacFontSize.bodyMedium,
                             color: c.textTertiary,
                           ),
                         ),
@@ -261,7 +261,7 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
                   Text(
                     'resources.error_loading'.tr(),
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: SacFontSize.titleMedium,
                       fontWeight: FontWeight.w700,
                       color: c.text,
                     ),
@@ -270,7 +270,9 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
                   const SizedBox(height: 6),
                   Text(
                     state.errorMessage!,
-                    style: TextStyle(fontSize: 13, color: c.textSecondary),
+                    style: TextStyle(
+                        fontSize: SacFontSize.bodyMedium,
+                        color: c.textSecondary),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
@@ -359,7 +361,7 @@ class _ResourcesEmptyState extends StatelessWidget {
         Text(
           'resources.empty_title'.tr(),
           style: TextStyle(
-            fontSize: 16,
+            fontSize: SacFontSize.titleMedium,
             fontWeight: FontWeight.w700,
             color: colors.text,
           ),
@@ -368,7 +370,8 @@ class _ResourcesEmptyState extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           'resources.empty_subtitle'.tr(),
-          style: TextStyle(fontSize: 14, color: colors.textSecondary),
+          style: TextStyle(
+              fontSize: SacFontSize.titleSmall, color: colors.textSecondary),
           textAlign: TextAlign.center,
         ),
       ],

@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/certification_requirement.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Badge de estado para un requisito (sección) de certificación.
 ///
@@ -24,7 +25,7 @@ class CertificationRequirementStatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: _bgColor(isDark),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(color: _borderColor(isDark), width: 1),
       ),
       child: Row(
@@ -35,7 +36,7 @@ class CertificationRequirementStatusBadge extends StatelessWidget {
           Text(
             _label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               fontWeight: FontWeight.w600,
               color: _textColor(isDark),
             ),

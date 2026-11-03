@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../domain/entities/transaction.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Fila de transacción con ícono de categoría, descripción y monto.
 class TransactionTile extends StatelessWidget {
@@ -76,13 +77,13 @@ class TransactionTile extends StatelessWidget {
 
     return SacInkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: transactionSurface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: isDark
               ? null
               : Border.all(
@@ -98,7 +99,7 @@ class TransactionTile extends StatelessWidget {
               height: 36,
               decoration: BoxDecoration(
                 color: accentColor.withValues(alpha: 0.13),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
               ),
               child: Center(
                 child: HugeIcon(
@@ -117,7 +118,7 @@ class TransactionTile extends StatelessWidget {
                   Text(
                     transaction.description,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       fontWeight: FontWeight.w500,
                       color: context.sac.text,
                     ),
@@ -128,7 +129,7 @@ class TransactionTile extends StatelessWidget {
                   Text(
                     category.name,
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: SacFontSize.labelSmall,
                       fontWeight: FontWeight.w400,
                       color: context.sac.textTertiary,
                     ),
@@ -146,7 +147,7 @@ class TransactionTile extends StatelessWidget {
                 Text(
                   '$sign$formatted',
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: SacFontSize.titleMedium,
                     fontWeight: FontWeight.w700,
                     color: amountColor,
                   ),
@@ -155,7 +156,7 @@ class TransactionTile extends StatelessWidget {
                 Text(
                   '$timeStr · MXN',
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: SacFontSize.caption,
                     fontWeight: FontWeight.w400,
                     color: context.sac.textTertiary,
                   ),
@@ -187,7 +188,7 @@ class TransactionTile extends StatelessWidget {
                     Text(
                       transaction.registeredByName,
                       style: TextStyle(
-                        fontSize: 9,
+                        fontSize: SacFontSize.micro,
                         fontWeight: FontWeight.w400,
                         color: context.sac.textTertiary,
                       ),

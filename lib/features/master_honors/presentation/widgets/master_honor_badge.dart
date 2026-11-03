@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_network_image.dart';
 import 'package:sacdia_app/features/master_honors/domain/entities/user_master_honor.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Badge visual de maestría para usar en la tarjeta virtual y en listas
 /// de perfil.
@@ -29,7 +30,7 @@ class MasterHonorBadge extends StatelessWidget {
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: _badgeColor(context, isCurrent).withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
             color: _badgeColor(context, isCurrent).withValues(alpha: 0.5)),
       ),
@@ -118,7 +119,7 @@ class _HonorImage extends StatelessWidget {
         color: Theme.of(context).brightness == Brightness.dark
             ? AppColors.darkSurfaceVariant
             : AppColors.lightSurfaceVariant,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
       ),
       child: Text(
         initials,
@@ -140,7 +141,7 @@ class _HonorImage extends StatelessWidget {
       width: width,
       height: height,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
         child: SacNetworkImage(
           imageUrl: image,
           fit: BoxFit.contain,
@@ -173,7 +174,7 @@ class _MasterHonorStatusBadge extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: badgeColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
       ),
       padding: const EdgeInsets.symmetric(
         vertical: 4,
@@ -197,7 +198,7 @@ class _MasterHonorStatusBadge extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: FontWeight.w500,
                 color: labelColor,
                 height: 1.2,

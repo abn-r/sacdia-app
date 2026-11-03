@@ -11,6 +11,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/user_certification.dart';
 import 'package:sacdia_app/features/certifications/presentation/providers/certifications_providers.dart';
 import 'profile_quiet_add_chip.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Section of the profile view that shows the user's certification
 /// enrollments in a 3-column grid, visually consistent with
@@ -34,7 +35,8 @@ class ProfileCertificationsSection extends ConsumerWidget {
           child: Center(
             child: Text(
               'profile.certifications_section.error_load'.tr(),
-              style: TextStyle(color: AppColors.error, fontSize: 14),
+              style: TextStyle(
+                  color: AppColors.error, fontSize: SacFontSize.titleSmall),
             ),
           ),
         ),
@@ -54,7 +56,7 @@ class ProfileCertificationsSection extends ConsumerWidget {
                   Text(
                     'profile.certifications_section.no_certifications'.tr(),
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: SacFontSize.titleMedium,
                       color: context.sac.textSecondary,
                     ),
                     textAlign: TextAlign.center,
@@ -139,7 +141,7 @@ class _CertificationGridItem extends StatelessWidget {
                   width: double.infinity,
                   decoration: BoxDecoration(
                     color: color.withAlpha(20),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     border: Border.all(
                       color: isComplete ? color : color.withAlpha(50),
                       width: isComplete ? 2 : 1,
@@ -165,13 +167,13 @@ class _CertificationGridItem extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: color,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                       ),
                       child: Text(
                         '$progress%',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 9,
+                          fontSize: SacFontSize.micro,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -203,7 +205,7 @@ class _CertificationGridItem extends StatelessWidget {
           uc.certificationName,
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: SacFontSize.labelSmall,
             fontWeight: FontWeight.w600,
             color: context.sac.text,
           ),
@@ -237,7 +239,7 @@ class _CertificationsSkeleton extends StatelessWidget {
                     height: 90,
                     decoration: BoxDecoration(
                       color: skeletonColor,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     ),
                   ),
                 ),

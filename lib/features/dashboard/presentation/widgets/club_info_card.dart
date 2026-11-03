@@ -12,6 +12,7 @@ import 'package:sacdia_app/core/widgets/section_switcher_sheet.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../profile/presentation/providers/profile_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Card de información del club - Estilo "Scout Vibrante"
 ///
@@ -89,7 +90,7 @@ class ClubInfoCard extends ConsumerWidget {
             height: 44,
             decoration: BoxDecoration(
               color: clubColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Center(
               child: logoAsset != null

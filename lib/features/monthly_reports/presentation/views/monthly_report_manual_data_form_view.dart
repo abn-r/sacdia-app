@@ -16,6 +16,7 @@ import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../domain/entities/monthly_report.dart';
 import '../providers/monthly_reports_providers.dart';
 import '../widgets/monthly_report_motion.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 class MonthlyReportManualDataFormView extends ConsumerStatefulWidget {
   final MonthlyReport report;
@@ -57,7 +58,8 @@ class _ManualDataSheet extends StatelessWidget {
           height: height * 0.94,
           child: Material(
             color: c.background,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppTheme.radiusXL)),
             clipBehavior: Clip.antiAlias,
             child: Column(
               children: [
@@ -67,7 +69,7 @@ class _ManualDataSheet extends StatelessWidget {
                   height: 4,
                   decoration: BoxDecoration(
                     color: c.border,
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -532,7 +534,7 @@ class _FormIntroCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(color: c.border.withValues(alpha: 0.7)),
       ),
       child: Column(
@@ -542,7 +544,7 @@ class _FormIntroCard extends StatelessWidget {
             'monthly_reports.form.intro_title'.tr(),
             style: TextStyle(
               color: c.text,
-              fontSize: 18,
+              fontSize: SacFontSize.headlineSmall,
               fontWeight: FontWeight.w900,
               letterSpacing: -0.3,
               height: 1.1,
@@ -551,7 +553,10 @@ class _FormIntroCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             'monthly_reports.form.intro_body'.tr(),
-            style: TextStyle(color: c.textSecondary, fontSize: 13, height: 1.4),
+            style: TextStyle(
+                color: c.textSecondary,
+                fontSize: SacFontSize.bodyMedium,
+                height: 1.4),
           ),
         ],
       ),
@@ -589,7 +594,7 @@ class _FormSection extends StatelessWidget {
                 height: 34,
                 decoration: BoxDecoration(
                   color: SacAccent.of(context).color.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                 ),
                 child: HugeIcon(
                     icon: icon, color: SacAccent.of(context).color, size: 18),
@@ -603,7 +608,7 @@ class _FormSection extends StatelessWidget {
                       eyebrow.toUpperCase(),
                       style: TextStyle(
                         color: c.textTertiary,
-                        fontSize: 11,
+                        fontSize: SacFontSize.labelSmall,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.5,
                       ),
@@ -613,7 +618,7 @@ class _FormSection extends StatelessWidget {
                       title,
                       style: TextStyle(
                         color: c.text,
-                        fontSize: 18,
+                        fontSize: SacFontSize.headlineSmall,
                         fontWeight: FontWeight.w900,
                         letterSpacing: -0.2,
                       ),
@@ -631,7 +636,7 @@ class _FormSection extends StatelessWidget {
             description,
             style: TextStyle(
               color: c.textSecondary,
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               height: 1.35,
             ),
           ),
@@ -641,7 +646,7 @@ class _FormSection extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: c.surface,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppTheme.radiusLG),
             border: Border.all(color: c.border.withValues(alpha: 0.75)),
           ),
           child: Column(children: children),
@@ -738,7 +743,7 @@ class _ReportSwitch extends StatelessWidget {
                     title,
                     style: TextStyle(
                       color: c.text,
-                      fontSize: 16,
+                      fontSize: SacFontSize.titleMedium,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -747,7 +752,7 @@ class _ReportSwitch extends StatelessWidget {
                     subtitle,
                     style: TextStyle(
                       color: c.textSecondary,
-                      fontSize: 12,
+                      fontSize: SacFontSize.bodySmall,
                       height: 1.25,
                     ),
                   ),

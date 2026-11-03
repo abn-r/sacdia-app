@@ -22,6 +22,7 @@ import 'package:sacdia_app/features/certifications/domain/entities/user_certific
 
 import '../providers/certifications_providers.dart';
 import 'certification_progress_view.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Detalle de una certificación: temario primero, inscripción al final.
 ///
@@ -338,7 +339,7 @@ class _CertificateMark extends StatelessWidget {
       height: 44,
       decoration: BoxDecoration(
         color: SacAccent.of(context).light,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       ),
       child: Center(
         child: HugeIcon(
@@ -456,14 +457,14 @@ class _ModuleRowState extends State<_ModuleRow>
                       color: _expanded
                           ? SacAccent.of(context).color
                           : SacAccent.of(context).light,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     ),
                     child: Center(
                       child: AnimatedDefaultTextStyle(
                         duration: reduce ? Duration.zero : SacMotion.standard,
                         curve: SacMotion.easeOut,
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: SacFontSize.bodyMedium,
                           fontWeight: FontWeight.w700,
                           color: _expanded
                               ? Colors.white
@@ -621,7 +622,7 @@ class _ErrorBody extends StatelessWidget {
             Text(
               message,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: SacFontSize.titleSmall,
                 color: context.sac.textSecondary,
               ),
               textAlign: TextAlign.center,

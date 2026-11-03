@@ -17,6 +17,7 @@ import 'package:sacdia_app/core/widgets/sac_stat_tile.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/sla_dashboard.dart';
 import 'package:sacdia_app/features/coordinator/presentation/providers/coordinator_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Most recent weeks plotted in the throughput chart (two bars per week).
 const int _kMaxChartWeeks = 8;
@@ -386,7 +387,7 @@ class _LegendItem extends StatelessWidget {
           height: 12,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(AppTheme.radius2XS),
           ),
         ),
         const SizedBox(width: 6),
@@ -427,7 +428,8 @@ class _ThroughputChart extends StatelessWidget {
     final step = math.max(1, (maxValue / 4).ceil());
     final maxY = (step * 4).toDouble();
 
-    const radius = BorderRadius.vertical(top: Radius.circular(4));
+    const radius =
+        BorderRadius.vertical(top: Radius.circular(AppTheme.radius2XS));
 
     return RepaintBoundary(
       child: SizedBox(
@@ -537,7 +539,7 @@ class _SlaSkeleton extends StatelessWidget {
           height: height,
           decoration: BoxDecoration(
             color: c.border,
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(AppTheme.radius2XS),
           ),
         );
 

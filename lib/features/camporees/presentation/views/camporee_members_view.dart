@@ -20,6 +20,7 @@ import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.d
 import '../providers/camporees_providers.dart';
 import 'camporee_register_member_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista de miembros inscritos en un camporee.
 ///
@@ -188,7 +189,7 @@ class _EligibleMembersBody extends ConsumerWidget {
                 Text(
                   'camporees.members.empty'.tr(),
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: SacFontSize.titleMedium,
                     color: c.textSecondary,
                     fontWeight: FontWeight.w600,
                   ),
@@ -198,7 +199,7 @@ class _EligibleMembersBody extends ConsumerWidget {
                   Text(
                     'camporees.members.empty_hint'.tr(),
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       color: c.textTertiary,
                     ),
                   ),
@@ -278,7 +279,8 @@ class _EligibleMembersBody extends ConsumerWidget {
               const SizedBox(height: 16),
               Text(
                 error.toString().replaceFirst('Exception: ', ''),
-                style: TextStyle(fontSize: 14, color: c.textSecondary),
+                style: TextStyle(
+                    fontSize: SacFontSize.titleSmall, color: c.textSecondary),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
@@ -317,7 +319,7 @@ class _StatsSummary extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: c.surfaceVariant,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border),
       ),
       child: Row(
@@ -377,7 +379,7 @@ class _StatChip extends StatelessWidget {
         Text(
           value,
           style: TextStyle(
-            fontSize: 20,
+            fontSize: SacFontSize.headlineMedium,
             fontWeight: FontWeight.w800,
             color: color,
           ),
@@ -385,7 +387,7 @@ class _StatChip extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: SacFontSize.labelSmall,
             color: context.sac.textSecondary,
             fontWeight: FontWeight.w500,
           ),
@@ -415,7 +417,7 @@ class _MemberTile extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border),
         boxShadow: [
           BoxShadow(
@@ -453,7 +455,7 @@ class _MemberTile extends StatelessWidget {
                 Text(
                   member.userName ?? member.userId,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                     fontWeight: FontWeight.w700,
                     color: c.text,
                   ),
@@ -463,7 +465,7 @@ class _MemberTile extends StatelessWidget {
                   Text(
                     member.clubName!,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: SacFontSize.bodySmall,
                       color: c.textSecondary,
                     ),
                   ),
@@ -527,7 +529,7 @@ class _InsuranceStatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
@@ -538,7 +540,7 @@ class _InsuranceStatusBadge extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 10,
+              fontSize: SacFontSize.caption,
               fontWeight: FontWeight.w600,
               color: color,
             ),
@@ -565,13 +567,13 @@ class _TypeLabel extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: context.sac.surfaceVariant,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: context.sac.border),
       ),
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 10,
+          fontSize: SacFontSize.caption,
           fontWeight: FontWeight.w500,
           color: context.sac.textSecondary,
         ),

@@ -14,6 +14,7 @@ import '../../domain/entities/honor.dart';
 import '../../domain/entities/user_honor.dart';
 import '../providers/honors_providers.dart';
 import '../widgets/honor_badge_image.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 // ── Label helpers ─────────────────────────────────────────────────────────────
 
@@ -122,7 +123,7 @@ class _ErrorScaffold extends StatelessWidget {
             Text(
               message,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: SacFontSize.titleMedium,
                 color: c.textSecondary,
               ),
             ),
@@ -134,7 +135,8 @@ class _ErrorScaffold extends StatelessWidget {
                 onPressed: () => context.pop(),
                 child: Text(
                   'honors.completion.back'.tr(),
-                  style: const TextStyle(color: AppColors.info, fontSize: 14),
+                  style: const TextStyle(
+                      color: AppColors.info, fontSize: SacFontSize.titleSmall),
                 ),
               ),
             ),
@@ -201,7 +203,7 @@ class _CompletionBody extends StatelessWidget {
                       Text(
                         'honors.completion.title'.tr(),
                         style: const TextStyle(
-                          fontSize: 22,
+                          fontSize: SacFontSize.headlineLarge,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
                           letterSpacing: -0.3,
@@ -213,7 +215,7 @@ class _CompletionBody extends StatelessWidget {
                       Text(
                         '$honorName \u2022 ${DateFormat('d MMM yyyy', 'es').format(completionDate)}',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: SacFontSize.bodySmall,
                           color: Colors.white.withAlpha(179),
                         ),
                       ),
@@ -238,7 +240,7 @@ class _CompletionBody extends StatelessWidget {
                   Text(
                     honorName,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: SacFontSize.headlineSmall,
                       fontWeight: FontWeight.w800,
                       color: c.text,
                     ),
@@ -321,7 +323,7 @@ class _HonorBadge extends StatelessWidget {
       fallbackColor: Colors.white,
       fallbackBackgroundColor: AppColors.accent,
       fallbackIconSize: 42,
-      fallbackBorderRadius: BorderRadius.circular(18),
+      fallbackBorderRadius: BorderRadius.circular(AppTheme.radiusLG),
     );
   }
 }
@@ -376,12 +378,12 @@ class _StatusPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: color.withAlpha(25),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
       ),
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 11,
+          fontSize: SacFontSize.labelSmall,
           fontWeight: FontWeight.w700,
           color: color,
         ),
@@ -410,7 +412,7 @@ class _StatsCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
       decoration: BoxDecoration(
         color: c.surfaceVariant,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       ),
       child: IntrinsicHeight(
         child: Row(
@@ -478,7 +480,7 @@ class _StatItem extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              fontSize: 20,
+              fontSize: SacFontSize.headlineMedium,
               fontWeight: FontWeight.w800,
               color: color,
             ),
@@ -487,7 +489,7 @@ class _StatItem extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 10,
+              fontSize: SacFontSize.caption,
               color: context.sac.textTertiary,
             ),
             textAlign: TextAlign.center,

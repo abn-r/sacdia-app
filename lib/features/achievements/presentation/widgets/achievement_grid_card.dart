@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/widgets/sac_network_image.dart';
 
 import '../../domain/entities/user_achievement.dart';
 import '../../domain/repositories/achievements_repository.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 const double _kArtSize = 72;
 const double _kArtWidth = _kArtSize * 1.25;
@@ -142,7 +143,7 @@ class _AchievementGridCardState extends State<AchievementGridCard>
             curve: SacMotion.easeOut,
             decoration: BoxDecoration(
               color: surfaceColor,
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(AppTheme.radiusLG),
               border: Border.all(color: borderColor, width: 1),
             ),
             padding: const EdgeInsets.fromLTRB(6, 10, 6, 10),
@@ -181,7 +182,7 @@ class _AchievementGridCardState extends State<AchievementGridCard>
                       isSecret ? '???' : achievement.name,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 11.5,
+                        fontSize: SacFontSize.labelSmall,
                         fontWeight: nameWeight,
                         color: nameColor,
                         height: 1.25,
@@ -249,7 +250,7 @@ class _AchievementArt extends StatelessWidget {
           child: Text(
             '?',
             style: TextStyle(
-              fontSize: 28,
+              fontSize: SacFontSize.displayMedium,
               fontWeight: FontWeight.w800,
               color: context.sac.textTertiary,
             ),
@@ -296,14 +297,14 @@ class _InitialsMark extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: color.withAlpha(20),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(color: color.withAlpha(60), width: 1.5),
         ),
         child: Center(
           child: Text(
             initials,
             style: TextStyle(
-              fontSize: 22,
+              fontSize: SacFontSize.headlineLarge,
               fontWeight: FontWeight.w800,
               color: color,
             ),
@@ -332,14 +333,14 @@ class _CounterPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
         color: emphasized ? color.withValues(alpha: 0.16) : context.sac.border,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
       ),
       child: Text(
         label,
         textAlign: TextAlign.center,
         style: TextStyle(
           color: emphasized ? color : context.sac.textSecondary,
-          fontSize: 11,
+          fontSize: SacFontSize.labelSmall,
           fontWeight: FontWeight.w700,
           height: 1.1,
         ),
@@ -367,7 +368,7 @@ class _ThinProgressBar extends StatelessWidget {
           final fillWidth = totalWidth * progress.clamp(0.0, 1.0);
 
           return ClipRRect(
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
             child: Stack(
               children: [
                 Container(
@@ -383,7 +384,8 @@ class _ThinProgressBar extends StatelessWidget {
                     width: fillWidth,
                     decoration: BoxDecoration(
                       color: color,
-                      borderRadius: BorderRadius.circular(2),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.radiusHairline),
                     ),
                   ),
               ],

@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/features/master_honors/domain/entities/master_honor_roadmap.dart';
 import 'package:sacdia_app/features/master_honors/presentation/widgets/master_honor_detail_presentation.dart';
 import 'package:sacdia_app/features/master_honors/presentation/widgets/master_honor_logo.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 Future<void> showMasterHonorDetailSheet(
   BuildContext context,
@@ -84,7 +85,8 @@ class _MasterHonorDetailSheetState extends State<MasterHonorDetailSheet>
         return Container(
           decoration: BoxDecoration(
             color: c.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppTheme.radiusXL)),
             boxShadow: [
               BoxShadow(
                 color: c.shadow,
@@ -94,7 +96,8 @@ class _MasterHonorDetailSheetState extends State<MasterHonorDetailSheet>
             ],
           ),
           child: ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppTheme.radiusXL)),
             child: Column(
               children: [
                 const SacSheetGrabber(),
@@ -128,7 +131,7 @@ class _MasterHonorDetailSheetState extends State<MasterHonorDetailSheet>
                               item.name,
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: 22,
+                                fontSize: SacFontSize.headlineLarge,
                                 fontWeight: FontWeight.w800,
                                 color: c.text,
                                 height: 1.15,
@@ -152,7 +155,7 @@ class _MasterHonorDetailSheetState extends State<MasterHonorDetailSheet>
                                 masterHonorProgressCaption(item),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: SacFontSize.bodySmall,
                                   color: c.textSecondary,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -163,7 +166,7 @@ class _MasterHonorDetailSheetState extends State<MasterHonorDetailSheet>
                                   masterHonorPercentCaption(item),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    fontSize: 11,
+                                    fontSize: SacFontSize.labelSmall,
                                     color: c.textTertiary,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -176,7 +179,7 @@ class _MasterHonorDetailSheetState extends State<MasterHonorDetailSheet>
                               child: Text(
                                 'Requisitos',
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: SacFontSize.titleMedium,
                                   fontWeight: FontWeight.w800,
                                   color: c.text,
                                 ),
@@ -189,7 +192,7 @@ class _MasterHonorDetailSheetState extends State<MasterHonorDetailSheet>
                                 child: Text(
                                   'Aún no hay requisitos configurados para esta maestría.',
                                   style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: SacFontSize.bodyMedium,
                                     color: c.textTertiary,
                                   ),
                                 ),
@@ -241,12 +244,12 @@ class _StatusPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
       ),
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: SacFontSize.bodySmall,
           fontWeight: FontWeight.w700,
           color: foreground,
           height: 1,
@@ -336,7 +339,7 @@ class _MasterHonorProgressBarState extends State<_MasterHonorProgressBar>
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(99),
+      borderRadius: BorderRadius.circular(AppTheme.radiusFull),
       child: SizedBox(
         height: 6,
         width: double.infinity,
@@ -475,7 +478,7 @@ class _RequirementDetailCardState extends State<_RequirementDetailCard> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: c.surfaceVariant,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border),
       ),
       child: Column(
@@ -499,7 +502,7 @@ class _RequirementDetailCardState extends State<_RequirementDetailCard> {
                     Text(
                       label,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: SacFontSize.bodyMedium,
                         fontWeight: FontWeight.w700,
                         color: c.text,
                       ),
@@ -508,7 +511,7 @@ class _RequirementDetailCardState extends State<_RequirementDetailCard> {
                     Text(
                       detail,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: SacFontSize.bodySmall,
                         fontWeight: FontWeight.w600,
                         color: c.textSecondary,
                       ),
@@ -523,7 +526,7 @@ class _RequirementDetailCardState extends State<_RequirementDetailCard> {
             Text(
               group.description!.trim(),
               style: TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 color: c.textSecondary,
                 height: 1.35,
               ),
@@ -561,7 +564,7 @@ class _RequirementDetailCardState extends State<_RequirementDetailCard> {
                                   ? 'Elige ${group.minimumRequired} de ${group.options.length} $unit'
                                   : 'Ver ${incomplete.length} restantes',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: SacFontSize.bodySmall,
                             fontWeight: FontWeight.w700,
                             color: c.textSecondary,
                           ),
@@ -620,7 +623,7 @@ class _OptionRow extends StatelessWidget {
             child: Text(
               option.label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 color: context.sac.textSecondary,
                 height: 1.25,
               ),

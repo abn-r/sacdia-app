@@ -11,6 +11,7 @@ import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../domain/entities/transfer_request.dart';
 import '../providers/transfer_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista de detalle de una solicitud de traslado.
 class TransferRequestDetailView extends ConsumerWidget {
@@ -46,7 +47,9 @@ class TransferRequestDetailView extends ConsumerWidget {
                     Text(
                       e.toString().replaceFirst('Exception: ', ''),
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, color: c.textSecondary),
+                      style: TextStyle(
+                          fontSize: SacFontSize.titleSmall,
+                          color: c.textSecondary),
                     ),
                     const SizedBox(height: 16),
                     SacButton.primary(
@@ -88,7 +91,7 @@ class _DetailBody extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: statusConfig.bg,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             border: Border.all(
               color: statusConfig.fg.withValues(alpha: 0.3),
             ),
@@ -108,7 +111,7 @@ class _DetailBody extends StatelessWidget {
                     Text(
                       request.status.label,
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: SacFontSize.headlineSmall,
                         fontWeight: FontWeight.w700,
                         color: statusConfig.fg,
                       ),
@@ -119,7 +122,7 @@ class _DetailBody extends StatelessWidget {
                         namedArgs: {'id': request.id},
                       ),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: SacFontSize.bodySmall,
                         color: statusConfig.fg.withValues(alpha: 0.7),
                       ),
                     ),
@@ -137,7 +140,7 @@ class _DetailBody extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: c.surface,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             border: Border.all(color: c.border),
           ),
           child: Column(
@@ -183,7 +186,7 @@ class _DetailBody extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.errorLight,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
               border: Border.all(
                 color: AppColors.error.withValues(alpha: 0.3),
               ),
@@ -202,7 +205,7 @@ class _DetailBody extends StatelessWidget {
                     Text(
                       tr('transfers.detail.reviewer_comment'),
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: SacFontSize.bodyMedium,
                         fontWeight: FontWeight.w600,
                         color: AppColors.errorDark,
                       ),
@@ -213,7 +216,7 @@ class _DetailBody extends StatelessWidget {
                 Text(
                   request.reviewerComment!,
                   style: const TextStyle(
-                    fontSize: 13,
+                    fontSize: SacFontSize.bodyMedium,
                     color: AppColors.errorDark,
                     fontStyle: FontStyle.italic,
                   ),
@@ -291,7 +294,7 @@ class _DetailRow extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: SacFontSize.labelSmall,
                     color: c.textTertiary,
                     fontWeight: FontWeight.w500,
                   ),
@@ -300,7 +303,7 @@ class _DetailRow extends StatelessWidget {
                 Text(
                   value,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                     color: c.text,
                     fontWeight: FontWeight.w500,
                   ),

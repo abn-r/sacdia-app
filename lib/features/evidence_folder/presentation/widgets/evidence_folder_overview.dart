@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/evidence_folder.dart';
 import '../../domain/entities/evidence_section.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Hero principal de la carpeta con progreso y estado operativo.
 class EvidenceFolderHero extends StatelessWidget {
@@ -40,7 +41,7 @@ class EvidenceFolderHero extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(
             color: status.color.withValues(alpha: 0.2),
           ),
@@ -58,7 +59,7 @@ class EvidenceFolderHero extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 9,
+                      fontSize: SacFontSize.micro,
                       fontWeight: FontWeight.w600,
                       color: c.textTertiary,
                       letterSpacing: 0.7,
@@ -68,7 +69,7 @@ class EvidenceFolderHero extends StatelessWidget {
                   Text(
                     '$percentage%',
                     style: const TextStyle(
-                      fontSize: 44,
+                      fontSize: SacFontSize.metric,
                       fontWeight: FontWeight.w800,
                       color: AppColors.coral500,
                       height: 1,
@@ -90,7 +91,7 @@ class EvidenceFolderHero extends StatelessWidget {
                         child: Text(
                           pointsLabel,
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: SacFontSize.caption,
                             fontWeight: FontWeight.w700,
                             color: c.textSecondary,
                           ),
@@ -125,7 +126,7 @@ class EvidenceFolderHero extends StatelessWidget {
                     height: 32,
                     decoration: BoxDecoration(
                       color: AppColors.coral50,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     ),
                     alignment: Alignment.center,
                     child: const HugeIcon(
@@ -155,7 +156,7 @@ class _FolderStatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
       decoration: BoxDecoration(
         color: status.color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: status.color.withValues(alpha: 0.35)),
       ),
       child: Row(
@@ -167,7 +168,7 @@ class _FolderStatusBadge extends StatelessWidget {
             child: Text(
               status.label,
               style: TextStyle(
-                fontSize: 9,
+                fontSize: SacFontSize.micro,
                 fontWeight: FontWeight.w700,
                 color: status.color,
               ),
@@ -268,7 +269,7 @@ class _EvidenceStatusPill extends StatelessWidget {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: data.color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXS),
           border: Border.all(color: data.color.withValues(alpha: 0.28)),
         ),
         child: Row(
@@ -279,7 +280,7 @@ class _EvidenceStatusPill extends StatelessWidget {
             Text(
               '$count',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: SacFontSize.titleSmall,
                 fontWeight: FontWeight.w800,
                 color: data.color,
               ),
@@ -288,7 +289,7 @@ class _EvidenceStatusPill extends StatelessWidget {
             Text(
               data.label,
               style: TextStyle(
-                fontSize: 10.5,
+                fontSize: SacFontSize.caption,
                 fontWeight: FontWeight.w600,
                 color: context.sac.textSecondary,
               ),
@@ -382,11 +383,11 @@ class EvidenceSectionSearchField extends StatelessWidget {
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                 borderSide: BorderSide(color: c.border),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                 borderSide:
                     const BorderSide(color: AppColors.coral500, width: 1.5),
               ),

@@ -19,6 +19,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Pantalla de resumen y confirmación de pedido.
 ///
@@ -95,7 +96,7 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
               Card(
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   side: BorderSide(color: c.border),
                 ),
                 child: Padding(
@@ -114,7 +115,8 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         decoration: BoxDecoration(
                           border: Border.all(color: c.border),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusXS),
                         ),
                         child: SacPressable(
                           listenOnly: true,
@@ -145,7 +147,8 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: AppColors.accentLight,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusXS),
                           ),
                           child: Row(
                             children: [
@@ -179,7 +182,7 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
               Card(
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   side: BorderSide(color: c.border),
                 ),
                 child: Column(
@@ -368,7 +371,7 @@ class _ResumenLineItem extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               color: SacAccent.of(context).surface,
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(AppTheme.radius2XS),
             ),
             alignment: Alignment.center,
             child: Text(
@@ -376,7 +379,7 @@ class _ResumenLineItem extends StatelessWidget {
                   ? line.productTitle[0].toUpperCase()
                   : '?',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.bold,
                 color: SacAccent.of(context).color,
               ),

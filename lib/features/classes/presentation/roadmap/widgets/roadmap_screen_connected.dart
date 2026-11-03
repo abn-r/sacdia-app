@@ -18,6 +18,7 @@ import '../data/roadmap_data.dart';
 import '../providers/roadmap_providers.dart';
 import 'roadmap_screen.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Versión conectada del roadmap de clases.
 ///
@@ -171,7 +172,8 @@ class _ErrorState extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   error.toString().replaceFirst('Exception: ', ''),
-                  style: TextStyle(fontSize: 14, color: c.textSecondary),
+                  style: TextStyle(
+                      fontSize: SacFontSize.titleSmall, color: c.textSecondary),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
@@ -226,7 +228,8 @@ class _EmptyState extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 'classes.list.empty'.tr(),
-                style: TextStyle(fontSize: 16, color: c.textSecondary),
+                style: TextStyle(
+                    fontSize: SacFontSize.titleMedium, color: c.textSecondary),
               ),
             ],
           ),

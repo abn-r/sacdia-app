@@ -41,6 +41,7 @@ import 'active_sessions_view.dart';
 import 'data_export_view.dart';
 import 'edit_profile_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 const Set<String> _attendanceScannerRoles = {
   ClubRoleNames.director,
@@ -490,7 +491,7 @@ class _AccountHeaderTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(color: c.border, width: 1),
         ),
         child: Row(
@@ -524,7 +525,7 @@ class _AccountHeaderTile extends StatelessWidget {
                     Text(
                       name,
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: SacFontSize.titleMedium,
                         fontWeight: FontWeight.w600,
                         color: c.text,
                       ),
@@ -535,7 +536,7 @@ class _AccountHeaderTile extends StatelessWidget {
                     Text(
                       email,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: SacFontSize.bodyMedium,
                         color: c.textSecondary,
                       ),
                       maxLines: 1,
@@ -571,7 +572,7 @@ class _AvatarFallback extends StatelessWidget {
       child: Text(
         initials,
         style: TextStyle(
-          fontSize: 18,
+          fontSize: SacFontSize.headlineSmall,
           fontWeight: FontWeight.w700,
           color: SacAccent.of(context).color,
         ),
@@ -623,7 +624,7 @@ class _SwitchTile extends StatelessWidget {
             height: 34,
             decoration: BoxDecoration(
               color: effectiveBg,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Center(
               child: HugeIcon(
@@ -638,7 +639,7 @@ class _SwitchTile extends StatelessWidget {
             child: Text(
               title,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.w500,
                 color: c.text,
               ),
@@ -674,7 +675,7 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         title,
         style: TextStyle(
-          fontSize: 11,
+          fontSize: SacFontSize.labelSmall,
           fontWeight: FontWeight.w600,
           color: context.sac.textTertiary,
           letterSpacing: 0.8,
@@ -696,7 +697,7 @@ class _GroupContainer extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: context.sac.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: context.sac.border, width: 1),
       ),
       child: Column(children: children),
@@ -744,7 +745,7 @@ class _ThemePickerDialog extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: c.surface,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppTheme.radiusLG),
             boxShadow: [
               BoxShadow(
                 color: context.sac.shadow,
@@ -762,7 +763,7 @@ class _ThemePickerDialog extends StatelessWidget {
                   'profile.settings.select_theme_title'.tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 17,
+                    fontSize: SacFontSize.titleLarge,
                     fontWeight: FontWeight.w700,
                     color: SacAccent.of(context).color,
                   ),
@@ -794,7 +795,7 @@ class _ThemePickerDialog extends StatelessWidget {
                               child: Text(
                                 label,
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: SacFontSize.titleMedium,
                                   fontWeight: isSelected
                                       ? FontWeight.w600
                                       : FontWeight.w400,
@@ -837,7 +838,7 @@ class _ThemePickerDialog extends StatelessWidget {
                   child: Text(
                     'common.cancel'.tr(),
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: SacFontSize.titleMedium,
                       fontWeight: FontWeight.w400,
                       color: c.textSecondary,
                     ),

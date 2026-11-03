@@ -24,6 +24,7 @@ import '../providers/profile_providers.dart';
 import '../widgets/gender_selector.dart';
 import '../utils/profile_update_payload.dart';
 import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista para editar el perfil del usuario.
 ///
@@ -474,7 +475,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
                                     title: Text(
                                       tr('profile.edit.baptism_toggle'),
                                       style: const TextStyle(
-                                        fontSize: 15,
+                                        fontSize: SacFontSize.titleMedium,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -596,7 +597,7 @@ class _AvatarHeader extends StatelessWidget {
                             ? Text(
                                 name.isNotEmpty ? name[0].toUpperCase() : 'U',
                                 style: TextStyle(
-                                  fontSize: 36,
+                                  fontSize: SacFontSize.metricSmall,
                                   fontWeight: FontWeight.w700,
                                   color: SacAccent.of(context).color,
                                 ),
@@ -657,7 +658,7 @@ class _AvatarHeader extends StatelessWidget {
             Text(
               name,
               style: TextStyle(
-                fontSize: 18,
+                fontSize: SacFontSize.headlineSmall,
                 fontWeight: FontWeight.w700,
                 color: context.sac.text,
                 letterSpacing: -0.3,
@@ -672,7 +673,7 @@ class _AvatarHeader extends StatelessWidget {
                   ? tr('profile.edit.photo_uploading')
                   : tr('profile.edit.change_photo'),
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 fontWeight: FontWeight.w500,
                 color: isUploading
                     ? context.sac.textTertiary
@@ -702,7 +703,7 @@ class _SectionHeader extends StatelessWidget {
           height: 28,
           decoration: BoxDecoration(
             color: SacAccent.of(context).light,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
           ),
           child: Center(
             child: HugeIcon(
@@ -716,7 +717,7 @@ class _SectionHeader extends StatelessWidget {
         Text(
           label.toUpperCase(),
           style: TextStyle(
-            fontSize: 11,
+            fontSize: SacFontSize.labelSmall,
             fontWeight: FontWeight.w700,
             color: context.sac.textSecondary,
             letterSpacing: 0.8,
@@ -755,7 +756,7 @@ class _GenderPickerField extends StatelessWidget {
               color: hasValue
                   ? SacAccent.of(context).light
                   : context.sac.surfaceVariant,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Center(
               child: HugeIcon(
@@ -775,7 +776,7 @@ class _GenderPickerField extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: SacFontSize.bodySmall,
                     color: context.sac.textTertiary,
                   ),
                 ),
@@ -785,7 +786,7 @@ class _GenderPickerField extends StatelessWidget {
                       ? selected!.display(context)
                       : 'profile.edit.gender_unset'.tr(),
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: SacFontSize.titleMedium,
                     fontWeight: FontWeight.w500,
                     color:
                         hasValue ? context.sac.text : context.sac.textTertiary,
@@ -840,7 +841,7 @@ class _DatePickerField extends StatelessWidget {
                       : (date != null
                           ? SacAccent.of(context).light
                           : context.sac.surfaceVariant),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 ),
                 child: Center(
                   child: HugeIcon(
@@ -862,7 +863,7 @@ class _DatePickerField extends StatelessWidget {
                     Text(
                       label,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: SacFontSize.bodySmall,
                         color: context.sac.textTertiary,
                       ),
                     ),
@@ -873,7 +874,7 @@ class _DatePickerField extends StatelessWidget {
                               .format(date!)
                           : tr('profile.edit.date_placeholder'),
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: SacFontSize.titleMedium,
                         fontWeight: FontWeight.w500,
                         color: date != null
                             ? context.sac.text
@@ -898,7 +899,7 @@ class _DatePickerField extends StatelessWidget {
             child: Text(
               errorText!,
               style: const TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 color: AppColors.error,
               ),
             ),

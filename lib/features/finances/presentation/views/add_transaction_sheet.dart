@@ -22,6 +22,7 @@ import '../../domain/entities/finance_category.dart';
 import '../../domain/entities/transaction.dart';
 import '../providers/finances_providers.dart';
 import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Bottom sheet para agregar o editar un movimiento financiero.
 ///
@@ -84,7 +85,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     return Container(
       decoration: BoxDecoration(
         color: context.sac.background,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppTheme.radiusXL)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -96,7 +98,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
             height: 4,
             decoration: BoxDecoration(
               color: context.sac.border,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
             ),
           ),
 
@@ -551,7 +553,7 @@ class _EvidenceAddTile extends StatelessWidget {
       color: Colors.transparent,
       child: SacInkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         child: Ink(
           width: 92,
           height: 92,
@@ -559,7 +561,7 @@ class _EvidenceAddTile extends StatelessWidget {
             color: Theme.of(
               context,
             ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             border: Border.all(
               color: SacAccent.of(context).color.withValues(alpha: 0.35),
             ),
@@ -605,7 +607,7 @@ class _EvidenceTile extends StatelessWidget {
           );
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       child: Stack(
         children: [
           SizedBox(width: 92, height: 92, child: image),
@@ -670,7 +672,7 @@ class _CategoryPickerField extends StatelessWidget {
             color: Colors.transparent,
             child: SacInkWell(
               onTap: onTap,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
               child: Ink(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
@@ -680,7 +682,7 @@ class _CategoryPickerField extends StatelessWidget {
                   color: Theme.of(
                     context,
                   ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                   border: Border.all(
                     color: borderColor,
                     width: errorText != null ? 1.4 : 1,
@@ -693,7 +695,7 @@ class _CategoryPickerField extends StatelessWidget {
                       height: 36,
                       decoration: BoxDecoration(
                         color: SacAccent.of(context).surface,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                       ),
                       child: HugeIcon(
                         icon: HugeIcons.strokeRoundedTag01,
@@ -775,7 +777,8 @@ class _CategoryPickerSheet extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: context.sac.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppTheme.radiusXL)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -786,7 +789,7 @@ class _CategoryPickerSheet extends StatelessWidget {
               height: 4,
               decoration: BoxDecoration(
                 color: context.sac.border,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
               ),
             ),
             Padding(
@@ -798,7 +801,7 @@ class _CategoryPickerSheet extends StatelessWidget {
                     height: 40,
                     decoration: BoxDecoration(
                       color: SacAccent.of(context).surface,
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                     ),
                     child: HugeIcon(
                       icon: HugeIcons.strokeRoundedTag01,
@@ -874,12 +877,12 @@ class _CategoryPickerOption extends StatelessWidget {
         color: Colors.transparent,
         child: SacInkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           child: Ink(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: background,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
               border: Border.all(
                 color: isSelected
                     ? SacAccent.of(context).color.withValues(alpha: 0.24)
@@ -895,7 +898,7 @@ class _CategoryPickerOption extends StatelessWidget {
                     color: isSelected
                         ? SacAccent.of(context).surface
                         : context.sac.surfaceVariant,
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                   ),
                   child: HugeIcon(
                     icon: HugeIcons.strokeRoundedTag01,
@@ -992,7 +995,7 @@ class _TypeChip extends StatelessWidget {
         decoration: BoxDecoration(
           color:
               isSelected ? color.withValues(alpha: 0.12) : Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           border: Border.all(
             color: isSelected ? color : Theme.of(context).dividerColor,
             width: isSelected ? 2 : 1,
@@ -1012,7 +1015,7 @@ class _TypeChip extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: SacFontSize.titleSmall,
                 fontWeight: FontWeight.w700,
                 color: isSelected
                     ? color
@@ -1046,14 +1049,14 @@ class _DatePickerField extends StatelessWidget {
 
     return SacInkWell(
       onTap: () => _pickDate(context),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
           color: Theme.of(
             context,
           ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           border: Border.all(
             color: Theme.of(context).dividerColor.withValues(alpha: 0.4),
           ),

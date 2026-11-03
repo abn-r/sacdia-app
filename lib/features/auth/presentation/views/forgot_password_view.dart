@@ -128,7 +128,8 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
                                   height: 64,
                                   decoration: BoxDecoration(
                                     color: context.sac.surface,
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(
+                                        AppTheme.radiusMD),
                                   ),
                                   child: const Center(
                                     child: HugeIcon(
@@ -180,7 +181,7 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
                                         'auth.forgot_password_success_title'
                                             .tr(),
                                         style: const TextStyle(
-                                          fontSize: 18,
+                                          fontSize: SacFontSize.headlineSmall,
                                           fontWeight: FontWeight.w600,
                                           color: AppColors.secondaryDark,
                                         ),
@@ -195,7 +196,7 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
                                         ),
                                         textAlign: TextAlign.center,
                                         style: const TextStyle(
-                                          fontSize: 14,
+                                          fontSize: SacFontSize.titleSmall,
                                           color: AppColors.secondaryDark,
                                           height: 1.4,
                                         ),
@@ -244,7 +245,7 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
                                             _errorMessage!,
                                             style: const TextStyle(
                                               color: AppColors.errorDark,
-                                              fontSize: 14,
+                                              fontSize: SacFontSize.titleSmall,
                                             ),
                                           ),
                                         ),

@@ -289,7 +289,7 @@ class _FloatingChip extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),

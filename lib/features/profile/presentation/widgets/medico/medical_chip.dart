@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'medico_tokens.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Chip con punto de color + etiqueta + sub-texto opcional.
 /// Usado para alergias, enfermedades y similares.
@@ -39,7 +40,7 @@ class MedicalChip extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               fontWeight: FontWeight.w600,
               color: t.fg,
             ),
@@ -49,7 +50,7 @@ class MedicalChip extends StatelessWidget {
             Text(
               '· $sub',
               style: TextStyle(
-                fontSize: 11.5,
+                fontSize: SacFontSize.labelSmall,
                 fontWeight: FontWeight.w500,
                 color: t.fg.withValues(alpha: 0.7),
               ),

@@ -433,7 +433,7 @@ class _PickerLogo extends StatelessWidget {
         color: isSelected
             ? SacAccent.of(context).color.withValues(alpha: 0.08)
             : context.sac.surfaceVariant,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
         border: Border.all(
           color: isSelected
               ? SacAccent.of(context).color.withValues(alpha: 0.35)

@@ -14,6 +14,7 @@ import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../club/presentation/providers/club_providers.dart';
 import '../../../profile/presentation/providers/profile_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Card que muestra el club/sección activo y permite cambiar de contexto.
 ///
@@ -80,7 +81,7 @@ class ClubContextCard extends ConsumerWidget {
             height: 44,
             decoration: BoxDecoration(
               color: accentColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Center(
               child: HugeIcon(
@@ -101,7 +102,7 @@ class ClubContextCard extends ConsumerWidget {
                       child: Text(
                         clubTypeName,
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: SacFontSize.titleMedium,
                           fontWeight: FontWeight.w600,
                           color: c.text,
                         ),
@@ -119,7 +120,7 @@ class ClubContextCard extends ConsumerWidget {
                   Text(
                     activeRoleName,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       color: c.textSecondary,
                     ),
                     maxLines: 1,
@@ -173,12 +174,12 @@ class _MembershipStatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
       ),
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 10,
+          fontSize: SacFontSize.caption,
           fontWeight: FontWeight.w600,
           color: fg,
         ),

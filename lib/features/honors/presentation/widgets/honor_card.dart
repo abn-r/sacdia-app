@@ -10,6 +10,7 @@ import '../../domain/entities/user_honor.dart';
 import '../theme/honor_category_palette.dart';
 import '../utils/user_honor_presentation_extensions.dart';
 import 'honor_badge_image.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Unified honor card for both catalog and my-honors views.
 ///
@@ -72,14 +73,14 @@ class HonorCard extends StatelessWidget {
         color: Colors.transparent,
         child: SacInkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           child: Ink(
             decoration: BoxDecoration(
               color: context.sac.surface,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -100,7 +101,7 @@ class HonorCard extends StatelessWidget {
                               Text(
                                 honor.name,
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: SacFontSize.titleSmall,
                                   fontWeight: FontWeight.w600,
                                   color: context.sac.text,
                                 ),
@@ -114,7 +115,7 @@ class HonorCard extends StatelessWidget {
                                       ? 'honors.card.completed_label'.tr()
                                       : userHonor!.statusLabel,
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: SacFontSize.bodySmall,
                                     color: _categoryPaintColor,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -156,7 +157,7 @@ class HonorCard extends StatelessWidget {
         children: [
           Expanded(
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
               child: LinearProgressIndicator(
                 value: clampedValue,
                 minHeight: 3,
@@ -169,7 +170,7 @@ class HonorCard extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: SacFontSize.labelSmall,
               fontWeight: FontWeight.w500,
               color: _categoryPaintColor,
             ),

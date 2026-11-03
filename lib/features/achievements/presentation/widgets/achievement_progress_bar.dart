@@ -3,6 +3,7 @@ import 'package:sacdia_app/core/animations/motion_tokens.dart';
 
 import '../../domain/entities/achievement.dart';
 import 'achievement_badge.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Barra de progreso para logros con color del tier.
 ///
@@ -102,7 +103,7 @@ class _AchievementProgressBarState extends State<AchievementProgressBar>
       children: [
         Expanded(
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(100),
+            borderRadius: BorderRadius.circular(AppTheme.radiusFull),
             child: SizedBox(
               height: widget.height,
               child: AnimatedBuilder(
@@ -113,7 +114,8 @@ class _AchievementProgressBarState extends State<AchievementProgressBar>
                       Container(
                         decoration: BoxDecoration(
                           color: tierColor.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(100),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusFull),
                         ),
                       ),
                       FractionallySizedBox(
@@ -122,7 +124,8 @@ class _AchievementProgressBarState extends State<AchievementProgressBar>
                         child: Container(
                           decoration: BoxDecoration(
                             color: tierColor,
-                            borderRadius: BorderRadius.circular(100),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusFull),
                           ),
                         ),
                       ),
@@ -138,7 +141,7 @@ class _AchievementProgressBarState extends State<AchievementProgressBar>
           Text(
             widget.label!,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: SacFontSize.labelSmall,
               fontWeight: FontWeight.w600,
               color: tierColor,
             ),

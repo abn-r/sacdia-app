@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../providers/validation_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Banner compacto que muestra la elegibilidad para investidura del usuario.
 ///
@@ -40,7 +41,7 @@ class EligibilityBanner extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: isEligible ? AppColors.secondaryLight : c.surfaceVariant,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
               border: Border.all(
                 color: isEligible
                     ? AppColors.secondary.withValues(alpha: 0.4)
@@ -57,7 +58,7 @@ class EligibilityBanner extends ConsumerWidget {
                     color: isEligible
                         ? AppColors.secondary.withValues(alpha: 0.2)
                         : c.border.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                   ),
                   child: Center(
                     child: HugeIcon(
@@ -84,7 +85,7 @@ class EligibilityBanner extends ConsumerWidget {
                           Text(
                             'validation.eligibility.title'.tr(),
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: SacFontSize.bodyMedium,
                               fontWeight: FontWeight.w600,
                               color: c.text,
                             ),
@@ -93,7 +94,7 @@ class EligibilityBanner extends ConsumerWidget {
                           Text(
                             isEligible ? 'common.yes'.tr() : 'common.no'.tr(),
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: SacFontSize.bodyMedium,
                               fontWeight: FontWeight.w700,
                               color: isEligible
                                   ? AppColors.secondaryDark
@@ -105,7 +106,7 @@ class EligibilityBanner extends ConsumerWidget {
                       const SizedBox(height: 6),
                       // Progress bar
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(AppTheme.radius2XS),
                         child: LinearProgressIndicator(
                           value: percent / 100.0,
                           backgroundColor: c.border,
@@ -120,7 +121,7 @@ class EligibilityBanner extends ConsumerWidget {
                         'validation.eligibility.progress'.tr(
                             namedArgs: {'percent': percent.toStringAsFixed(0)}),
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: SacFontSize.labelSmall,
                           color: c.textTertiary,
                         ),
                       ),
@@ -148,7 +149,7 @@ class _EligibilitySkeleton extends StatelessWidget {
       height: 80,
       decoration: BoxDecoration(
         color: skeletonColor,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       ),
     );
   }

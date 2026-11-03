@@ -17,6 +17,7 @@ import '../widgets/qty_stepper.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Pantalla de detalle de producto del catálogo de materiales.
 class ProductDetailView extends ConsumerStatefulWidget {
@@ -89,7 +90,7 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                       height: 200,
                       decoration: BoxDecoration(
                         color: SacAccent.of(context).surface,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                       ),
                       alignment: Alignment.center,
                       child: Text(
@@ -97,7 +98,8 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                             ? item.title[0].toUpperCase()
                             : '?',
                         style: TextStyle(
-                          fontSize: 72,
+                          fontSize:
+                              72, // ds-allow: placeholder initial sized to the image area
                           fontWeight: FontWeight.bold,
                           color: SacAccent.of(context).color,
                         ),
@@ -199,7 +201,8 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                                     : outOfStock
                                         ? c.borderLight
                                         : c.surface,
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius:
+                                    BorderRadius.circular(AppTheme.radiusXS),
                                 border: Border.all(
                                   color: selected
                                       ? SacAccent.of(context).color
@@ -226,7 +229,7 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                                     Text(
                                       '${option.stock} disp.',
                                       style: TextStyle(
-                                        fontSize: 10,
+                                        fontSize: SacFontSize.caption,
                                         color: selected
                                             ? Colors.white70
                                             : c.textTertiary,
@@ -329,12 +332,12 @@ class _Badge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
       ),
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 11,
+          fontSize: SacFontSize.labelSmall,
           color: color,
           fontWeight: FontWeight.w600,
         ),

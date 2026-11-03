@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../profile/presentation/widgets/setting_tile.dart';
 import '../views/support_view.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Sección "Ayuda y Soporte" para incrustar en `SettingsView`.
 ///
@@ -29,7 +30,7 @@ class SupportSettingsSection extends StatelessWidget {
           child: Text(
             'support.section_title'.tr().toUpperCase(),
             style: TextStyle(
-              fontSize: 11,
+              fontSize: SacFontSize.labelSmall,
               color: context.sac.textTertiary,
               letterSpacing: 0.8,
               fontWeight: FontWeight.w600,
@@ -39,7 +40,7 @@ class SupportSettingsSection extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             color: context.sac.surface,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             border: Border.all(color: context.sac.border, width: 1),
           ),
           child: SettingTile(

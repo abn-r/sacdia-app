@@ -30,6 +30,7 @@ import 'location_picker_view.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista para crear una nueva actividad en el club.
 ///
@@ -913,7 +914,7 @@ class _JointActivityToggle extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(
           color: value
               ? SacAccent.of(context).color.withValues(alpha: 0.4)
@@ -941,7 +942,7 @@ class _JointActivityToggle extends StatelessWidget {
               title: Text(
                 'activities.form.joint_toggle_title'.tr(),
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: SacFontSize.titleSmall,
                   fontWeight: FontWeight.w600,
                   color: c.text,
                 ),
@@ -949,7 +950,7 @@ class _JointActivityToggle extends StatelessWidget {
               subtitle: Text(
                 'activities.form.joint_toggle_subtitle'.tr(),
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: SacFontSize.bodySmall,
                   color: c.textSecondary,
                 ),
               ),
@@ -957,7 +958,7 @@ class _JointActivityToggle extends StatelessWidget {
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
                   color: value ? SacAccent.of(context).light : c.surfaceVariant,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 ),
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedUserGroup,
@@ -1008,7 +1009,7 @@ class _SectionMultiPicker extends ConsumerWidget {
         Text(
           'activities.form.sections_hint'.tr(),
           style: TextStyle(
-            fontSize: 12,
+            fontSize: SacFontSize.bodySmall,
             color: c.textSecondary,
           ),
         ),
@@ -1025,7 +1026,7 @@ class _SectionMultiPicker extends ConsumerWidget {
           error: (_, __) => Text(
             'activities.form.sections_error_load'.tr(),
             style: TextStyle(
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               color: c.textSecondary,
             ),
           ),
@@ -1033,7 +1034,8 @@ class _SectionMultiPicker extends ConsumerWidget {
             if (sections.isEmpty) {
               return Text(
                 'activities.form.sections_empty'.tr(),
-                style: TextStyle(fontSize: 12, color: c.textSecondary),
+                style: TextStyle(
+                    fontSize: SacFontSize.bodySmall, color: c.textSecondary),
               );
             }
             return Wrap(
@@ -1072,7 +1074,7 @@ class _SectionMultiPicker extends ConsumerWidget {
           Text(
             'activities.form.sections_min_hint'.tr(),
             style: TextStyle(
-              fontSize: 11,
+              fontSize: SacFontSize.labelSmall,
               color: AppColors.error,
               fontWeight: FontWeight.w500,
             ),

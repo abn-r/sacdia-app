@@ -114,7 +114,7 @@ class InventoryItemDetailView extends ConsumerWidget {
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: SacAccent.of(context).surface,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                   ),
                   child: Text(
                     detailItem.category.name,
@@ -445,9 +445,9 @@ class _PhotoSection extends StatelessWidget {
             imageUrls: urls,
             title: title,
           ),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppTheme.radiusLG),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppTheme.radiusLG),
             child: CachedNetworkImage(
               imageUrl: photoUrl!,
               width: double.infinity,
@@ -558,16 +558,16 @@ class _EvidenceThumb extends StatelessWidget {
       color: Colors.transparent,
       child: SacInkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         child: Ink(
           width: 82,
           height: 82,
           decoration: BoxDecoration(
             color: context.sac.surfaceVariant,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             child: CachedNetworkImage(
               imageUrl: url,
               fit: BoxFit.cover,
@@ -598,7 +598,7 @@ class _PhotoPlaceholder extends StatelessWidget {
       height: 160,
       decoration: BoxDecoration(
         color: SacAccent.of(context).surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -613,7 +613,7 @@ class _PhotoPlaceholder extends StatelessWidget {
             'inventory.detail.no_photo'.tr(),
             style: TextStyle(
               color: SacAccent.of(context).color.withValues(alpha: 0.5),
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
             ),
           ),
         ],
@@ -699,7 +699,7 @@ class _InfoRow extends StatelessWidget {
                   label,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: context.sac.textTertiary,
-                        fontSize: 11,
+                        fontSize: SacFontSize.labelSmall,
                       ),
                 ),
                 const SizedBox(height: 2),

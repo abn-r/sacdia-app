@@ -16,6 +16,7 @@ import '../utils/money_format.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Pantalla "Datos para pago" — muestra la CLABE, referencia bancaria y
 /// total a pagar una vez que la orden fue aprobada.
@@ -91,7 +92,7 @@ class _PagoBody extends StatelessWidget {
         Card(
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             side: BorderSide(color: context.sac.border),
           ),
           child: Padding(
@@ -132,7 +133,7 @@ class _PagoBody extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: AppColors.statusInfoBgLight,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             border: Border.all(
                 color: AppColors.statusInfoText.withValues(alpha: 0.4)),
           ),
@@ -297,7 +298,7 @@ class _CopyCard extends StatelessWidget {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         side: BorderSide(color: c.border),
       ),
       child: Padding(
@@ -319,7 +320,7 @@ class _CopyCard extends StatelessWidget {
                     value,
                     style: TextStyle(
                       fontFamily: mono ? 'monospace' : null,
-                      fontSize: 16,
+                      fontSize: SacFontSize.titleMedium,
                       fontWeight: FontWeight.w700,
                       letterSpacing: mono ? 1.2 : null,
                       color: c.text,
@@ -390,7 +391,7 @@ class _DataRow extends StatelessWidget {
               value,
               style: TextStyle(
                 fontFamily: mono ? 'monospace' : null,
-                fontSize: 14,
+                fontSize: SacFontSize.titleSmall,
                 fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
                 color: bold ? SacAccent.of(context).color : c.text,
                 letterSpacing: mono ? 0.8 : null,

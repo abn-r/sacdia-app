@@ -191,7 +191,7 @@ class _EventAssignmentCard extends StatelessWidget {
                         ),
                         style: TextStyle(
                           color: c.textSecondary,
-                          fontSize: 13,
+                          fontSize: SacFontSize.bodyMedium,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0.1,
                         ),
@@ -280,7 +280,7 @@ class _ClubScoreRow extends StatelessWidget {
                         _clubInitials(clubLabel),
                         style: TextStyle(
                           color: c.text,
-                          fontSize: 13,
+                          fontSize: SacFontSize.bodyMedium,
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.4,
                           height: 1,
@@ -297,7 +297,7 @@ class _ClubScoreRow extends StatelessWidget {
                       clubLabel,
                       style: TextStyle(
                         color: c.text,
-                        fontSize: 16,
+                        fontSize: SacFontSize.titleMedium,
                         fontWeight: FontWeight.w600,
                         height: 1.2,
                       ),
@@ -308,7 +308,7 @@ class _ClubScoreRow extends StatelessWidget {
                         subtitle!,
                         style: TextStyle(
                           color: c.textSecondary,
-                          fontSize: 13,
+                          fontSize: SacFontSize.bodyMedium,
                           fontWeight: FontWeight.w500,
                           height: 1.25,
                         ),
@@ -322,7 +322,7 @@ class _ClubScoreRow extends StatelessWidget {
                 'camporees.judge.score_row_action'.tr(),
                 style: TextStyle(
                   color: scheme.primary,
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   fontWeight: FontWeight.w700,
                 ),
               ),

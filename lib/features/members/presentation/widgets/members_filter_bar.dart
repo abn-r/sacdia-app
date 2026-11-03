@@ -12,6 +12,7 @@ import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../providers/members_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Barra de filtros para la lista de miembros
 class MembersFilterBar extends ConsumerStatefulWidget {
@@ -49,7 +50,7 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
         Container(
           decoration: BoxDecoration(
             color: c.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             border: Border.all(color: c.border),
           ),
           child: TextField(
@@ -58,10 +59,11 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
               ref.read(memberFiltersProvider.notifier).state =
                   filters.copyWith(searchQuery: value);
             },
-            style: TextStyle(fontSize: 14, color: c.text),
+            style: TextStyle(fontSize: SacFontSize.titleSmall, color: c.text),
             decoration: InputDecoration(
               hintText: 'members.filter_bar.search_hint'.tr(),
-              hintStyle: TextStyle(color: c.textTertiary, fontSize: 14),
+              hintStyle: TextStyle(
+                  color: c.textTertiary, fontSize: SacFontSize.titleSmall),
               prefixIconConstraints: FixedInputIconSlot.constraints,
               prefixIcon: FixedInputIconSlot(
                 icon: HugeIcons.strokeRoundedSearch01,
@@ -177,7 +179,7 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
                       color: AppColors.error.withValues(alpha: 0.10),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusLG),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -191,7 +193,7 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
                         Text(
                           'common.clear'.tr(),
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: SacFontSize.bodySmall,
                             fontWeight: FontWeight.w500,
                             color: AppColors.error,
                           ),
@@ -306,7 +308,7 @@ class _FilterChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: bgColor,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppTheme.radiusLG),
           border: Border.all(color: borderColor),
         ),
         child: Row(
@@ -315,7 +317,7 @@ class _FilterChip extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
                 color: fgColor,
               ),
@@ -396,7 +398,8 @@ class _PickerSheet extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             color: c.surfaceVariant,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppTheme.radiusLG)),
           ),
           child: CustomScrollView(
             controller: scrollController,
@@ -439,7 +442,7 @@ class _PickerSheet extends StatelessWidget {
                             title: Text(
                               label,
                               style: TextStyle(
-                                fontSize: 15,
+                                fontSize: SacFontSize.titleMedium,
                                 fontWeight: isSelected
                                     ? FontWeight.w600
                                     : FontWeight.w400,
@@ -510,7 +513,7 @@ class _FilterPickerHeaderDelegate extends SliverPersistentHeaderDelegate {
               height: 5,
               decoration: BoxDecoration(
                 color: handleColor,
-                borderRadius: BorderRadius.circular(3),
+                borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
               ),
             ),
           ),
@@ -521,7 +524,7 @@ class _FilterPickerHeaderDelegate extends SliverPersistentHeaderDelegate {
               title,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.w700,
                 color: titleColor,
                 height: 1.2,
@@ -555,7 +558,8 @@ class _EnrollmentPickerSheet extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.surfaceVariant,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppTheme.radiusLG)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -567,7 +571,7 @@ class _EnrollmentPickerSheet extends StatelessWidget {
               height: 5,
               decoration: BoxDecoration(
                 color: c.border,
-                borderRadius: BorderRadius.circular(3),
+                borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
               ),
             ),
           ),
@@ -577,7 +581,7 @@ class _EnrollmentPickerSheet extends StatelessWidget {
             child: Text(
               'members.filter_bar.enrollment_picker_title'.tr(),
               style: TextStyle(
-                fontSize: 16,
+                fontSize: SacFontSize.titleMedium,
                 fontWeight: FontWeight.w700,
                 color: c.text,
               ),
@@ -593,7 +597,7 @@ class _EnrollmentPickerSheet extends StatelessWidget {
                   title: Text(
                     'members.common.enrolled'.tr(),
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: SacFontSize.titleMedium,
                       color: current == true
                           ? SacAccent.of(context).color
                           : c.text,
@@ -620,7 +624,7 @@ class _EnrollmentPickerSheet extends StatelessWidget {
                   title: Text(
                     'members.common.not_enrolled'.tr(),
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: SacFontSize.titleMedium,
                       color: current == false
                           ? SacAccent.of(context).color
                           : c.text,

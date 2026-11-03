@@ -31,6 +31,7 @@ import 'club_selection_step_view.dart';
 import 'personal_info_step_view.dart';
 import 'photo_step_view.dart';
 import '../providers/club_selection_providers.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// El avance llegó vacío (sin error): se trata igual que un fallo.
 class _NoCompletionStatus implements Exception {
@@ -494,7 +495,8 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
                             horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           color: SacAccent.of(context).light,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusSM),
                         ),
                         child: Text(
                           tr('post_registration.shell.step_counter',
@@ -503,7 +505,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
                                 'total': '3'
                               }),
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: SacFontSize.bodyMedium,
                             fontWeight: FontWeight.w600,
                             color: SacAccent.of(context).color,
                           ),

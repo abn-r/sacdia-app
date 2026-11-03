@@ -14,6 +14,7 @@ import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/classes_providers.dart';
 import '../widgets/module_expansion_tile.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista de módulos de clase - Estilo "Scout Vibrante"
 ///
@@ -56,7 +57,7 @@ class ClassModulesView extends ConsumerWidget {
                   Text(
                     'classes.modules.empty'.tr(),
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: SacFontSize.titleMedium,
                       color: context.sac.textSecondary,
                     ),
                   ),
@@ -132,8 +133,9 @@ class ClassModulesView extends ConsumerWidget {
                 const SizedBox(height: 8),
                 Text(
                   error.toString(),
-                  style:
-                      TextStyle(fontSize: 14, color: context.sac.textSecondary),
+                  style: TextStyle(
+                      fontSize: SacFontSize.titleSmall,
+                      color: context.sac.textSecondary),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),

@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/features/family/domain/entities/dependent.dart';
 import 'package:sacdia_app/features/family/presentation/family_outcome_messages.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Aviso previo a borrar la cuenta de un tutor con menores a cargo (FP-66).
 ///
@@ -67,7 +68,7 @@ class _DeleteAccountDependentsDialogState
                             child: Text(
                               outcomeMessage(entry.outcome, entry.displayName),
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: SacFontSize.titleSmall,
                                 color: c.text,
                                 height: 1.3,
                               ),
@@ -83,7 +84,7 @@ class _DeleteAccountDependentsDialogState
           const SizedBox(height: 4),
           InkWell(
             onTap: () => setState(() => _acknowledged = !_acknowledged),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             child: Row(
               children: [
                 Checkbox(
@@ -93,7 +94,8 @@ class _DeleteAccountDependentsDialogState
                 Expanded(
                   child: Text(
                     'settings.delete_account.dependents.ack'.tr(),
-                    style: TextStyle(fontSize: 14, color: c.text),
+                    style: TextStyle(
+                        fontSize: SacFontSize.titleSmall, color: c.text),
                   ),
                 ),
               ],

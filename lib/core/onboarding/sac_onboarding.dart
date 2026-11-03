@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 import '../theme/sac_accent.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 const _sacOnboardingScopeName = 'sacdia_onboarding';
 
@@ -159,7 +160,7 @@ class SacOnboardingAnchor extends StatelessWidget {
               ) ??
           const TextStyle(
             color: Colors.white,
-            fontSize: 20,
+            fontSize: SacFontSize.headlineMedium,
             fontWeight: FontWeight.w800,
             height: 1.1,
           ),
@@ -169,12 +170,12 @@ class SacOnboardingAnchor extends StatelessWidget {
               ) ??
           TextStyle(
             color: Colors.white.withValues(alpha: 0.92),
-            fontSize: 14,
+            fontSize: SacFontSize.titleSmall,
             height: 1.35,
           ),
       tooltipBackgroundColor: config.backgroundColor,
       textColor: Colors.white,
-      tooltipBorderRadius: BorderRadius.circular(18),
+      tooltipBorderRadius: BorderRadius.circular(AppTheme.radiusLG),
       tooltipPadding: const EdgeInsets.all(16),
       toolTipMargin: 16,
       targetTooltipGap: 12,
@@ -182,7 +183,7 @@ class SacOnboardingAnchor extends StatelessWidget {
       targetShapeBorder: switch (config.anchorShape) {
         SacOnboardingAnchorShape.circle => const CircleBorder(),
         SacOnboardingAnchorShape.rectangle => RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           ),
       },
       tooltipPosition: _toShowcasePosition(config.alignment),

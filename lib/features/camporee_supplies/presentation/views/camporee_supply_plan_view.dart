@@ -379,7 +379,7 @@ class _CutoffCaption extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: AppColors.accentDark,
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   fontWeight: FontWeight.w700,
                   height: 1.25,
                 ),
@@ -420,7 +420,7 @@ class _PaymentCard extends StatelessWidget {
             'camporee_supplies.plan.payment_title'.tr(),
             style: TextStyle(
               color: c.textTertiary,
-              fontSize: 12,
+              fontSize: SacFontSize.bodySmall,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.6,
               height: 1.2,
@@ -431,7 +431,7 @@ class _PaymentCard extends StatelessWidget {
             amountLabel,
             style: TextStyle(
               color: c.textSecondary,
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -440,7 +440,7 @@ class _PaymentCard extends StatelessWidget {
             _formatPesos(dueCentavos),
             style: TextStyle(
               color: c.text,
-              fontSize: 32,
+              fontSize: SacFontSize.displayLarge,
               fontWeight: FontWeight.w800,
               letterSpacing: -0.6,
               height: 1.1,
@@ -452,7 +452,7 @@ class _PaymentCard extends StatelessWidget {
               'camporee_supplies.plan.payment_pending_folio'.tr(),
               style: TextStyle(
                 color: c.textSecondary,
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 height: 1.35,
               ),
             ),
@@ -474,7 +474,7 @@ class _PaymentCard extends StatelessWidget {
                             payment.folioReference,
                             style: TextStyle(
                               color: c.text,
-                              fontSize: 14,
+                              fontSize: SacFontSize.titleSmall,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
@@ -483,7 +483,7 @@ class _PaymentCard extends StatelessWidget {
                             '${_paymentKindLabel(payment.kind)} · ${_paymentStatusLabel(payment.status)}',
                             style: TextStyle(
                               color: c.textSecondary,
-                              fontSize: 12,
+                              fontSize: SacFontSize.bodySmall,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -494,7 +494,7 @@ class _PaymentCard extends StatelessWidget {
                       _formatPesos(payment.totalCentavos),
                       style: TextStyle(
                         color: c.text,
-                        fontSize: 14,
+                        fontSize: SacFontSize.titleSmall,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -588,7 +588,7 @@ class _AddSupplyButtonState extends State<_AddSupplyButton> {
                               label,
                               style: TextStyle(
                                 color: SacAccent.of(context).color,
-                                fontSize: 16,
+                                fontSize: SacFontSize.titleMedium,
                                 fontWeight: FontWeight.w800,
                                 height: 1.2,
                               ),
@@ -598,7 +598,7 @@ class _AddSupplyButtonState extends State<_AddSupplyButton> {
                               hint,
                               style: TextStyle(
                                 color: c.textSecondary,
-                                fontSize: 13,
+                                fontSize: SacFontSize.bodyMedium,
                                 fontWeight: FontWeight.w600,
                                 height: 1.25,
                               ),
@@ -667,7 +667,7 @@ class _DayCard extends StatelessWidget {
                   ),
                   style: TextStyle(
                     color: c.text,
-                    fontSize: 15,
+                    fontSize: SacFontSize.titleMedium,
                     fontWeight: FontWeight.w800,
                     height: 1.2,
                   ),
@@ -678,7 +678,7 @@ class _DayCard extends StatelessWidget {
                     dateLabel,
                     style: TextStyle(
                       color: c.textSecondary,
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -691,7 +691,8 @@ class _DayCard extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Text(
                 'camporee_supplies.plan.day_empty'.tr(),
-                style: TextStyle(color: c.textSecondary, fontSize: 13),
+                style: TextStyle(
+                    color: c.textSecondary, fontSize: SacFontSize.bodyMedium),
               ),
             )
           else
@@ -742,7 +743,7 @@ class _SlotBlock extends StatelessWidget {
             key: Key('camporee-supply-slot-$date-${bucket.slot.slotId}'),
             style: TextStyle(
               color: c.textTertiary,
-              fontSize: 11,
+              fontSize: SacFontSize.labelSmall,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.5,
               height: 1.2,
@@ -1129,7 +1130,7 @@ class _LineTile extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: c.text,
-                fontSize: 14,
+                fontSize: SacFontSize.titleSmall,
                 fontWeight: FontWeight.w800,
                 height: 1.2,
               ),
@@ -1140,7 +1141,7 @@ class _LineTile extends StatelessWidget {
             qty,
             style: TextStyle(
               color: c.textSecondary,
-              fontSize: 13,
+              fontSize: SacFontSize.bodyMedium,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -1187,7 +1188,7 @@ class _SupplyIcon extends StatelessWidget {
       height: 32,
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
       ),
       child: Center(
         child: HugeIcon(icon: icon, size: 16, color: color),

@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/evidence_section.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Compact row that summarizes an [EvidenceSection] inside the grouped list.
 class SectionCard extends StatelessWidget {
@@ -223,7 +224,7 @@ class _CompactStatusLabel extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
@@ -335,12 +336,12 @@ class _SubmitSectionButton extends StatelessWidget {
         constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
         child: Material(
           color: AppColors.info.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           child: SacInkWell(
             // Keep the nested action in the gesture arena while loading so a
             // tap never falls through to the parent row navigation.
             onTap: isSubmitting ? () {} : onSubmit,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 14,
@@ -384,7 +385,7 @@ class _SubmitSectionButton extends StatelessWidget {
                         textAlign: TextAlign.center,
                         softWrap: true,
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: SacFontSize.bodyMedium,
                           fontWeight: FontWeight.w700,
                           color: AppColors.info,
                           height: 1.2,

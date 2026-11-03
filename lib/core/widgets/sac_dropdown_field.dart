@@ -167,7 +167,7 @@ class _SacDropdownFieldState<T> extends State<SacDropdownField<T>> {
                 _errorMessage!,
                 style: TextStyle(
                   color: theme.colorScheme.error,
-                  fontSize: 12,
+                  fontSize: SacFontSize.bodySmall,
                   fontWeight: FontWeight.w500,
                 ),
               ),

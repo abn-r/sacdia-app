@@ -342,7 +342,7 @@ class _ExpiringBanner extends StatelessWidget {
             child: Text(
               key.tr(namedArgs: {'count': '$count'}),
               style: TextStyle(
-                fontSize: 13,
+                fontSize: SacFontSize.bodyMedium,
                 fontWeight: FontWeight.w500,
                 color: c.onWarning,
               ),
@@ -370,11 +370,12 @@ class _SearchBar extends StatelessWidget {
         controller: controller,
         onChanged: onChanged,
         textInputAction: TextInputAction.search,
-        style: TextStyle(fontSize: 16, color: c.text),
+        style: TextStyle(fontSize: SacFontSize.titleMedium, color: c.text),
         decoration: InputDecoration(
           isDense: true,
           hintText: 'insurance.view.search_hint'.tr(),
-          hintStyle: TextStyle(color: c.textTertiary, fontSize: 16),
+          hintStyle: TextStyle(
+              color: c.textTertiary, fontSize: SacFontSize.titleMedium),
           prefixIconConstraints: FixedInputIconSlot.constraints,
           prefixIcon: FixedInputIconSlot(
             icon: HugeIcons.strokeRoundedSearch01,
@@ -402,15 +403,15 @@ class _SearchBar extends StatelessWidget {
           fillColor: c.surfaceVariant,
           contentPadding: const EdgeInsets.symmetric(vertical: 0),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             borderSide: BorderSide.none,
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             borderSide: BorderSide.none,
           ),
         ),
@@ -446,7 +447,7 @@ class _SortCountRow extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: c.textTertiary,
                   fontWeight: FontWeight.w600,
-                  fontSize: 12,
+                  fontSize: SacFontSize.bodySmall,
                   letterSpacing: 0.4,
                 ),
           ),
@@ -474,7 +475,7 @@ class _SortCountRow extends StatelessWidget {
                     sortOrder.label,
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
-                      fontSize: 13,
+                      fontSize: SacFontSize.bodyMedium,
                       color: c.textSecondary,
                     ),
                   ),
@@ -510,7 +511,8 @@ class _SortSheet extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppTheme.radiusXL)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -521,7 +523,7 @@ class _SortSheet extends StatelessWidget {
             height: 4,
             decoration: BoxDecoration(
               color: c.border,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
             ),
           ),
           Padding(

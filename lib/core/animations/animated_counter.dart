@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Animated number counter widget — Apple Fitness / Duolingo stats style.
 ///
@@ -13,7 +14,7 @@ import 'package:sacdia_app/core/animations/motion_tokens.dart';
 /// ```dart
 /// AnimatedCounter(
 ///   value: 12,
-///   style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+///   style: TextStyle(fontSize: SacFontSize.displaySmall, fontWeight: FontWeight.w700),
 /// )
 /// ```
 class AnimatedCounter extends StatefulWidget {
@@ -192,7 +193,7 @@ class AnimatedStatTile extends StatelessWidget {
           animate: animate,
           style: valueStyle ??
               TextStyle(
-                fontSize: 24,
+                fontSize: SacFontSize.displaySmall,
                 fontWeight: FontWeight.w700,
                 color: color,
               ),
@@ -202,7 +203,7 @@ class AnimatedStatTile extends StatelessWidget {
           label,
           style: labelStyle ??
               TextStyle(
-                fontSize: 11,
+                fontSize: SacFontSize.labelSmall,
                 fontWeight: FontWeight.w500,
                 color: color.withValues(alpha: 0.7),
               ),

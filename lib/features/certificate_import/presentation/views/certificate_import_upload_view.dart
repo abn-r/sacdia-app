@@ -488,7 +488,8 @@ Future<_ProofSource?> _showProofSourceSheet(BuildContext context) {
     // large text scale instead of overflowing.
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      borderRadius:
+          BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLG)),
     ),
     builder: (ctx) => SafeArea(
       child: SingleChildScrollView(
@@ -548,7 +549,7 @@ class _ProofSourceTile extends StatelessWidget {
           height: 40,
           decoration: BoxDecoration(
             color: accent.light,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
           ),
           child: Center(
             child: HugeIcon(icon: icon, size: 22, color: accent.color),
@@ -816,7 +817,7 @@ class _ReceiptThumb extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(color: c.border),
         boxShadow: [BoxShadow(color: c.shadow, blurRadius: 10)],
       ),
@@ -831,7 +832,7 @@ class _ReceiptThumb extends StatelessWidget {
               width: i.isEven ? 64 : 44,
               decoration: BoxDecoration(
                 color: c.border,
-                borderRadius: BorderRadius.circular(99),
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
               ),
             ),
             SizedBox(height: compact ? 6 : 8),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_network_image.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Displays an honor badge without forcing an oval or circular mask.
 ///
@@ -33,7 +34,8 @@ class HonorBadgeImage extends StatelessWidget {
     required this.fallbackColor,
     this.fallbackBackgroundColor = const Color(0xFFF0F4F5),
     this.fallbackIconSize = 24,
-    this.fallbackBorderRadius = const BorderRadius.all(Radius.circular(12)),
+    this.fallbackBorderRadius =
+        const BorderRadius.all(Radius.circular(AppTheme.radiusSM)),
   });
 
   bool get _hasImage => imageUrl != null && imageUrl!.trim().isNotEmpty;

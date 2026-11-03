@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/inventory_item.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Badge de color que indica el estado de conservación del ítem.
 class ConditionBadge extends StatelessWidget {
@@ -27,7 +28,7 @@ class ConditionBadge extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(color: color.withValues(alpha: 0.35)),
       ),
       child: Row(

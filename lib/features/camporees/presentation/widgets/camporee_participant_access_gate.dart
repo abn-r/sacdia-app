@@ -11,6 +11,7 @@ import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_section_registration_panel.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Sólo un valor resuelto exitosamente puede abrir la frontera.
 ///
@@ -226,7 +227,7 @@ class _ParticipantAuthorityState extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: colors.surface,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
               border: Border.all(color: colors.border),
             ),
             child: Column(

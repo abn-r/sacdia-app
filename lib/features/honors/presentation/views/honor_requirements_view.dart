@@ -28,6 +28,7 @@ import 'package:sacdia_app/features/honors/presentation/widgets/honor_abandon_me
 import 'package:sacdia_app/features/honors/presentation/widgets/requirement_tree_item.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 // ── Local state helpers ───────────────────────────────────────────────────────
 
@@ -313,7 +314,8 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
     showSacSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppTheme.radiusMD)),
       ),
       builder: (ctx) => SafeArea(
         child: Column(
@@ -325,7 +327,7 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
               height: 4,
               decoration: BoxDecoration(
                 color: AppColors.pendingColor,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
               ),
             ),
             const SizedBox(height: 16),
@@ -810,7 +812,7 @@ class _ModeGuardScaffold extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: context.sac.text,
-                      fontSize: 18,
+                      fontSize: SacFontSize.headlineSmall,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -820,7 +822,7 @@ class _ModeGuardScaffold extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: context.sac.textSecondary,
-                      fontSize: 14,
+                      fontSize: SacFontSize.titleSmall,
                       height: 1.5,
                     ),
                   ),
@@ -881,7 +883,7 @@ class _ProgressSection extends StatelessWidget {
                   'total': '$total',
                 }),
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   fontWeight: FontWeight.w600,
                   color: context.sac.text,
                 ),
@@ -889,7 +891,7 @@ class _ProgressSection extends StatelessWidget {
               Text(
                 '$percentage%',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   fontWeight: FontWeight.w700,
                   color: categoryColor,
                 ),
@@ -970,7 +972,7 @@ class _AnimatedProgressBarState extends State<_AnimatedProgressBar>
       builder: (context, _) {
         final value = _animation.value.clamp(0.0, 1.0);
         return ClipRRect(
-          borderRadius: BorderRadius.circular(2),
+          borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
           child: SizedBox(
             height: 4,
             child: Stack(
@@ -1065,7 +1067,7 @@ class _LoadingBody extends StatelessWidget {
               height: 22,
               decoration: BoxDecoration(
                 color: context.sac.surfaceVariant,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(AppTheme.radius2XS),
               ),
             ),
             const SizedBox(width: 10),
@@ -1077,7 +1079,7 @@ class _LoadingBody extends StatelessWidget {
                     height: 12,
                     decoration: BoxDecoration(
                       color: context.sac.surfaceVariant,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(AppTheme.radius2XS),
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -1086,7 +1088,7 @@ class _LoadingBody extends StatelessWidget {
                     width: 200,
                     decoration: BoxDecoration(
                       color: context.sac.surfaceVariant,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(AppTheme.radius2XS),
                     ),
                   ),
                 ],
@@ -1127,7 +1129,7 @@ class _ErrorBody extends StatelessWidget {
                   : 'honors.requirements.error_load'.tr(),
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: SacFontSize.titleSmall,
                 color: context.sac.textSecondary,
                 height: 1.5,
               ),
@@ -1142,7 +1144,7 @@ class _ErrorBody extends StatelessWidget {
                   'honors.requirements.retry'.tr(),
                   style: const TextStyle(
                     color: AppColors.info,
-                    fontSize: 14,
+                    fontSize: SacFontSize.titleSmall,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

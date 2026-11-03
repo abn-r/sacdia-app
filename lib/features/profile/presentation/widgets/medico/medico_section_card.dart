@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'medico_tokens.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Wrapper común para cada sección (Alergias, Enfermedades, etc.).
 ///
@@ -129,7 +130,7 @@ class MedicoSectionCard extends StatelessWidget {
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 textStyle: const TextStyle(
-                  fontSize: 13,
+                  fontSize: SacFontSize.bodyMedium,
                   fontWeight: FontWeight.w700,
                 ),
               )).copyWith(enableFeedback: false),

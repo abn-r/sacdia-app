@@ -19,6 +19,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/member_insurance.dart';
 import '../providers/insurance_providers.dart';
 import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Bottom sheet para registrar o editar el seguro de un miembro.
 ///
@@ -82,7 +83,8 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
     return Container(
       decoration: BoxDecoration(
         color: context.sac.background,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppTheme.radiusXL)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -94,7 +96,7 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
             height: 4,
             decoration: BoxDecoration(
               color: context.sac.border,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
             ),
           ),
 
@@ -373,7 +375,7 @@ class _InsuranceTypeSelector extends StatelessWidget {
                 color: isSelected
                     ? SacAccent.of(context).surface
                     : Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                 border: Border.all(
                   color: isSelected
                       ? SacAccent.of(context).color
@@ -442,14 +444,14 @@ class _DatePickerField extends StatelessWidget {
 
     return SacInkWell(
       onTap: () => _pickDate(context),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
           color: Theme.of(
             context,
           ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           border: Border.all(
             color: Theme.of(context).dividerColor.withValues(alpha: 0.4),
           ),
@@ -553,13 +555,13 @@ class _PickerButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SacInkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
           color: SacAccent.of(context).surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           border: Border.all(
             color: SacAccent.of(context).color.withValues(alpha: 0.3),
             style: BorderStyle.solid,
@@ -578,7 +580,7 @@ class _PickerButton extends StatelessWidget {
               style: TextStyle(
                 color: SacAccent.of(context).color,
                 fontWeight: FontWeight.w700,
-                fontSize: 14,
+                fontSize: SacFontSize.titleSmall,
               ),
             ),
             const SizedBox(height: 4),
@@ -586,7 +588,7 @@ class _PickerButton extends StatelessWidget {
               'insurance.form.upload_formats'.tr(),
               style: TextStyle(
                 color: SacAccent.of(context).color.withValues(alpha: 0.6),
-                fontSize: 12,
+                fontSize: SacFontSize.bodySmall,
               ),
             ),
           ],
@@ -613,14 +615,14 @@ class _SelectedFileTile extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.secondaryLight,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: AppColors.secondary.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [
           // Preview or icon
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             child: _isImage
                 ? Image.file(
                     File(file.path),
@@ -642,7 +644,7 @@ class _SelectedFileTile extends StatelessWidget {
                   file.name,
                   style: const TextStyle(
                     fontWeight: FontWeight.w700,
-                    fontSize: 13,
+                    fontSize: SacFontSize.bodyMedium,
                     color: AppColors.secondaryDark,
                   ),
                   maxLines: 2,
@@ -652,7 +654,7 @@ class _SelectedFileTile extends StatelessWidget {
                 Text(
                   'insurance.form.file_selected'.tr(),
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: SacFontSize.labelSmall,
                     color: AppColors.secondaryDark.withValues(alpha: 0.7),
                   ),
                 ),
@@ -707,7 +709,7 @@ class _ExistingFileTile extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: SacAccent.of(context).surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(
             color: SacAccent.of(context).color.withValues(alpha: 0.3)),
       ),
@@ -727,7 +729,7 @@ class _ExistingFileTile extends StatelessWidget {
                   fileName,
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
-                    fontSize: 13,
+                    fontSize: SacFontSize.bodyMedium,
                     color: SacAccent.of(context).dark,
                   ),
                   maxLines: 1,
@@ -736,7 +738,7 @@ class _ExistingFileTile extends StatelessWidget {
                 Text(
                   'insurance.form.current_receipt_label'.tr(),
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: SacFontSize.labelSmall,
                     color: SacAccent.of(context).color.withValues(alpha: 0.7),
                   ),
                 ),
@@ -753,7 +755,7 @@ class _ExistingFileTile extends StatelessWidget {
                 style: TextStyle(
                   color: SacAccent.of(context).color,
                   fontWeight: FontWeight.w700,
-                  fontSize: 12,
+                  fontSize: SacFontSize.bodySmall,
                 ),
               ),
             ),
@@ -776,7 +778,8 @@ class _FilePickerSheet extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppTheme.radiusXL)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -787,7 +790,7 @@ class _FilePickerSheet extends StatelessWidget {
             height: 4,
             decoration: BoxDecoration(
               color: Theme.of(context).dividerColor,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
             ),
           ),
           Padding(
@@ -810,7 +813,7 @@ class _FilePickerSheet extends StatelessWidget {
                     height: 44,
                     decoration: BoxDecoration(
                       color: SacAccent.of(context).surface,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                     ),
                     child: Center(
                       child: HugeIcon(
@@ -847,7 +850,7 @@ class _FilePickerSheet extends StatelessWidget {
                     height: 44,
                     decoration: BoxDecoration(
                       color: AppColors.secondaryLight,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                     ),
                     child: const Center(
                       child: HugeIcon(
@@ -884,7 +887,7 @@ class _FilePickerSheet extends StatelessWidget {
                     height: 44,
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFF4E0),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                     ),
                     child: Center(
                       child: HugeIcon(
