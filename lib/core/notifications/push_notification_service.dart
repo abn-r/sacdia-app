@@ -25,6 +25,7 @@ import '../utils/app_logger.dart';
 import 'dependent_push_tap_handler.dart';
 import 'device_push_route.dart';
 import 'family_push_route.dart';
+import 'fcm_registrar.dart';
 import '../../features/achievements/presentation/providers/achievements_providers.dart';
 import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
@@ -70,19 +71,34 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 /// Service that owns the full FCM lifecycle:
 /// - Requesting permission (iOS)
-/// - Registering / refreshing the token with the backend
+/// - Registering the Firebase Installation ID (FID) with the backend
 /// - Handling foreground messages (snackbar)
 /// - Handling notification taps (navigation)
-/// - Unregistering token on logout
+/// - Unregistering the device on logout
+///
+/// Push target: since `firebase_messaging` 17 the app sends the FID
+/// (`{ token: fid, kind: 'fid' }`), not the legacy FCM registration token.
 class PushNotificationService {
   static const _tag = 'PushNotificationService';
+
+  /// Last value registered with the backend: the FID (kind `fid`) or, for
+  /// installs that predate the FID migration, the legacy FCM token.
   static const _tokenPrefKey = 'fcm_registered_token';
+
+  /// Kind of the value stored in [_tokenPrefKey]: `fid` or `token`. Absent
+  /// means `token` (written before the FID migration).
+  static const _kindPrefKey = 'fcm_registered_kind';
+  static const _kindFid = 'fid';
+  static const _kindToken = 'token';
 
   /// ID del registro devuelto por el backend al registrar el token.
   /// Necesario para el DELETE /users/me/fcm-tokens/:tokenId.
   static const _tokenIdPrefKey = 'fcm_registered_token_id';
 
   final Dio _dio;
+
+  /// Seam over the FCM token lifecycle (register / unregister / FID streams).
+  final FcmRegistrar _registrar;
   final _secureStorage = const FlutterSecureStorage(
     aOptions: AndroidOptions(),
   );
@@ -102,8 +118,10 @@ class PushNotificationService {
     this.navigatorKey,
     // ignore: avoid_unused_constructor_parameters
     SharedPreferences? prefs,
+    FcmRegistrar? registrar,
   })  : _dio = dio,
-        _ref = ref;
+        _ref = ref,
+        _registrar = registrar ?? const FirebaseFcmRegistrar();
 
   /// Toques en pushes que el servidor reenvió al tutor en nombre de un menor.
   late final DependentPushTapHandler _dependentTap = DependentPushTapHandler(
@@ -113,7 +131,11 @@ class PushNotificationService {
 
   // ── StreamSubscription references ─────────────────────────────────────────
 
-  StreamSubscription<String>? _tokenRefreshSub;
+  StreamSubscription<String>? _registeredSub;
+
+  /// Serializes backend registrations so a re-emitted FID can't race the
+  /// previous POST (which would duplicate the request).
+  Future<void> _registerChain = Future<void>.value();
   StreamSubscription<RemoteMessage>? _onMessageSub;
   StreamSubscription<RemoteMessage>? _onMessageOpenedAppSub;
 
@@ -121,8 +143,8 @@ class PushNotificationService {
 
   /// Initialize FCM. Call this AFTER the user is authenticated.
   ///
-  /// Safe to call multiple times — subsequent calls are idempotent because
-  /// the Firebase SDK returns the same token while it hasn't rotated.
+  /// Safe to call multiple times — `register()` re-emits the same FID through
+  /// `onRegistered` and a FID already stored with kind `fid` is not re-sent.
   Future<void> initialize() async {
     AppLogger.i('Inicializando FCM', tag: _tag);
 
@@ -136,28 +158,8 @@ class PushNotificationService {
     // 1. Request permission (required on iOS; Android 13+ also needs it).
     await _requestPermission();
 
-    // 3. Listen for token refresh BEFORE attempting getToken() so that even
-    //    if the APNS token isn't ready yet we catch the token once it arrives
-    //    (e.g. after app reinstall, token rotation, or late APNS delivery).
-    _tokenRefreshSub = FirebaseMessaging.instance.onTokenRefresh.listen(
-      (newToken) async {
-        AppLogger.i('Token FCM rotado, re-registrando', tag: _tag);
-        await _registerTokenWithBackend(newToken);
-      },
-      onError: (Object e) {
-        AppLogger.w('Error en onTokenRefresh', tag: _tag, error: e);
-      },
-    );
-
-    // 2. Get current token and register with backend.
-    //    On iOS, the APNS token is resolved asynchronously by the OS and may
-    //    not be available immediately after permission is granted.  Calling
-    //    getToken() while APNS is unresolved throws
-    //    [firebase_messaging/apns-token-not-set], crashing the app.
-    //    Strategy: wait for APNS with a short retry loop; if it never arrives
-    //    within the deadline, log a warning and skip — onTokenRefresh above
-    //    will deliver the token later without any extra work.
-    await _getFcmTokenSafely();
+    // 2-3. Listen for the FID and ask Firebase to register this instance.
+    await _startRegistration();
 
     // 4. Handle messages arriving while app is in the foreground.
     _onMessageSub =
@@ -179,8 +181,10 @@ class PushNotificationService {
     AppLogger.i('FCM inicializado correctamente', tag: _tag);
   }
 
-  /// Unregister the FCM token from the backend. Call this on logout.
-  Future<void> unregisterToken() async {
+  /// Unregister the FCM registration from the backend. Call this on logout.
+  Future<void> unregisterToken() => _unregisterFromBackend();
+
+  Future<void> _unregisterFromBackend() async {
     final token = await _secureStorage.read(key: _tokenPrefKey);
     final tokenId = await _secureStorage.read(key: _tokenIdPrefKey);
 
@@ -208,8 +212,7 @@ class PushNotificationService {
         );
       }
 
-      await _secureStorage.delete(key: _tokenPrefKey);
-      await _secureStorage.delete(key: _tokenIdPrefKey);
+      await _clearStoredRegistration();
       AppLogger.i('Token FCM desregistrado', tag: _tag);
     } on DioException catch (e) {
       // Non-critical: a stale token in the backend won't cause harm.
@@ -219,14 +222,18 @@ class PushNotificationService {
         error: e,
       );
       // Still remove locally so we don't keep retrying a bad token.
-      await _secureStorage.delete(key: _tokenPrefKey);
-      await _secureStorage.delete(key: _tokenIdPrefKey);
+      await _clearStoredRegistration();
     } catch (e) {
       AppLogger.w('Error inesperado al desregistrar token',
           tag: _tag, error: e);
-      await _secureStorage.delete(key: _tokenPrefKey);
-      await _secureStorage.delete(key: _tokenIdPrefKey);
+      await _clearStoredRegistration();
     }
+  }
+
+  Future<void> _clearStoredRegistration() async {
+    await _secureStorage.delete(key: _tokenPrefKey);
+    await _secureStorage.delete(key: _tokenIdPrefKey);
+    await _secureStorage.delete(key: _kindPrefKey);
   }
 
   /// Limpieza solo local del registro push, sin llamar al backend. Para cuando
@@ -234,19 +241,16 @@ class PushNotificationService {
   /// tokens FCM y la sesión ya no existe, así que un `DELETE` fallaría con 401
   /// y dispararía el cierre de sesión del interceptor a mitad de la UI.
   ///
-  /// Borra el token/id guardados, cancela las suscripciones y pide a Firebase
-  /// que invalide el token del dispositivo (best-effort).
+  /// Borra el FID/token, el id y el tipo guardados, cancela las suscripciones y
+  /// pide a Firebase que desregistre la instancia (`unregister()`, best-effort).
   Future<void> clearLocalRegistration() async {
     try {
-      await _secureStorage.delete(key: _tokenPrefKey);
-      await _secureStorage.delete(key: _tokenIdPrefKey);
+      await _clearStoredRegistration();
     } catch (e) {
       AppLogger.w('Error al borrar el token FCM local', tag: _tag, error: e);
     }
     await _cancelSubscriptions();
     try {
-      // Network call to FCM: bounded so a stalled connection can't hold the
-      // "deleting account" UI after the backend already confirmed it.
       await FirebaseMessaging.instance
           .deleteToken()
           .timeout(const Duration(seconds: 3));
@@ -266,29 +270,58 @@ class PushNotificationService {
   // ── Private helpers ────────────────────────────────────────────────────────
 
   Future<void> _cancelSubscriptions() async {
-    await _tokenRefreshSub?.cancel();
-    _tokenRefreshSub = null;
+    await _registeredSub?.cancel();
+    _registeredSub = null;
     await _onMessageSub?.cancel();
     _onMessageSub = null;
     await _onMessageOpenedAppSub?.cancel();
     _onMessageOpenedAppSub = null;
   }
 
-  /// Obtains the FCM token in a crash-safe way.
+  /// Listens for the FID BEFORE calling register() so no emission is missed
+  /// (register() re-emits the current FID on every call), then registers.
   ///
-  /// On iOS, Firebase requires the APNS token to be registered with the OS
-  /// before it can mint an FCM token.  That handshake is asynchronous and can
-  /// lag several seconds after the permission prompt, especially on first
-  /// launch or after reinstall.  Calling [FirebaseMessaging.getToken] too
-  /// early throws `[firebase_messaging/apns-token-not-set]`.
+  /// On iOS the APNS token is resolved asynchronously by the OS and may not be
+  /// available right after permission is granted. Strategy: wait for APNS with
+  /// a short retry loop; if it never arrives within the deadline, log a warning
+  /// and skip — the next initialize() retries and the onRegistered listener
+  /// still catches a late emission.
+  Future<void> _startRegistration() async {
+    _registeredSub = _registrar.onRegistered.listen(
+      (fid) {
+        AppLogger.i('FID de FCM emitido, registrando', tag: _tag);
+        _enqueueFidRegistration(fid);
+      },
+      onError: (Object e) {
+        AppLogger.w('Error en onRegistered', tag: _tag, error: e);
+      },
+    );
+    await _registerWithFirebaseSafely();
+  }
+
+  @visibleForTesting
+  Future<void> startRegistrationForTesting() async {
+    await _cancelSubscriptions();
+    await _startRegistration();
+  }
+
+  /// Completes when every queued FID registration has finished.
+  @visibleForTesting
+  Future<void> get registrationIdleForTesting => _registerChain;
+
+  /// Registers this app instance with FCM in a crash-safe way.
+  ///
+  /// On iOS, Firebase still needs the APNS token before it can register, even
+  /// for FIDs. That handshake is asynchronous and can lag several seconds after
+  /// the permission prompt, especially on first launch or after reinstall.
   ///
   /// This method:
-  ///  1. On iOS only — polls [getAPNSToken] up to [_apnsMaxRetries] times
-  ///     with [_apnsRetryDelay] between attempts.
-  ///  2. Wraps [getToken] in a try-catch on all platforms.
-  ///  3. Returns without throwing if the APNS token never arrives — the
-  ///     [onTokenRefresh] listener registered in [initialize] will deliver the
-  ///     token asynchronously when the OS is ready.
+  ///  1. On iOS only — polls [FcmRegistrar.getAPNSToken] up to
+  ///     [_apnsMaxRetries] times with [_apnsRetryDelay] between attempts.
+  ///  2. Wraps [FcmRegistrar.register] in a try-catch on all platforms.
+  ///  3. Returns without throwing if the APNS token never arrives; the FID is
+  ///     delivered through `onRegistered` and sent by
+  ///     [_enqueueFidRegistration].
   static const int _apnsMaxRetries = 5;
   static const Duration _apnsRetryDelay = Duration(seconds: 2);
 
@@ -305,7 +338,7 @@ class PushNotificationService {
       Platform.isIOS &&
       Platform.environment.containsKey('SIMULATOR_DEVICE_NAME');
 
-  Future<void> _getFcmTokenSafely() async {
+  Future<void> _registerWithFirebaseSafely() async {
     if (Platform.isIOS) {
       // iOS Simulator never provides an APNS token — bail out immediately
       // so we don't waste 10 s on every dev launch.
@@ -320,7 +353,7 @@ class PushNotificationService {
 
       String? apnsToken;
       for (var attempt = 1; attempt <= _apnsMaxRetries; attempt++) {
-        apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+        apnsToken = await _registrar.getAPNSToken();
         if (apnsToken != null) {
           AppLogger.i(
             'APNS token disponible (intento $attempt)',
@@ -339,7 +372,7 @@ class PushNotificationService {
       if (apnsToken == null) {
         AppLogger.w(
           'APNS token no llegó tras $_apnsMaxRetries intentos. '
-          'El token FCM se registrará vía onTokenRefresh cuando el OS esté listo.',
+          'El FID se registrará en el próximo initialize() o vía onRegistered.',
           tag: _tag,
         );
         return;
@@ -347,16 +380,12 @@ class PushNotificationService {
     }
 
     try {
-      final token = await FirebaseMessaging.instance.getToken();
-      if (token != null) {
-        await _registerTokenWithBackend(token);
-      } else {
-        AppLogger.w('FCM token no disponible aún', tag: _tag);
-      }
+      // The FID arrives through onRegistered (listener set in initialize()).
+      await _registrar.register();
     } catch (e) {
-      // Non-fatal: onTokenRefresh will deliver the token when the OS is ready.
+      // Non-fatal: the next initialize() retries.
       AppLogger.w(
-        'No se pudo obtener el token FCM ahora — se registrará vía onTokenRefresh.',
+        'No se pudo registrar la instancia en FCM ahora.',
         tag: _tag,
         error: e,
       );
@@ -386,26 +415,53 @@ class PushNotificationService {
     );
   }
 
-  Future<void> _registerTokenWithBackend(String token) async {
-    // Avoid re-registering the same token unnecessarily.
-    final savedToken = await _secureStorage.read(key: _tokenPrefKey);
-    if (savedToken == token) {
-      AppLogger.i('Token FCM ya registrado, sin cambios', tag: _tag);
+  /// Queues the FID so registrations run one at a time.
+  void _enqueueFidRegistration(String fid) {
+    _registerChain = _registerChain
+        .then((_) => _registerFidWithBackend(fid))
+        .catchError((Object e) {
+      AppLogger.w('Error inesperado al registrar el FID', tag: _tag, error: e);
+    });
+  }
+
+  Future<void> _registerFidWithBackend(String fid) async {
+    // El dispositivo y sus notificaciones son del tutor: nunca se registra
+    // mientras se actúa por un dependiente (FP-49). register() re-emite el
+    // FID en el próximo initialize(), al salir de actuar.
+    if (_ref.read(actingForSessionProvider).isActing) {
+      AppLogger.i('FID no registrado: se actúa por un dependiente', tag: _tag);
       return;
     }
 
+    final savedToken = await _secureStorage.read(key: _tokenPrefKey);
+    final savedKind =
+        await _secureStorage.read(key: _kindPrefKey) ?? _kindToken;
+
+    // Avoid re-registering the same FID unnecessarily.
+    if (savedToken == fid && savedKind == _kindFid) {
+      AppLogger.i('FID de FCM ya registrado, sin cambios', tag: _tag);
+      return;
+    }
+
+    // Legacy registration (pre-FID install), to be removed once the FID is in.
+    final savedId = await _secureStorage.read(key: _tokenIdPrefKey);
+    final hadLegacy = savedKind == _kindToken &&
+        ((savedToken != null && savedToken.isNotEmpty) ||
+            (savedId != null && savedId.isNotEmpty));
+
     try {
-      AppLogger.i('Registrando token FCM en backend', tag: _tag);
+      AppLogger.i('Registrando FID de FCM en backend', tag: _tag);
       final response = await _dio.post(
         '/users/me/fcm-tokens',
-        data: {'token': token},
+        data: {'token': fid, 'kind': _kindFid},
       );
 
-      // Persistir el token localmente.
-      await _secureStorage.write(key: _tokenPrefKey, value: token);
+      // Persistir el FID localmente.
+      await _secureStorage.write(key: _tokenPrefKey, value: fid);
+      await _secureStorage.write(key: _kindPrefKey, value: _kindFid);
 
       // El backend devuelve el ID del registro — persiste para poder hacer DELETE
-      // por ID al desregistrar (más confiable que buscar por valor del token).
+      // por ID al desregistrar (más confiable que buscar por valor).
       final responseData = response.data;
       final tokenId = responseData is Map<String, dynamic>
           ? (responseData['fcm_token_id'] as dynamic)?.toString() ??
@@ -419,20 +475,52 @@ class PushNotificationService {
 
       if (tokenId != null && tokenId.isNotEmpty) {
         await _secureStorage.write(key: _tokenIdPrefKey, value: tokenId);
-        AppLogger.i('Token FCM registrado exitosamente (id=$tokenId)',
+        AppLogger.i('FID de FCM registrado exitosamente (id=$tokenId)',
             tag: _tag);
       } else {
-        AppLogger.i('Token FCM registrado exitosamente (sin id en respuesta)',
+        // Sin id nuevo no se deja el id del registro anterior apuntando al FID.
+        await _secureStorage.delete(key: _tokenIdPrefKey);
+        AppLogger.i('FID de FCM registrado exitosamente (sin id en respuesta)',
             tag: _tag);
+      }
+
+      if (hadLegacy) {
+        await _removeLegacyRegistration(
+          token: savedToken,
+          tokenId: savedId,
+          newTokenId: tokenId,
+        );
       }
     } on DioException catch (e) {
       AppLogger.w(
-        'Error al registrar token FCM (${e.response?.statusCode})',
+        'Error al registrar FID de FCM (${e.response?.statusCode})',
         tag: _tag,
         error: e,
       );
     } catch (e) {
-      AppLogger.w('Error inesperado al registrar token', tag: _tag, error: e);
+      AppLogger.w('Error inesperado al registrar FID', tag: _tag, error: e);
+    }
+  }
+
+  /// Borra en el backend el registro del token FCM legacy una vez que el FID
+  /// quedó registrado, para que la fila vieja no siga acumulándose. Best-effort.
+  Future<void> _removeLegacyRegistration({
+    required String? token,
+    required String? tokenId,
+    required String? newTokenId,
+  }) async {
+    try {
+      if (tokenId != null && tokenId.isNotEmpty) {
+        // Si el backend reutilizó la misma fila, borrarla mataría el FID.
+        if (tokenId == newTokenId) return;
+        await _dio.delete('/users/me/fcm-tokens/$tokenId');
+      } else if (token != null && token.isNotEmpty) {
+        await _dio.delete('/fcm-tokens/by-token', data: {'token': token});
+      }
+      AppLogger.i('Token FCM legacy desregistrado', tag: _tag);
+    } catch (e) {
+      AppLogger.w('No se pudo desregistrar el token FCM legacy',
+          tag: _tag, error: e);
     }
   }
 
@@ -1261,10 +1349,8 @@ class PushNotificationService {
 
   // ── Debug helpers ─────────────────────────────────────────────────────────
 
-  /// Returns the current FCM token. Useful for debugging.
-  Future<String?> getToken() => FirebaseMessaging.instance.getToken();
-
-  /// Returns the token that was last successfully registered with the backend.
+  /// Returns the FID (or legacy token) last successfully registered with the
+  /// backend.
   Future<String?> get registeredToken =>
       _secureStorage.read(key: _tokenPrefKey);
 }
