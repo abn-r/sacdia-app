@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/models/paginated_result.dart';
+import '../../../../core/providers/keep_alive_during.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
@@ -588,29 +589,33 @@ class CamporeeRemoveMemberNotifier extends Notifier<CamporeeRemoveMemberState> {
   int get _camporeeId => arg;
 
   /// Remueve un miembro del camporee.
-  Future<bool> remove(String userId) async {
-    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+  Future<bool> remove(String userId) =>
+      // Callers only `ref.read` this notifier: keep it alive until the request
+      // settles (see keepAliveDuring).
+      ref.keepAliveDuring(() async {
+        state =
+            state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final result = await ref
-        .read(camporeesRepositoryProvider)
-        .removeMember(_camporeeId, userId);
+        final result = await ref
+            .read(camporeesRepositoryProvider)
+            .removeMember(_camporeeId, userId);
 
-    return result.fold(
-      (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
+        return result.fold<bool>(
+          (failure) {
+            state = state.copyWith(
+              isLoading: false,
+              errorMessage: failure.message,
+            );
+            return false;
+          },
+          (_) {
+            state = state.copyWith(isLoading: false, success: true);
+            ref.invalidate(camporeeMembersProvider(_camporeeId));
+            ref.invalidate(camporeeRegisteredUserIdsProvider(_camporeeId));
+            return true;
+          },
         );
-        return false;
-      },
-      (_) {
-        state = state.copyWith(isLoading: false, success: true);
-        ref.invalidate(camporeeMembersProvider(_camporeeId));
-        ref.invalidate(camporeeRegisteredUserIdsProvider(_camporeeId));
-        return true;
-      },
-    );
-  }
+      });
 
   void reset() => state = const CamporeeRemoveMemberState();
 }
