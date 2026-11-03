@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/user_error_message.dart';
+import '../../../../core/providers/keep_alive_during.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import 'club_selection_providers.dart';
 import 'personal_info_providers.dart';
@@ -37,147 +38,155 @@ class PostRegistrationFlowNotifier extends AsyncNotifier<void> {
 
   String? get _currentUserId => ref.read(authNotifierProvider).value?.id;
 
-  Future<PostRegistrationFlowResult> completeStep1() async {
-    final userId = _currentUserId;
-    if (userId == null) {
-      return PostRegistrationFlowResult.failure(
-        tr('errors.user_not_authenticated'),
-      );
-    }
+  Future<PostRegistrationFlowResult> completeStep1() =>
+      // Callers only `ref.read` this notifier: keep it alive until the step
+      // settles (see keepAliveDuring).
+      ref.keepAliveDuring(() async {
+        final userId = _currentUserId;
+        if (userId == null) {
+          return PostRegistrationFlowResult.failure(
+            tr('errors.user_not_authenticated'),
+          );
+        }
 
-    state = const AsyncValue.loading();
-    final result = await ref
-        .read(postRegistrationRepositoryProvider)
-        .completeStep1(userId);
+        state = const AsyncValue.loading();
+        final result = await ref
+            .read(postRegistrationRepositoryProvider)
+            .completeStep1(userId);
 
-    return result.fold(
-      (failure) {
-        final message = userErrorMessage(failure);
-        state = AsyncValue.error(message, StackTrace.current);
-        return PostRegistrationFlowResult.failure(
-          message,
-          errorCode: failure.errorCode,
+        return result.fold<PostRegistrationFlowResult>(
+          (failure) {
+            final message = userErrorMessage(failure);
+            state = AsyncValue.error(message, StackTrace.current);
+            return PostRegistrationFlowResult.failure(
+              message,
+              errorCode: failure.errorCode,
+            );
+          },
+          (_) {
+            state = const AsyncValue.data(null);
+            return const PostRegistrationFlowResult.success();
+          },
         );
-      },
-      (_) {
-        state = const AsyncValue.data(null);
-        return const PostRegistrationFlowResult.success();
-      },
-    );
-  }
+      });
 
   Future<PostRegistrationFlowResult> completeStep2({
     required bool canReadSensitiveData,
-  }) async {
-    final userId = _currentUserId;
-    if (userId == null) {
-      return PostRegistrationFlowResult.failure(
-        tr('errors.user_not_authenticated'),
-      );
-    }
-
-    state = const AsyncValue.loading();
-
-    try {
-      if (canReadSensitiveData) {
-        // El provider es autoDispose: sin oyente se libera durante el guardado.
-        final keepAlive = ref.listen(savePersonalInfoProvider, (_, __) {});
-        try {
-          // Relanza si el guardado falla: nunca se avanza al paso 3 sin guardar.
-          await ref.read(savePersonalInfoProvider.notifier).save();
-        } finally {
-          keepAlive.close();
-        }
-      } else {
-        await ref.read(personalInfoDataSourceProvider).completeStep2(userId);
-      }
-
-      state = const AsyncValue.data(null);
-      return const PostRegistrationFlowResult.success();
-    } catch (e, stack) {
-      final message = userErrorMessage(
-        e,
-        fallbackKey: 'post_registration.shell.error_step_failed',
-      );
-      state = AsyncValue.error(message, stack);
-      return PostRegistrationFlowResult.failure(
-        message,
-        errorCode: e is AppException ? e.errorCode : null,
-      );
-    }
-  }
-
-  Future<PostRegistrationFlowResult> completeStep3() async {
-    final userId = _currentUserId;
-    if (userId == null) {
-      return PostRegistrationFlowResult.failure(
-        tr('errors.user_not_authenticated'),
-      );
-    }
-
-    state = const AsyncValue.loading();
-    ref.read(isSavingStep3Provider.notifier).state = true;
-
-    try {
-      await ref.read(clubSelectionDataSourceProvider).completeStep3(
-            userId: userId,
-            countryId: ref.read(selectedCountryProvider)!,
-            unionId: ref.read(selectedUnionProvider)!,
-            localFieldId: ref.read(selectedLocalFieldProvider)!,
-            clubSectionId: ref.read(selectedClubSectionProvider)!,
+  }) =>
+      ref.keepAliveDuring(() async {
+        final userId = _currentUserId;
+        if (userId == null) {
+          return PostRegistrationFlowResult.failure(
+            tr('errors.user_not_authenticated'),
           );
+        }
 
-      state = const AsyncValue.data(null);
-      return const PostRegistrationFlowResult.success();
-    } on Exception catch (e, stack) {
-      // Un 409 aquí es un conflicto real (POST_REG_DUPLICATE_MEMBERSHIP,
-      // CLASS_ALREADY_ENROLLED), nunca "paso ya completo": se muestra.
-      final message = userErrorMessage(e);
-      state = AsyncValue.error(message, stack);
-      return PostRegistrationFlowResult.failure(
-        message,
-        errorCode: e is AppException ? e.errorCode : null,
-      );
-    } finally {
-      ref.read(isSavingStep3Provider.notifier).state = false;
-    }
-  }
+        state = const AsyncValue.loading();
+
+        try {
+          if (canReadSensitiveData) {
+            // El provider es autoDispose: sin oyente se libera durante el guardado.
+            final keepAlive = ref.listen(savePersonalInfoProvider, (_, __) {});
+            try {
+              // Relanza si el guardado falla: nunca se avanza al paso 3 sin guardar.
+              await ref.read(savePersonalInfoProvider.notifier).save();
+            } finally {
+              keepAlive.close();
+            }
+          } else {
+            await ref
+                .read(personalInfoDataSourceProvider)
+                .completeStep2(userId);
+          }
+
+          state = const AsyncValue.data(null);
+          return const PostRegistrationFlowResult.success();
+        } catch (e, stack) {
+          final message = userErrorMessage(
+            e,
+            fallbackKey: 'post_registration.shell.error_step_failed',
+          );
+          state = AsyncValue.error(message, stack);
+          return PostRegistrationFlowResult.failure(
+            message,
+            errorCode: e is AppException ? e.errorCode : null,
+          );
+        }
+      });
+
+  Future<PostRegistrationFlowResult> completeStep3() =>
+      ref.keepAliveDuring(() async {
+        final userId = _currentUserId;
+        if (userId == null) {
+          return PostRegistrationFlowResult.failure(
+            tr('errors.user_not_authenticated'),
+          );
+        }
+
+        state = const AsyncValue.loading();
+        ref.read(isSavingStep3Provider.notifier).state = true;
+
+        try {
+          await ref.read(clubSelectionDataSourceProvider).completeStep3(
+                userId: userId,
+                countryId: ref.read(selectedCountryProvider)!,
+                unionId: ref.read(selectedUnionProvider)!,
+                localFieldId: ref.read(selectedLocalFieldProvider)!,
+                clubSectionId: ref.read(selectedClubSectionProvider)!,
+              );
+
+          state = const AsyncValue.data(null);
+          return const PostRegistrationFlowResult.success();
+        } on Exception catch (e, stack) {
+          // Un 409 aquí es un conflicto real (POST_REG_DUPLICATE_MEMBERSHIP,
+          // CLASS_ALREADY_ENROLLED), nunca "paso ya completo": se muestra.
+          final message = userErrorMessage(e);
+          state = AsyncValue.error(message, stack);
+          return PostRegistrationFlowResult.failure(
+            message,
+            errorCode: e is AppException ? e.errorCode : null,
+          );
+        } finally {
+          ref.read(isSavingStep3Provider.notifier).state = false;
+        }
+      });
 
   /// Paso 3 alterno "Solo soy tutor de menores" (FP-60). Solo el propio
   /// usuario: la UI lo oculta mientras se actúa por un dependiente y el
   /// backend lo rechaza igualmente.
-  Future<PostRegistrationFlowResult> completeGuardianOnly() async {
-    final userId = _currentUserId;
-    if (userId == null) {
-      return PostRegistrationFlowResult.failure(
-        tr('errors.user_not_authenticated'),
-      );
-    }
-
-    state = const AsyncValue.loading();
-    ref.read(isSavingStep3Provider.notifier).state = true;
-
-    try {
-      await ref.read(clubSelectionDataSourceProvider).completeGuardianOnly(
-            userId: userId,
-            countryId: ref.read(selectedCountryProvider),
-            unionId: ref.read(selectedUnionProvider),
-            localFieldId: ref.read(selectedLocalFieldProvider),
+  Future<PostRegistrationFlowResult> completeGuardianOnly() =>
+      ref.keepAliveDuring(() async {
+        final userId = _currentUserId;
+        if (userId == null) {
+          return PostRegistrationFlowResult.failure(
+            tr('errors.user_not_authenticated'),
           );
+        }
 
-      state = const AsyncValue.data(null);
-      return const PostRegistrationFlowResult.success();
-    } catch (e, stack) {
-      final message = userErrorMessage(e);
-      state = AsyncValue.error(message, stack);
-      return PostRegistrationFlowResult.failure(
-        message,
-        errorCode: e is AppException ? e.errorCode : null,
-      );
-    } finally {
-      ref.read(isSavingStep3Provider.notifier).state = false;
-    }
-  }
+        state = const AsyncValue.loading();
+        ref.read(isSavingStep3Provider.notifier).state = true;
+
+        try {
+          await ref.read(clubSelectionDataSourceProvider).completeGuardianOnly(
+                userId: userId,
+                countryId: ref.read(selectedCountryProvider),
+                unionId: ref.read(selectedUnionProvider),
+                localFieldId: ref.read(selectedLocalFieldProvider),
+              );
+
+          state = const AsyncValue.data(null);
+          return const PostRegistrationFlowResult.success();
+        } catch (e, stack) {
+          final message = userErrorMessage(e);
+          state = AsyncValue.error(message, stack);
+          return PostRegistrationFlowResult.failure(
+            message,
+            errorCode: e is AppException ? e.errorCode : null,
+          );
+        } finally {
+          ref.read(isSavingStep3Provider.notifier).state = false;
+        }
+      });
 }
 
 final postRegistrationFlowNotifierProvider =
