@@ -284,4 +284,76 @@ void main() {
       expect(adapter.where('POST'), hasLength(1));
     });
   });
+
+  group('logout', () {
+    final stored = {
+      'fcm_registered_token': 'fid-1',
+      'fcm_registered_kind': 'fid',
+      'fcm_registered_token_id': 'row-9',
+    };
+
+    test('unregisterToken DELETEs by id and calls unregister()', () async {
+      build(stored: stored);
+
+      await service.unregisterToken();
+
+      final deletes = adapter.where('DELETE').toList();
+      expect(deletes.single.path, '/users/me/fcm-tokens/row-9');
+      expect(registrar.unregisterCalls, 1);
+      expect(await storage.read(key: 'fcm_registered_token'), isNull);
+      expect(await storage.read(key: 'fcm_registered_kind'), isNull);
+      expect(await storage.read(key: 'fcm_registered_token_id'), isNull);
+    });
+
+    test('unregister() is still called when nothing was registered', () async {
+      build();
+
+      await service.unregisterToken();
+
+      expect(adapter.requests, isEmpty);
+      expect(registrar.unregisterCalls, 1);
+    });
+
+    test('an unregister() failure does not break logout', () async {
+      build(stored: stored);
+      registrar.unregisterError = StateError('boom');
+
+      await expectLater(service.unregisterToken(), completes);
+
+      expect(adapter.where('DELETE'), hasLength(1));
+      expect(await storage.read(key: 'fcm_registered_token'), isNull);
+    });
+
+    test('an unregister() that hangs is cut by the timeout', () async {
+      build(stored: stored);
+      registrar.unregisterHangs = true;
+
+      final sw = Stopwatch()..start();
+      await service.unregisterToken();
+      sw.stop();
+
+      expect(registrar.unregisterCalls, 1);
+      expect(sw.elapsed, lessThan(const Duration(seconds: 6)));
+    });
+
+    test('clearLocalRegistration wipes storage, calls unregister(), no HTTP',
+        () async {
+      build(stored: stored);
+
+      await service.clearLocalRegistration();
+
+      expect(adapter.requests, isEmpty);
+      expect(registrar.unregisterCalls, 1);
+      expect(await storage.read(key: 'fcm_registered_token'), isNull);
+      expect(await storage.read(key: 'fcm_registered_kind'), isNull);
+      expect(await storage.read(key: 'fcm_registered_token_id'), isNull);
+    });
+
+    test('clearLocalRegistration survives an unregister() failure', () async {
+      build(stored: stored);
+      registrar.unregisterError = StateError('boom');
+
+      await expectLater(service.clearLocalRegistration(), completes);
+    });
+  });
 }

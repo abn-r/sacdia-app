@@ -181,8 +181,18 @@ class PushNotificationService {
     AppLogger.i('FCM inicializado correctamente', tag: _tag);
   }
 
-  /// Unregister the FCM registration from the backend. Call this on logout.
-  Future<void> unregisterToken() => _unregisterFromBackend();
+  /// Unregister the device from the backend and from Firebase. Call this on
+  /// logout, before the auth tokens are cleared (the DELETE needs the Bearer).
+  ///
+  /// The backend DELETE is the one that matters; the Firebase `unregister()`
+  /// is best-effort and bounded, so it can never block or break the logout.
+  Future<void> unregisterToken() async {
+    try {
+      await _unregisterFromBackend();
+    } finally {
+      await _unregisterFromFirebase();
+    }
+  }
 
   Future<void> _unregisterFromBackend() async {
     final token = await _secureStorage.read(key: _tokenPrefKey);
@@ -236,6 +246,17 @@ class PushNotificationService {
     await _secureStorage.delete(key: _kindPrefKey);
   }
 
+  /// Best-effort `unregister()` against Firebase. Network call: bounded so a
+  /// stalled connection can't hold the logout / "deleting account" UI.
+  Future<void> _unregisterFromFirebase() async {
+    try {
+      await _registrar.unregister().timeout(const Duration(seconds: 3));
+    } catch (e) {
+      AppLogger.w('Error al desregistrar el dispositivo en Firebase',
+          tag: _tag, error: e);
+    }
+  }
+
   /// Limpieza solo local del registro push, sin llamar al backend. Para cuando
   /// la cuenta acaba de borrarse: la cascada del servidor ya desactivó sus
   /// tokens FCM y la sesión ya no existe, así que un `DELETE` fallaría con 401
@@ -250,14 +271,7 @@ class PushNotificationService {
       AppLogger.w('Error al borrar el token FCM local', tag: _tag, error: e);
     }
     await _cancelSubscriptions();
-    try {
-      await FirebaseMessaging.instance
-          .deleteToken()
-          .timeout(const Duration(seconds: 3));
-    } catch (e) {
-      AppLogger.w('Error al invalidar el token FCM del dispositivo',
-          tag: _tag, error: e);
-    }
+    await _unregisterFromFirebase();
   }
 
   /// Cancels all active stream subscriptions and releases resources.
