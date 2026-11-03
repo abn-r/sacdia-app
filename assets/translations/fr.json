@@ -483,6 +483,7 @@
     "mr_consent_confirmation_required": "Confirmez que vous avez examiné la fiche signée avant de vérifier.",
     "mr_not_found": "La demande n'existe plus ou n'appartient pas à cette section.",
     "mr_already_pending": "Cette demande a déjà été traitée.",
+    "mr_already_processed": "Cette demande a déjà été traitée.",
     "guard_permission_denied": "Vous n'avez pas la permission d'effectuer cette action.",
     "file_required": "Sélectionnez un fichier.",
     "file_type_invalid": "Type de fichier non autorisé. Utilisez JPG, PNG, WebP ou PDF.",

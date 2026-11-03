@@ -21,6 +21,8 @@ const Set<String> consentErrorCodes = {
   'MR_APPROVE_PERMISSION_REQUIRED',
   'MR_NOT_FOUND',
   'MR_ALREADY_PENDING',
+  // 409 al aprobar o rechazar una solicitud que otro revisor ya procesó.
+  'MR_ALREADY_PROCESSED',
   'GUARDIANSHIP_NOT_FOUND',
   'GUARD_PERMISSION_DENIED',
   'FILE_REQUIRED',
