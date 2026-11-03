@@ -138,6 +138,15 @@ void main() {
       final viewer = tester.widget<SacImageViewer>(find.byType(SacImageViewer));
       expect(viewer.allowShare, isFalse);
       expect(viewer.cacheNetwork, isFalse);
+
+      // The title is white over the image: a dark scrim must sit behind all
+      // of it, or a light paper form hides it.
+      final scrim = tester.getRect(
+        find.byKey(const ValueKey('sac-image-viewer-top-scrim')),
+      );
+      final title = tester.getRect(find.text('Ficha firmada').last);
+      expect(scrim.top, lessThanOrEqualTo(title.top));
+      expect(scrim.bottom, greaterThan(title.bottom));
     });
 
     testWidgets('503 on the evidence says it is not available yet',
