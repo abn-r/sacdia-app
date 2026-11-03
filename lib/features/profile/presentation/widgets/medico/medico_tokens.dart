@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 
 /// Feature-scoped tokens for Información Médica (Variante A).
@@ -19,7 +20,7 @@ class MedicoTokens {
   static const coral100 = Color(0xFFFFE3DD);
   static const coral200 = Color(0xFFFFC9BE);
   static const coral300 = Color(0xFFFFA493);
-  static const coral500 = Color(0xFFEF6B5C); // primario
+  static const coral500 = AppColors.coral500; // primario
   static const coral600 = Color(0xFFDD5A4B);
   static const coral700 = Color(0xFFB8453A);
 

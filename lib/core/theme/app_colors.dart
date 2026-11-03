@@ -74,29 +74,29 @@ class AppColors {
   static const Color lightSurface = Color(0xFFFFFFFF);
 
   /// Secciones alternas, fondos secundarios
-  static const Color lightSurfaceVariant = Color(0xFFF8FAFC);
+  static const Color lightSurfaceVariant = Color(0xFFF7F8FA);
 
   /// Bordes de cards, dividers
-  static const Color lightBorder = Color(0xFFE2E8F0);
+  static const Color lightBorder = Color(0xFFE3E5EA);
 
   /// Bordes muy sutiles, separadores internos
-  static const Color lightBorderLight = Color(0xFFF1F5F9);
+  static const Color lightBorderLight = Color(0xFFF2F4F7);
 
   /// Divider (alias para compatibilidad)
-  static const Color lightDivider = Color(0xFFE2E8F0);
+  static const Color lightDivider = Color(0xFFE3E5EA);
 
   // ═══════════════════════════════════════════════════════════
   // TEXTO - LIGHT MODE
   // ═══════════════════════════════════════════════════════════
 
   /// Títulos, texto principal
-  static const Color lightText = Color(0xFF0F172A);
+  static const Color lightText = Color(0xFF131316);
 
   /// Subtítulos, descripciones
-  static const Color lightTextSecondary = Color(0xFF64748B);
+  static const Color lightTextSecondary = Color(0xFF6B7280);
 
   /// Placeholders, hints, metadata
-  static const Color lightTextTertiary = Color(0xFF94A3B8);
+  static const Color lightTextTertiary = Color(0xFF9AA0AB);
 
   // ═══════════════════════════════════════════════════════════
   // SUPERFICIES Y FONDOS - DARK MODE
@@ -147,8 +147,7 @@ class AppColors {
   static const Color coral50 = Color(0xFFFFF1EE);
   static const Color coral100 = Color(0xFFFFE3DD);
   static const Color coral200 = Color(0xFFFFC9BE);
-  static const Color coral500 =
-      Color(0xFFEF6B5C); // primary (same hue as AppColors.primary)
+  static const Color coral500 = primary;
   static const Color coral600 = Color(0xFFDD5A4B);
   static const Color coral700 = Color(0xFFB8453A);
 
