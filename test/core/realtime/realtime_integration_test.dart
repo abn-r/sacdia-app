@@ -1,7 +1,7 @@
 /// Integration tests for the realtime invalidation pipeline:
 /// - Foreground INVALIDATE → registry dispatch → clubActivitiesProvider invalidated
 /// - Unknown resource → no crash, no invalidation
-/// - Feature flag disabled → no invalidation
+/// - Feature flag disabled → no club invalidation (authorization still runs)
 ///
 /// These tests use ProviderContainer overrides to isolate the provider graph
 /// from Firebase and network. The 'activities' registry handler is overridden
@@ -74,7 +74,8 @@ void main() {
       final msg = _makeMessage(resource: 'activities', sectionId: '5');
       final ref = _SpyRealtimeRef();
 
-      RealtimeInvalidationHandler.handleForeground(msg, ref);
+      RealtimeInvalidationHandler.handleForeground(msg, ref,
+          realtimeEnabled: true);
 
       expect(captured, contains('activities|5'));
     });
@@ -83,20 +84,23 @@ void main() {
       final msg = _makeMessage(resource: 'activities', sectionId: '42');
       final ref = _SpyRealtimeRef();
 
-      RealtimeInvalidationHandler.handleForeground(msg, ref);
+      RealtimeInvalidationHandler.handleForeground(msg, ref,
+          realtimeEnabled: true);
 
       expect(captured.last, 'activities|42');
     });
 
     test('flag enabled check — dispatch happens when handler is registered',
         () {
-      // This test represents the flag=enabled path: the caller
-      // (push_notification_service.dart) only calls handleForeground when
-      // the flag is true. We verify the dispatch happens correctly here.
+      // This test represents the flag=enabled path: the handler itself gates
+      // club resources on the flag (`realtimeEnabled`), so the caller
+      // (push_notification_service.dart) always calls it. We verify the
+      // dispatch happens correctly when the flag is on.
       final msg = _makeMessage(resource: 'activities', sectionId: '7');
       final ref = _SpyRealtimeRef();
 
-      RealtimeInvalidationHandler.handleForeground(msg, ref);
+      RealtimeInvalidationHandler.handleForeground(msg, ref,
+          realtimeEnabled: true);
 
       expect(captured, isNotEmpty);
       expect(captured.first, 'activities|7');
@@ -124,24 +128,29 @@ void main() {
       expect(captured, isEmpty);
     });
 
-    test('flag=disabled path — handler is NOT called', () {
-      // When the flag is disabled, push_notification_service.dart returns
-      // without calling handleForeground at all. We simulate this by simply
-      // not calling handleForeground — asserting captured remains empty.
-      //
-      // This is equivalent to the runtime guard:
-      //   if (RealtimeFeatureFlags.realtimeInvalidationEnabled) {
-      //     handleForeground(msg, ref);  // skipped when flag=false
-      //   }
-      //
-      // The flag is a compile-time const so we cannot flip it in tests.
-      // Instead we verify the downstream behavior: no call = no dispatch.
+    test('flag=disabled path — a club resource is NOT dispatched', () {
+      // The compile-time flag is off unless defined with --dart-define, which
+      // is exactly the production default: the handler receives the message
+      // (push_notification_service.dart no longer checks the flag) and
+      // ignores club resources by itself.
+      final msg = _makeMessage(resource: 'activities', sectionId: '7');
+      final ref = _SpyRealtimeRef();
+
+      RealtimeInvalidationHandler.handleForeground(msg, ref);
+      expect(captured, isEmpty);
+
+      RealtimeInvalidationHandler.handleForeground(msg, ref,
+          realtimeEnabled: false);
       expect(captured, isEmpty);
     });
 
-    test('flag=disabled path — stagePending is NOT called', () async {
-      // Equivalent check for background path when flag=false.
-      // The queue must remain empty.
+    test('flag=disabled path — a club resource is NOT staged', () async {
+      final msg = _makeMessage(resource: 'activities', sectionId: '7');
+
+      await RealtimeInvalidationHandler.stagePending(msg);
+      await RealtimeInvalidationHandler.stagePending(msg,
+          realtimeEnabled: false);
+
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.containsKey('pending_realtime_invalidations'), isFalse);
     });
