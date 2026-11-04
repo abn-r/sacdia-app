@@ -6,6 +6,10 @@ import 'package:sacdia_app/features/members/presentation/providers/members_provi
 import 'package:sacdia_app/features/notifications/domain/entities/notification_item.dart';
 import 'package:sacdia_app/features/notifications/presentation/widgets/notification_card.dart';
 import '../../../../support/riverpod_test_support.dart';
+import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
+import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import '../../../../support/capability_fixtures.dart';
 
 NotificationItem _notification(String? source) => NotificationItem(
       logId: 1,
@@ -22,6 +26,35 @@ NotificationItem _notification(String? source) => NotificationItem(
       isRead: true,
       readAt: DateTime(2026, 11, 15, 10, 31),
     );
+
+UserEntity? _userFor(String? role) => role == null
+    ? null
+    : UserEntity(
+        id: 'u1',
+        email: 'u1@example.com',
+        authorization: AuthorizationSnapshot(
+          activeAssignmentId: 'a1',
+          clubAssignments: [
+            AuthorizationGrant(
+              assignmentId: 'a1',
+              roleName: role,
+              clubId: 1,
+              sectionId: 4,
+              status: 'active',
+            ),
+          ],
+          capabilities: capabilitiesFor(activeClubRole: role),
+        ),
+      );
+
+class _FakeAuth extends AuthNotifier {
+  _FakeAuth(this._user);
+
+  final UserEntity? _user;
+
+  @override
+  Future<UserEntity?> build() async => _user;
+}
 
 Future<List<String>> _pumpCard(
   WidgetTester tester, {
@@ -67,6 +100,8 @@ Future<List<String>> _pumpCard(
               ? null
               : ClubContext(clubId: 1, sectionId: 4, roleName: role),
         ),
+        // La directiva se reconoce por `investiture.board` (del servidor).
+        authNotifierProvider.overrideWith(() => _FakeAuth(_userFor(role))),
       ],
       child: MaterialApp.router(routerConfig: router),
     ),

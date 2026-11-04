@@ -8,7 +8,6 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
-import 'package:sacdia_app/core/auth/club_role_names.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
@@ -160,17 +159,9 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
 
   @override
   Widget build(BuildContext context) {
-    const eventViewerRoles = {
-      ClubRoleNames.director,
-      ClubRoleNames.deputyDirector,
-      ClubRoleNames.secretary,
-      ClubRoleNames.treasurer,
-      ClubRoleNames.secretaryTreasurer,
-      ClubRoleNames.counselor,
-    };
     final authAsync = ref.watch(authNotifierProvider);
     final user = authAsync.value;
-    final canViewEvents = hasAnyRole(user, eventViewerRoles);
+    final canViewEvents = hasCapability(user, 'club.operational_staff');
     final registrationAsync =
         ref.watch(camporeeSectionRegistrationProvider(_camporeeId));
     final participantsEnabled =

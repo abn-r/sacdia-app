@@ -13,6 +13,7 @@ import 'package:sacdia_app/features/members/presentation/views/consent_verificat
 import 'package:sacdia_app/features/members/presentation/views/members_view.dart';
 
 import '../../members_test_support.dart';
+import '../../../../support/capability_fixtures.dart';
 
 UserEntity _user(
   List<String> permissions, {
@@ -24,20 +25,22 @@ UserEntity _user(
       email: 'user@example.com',
       name: 'Laura',
       postRegisterComplete: true,
-      authorization: AuthorizationSnapshot(
-        effectivePermissions: permissions,
-        activeAssignmentId: 'asg-1',
-        globalGrants: globalGrants,
-        clubAssignments: [
-          AuthorizationGrant(
-            assignmentId: 'asg-1',
-            roleName: 'counselor',
-            permissions: activeRolePermissions,
-            clubId: 1,
-            sectionId: 12,
-            status: 'active',
-          ),
-        ],
+      authorization: withDerivedCapabilities(
+        AuthorizationSnapshot(
+          effectivePermissions: permissions,
+          activeAssignmentId: 'asg-1',
+          globalGrants: globalGrants,
+          clubAssignments: [
+            AuthorizationGrant(
+              assignmentId: 'asg-1',
+              roleName: 'counselor',
+              permissions: activeRolePermissions,
+              clubId: 1,
+              sectionId: 12,
+              status: 'active',
+            ),
+          ],
+        ),
       ),
     );
 
@@ -387,7 +390,27 @@ void main() {
       );
     });
 
-    test('a non-coordinator global role with the permission keeps it', () {
+    test('a non-coordination global role with the permission keeps it', () {
+      // `pastor` no abre el panel de coordinación (`coordination.hub_view`):
+      // su `consent:verify` es autoridad de club.
+      expect(
+        joinRequestsAccess(
+          _user(
+            ['consent:verify'],
+            globalGrants: const [
+              AuthorizationGrant(
+                roleName: 'pastor',
+                permissions: ['consent:verify'],
+              ),
+            ],
+          ),
+        ),
+        JoinRequestsAccess.verifyOnly,
+      );
+    });
+
+    test('an admin global role is coordination authority, not club', () {
+      // `admin` sí tiene `coordination.hub_view`: verifica desde el panel.
       expect(
         joinRequestsAccess(
           _user(
@@ -400,7 +423,7 @@ void main() {
             ],
           ),
         ),
-        JoinRequestsAccess.verifyOnly,
+        JoinRequestsAccess.none,
       );
     });
 
@@ -422,7 +445,7 @@ void main() {
         email: 'user@example.com',
         name: 'Laura',
         postRegisterComplete: true,
-        authorization: AuthorizationSnapshot(
+        authorization: withDerivedCapabilities(AuthorizationSnapshot(
           effectivePermissions: const ['consent:verify'],
           globalGrants: [_coordinatorRole()],
           activeAssignmentId: 'asg-1',
@@ -443,7 +466,7 @@ void main() {
               status: 'active',
             ),
           ],
-        ),
+        )),
       );
       expect(joinRequestsAccess(user), JoinRequestsAccess.none);
     });

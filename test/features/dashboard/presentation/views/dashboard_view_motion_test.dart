@@ -26,6 +26,7 @@ import 'package:sacdia_app/features/enrollment/presentation/widgets/enrollment_s
 import 'package:sacdia_app/features/profile/domain/entities/user_detail.dart';
 import 'package:sacdia_app/features/profile/presentation/providers/profile_providers.dart';
 import '../../../../support/riverpod_test_support.dart';
+import '../../../../support/capability_fixtures.dart';
 
 class _LoadedDashboardNotifier extends DashboardNotifier {
   _LoadedDashboardNotifier(this.summary);
@@ -75,20 +76,22 @@ UserEntity _userWithPermissions(
     id: 'user-1',
     email: 'ana@example.com',
     name: 'Ana',
-    authorization: AuthorizationSnapshot(
-      effectivePermissions: permissions,
-      activeAssignmentId: assignmentId,
-      clubAssignments: [
-        AuthorizationGrant(
-          assignmentId: assignmentId,
-          roleName: roleName,
-          clubId: 1,
-          clubName: 'Club Central',
-          clubTypeName: 'Conquistadores',
-          sectionId: 2,
-          status: 'active',
-        ),
-      ],
+    authorization: withDerivedCapabilities(
+      AuthorizationSnapshot(
+        effectivePermissions: permissions,
+        activeAssignmentId: assignmentId,
+        clubAssignments: [
+          AuthorizationGrant(
+            assignmentId: assignmentId,
+            roleName: roleName,
+            clubId: 1,
+            clubName: 'Club Central',
+            clubTypeName: 'Conquistadores',
+            sectionId: 2,
+            status: 'active',
+          ),
+        ],
+      ),
     ),
   );
 }

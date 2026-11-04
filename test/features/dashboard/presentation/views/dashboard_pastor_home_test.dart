@@ -11,6 +11,7 @@ import 'package:sacdia_app/features/investiture_requests/presentation/views/auth
 import '../../../investiture_requests/fake_investiture_requests_repository.dart';
 import '../../../investiture_requests/presentation/authorizer_test_support.dart';
 import '../../../investiture_requests/presentation/investiture_test_harness.dart';
+import '../../../../support/capability_fixtures.dart';
 
 /// Resuelve el usuario en el primer frame (como en la app real, donde el
 /// router espera a la sesión antes de mostrar el inicio).
@@ -41,6 +42,10 @@ UserEntity _user({required String role, bool withClub = false}) => UserEntity(
       authorization: AuthorizationSnapshot(
         effectivePermissions: const ['clubs:read'],
         globalGrants: [AuthorizationGrant(roleName: role)],
+        capabilities: capabilitiesFor(
+          globalRoles: [role],
+          activeClubRole: withClub ? 'counselor' : null,
+        ),
         activeAssignmentId: withClub ? 'a1' : null,
         clubAssignments: withClub
             ? const [

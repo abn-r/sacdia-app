@@ -14,31 +14,8 @@ abstract class ClubRoleNames {
   static const counselor = 'counselor';
   static const member = 'member';
 
-  /// Roles autorizados a gestionar unidades.
-  static const management = <String>[
-    director,
-    deputyDirector,
-    secretary,
-    treasurer,
-    secretaryTreasurer,
-  ];
-
-  /// Roles autorizados a ver el ranking de sección
-  /// (management staff + counselors responsables de su unidad).
-  static const sectionRankingViewers = <String>[
-    director,
-    deputyDirector,
-    secretary,
-    treasurer,
-    secretaryTreasurer,
-    counselor,
-  ];
-
-  /// Roles de la directiva que presentan, agregan, quitan y cambian la fecha
-  /// de investidura (plan funcional de investidura por autorización).
-  static const investitureBoard = <String>[
-    director,
-    secretary,
-    secretaryTreasurer,
-  ];
+  // Los grupos de roles (gestión, directiva de investidura, personal
+  // operativo) ya no viven aquí: el servidor los publica como capacidades
+  // (`units.manage`, `investiture.board`, `club.operational_staff`...) y la app
+  // pregunta con `hasCapability` (authorization_utils.dart).
 }

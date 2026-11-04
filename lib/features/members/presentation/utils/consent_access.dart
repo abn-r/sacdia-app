@@ -2,12 +2,6 @@ import '../../../auth/domain/entities/authorization_snapshot.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 
-// `coordinatorRoleNames` vive con los predicados de autorización (lo usa
-// `isCoordinatorWithoutClub`); se reexporta aquí para quien ya lo importa de
-// este archivo.
-export '../../../auth/domain/utils/authorization_utils.dart'
-    show coordinatorRoleNames;
-
 /// Permiso que el servidor exige para APROBAR una solicitud
 /// (`club_members:approve`). Un revisor con solo `consent:verify` puede
 /// verificar la ficha pero no aprobar (403 `MR_APPROVE_PERMISSION_REQUIRED`).
@@ -48,19 +42,18 @@ bool grantCanReviewJoinRequests(AuthorizationGrant grant) =>
     _grantHas(grant, approveJoinRequestPermissions) ||
     _grantHas(grant, verifyConsentPermissions);
 
-/// El usuario tiene un rol global DE COORDINACIÓN que lleva `consent:verify`:
-/// lo que exige el servidor para «Fichas por verificar» del panel de
-/// coordinación (`GET /coordination/me/consent-pending`). Un permiso suelto o de
-/// otro rol no basta. Espejo de `coordinatorRoleCanVerify` del admin.
+/// El usuario ve el panel de coordinación (`coordination.hub_view`) y alguno
+/// de sus roles globales lleva `consent:verify`: lo que exige el servidor para
+/// «Fichas por verificar» del panel de coordinación
+/// (`GET /coordination/me/consent-pending`). Un permiso suelto o de un rol de
+/// club no basta. Espejo de `coordinatorRoleCanVerify` del admin.
 bool coordinatorRoleCanVerify(UserEntity? user) {
   final authorization = user?.authorization;
   if (authorization == null) return false;
-  return authorization.globalGrants.any((grant) {
-    final role = grant.roleName?.trim().toLowerCase();
-    return role != null &&
-        coordinatorRoleNames.contains(role) &&
-        _grantHas(grant, verifyConsentPermissions);
-  });
+  if (!hasCapability(user, 'coordination.hub_view')) return false;
+  return authorization.globalGrants.any(
+    (grant) => _grantHas(grant, verifyConsentPermissions),
+  );
 }
 
 /// `consent:verify` por AUTORIDAD DE CLUB: lo trae el rol de la sección activa,
@@ -85,12 +78,15 @@ bool hasClubVerifyAuthority(UserEntity? user) {
     return true;
   }
 
+  // Un rol global con `consent:verify` es autoridad de club salvo que sea de
+  // coordinación: la coordinación (`coordination.hub_view`) lo ejerce desde su
+  // panel, no desde Miembros.
+  final coordinates = hasCapability(user, 'coordination.hub_view');
   var heldByAGlobalRole = false;
   for (final grant in authorization.globalGrants) {
     if (!_grantHas(grant, verifyConsentPermissions)) continue;
     heldByAGlobalRole = true;
-    final role = grant.roleName?.trim().toLowerCase();
-    if (role == null || !coordinatorRoleNames.contains(role)) return true;
+    if (!coordinates) return true;
   }
 
   // Ningún rol lo lista: viene de un permiso directo del usuario.

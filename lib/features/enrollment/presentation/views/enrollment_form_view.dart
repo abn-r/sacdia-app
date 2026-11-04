@@ -20,6 +20,8 @@ import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../activities/presentation/views/location_picker_view.dart';
 import '../../../activities/presentation/widgets/activity_form_widgets.dart';
 import '../../../members/domain/entities/club_member.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/enrollment.dart';
 import '../providers/enrollment_providers.dart';
@@ -437,7 +439,6 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
   Widget build(BuildContext context) {
     final formState = ref.watch(enrollmentFormProvider);
     final membersAsync = ref.watch(membersNotifierProvider);
-    final clubCtxAsync = ref.watch(clubContextProvider);
     final c = context.sac;
 
     // When members finish loading, auto-populate roles (runs once per session)
@@ -452,10 +453,11 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
     });
 
     final members = membersAsync.value?.members ?? [];
-    final currentUserCtx = clubCtxAsync.value;
+    final currentUser = ref.watch(authNotifierProvider.select((v) => v.value));
 
-    // El director es el usuario actual con rol director (display-only)
-    final directorMember = currentUserCtx?.isDirector == true
+    // El director es el usuario actual cuando es el director activo
+    // (`club.active_director`; display-only)
+    final directorMember = hasCapability(currentUser, 'club.active_director')
         ? members
             .where(
               (m) =>

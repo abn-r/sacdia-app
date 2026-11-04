@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/providers/app_bootstrap_provider.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import '../../support/capability_fixtures.dart';
 import '../../support/riverpod_test_support.dart';
 
 const _activeClubGrant = AuthorizationGrant(
@@ -34,12 +35,14 @@ UserEntity _user({
       id: 'u1',
       email: 'u1@example.com',
       postRegisterComplete: true,
-      authorization: AuthorizationSnapshot(
-        effectivePermissions: permissions,
-        globalGrants: [
-          for (final role in globalRoles) AuthorizationGrant(roleName: role),
-        ],
-        clubAssignments: clubAssignments,
+      authorization: withDerivedCapabilities(
+        AuthorizationSnapshot(
+          effectivePermissions: permissions,
+          globalGrants: [
+            for (final role in globalRoles) AuthorizationGrant(roleName: role),
+          ],
+          clubAssignments: clubAssignments,
+        ),
       ),
     );
 

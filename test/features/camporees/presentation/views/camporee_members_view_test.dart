@@ -15,6 +15,7 @@ import 'package:sacdia_app/features/camporees/presentation/providers/camporees_p
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_members_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../support/riverpod_test_support.dart';
+import '../../../../support/capability_fixtures.dart';
 
 class _TestAuthNotifier extends AuthNotifier {
   final Future<UserEntity?> Function() loader;
@@ -280,6 +281,11 @@ const _defaultDirector = UserEntity(
   authorization: AuthorizationSnapshot(
     effectivePermissions: ['attendance:manage'],
     activeAssignmentId: 'active',
+    capabilities: [
+      'club.active_director',
+      'club.operational_staff',
+      'club.staff_mode',
+    ],
     clubAssignments: [
       AuthorizationGrant(
         assignmentId: 'active',
@@ -304,6 +310,7 @@ UserEntity _userWithActiveRole(String role) {
     authorization: AuthorizationSnapshot(
       effectivePermissions: permissions,
       activeAssignmentId: 'active',
+      capabilities: capabilitiesFor(activeClubRole: role),
       clubAssignments: [
         AuthorizationGrant(
           assignmentId: 'active',
@@ -319,12 +326,13 @@ UserEntity _userWithActiveRole(String role) {
   );
 }
 
-UserEntity _userWithHistoricalDirector() => const UserEntity(
+UserEntity _userWithHistoricalDirector() => UserEntity(
       id: 'historical-director',
       email: 'historical@example.com',
       authorization: AuthorizationSnapshot(
         activeAssignmentId: 'active-deputy',
-        clubAssignments: [
+        capabilities: capabilitiesFor(activeClubRole: 'deputy-director'),
+        clubAssignments: const [
           AuthorizationGrant(
             assignmentId: 'old-director',
             roleName: 'director',

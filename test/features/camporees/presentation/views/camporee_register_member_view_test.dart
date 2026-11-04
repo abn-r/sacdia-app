@@ -18,6 +18,7 @@ import 'package:sacdia_app/features/insurance/presentation/providers/insurance_p
 import 'package:sacdia_app/features/payment_orders/domain/entities/payment_order.dart';
 import 'package:sacdia_app/features/payment_orders/presentation/providers/payment_orders_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/capability_fixtures.dart';
 import '../../../../support/riverpod_test_support.dart';
 
 class _TestAuthNotifier extends AuthNotifier {
@@ -511,6 +512,7 @@ const _defaultDirector = UserEntity(
   email: 'director@example.com',
   authorization: AuthorizationSnapshot(
     activeAssignmentId: 'active',
+    capabilities: ['club.active_director', 'club.staff_mode'],
     clubAssignments: [
       AuthorizationGrant(
         assignmentId: 'active',
@@ -551,6 +553,9 @@ UserEntity _userWithActiveRole(
       email: '$role@example.com',
       authorization: AuthorizationSnapshot(
         activeAssignmentId: 'active',
+        capabilities: capabilitiesFor(
+          activeClubRole: status == 'active' ? role : null,
+        ),
         clubAssignments: [
           AuthorizationGrant(
             assignmentId: 'active',
@@ -564,12 +569,15 @@ UserEntity _userWithActiveRole(
       ),
     );
 
-UserEntity _userWithHistoricalDirector() => const UserEntity(
+UserEntity _userWithHistoricalDirector() => UserEntity(
       id: 'historical-director',
       email: 'historical@example.com',
       authorization: AuthorizationSnapshot(
         activeAssignmentId: 'active-deputy',
-        clubAssignments: [
+        // Lo que el servidor publica para la concesión activa (subdirector):
+        // nunca `club.active_director` por una dirección histórica.
+        capabilities: capabilitiesFor(activeClubRole: 'deputy-director'),
+        clubAssignments: const [
           AuthorizationGrant(
             assignmentId: 'old-director',
             roleName: 'director',

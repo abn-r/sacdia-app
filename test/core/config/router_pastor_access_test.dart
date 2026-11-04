@@ -9,6 +9,7 @@ import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import '../../support/capability_fixtures.dart';
 import '../../support/riverpod_test_support.dart';
 
 UserEntity _user({
@@ -21,10 +22,13 @@ UserEntity _user({
       id: 'u1',
       email: 'u1@example.com',
       postRegisterComplete: postRegisterComplete,
-      authorization: AuthorizationSnapshot(
-        effectivePermissions: const ['clubs:read'],
-        globalGrants: global ? [AuthorizationGrant(roleName: role)] : const [],
-        clubAssignments: clubAssignments,
+      authorization: withDerivedCapabilities(
+        AuthorizationSnapshot(
+          effectivePermissions: const ['clubs:read'],
+          globalGrants:
+              global ? [AuthorizationGrant(roleName: role)] : const [],
+          clubAssignments: clubAssignments,
+        ),
       ),
     );
 
@@ -218,12 +222,27 @@ void main() {
       );
       expect(await redirectFor(withClub, RouteNames.homeHonors), isNull);
 
+      final plain = await setUpRouter(
+        tester,
+        _user(role: 'user', postRegisterComplete: true),
+      );
+      expect(await redirectFor(plain, RouteNames.homeHonors), isNull);
+
+      // Un director de Campo sin club ya no es «pastor»: abre el panel de
+      // coordinación (`coordination.hub_view`) y su inicio es ese panel.
       final director = await setUpRouter(
         tester,
         _user(role: 'director-lf', postRegisterComplete: true),
       );
-      expect(await redirectFor(director, RouteNames.homeHonors), isNull);
-      expect(await redirectFor(director, RouteNames.homeClub), isNull);
+      expect(
+        await redirectFor(director, RouteNames.homeHonors),
+        RouteNames.homeDashboard,
+      );
+      expect(await redirectFor(director, RouteNames.coordinator), isNull);
+      expect(
+        await redirectFor(director, RouteNames.investitureAuthorize),
+        isNull,
+      );
     });
 
     testWidgets(
