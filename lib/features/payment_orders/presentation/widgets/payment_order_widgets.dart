@@ -7,12 +7,6 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import '../../domain/entities/payment_order.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
-/// Formatea centavos como moneda (ej. 15000 → "$150.00").
-String formatCentavos(int centavos, [String currency = 'MXN']) {
-  final formatter = NumberFormat.currency(symbol: r'$', decimalDigits: 2);
-  return '${formatter.format(centavos / 100)} $currency';
-}
-
 /// Color semántico por estado de la orden.
 Color paymentOrderStatusColor(
   PaymentOrderStatus status,

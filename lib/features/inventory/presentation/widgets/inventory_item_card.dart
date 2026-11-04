@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
@@ -202,7 +203,7 @@ class _CardContent extends StatelessWidget {
                       if (item.estimatedValue != null) ...[
                         const SizedBox(width: 8),
                         Text(
-                          '\$${_formatValue(item.estimatedValue!)}',
+                          SacMoney.format(item.estimatedValue!),
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: AppColors.accent,
@@ -229,11 +230,6 @@ class _CardContent extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _formatValue(double v) {
-    if (v >= 1000) return '${(v / 1000).toStringAsFixed(1)}K';
-    return v.toStringAsFixed(0);
   }
 }
 

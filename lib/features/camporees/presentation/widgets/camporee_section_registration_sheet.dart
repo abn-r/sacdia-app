@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -91,16 +92,10 @@ class _CamporeeSectionRegistrationSheetState
     final colors = context.sac;
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
     final dateFormat = DateFormat.yMMMd(context.locale.toString());
-    final currency = NumberFormat.currency(
-      locale: context.locale.toString(),
-      symbol: '\$',
-      decimalDigits: 0,
-      customPattern: '¤#,##0',
-    );
     final cost = widget.camporee.registrationCost;
     final costLabel = cost == null || cost == 0
         ? 'camporees.common.free'.tr()
-        : currency.format(cost);
+        : SacMoney.format(cost);
 
     return PopScope(
       canPop: !_isSubmitting,

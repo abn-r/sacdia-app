@@ -14,7 +14,7 @@ import '../../domain/entities/material_delivery.dart';
 import '../providers/cart_provider.dart';
 import '../providers/config_provider.dart';
 import '../providers/create_order_provider.dart';
-import '../utils/money_format.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
@@ -319,7 +319,7 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
         SacSnackBar.showMessenger(
           messenger,
           message,
-          backgroundColor: AppColors.secondary,
+          isSuccess: true,
           action: SnackBarAction(
             label: viewLabel,
             textColor: Colors.white,
@@ -409,7 +409,7 @@ class _ResumenLineItem extends StatelessWidget {
                 ],
                 const SizedBox(height: 4),
                 Text(
-                  '${line.qty} × ${formatMxn(line.priceSnapshotCentavos)}',
+                  '${line.qty} × ${SacMoney.fromCentavos(line.priceSnapshotCentavos)}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: c.textSecondary,
                   ),
@@ -419,7 +419,7 @@ class _ResumenLineItem extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            formatMxn(line.lineTotalCentavos),
+            SacMoney.fromCentavos(line.lineTotalCentavos),
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: c.text,
@@ -460,7 +460,7 @@ class _TotalRow extends StatelessWidget {
                 ),
         ),
         Text(
-          formatMxn(amount),
+          SacMoney.fromCentavos(amount),
           style: isTotal
               ? theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,

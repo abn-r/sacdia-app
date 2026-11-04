@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,7 +18,6 @@ import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_ord
 import 'package:sacdia_app/features/camporee_orders/presentation/providers/camporee_orders_providers.dart';
 import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_participant_access_gate.dart';
-import 'package:sacdia_app/features/payment_orders/presentation/widgets/payment_order_widgets.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// CTA de Pedidos en el detalle del camporee. Oculto si no hay settings o
@@ -371,7 +371,7 @@ class _OrderHistoryCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    formatCentavos(order.totalCentavos, order.currency),
+                    SacMoney.fromCentavos(order.totalCentavos),
                     style: TextStyle(
                       fontSize: SacFontSize.bodyMedium,
                       fontWeight: FontWeight.w800,

@@ -310,7 +310,7 @@ class _EvidenceSectionDetailViewState
                                 'sectionName': widget.section.name,
                               },
                             ),
-                            backgroundColor: AppColors.secondary,
+                            isSuccess: true,
                             leading: const HugeIcon(
                               icon: HugeIcons.strokeRoundedCheckmarkCircle02,
                               color: Colors.white,
@@ -645,7 +645,7 @@ class _EvaluationResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final dateFormat = DateFormat('d MMM yyyy, HH:mm', 'es');
+    final dateFormat = DateFormat('d MMM yyyy, HH:mm');
 
     return Container(
       width: double.infinity,

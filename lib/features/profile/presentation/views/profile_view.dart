@@ -115,7 +115,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           ref.invalidate(profileNotifierProvider);
           ref.invalidate(authNotifierProvider);
           SacSnackBar.show(context, 'profile.view.photo_upload_success'.tr(),
-              backgroundColor: AppColors.secondary);
+              isSuccess: true);
         }
       } finally {
         if (mounted) {

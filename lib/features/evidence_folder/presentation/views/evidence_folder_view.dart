@@ -175,7 +175,7 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
         'evidence_folder.submit_success'.tr(namedArgs: {
           'sectionName': section.name,
         }),
-        backgroundColor: AppColors.secondary,
+        isSuccess: true,
         leading: const HugeIcon(
           icon: HugeIcons.strokeRoundedCheckmarkCircle02,
           color: Colors.white,
@@ -456,7 +456,7 @@ class _NoFolderBody extends ConsumerWidget {
     if (!created || !context.mounted) return;
 
     SacSnackBar.show(context, 'evidence_folder.no_folder.create_success'.tr(),
-        backgroundColor: AppColors.secondary);
+        isSuccess: true);
   }
 
   @override

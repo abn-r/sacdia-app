@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,7 +21,6 @@ import '../../../camporees/presentation/providers/camporees_providers.dart';
 import '../../domain/entities/payment_order.dart';
 import '../../domain/utils/payment_order_eligibility.dart';
 import '../providers/payment_orders_providers.dart';
-import '../widgets/payment_order_widgets.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Flujo de emisión de una orden de pago territorial.
@@ -250,7 +250,7 @@ class _IssueOrderForm extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      formatCentavos(totalCentavos),
+                      SacMoney.fromCentavos(totalCentavos),
                       style: TextStyle(
                         fontSize: SacFontSize.titleMedium,
                         fontWeight: FontWeight.w800,
@@ -294,7 +294,7 @@ class _IssueOrderForm extends ConsumerWidget {
           'payment_orders.issue.success'.tr(
             namedArgs: {'folio': order.folioReference},
           ),
-          backgroundColor: AppColors.secondary);
+          isSuccess: true);
       context.pushReplacement(
         RouteNames.paymentOrderDetailPath(order.orderId),
       );
@@ -335,7 +335,9 @@ class _CycleSummaryCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             'payment_orders.issue.unit_cost_label'.tr(
-              namedArgs: {'cost': formatCentavos(cycle.unitCostCentavos)},
+              namedArgs: {
+                'cost': SacMoney.fromCentavos(cycle.unitCostCentavos)
+              },
             ),
             style: TextStyle(
                 fontSize: SacFontSize.bodySmall, color: c.textSecondary),

@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Variantes del badge
-enum SacBadgeVariant { primary, secondary, accent, error, neutral }
+enum SacBadgeVariant { primary, secondary, accent, error, info, neutral }
 
 /// Badge/chip pill del design system SACDIA "Scout Vibrante"
 ///
 /// Uso: estados, categorías, labels, contadores.
 class SacBadge extends StatelessWidget {
   final String label;
-  final dynamic icon;
+  final HugeIconData? icon;
   final SacBadgeVariant variant;
   final Color? backgroundColor;
   final Color? foregroundColor;
@@ -45,18 +44,34 @@ class SacBadge extends StatelessWidget {
         backgroundColor = null,
         foregroundColor = null;
 
+  /// Info badge shortcut
+  const SacBadge.info({super.key, required this.label, this.icon})
+      : variant = SacBadgeVariant.info,
+        backgroundColor = null,
+        foregroundColor = null;
+
   Color _backgroundColor(BuildContext context) {
     if (backgroundColor != null) return backgroundColor!;
 
     switch (variant) {
       case SacBadgeVariant.primary:
-        return SacAccent.of(context).light;
+        final accent = SacAccent.of(context);
+        if (Theme.of(context).brightness == Brightness.dark) {
+          // Accent tint over the dark surface, not over white.
+          return Color.alphaBlend(
+            accent.color.withValues(alpha: 0.2),
+            context.sac.surface,
+          );
+        }
+        return accent.light;
       case SacBadgeVariant.secondary:
-        return AppColors.secondaryLight;
+        return context.sac.successContainer;
       case SacBadgeVariant.accent:
-        return AppColors.accentLight;
+        return context.sac.warningContainer;
       case SacBadgeVariant.error:
-        return AppColors.errorLight;
+        return context.sac.errorContainer;
+      case SacBadgeVariant.info:
+        return context.sac.infoContainer;
       case SacBadgeVariant.neutral:
         return context.sac.surfaceVariant;
     }
@@ -67,13 +82,19 @@ class SacBadge extends StatelessWidget {
 
     switch (variant) {
       case SacBadgeVariant.primary:
-        return SacAccent.of(context).dark;
+        final accent = SacAccent.of(context);
+        if (Theme.of(context).brightness == Brightness.dark) {
+          return accent.forHighContrast(Brightness.dark).color;
+        }
+        return accent.dark;
       case SacBadgeVariant.secondary:
-        return AppColors.secondaryDark;
+        return context.sac.onSuccessContainer;
       case SacBadgeVariant.accent:
-        return AppColors.accentDark;
+        return context.sac.onWarningContainer;
       case SacBadgeVariant.error:
-        return AppColors.errorDark;
+        return context.sac.onErrorContainer;
+      case SacBadgeVariant.info:
+        return context.sac.onInfoContainer;
       case SacBadgeVariant.neutral:
         return context.sac.textSecondary;
     }
@@ -96,7 +117,7 @@ class SacBadge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            buildIcon(icon, size: 14, color: fg),
+            buildIcon(icon!, size: 14, color: fg),
             const SizedBox(width: 4),
           ],
           // Flexible: in a narrow slot (a card row with actions) the label

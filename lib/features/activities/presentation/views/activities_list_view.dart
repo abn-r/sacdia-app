@@ -90,11 +90,11 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
   late final ValueNotifier<DateTime?> _selectedDate;
   late final ValueNotifier<bool> _isChronologicalView;
   late final ValueNotifier<DateTime> _visibleMonth;
-  late final DateFormat _monthFormatter;
-  late final DateFormat _dayHeaderFormatter;
-  late final DateFormat _daySemanticsFormatter;
-  late final DateFormat _weekdayFormatter;
-  late final DateFormat _dayNumberFormatter;
+  late DateFormat _monthFormatter;
+  late DateFormat _dayHeaderFormatter;
+  late DateFormat _daySemanticsFormatter;
+  late DateFormat _weekdayFormatter;
+  late DateFormat _dayNumberFormatter;
   final ValueNotifier<bool> _showTodayButton = ValueNotifier<bool>(false);
 
   List<Activity>? _cachedActivitiesSource;
@@ -117,15 +117,22 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
     );
     _isChronologicalView = ValueNotifier<bool>(false);
     _visibleMonth = ValueNotifier<DateTime>(DateTime(now.year, now.month));
-    _monthFormatter = DateFormat('MMMM yyyy', 'es');
-    _dayHeaderFormatter = DateFormat('EEEE, d MMM', 'es');
-    _daySemanticsFormatter = DateFormat('EEEE d MMMM', 'es');
-    _weekdayFormatter = DateFormat('EEE', 'es');
-    _dayNumberFormatter = DateFormat('d');
     _todayIndex = _days.indexWhere((d) => _isSameDay(d, now));
     _dateScrollController = ScrollController();
     _chronoScrollController = ScrollController();
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToToday());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // DateFormat captures the locale at construction: rebuild on language change.
+    final locale = context.locale.toString();
+    _monthFormatter = DateFormat('MMMM yyyy', locale);
+    _dayHeaderFormatter = DateFormat('EEEE, d MMM', locale);
+    _daySemanticsFormatter = DateFormat('EEEE d MMMM', locale);
+    _weekdayFormatter = DateFormat('EEE', locale);
+    _dayNumberFormatter = DateFormat('d', locale);
   }
 
   @override

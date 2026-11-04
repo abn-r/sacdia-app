@@ -97,7 +97,7 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
             _isEditing
                 ? 'post_registration.contact_form.contact_updated'.tr()
                 : 'post_registration.contact_form.contact_added'.tr(),
-            backgroundColor: AppColors.secondary);
+            isSuccess: true);
       }
     } catch (e) {
       if (mounted) {

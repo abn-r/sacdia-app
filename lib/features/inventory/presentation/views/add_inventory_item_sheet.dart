@@ -503,7 +503,7 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
           _isEditing
               ? 'inventory.form.updated_success'.tr()
               : 'inventory.form.registered_success'.tr(),
-          backgroundColor: AppColors.secondary);
+          isSuccess: true);
       Navigator.pop(context, true);
     }
   }
@@ -732,7 +732,7 @@ class _DatePickerField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final formatted = selectedDate != null
-        ? DateFormat("dd 'de' MMMM 'de' yyyy", 'es').format(selectedDate!)
+        ? DateFormat.yMMMMd().format(selectedDate!)
         : 'inventory.form.select_date'.tr();
 
     return SacInkWell(

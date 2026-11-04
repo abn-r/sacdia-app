@@ -232,7 +232,7 @@ class CertificationsListView extends ConsumerWidget {
             'certifications.list.enroll_success'.tr(namedArgs: {
               'name': certification.name,
             }),
-            backgroundColor: AppColors.secondary);
+            isSuccess: true);
       }
     } catch (e) {
       if (context.mounted) {

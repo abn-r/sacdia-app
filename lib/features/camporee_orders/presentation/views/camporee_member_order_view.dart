@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,7 +17,6 @@ import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_ord
 import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_order_offering.dart';
 import 'package:sacdia_app/features/camporee_orders/presentation/providers/camporee_orders_providers.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
-import 'package:sacdia_app/features/payment_orders/presentation/widgets/payment_order_widgets.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Captura nominada: roster del camporee + artículo/talla por persona.
@@ -250,7 +250,7 @@ class _OfferingCaptureRow extends StatelessWidget {
       }
       return _QtyRow(
         title: offering.product.title,
-        priceLabel: formatCentavos(offering.priceCentavos),
+        priceLabel: SacMoney.fromCentavos(offering.priceCentavos),
         qty: current?.qty ?? 0,
         onQty: (qty) => onChanged(
           CamporeeOrderDraftLine(
@@ -283,7 +283,7 @@ class _OfferingCaptureRow extends StatelessWidget {
                 ),
               ),
               Text(
-                formatCentavos(offering.priceCentavos),
+                SacMoney.fromCentavos(offering.priceCentavos),
                 style: TextStyle(
                   fontSize: SacFontSize.bodySmall,
                   fontWeight: FontWeight.w700,
@@ -416,7 +416,7 @@ class _CaptureFooter extends StatelessWidget {
                 ? 'camporee_orders.capture.no_lines'.tr()
                 : '${'camporee_orders.capture.lines_count'.tr(namedArgs: {
                         'count': lineCount.toString(),
-                      })} · ${formatCentavos(totalCentavos)}',
+                      })} · ${SacMoney.fromCentavos(totalCentavos)}',
             textAlign: TextAlign.center,
             style: TextStyle(
                 fontSize: SacFontSize.bodyMedium, color: c.textSecondary),

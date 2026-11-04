@@ -112,10 +112,14 @@ class _ActivityRow extends StatelessWidget {
     this.onTap,
   });
 
-  static final _weekdayFormatter = DateFormat('EEEE', 'es');
-  static final _shortDateFormatter = DateFormat('dd MMM', 'es');
-  static final _dayFormatter = DateFormat('dd');
-  static final _monthFormatter = DateFormat('MMM', 'es');
+  static DateFormat get _weekdayFormatter =>
+      DateFormat('EEEE'); // getter: locale is captured at construction
+  static DateFormat get _shortDateFormatter =>
+      DateFormat('dd MMM'); // getter: locale is captured at construction
+  static DateFormat get _dayFormatter =>
+      DateFormat('dd'); // getter: locale is captured at construction
+  static DateFormat get _monthFormatter =>
+      DateFormat('MMM'); // getter: locale is captured at construction
 
   String _formatRelativeDate(DateTime activityDate) {
     // activityDate ya es medianoche local — comparar solo por día.

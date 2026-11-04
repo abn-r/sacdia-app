@@ -11,6 +11,8 @@ import 'package:flutter/widgets.dart' as widgets;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart' as intl;
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -206,6 +208,8 @@ Future<void> main() async {
       // `context.tr` una vez que el widget se monta. ensureInitialized debe
       // ejecutarse antes del primer runApp para tener el locale resuelto.
       await EasyLocalization.ensureInitialized();
+      // Date symbols for es/en/fr/pt_BR must exist before the first frame.
+      await initializeDateFormatting();
       await NextActivityWidgetBridge.configure();
 
       // Paralelizamos operaciones independientes: orientación, SharedPreferences y
@@ -363,6 +367,13 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
     final accent = ref.watch(accentNotifierProvider);
     final router = ref.watch(routerProvider);
     final accessibility = ref.watch(accessibilityProvider);
+
+    // Dates follow the app language: keep intl's default locale in sync with
+    // easy_localization (pt-BR -> pt_BR). Reading context.locale subscribes
+    // this widget, so a language change rebuilds the tree.
+    intl.Intl.defaultLocale = intl.Intl.canonicalizedLocale(
+      context.locale.toString(),
+    );
 
     // Adaptar iconos del status bar al tema actual.
     // AnnotatedRegion is the declarative alternative to SystemChrome.setSystemUIOverlayStyle()

@@ -150,7 +150,7 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
         if (context.mounted) {
           context.go(RouteNames.materialsOrderDetail(widget.folioOrId));
           SacSnackBar.show(context, 'materials.receipt.sent'.tr(),
-              backgroundColor: AppColors.secondary);
+              isSuccess: true);
         }
       }
       if (next.errorMessage != null && prev?.errorMessage == null) {

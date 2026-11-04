@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
@@ -1412,10 +1413,7 @@ String _formatQty(double qty) {
   return qty.toString();
 }
 
-String _formatPesos(int centavos) {
-  final pesos = centavos / 100;
-  return '\$${pesos.toStringAsFixed(2)}';
-}
+String _formatPesos(int centavos) => SacMoney.fromCentavos(centavos);
 
 String _paymentKindLabel(String kind) {
   switch (kind) {

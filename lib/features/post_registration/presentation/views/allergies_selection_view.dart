@@ -345,7 +345,7 @@ class _AllergiesSelectionViewState
         if (context.mounted) {
           SacSnackBar.show(
               context, 'post_registration.health.allergies.delete_success'.tr(),
-              backgroundColor: MedicoTokens.mint500);
+              isSuccess: true);
         }
       } catch (e) {
         AppLogger.e('Delete allergy error', tag: 'AllergiesView', error: e);
@@ -426,7 +426,7 @@ class _AllergiesSelectionViewState
       if (context.mounted) {
         SacSnackBar.show(
             context, 'post_registration.health.allergies.save_success'.tr(),
-            backgroundColor: MedicoTokens.mint500);
+            isSuccess: true);
         await Future.delayed(const Duration(milliseconds: 300));
         if (context.mounted) Navigator.of(context).pop();
       }

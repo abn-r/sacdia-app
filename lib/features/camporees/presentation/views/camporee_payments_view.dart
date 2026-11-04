@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -151,12 +152,6 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currencyFmt = NumberFormat.currency(
-      locale: 'es_AR',
-      symbol: '\$',
-      decimalDigits: 2,
-    );
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -192,8 +187,9 @@ class _SummaryCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  currencyFmt.format(totalAmount),
+                  SacMoney.format(totalAmount),
                   style: TextStyle(
+                    fontFeatures: SacMoney.tabularFigures,
                     fontSize: SacFontSize.headlineLarge,
                     fontWeight: FontWeight.w800,
                     color: SacAccent.of(context).color,
@@ -238,12 +234,7 @@ class _PaymentCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final statusCfg = _statusConfig(payment.paymentStatus);
-    final currencyFmt = NumberFormat.currency(
-      locale: 'es_AR',
-      symbol: '\$',
-      decimalDigits: 2,
-    );
-    final dateFmt = DateFormat('dd/MM/yyyy', 'es');
+    final dateFmt = DateFormat('dd/MM/yyyy');
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -301,8 +292,9 @@ class _PaymentCard extends StatelessWidget {
                 ),
               ),
               Text(
-                currencyFmt.format(payment.amount),
+                SacMoney.format(payment.amount),
                 style: TextStyle(
+                  fontFeatures: SacMoney.tabularFigures,
                   fontSize: SacFontSize.titleMedium,
                   fontWeight: FontWeight.w800,
                   color: SacAccent.of(context).color,
@@ -621,8 +613,7 @@ class _CamporeePaymentFormSheetState
                         const SizedBox(width: 10),
                         Text(
                           _paymentDate != null
-                              ? DateFormat('dd/MM/yyyy', 'es')
-                                  .format(_paymentDate!)
+                              ? DateFormat('dd/MM/yyyy').format(_paymentDate!)
                               : 'camporees.payments.select_date'.tr(),
                           style: TextStyle(
                             fontSize: SacFontSize.titleSmall,
@@ -699,7 +690,7 @@ class _CamporeePaymentFormSheetState
 
     if (success && mounted) {
       SacSnackBar.show(context, 'camporees.payments.success'.tr(),
-          backgroundColor: AppColors.secondary);
+          isSuccess: true);
       Navigator.of(context).pop();
     }
   }

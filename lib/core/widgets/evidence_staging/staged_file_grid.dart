@@ -157,7 +157,8 @@ class _StagedFileCell extends StatelessWidget {
     required this.onDeleteRemote,
   });
 
-  static final _dateFormatter = DateFormat('d MMM', 'es');
+  static DateFormat get _dateFormatter =>
+      DateFormat('d MMM'); // getter: locale is captured at construction
 
   @override
   Widget build(BuildContext context) {

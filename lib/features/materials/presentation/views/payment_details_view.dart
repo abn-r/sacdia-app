@@ -12,7 +12,7 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/material_status.dart';
 import '../providers/order_detail_provider.dart';
-import '../utils/money_format.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
@@ -118,7 +118,7 @@ class _PagoBody extends StatelessWidget {
                   ),
                 _DataRow(
                   label: 'materials.payment.amount'.tr(),
-                  value: formatMxn(orden.totalCentavos),
+                  value: SacMoney.fromCentavos(orden.totalCentavos),
                   bold: true,
                 ),
               ],

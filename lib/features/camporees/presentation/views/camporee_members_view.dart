@@ -140,7 +140,7 @@ class CamporeeMembersView extends ConsumerWidget {
             context,
             'camporees.members.member_removed'
                 .tr(namedArgs: {'name': member.userName ?? member.userId}),
-            backgroundColor: AppColors.secondary);
+            isSuccess: true);
       } else {
         final errorMsg = ref
             .read(camporeeRemoveMemberNotifierProvider(camporeeId))

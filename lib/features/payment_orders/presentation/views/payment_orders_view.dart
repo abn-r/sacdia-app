@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -213,7 +214,7 @@ class _ObligationCard extends StatelessWidget {
                 ),
               ),
               Text(
-                formatCentavos(obligation.totalCentavos, obligation.currency),
+                SacMoney.fromCentavos(obligation.totalCentavos),
                 style: TextStyle(
                   fontSize: SacFontSize.bodyMedium,
                   fontWeight: FontWeight.w800,
@@ -320,7 +321,7 @@ class _OrderCard extends StatelessWidget {
                   ),
                   const Spacer(),
                   Text(
-                    formatCentavos(order.totalCentavos, order.currency),
+                    SacMoney.fromCentavos(order.totalCentavos),
                     style: TextStyle(
                       fontSize: SacFontSize.bodyMedium,
                       fontWeight: FontWeight.w800,

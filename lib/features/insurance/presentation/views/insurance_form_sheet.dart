@@ -342,7 +342,7 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
           _isEditing
               ? 'insurance.form.success_updated'.tr()
               : 'insurance.form.success_created'.tr(),
-          backgroundColor: AppColors.secondary);
+          isSuccess: true);
       Navigator.pop(context, true);
     }
   }
@@ -439,7 +439,7 @@ class _DatePickerField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final formatted = selectedDate != null
-        ? DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es').format(selectedDate!)
+        ? DateFormat.yMMMMd().format(selectedDate!)
         : placeholder;
 
     return SacInkWell(

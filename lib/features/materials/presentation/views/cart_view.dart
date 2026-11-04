@@ -10,7 +10,7 @@ import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../providers/cart_provider.dart';
-import '../utils/money_format.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import '../widgets/qty_stepper.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
@@ -109,7 +109,7 @@ class CartView extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        formatMxn(cart.subtotalCentavos),
+                        SacMoney.fromCentavos(cart.subtotalCentavos),
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: SacAccent.of(context).color,
@@ -212,7 +212,7 @@ class _CartLineItem extends StatelessWidget {
                 ],
                 const SizedBox(height: 6),
                 Text(
-                  formatMxn(line.priceSnapshotCentavos),
+                  SacMoney.fromCentavos(line.priceSnapshotCentavos),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: SacAccent.of(context).color,
                     fontWeight: FontWeight.w600,
@@ -229,7 +229,7 @@ class _CartLineItem extends StatelessWidget {
                     ),
                     const Spacer(),
                     Text(
-                      formatMxn(line.lineTotalCentavos),
+                      SacMoney.fromCentavos(line.lineTotalCentavos),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: c.text,

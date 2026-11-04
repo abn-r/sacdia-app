@@ -341,7 +341,7 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
         if (context.mounted) {
           SacSnackBar.show(
               context, 'post_registration.health.diseases.delete_success'.tr(),
-              backgroundColor: MedicoTokens.mint500);
+              isSuccess: true);
         }
       } catch (e) {
         AppLogger.e('Delete disease error', tag: 'DiseasesView', error: e);
@@ -413,7 +413,7 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
       if (context.mounted) {
         SacSnackBar.show(
             context, 'post_registration.health.diseases.save_success'.tr(),
-            backgroundColor: MedicoTokens.mint500);
+            isSuccess: true);
         await Future.delayed(const Duration(milliseconds: 300));
         if (context.mounted) Navigator.of(context).pop();
       }

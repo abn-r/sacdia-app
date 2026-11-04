@@ -172,7 +172,7 @@ class ValidationSection extends ConsumerWidget {
 
     if (success) {
       SacSnackBar.show(context, 'validation.section.submitSuccess'.tr(),
-          backgroundColor: AppColors.secondary);
+          isSuccess: true);
     }
   }
 }

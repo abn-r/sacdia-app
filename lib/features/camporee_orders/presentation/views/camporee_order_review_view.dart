@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,7 +11,6 @@ import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_order.dart';
 import 'package:sacdia_app/features/camporee_orders/presentation/providers/camporee_orders_providers.dart';
-import 'package:sacdia_app/features/payment_orders/presentation/widgets/payment_order_widgets.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Consolidado derivado + emisión. El cliente no envía montos.
@@ -185,7 +185,7 @@ class _SummaryCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    formatCentavos(item.subtotalCentavos),
+                    SacMoney.fromCentavos(item.subtotalCentavos),
                     style: TextStyle(
                       fontSize: SacFontSize.bodyMedium,
                       fontWeight: FontWeight.w700,
@@ -209,7 +209,7 @@ class _SummaryCard extends StatelessWidget {
                 ),
               ),
               Text(
-                formatCentavos(totalCentavos),
+                SacMoney.fromCentavos(totalCentavos),
                 style: TextStyle(
                   fontSize: SacFontSize.titleMedium,
                   fontWeight: FontWeight.w800,

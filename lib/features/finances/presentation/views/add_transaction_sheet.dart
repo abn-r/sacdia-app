@@ -397,7 +397,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     if (mounted) {
       ref.read(transactionFormNotifierProvider.notifier).reset();
       SacSnackBar.show(context, 'finances.add_transaction.save_success'.tr(),
-          backgroundColor: AppColors.secondary);
+          isSuccess: true);
       Navigator.pop(context, true);
     }
   }
@@ -1042,10 +1042,7 @@ class _DatePickerField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatted = DateFormat(
-      'dd \'de\' MMMM \'de\' yyyy',
-      'es',
-    ).format(selectedDate);
+    final formatted = DateFormat.yMMMMd().format(selectedDate);
 
     return SacInkWell(
       onTap: () => _pickDate(context),

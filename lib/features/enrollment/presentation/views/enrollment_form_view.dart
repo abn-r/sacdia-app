@@ -425,7 +425,7 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
           _isEdit
               ? 'enrollment.form.success_updated'.tr()
               : 'enrollment.form.success_created'.tr(),
-          backgroundColor: AppColors.secondary);
+          isSuccess: true);
       Navigator.of(context).pop(true);
     }
   }

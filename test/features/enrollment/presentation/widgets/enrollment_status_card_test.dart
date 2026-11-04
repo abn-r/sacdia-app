@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
@@ -194,7 +195,8 @@ void main() {
             if (widget is! Container) return false;
             final decoration = widget.decoration;
             return decoration is BoxDecoration &&
-                decoration.color == AppColors.accent.withValues(alpha: 0.14) &&
+                decoration.color ==
+                    const SacColors(Brightness.light).warningContainer &&
                 widget.padding == const EdgeInsets.all(16);
           }),
         );

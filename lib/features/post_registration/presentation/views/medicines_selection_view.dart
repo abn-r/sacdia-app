@@ -342,7 +342,7 @@ class _MedicinesSelectionViewState
         if (context.mounted) {
           SacSnackBar.show(
               context, 'post_registration.health.medicines.delete_success'.tr(),
-              backgroundColor: MedicoTokens.mint500);
+              isSuccess: true);
         }
       } catch (e) {
         AppLogger.e('Delete medicine error', tag: 'MedicinesView', error: e);
@@ -411,7 +411,7 @@ class _MedicinesSelectionViewState
       if (context.mounted) {
         SacSnackBar.show(
             context, 'post_registration.health.medicines.save_success'.tr(),
-            backgroundColor: MedicoTokens.mint500);
+            isSuccess: true);
         await Future.delayed(const Duration(milliseconds: 300));
         if (context.mounted) Navigator.of(context).pop();
       }

@@ -6,7 +6,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 
 import '../../domain/entities/order.dart';
-import '../utils/money_format.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import 'material_status_badge.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -70,7 +70,7 @@ class OrderCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    formatMxn(order.totalCentavos),
+                    SacMoney.fromCentavos(order.totalCentavos),
                     style: TextStyle(
                       fontSize: SacFontSize.titleMedium,
                       fontWeight: FontWeight.w800,

@@ -252,7 +252,7 @@ class _DeviceRequirementViewState extends ConsumerState<DeviceRequirementView> {
               SacSnackBar.show(
                 context,
                 'classes.requirement_detail.submit_success'.tr(),
-                backgroundColor: AppColors.validatedColor,
+                isSuccess: true,
               );
               Navigator.pop(context);
             },

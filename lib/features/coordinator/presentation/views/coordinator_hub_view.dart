@@ -301,7 +301,7 @@ class _ConsentSection extends ConsumerWidget {
               child: HugeIcon(
                 icon: HugeIcons.strokeRoundedFileVerified,
                 size: 22,
-                color: c.onWarning,
+                color: c.onWarningContainer,
               ),
             ),
             const SizedBox(width: 12),

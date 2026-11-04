@@ -564,7 +564,7 @@ class _EnrollPreviousClassSheetState
         Navigator.pop(context);
         SacSnackBar.show(context,
             'Inscripción en "${_selectedClass!.name}" registrada exitosamente',
-            backgroundColor: AppColors.secondary);
+            isSuccess: true);
       },
     );
   }

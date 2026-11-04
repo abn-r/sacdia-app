@@ -398,7 +398,7 @@ class _TransferRequestFormViewState
 
     if (success) {
       SacSnackBar.show(context, 'transfers.form.success_message'.tr(),
-          backgroundColor: AppColors.secondary);
+          isSuccess: true);
       Navigator.of(context).pop();
     }
   }

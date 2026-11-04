@@ -27,8 +27,7 @@ class CamporeeLocationCard extends StatelessWidget {
   void _copyAddress(BuildContext context) {
     Clipboard.setData(ClipboardData(text: camporee.place));
     SacSnackBar.show(context, 'camporees.detail.address_copied'.tr(),
-        backgroundColor: AppColors.secondaryDark,
-        duration: const Duration(seconds: 2));
+        isSuccess: true, duration: const Duration(seconds: 2));
   }
 
   @override

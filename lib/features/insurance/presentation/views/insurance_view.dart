@@ -335,7 +335,7 @@ class _ExpiringBanner extends StatelessWidget {
           HugeIcon(
             icon: HugeIcons.strokeRoundedAlert02,
             size: 16,
-            color: c.onWarning,
+            color: c.onWarningContainer,
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -344,7 +344,7 @@ class _ExpiringBanner extends StatelessWidget {
               style: TextStyle(
                 fontSize: SacFontSize.bodyMedium,
                 fontWeight: FontWeight.w500,
-                color: c.onWarning,
+                color: c.onWarningContainer,
               ),
             ),
           ),

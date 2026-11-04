@@ -35,7 +35,7 @@ class SectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final dateFormat = DateFormat('d MMM yyyy, HH:mm', 'es');
+    final dateFormat = DateFormat('d MMM yyyy, HH:mm');
     final showSubmitAction =
         folderIsOpen && section.canSubmit && onSubmit != null;
 

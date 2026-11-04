@@ -192,7 +192,7 @@ class UnitDetailView extends ConsumerWidget {
           saved
               ? 'units.detail.save_success'.tr()
               : 'units.detail.save_error'.tr(),
-          backgroundColor: saved ? AppColors.secondary : null);
+          isSuccess: saved);
       if (saved) HapticFeedback.mediumImpact();
     });
   }

@@ -253,8 +253,7 @@ class _DateField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatted =
-        date != null ? DateFormat('d MMM yy', 'es').format(date!) : '—';
+    final formatted = date != null ? DateFormat('d MMM yy').format(date!) : '—';
 
     return GestureDetector(
       onTap: onTap,

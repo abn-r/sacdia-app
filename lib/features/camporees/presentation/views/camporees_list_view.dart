@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/date_formatter.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -247,16 +249,9 @@ class _CamporeeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final currencyFormatter = NumberFormat.currency(
-      locale: context.locale.toString(),
-      symbol: '\$',
-      decimalDigits: 0,
-      customPattern: '¤#,##0',
-    );
-    final dateRange = _smartDateRange(
+    final dateRange = SacDateFormatter.range(
       camporee.startDate,
       camporee.endDate,
-      context.locale.toString(),
     );
 
     return Semantics(
@@ -324,10 +319,7 @@ class _CamporeeCard extends StatelessWidget {
                           if (camporee.registrationCost != null) ...[
                             const SizedBox(width: 10),
                             Text(
-                              _formatCost(
-                                camporee.registrationCost!,
-                                currencyFormatter,
-                              ),
+                              _formatCost(camporee.registrationCost!),
                               style: TextStyle(
                                 fontSize: SacFontSize.titleMedium,
                                 fontWeight: FontWeight.w800,
@@ -355,22 +347,9 @@ class _CamporeeCard extends StatelessWidget {
     );
   }
 
-  /// Rango compacto: colapsa mes/año repetidos.
-  /// "20 – 23 may 2026" · "28 may – 2 jun 2026" · "30 dic 2026 – 2 ene 2027".
-  String _smartDateRange(DateTime start, DateTime end, String locale) {
-    final full = DateFormat('d MMM yyyy', locale);
-    if (start.year == end.year && start.month == end.month) {
-      return '${start.day} – ${full.format(end)}';
-    }
-    if (start.year == end.year) {
-      return '${DateFormat('d MMM', locale).format(start)} – ${full.format(end)}';
-    }
-    return '${full.format(start)} – ${full.format(end)}';
-  }
-
-  String _formatCost(double cost, NumberFormat formatter) {
+  String _formatCost(double cost) {
     if (cost == 0) return 'camporees.common.free'.tr();
-    return formatter.format(cost);
+    return SacMoney.format(cost);
   }
 }
 

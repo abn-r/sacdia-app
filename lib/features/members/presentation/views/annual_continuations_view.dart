@@ -190,9 +190,7 @@ class AnnualContinuationsBody extends ConsumerWidget {
             namedArgs: {'count': enrolled.toString()},
           );
 
-    SacSnackBar.show(context, message,
-        backgroundColor:
-            result.hasPartialFailure ? AppColors.accent : AppColors.secondary);
+    SacSnackBar.show(context, message, isSuccess: !result.hasPartialFailure);
   }
 }
 

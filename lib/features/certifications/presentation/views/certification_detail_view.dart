@@ -317,7 +317,7 @@ class _DetailBody extends ConsumerWidget {
 
     if (success) {
       SacSnackBar.show(context, 'certifications.detail.enroll_success'.tr(),
-          backgroundColor: AppColors.secondary);
+          isSuccess: true);
       return;
     }
 
