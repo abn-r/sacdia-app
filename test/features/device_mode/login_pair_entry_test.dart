@@ -31,7 +31,8 @@ void main() {
 
     final entry = find.byKey(const ValueKey('login_pair_device'));
     await tester.ensureVisible(entry);
-    expect(find.text('Vincular este teléfono de un niño'), findsOneWidget);
+    expect(find.text('¿Es el teléfono de un niño? Vincúlalo aquí'),
+        findsOneWidget);
 
     await tester.tap(entry);
     await tester.pumpAndSettle();
