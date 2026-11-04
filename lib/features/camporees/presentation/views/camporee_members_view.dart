@@ -21,6 +21,9 @@ import '../providers/camporees_providers.dart';
 import 'camporee_register_member_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
 
 /// Vista de miembros inscritos en un camporee.
 ///
@@ -265,34 +268,14 @@ class _EligibleMembersBody extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: SacLoading()),
-      error: (error, _) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedAlert02,
-                size: 56,
-                color: AppColors.error,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                error.toString().replaceFirst('Exception: ', ''),
-                style: TextStyle(
-                    fontSize: SacFontSize.titleSmall, color: c.textSecondary),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              SacButton.primary(
-                text: 'common.retry'.tr(),
-                icon: HugeIcons.strokeRoundedRefresh,
-                onPressed: () =>
-                    ref.invalidate(camporeeMembersProvider(camporeeId)),
-              ),
-            ],
-          ),
+      error: (error, _) => SacErrorState(
+        title: '',
+        message: userErrorMessage(error),
+        padding: SacTopBar.paddingBelowBar(
+          context,
+          const EdgeInsets.all(32),
         ),
+        onRetry: () => ref.invalidate(camporeeMembersProvider(camporeeId)),
       ),
     );
   }
@@ -517,37 +500,15 @@ class _InsuranceStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = verified ? AppColors.secondary : AppColors.warning;
-    final label = verified
-        ? 'camporees.members.insurance_verified'.tr()
-        : 'camporees.members.without_insurance'.tr();
-    final icon = verified
-        ? HugeIcons.strokeRoundedCheckmarkCircle01
-        : HugeIcons.strokeRoundedAlert02;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          HugeIcon(icon: icon, size: 11, color: color),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: SacFontSize.caption,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
+    return verified
+        ? SacBadge.success(
+            label: 'camporees.members.insurance_verified'.tr(),
+            icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+          )
+        : SacBadge.warning(
+            label: 'camporees.members.without_insurance'.tr(),
+            icon: HugeIcons.strokeRoundedAlert02,
+          );
   }
 }
 
@@ -573,7 +534,7 @@ class _TypeLabel extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-          fontSize: SacFontSize.caption,
+          fontSize: SacFontSize.labelSmall,
           fontWeight: FontWeight.w500,
           color: context.sac.textSecondary,
         ),

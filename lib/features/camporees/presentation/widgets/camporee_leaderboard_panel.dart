@@ -1,8 +1,7 @@
-import 'dart:ui' show FontFeature;
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
@@ -71,8 +70,9 @@ class CamporeeLeaderboardPanel extends StatelessWidget {
           leaderboardAsync.when(
             data: (leaderboard) {
               if (leaderboard.rows.isEmpty) {
-                return _LeaderboardEmpty(
-                  label: 'camporees.detail.leaderboard_empty'.tr(),
+                return SacEmptyState.inline(
+                  icon: HugeIcons.strokeRoundedAward01,
+                  title: 'camporees.detail.leaderboard_empty'.tr(),
                 );
               }
               return Column(
@@ -127,8 +127,8 @@ class _LeaderboardRowTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          SizedBox(
-            width: 36,
+          ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 40),
             child: Text(
               '#${row.rank}',
               style: TextStyle(
@@ -197,47 +197,6 @@ class _LeaderboardRowTile extends StatelessWidget {
   }
 }
 
-class _LeaderboardEmpty extends StatelessWidget {
-  final String label;
-
-  const _LeaderboardEmpty({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: c.surfaceVariant,
-        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-        border: Border.all(color: c.borderLight),
-      ),
-      child: Row(
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedAward01,
-            size: 18,
-            color: c.textTertiary,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: SacFontSize.titleSmall,
-                height: 1.45,
-                color: c.textSecondary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _LeaderboardRetry extends StatelessWidget {
   final String label;
   final VoidCallback onRetry;
@@ -276,13 +235,9 @@ class _LeaderboardRetry extends StatelessWidget {
               ),
             ),
           ),
-          SacPressable(
-            listenOnly: true,
-            child: TextButton(
-              style: const ButtonStyle(enableFeedback: false),
-              onPressed: onRetry,
-              child: Text('common.retry'.tr()),
-            ),
+          SacButton.text(
+            text: 'common.retry'.tr(),
+            onPressed: onRetry,
           ),
         ],
       ),

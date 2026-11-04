@@ -10,6 +10,7 @@ import '../../data/datasources/camporee_supplies_remote_data_source.dart';
 import '../../data/repositories/camporee_supplies_repository_impl.dart';
 import '../../domain/entities/camporee_supply_plan.dart';
 import '../../domain/repositories/camporee_supplies_repository.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 
 final camporeeSuppliesRemoteDataSourceProvider =
     Provider<CamporeeSuppliesRemoteDataSource>((ref) {
@@ -58,5 +59,5 @@ final camporeeSupplyPlanProvider = FutureProvider.autoDispose
 
 String camporeeSuppliesErrorMessage(Object error) {
   if (error is Failure) return error.message;
-  return error.toString().replaceFirst('Exception: ', '');
+  return userErrorMessage(error);
 }

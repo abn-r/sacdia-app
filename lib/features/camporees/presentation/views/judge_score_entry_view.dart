@@ -23,6 +23,9 @@ import 'package:sacdia_app/features/camporees/domain/entities/camporee_score_sub
 import 'package:sacdia_app/features/camporees/domain/utils/camporee_score_format.dart';
 
 import '../providers/camporees_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 
 /// Captura de puntaje por rúbrica para juez principal.
 class JudgeScoreEntryView extends ConsumerStatefulWidget {
@@ -197,9 +200,14 @@ class _JudgeScoreEntryViewState extends ConsumerState<JudgeScoreEntryView> {
             top: false,
             child: officialAsync.when(
               loading: () => const Center(child: SacLoading()),
-              error: (error, _) => _ErrorRubrics(
-                titleKey: 'camporees.judge.official_score_error',
-                message: error.toString().replaceFirst('Exception: ', ''),
+              error: (error, _) => SacErrorState(
+                scrollable: true,
+                title: 'camporees.judge.official_score_error'.tr(),
+                message: userErrorMessage(error),
+                padding: SacTopBar.paddingBelowBar(
+                  context,
+                  const EdgeInsets.all(24),
+                ),
                 onRetry: () =>
                     ref.invalidate(camporeeOfficialScoreProvider(_params)),
               ),
@@ -216,8 +224,14 @@ class _JudgeScoreEntryViewState extends ConsumerState<JudgeScoreEntryView> {
                     final rubrics = sheet.rubrics;
                     _syncControllers(rubrics);
                     if (rubrics.isEmpty) {
-                      return _EmptyRubrics(
-                        onRetry: () => ref.invalidate(
+                      return SacEmptyState(
+                        scrollable: true,
+                        icon: HugeIcons.strokeRoundedCheckList,
+                        title: 'camporees.judge.no_rubrics'.tr(),
+                        actionLabel: 'common.retry'.tr(),
+                        actionIcon: HugeIcons.strokeRoundedRefresh,
+                        actionVariant: SacButtonVariant.outline,
+                        onAction: () => ref.invalidate(
                             camporeeEventRubricsProvider(widget.eventId)),
                       );
                     }
@@ -279,8 +293,14 @@ class _JudgeScoreEntryViewState extends ConsumerState<JudgeScoreEntryView> {
                     );
                   },
                   loading: () => const Center(child: SacLoading()),
-                  error: (error, _) => _ErrorRubrics(
-                    message: error.toString().replaceFirst('Exception: ', ''),
+                  error: (error, _) => SacErrorState(
+                    scrollable: true,
+                    title: 'camporees.judge.rubrics_error'.tr(),
+                    message: userErrorMessage(error),
+                    padding: SacTopBar.paddingBelowBar(
+                      context,
+                      const EdgeInsets.all(24),
+                    ),
                     onRetry: () => ref.invalidate(
                         camporeeEventRubricsProvider(widget.eventId)),
                   ),
@@ -623,43 +643,6 @@ class _ScoreSubmitBar extends StatelessWidget {
   }
 }
 
-class _EmptyRubrics extends StatelessWidget {
-  final VoidCallback onRetry;
-
-  const _EmptyRubrics({required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(24)),
-      children: [
-        const SizedBox(height: 96),
-        HugeIcon(
-          icon: HugeIcons.strokeRoundedCheckList,
-          size: 48,
-          color: context.sac.textTertiary,
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'camporees.judge.no_rubrics'.tr(),
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: context.sac.text,
-                fontWeight: FontWeight.w800,
-              ),
-        ),
-        const SizedBox(height: 18),
-        SacButton.outline(
-          text: 'common.retry'.tr(),
-          icon: HugeIcons.strokeRoundedRefresh,
-          onPressed: onRetry,
-        ),
-      ],
-    );
-  }
-}
-
 class _OfficialScoreView extends StatelessWidget {
   final CamporeeOfficialScore score;
   final String title;
@@ -823,55 +806,6 @@ String _formatScoreDate(DateTime value) {
   final hour = value.hour.toString().padLeft(2, '0');
   final minute = value.minute.toString().padLeft(2, '0');
   return '$day/$month/${value.year} $hour:$minute';
-}
-
-class _ErrorRubrics extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-  final String titleKey;
-
-  const _ErrorRubrics({
-    required this.message,
-    required this.onRetry,
-    this.titleKey = 'camporees.judge.rubrics_error',
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(24)),
-      children: [
-        const SizedBox(height: 96),
-        HugeIcon(
-          icon: HugeIcons.strokeRoundedAlert02,
-          size: 48,
-          color: context.sac.error,
-        ),
-        const SizedBox(height: 12),
-        Text(
-          titleKey.tr(),
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: context.sac.text,
-                fontWeight: FontWeight.w800,
-              ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          message,
-          textAlign: TextAlign.center,
-          style: TextStyle(color: context.sac.textSecondary),
-        ),
-        const SizedBox(height: 20),
-        SacButton.primary(
-          text: 'common.retry'.tr(),
-          icon: HugeIcons.strokeRoundedRefresh,
-          onPressed: onRetry,
-        ),
-      ],
-    );
-  }
 }
 
 double _stepFor(double maxPoints) {

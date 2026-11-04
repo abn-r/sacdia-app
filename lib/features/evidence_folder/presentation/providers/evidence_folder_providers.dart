@@ -18,6 +18,7 @@ import '../../domain/usecases/delete_evidence_file.dart';
 import '../../domain/usecases/get_evidence_folder.dart';
 import '../../domain/usecases/submit_section.dart';
 import '../../domain/usecases/upload_evidence_file.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 
 // ── Infrastructure providers ──────────────────────────────────────────────────
 
@@ -242,7 +243,7 @@ class EvidenceSectionNotifier extends Notifier<SectionOperationState> {
         } catch (e) {
           state = state.copyWith(
             isLoading: false,
-            errorMessage: e.toString(),
+            errorMessage: userErrorMessage(e),
           );
           return false;
         }
@@ -280,7 +281,7 @@ class EvidenceSectionNotifier extends Notifier<SectionOperationState> {
         } catch (e) {
           state = state.copyWith(
             isLoading: false,
-            errorMessage: e.toString(),
+            errorMessage: userErrorMessage(e),
           );
           return false;
         }
@@ -330,7 +331,7 @@ class EvidenceSectionNotifier extends Notifier<SectionOperationState> {
         } catch (e) {
           state = state.copyWith(
             isLoading: false,
-            errorMessage: e.toString(),
+            errorMessage: userErrorMessage(e),
           );
           return false;
         }

@@ -16,6 +16,9 @@ import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_judge_assignment.dart';
 
 import '../providers/camporees_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 
 /// Lista de asignaciones donde el usuario actual es juez principal.
 ///
@@ -49,9 +52,18 @@ class JudgeAssignmentsView extends ConsumerWidget {
                       .toList();
 
                   if (primaryAssignments.isEmpty) {
-                    return _EmptyAssignments(onRetry: () {
-                      ref.invalidate(camporeeJudgeAssignmentsProvider);
-                    });
+                    return SacEmptyState(
+                      scrollable: true,
+                      icon: HugeIcons.strokeRoundedCheckList,
+                      title: 'camporees.judge.no_primary_assignments'.tr(),
+                      body: 'camporees.judge.no_primary_assignments_hint'.tr(),
+                      actionLabel: 'common.retry'.tr(),
+                      actionIcon: HugeIcons.strokeRoundedRefresh,
+                      actionVariant: SacButtonVariant.outline,
+                      onAction: () {
+                        ref.invalidate(camporeeJudgeAssignmentsProvider);
+                      },
+                    );
                   }
 
                   final groups =
@@ -89,8 +101,14 @@ class JudgeAssignmentsView extends ConsumerWidget {
                   );
                 },
                 loading: () => const Center(child: SacLoading()),
-                error: (error, _) => _ErrorAssignments(
-                  message: error.toString().replaceFirst('Exception: ', ''),
+                error: (error, _) => SacErrorState(
+                  scrollable: true,
+                  title: 'camporees.judge.assignments_error'.tr(),
+                  message: userErrorMessage(error),
+                  padding: SacTopBar.paddingBelowBar(
+                    context,
+                    const EdgeInsets.all(24),
+                  ),
                   onRetry: () =>
                       ref.invalidate(camporeeJudgeAssignmentsProvider),
                 ),
@@ -360,93 +378,6 @@ class _TintedMark extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       ),
       child: child,
-    );
-  }
-}
-
-class _EmptyAssignments extends StatelessWidget {
-  final VoidCallback onRetry;
-
-  const _EmptyAssignments({required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(24)),
-      children: [
-        const SizedBox(height: 96),
-        HugeIcon(
-          icon: HugeIcons.strokeRoundedCheckList,
-          size: 52,
-          color: context.sac.textTertiary,
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'camporees.judge.no_primary_assignments'.tr(),
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: context.sac.text,
-                fontWeight: FontWeight.w800,
-              ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'camporees.judge.no_primary_assignments_hint'.tr(),
-          textAlign: TextAlign.center,
-          style: TextStyle(color: context.sac.textSecondary, height: 1.45),
-        ),
-        const SizedBox(height: 20),
-        SacButton.outline(
-          text: 'common.retry'.tr(),
-          icon: HugeIcons.strokeRoundedRefresh,
-          onPressed: onRetry,
-        ),
-      ],
-    );
-  }
-}
-
-class _ErrorAssignments extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorAssignments({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(24)),
-      children: [
-        const SizedBox(height: 96),
-        HugeIcon(
-          icon: HugeIcons.strokeRoundedAlert02,
-          size: 48,
-          color: context.sac.error,
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'camporees.judge.assignments_error'.tr(),
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: context.sac.text,
-                fontWeight: FontWeight.w800,
-              ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          message,
-          textAlign: TextAlign.center,
-          style: TextStyle(color: context.sac.textSecondary),
-        ),
-        const SizedBox(height: 20),
-        SacButton.primary(
-          text: 'common.retry'.tr(),
-          icon: HugeIcons.strokeRoundedRefresh,
-          onPressed: onRetry,
-        ),
-      ],
     );
   }
 }

@@ -1,269 +1,128 @@
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 
-/// Shimmer-style skeleton that mirrors the ActivityDetailView layout structure.
+/// Skeleton that mirrors the ActivityDetailView layout structure.
 ///
-/// Uses an AnimationController for the shimmer sweep so the animation
-/// is properly disposed when the widget leaves the tree.
-class ActivityDetailSkeleton extends StatefulWidget {
+/// Uses the shared [SacShimmer] around the content blocks (the app bar stays
+/// outside so the back button is not tinted).
+class ActivityDetailSkeleton extends StatelessWidget {
   const ActivityDetailSkeleton({super.key});
 
   @override
-  State<ActivityDetailSkeleton> createState() => _ActivityDetailSkeletonState();
-}
-
-class _ActivityDetailSkeletonState extends State<ActivityDetailSkeleton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _shimmer;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    );
-
-    _shimmer = Tween<double>(begin: -2, end: 2).animate(
-      CurvedAnimation(parent: _controller, curve: SacMotion.easeInOut),
-    );
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final reduce = SacMotion.reduceMotionOf(context);
-    if (reduce) {
-      _controller.stop();
-      _controller.value = 0;
-    } else if (!_controller.isAnimating) {
-      _controller.repeat();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _shimmer,
-      builder: (context, _) => CustomScrollView(
-        slivers: [
-          // AppBar placeholder (back button + title)
-          SliverAppBar(
-            automaticallyImplyLeading: false,
-            leading: sacAutoBackButton(context),
-            pinned: true,
-            expandedHeight: 0,
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            foregroundColor: context.sac.text,
-          ),
+    return CustomScrollView(
+      slivers: [
+        // AppBar placeholder (back button + title)
+        SliverAppBar(
+          automaticallyImplyLeading: false,
+          leading: sacAutoBackButton(context),
+          pinned: true,
+          expandedHeight: 0,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          foregroundColor: context.sac.text,
+        ),
 
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Hero block
-                _SkeletonBox(
-                  width: double.infinity,
-                  height: 220,
-                  borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(AppTheme.radiusMD),
-                  ),
-                  shimmerValue: _shimmer.value,
-                ),
-                const SizedBox(height: 16),
+        SliverToBoxAdapter(
+          child: SacShimmer(
+            child: ExcludeSemantics(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Hero block
+                  SacSkeletonBox(height: 220, radius: AppTheme.radiusMD),
+                  const SizedBox(height: 16),
 
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Title line
-                      _SkeletonBox(
-                        width: 240,
-                        height: 22,
-                        shimmerValue: _shimmer.value,
-                      ),
-                      const SizedBox(height: 8),
-                      // Type chip + platform badge — grouped left
-                      Row(
-                        children: [
-                          _SkeletonBox(
-                            width: 68,
-                            height: 22,
-                            borderRadius: const BorderRadius.all(
-                                Radius.circular(AppTheme.radiusXS)),
-                            shimmerValue: _shimmer.value,
-                          ),
-                          const SizedBox(width: 6),
-                          _SkeletonBox(
-                            width: 80,
-                            height: 22,
-                            borderRadius: const BorderRadius.all(
-                                Radius.circular(AppTheme.radiusXS)),
-                            shimmerValue: _shimmer.value,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Title line
+                        SacSkeletonBox(width: 240, height: 22),
+                        const SizedBox(height: 8),
+                        // Type chip + platform badge — grouped left
+                        Row(
+                          children: [
+                            SacSkeletonBox(
+                                width: 68,
+                                height: 22,
+                                radius: AppTheme.radiusXS),
+                            const SizedBox(width: 6),
+                            SacSkeletonBox(
+                                width: 80,
+                                height: 22,
+                                radius: AppTheme.radiusXS),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
 
-                      // Meta line (countdown · section)
-                      _SkeletonBox(
-                        width: 180,
-                        height: 14,
-                        shimmerValue: _shimmer.value,
-                      ),
-                      const SizedBox(height: 16),
+                        // Meta line (countdown · section)
+                        SacSkeletonBox(width: 180, height: 14),
+                        const SizedBox(height: 16),
 
-                      // Info strip (single card, fecha + hora)
-                      _SkeletonBox(
-                        width: double.infinity,
-                        height: 68,
-                        borderRadius: const BorderRadius.all(
-                            Radius.circular(AppTheme.radiusMD)),
-                        shimmerValue: _shimmer.value,
-                      ),
-                      const SizedBox(height: 10),
+                        // Info strip (single card, fecha + hora)
+                        SacSkeletonBox(height: 68, radius: AppTheme.radiusMD),
+                        const SizedBox(height: 10),
 
-                      // Location row
-                      _SkeletonBox(
-                        width: double.infinity,
-                        height: 56,
-                        borderRadius: const BorderRadius.all(
-                            Radius.circular(AppTheme.radiusMD)),
-                        shimmerValue: _shimmer.value,
-                      ),
-                      const SizedBox(height: 24),
+                        // Location row
+                        SacSkeletonBox(height: 56, radius: AppTheme.radiusMD),
+                        const SizedBox(height: 24),
 
-                      // Description header
-                      _SkeletonBox(
-                        width: 120,
-                        height: 18,
-                        shimmerValue: _shimmer.value,
-                      ),
-                      const SizedBox(height: 10),
-                      // Description lines
-                      _SkeletonBox(
-                        width: double.infinity,
-                        height: 14,
-                        shimmerValue: _shimmer.value,
-                      ),
-                      const SizedBox(height: 6),
-                      _SkeletonBox(
-                        width: double.infinity,
-                        height: 14,
-                        shimmerValue: _shimmer.value,
-                      ),
-                      const SizedBox(height: 6),
-                      _SkeletonBox(
-                        width: 180,
-                        height: 14,
-                        shimmerValue: _shimmer.value,
-                      ),
-                      const SizedBox(height: 24),
+                        // Description header
+                        SacSkeletonBox(width: 120, height: 18),
+                        const SizedBox(height: 10),
+                        // Description lines
+                        SacSkeletonBox(height: 14),
+                        const SizedBox(height: 6),
+                        SacSkeletonBox(height: 14),
+                        const SizedBox(height: 6),
+                        SacSkeletonBox(width: 180, height: 14),
+                        const SizedBox(height: 24),
 
-                      // Attendees header
-                      _SkeletonBox(
-                        width: 140,
-                        height: 18,
-                        shimmerValue: _shimmer.value,
-                      ),
-                      const SizedBox(height: 12),
-                      // Avatar row
-                      Row(
-                        children: List.generate(
-                          5,
-                          (i) => Padding(
-                            padding: EdgeInsets.only(left: i == 0 ? 0 : 4),
-                            child: _SkeletonBox(
-                              width: 36,
-                              height: 36,
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(AppTheme.radiusFull),
-                              ),
-                              shimmerValue: _shimmer.value,
+                        // Attendees header
+                        SacSkeletonBox(width: 140, height: 18),
+                        const SizedBox(height: 12),
+                        // Avatar row
+                        Row(
+                          children: List.generate(
+                            5,
+                            (i) => Padding(
+                              padding: EdgeInsets.only(left: i == 0 ? 0 : 4),
+                              child: SacSkeletonBox(
+                                  width: 36,
+                                  height: 36,
+                                  radius: AppTheme.radiusFull),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
+                        const SizedBox(height: 24),
 
-                      // Creator footer
-                      Row(
-                        children: [
-                          _SkeletonBox(
-                            width: 24,
-                            height: 24,
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(AppTheme.radiusFull),
-                            ),
-                            shimmerValue: _shimmer.value,
-                          ),
-                          const SizedBox(width: 8),
-                          _SkeletonBox(
-                            width: 160,
-                            height: 12,
-                            shimmerValue: _shimmer.value,
-                          ),
-                        ],
-                      ),
+                        // Creator footer
+                        Row(
+                          children: [
+                            SacSkeletonBox(
+                                width: 24,
+                                height: 24,
+                                radius: AppTheme.radiusFull),
+                            const SizedBox(width: 8),
+                            SacSkeletonBox(width: 160, height: 12),
+                          ],
+                        ),
 
-                      // Bottom spacing for the fixed action bar
-                      const SizedBox(height: 100),
-                    ],
+                        // Bottom spacing for the fixed action bar
+                        const SizedBox(height: 100),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── _SkeletonBox ──────────────────────────────────────────────────────────────
-
-class _SkeletonBox extends StatelessWidget {
-  final double width;
-  final double height;
-  final BorderRadius borderRadius;
-  final double shimmerValue;
-
-  const _SkeletonBox({
-    required this.width,
-    required this.height,
-    this.borderRadius =
-        const BorderRadius.all(Radius.circular(AppTheme.radiusXS)),
-    required this.shimmerValue,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final baseColor = context.sac.skeleton;
-    final highlightColor = context.sac.skeletonHighlight;
-
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        borderRadius: borderRadius,
-        gradient: LinearGradient(
-          begin: Alignment(shimmerValue - 1, 0),
-          end: Alignment(shimmerValue + 1, 0),
-          colors: [baseColor, highlightColor, baseColor],
-          stops: const [0.0, 0.5, 1.0],
         ),
-      ),
+      ],
     );
   }
 }

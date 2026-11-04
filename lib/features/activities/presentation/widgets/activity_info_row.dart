@@ -8,7 +8,7 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 ///
 /// IconBox 36px + label + value.
 class ActivityInfoRow extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
   final String value;
 

@@ -220,7 +220,7 @@ class _ScoreBadge extends StatelessWidget {
           Text(
             tr('rankings.section_ranking.score_short'),
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  fontSize: SacFontSize.micro,
+                  fontSize: SacFontSize.labelSmall,
                   color: c.textTertiary,
                 ),
           ),

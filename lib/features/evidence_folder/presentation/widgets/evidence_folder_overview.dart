@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -23,7 +24,7 @@ class EvidenceFolderHero extends StatelessWidget {
     final c = context.sac;
     final progress = folder.completionRatio.clamp(0.0, 1.0).toDouble();
     final percentage = (progress * 100).round();
-    final status = _folderStatus(folder);
+    final status = _folderStatus(folder, c);
     final pointsLabel = 'evidence_folder.points_ratio'.tr(namedArgs: {
       'earned': '${folder.earnedPoints}',
       'max': '${folder.maxPoints}',
@@ -59,7 +60,7 @@ class EvidenceFolderHero extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: SacFontSize.micro,
+                      fontSize: SacFontSize.labelSmall,
                       fontWeight: FontWeight.w600,
                       color: c.textTertiary,
                       letterSpacing: 0.7,
@@ -81,17 +82,17 @@ class EvidenceFolderHero extends StatelessWidget {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const HugeIcon(
+                      HugeIcon(
                         icon: HugeIcons.strokeRoundedStar,
                         size: 12,
-                        color: AppColors.accentDark,
+                        color: c.onWarningContainer,
                       ),
                       const SizedBox(width: 4),
                       Flexible(
                         child: Text(
                           pointsLabel,
                           style: TextStyle(
-                            fontSize: SacFontSize.caption,
+                            fontSize: SacFontSize.labelSmall,
                             fontWeight: FontWeight.w700,
                             color: c.textSecondary,
                           ),
@@ -168,7 +169,7 @@ class _FolderStatusBadge extends StatelessWidget {
             child: Text(
               status.label,
               style: TextStyle(
-                fontSize: SacFontSize.micro,
+                fontSize: SacFontSize.labelSmall,
                 fontWeight: FontWeight.w700,
                 color: status.color,
               ),
@@ -289,7 +290,7 @@ class _EvidenceStatusPill extends StatelessWidget {
             Text(
               data.label,
               style: TextStyle(
-                fontSize: SacFontSize.caption,
+                fontSize: SacFontSize.labelSmall,
                 fontWeight: FontWeight.w600,
                 color: context.sac.textSecondary,
               ),
@@ -442,7 +443,7 @@ class EvidenceSearchEmpty extends StatelessWidget {
 
 class _FolderStatus {
   final String label;
-  final List<List<dynamic>> icon;
+  final HugeIconData icon;
   final Color color;
 
   const _FolderStatus({
@@ -452,39 +453,39 @@ class _FolderStatus {
   });
 }
 
-_FolderStatus _folderStatus(EvidenceFolder folder) {
+_FolderStatus _folderStatus(EvidenceFolder folder, SacColors c) {
   if (folder.isEvaluated) {
     return _FolderStatus(
       label: 'evidence_folder.status.validated'.tr(),
       icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-      color: AppColors.secondaryDark,
+      color: c.onSuccessContainer,
     );
   }
   if (folder.isUnderEvaluation) {
     return _FolderStatus(
       label: 'evidence_folder.evaluation_banner.title'.tr(),
       icon: HugeIcons.strokeRoundedAnalytics01,
-      color: AppColors.accentDark,
+      color: c.onWarningContainer,
     );
   }
   if (folder.status == 'submitted') {
     return _FolderStatus(
       label: 'evidence_folder.status.submitted'.tr(),
       icon: HugeIcons.strokeRoundedSent,
-      color: AppColors.info,
+      color: c.onInfoContainer,
     );
   }
   if (folder.status == 'closed' || !folder.isOpen) {
     return _FolderStatus(
       label: 'evidence_folder.status.closed'.tr(),
       icon: HugeIcons.strokeRoundedLocked,
-      color: AppColors.errorDark,
+      color: c.onErrorContainer,
     );
   }
   return _FolderStatus(
     label: 'evidence_folder.status.open'.tr(),
     icon: HugeIcons.strokeRoundedLock,
-    color: AppColors.secondaryDark,
+    color: c.onSuccessContainer,
   );
 }
 
@@ -492,7 +493,7 @@ class _SectionStatusPillData {
   final String keyName;
   final EvidenceSectionStatus status;
   final String label;
-  final List<List<dynamic>> icon;
+  final HugeIconData icon;
   final Color color;
 
   const _SectionStatusPillData({

@@ -8,7 +8,6 @@ import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 
 import 'package:sacdia_app/providers/catalogs_provider.dart';
@@ -24,6 +23,9 @@ import 'activity_detail_view.dart';
 import 'create_activity_view.dart';
 import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 
 /// Vista de lista de actividades - Estilo "Scout Vibrante"
 ///
@@ -382,29 +384,20 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
 
                     late final Widget content;
                     if (filtered.isEmpty) {
-                      content = Center(
+                      content = RefreshIndicator(
                         key: ValueKey('empty-$isChronologicalView'),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            HugeIcon(
-                              icon: HugeIcons.strokeRoundedCalendar04,
-                              size: 56,
-                              color: c.textTertiary,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              !isChronologicalView && selectedDate != null
-                                  ? 'activities.list.empty_this_day'.tr()
-                                  : selectedFilter != null
-                                      ? 'activities.list.empty_this_type'.tr()
-                                      : 'activities.list.empty_general'.tr(),
-                              style: TextStyle(
-                                fontSize: SacFontSize.titleMedium,
-                                color: c.textSecondary,
-                              ),
-                            ),
-                          ],
+                        color: SacAccent.of(context).color,
+                        onRefresh: () async {
+                          ref.invalidate(clubActivitiesProvider);
+                        },
+                        child: SacEmptyState(
+                          scrollable: true,
+                          icon: HugeIcons.strokeRoundedCalendar04,
+                          title: !isChronologicalView && selectedDate != null
+                              ? 'activities.list.empty_this_day'.tr()
+                              : selectedFilter != null
+                                  ? 'activities.list.empty_this_type'.tr()
+                                  : 'activities.list.empty_general'.tr(),
                         ),
                       );
                     } else if (isChronologicalView) {
@@ -515,35 +508,18 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                     );
                   },
                   loading: () => const ActivitiesLoadingSkeleton(),
-                  error: (error, stack) => Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedAlert02,
-                            size: 56,
-                            color: AppColors.error,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'activities.list.error_load'.tr(),
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 24),
-                          SacButton.primary(
-                            text: 'common.retry'.tr(),
-                            icon: HugeIcons.strokeRoundedRefresh,
-                            onPressed: () {
-                              ref.invalidate(clubActivitiesProvider);
-                            },
-                          ),
-                        ],
-                      ),
+                  error: (error, stack) => RefreshIndicator(
+                    color: SacAccent.of(context).color,
+                    onRefresh: () async {
+                      ref.invalidate(clubActivitiesProvider);
+                    },
+                    child: SacErrorState(
+                      scrollable: true,
+                      title: 'activities.list.error_load'.tr(),
+                      message: userErrorMessage(error),
+                      onRetry: () {
+                        ref.invalidate(clubActivitiesProvider);
+                      },
                     ),
                   ),
                 );
@@ -652,18 +628,29 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                               }
                             });
                           },
-                          child: Padding(
-                            padding: const EdgeInsets.all(9),
-                            child: Row(
-                              children: [
-                                HugeIcon(
-                                  icon: HugeIcons.strokeRoundedAdd01,
-                                  size: 20,
-                                  color: c.textSecondary,
-                                ),
-                                const SizedBox(width: 5),
-                                Text('activities.list.add'.tr()),
-                              ],
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(
+                              minHeight: 44,
+                              minWidth: 44,
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 9,
+                                vertical: 9,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  HugeIcon(
+                                    icon: HugeIcons.strokeRoundedAdd01,
+                                    size: 20,
+                                    color: c.textSecondary,
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text('activities.list.add'.tr()),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -711,16 +698,26 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                               if (next) _shouldScrollToToday = true;
                               _isChronologicalView.value = next;
                             },
-                            child: Padding(
-                              padding: const EdgeInsets.all(9),
-                              child: HugeIcon(
-                                icon: isChronologicalView
-                                    ? HugeIcons.strokeRoundedCalendar01
-                                    : HugeIcons.strokeRoundedListView,
-                                size: 20,
-                                color: isChronologicalView
-                                    ? Colors.white
-                                    : c.textSecondary,
+                            child: Semantics(
+                              button: true,
+                              label: 'activities.list.toggle_view'.tr(),
+                              toggled: isChronologicalView,
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  minHeight: 44,
+                                  minWidth: 44,
+                                ),
+                                child: Center(
+                                  child: HugeIcon(
+                                    icon: isChronologicalView
+                                        ? HugeIcons.strokeRoundedCalendar01
+                                        : HugeIcons.strokeRoundedListView,
+                                    size: 20,
+                                    color: isChronologicalView
+                                        ? Colors.white
+                                        : c.textSecondary,
+                                  ),
+                                ),
                               ),
                             ),
                           ),

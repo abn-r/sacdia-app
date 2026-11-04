@@ -1,8 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/validation.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -14,7 +15,7 @@ class ValidationStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final config = _configFor(status);
+    final config = _configFor(context, status);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -58,34 +59,35 @@ class ValidationStatusBadge extends StatelessWidget {
     }
   }
 
-  _BadgeConfig _configFor(ValidationStatus status) {
+  _BadgeConfig _configFor(BuildContext context, ValidationStatus status) {
+    final c = context.sac;
     switch (status) {
       case ValidationStatus.approved:
         return _BadgeConfig(
-          bg: AppColors.secondaryLight,
-          fg: AppColors.secondaryDark,
-          border: AppColors.secondary.withValues(alpha: 0.4),
+          bg: c.successContainer,
+          fg: c.onSuccessContainer,
+          border: c.success.withValues(alpha: 0.4),
           icon: HugeIcons.strokeRoundedCheckmarkCircle02,
         );
       case ValidationStatus.rejected:
         return _BadgeConfig(
-          bg: AppColors.errorLight,
-          fg: AppColors.errorDark,
-          border: AppColors.error.withValues(alpha: 0.3),
+          bg: c.errorContainer,
+          fg: c.onErrorContainer,
+          border: c.error.withValues(alpha: 0.3),
           icon: HugeIcons.strokeRoundedCancel01,
         );
       case ValidationStatus.pendingReview:
         return _BadgeConfig(
-          bg: AppColors.accentLight,
-          fg: AppColors.accentDark,
-          border: AppColors.accent.withValues(alpha: 0.4),
+          bg: c.warningContainer,
+          fg: c.onWarningContainer,
+          border: c.warning.withValues(alpha: 0.4),
           icon: HugeIcons.strokeRoundedClock01,
         );
       case ValidationStatus.inProgress:
         return _BadgeConfig(
-          bg: AppColors.statusInfoBgLight,
-          fg: AppColors.statusInfoText,
-          border: AppColors.statusInfoText.withValues(alpha: 0.2),
+          bg: c.infoContainer,
+          fg: c.onInfoContainer,
+          border: c.info.withValues(alpha: 0.3),
           icon: HugeIcons.strokeRoundedLoading01,
         );
     }
@@ -96,7 +98,7 @@ class _BadgeConfig {
   final Color bg;
   final Color fg;
   final Color border;
-  final dynamic icon;
+  final HugeIconData icon;
 
   const _BadgeConfig({
     required this.bg,

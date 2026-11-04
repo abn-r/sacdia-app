@@ -1,81 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
-import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 
-class EvidenceFolderLoadingSkeleton extends StatefulWidget {
+/// Skeleton de la carpeta de evidencias: un único [SacShimmer] sobre bloques
+/// [SacSkeletonBox] (las tarjetas no llevan relleno propio: el shimmer pinta
+/// todos los píxeles y taparía los bloques internos).
+class EvidenceFolderLoadingSkeleton extends StatelessWidget {
   const EvidenceFolderLoadingSkeleton({super.key});
 
   @override
-  State<EvidenceFolderLoadingSkeleton> createState() =>
-      _EvidenceFolderLoadingSkeletonState();
-}
-
-class _EvidenceFolderLoadingSkeletonState
-    extends State<EvidenceFolderLoadingSkeleton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _shimmer;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    );
-
-    _shimmer = Tween<double>(begin: -2, end: 2).animate(
-      CurvedAnimation(parent: _controller, curve: SacMotion.easeInOut),
-    );
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final reduce = SacMotion.reduceMotionOf(context);
-    if (reduce) {
-      _controller.stop();
-      _controller.value = 0;
-    } else if (!_controller.isAnimating) {
-      _controller.repeat();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _shimmer,
-      builder: (context, _) => ListView(
-        padding: const EdgeInsets.only(bottom: 32),
-        children: [
-          // ── Header card skeleton ─────────────────────────────────────────
-          _buildHeaderCard(),
-          const SizedBox(height: 10),
+    return SacShimmer(
+      child: ExcludeSemantics(
+        child: ListView(
+          padding: const EdgeInsets.only(bottom: 32),
+          physics: const NeverScrollableScrollPhysics(),
+          children: [
+            // ── Header card skeleton ───────────────────────────────────────
+            _buildHeaderCard(),
+            const SizedBox(height: 10),
 
-          // ── Progress summary row (3 stat pills) ──────────────────────────
-          _buildProgressSummaryRow(),
-          const SizedBox(height: 16),
+            // ── Progress summary row (3 stat pills) ────────────────────────
+            _buildProgressSummaryRow(),
+            const SizedBox(height: 16),
 
-          // ── "Secciones" label ────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: _SkeletonBox(
-              width: 90,
-              height: 16,
-              shimmerValue: _shimmer.value,
+            // ── "Secciones" label ──────────────────────────────────────────
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: SacSkeletonBox(width: 90, height: 16),
+              ),
             ),
-          ),
 
-          // ── Section card skeletons (5 rows) ──────────────────────────────
-          ...List.generate(5, (i) => _buildSectionCard(i)),
-        ],
+            // ── Section card skeletons (5 rows) ────────────────────────────
+            ...List.generate(5, _buildSectionCard),
+          ],
+        ),
       ),
     );
   }
@@ -83,14 +44,9 @@ class _EvidenceFolderLoadingSkeletonState
   // ── Header card ─────────────────────────────────────────────────────────────
 
   Widget _buildHeaderCard() {
-    final sv = _shimmer.value;
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: context.sac.skeletonSurface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -99,49 +55,31 @@ class _EvidenceFolderLoadingSkeletonState
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
-                child: _SkeletonBox(
-                    width: double.infinity, height: 15, shimmerValue: sv),
+                child: SacSkeletonBox(height: 15),
               ),
               const SizedBox(width: 10),
-              _SkeletonBox(
-                width: 68,
-                height: 24,
-                borderRadius:
-                    const BorderRadius.all(Radius.circular(AppTheme.radiusLG)),
-                shimmerValue: sv,
-              ),
+              SacSkeletonBox(width: 68, height: 24, radius: AppTheme.radiusLG),
             ],
           ),
           const SizedBox(height: 8),
 
           // Descripción (2 líneas)
-          _SkeletonBox(width: double.infinity, height: 12, shimmerValue: sv),
+          SacSkeletonBox(height: 12),
           const SizedBox(height: 5),
-          _SkeletonBox(width: 200, height: 12, shimmerValue: sv),
+          SacSkeletonBox(width: 200, height: 12),
 
           const SizedBox(height: 14),
-          _SkeletonBox(
-            width: double.infinity,
-            height: 1,
-            borderRadius: BorderRadius.zero,
-            shimmerValue: sv,
-          ),
+          SacSkeletonBox(height: 1, radius: 0),
           const SizedBox(height: 12),
 
           // Progress bar + porcentaje
           Row(
             children: [
               Expanded(
-                child: _SkeletonBox(
-                  width: double.infinity,
-                  height: 5,
-                  borderRadius: const BorderRadius.all(
-                      Radius.circular(AppTheme.radius2XS)),
-                  shimmerValue: sv,
-                ),
+                child: SacSkeletonBox(height: 5, radius: AppTheme.radius2XS),
               ),
               const SizedBox(width: 10),
-              _SkeletonBox(width: 32, height: 12, shimmerValue: sv),
+              SacSkeletonBox(width: 32, height: 12),
             ],
           ),
           const SizedBox(height: 10),
@@ -149,15 +87,9 @@ class _EvidenceFolderLoadingSkeletonState
           // Puntos
           Row(
             children: [
-              _SkeletonBox(
-                width: 13,
-                height: 13,
-                borderRadius:
-                    const BorderRadius.all(Radius.circular(AppTheme.radius2XS)),
-                shimmerValue: sv,
-              ),
+              SacSkeletonBox(width: 13, height: 13, radius: AppTheme.radius2XS),
               const SizedBox(width: 5),
-              _SkeletonBox(width: 100, height: 12, shimmerValue: sv),
+              SacSkeletonBox(width: 100, height: 12),
             ],
           ),
         ],
@@ -168,7 +100,6 @@ class _EvidenceFolderLoadingSkeletonState
   // ── Progress summary row ─────────────────────────────────────────────────────
 
   Widget _buildProgressSummaryRow() {
-    final sv = _shimmer.value;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
       child: Row(
@@ -177,16 +108,12 @@ class _EvidenceFolderLoadingSkeletonState
             child: Container(
               margin: EdgeInsets.only(right: i < 2 ? 8 : 0),
               padding: const EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                color: context.sac.skeletonSurface,
-                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _SkeletonBox(width: 24, height: 16, shimmerValue: sv),
+                  SacSkeletonBox(width: 24, height: 16),
                   const SizedBox(height: 4),
-                  _SkeletonBox(width: 54, height: 10, shimmerValue: sv),
+                  SacSkeletonBox(width: 54, height: 10),
                 ],
               ),
             ),
@@ -199,99 +126,37 @@ class _EvidenceFolderLoadingSkeletonState
   // ── Section card ─────────────────────────────────────────────────────────────
 
   Widget _buildSectionCard(int index) {
-    final sv = _shimmer.value;
     final nameWidths = [160.0, 140.0, 180.0, 150.0, 170.0];
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       child: Container(
         padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: context.sac.skeletonSurface,
-          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        ),
         child: Row(
           children: [
             // Ícono de sección
-            _SkeletonBox(
-              width: 38,
-              height: 38,
-              borderRadius:
-                  const BorderRadius.all(Radius.circular(AppTheme.radiusXS)),
-              shimmerValue: sv,
-            ),
+            SacSkeletonBox(width: 38, height: 38, radius: AppTheme.radiusXS),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _SkeletonBox(
-                    width: nameWidths[index % nameWidths.length],
-                    height: 14,
-                    shimmerValue: sv,
-                  ),
+                  SacSkeletonBox(
+                      width: nameWidths[index % nameWidths.length], height: 14),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      _SkeletonBox(width: 60, height: 11, shimmerValue: sv),
+                      SacSkeletonBox(width: 60, height: 11),
                       const SizedBox(width: 8),
-                      _SkeletonBox(
-                        width: 50,
-                        height: 18,
-                        borderRadius: const BorderRadius.all(
-                            Radius.circular(AppTheme.radiusLG)),
-                        shimmerValue: sv,
-                      ),
+                      SacSkeletonBox(
+                          width: 50, height: 18, radius: AppTheme.radiusLG),
                     ],
                   ),
                 ],
               ),
             ),
             // Chevron
-            _SkeletonBox(
-              width: 16,
-              height: 16,
-              borderRadius:
-                  const BorderRadius.all(Radius.circular(AppTheme.radius2XS)),
-              shimmerValue: sv,
-            ),
+            SacSkeletonBox(width: 16, height: 16, radius: AppTheme.radius2XS),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── _SkeletonBox ──────────────────────────────────────────────────────────────
-
-class _SkeletonBox extends StatelessWidget {
-  final double width;
-  final double height;
-  final BorderRadius borderRadius;
-  final double shimmerValue;
-
-  const _SkeletonBox({
-    required this.width,
-    required this.height,
-    this.borderRadius =
-        const BorderRadius.all(Radius.circular(AppTheme.radiusXS)),
-    required this.shimmerValue,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final baseColor = context.sac.skeleton;
-    final highlightColor = context.sac.skeletonHighlight;
-
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        borderRadius: borderRadius,
-        gradient: LinearGradient(
-          begin: Alignment(shimmerValue - 1, 0),
-          end: Alignment(shimmerValue + 1, 0),
-          colors: [baseColor, highlightColor, baseColor],
-          stops: const [0.0, 0.5, 1.0],
         ),
       ),
     );

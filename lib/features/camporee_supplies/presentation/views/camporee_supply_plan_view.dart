@@ -27,6 +27,7 @@ import 'package:sacdia_app/features/camporee_supplies/domain/utils/camporee_supp
 import 'package:sacdia_app/features/camporee_supplies/presentation/providers/camporee_supplies_providers.dart';
 import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_participant_access_gate.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 
 class CamporeeSuppliesCta extends ConsumerWidget {
   final int camporeeId;
@@ -119,8 +120,14 @@ class _CamporeeSupplyPlanViewState
         child: Builder(
           builder: (context) => envelopeAsync.when(
             loading: () => const SacLoading(),
-            error: (error, _) => Center(
-              child: Text(camporeeSuppliesErrorMessage(error)),
+            error: (error, _) => SacErrorState(
+              title: '',
+              message: camporeeSuppliesErrorMessage(error),
+              padding: SacTopBar.paddingBelowBar(
+                context,
+                const EdgeInsets.all(32),
+              ),
+              onRetry: () => ref.invalidate(camporeeSupplyPlanProvider(_scope)),
             ),
             data: (loaded) {
               final plan = loaded.plan;
@@ -357,11 +364,13 @@ class _CutoffCaption extends StatelessWidget {
       namedArgs: {'time': time},
     );
 
+    final c = context.sac;
+
     return Align(
       alignment: Alignment.center,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: AppColors.accentLight,
+          color: c.warningContainer,
           borderRadius: BorderRadius.circular(AppTheme.radiusFull),
         ),
         child: Padding(
@@ -372,14 +381,14 @@ class _CutoffCaption extends StatelessWidget {
               HugeIcon(
                 icon: HugeIcons.strokeRoundedClock01,
                 size: 14,
-                color: AppColors.accentDark,
+                color: c.onWarningContainer,
               ),
               const SizedBox(width: 6),
               Text(
                 label,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppColors.accentDark,
+                style: TextStyle(
+                  color: c.onWarningContainer,
                   fontSize: SacFontSize.bodyMedium,
                   fontWeight: FontWeight.w700,
                   height: 1.25,

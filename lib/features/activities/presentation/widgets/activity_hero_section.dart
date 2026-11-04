@@ -1,7 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -61,6 +62,7 @@ class ActivityHeroSection extends StatelessWidget {
   }
 
   Widget _buildLocationFallback(BuildContext context) {
+    final c = context.sac;
     final content = Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -69,12 +71,12 @@ class ActivityHeroSection extends StatelessWidget {
           width: 52,
           height: 52,
           decoration: BoxDecoration(
-            color: AppColors.secondary.withValues(alpha: 0.15),
+            color: c.success.withValues(alpha: 0.2),
             shape: BoxShape.circle,
           ),
-          child: const HugeIcon(
+          child: HugeIcon(
             icon: HugeIcons.strokeRoundedLocation01,
-            color: AppColors.secondary,
+            color: c.onSuccessContainer,
             size: 26,
           ),
         ),
@@ -82,7 +84,7 @@ class ActivityHeroSection extends StatelessWidget {
         Text(
           activity.activityPlace,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: AppColors.secondaryDark,
+                color: c.onSuccessContainer,
                 fontWeight: FontWeight.w600,
               ),
           textAlign: TextAlign.center,
@@ -94,31 +96,22 @@ class ActivityHeroSection extends StatelessWidget {
           Text(
             '${activity.lat!.toStringAsFixed(4)}, ${activity.longitude!.toStringAsFixed(4)}',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.secondaryDark.withValues(alpha: 0.7),
+                  color: c.onSuccessContainer,
                 ),
           ),
         ],
         const SizedBox(height: 12),
-        SacPressable(
-          listenOnly: true,
-          child: TextButton.icon(
-            onPressed: () => showActivityMapOptions(context, activity),
-            icon: const HugeIcon(icon: HugeIcons.strokeRoundedMaps, size: 16),
-            label: Text('activities.widgets.open_in_maps'.tr()),
-            style: (TextButton.styleFrom(
-              foregroundColor: AppColors.secondaryDark,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              textStyle: const TextStyle(
-                  fontSize: SacFontSize.bodyMedium,
-                  fontWeight: FontWeight.w600),
-            )).copyWith(enableFeedback: false),
-          ),
+        SacButton.text(
+          text: 'activities.widgets.open_in_maps'.tr(),
+          icon: HugeIcons.strokeRoundedMaps,
+          color: c.onSuccessContainer,
+          onPressed: () => showActivityMapOptions(context, activity),
         ),
       ],
     );
 
     return Container(
-      color: AppColors.secondaryLight,
+      color: c.successContainer,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         child: Center(
@@ -151,10 +144,7 @@ class ActivityHeroSection extends StatelessWidget {
         placeholder: (_, __) => Container(
           color: context.sac.surfaceVariant,
           child: Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: SacAccent.of(context).color,
-            ),
+            child: SacLoadingSmall(color: SacAccent.of(context).color),
           ),
         ),
         errorWidget: (_, __, ___) => _buildVideoFallback(context),
@@ -182,8 +172,9 @@ class ActivityHeroSection extends StatelessWidget {
   }
 
   Widget _buildVideoFallback(BuildContext context) {
+    final c = context.sac;
     return Container(
-      color: AppColors.info.withValues(alpha: 0.12),
+      color: c.infoContainer,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -191,20 +182,20 @@ class ActivityHeroSection extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: AppColors.info.withValues(alpha: 0.18),
+              color: c.info.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: HugeIcon(
               icon: HugeIcons.strokeRoundedComputerVideoCall,
               size: 28,
-              color: AppColors.info,
+              color: c.onInfoContainer,
             ),
           ),
           const SizedBox(height: 10),
           Text(
             'activities.widgets.virtual_fallback'.tr(),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: AppColors.info,
+                  color: c.onInfoContainer,
                   fontWeight: FontWeight.w600,
                 ),
           ),

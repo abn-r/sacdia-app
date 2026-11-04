@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/sac_skeleton.dart';
 
 /// Skeleton de contenido para pantallas de ranking.
 ///
@@ -9,9 +9,7 @@ import '../../../../core/theme/app_theme.dart';
 /// - [RankingSkeleton.myRanking] — layout de MyRankingScreen.
 /// - [RankingSkeleton.sectionList] — lista de sección.
 ///
-/// Usa animación de opacidad simple para el efecto shimmer.
-/// Respeta `MediaQuery.disableAnimations` para usuarios con
-/// `prefers-reduced-motion` activado en el dispositivo.
+/// Usa el `SacShimmer` compartido (respeta reduce motion).
 class RankingSkeleton extends StatefulWidget {
   final _SkeletonMode _mode;
   final int _rowCount;
@@ -41,59 +39,12 @@ class RankingSkeleton extends StatefulWidget {
 
 enum _SkeletonMode { myRanking, annualProgress, sectionList }
 
-class _RankingSkeletonState extends State<RankingSkeleton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _opacity;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    );
-
-    _opacity = Tween<double>(begin: 0.4, end: 0.9).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final reduceMotion =
-        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-    if (reduceMotion) {
-      if (_controller.isAnimating) {
-        _controller.stop();
-        _controller.value = 0.9; // settle to high-opacity end state
-      }
-    } else {
-      if (!_controller.isAnimating) {
-        _controller.repeat(reverse: true);
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
+class _RankingSkeletonState extends State<RankingSkeleton> {
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _opacity,
-      builder: (context, _) {
-        return Opacity(
-          opacity: _opacity.value,
-          child: _buildContent(),
-        );
-      },
-    );
+    // Un único SacShimmer sobre bloques SacSkeletonBox; el shimmer respeta
+    // reduce motion por su cuenta.
+    return SacShimmer(child: ExcludeSemantics(child: _buildContent()));
   }
 
   Widget _buildContent() {
@@ -120,7 +71,6 @@ class _RankingSkeletonState extends State<RankingSkeleton>
             // Hero card oscura ~120dp.
             _ShimmerBox(
               height: 120,
-              color: AppColors.darkSurfaceVariant,
               borderRadius: AppTheme.radiusMD,
             ),
 
@@ -203,16 +153,14 @@ class _RankingSkeletonState extends State<RankingSkeleton>
   }
 }
 
-/// Caja de shimmer con forma rectangular.
+/// Caja de skeleton con forma rectangular (ancho = fracción del disponible).
 class _ShimmerBox extends StatelessWidget {
   final double height;
-  final Color? color;
   final double borderRadius;
   final double widthFactor;
 
   const _ShimmerBox({
     required this.height,
-    this.color,
     this.borderRadius = 8,
     this.widthFactor = 1.0,
   });
@@ -221,13 +169,7 @@ class _ShimmerBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return FractionallySizedBox(
       widthFactor: widthFactor,
-      child: Container(
-        height: height,
-        decoration: BoxDecoration(
-          color: color ?? AppColors.lightSurfaceVariant,
-          borderRadius: BorderRadius.circular(borderRadius),
-        ),
-      ),
+      child: SacSkeletonBox(height: height, radius: borderRadius),
     );
   }
 }
@@ -239,14 +181,7 @@ class _SectionRowSkeleton extends StatelessWidget {
     return Row(
       children: [
         // Círculo izquierdo (posición / avatar).
-        Container(
-          width: 32,
-          height: 32,
-          decoration: const BoxDecoration(
-            color: AppColors.lightSurfaceVariant,
-            shape: BoxShape.circle,
-          ),
-        ),
+        const SacSkeletonBox(width: 32, height: 32, radius: 16),
         const SizedBox(width: 12),
 
         // Barra central (nombre).

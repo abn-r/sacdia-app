@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -235,7 +236,7 @@ class StatusTimeline extends StatelessWidget {
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: SacFontSize.caption,
+                    fontSize: SacFontSize.labelSmall,
                     height: 1.3,
                     color: c.textSecondary,
                   ),
@@ -252,7 +253,7 @@ class StatusTimeline extends StatelessWidget {
 class _TimelineStep {
   final String label;
   final String sublabel;
-  final List<List<dynamic>> icon;
+  final HugeIconData icon;
   final bool isCompleted;
   final bool isActive;
   final Color activeColor;

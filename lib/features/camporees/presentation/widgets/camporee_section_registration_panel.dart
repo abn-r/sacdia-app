@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -276,7 +277,7 @@ class _RegistrationError extends StatelessWidget {
 class _RegistrationPresentation {
   final String title;
   final String description;
-  final List<List<dynamic>> icon;
+  final HugeIconData icon;
   final Color color;
 
   const _RegistrationPresentation({
@@ -299,7 +300,7 @@ _RegistrationPresentation _presentationFor(
 ) {
   final colors = context.sac;
   String key;
-  late List<List<dynamic>> icon;
+  late HugeIconData icon;
   Color color;
 
   switch (registration.status) {

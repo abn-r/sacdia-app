@@ -24,6 +24,9 @@ import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../domain/utils/camporee_registration_payment_flow.dart';
 import '../providers/camporees_providers.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 
 /// Vista para seleccionar e inscribir miembros del club activo en un camporee.
 ///
@@ -81,8 +84,14 @@ class _CamporeeRegisterMemberViewState
             child: switch (paymentFlow) {
               CamporeeRegistrationPaymentFlow.loading =>
                 const _PaymentOrdersContextLoading(),
-              CamporeeRegistrationPaymentFlow.unavailable =>
-                _PaymentOrdersContextError(
+              CamporeeRegistrationPaymentFlow.unavailable => SacErrorState(
+                  title: 'payment_orders.camporee_redirect.context_error'.tr(),
+                  message: 'payment_orders.camporee_redirect.context_error_hint'
+                      .tr(),
+                  padding: SacTopBar.paddingBelowBar(
+                    context,
+                    const EdgeInsets.all(32),
+                  ),
                   onRetry: () => ref.invalidate(paymentOrdersContextProvider),
                 ),
               // El caso real regresa IssuePaymentOrderView antes del Scaffold.
@@ -135,10 +144,9 @@ class _CamporeeRegisterMemberViewState
     Map<String, int> insuranceIdsByUserId,
   ) async {
     if (insuranceIdsByUserId.isEmpty) {
-      _showSnack(
+      SacSnackBar.show(
         context,
         'camporees.register_member.already_selected'.tr(),
-        AppColors.accent,
       );
       return;
     }
@@ -155,12 +163,12 @@ class _CamporeeRegisterMemberViewState
     if (!context.mounted) return;
 
     if (result.isSuccess) {
-      _showSnack(
+      SacSnackBar.show(
         context,
         'camporees.register_member.success_many'.tr(
           namedArgs: {'count': result.successCount.toString()},
         ),
-        AppColors.secondary,
+        isSuccess: true,
       );
       Navigator.pop(context);
       return;
@@ -168,7 +176,7 @@ class _CamporeeRegisterMemberViewState
 
     if (result.hasAnySuccess) {
       setState(() => _selectedUserIds.clear());
-      _showSnack(
+      SacSnackBar.show(
         context,
         'camporees.register_member.partial_success'.tr(
           namedArgs: {
@@ -176,13 +184,8 @@ class _CamporeeRegisterMemberViewState
             'failed': result.failureCount.toString(),
           },
         ),
-        AppColors.accent,
       );
     }
-  }
-
-  void _showSnack(BuildContext context, String message, Color color) {
-    SacSnackBar.show(context, message, backgroundColor: color);
   }
 }
 
@@ -305,13 +308,14 @@ class _InfoBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.accentLight,
+        color: c.warningContainer,
         borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-        border: Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
+        border: Border.all(color: c.warning.withValues(alpha: 0.4)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,7 +323,7 @@ class _InfoBanner extends StatelessWidget {
           HugeIcon(
             icon: HugeIcons.strokeRoundedInformationCircle,
             size: 19,
-            color: AppColors.accentDark,
+            color: c.onWarningContainer,
           ),
           const SizedBox(width: 9),
           Expanded(
@@ -327,7 +331,7 @@ class _InfoBanner extends StatelessWidget {
               'camporees.register_member.info_banner'.tr(),
               style: TextStyle(
                 fontSize: SacFontSize.bodySmall,
-                color: AppColors.accentDark,
+                color: c.onWarningContainer,
                 height: 1.45,
               ),
             ),
@@ -345,18 +349,21 @@ class _ErrorBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.error.withValues(alpha: 0.08),
+        color: c.errorContainer,
         borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+        border: Border.all(color: c.error.withValues(alpha: 0.3)),
       ),
       child: Text(
         message,
-        style:
-            TextStyle(fontSize: SacFontSize.bodyMedium, color: AppColors.error),
+        style: TextStyle(
+          fontSize: SacFontSize.bodyMedium,
+          color: c.onErrorContainer,
+        ),
       ),
     );
   }
@@ -374,7 +381,7 @@ class _AlreadyRegisteredHint extends StatelessWidget {
         HugeIcon(
           icon: HugeIcons.strokeRoundedCheckmarkCircle02,
           size: 15,
-          color: AppColors.secondary,
+          color: context.sac.onSuccessContainer,
         ),
         const SizedBox(width: 6),
         Expanded(
@@ -416,7 +423,11 @@ class _SelectedMembersCard extends StatelessWidget {
         border: Border.all(color: c.border),
       ),
       child: selectedIds.isEmpty
-          ? _EmptySelection(c: c)
+          ? SacEmptyState.inline(
+              icon: HugeIcons.strokeRoundedUserGroup,
+              title: 'camporees.register_member.selected_empty_title'.tr(),
+              body: 'camporees.register_member.selected_empty_subtitle'.tr(),
+            )
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -484,53 +495,6 @@ class _SelectedMembersCard extends StatelessWidget {
                 ],
               ],
             ),
-    );
-  }
-}
-
-class _EmptySelection extends StatelessWidget {
-  final SacColors c;
-
-  const _EmptySelection({required this.c});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 46,
-          height: 46,
-          decoration: BoxDecoration(
-            color: SacAccent.of(context).color.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-          ),
-          child: Center(
-            child: HugeIcon(
-              icon: HugeIcons.strokeRoundedUserGroup,
-              size: 23,
-              color: SacAccent.of(context).color,
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          'camporees.register_member.selected_empty_title'.tr(),
-          style: TextStyle(
-            fontSize: SacFontSize.titleSmall,
-            fontWeight: FontWeight.w700,
-            color: c.text,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'camporees.register_member.selected_empty_subtitle'.tr(),
-          textAlign: TextAlign.center,
-          style: TextStyle(
-              fontSize: SacFontSize.bodySmall,
-              height: 1.4,
-              color: c.textSecondary),
-        ),
-      ],
     );
   }
 }
@@ -767,8 +731,9 @@ class _MemberPickerSheetState extends ConsumerState<_MemberPickerSheet> {
     final error = membersAsync.whenOrNull(error: (error, _) => error) ??
         registeredIdsAsync.whenOrNull(error: (error, _) => error);
     if (error != null) {
-      return _PickerError(
-        message: error.toString().replaceFirst('Exception: ', ''),
+      return SacErrorState(
+        title: '',
+        message: userErrorMessage(error),
         onRetry: () {
           ref.invalidate(membersInsuranceProvider);
           ref.invalidate(camporeeRegisteredUserIdsProvider(widget.camporeeId));
@@ -780,7 +745,12 @@ class _MemberPickerSheetState extends ConsumerState<_MemberPickerSheet> {
     final members = _filteredMembers(membersAsync.value ?? const []);
 
     if (members.isEmpty) {
-      return _PickerEmpty(hasQuery: _query.trim().isNotEmpty);
+      return SacEmptyState(
+        icon: HugeIcons.strokeRoundedSearch01,
+        title: _query.trim().isNotEmpty
+            ? 'camporees.register_member.empty_search'.tr()
+            : 'camporees.register_member.empty_members'.tr(),
+      );
     }
 
     return ListView.separated(
@@ -994,6 +964,9 @@ class _MiniBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+    final textColor =
+        color == AppColors.secondary ? c.onSuccessContainer : color;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -1004,9 +977,9 @@ class _MiniBadge extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-          fontSize: SacFontSize.caption,
+          fontSize: SacFontSize.labelSmall,
           fontWeight: FontWeight.w700,
-          color: color,
+          color: textColor,
         ),
       ),
     );
@@ -1072,69 +1045,6 @@ class _AvatarInitials extends StatelessWidget {
   }
 }
 
-class _PickerError extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _PickerError({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 42,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: SacFontSize.bodyMedium,
-                  color: context.sac.textSecondary),
-            ),
-            const SizedBox(height: 14),
-            SacButton.outline(
-              text: 'common.retry'.tr(),
-              onPressed: onRetry,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PickerEmpty extends StatelessWidget {
-  final bool hasQuery;
-
-  const _PickerEmpty({required this.hasQuery});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Text(
-          hasQuery
-              ? 'camporees.register_member.empty_search'.tr()
-              : 'camporees.register_member.empty_members'.tr(),
-          textAlign: TextAlign.center,
-          style: TextStyle(
-              fontSize: SacFontSize.bodyMedium,
-              color: context.sac.textSecondary),
-        ),
-      ),
-    );
-  }
-}
-
 class _PaymentOrdersContextLoading extends StatelessWidget {
   const _PaymentOrdersContextLoading();
 
@@ -1163,66 +1073,6 @@ class _PaymentOrdersContextLoading extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PaymentOrdersContextError extends StatelessWidget {
-  final VoidCallback onRetry;
-
-  const _PaymentOrdersContextError({required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: SingleChildScrollView(
-        padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(20)),
-        child: Semantics(
-          container: true,
-          liveRegion: true,
-          label: 'payment_orders.camporee_redirect.context_error'.tr(),
-          child: Container(
-            width: double.infinity,
-            constraints: const BoxConstraints(maxWidth: 520),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: c.surface,
-              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-              border: Border.all(color: c.border),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'payment_orders.camporee_redirect.context_error'.tr(),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: c.text,
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'payment_orders.camporee_redirect.context_error_hint'.tr(),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: c.textSecondary,
-                        height: 1.45,
-                      ),
-                ),
-                const SizedBox(height: 16),
-                SacButton.outline(
-                  text: 'common.retry'.tr(),
-                  icon: HugeIcons.strokeRoundedRefresh,
-                  onPressed: onRetry,
-                  textColor: c.text,
-                  borderColor: c.textSecondary,
-                ),
-              ],
-            ),
           ),
         ),
       ),

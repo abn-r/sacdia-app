@@ -249,7 +249,7 @@ class _InfoCell extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: SacFontSize.caption,
+                  fontSize: SacFontSize.labelSmall,
                   fontWeight: FontWeight.w700,
                   color: sac.textTertiary,
                   letterSpacing: 0.6,

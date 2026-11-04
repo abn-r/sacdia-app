@@ -3,7 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/sac_state_swap.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
@@ -30,21 +30,21 @@ class AttendanceButton extends StatelessWidget {
       child: isAttending
           ? SacCard(
               key: const ValueKey('attendance-confirmed'),
-              backgroundColor: AppColors.secondaryLight,
+              backgroundColor: context.sac.successContainer,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const HugeIcon(
+                  HugeIcon(
                     icon: HugeIcons.strokeRoundedCheckmarkCircle02,
                     size: 20,
-                    color: AppColors.secondaryDark,
+                    color: context.sac.onSuccessContainer,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'activities.widgets.attendance_confirmed'.tr(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: AppColors.secondaryDark,
+                      color: context.sac.onSuccessContainer,
                     ),
                   ),
                 ],

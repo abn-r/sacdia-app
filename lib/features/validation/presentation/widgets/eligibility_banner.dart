@@ -40,7 +40,7 @@ class EligibilityBanner extends ConsumerWidget {
             key: const ValueKey('eligibility-data'),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isEligible ? AppColors.secondaryLight : c.surfaceVariant,
+              color: isEligible ? c.successContainer : c.surfaceVariant,
               borderRadius: BorderRadius.circular(AppTheme.radiusMD),
               border: Border.all(
                 color: isEligible
@@ -65,9 +65,8 @@ class EligibilityBanner extends ConsumerWidget {
                       icon: isEligible
                           ? HugeIcons.strokeRoundedStarCircle
                           : HugeIcons.strokeRoundedClock02,
-                      color: isEligible
-                          ? AppColors.secondaryDark
-                          : c.textSecondary,
+                      color:
+                          isEligible ? c.onSuccessContainer : c.textSecondary,
                       size: 20,
                     ),
                   ),
@@ -97,8 +96,8 @@ class EligibilityBanner extends ConsumerWidget {
                               fontSize: SacFontSize.bodyMedium,
                               fontWeight: FontWeight.w700,
                               color: isEligible
-                                  ? AppColors.secondaryDark
-                                  : AppColors.error,
+                                  ? c.onSuccessContainer
+                                  : c.onErrorContainer,
                             ),
                           ),
                         ],

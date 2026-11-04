@@ -11,7 +11,7 @@ import 'package:sacdia_app/core/providers/riverpod_aliases.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sacdia_app/features/evidence_folder/domain/entities/evidence_file.dart';
 import 'package:sacdia_app/features/evidence_folder/domain/entities/evidence_folder.dart';
@@ -306,7 +306,8 @@ void main() {
     final border = decoration.border! as Border;
     expect(tester.getSize(statusIndicator), const Size(44, 44));
     expect(decoration.shape, BoxShape.circle);
-    expect(border.top.color, AppColors.accentDark);
+    expect(
+        border.top.color, const SacColors(Brightness.light).onWarningContainer);
     expect(border.top.width, 3);
   });
 

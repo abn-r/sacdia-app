@@ -4,7 +4,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/cache_config.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -16,6 +15,7 @@ import 'package:sacdia_app/core/widgets/sac_picker_field.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../views/location_picker_view.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Selector de hora estilo Cupertino en bottom sheet
@@ -93,23 +93,10 @@ class _TimePickerSheetState extends State<_TimePickerSheet> {
           SacSheetHeader(
             title: 'activities.widgets.time_picker_title'.tr(),
             actions: [
-              SacPressable(
-                listenOnly: true,
-                child: TextButton(
-                  onPressed: _confirm,
-                  style: (TextButton.styleFrom(
-                    foregroundColor: SacAccent.of(context).color,
-                    textStyle: const TextStyle(
-                      fontSize: SacFontSize.titleMedium,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                  )).copyWith(enableFeedback: false),
-                  child: Text('activities.widgets.time_picker_done'.tr()),
-                ),
+              SacButton.text(
+                text: 'activities.widgets.time_picker_done'.tr(),
+                color: SacAccent.of(context).color,
+                onPressed: _confirm,
               ),
             ],
           ),

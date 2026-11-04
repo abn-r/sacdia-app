@@ -19,6 +19,9 @@ import 'package:sacdia_app/features/camporee_orders/presentation/providers/campo
 import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_participant_access_gate.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
 
 /// CTA de Pedidos en el detalle del camporee. Oculto si no hay settings o
 /// la sección no está inscrita.
@@ -186,10 +189,14 @@ class CamporeeOrderCatalogView extends ConsumerWidget {
               },
               child: offeringsAsync.when(
                 loading: () => const Center(child: SacLoading()),
-                error: (error, _) => _MessageState(
-                  icon: HugeIcons.strokeRoundedAlert02,
-                  iconColor: AppColors.error,
+                error: (error, _) => SacErrorState(
+                  scrollable: true,
+                  title: '',
                   message: camporeeOrdersErrorMessage(error),
+                  padding: SacTopBar.paddingBelowBar(
+                    context,
+                    const EdgeInsets.all(32),
+                  ),
                   onRetry: () =>
                       ref.invalidate(camporeeOrderOfferingsProvider(scope)),
                 ),
@@ -229,10 +236,10 @@ class _CatalogBody extends ConsumerWidget {
     final canCreate = window == CamporeeOrdersWindow.open;
 
     if (window == CamporeeOrdersWindow.disabled) {
-      return _MessageState(
+      return SacEmptyState(
+        scrollable: true,
         icon: HugeIcons.strokeRoundedCancel01,
-        iconColor: c.textTertiary,
-        message: 'camporee_orders.catalog.disabled'.tr(),
+        title: 'camporee_orders.catalog.disabled'.tr(),
       );
     }
 
@@ -283,7 +290,7 @@ class _CatalogBody extends ConsumerWidget {
             padding: EdgeInsets.symmetric(vertical: 32),
             child: Center(child: SacLoading()),
           ),
-          error: (error, _) => _InlineError(
+          error: (error, _) => SacErrorState.inline(
             message: camporeeOrdersErrorMessage(error),
             onRetry: onRetryOrders,
           ),
@@ -416,93 +423,6 @@ class _Banner extends StatelessWidget {
   }
 }
 
-class _InlineError extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _InlineError({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          message,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-              fontSize: SacFontSize.bodyMedium,
-              color: context.sac.textSecondary),
-        ),
-        const SizedBox(height: 12),
-        SacButton.outline(
-          text: 'common.retry'.tr(),
-          onPressed: onRetry,
-        ),
-      ],
-    );
-  }
-}
-
-class _MessageState extends StatelessWidget {
-  final dynamic icon;
-  final Color iconColor;
-  final String message;
-  final VoidCallback? onRetry;
-
-  const _MessageState({
-    required this.icon,
-    required this.iconColor,
-    required this.message,
-    this.onRetry,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(24)),
-      children: [
-        const SizedBox(height: 60),
-        HugeIcon(icon: icon, size: 42, color: iconColor),
-        const SizedBox(height: 10),
-        Text(
-          message,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-              fontSize: SacFontSize.bodyMedium,
-              color: context.sac.textSecondary),
-        ),
-        if (onRetry != null) ...[
-          const SizedBox(height: 14),
-          SacButton.outline(
-            text: 'common.retry'.tr(),
-            onPressed: onRetry,
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-Color camporeeOrderStatusColor(
-  CamporeeOrderStatus status,
-  BuildContext context,
-) {
-  switch (status) {
-    case CamporeeOrderStatus.issued:
-      return AppColors.accent;
-    case CamporeeOrderStatus.proofSubmitted:
-      return SacAccent.of(context).color;
-    case CamporeeOrderStatus.paid:
-    case CamporeeOrderStatus.delivered:
-      return AppColors.secondary;
-    case CamporeeOrderStatus.proofRejected:
-    case CamporeeOrderStatus.expired:
-      return AppColors.error;
-    case CamporeeOrderStatus.cancelled:
-      return Colors.grey;
-  }
-}
-
 String camporeeOrderStatusLabel(CamporeeOrderStatus status) {
   switch (status) {
     case CamporeeOrderStatus.issued:
@@ -533,6 +453,8 @@ String camporeeOrderDistributionLabel(CamporeeOrderDistributionStatus status) {
   }
 }
 
+/// Insignia del estado de un folio. Cada estado lleva su propio icono para
+/// que pagado y entregado no se distingan solo por el color.
 class CamporeeOrderStatusBadge extends StatelessWidget {
   final CamporeeOrderStatus status;
 
@@ -540,22 +462,44 @@ class CamporeeOrderStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = camporeeOrderStatusColor(status, context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Text(
-        camporeeOrderStatusLabel(status),
-        style: TextStyle(
-          fontSize: SacFontSize.labelSmall,
-          fontWeight: FontWeight.w700,
-          color: color,
-        ),
-      ),
-    );
+    final label = camporeeOrderStatusLabel(status);
+    switch (status) {
+      case CamporeeOrderStatus.issued:
+        return SacBadge.warning(
+          label: label,
+          icon: HugeIcons.strokeRoundedClock01,
+        );
+      case CamporeeOrderStatus.proofSubmitted:
+        return SacBadge(
+          label: label,
+          icon: HugeIcons.strokeRoundedUpload01,
+        );
+      case CamporeeOrderStatus.paid:
+        return SacBadge.success(
+          label: label,
+          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+        );
+      case CamporeeOrderStatus.delivered:
+        return SacBadge.success(
+          label: label,
+          icon: HugeIcons.strokeRoundedPackageDelivered,
+        );
+      case CamporeeOrderStatus.proofRejected:
+        return SacBadge.error(
+          label: label,
+          icon: HugeIcons.strokeRoundedAlert02,
+        );
+      case CamporeeOrderStatus.expired:
+        return SacBadge.error(
+          label: label,
+          icon: HugeIcons.strokeRoundedTimeQuarterPass,
+        );
+      case CamporeeOrderStatus.cancelled:
+        return SacBadge(
+          label: label,
+          variant: SacBadgeVariant.neutral,
+          icon: HugeIcons.strokeRoundedCancel01,
+        );
+    }
   }
 }

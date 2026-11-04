@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
@@ -1191,14 +1192,23 @@ class _StatusChip extends StatelessWidget {
         color: tone.background,
         borderRadius: BorderRadius.circular(AppTheme.radiusFull),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: tone.foreground,
-          fontSize: SacFontSize.labelSmall,
-          fontWeight: FontWeight.w700,
-          height: 1.2,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          HugeIcon(icon: tone.icon, size: 12, color: tone.foreground),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: tone.foreground,
+                fontSize: SacFontSize.labelSmall,
+                fontWeight: FontWeight.w700,
+                height: 1.2,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1236,7 +1246,7 @@ class _CountPill extends StatelessWidget {
 class _PendingTone {
   final Color foreground;
   final Color background;
-  final List<List<dynamic>> icon;
+  final HugeIconData icon;
   final bool overdue;
 
   const _PendingTone({
@@ -1264,7 +1274,7 @@ _PendingTone _pendingToneFor(BuildContext context, RankingPendingItem item) {
     required Color color,
     required Color dark,
     required Color bg,
-    required List<List<dynamic>> icon,
+    required HugeIconData icon,
     bool overdue = false,
   }) =>
       _PendingTone(

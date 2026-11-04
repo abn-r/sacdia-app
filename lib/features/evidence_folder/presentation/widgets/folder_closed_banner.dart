@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/evidence_folder.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -39,14 +39,15 @@ class _EvaluatedBanner extends StatelessWidget {
         ? ' · ${dateFormat.format(folder.evaluatedAt!.toLocal())}'
         : '';
 
+    final c = context.sac;
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.secondaryLight,
+        color: c.successContainer,
         borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
-          color: AppColors.secondary.withValues(alpha: 0.5),
+          color: c.success.withValues(alpha: 0.5),
           width: 1.5,
         ),
       ),
@@ -56,14 +57,14 @@ class _EvaluatedBanner extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.secondary.withValues(alpha: 0.15),
+              color: c.success.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Center(
               child: HugeIcon(
                 icon: HugeIcons.strokeRoundedStar,
                 size: 22,
-                color: AppColors.secondaryDark,
+                color: c.onSuccessContainer,
               ),
             ),
           ),
@@ -77,7 +78,7 @@ class _EvaluatedBanner extends StatelessWidget {
                       .tr(namedArgs: {'date': dateStr}),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: AppColors.secondaryDark,
+                        color: c.onSuccessContainer,
                       ),
                 ),
                 const SizedBox(height: 4),
@@ -87,7 +88,7 @@ class _EvaluatedBanner extends StatelessWidget {
                     'max': '${folder.maxPoints}',
                   }),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.secondaryDark,
+                        color: c.onSuccessContainer,
                         fontWeight: FontWeight.w600,
                         height: 1.45,
                       ),
@@ -108,14 +109,15 @@ class _ClosedBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.accentLight,
+        color: c.warningContainer,
         borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
-          color: AppColors.accent.withValues(alpha: 0.5),
+          color: c.warning.withValues(alpha: 0.5),
           width: 1.5,
         ),
       ),
@@ -125,14 +127,14 @@ class _ClosedBanner extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.accent.withValues(alpha: 0.2),
+              color: c.warning.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Center(
               child: HugeIcon(
                 icon: HugeIcons.strokeRoundedLocked,
                 size: 22,
-                color: AppColors.accentDark,
+                color: c.onWarningContainer,
               ),
             ),
           ),
@@ -145,14 +147,14 @@ class _ClosedBanner extends StatelessWidget {
                   'evidence_folder.closed_banner.title'.tr(),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: AppColors.accentDark,
+                        color: c.onWarningContainer,
                       ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'evidence_folder.closed_banner.description'.tr(),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.accentDark,
+                        color: c.onWarningContainer,
                         height: 1.45,
                       ),
                 ),

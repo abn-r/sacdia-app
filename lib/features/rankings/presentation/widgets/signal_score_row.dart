@@ -106,7 +106,7 @@ class _SignalScoreCard extends StatelessWidget {
             Text(
               label,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    fontSize: SacFontSize.caption,
+                    fontSize: SacFontSize.labelSmall,
                     fontWeight: FontWeight.w500,
                     color: c.textTertiary,
                   ),

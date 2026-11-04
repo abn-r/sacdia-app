@@ -4,7 +4,6 @@ import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/sac_state_swap.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -17,6 +16,7 @@ import '../../domain/entities/activity_rsvp.dart';
 import '../providers/activities_providers.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 /// Virtual activities: members mark intention. Staff confirms real attendance
 /// among every section member.
@@ -128,14 +128,7 @@ class _ActivityVirtualAttendanceState
           Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
             child: Center(
-              child: SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: SacAccent.of(context).color,
-                ),
-              ),
+              child: SacLoadingSmall(color: SacAccent.of(context).color),
             ),
           )
         else if (eligible)
@@ -150,18 +143,14 @@ class _ActivityVirtualAttendanceState
           Text(
             _error!,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.error,
+                  color: context.sac.error,
                 ),
           ),
           Align(
             alignment: Alignment.centerLeft,
-            child: SacPressable(
-              listenOnly: true,
-              child: TextButton(
-                style: const ButtonStyle(enableFeedback: false),
-                onPressed: _load,
-                child: Text('common.retry'.tr()),
-              ),
+            child: SacButton.text(
+              text: 'common.retry'.tr(),
+              onPressed: _load,
             ),
           ),
         ],
@@ -462,19 +451,14 @@ class _VirtualAttendanceSheetState
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Text(
                       _error!,
-                      style: const TextStyle(color: AppColors.error),
+                      style: TextStyle(color: context.sac.error),
                     ),
                   ),
                 Expanded(
                   child: _loading
                       ? Center(
-                          child: SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: SacAccent.of(context).color,
-                            ),
+                          child: SacLoadingSmall(
+                            color: SacAccent.of(context).color,
                           ),
                         )
                       : visible.isEmpty
@@ -526,14 +510,7 @@ class _VirtualAttendanceSheetState
                       if (_saving) ...[
                         Row(
                           children: [
-                            SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: SacAccent.of(context).color,
-                              ),
-                            ),
+                            SacLoadingSmall(color: SacAccent.of(context).color),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
