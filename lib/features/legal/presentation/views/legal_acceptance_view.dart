@@ -5,13 +5,16 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/constants/app_constants.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/utils/in_app_browser.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_legal_consent.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/acting_providers.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
@@ -105,67 +108,69 @@ class _LegalAcceptanceViewState extends ConsumerState<LegalAcceptanceView> {
     final status = statusAsync.value;
     if (status != null && !status.requiresAcceptance) _selfHeal();
 
+    final c = context.sac;
+    final padding = Responsive.formPadding(context);
+
     return PopScope(
       canPop: false,
       child: Scaffold(
-        backgroundColor: context.sac.background,
+        backgroundColor: c.background,
         body: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: Responsive.formPadding(context),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: Responsive.maxFormWidth,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Center(
-                      child: HugeIcon(
-                        icon: HugeIcons.strokeRoundedSquareLock02,
-                        size: 40,
-                        color: AppColors.loginBrandBlueDark,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'legal_gate.title'.tr(),
-                      textAlign: TextAlign.center,
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'legal_gate.body'.tr(),
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: context.sac.textSecondary,
-                            height: 1.5,
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              padding: padding,
+              // Align (not Center): the scroll view gives unbounded height, and
+              // the min height must reach IntrinsicHeight so the Spacers pin the
+              // actions to the bottom.
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: Responsive.maxFormWidth,
+                    minHeight: (constraints.maxHeight - padding.vertical)
+                        .clamp(0, double.infinity),
+                  ),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Spacer(),
+                        const _Header(),
+                        const SizedBox(height: 32),
+                        if (status != null)
+                          ..._buildLoaded(
+                              context, status, isSubmitting, acceptState)
+                        else if (statusAsync.hasError)
+                          ..._buildError(context)
+                        else
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 32),
+                            child: Center(child: SacLoading()),
                           ),
+                        const Spacer(),
+                        const SizedBox(height: 24),
+                        if (status != null)
+                          _AcceptButton(
+                            isSubmitting: isSubmitting,
+                            canAccept: _isChecked(status) &&
+                                status.requiresAcceptance &&
+                                !isSubmitting,
+                            onAccept: () => ref
+                                .read(legalAcceptanceNotifierProvider.notifier)
+                                .accept(status),
+                          ),
+                        const SizedBox(height: 4),
+                        SacButton.ghost(
+                          text: acting
+                              ? 'family.banner.back'.tr()
+                              : 'legal_gate.sign_out'.tr(),
+                          textColor: c.textSecondary,
+                          isEnabled: !isSubmitting,
+                          onPressed: acting ? _backToOwnProfile : _signOut,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 24),
-                    if (status != null)
-                      ..._buildLoaded(
-                          context, status, isSubmitting, acceptState)
-                    else if (statusAsync.hasError)
-                      ..._buildError(context)
-                    else
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 32),
-                        child: Center(child: SacLoading()),
-                      ),
-                    const SizedBox(height: 8),
-                    SacButton.ghost(
-                      text: acting
-                          ? 'family.banner.back'.tr()
-                          : 'legal_gate.sign_out'.tr(),
-                      textColor: AppColors.loginBrandBlueDark,
-                      isEnabled: !isSubmitting,
-                      onPressed: acting ? _backToOwnProfile : _signOut,
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -186,21 +191,27 @@ class _LegalAcceptanceViewState extends ConsumerState<LegalAcceptanceView> {
     final termsUrl = terms?.url ?? AppConstants.termsUrl;
     final privacyUrl = privacy?.url ?? AppConstants.privacyPolicyUrl;
     final checked = _isChecked(status);
-    final canAccept = checked && status.requiresAcceptance && !isSubmitting;
 
     return [
-      if (terms != null)
-        _DocumentRow(
-          title: 'legal_gate.document_terms'.tr(),
-          version: terms.version,
-          onRead: () => _openDocument(terms.url),
-        ),
-      if (privacy != null) ...[
-        const SizedBox(height: 12),
-        _DocumentRow(
-          title: 'legal_gate.document_privacy'.tr(),
-          version: privacy.version,
-          onRead: () => _openDocument(privacy.url),
+      if (terms != null || privacy != null) ...[
+        const _SectionLabel(),
+        _DocumentGroup(
+          children: [
+            if (terms != null)
+              _DocumentRow(
+                icon: HugeIcons.strokeRoundedFile02,
+                title: 'legal_gate.document_terms'.tr(),
+                version: terms.version,
+                onRead: () => _openDocument(terms.url),
+              ),
+            if (privacy != null)
+              _DocumentRow(
+                icon: HugeIcons.strokeRoundedSecurityCheck,
+                title: 'legal_gate.document_privacy'.tr(),
+                version: privacy.version,
+                onRead: () => _openDocument(privacy.url),
+              ),
+          ],
         ),
       ],
       const SizedBox(height: 20),
@@ -218,22 +229,6 @@ class _LegalAcceptanceViewState extends ConsumerState<LegalAcceptanceView> {
         const SizedBox(height: 12),
         _ErrorCard(message: _errorText(acceptState.error!)),
       ],
-      const SizedBox(height: 16),
-      SacButton(
-        text: 'legal_gate.accept_button'.tr(),
-        variant: SacButtonVariant.primary,
-        size: SacButtonSize.large,
-        fullWidth: true,
-        backgroundColor: AppColors.loginBrandBlue,
-        borderRadius: AppTheme.radiusFull,
-        isLoading: isSubmitting,
-        isEnabled: canAccept,
-        onPressed: canAccept
-            ? () => ref
-                .read(legalAcceptanceNotifierProvider.notifier)
-                .accept(status)
-            : null,
-      ),
     ];
   }
 
@@ -243,8 +238,6 @@ class _LegalAcceptanceViewState extends ConsumerState<LegalAcceptanceView> {
       const SizedBox(height: 16),
       SacButton.outline(
         text: 'legal_gate.retry'.tr(),
-        borderColor: AppColors.loginBrandBlue,
-        textColor: AppColors.loginBrandBlueDark,
         borderRadius: AppTheme.radiusFull,
         onPressed: () => ref.invalidate(myLegalStatusProvider),
       ),
@@ -252,12 +245,120 @@ class _LegalAcceptanceViewState extends ConsumerState<LegalAcceptanceView> {
   }
 }
 
+/// Tinte suave y color de texto del acento, legibles en ambos temas.
+///
+/// En oscuro, `SacAccent.surface` sigue siendo un tono claro y `dark` pierde
+/// contraste sobre negro, así que se derivan del color del acento.
+({Color tint, Color text}) _accentTones(BuildContext context) {
+  final accent = SacAccent.of(context);
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  return (
+    tint: isDark ? accent.color.withValues(alpha: 0.16) : accent.surface,
+    text: isDark ? accent.color : accent.dark,
+  );
+}
+
+class _Header extends StatelessWidget {
+  const _Header();
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      children: [
+        Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: _accentTones(context).tint,
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+          ),
+          alignment: Alignment.center,
+          child: HugeIcon(
+            icon: HugeIcons.strokeRoundedSquareLock02,
+            size: 28,
+            color: SacAccent.of(context).color,
+          ),
+        ),
+        const SizedBox(height: 20),
+        Text(
+          'legal_gate.title'.tr(),
+          textAlign: TextAlign.center,
+          style: textTheme.headlineLarge?.copyWith(
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.6,
+            height: 1.15,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'legal_gate.body'.tr(),
+          textAlign: TextAlign.center,
+          style: textTheme.bodyLarge?.copyWith(
+            color: context.sac.textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Text(
+        'legal_gate.documents_label'.tr().toUpperCase(),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.88,
+              color: context.sac.textTertiary,
+            ),
+      ),
+    );
+  }
+}
+
+/// Lista agrupada: una tarjeta con divisores insetados entre filas.
+class _DocumentGroup extends StatelessWidget {
+  final List<Widget> children;
+
+  const _DocumentGroup({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = <Widget>[];
+    for (var i = 0; i < children.length; i++) {
+      if (i > 0) {
+        rows.add(Padding(
+          padding: const EdgeInsets.only(left: _DocumentRow.textInset),
+          child: Divider(height: 1, thickness: 1, color: context.sac.ink150),
+        ));
+      }
+      rows.add(children[i]);
+    }
+    return SacCard(
+      padding: EdgeInsets.zero,
+      child: Column(children: rows),
+    );
+  }
+}
+
+/// Fila de documento: toda la fila abre el documento.
 class _DocumentRow extends StatelessWidget {
+  final HugeIconData icon;
   final String title;
   final String version;
   final VoidCallback onRead;
 
+  /// Sangría del texto (padding + icono + separación); alinea los divisores.
+  static const double textInset = 14 + 36 + 12;
+
   const _DocumentRow({
+    required this.icon,
     required this.title,
     required this.version,
     required this.onRead,
@@ -265,46 +366,108 @@ class _DocumentRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SacCard(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const HugeIcon(
-            icon: HugeIcons.strokeRoundedFile01,
-            size: 24,
-            color: AppColors.loginBrandBlueDark,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+    final textTheme = Theme.of(context).textTheme;
+    final tones = _accentTones(context);
+    final versionLabel =
+        'legal_gate.version_label'.tr(namedArgs: {'version': version});
+    final readLabel = 'legal_gate.read_document'.tr();
+
+    return SacPressable(
+      onTap: onRead,
+      semanticLabel: '$readLabel: $title, $versionLabel',
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 64),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: tones.tint,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
+                ),
+                alignment: Alignment.center,
+                child: HugeIcon(
+                  icon: icon,
+                  size: 18,
+                  color: SacAccent.of(context).color,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ExcludeSemantics(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        versionLabel,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: context.sac.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              ExcludeSemantics(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      readLabel,
+                      style: textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
+                        color: tones.text,
                       ),
+                    ),
+                    const SizedBox(width: 3),
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowUpRight01,
+                      size: 14,
+                      color: tones.text,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  'legal_gate.version_label'
-                      .tr(namedArgs: {'version': version}),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: context.sac.textSecondary,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                SacButton.ghost(
-                  text: 'legal_gate.read_document'.tr(),
-                  textColor: AppColors.loginBrandBlueDark,
-                  onPressed: onRead,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
+    );
+  }
+}
+
+/// CTA principal: anclado abajo, en la zona del pulgar.
+class _AcceptButton extends StatelessWidget {
+  final bool isSubmitting;
+  final bool canAccept;
+  final VoidCallback onAccept;
+
+  const _AcceptButton({
+    required this.isSubmitting,
+    required this.canAccept,
+    required this.onAccept,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SacButton(
+      text: 'legal_gate.accept_button'.tr(),
+      variant: SacButtonVariant.primary,
+      size: SacButtonSize.large,
+      fullWidth: true,
+      borderRadius: AppTheme.radiusFull,
+      isLoading: isSubmitting,
+      isEnabled: canAccept,
+      onPressed: canAccept ? onAccept : null,
     );
   }
 }
