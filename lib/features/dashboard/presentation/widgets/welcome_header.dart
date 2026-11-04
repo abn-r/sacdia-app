@@ -94,7 +94,7 @@ class WelcomeHeader extends StatelessWidget {
                   icon: HugeIcon(
                     icon: HugeIcons.strokeRoundedMoreHorizontal,
                     size: 24,
-                    color: AppColors.lightText,
+                    color: context.sac.text,
                   ),
                   tooltip: 'nav.more'.tr(),
                 ),
