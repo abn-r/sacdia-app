@@ -36,10 +36,8 @@ const Map<SensitiveUserFamily, Set<String>> _sensitiveFamilyUpdatePermissions =
     'legal_representative:update',
     'users:update_profile',
   },
-  SensitiveUserFamily.postRegistration: {
-    'post_registration:update',
-    'users:update_profile',
-  },
+  // No `post_registration:update` grant exists; the route falls back to users:update_profile.
+  SensitiveUserFamily.postRegistration: {'users:update_profile'},
 };
 
 const Set<String> memberRankingReadSelfPermissions = {
