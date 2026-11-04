@@ -22,6 +22,10 @@ class AppTheme {
   static const double radiusXL = 24.0;
   static const double radiusFull = 100.0;
 
+  /// Opacidad de un control deshabilitado: conserva sus colores y se atenúa,
+  /// así un botón primario deshabilitado se sigue leyendo como primario.
+  static const double disabledOpacity = 0.4;
+
   static const double elevationNone = 0.0;
   static const double elevationSM = 1.0;
   static const double elevationMD = 2.0;
