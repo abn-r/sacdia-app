@@ -58,6 +58,14 @@ class UserEntity extends Equatable {
   /// carga y nunca se cachea.
   final PendingClubMembership? pendingClubMembership;
 
+  /// La autorización ([authorization]) NO viene de una respuesta fresca de
+  /// `/auth/me` sino de la caché de disco (restauración sin red). Mientras es
+  /// `true` la app no permite mutaciones (POST/PUT/PATCH/DELETE reciben
+  /// `AUTHORIZATION_STALE`): lo que el usuario podía hacer pudo cambiar sin
+  /// que la app lo sepa. Lo limpia cualquier respuesta fresca de `/auth/me`
+  /// (`AuthNotifier.refreshAuthorization`). Debe estar en `props`.
+  final bool authorizationStale;
+
   const UserEntity({
     required this.id,
     this.email,
@@ -77,6 +85,7 @@ class UserEntity extends Equatable {
     this.analyticsAnonymous,
     this.serverMode,
     this.pendingClubMembership,
+    this.authorizationStale = false,
   });
 
   /// Copia con otro [principal]. Todo lo demás se conserva.
@@ -99,6 +108,7 @@ class UserEntity extends Equatable {
         analyticsAnonymous: analyticsAnonymous,
         serverMode: serverMode,
         pendingClubMembership: pendingClubMembership,
+        authorizationStale: authorizationStale,
       );
 
   /// Modo de la cuenta para enrutar (FP3-31). Falla cerrado:
@@ -191,5 +201,6 @@ class UserEntity extends Equatable {
         analyticsAnonymous,
         serverMode,
         pendingClubMembership,
+        authorizationStale,
       ];
 }
