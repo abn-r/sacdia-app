@@ -34,7 +34,7 @@ class _EvaluatedBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('d MMM yyyy', 'es');
+    final dateFormat = DateFormat('d MMM yyyy');
     final dateStr = folder.evaluatedAt != null
         ? ' · ${dateFormat.format(folder.evaluatedAt!.toLocal())}'
         : '';

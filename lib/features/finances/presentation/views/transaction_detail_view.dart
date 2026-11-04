@@ -110,8 +110,7 @@ class TransactionDetailView extends ConsumerWidget {
                     _DetailRow(
                       icon: HugeIcons.strokeRoundedCalendar01,
                       label: 'finances.transaction_detail.date'.tr(),
-                      value: DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es')
-                          .format(current.date.toLocal()),
+                      value: DateFormat.yMMMMd().format(current.date.toLocal()),
                     ),
                     if (current.notes != null && current.notes!.isNotEmpty) ...[
                       _divider(),

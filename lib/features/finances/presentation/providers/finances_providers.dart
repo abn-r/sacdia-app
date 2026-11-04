@@ -719,7 +719,7 @@ String _rangeLabelFromFilter(TransactionFilter filter) {
       return 'finances.widgets.range_last_year'.tr();
     case DateRangePreset.custom:
       if (filter.startDate != null && filter.endDate != null) {
-        final fmt = DateFormat('d MMM', 'es');
+        final fmt = DateFormat('d MMM');
         final yearFmt = DateFormat('yyyy');
         return '${fmt.format(filter.startDate!)} – '
             '${fmt.format(filter.endDate!)} ${yearFmt.format(filter.endDate!)}';
@@ -727,11 +727,11 @@ String _rangeLabelFromFilter(TransactionFilter filter) {
       return 'finances.widgets.range_custom_label'.tr();
     case DateRangePreset.thisMonth:
       if (filter.startDate != null) {
-        final label = DateFormat('MMMM yyyy', 'es').format(filter.startDate!);
+        final label = DateFormat('MMMM yyyy').format(filter.startDate!);
         return label[0].toUpperCase() + label.substring(1);
       }
       final now = DateTime.now();
-      final label = DateFormat('MMMM yyyy', 'es').format(now);
+      final label = DateFormat('MMMM yyyy').format(now);
       return label[0].toUpperCase() + label.substring(1);
   }
 }

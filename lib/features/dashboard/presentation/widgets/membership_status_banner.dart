@@ -94,7 +94,7 @@ class _PendingBanner extends ConsumerWidget {
       final localDate = expiresAt.toLocal();
       expiryLabel = tr(
         'dashboard.banner.pending_expires',
-        namedArgs: {'date': DateFormat('d MMM yyyy', 'es').format(localDate)},
+        namedArgs: {'date': DateFormat('d MMM yyyy').format(localDate)},
       );
     }
 

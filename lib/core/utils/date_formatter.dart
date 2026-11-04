@@ -4,6 +4,10 @@ final _isoDatePrefix = RegExp(r'^(\d{4})-(\d{2})-(\d{2})');
 
 /// Utilidad centralizada para formatear fechas.
 ///
+/// Sin `locale` explícito usa el idioma vigente de la app (`Intl.defaultLocale`,
+/// sincronizado con easy_localization en `main.dart`): las fechas siguen el
+/// idioma que el usuario eligió. No fijes `'es'` en ningún `DateFormat`.
+///
 /// Timestamps (`created_at`, `paid_at`, etc.): [format] convierte UTC → local.
 /// Fechas de calendario (`start_date` / `end_date` como `YYYY-MM-DD`):
 /// [parseCalendarDate] + [formatCalendar]. No usar [DateTime.parse] + [toLocal]
@@ -40,7 +44,7 @@ class SacDateFormatter {
   static String formatCalendar(
     DateTime? date,
     String pattern, {
-    String locale = 'es',
+    String? locale,
   }) {
     if (date == null) return '';
     return DateFormat(pattern, locale).format(date);
@@ -48,9 +52,36 @@ class SacDateFormatter {
 
   /// Formatea una fecha UTC a local con el patrón dado.
   /// Retorna cadena vacía si la fecha es null.
-  static String format(DateTime? date, String pattern, {String locale = 'es'}) {
+  static String format(DateTime? date, String pattern, {String? locale}) {
     if (date == null) return '';
     return DateFormat(pattern, locale).format(date.toLocal());
+  }
+
+  /// Rango compacto en el idioma vigente, colapsando mes/año repetidos:
+  /// "3 – 5 abr 2026" · "28 mar – 2 abr 2026" · "30 dic 2026 – 2 ene 2027".
+  ///
+  /// [calendar] = true (por defecto) trata las fechas como días de calendario
+  /// (sin conversión UTC → local); false las trata como timestamps.
+  static String range(
+    DateTime? start,
+    DateTime? end, {
+    bool calendar = true,
+    String? locale,
+  }) {
+    if (start == null && end == null) return '';
+    DateTime norm(DateTime d) => calendar ? d : d.toLocal();
+    final full = DateFormat('d MMM yyyy', locale);
+    if (start == null || end == null) return full.format(norm(start ?? end!));
+    final s = norm(start);
+    final e = norm(end);
+    if (s.year == e.year && s.month == e.month) {
+      if (s.day == e.day) return full.format(e);
+      return '${s.day} – ${full.format(e)}';
+    }
+    if (s.year == e.year) {
+      return '${DateFormat('d MMM', locale).format(s)} – ${full.format(e)}';
+    }
+    return '${full.format(s)} – ${full.format(e)}';
   }
 
   /// dd/MM/yyyy — "25/03/2026"
@@ -75,9 +106,11 @@ class SacDateFormatter {
   /// EEEE, dd MMMM yyyy — "martes, 25 marzo 2026"
   static String dateFull(DateTime? date) => format(date, 'EEEE, dd MMMM yyyy');
 
-  /// dd 'de' MMMM 'de' yyyy — "25 de marzo de 2026"
-  static String dateFormal(DateTime? date) =>
-      format(date, "dd 'de' MMMM 'de' yyyy");
+  /// Long localized date — es: "25 de marzo de 2026", en: "March 25, 2026".
+  static String dateFormal(DateTime? date) {
+    if (date == null) return '';
+    return DateFormat.yMMMMd().format(date.toLocal());
+  }
 
   /// MMMM yyyy — "marzo 2026"
   static String monthYear(DateTime? date) => format(date, 'MMMM yyyy');

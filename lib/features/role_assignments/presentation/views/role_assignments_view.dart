@@ -129,7 +129,7 @@ class _AssignmentCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final statusCfg = _statusConfig(assignment.assignmentStatus);
-    final dateFmt = DateFormat('dd/MM/yyyy', 'es');
+    final dateFmt = DateFormat('dd/MM/yyyy');
 
     return Container(
       padding: const EdgeInsets.all(16),

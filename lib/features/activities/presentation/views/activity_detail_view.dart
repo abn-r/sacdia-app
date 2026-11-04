@@ -211,7 +211,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
       return 'activities.detail.relative_weeks'
           .tr(namedArgs: {'count': (diff / 7).floor().toString()});
     }
-    return DateFormat('d MMM yyyy', 'es').format(date.toLocal());
+    return DateFormat('d MMM yyyy').format(date.toLocal());
   }
 
   // ── sections ────────────────────────────────────────────────────────────────

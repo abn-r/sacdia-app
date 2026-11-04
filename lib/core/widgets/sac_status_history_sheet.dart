@@ -194,7 +194,7 @@ class _TimelineRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final dateFormat = DateFormat('d MMM yyyy · HH:mm', 'es');
+    final dateFormat = DateFormat('d MMM yyyy · HH:mm');
 
     return IntrinsicHeight(
       child: Row(

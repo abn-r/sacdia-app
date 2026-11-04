@@ -213,7 +213,7 @@ class _CompletionBody extends StatelessWidget {
 
                       // Completion date subtitle
                       Text(
-                        '$honorName \u2022 ${DateFormat('d MMM yyyy', 'es').format(completionDate)}',
+                        '$honorName \u2022 ${DateFormat('d MMM yyyy').format(completionDate)}',
                         style: TextStyle(
                           fontSize: SacFontSize.bodySmall,
                           color: Colors.white.withAlpha(179),
@@ -433,7 +433,7 @@ class _StatsCard extends StatelessWidget {
 
             // Enrollment date — sacRed
             _StatItem(
-              value: DateFormat('d MMM', 'es').format(enrollmentDate),
+              value: DateFormat('d MMM').format(enrollmentDate),
               label: 'honors.completion.stat_enrollment'.tr(),
               color: AppColors.error,
             ),

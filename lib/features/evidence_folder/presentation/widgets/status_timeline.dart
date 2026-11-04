@@ -43,7 +43,7 @@ class StatusTimeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('d MMM yyyy, HH:mm', 'es');
+    final dateFormat = DateFormat('d MMM yyyy, HH:mm');
 
     final showPreapproved = _hasPreapprovedStep;
 

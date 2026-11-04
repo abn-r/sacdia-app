@@ -1042,10 +1042,7 @@ class _DatePickerField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatted = DateFormat(
-      'dd \'de\' MMMM \'de\' yyyy',
-      'es',
-    ).format(selectedDate);
+    final formatted = DateFormat.yMMMMd().format(selectedDate);
 
     return SacInkWell(
       onTap: () => _pickDate(context),

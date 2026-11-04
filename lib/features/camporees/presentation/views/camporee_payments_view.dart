@@ -621,8 +621,7 @@ class _CamporeePaymentFormSheetState
                         const SizedBox(width: 10),
                         Text(
                           _paymentDate != null
-                              ? DateFormat('dd/MM/yyyy', 'es')
-                                  .format(_paymentDate!)
+                              ? DateFormat('dd/MM/yyyy').format(_paymentDate!)
                               : 'camporees.payments.select_date'.tr(),
                           style: TextStyle(
                             fontSize: SacFontSize.titleSmall,
