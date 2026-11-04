@@ -19,6 +19,8 @@ import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../../providers/catalogs_provider.dart';
 import '../../../../shared/models/catalogs/ecclesiastical_year_model.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../../data/investiture_request_error_keys.dart';
 import '../../domain/entities/investiture_request.dart';
@@ -46,7 +48,10 @@ class SectionInvestitureView extends ConsumerWidget {
     final clubAsync = ref.watch(clubContextProvider);
     final yearAsync = ref.watch(currentEcclesiasticalYearProvider);
     final club = clubAsync.value;
-    final isBoard = club?.isInvestitureBoard ?? false;
+    final user = ref.watch(authNotifierProvider.select((v) => v.value));
+    // Directiva de la sección: `investiture.board` (calculada por el servidor
+    // sobre la concesión activa) y un contexto de club resuelto.
+    final isBoard = club != null && hasCapability(user, 'investiture.board');
 
     return Scaffold(
       extendBodyBehindAppBar: true,

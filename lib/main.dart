@@ -350,10 +350,15 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      final auth = ref.read(authNotifierProvider.notifier);
       // Un adolescente cuyo tutor se verificó (o se fue) mientras la app estaba
       // en segundo plano cambia de pantalla sin reiniciar. No hace nada para
       // adultos ni mientras se actúa por un menor.
-      unawaited(ref.read(authNotifierProvider.notifier).refreshSupervision());
+      unawaited(auth.refreshSupervision());
+      // Los permisos pudieron cambiar en segundo plano (y una sesión restaurada
+      // sin red sigue en solo lectura hasta que `/auth/me` responda). Para
+      // todos los modos; no depende del push ni de su bandera.
+      unawaited(auth.refreshAuthorization());
     }
     if (state == AppLifecycleState.resumed &&
         RealtimeFeatureFlags.realtimeInvalidationEnabled) {

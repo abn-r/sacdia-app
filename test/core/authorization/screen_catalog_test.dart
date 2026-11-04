@@ -8,10 +8,13 @@ import 'package:sacdia_app/core/authorization/evaluate_access.dart';
 import 'package:sacdia_app/core/authorization/screen_catalog.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
+import '../../support/capability_fixtures.dart';
 
 UserEntity _user({
   List<String> permissions = const [],
   List<String> roles = const [],
+  String? activeClubRole,
+  List<String>? capabilities,
 }) {
   return UserEntity(
     id: 'actor',
@@ -21,6 +24,19 @@ UserEntity _user({
       globalGrants: [
         for (final role in roles) AuthorizationGrant(roleName: role),
       ],
+      clubAssignments: [
+        if (activeClubRole != null)
+          AuthorizationGrant(
+            assignmentId: 'a1',
+            roleName: activeClubRole,
+            status: 'active',
+          ),
+      ],
+      activeAssignmentId: activeClubRole != null ? 'a1' : null,
+      // Lo que el backend publicaría para esos roles (fixture), salvo que el
+      // test fije las capacidades a mano.
+      capabilities: capabilities ??
+          capabilitiesFor(globalRoles: roles, activeClubRole: activeClubRole),
     ),
   );
 }
@@ -68,16 +84,16 @@ void main() {
     test('app-section-investiture opens for the investiture board only', () {
       for (final role in ['director', 'secretary', 'secretary-treasurer']) {
         expect(
-          canViewScreen(
-              subjectFromUser(_user(roles: [role])), 'app-section-investiture'),
+          canViewScreen(subjectFromUser(_user(activeClubRole: role)),
+              'app-section-investiture'),
           isTrue,
           reason: role,
         );
       }
       for (final role in ['deputy-director', 'counselor', 'treasurer']) {
         expect(
-          canViewScreen(
-              subjectFromUser(_user(roles: [role])), 'app-section-investiture'),
+          canViewScreen(subjectFromUser(_user(activeClubRole: role)),
+              'app-section-investiture'),
           isFalse,
           reason: role,
         );
@@ -85,6 +101,54 @@ void main() {
       expect(
         canViewScreen(subjectFromUser(_user()), 'app-section-investiture'),
         isFalse,
+      );
+    });
+
+    test('the board gate is the capability, never the role name', () {
+      // Mismo rol, sin capacidad (servidor anterior a la fase 7): deny.
+      expect(
+        canViewScreen(
+          subjectFromUser(_user(activeClubRole: 'director', capabilities: [])),
+          'app-section-investiture',
+        ),
+        isFalse,
+      );
+      // Capacidad sin rol conocido: allow (el servidor decidió).
+      expect(
+        canViewScreen(
+          subjectFromUser(_user(capabilities: ['investiture.board'])),
+          'app-section-investiture',
+        ),
+        isTrue,
+      );
+    });
+
+    test('a capability gate also requires its permissions', () {
+      final subject = subjectFromUser(
+        _user(capabilities: ['coordination.hub_view']),
+      );
+      expect(
+        evaluateAccess(
+          subject,
+          const CapabilityGate(
+            permissions: ['coordination:manage'],
+            capability: 'coordination.hub_view',
+          ),
+        ),
+        isFalse,
+      );
+      expect(
+        evaluateAccess(
+          subjectFromUser(_user(
+            permissions: ['coordination:manage'],
+            capabilities: ['coordination.hub_view'],
+          )),
+          const CapabilityGate(
+            permissions: ['coordination:manage'],
+            capability: 'coordination.hub_view',
+          ),
+        ),
+        isTrue,
       );
     });
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:sacdia_app/core/errors/forbidden.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/app_logger.dart';
@@ -22,7 +23,6 @@ import 'package:sacdia_app/core/widgets/sac_stat_tile.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/coordinator_report.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/report_compliance.dart';
-import 'package:sacdia_app/features/coordinator/presentation/providers/coordinator_providers.dart';
 import 'package:sacdia_app/features/coordinator/presentation/providers/coordinator_reports_providers.dart';
 import 'package:sacdia_app/features/coordinator/presentation/widgets/coordinator_bone.dart';
 
@@ -75,8 +75,8 @@ class CoordinatorReportsView extends ConsumerWidget {
                 onRefresh: null,
                 children: [_ReportsSkeleton()],
               ),
-              error: (error, _) => isCoordinatorForbidden(error)
-                  ? SacErrorState.forbidden(
+              error: (error, _) => isForbiddenFailure(error)
+                  ? ForbiddenView(
                       padding: SacTopBar.paddingBelowBar(
                         context,
                         const EdgeInsets.all(32),
@@ -231,8 +231,8 @@ class _ReportsContent extends ConsumerWidget {
         complianceAsync.when(
           skipLoadingOnReload: complianceAsync.hasValue,
           loading: () => const _PeriodSkeleton(),
-          error: (error, _) => isCoordinatorForbidden(error)
-              ? SacErrorState.forbidden()
+          error: (error, _) => isForbiddenFailure(error)
+              ? const ForbiddenView()
               : SacErrorState(
                   title: 'coordinator.reports.error_title'.tr(),
                   message: 'coordinator.reports.error_message'.tr(),
@@ -629,7 +629,7 @@ class _PdfRowState extends ConsumerState<_PdfRow> {
       if (!mounted) return;
       SacSnackBar.show(
         context,
-        isCoordinatorForbidden(e)
+        isForbiddenFailure(e)
             ? 'coordinator.reports.errors.forbidden'.tr()
             : 'coordinator.reports.pdf_error'.tr(),
         isError: true,

@@ -72,18 +72,64 @@ class AuthorizationGrant extends Equatable {
       ];
 }
 
+/// Territorio del actor (`/auth/me.authorization.territory`).
+///
+/// [level] es uno de `all`, `open`, `unconfigured`, `division`, `union` o
+/// `local_field`; los ids son enteros o nulos según el nivel. La app no lo
+/// evalúa: lo conserva tal cual para quien lo necesite (y para la caché).
+class AuthorizationTerritory extends Equatable {
+  final String level;
+  final int? divisionId;
+  final int? unionId;
+  final int? localFieldId;
+
+  const AuthorizationTerritory({
+    required this.level,
+    this.divisionId,
+    this.unionId,
+    this.localFieldId,
+  });
+
+  @override
+  List<Object?> get props => [level, divisionId, unionId, localFieldId];
+}
+
 class AuthorizationSnapshot extends Equatable {
   final List<String> effectivePermissions;
   final List<AuthorizationGrant> globalGrants;
   final List<AuthorizationGrant> clubAssignments;
   final String? activeAssignmentId;
 
+  /// Capacidades que el servidor calculó para el actor
+  /// (`authorization.capabilities`, ordenadas; claves `a.b` de
+  /// `kCapabilityKeys`). Semántica: «el actor puede intentarlo sobre al menos
+  /// un objetivo»; el servidor sigue respondiendo 403 si el objetivo no
+  /// coincide. Ausente (servidor anterior a la fase 7) = lista vacía = deny.
+  final List<String> capabilities;
+
+  /// `authorization.territory`; nulo si el servidor no lo informó.
+  final AuthorizationTerritory? territory;
+
+  /// `authorization.assignable_global_roles`. La app no lo consume: se parsea
+  /// y se conserva para no perderlo en la caché.
+  final List<String> assignableGlobalRoles;
+
   const AuthorizationSnapshot({
     this.effectivePermissions = const [],
     this.globalGrants = const [],
     this.clubAssignments = const [],
     this.activeAssignmentId,
+    this.capabilities = const [],
+    this.territory,
+    this.assignableGlobalRoles = const [],
   });
+
+  /// ¿El servidor concedió la capacidad [key] (p. ej. `club.active_director`)?
+  bool hasCapability(String key) {
+    final normalized = key.trim().toLowerCase();
+    if (normalized.isEmpty) return false;
+    return capabilities.contains(normalized);
+  }
 
   AuthorizationGrant? get activeGrant {
     if (activeAssignmentId == null) return null;
@@ -153,5 +199,8 @@ class AuthorizationSnapshot extends Equatable {
         globalGrants,
         clubAssignments,
         activeAssignmentId,
+        capabilities,
+        territory,
+        assignableGlobalRoles,
       ];
 }

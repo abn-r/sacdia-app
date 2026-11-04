@@ -12,9 +12,9 @@ import '../../../../core/config/dashboard_drill_in.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../investiture_requests/presentation/utils/investiture_notification_routes.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
-import '../../../members/presentation/providers/members_providers.dart';
 import '../../../members/presentation/utils/member_requests_notification_route.dart';
 import '../../domain/entities/notification_item.dart';
 import '../../domain/notification_action.dart';
@@ -224,13 +224,16 @@ class NotificationCard extends ConsumerWidget {
     // Resultado de investidura: lleva a la pantalla que muestra el estado
     // (directiva → sección; el resto → su lista de investiduras).
     if (isInvestitureResultSource(notification.source)) {
+      // Directiva (`investiture.board`, calculada por el servidor) → sección;
+      // cualquier otra persona → su lista, que siempre existe.
       var isBoard = false;
       try {
-        isBoard =
-            (await ref.read(clubContextProvider.future))?.isInvestitureBoard ??
-                false;
+        isBoard = hasCapability(
+          await ref.read(authNotifierProvider.future),
+          'investiture.board',
+        );
       } catch (_) {
-        // Sin contexto de club se trata como persona: su lista siempre existe.
+        // Sin sesión resuelta se trata como persona: su lista siempre existe.
       }
       if (!context.mounted) return;
       context.push(investitureInboxRoute(isBoard: isBoard));

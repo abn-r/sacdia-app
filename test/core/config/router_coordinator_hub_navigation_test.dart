@@ -30,6 +30,7 @@ const _user = UserEntity(
   authorization: AuthorizationSnapshot(
     effectivePermissions: [],
     globalGrants: [AuthorizationGrant(roleName: 'coordinator')],
+    capabilities: ['coordination.hub_view'],
   ),
 );
 

@@ -13,6 +13,8 @@ const Set<String> _pastorExactPaths = {
   RouteNames.homeProfile,
   RouteNames.homeMedicalInfo,
   RouteNames.investitureAuthorize,
+  // Destino del guard de rutas por catálogo: ningún modo la rebota.
+  RouteNames.accessDenied,
 };
 
 final RegExp _authorizeDetailPath = RegExp(r'^/investiture/authorize/[^/]+$');

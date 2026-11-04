@@ -44,6 +44,7 @@ const _coordinatorNoClub = UserEntity(
   postRegisterComplete: true,
   authorization: AuthorizationSnapshot(
     globalGrants: [AuthorizationGrant(roleName: 'coordinator')],
+    capabilities: ['coordination.hub_view'],
   ),
 );
 
@@ -54,6 +55,7 @@ const _coordinatorGuardianNoClub = UserEntity(
   postRegisterComplete: true,
   authorization: AuthorizationSnapshot(
     globalGrants: [AuthorizationGrant(roleName: 'zone-coordinator')],
+    capabilities: ['coordination.hub_view'],
   ),
   family: FamilySummary(isGuardian: true, dependentsCount: 2),
 );
@@ -64,6 +66,7 @@ const _coordinatorWithClub = UserEntity(
   postRegisterComplete: true,
   authorization: AuthorizationSnapshot(
     globalGrants: [AuthorizationGrant(roleName: 'coordinator')],
+    capabilities: ['coordination.hub_view'],
     clubAssignments: [
       AuthorizationGrant(
         assignmentId: 'a-1',

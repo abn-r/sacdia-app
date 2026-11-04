@@ -6,6 +6,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/errors/forbidden.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
@@ -105,8 +106,8 @@ class _SLADashboardViewState extends ConsumerState<SLADashboardView> {
                 onRefresh: null,
                 children: [_SlaSkeleton()],
               ),
-              error: (error, _) => isCoordinatorForbidden(error)
-                  ? SacErrorState.forbidden(
+              error: (error, _) => isForbiddenFailure(error)
+                  ? ForbiddenView(
                       padding: SacTopBar.paddingBelowBar(
                         context,
                         const EdgeInsets.all(32),

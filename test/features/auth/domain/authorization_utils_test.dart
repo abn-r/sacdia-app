@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
+import '../../../support/capability_fixtures.dart';
 
 UserEntity _userWithStatus(String status) {
   return UserEntity(
@@ -63,16 +64,18 @@ void main() {
       return UserEntity(
         id: 'user-1',
         email: 'user@example.com',
-        authorization: AuthorizationSnapshot(
-          effectivePermissions: permissions,
-          activeAssignmentId: 'a-1',
-          clubAssignments: [
-            AuthorizationGrant(
-              assignmentId: 'a-1',
-              roleName: role,
-              status: status,
-            ),
-          ],
+        authorization: withDerivedCapabilities(
+          AuthorizationSnapshot(
+            effectivePermissions: permissions,
+            activeAssignmentId: 'a-1',
+            clubAssignments: [
+              AuthorizationGrant(
+                assignmentId: 'a-1',
+                roleName: role,
+                status: status,
+              ),
+            ],
+          ),
         ),
       );
     }

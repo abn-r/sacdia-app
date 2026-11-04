@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/errors/forbidden.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
@@ -95,8 +96,8 @@ class EvidenceReviewDetailView extends ConsumerWidget {
               onRefresh: null,
               children: [_DetailSkeleton()],
             ),
-            error: (error, _) => isCoordinatorForbidden(error)
-                ? SacErrorState.forbidden(
+            error: (error, _) => isForbiddenFailure(error)
+                ? ForbiddenView(
                     padding: SacTopBar.paddingBelowBar(
                       context,
                       const EdgeInsets.all(32),

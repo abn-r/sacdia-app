@@ -15,6 +15,9 @@ Map<String, Object?> dumpGate(CapabilityGate gate) {
   }
   if (gate.requireAll) out['requireAll'] = true;
   if (gate.exactRoles) out['exactRoles'] = true;
+  // Con `capability` el gate no lleva roles (`roles: []`, que no se emite).
+  final capability = gate.capability;
+  if (capability != null) out['capability'] = capability;
   return out;
 }
 

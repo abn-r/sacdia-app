@@ -348,4 +348,96 @@ void main() {
       expect(dispatchedKeys, isEmpty);
     });
   });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Tests — resource 'authorization' (phase 7)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  group('RealtimeInvalidationHandler — authorization resource', () {
+    late int refreshes;
+    late List<String> dispatchedKeys;
+
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+      refreshes = 0;
+      dispatchedKeys = [];
+      RealtimeInvalidationHandler.onAuthorizationInvalidate =
+          (_) => refreshes++;
+      RealtimeResourceRegistry.register('activities', (ref, sectionId) {
+        dispatchedKeys.add('activities|$sectionId');
+      });
+    });
+
+    tearDown(() {
+      RealtimeInvalidationHandler.onAuthorizationInvalidate =
+          RealtimeInvalidationHandler.refreshAuthorization;
+    });
+
+    test('foreground: refreshes /auth/me even without a sectionId', () {
+      final msg = RemoteMessage(
+        data: {
+          'type': 'cache_invalidate',
+          'resource': 'authorization',
+          'action': 'UPDATED',
+          'timestamp': '2026-11-04T10:00:00Z',
+        },
+      );
+      RealtimeInvalidationHandler.handleForeground(
+          msg, _CapturingRealtimeRef());
+
+      expect(refreshes, 1);
+      expect(dispatchedKeys, isEmpty, reason: 'never reaches the registry');
+    });
+
+    test('background: the message is discarded (resume refreshes anyway)',
+        () async {
+      await RealtimeInvalidationHandler.stagePending(
+        RemoteMessage(
+          data: {
+            'type': 'cache_invalidate',
+            'resource': 'authorization',
+            'action': 'UPDATED',
+            'timestamp': '2026-11-04T10:00:00Z',
+          },
+        ),
+      );
+      expect(await _readQueue(), isEmpty);
+    });
+
+    test('drain: a staged authorization entry refreshes once, before sectionId',
+        () async {
+      SharedPreferences.setMockInitialValues({
+        'pending_realtime_invalidations': jsonEncode([
+          {'resource': 'authorization', 'timestamp': '2026-11-04T10:00:00Z'},
+          {'resource': 'authorization', 'timestamp': '2026-11-04T10:05:00Z'},
+          {
+            'resource': 'activities',
+            'sectionId': '3',
+            'timestamp': '2026-11-04T10:01:00Z',
+          },
+        ]),
+      });
+
+      await RealtimeInvalidationHandler.drainPending(_CapturingRealtimeRef());
+
+      expect(refreshes, 1);
+      expect(dispatchedKeys, ['activities|3']);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.containsKey('pending_realtime_invalidations'), isFalse);
+    });
+
+    test('a throwing refresher never breaks the handler', () {
+      RealtimeInvalidationHandler.onAuthorizationInvalidate =
+          (_) => throw StateError('boom');
+      expect(
+        () => RealtimeInvalidationHandler.handleForeground(
+          RemoteMessage(
+            data: {'type': 'cache_invalidate', 'resource': 'authorization'},
+          ),
+          _CapturingRealtimeRef(),
+        ),
+        returnsNormally,
+      );
+    });
+  });
 }

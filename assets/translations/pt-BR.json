@@ -489,6 +489,7 @@
     "mr_already_pending": "Esta solicitação já foi processada.",
     "mr_already_processed": "Esta solicitação já foi processada.",
     "guard_permission_denied": "Você não tem permissão para realizar esta ação.",
+    "authorization_stale": "Suas permissões ainda não puderam ser verificadas com o servidor. Conecte-se à internet e tente novamente.",
     "file_required": "Selecione um arquivo.",
     "file_type_invalid": "Tipo de arquivo não permitido. Use JPG, PNG, WebP ou PDF.",
     "file_too_large": "O arquivo excede o limite de 10 MB.",
@@ -4452,6 +4453,9 @@
     }
   },
   "router": {
+    "access_denied": {
+      "action": "Ir para o início"
+    },
     "not_found": {
       "title": "Não encontramos esta tela",
       "body": "O link que você abriu não existe ou não está mais disponível.",

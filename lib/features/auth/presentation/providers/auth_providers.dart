@@ -397,6 +397,11 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     );
     final cachedClubName =
         await secureStorage.read(AppConstants.cachedActiveClubName);
+    final cachedCapabilities = _decodeCachedPermissions(
+      await secureStorage.read(AppConstants.cachedAuthorizationCapabilities),
+    );
+    final cachedAuthorizationFetchedAt =
+        await secureStorage.read(AppConstants.cachedAuthorizationFetchedAt);
     final prefs = ref.read(sharedPreferencesProvider);
 
     AppLogger.i('Token encontrado, validando con /auth/me', tag: _tag);
@@ -454,8 +459,22 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
                 effectivePermissions: cachedActivePermissions,
                 clubAssignments: [cachedGrant],
                 activeAssignmentId: cachedAssignmentId,
+                capabilities: cachedCapabilities,
+              );
+            } else if (cachedCapabilities.isNotEmpty) {
+              // Sin club activo (pastor, coordinador, tutor sin club) las
+              // capacidades globales siguen decidiendo el inicio y las
+              // pestañas.
+              cachedAuthorization = AuthorizationSnapshot(
+                capabilities: cachedCapabilities,
               );
             }
+            AppLogger.i(
+              'Autorización restaurada de caché '
+              '(fresca al ${cachedAuthorizationFetchedAt ?? '?'}): '
+              'solo lectura hasta el próximo /auth/me',
+              tag: _tag,
+            );
 
             final cachedUser = UserEntity(
               id: cachedId,
@@ -474,6 +493,9 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
               principal: persistedMode == SessionMode.device
                   ? const PrincipalInfo(kind: PrincipalKind.linkedDevice)
                   : null,
+              // La autorización es de la caché: ninguna mutación hasta que
+              // `/auth/me` responda (`refreshAuthorization`).
+              authorizationStale: true,
             );
             // Session restored from cache — initialize FCM so token is
             // registered even when the backend was temporarily unreachable.
@@ -546,6 +568,26 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     ref
         .read(sharedPreferencesProvider)
         .setBool('cached_post_register_complete', user.postRegisterComplete);
+
+    // Capacidades del servidor y momento de la respuesta: la restauración sin
+    // red las usa para decidir inicio y pestañas (en modo solo lectura).
+    final capabilities = user.authorization?.capabilities ?? const <String>[];
+    if (capabilities.isNotEmpty) {
+      secureStorage.write(
+        AppConstants.cachedAuthorizationCapabilities,
+        jsonEncode(capabilities),
+      );
+    } else {
+      secureStorage.delete(AppConstants.cachedAuthorizationCapabilities);
+    }
+    // Lo restaurado de caché no renueva su marca de tiempo: solo una
+    // respuesta fresca de `/auth/me`.
+    if (!user.authorizationStale) {
+      secureStorage.write(
+        AppConstants.cachedAuthorizationFetchedAt,
+        DateTime.now().toUtc().toIso8601String(),
+      );
+    }
 
     // Cache active grant fields so the UI can render the correct role on the
     // next cold start before the /auth/me response arrives.
@@ -807,6 +849,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       analyticsAnonymous: current.analyticsAnonymous,
       serverMode: current.serverMode,
       pendingClubMembership: current.pendingClubMembership,
+      authorizationStale: current.authorizationStale,
     );
     state = AsyncValue.data(updatedUser);
     _cacheUser(updatedUser);
@@ -839,6 +882,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       analyticsAnonymous: current.analyticsAnonymous,
       serverMode: current.serverMode,
       pendingClubMembership: current.pendingClubMembership,
+      authorizationStale: current.authorizationStale,
     );
     state = AsyncValue.data(
         updatedUser); // Aceptó los documentos: si ya terminó el registro, pide el permiso.
@@ -866,6 +910,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       analyticsAnonymous: current.analyticsAnonymous,
       serverMode: current.serverMode,
       pendingClubMembership: current.pendingClubMembership,
+      authorizationStale: current.authorizationStale,
     );
     state = AsyncValue.data(updatedUser);
     _cacheUser(updatedUser);
@@ -1312,6 +1357,87 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     }
   }
 
+  DateTime? _lastAuthorizationRefresh;
+  bool _refreshingAuthorization = false;
+
+  /// Vuelve a pedir `/auth/me` para TODOS los modos (a diferencia de
+  /// [refreshSupervision]) y publica el usuario SOLO si cambió su autorización:
+  /// `capabilities`, `effectivePermissions`, las concesiones (globales, de
+  /// club o la activa), `territory` o la marca [UserEntity.authorizationStale].
+  /// Una respuesta fresca siempre limpia esa marca.
+  ///
+  /// Lo llama la app al volver al frente y el push silencioso
+  /// `cache_invalidate` con `resource == 'authorization'`. Nunca mientras se
+  /// actúa por un menor (la respuesta sería la del dependiente) ni durante una
+  /// carga, y no sale de ningún modo «actuar por». Un fallo (sin red, 401...)
+  /// no toca el estado. [minInterval] limita la frecuencia (el push pasa
+  /// `Duration.zero`). Devuelve `true` si el estado cambió.
+  Future<bool> refreshAuthorization({
+    Duration minInterval = const Duration(seconds: 30),
+  }) async {
+    final current = state.value;
+    if (current == null ||
+        state.isLoading ||
+        _isActing ||
+        _refreshingAuthorization) {
+      return false;
+    }
+    final last = _lastAuthorizationRefresh;
+    if (last != null && DateTime.now().difference(last) < minInterval) {
+      return false;
+    }
+    _lastAuthorizationRefresh = DateTime.now();
+    _refreshingAuthorization = true;
+    try {
+      final generation = _session.generation;
+      final result = await ref.read(getCurrentUserProvider)(NoParams());
+      // El perfil o la sesión cambiaron mientras volaba: la respuesta es vieja.
+      if (_session.generation != generation || state.isLoading) return false;
+      final fresh = result.fold<UserEntity?>((_) => null, (u) => u);
+      final still = state.value;
+      if (fresh == null || still == null || fresh.id != still.id) return false;
+      if (!authorizationChanged(still, fresh)) {
+        // Nada cambió, pero la respuesta es fresca: renueva su marca de tiempo.
+        if (!_isActing) {
+          ref.read(secureStorageProvider).write(
+                AppConstants.cachedAuthorizationFetchedAt,
+                DateTime.now().toUtc().toIso8601String(),
+              );
+        }
+        return false;
+      }
+      AppLogger.i('Autorización actualizada desde el servidor', tag: _tag);
+      _cacheUser(fresh);
+      state = AsyncValue.data(fresh);
+      return true;
+    } finally {
+      _refreshingAuthorization = false;
+    }
+  }
+
+  /// ¿Cambió lo que decide el acceso entre [before] y [after]? Compara solo
+  /// capacidades, permisos efectivos, concesiones, territorio y la marca de
+  /// autorización obsoleta: otros campos (avatar, nombre...) no republican.
+  @visibleForTesting
+  static bool authorizationChanged(UserEntity before, UserEntity after) {
+    if (before.authorizationStale != after.authorizationStale) return true;
+    final a = before.authorization;
+    final b = after.authorization;
+    if (a == null || b == null) return a != b;
+    // Equatable compara las listas en profundidad; se omite
+    // `assignableGlobalRoles`, que la app no consume.
+    AuthorizationSnapshot accessView(AuthorizationSnapshot snapshot) =>
+        AuthorizationSnapshot(
+          effectivePermissions: snapshot.effectivePermissions,
+          globalGrants: snapshot.globalGrants,
+          clubAssignments: snapshot.clubAssignments,
+          activeAssignmentId: snapshot.activeAssignmentId,
+          capabilities: snapshot.capabilities,
+          territory: snapshot.territory,
+        );
+    return accessView(a) != accessView(b);
+  }
+
   /// Llamado por el interceptor ante 401 `AUTH_SUPERVISED_ACCESS_REVOKED`: el
   /// tutor cortó el acceso del menor (desactivó, restableció, congeló).
   ///
@@ -1514,6 +1640,8 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     secureStorage.delete(AppConstants.cachedActiveClubId);
     secureStorage.delete(AppConstants.cachedActiveSectionId);
     secureStorage.delete(AppConstants.cachedActiveClubTypeId);
+    secureStorage.delete(AppConstants.cachedAuthorizationCapabilities);
+    secureStorage.delete(AppConstants.cachedAuthorizationFetchedAt);
 
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.remove('cached_post_register_complete');
@@ -1582,6 +1710,8 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         secureStorage.delete(AppConstants.cachedActiveClubId);
         secureStorage.delete(AppConstants.cachedActiveSectionId);
         secureStorage.delete(AppConstants.cachedActiveClubTypeId);
+        secureStorage.delete(AppConstants.cachedAuthorizationCapabilities);
+        secureStorage.delete(AppConstants.cachedAuthorizationFetchedAt);
 
         return true;
       },

@@ -31,19 +31,26 @@ const Set<String> _pendingAllowedExact = {
   RouteNames.teenPendingHome,
   RouteNames.postRegistration,
   RouteNames.legalAcceptance,
+  RouteNames.accessDenied,
 };
 
 /// Lo único que abre una cuenta sin fecha de nacimiento.
 const Set<String> _profileIncompleteAllowedExact = {
   RouteNames.postRegistration,
   RouteNames.legalAcceptance,
+  RouteNames.accessDenied,
 };
 
 /// Lo único que abre una cuenta con un principal desconocido.
 const Set<String> _restrictedAllowedExact = {
   RouteNames.restrictedAccount,
   RouteNames.legalAcceptance,
+  RouteNames.accessDenied,
 };
+
+// `RouteNames.accessDenied` (destino del guard de rutas por catálogo) está en
+// las tres listas blancas y no cae bajo ningún prefijo vetado: ningún modo la
+// rebota.
 
 /// Prefijos vetados para un adolescente supervisado (sesión activa del tutor).
 const List<String> kSupervisedBlockedPrefixes = [

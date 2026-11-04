@@ -19,6 +19,8 @@ const Set<String> _coordinatorExactPaths = {
   RouteNames.homeProfile,
   RouteNames.homeMedicalInfo,
   RouteNames.notificationsInbox,
+  // Destino del guard de rutas por catálogo: ningún modo la rebota.
+  RouteNames.accessDenied,
   // Panel de coordinación y sus pantallas, una a una: no hay prefijo
   // `/coordinator/...` abierto, así una ruta retirada (actividades, perfil de
   // coordinador, aprobaciones de camporee) no se cuela por él.
@@ -52,14 +54,18 @@ bool isCoordinatorAllowedPath(String path) {
 /// club, o `null` si puede abrirla (o si no es un usuario sin club).
 ///
 /// Un coordinador sin club vuelve a su inicio (el panel de coordinación). Si
-/// además es pastor sin club, conserva también las rutas de «Autorizaciones»
+/// además autoriza investiduras (`investiture.authorize_requests`: pastor,
+/// director-lf, assistant-lf), conserva también las rutas de «Autorizaciones»
 /// (se llega por notificación o enlace; su inicio es la coordinación). Un
 /// pastor sin club que no coordina vuelve a su inicio (`/home/dashboard`, que
 /// dibuja el listado de autorizaciones dentro de las pestañas).
 String? clubLessRouteRedirect(UserEntity? user, String path) {
   if (isCoordinatorWithoutClub(user)) {
     if (isCoordinatorAllowedPath(path)) return null;
-    if (isPastorWithoutClub(user) && isPastorAllowedPath(path)) return null;
+    if (hasCapability(user, 'investiture.authorize_requests') &&
+        isPastorAllowedPath(path)) {
+      return null;
+    }
     return RouteNames.homeDashboard;
   }
   // Home, not `/investiture/authorize`: that route sits outside the tab

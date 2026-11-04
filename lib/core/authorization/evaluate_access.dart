@@ -7,11 +7,17 @@ class CapabilityGate {
   final bool requireAll;
   final bool exactRoles;
 
+  /// Capacidad del servidor (`kCapabilityKeys`) que el sujeto debe tener,
+  /// además de [permissions]. Cuando hay [capability], [roles] es `[]`: la
+  /// capacidad ya resume el gate por rol.
+  final String? capability;
+
   const CapabilityGate({
     this.permissions = const [],
     this.roles = const [],
     this.requireAll = false,
     this.exactRoles = false,
+    this.capability,
   });
 }
 
@@ -24,8 +30,15 @@ bool evaluateAccess(AccessSubject subject, CapabilityGate access) {
 
   final permissions = access.permissions;
   final roles = access.roles;
+  final capability = access.capability;
 
-  if (permissions.isEmpty && roles.isEmpty) return true;
+  if (capability == null && permissions.isEmpty && roles.isEmpty) return true;
+
+  // La capacidad se evalúa primero, junto con los permisos: ambos se exigen.
+  if (capability != null &&
+      !subject.capabilities.contains(capability.trim().toLowerCase())) {
+    return false;
+  }
 
   final permissionsOk = permissions.isEmpty ||
       (access.requireAll

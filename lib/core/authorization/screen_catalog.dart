@@ -37,13 +37,12 @@ ScreenDefinition _view(
   String id, {
   required List<String> surfaces,
   List<String> permissions = const [],
-  List<String> roles = const [],
   List<ScreenCapability> capabilities = const [],
 }) {
   return ScreenDefinition(
     id: id,
     surfaces: surfaces,
-    viewAny: CapabilityGate(permissions: permissions, roles: roles),
+    viewAny: CapabilityGate(permissions: permissions),
     capabilities: capabilities,
   );
 }
@@ -82,15 +81,15 @@ final List<ScreenDefinition> kAppScreenCatalog = [
     surfaces: _appOnly,
     permissions: ['classes:submit_progress'],
   ),
-  // Autorizadores de investidura (backend `FIELD_AUTHORIZER_ROLES` + pastor).
-  // `exactRoles` evita expandir `director-lf`/`assistant-lf` a los demás roles
-  // de Campo/Unión/DIA, que el backend no autoriza.
+  // Autorizadores de investidura (director-lf, assistant-lf, pastor): el
+  // servidor lo publica como `investiture.authorize_requests`.
   const ScreenDefinition(
     id: 'app-investiture-authorizer',
     surfaces: _appOnly,
     viewAny: CapabilityGate(
-      roles: ['pastor', 'director-lf', 'assistant-lf'],
-      exactRoles: true,
+      permissions: [],
+      roles: [],
+      capability: 'investiture.authorize_requests',
     ),
   ),
   _view(
@@ -100,11 +99,15 @@ final List<ScreenDefinition> kAppScreenCatalog = [
   ),
   _view('app-members', surfaces: _appOnly, permissions: ['users:read_detail']),
   // Directiva de la sección: presenta, agrega, quita y cambia la fecha de
-  // investidura (backend `MARK_ROLES`).
-  _view(
-    'app-section-investiture',
+  // investidura (backend `MARK_ROLES` → `investiture.board`).
+  const ScreenDefinition(
+    id: 'app-section-investiture',
     surfaces: _appOnly,
-    roles: ['director', 'secretary', 'secretary-treasurer'],
+    viewAny: CapabilityGate(
+      permissions: [],
+      roles: [],
+      capability: 'investiture.board',
+    ),
   ),
   _view('app-units', surfaces: _appOnly, permissions: ['units:update']),
   _view(
@@ -147,10 +150,16 @@ final List<ScreenDefinition> kAppScreenCatalog = [
     surfaces: _adminApp,
     permissions: ['evidence_folders:read'],
   ),
-  _view(
-    'coordinator-hub',
+  // Panel de coordinación: roles globales de administración, coordinación y
+  // Campo (`coordination.hub_view`, calculado por el servidor).
+  const ScreenDefinition(
+    id: 'coordinator-hub',
     surfaces: _appOnly,
-    roles: ['admin', 'coordinator'],
+    viewAny: CapabilityGate(
+      permissions: [],
+      roles: [],
+      capability: 'coordination.hub_view',
+    ),
   ),
   _view(
     'finances',

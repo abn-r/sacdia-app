@@ -13,6 +13,7 @@ import 'package:sacdia_app/features/dashboard/presentation/widgets/quick_access_
 import 'package:sacdia_app/features/units/domain/entities/unit.dart';
 import 'package:sacdia_app/features/units/presentation/providers/units_providers.dart';
 import '../../../../support/riverpod_test_support.dart';
+import '../../../../support/capability_fixtures.dart';
 
 class _FakeAuthNotifier extends AuthNotifier {
   _FakeAuthNotifier(this._user);
@@ -62,18 +63,20 @@ UserEntity _userWithPermissions(
   return UserEntity(
     id: 'user-1',
     email: 'user@example.com',
-    authorization: AuthorizationSnapshot(
-      effectivePermissions: permissions,
-      activeAssignmentId: activeAssignmentId,
-      clubAssignments: [
-        AuthorizationGrant(
-          assignmentId: activeAssignmentId,
-          roleName: roleName,
-          clubId: 1,
-          sectionId: 2,
-          status: 'active',
-        ),
-      ],
+    authorization: withDerivedCapabilities(
+      AuthorizationSnapshot(
+        effectivePermissions: permissions,
+        activeAssignmentId: activeAssignmentId,
+        clubAssignments: [
+          AuthorizationGrant(
+            assignmentId: activeAssignmentId,
+            roleName: roleName,
+            clubId: 1,
+            sectionId: 2,
+            status: 'active',
+          ),
+        ],
+      ),
     ),
   );
 }
@@ -285,6 +288,7 @@ void main() {
           authorization: AuthorizationSnapshot(
             effectivePermissions: const ['reports:read'],
             globalGrants: [AuthorizationGrant(roleName: role)],
+            capabilities: capabilitiesFor(globalRoles: [role]),
           ),
         );
 
@@ -330,6 +334,10 @@ void main() {
           authorization: AuthorizationSnapshot(
             effectivePermissions: const ['reports:read'],
             globalGrants: const [AuthorizationGrant(roleName: 'super-admin')],
+            capabilities: capabilitiesFor(
+              globalRoles: const ['super-admin'],
+              activeClubRole: 'director',
+            ),
             activeAssignmentId: 'a1',
             clubAssignments: const [
               AuthorizationGrant(

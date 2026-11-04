@@ -20,6 +20,8 @@ const Set<String> _deviceAllowedExact = {
   RouteNames.deviceAgenda,
   RouteNames.deviceInbox,
   RouteNames.notificationsInbox,
+  // Destino del guard de rutas por catálogo: ningún modo la rebota.
+  RouteNames.accessDenied,
 };
 
 /// Prefijos de detalle: `/device/classes/:id[/requirements/:id]` y

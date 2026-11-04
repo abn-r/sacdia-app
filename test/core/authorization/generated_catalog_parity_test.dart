@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/auth/club_role_names.dart';
+import 'package:sacdia_app/core/authorization/generated/capability_keys.dart';
 import 'package:sacdia_app/core/authorization/generated/permission_keys.dart';
 import 'package:sacdia_app/core/authorization/generated/role_names.dart';
 import 'package:sacdia_app/core/authorization/role_aliases.dart';
@@ -40,9 +41,6 @@ void main() {
       ClubRoleNames.secretaryTreasurer,
       ClubRoleNames.counselor,
       ClubRoleNames.member,
-      ...ClubRoleNames.management,
-      ...ClubRoleNames.sectionRankingViewers,
-      ...ClubRoleNames.investitureBoard,
     };
     expect(all.difference(kClubRoleNames.toSet()), isEmpty);
   });
@@ -54,6 +52,40 @@ void main() {
       for (final v in kGlobalRoleAliases.values) ...v,
     };
     expect(used.difference(known), isEmpty);
+  });
+
+  test('kCapabilityKeys is the generated catalog of 47 sorted keys', () {
+    expect(kCapabilityKeys, hasLength(47));
+    final sorted = kCapabilityKeys.toList()..sort();
+    expect(kCapabilityKeys.toList(), sorted);
+    // Una capacidad tiene forma `a.b`, nunca `a:b` (eso es un permiso).
+    for (final key in kCapabilityKeys) {
+      expect(key, matches(RegExp(r'^[a-z_]+(\.[a-z_]+)+$')), reason: key);
+      expect(kPermissionKeys.contains(key), isFalse, reason: key);
+    }
+  });
+
+  test('every capability referenced in lib/ exists in kCapabilityKeys', () {
+    // `hasCapability(user, 'a.b')` y `capability: 'a.b'` (gates del catálogo).
+    final re = RegExp(
+      r"(?:hasCapability\([^,]+,\s*|capability:\s*)'([a-z_]+(?:\.[a-z_]+)+)'",
+    );
+    final unknown = <String>{};
+    var referenced = 0;
+    for (final entity in Directory('lib').listSync(recursive: true)) {
+      if (entity is! File || !entity.path.endsWith('.dart')) continue;
+      if (entity.path.contains('lib/core/authorization/generated/')) continue;
+      final source = entity.readAsStringSync();
+      for (final m in re.allMatches(source)) {
+        referenced++;
+        final key = m.group(1)!;
+        if (!kCapabilityKeys.contains(key)) {
+          unknown.add('$key (${entity.path})');
+        }
+      }
+    }
+    expect(referenced, greaterThan(0), reason: 'the scan found no usages');
+    expect(unknown, isEmpty);
   });
 
   test('every permission literal in lib/ exists in kPermissionKeys', () {

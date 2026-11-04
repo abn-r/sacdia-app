@@ -95,9 +95,11 @@ import '../auth/acting_for_session.dart';
 import '../analytics/analytics_policy.dart';
 import '../analytics/posthog_analytics.dart'
     show createPosthogNavigatorObserver;
+import 'access_denied_view.dart';
 import 'acting_route_policy.dart';
 import 'device_pair_link.dart';
 import 'route_not_found_view.dart';
+import 'route_screen_policy.dart';
 import 'device_route_policy.dart';
 import 'pending_navigation.dart';
 import 'supervised_route_policy.dart';
@@ -437,6 +439,19 @@ final routerProvider = Provider<GoRouter>((ref) {
       // necesita: lo demás vuelve a su inicio.
       final clubLessTarget = clubLessRouteRedirect(user, currentPath);
       if (clubLessTarget != null) return clubLessTarget;
+
+      // ÚLTIMO paso: guard por catálogo de pantallas. Una ruta gobernada por el
+      // catálogo (`route_screen_policy.dart`) que la autorización del usuario
+      // (permisos, capacidades, roles) no permite va a «Acceso restringido».
+      // Sin `authorization` (estado transitorio) se deja pasar, igual que las
+      // pestañas del shell (`_filterNavItems`). El servidor sigue siendo quien
+      // deniega: esto solo evita pantallas que acabarían en 403.
+      final screenId = screenIdForRoute(state.fullPath);
+      if (screenId != null &&
+          user.authorization != null &&
+          !canViewScreen(subjectFromUser(user), screenId)) {
+        return RouteNames.accessDenied;
+      }
 
       return null;
     },
@@ -1493,6 +1508,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RouteNames.notificationsInbox,
         pageBuilder: (context, state) =>
             _sharedAxisBuild(context, state, const NotificationsInboxView()),
+      ),
+
+      // Acceso restringido: destino del guard de rutas por catálogo.
+      GoRoute(
+        path: RouteNames.accessDenied,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const AccessDeniedView()),
       ),
 
       // Miembro del Mes — Historial

@@ -6,7 +6,6 @@ import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:sacdia_app/core/auth/club_role_names.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
@@ -41,15 +40,6 @@ import 'data_export_view.dart';
 import 'edit_profile_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
-
-const Set<String> _attendanceScannerRoles = {
-  ClubRoleNames.director,
-  ClubRoleNames.deputyDirector,
-  ClubRoleNames.secretary,
-  ClubRoleNames.treasurer,
-  ClubRoleNames.secretaryTreasurer,
-  ClubRoleNames.counselor,
-};
 
 class SettingsView extends ConsumerStatefulWidget {
   const SettingsView({super.key});
@@ -332,7 +322,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                       ),
                     ],
                     if (hasAnyPermission(user, const {'attendance:manage'}) ||
-                        hasAnyRole(user, _attendanceScannerRoles)) ...[
+                        hasCapability(user, 'club.operational_staff')) ...[
                       const SacSettingsDivider(),
                       SacSettingsTile(
                         icon: HugeIcons.strokeRoundedQrCode01,

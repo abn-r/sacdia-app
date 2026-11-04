@@ -126,7 +126,7 @@
     {
       "id": "app-investiture-authorizer",
       "surfaces": ["app"],
-      "viewAny": { "roles": ["pastor", "director-lf", "assistant-lf"], "exactRoles": true },
+      "viewAny": { "capability": "investiture.authorize_requests" },
       "capabilities": []
     },
     {
@@ -144,7 +144,7 @@
     {
       "id": "app-section-investiture",
       "surfaces": ["app"],
-      "viewAny": { "roles": ["director", "secretary", "secretary-treasurer"] },
+      "viewAny": { "capability": "investiture.board" },
       "capabilities": []
     },
     {
@@ -193,7 +193,7 @@
     {
       "id": "coordinator-hub",
       "surfaces": ["app"],
-      "viewAny": { "roles": ["admin", "coordinator"] },
+      "viewAny": { "capability": "coordination.hub_view" },
       "capabilities": []
     },
     {

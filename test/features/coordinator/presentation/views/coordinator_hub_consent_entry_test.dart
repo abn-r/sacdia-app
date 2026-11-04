@@ -12,7 +12,6 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
-import 'package:sacdia_app/features/members/presentation/utils/consent_access.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/coordinator_scope.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/sla_dashboard.dart';
@@ -22,6 +21,7 @@ import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_h
 
 import '../../coordinator_test_harness.dart';
 import '../../coordinator_test_support.dart';
+import '../../../../support/capability_fixtures.dart';
 import '../../../../support/riverpod_test_support.dart';
 
 class _FakeAuth extends AuthNotifier {
@@ -36,12 +36,20 @@ class _FakeAuth extends AuthNotifier {
         email: 'coord@test.com',
         name: 'Carlos',
         postRegisterComplete: true,
-        authorization: AuthorizationSnapshot(
-          effectivePermissions: _permissions,
-          globalGrants: _globalGrants,
+        authorization: withDerivedCapabilities(
+          AuthorizationSnapshot(
+            effectivePermissions: _permissions,
+            globalGrants: _globalGrants,
+          ),
         ),
       );
 }
+
+const coordinatorRoleNames = [
+  'coordinator',
+  'zone-coordinator',
+  'general-coordinator',
+];
 
 /// A coordinator global role that carries `consent:verify`.
 const _coordinatorGrant = AuthorizationGrant(

@@ -101,6 +101,14 @@ Google Maps en Android también requiere `android/secrets.properties` (ver `andr
 
 Hermano Dart de `sacdia-admin/src/lib/auth/screen-catalog/`. Entrada: `lib/core/authorization/`. Quick access, tabs Clases/Actividades y el router usan `canViewScreen(screenId)`. Paridad: `test/fixtures/screen-catalog.snapshot.json` vs `dumpAppCatalog()` en admin (`screen-catalog.app.test.ts`). Regenerar el fixture cuando cambie un gate `app` en TS y copiar el registro Dart.
 
+### Capacidades (fase 7 RBAC)
+- **Modelo**: `AuthorizationSnapshot.capabilities` (claves `a.b` de `lib/core/authorization/generated/capability_keys.dart`, generado desde el backend; no se edita a mano), `territory` y `assignableGlobalRoles`. Un servidor sin `capabilities` equivale a lista vacía (deny).
+- **Pregunta canónica**: `hasCapability(user, 'club.active_director')` (`authorization_utils.dart`). La app NO compara nombres de rol para decidir acceso; `test/core/authorization/generated_catalog_parity_test.dart` exige que toda capacidad referenciada en `lib/` exista en el catálogo. Los gates `app-section-investiture`, `app-investiture-authorizer` y `coordinator-hub` son `CapabilityGate(capability: ...)`.
+- **Guard de rutas**: `lib/core/config/route_screen_policy.dart` mapea patrón de ruta → `screenId`; el redirect global de `router.dart` manda a `RouteNames.accessDenied` (`AccessDeniedView`) como ÚLTIMO paso, después de los gates por modo de sesión. `/access-denied` está permitida en todas las políticas de modo.
+- **Snapshot obsoleto**: una sesión restaurada sin red lleva `UserEntity.authorizationStale == true`; `AuthorizationStaleInterceptor` (cableado en `dio_provider.dart`) rechaza POST/PUT/PATCH/DELETE con `code: AUTHORIZATION_STALE` (`errors.authorization_stale`) hasta que `/auth/me` responda. No toca GET ni `/auth/*`, ni `ACTING_FOR_*`/`PRINCIPAL_SCOPE_*`.
+- **Refresco**: `AuthNotifier.refreshAuthorization()` en `didChangeAppLifecycleState(resumed)` (todos los modos) y por push silencioso `{type: 'cache_invalidate', resource: 'authorization'}` (sin `sectionId`); publica solo si cambia la autorización.
+- **403 unificado**: `lib/core/errors/forbidden.dart` (`isForbiddenFailure`, `ForbiddenView`). Nunca clasifica `ACTING_FOR_*` ni `PRINCIPAL_SCOPE_*`.
+
 ## Perfiles familiares (tutor y menores)
 
 Un tutor puede crear y gestionar perfiles de menores (sin cuenta propia) y "actuar por" ellos. Backend: guardas `acting-for` y módulo `guardianships` (ver `../sacdia-backend/src/common/guards/README.md`).

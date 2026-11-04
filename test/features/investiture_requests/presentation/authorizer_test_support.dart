@@ -9,6 +9,7 @@ import 'package:sacdia_app/providers/catalogs_provider.dart';
 import 'package:sacdia_app/shared/models/catalogs/ecclesiastical_year_model.dart';
 
 import '../fake_investiture_requests_repository.dart';
+import '../../../support/capability_fixtures.dart';
 
 class FakeAuthNotifier extends AuthNotifier {
   FakeAuthNotifier(this.user);
@@ -19,13 +20,16 @@ class FakeAuthNotifier extends AuthNotifier {
   Future<UserEntity?> build() async => user;
 }
 
-/// Usuario con un rol global (sin club) para las pantallas del autorizador.
+/// Usuario con un rol global (sin club) para las pantallas del autorizador,
+/// con las capacidades que el servidor publicaría para ese rol
+/// (`investiture.authorize_requests`, `admin_panel.pastor_only`...).
 UserEntity globalRoleUser(String role) => UserEntity(
       id: 'u-$role',
       email: '$role@example.com',
       authorization: AuthorizationSnapshot(
         effectivePermissions: const ['clubs:read'],
         globalGrants: [AuthorizationGrant(roleName: role)],
+        capabilities: capabilitiesFor(globalRoles: [role]),
       ),
     );
 

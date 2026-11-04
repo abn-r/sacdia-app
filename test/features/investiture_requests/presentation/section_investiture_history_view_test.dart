@@ -13,6 +13,10 @@ import 'package:sacdia_app/shared/models/catalogs/ecclesiastical_year_model.dart
 
 import '../fake_investiture_requests_repository.dart';
 import 'investiture_test_harness.dart';
+import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
+import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import '../../../support/capability_fixtures.dart';
 
 OwnInvestitureEntry _history(
   String id,
@@ -68,6 +72,7 @@ List<Override> _overrides(
 }) =>
     [
       investitureRequestsRepositoryProvider.overrideWithValue(repo),
+      authNotifierProvider.overrideWith(() => _FakeAuth(_sessionUserFor(role))),
       clubContextProvider.overrideWith(
         (ref) async => ClubContext(clubId: 1, sectionId: 4, roleName: role),
       ),
@@ -89,6 +94,36 @@ Future<void> _pump(
       const SectionInvestitureHistoryView(),
       overrides: _overrides(repo, role: role, names: names),
     );
+
+/// Sesión con la concesión activa de [role] y las capacidades que el servidor
+/// publicaría para ella (`investiture.board` para la directiva).
+UserEntity _sessionUserFor(String role) => UserEntity(
+      id: 'u1',
+      email: 'u1@example.com',
+      postRegisterComplete: true,
+      authorization: AuthorizationSnapshot(
+        activeAssignmentId: 'a1',
+        clubAssignments: [
+          AuthorizationGrant(
+            assignmentId: 'a1',
+            roleName: role,
+            clubId: 1,
+            sectionId: 4,
+            status: 'active',
+          ),
+        ],
+        capabilities: capabilitiesFor(activeClubRole: role),
+      ),
+    );
+
+class _FakeAuth extends AuthNotifier {
+  _FakeAuth(this._user);
+
+  final UserEntity _user;
+
+  @override
+  Future<UserEntity?> build() async => _user;
+}
 
 void main() {
   setUpAll(initInvestitureTestEnv);

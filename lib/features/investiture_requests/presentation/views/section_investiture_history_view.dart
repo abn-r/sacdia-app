@@ -11,6 +11,8 @@ import '../../../../core/widgets/sac_filter_chip.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../../providers/catalogs_provider.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/own_investiture_entry.dart';
 import '../../domain/entities/person_status.dart';
@@ -46,6 +48,10 @@ class _SectionInvestitureHistoryViewState
     final c = context.sac;
     final clubAsync = ref.watch(clubContextProvider);
     final club = clubAsync.value;
+    final isBoard = hasCapability(
+      ref.watch(authNotifierProvider.select((v) => v.value)),
+      'investiture.board',
+    );
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -69,7 +75,7 @@ class _SectionInvestitureHistoryViewState
                   ? const Center(child: SacLoading())
                   : _restricted();
             }
-            if (!club.isInvestitureBoard) return _restricted();
+            if (!isBoard) return _restricted();
             return _Body(
               sectionId: club.sectionId,
               tab: _tab,

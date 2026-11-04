@@ -507,6 +507,11 @@ const _director = UserEntity(
   email: 'director@example.com',
   authorization: AuthorizationSnapshot(
     activeAssignmentId: 'active',
+    capabilities: [
+      'club.active_director',
+      'club.operational_staff',
+      'club.staff_mode',
+    ],
     clubAssignments: [
       AuthorizationGrant(
         assignmentId: 'active',
@@ -525,6 +530,7 @@ const _deputy = UserEntity(
   email: 'deputy@example.com',
   authorization: AuthorizationSnapshot(
     activeAssignmentId: 'active',
+    capabilities: ['club.operational_staff', 'club.staff_mode'],
     clubAssignments: [
       AuthorizationGrant(
         assignmentId: 'active',

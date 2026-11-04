@@ -25,6 +25,8 @@ import '../providers/activities_providers.dart';
 import '../widgets/activity_audience_section.dart';
 import '../widgets/activity_form_widgets.dart';
 import 'location_picker_view.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
@@ -279,9 +281,11 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
       return;
     }
 
-    // Validate joint activity sections when the user is a director
-    final clubCtx = ref.read(clubContextProvider).value;
-    final isDirector = clubCtx?.isDirector ?? false;
+    // Validate joint activity sections when the user is the active director
+    final isDirector = hasCapability(
+      ref.read(authNotifierProvider).value,
+      'club.active_director',
+    );
     if (isDirector && _isJoint && _selectedSectionIds.length < 2) {
       _showError('activities.form.error_joint_min_sections'.tr());
       return;
@@ -394,8 +398,12 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
       orElse: () => const <PickerItem>[],
     );
 
-    // Only directors can edit joint activity settings
-    final isDirector = clubCtxAsync.value?.isDirector ?? false;
+    // Only the active director can edit joint activity settings
+    // (`club.active_director`, calculated by the server).
+    final isDirector = hasCapability(
+      ref.watch(authNotifierProvider.select((v) => v.value)),
+      'club.active_director',
+    );
     final ownSectionId = clubCtxAsync.value?.sectionId;
 
     // Sync activity type name once types are loaded

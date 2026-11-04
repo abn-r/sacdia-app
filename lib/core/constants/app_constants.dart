@@ -101,6 +101,15 @@ class AppConstants {
   static const String cachedActiveSectionId = 'cached_active_section_id';
   static const String cachedActiveClubTypeId = 'cached_active_club_type_id';
 
+  // Caché de la autorización (SecureStorage): capacidades calculadas por el
+  // servidor (JSON) y momento de la última respuesta fresca de `/auth/me`
+  // (ISO-8601). Una sesión restaurada sin red las lee y queda marcada
+  // `authorizationStale` hasta el siguiente `/auth/me`.
+  static const String cachedAuthorizationCapabilities =
+      'cached_authorization_capabilities';
+  static const String cachedAuthorizationFetchedAt =
+      'cached_authorization_fetched_at';
+
   // Biometric auth (SharedPreferences)
   // MVP: opt-in only, boolean flag + ISO-8601 enrolledAt; no biometric data stored.
   static const String biometricEnabledKey = 'biometric_enabled';

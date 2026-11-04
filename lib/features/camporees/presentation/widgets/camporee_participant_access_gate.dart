@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/auth/club_role_names.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -27,14 +26,15 @@ bool camporeeParticipantsAreEnabled(
 /// Autoridad exacta para mutar participantes del Camporí.
 ///
 /// La inscripción habilita la lectura. La mutación además exige que el
-/// `activeGrant` canónico sea el director activo de la misma sección CLUB.
+/// `activeGrant` canónico sea el de la misma sección CLUB y que el servidor
+/// conceda `club.active_director` (la concesión activa es la del director).
 /// Los roles globales o asignaciones históricas nunca participan del cálculo.
 bool canRegisterCamporeeParticipants(
   AsyncValue<CamporeeSectionRegistration> registrationAsync,
   AsyncValue<UserEntity?> authAsync,
 ) {
-  final activeGrant = _activeCamporeeGrant(registrationAsync, authAsync);
-  return activeGrant?.roleName?.trim().toLowerCase() == ClubRoleNames.director;
+  return _activeCamporeeGrant(registrationAsync, authAsync) != null &&
+      hasCapability(authAsync.value, 'club.active_director');
 }
 
 /// Autoridad para remover participantes, alineada con el guard del backend.

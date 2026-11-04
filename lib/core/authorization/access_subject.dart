@@ -6,10 +6,15 @@ class AccessSubject {
   final Set<String> roles;
   final bool isSuperAdmin;
 
+  /// Capacidades calculadas por el servidor
+  /// (`/auth/me.authorization.capabilities`); vacío = deny.
+  final Set<String> capabilities;
+
   const AccessSubject({
     required this.permissions,
     required this.roles,
     required this.isSuperAdmin,
+    this.capabilities = const {},
   });
 }
 
@@ -21,9 +26,14 @@ AccessSubject subjectFromUser(UserEntity? user) {
       .where((role) => role.isNotEmpty)
       .toSet();
   final permissions = extractUserPermissions(user);
+  final capabilities = (user?.authorization?.capabilities ?? const <String>[])
+      .map((capability) => capability.trim().toLowerCase())
+      .where((capability) => capability.isNotEmpty)
+      .toSet();
   return AccessSubject(
     permissions: permissions,
     roles: roles,
     isSuperAdmin: roles.contains(kSuperAdminRole),
+    capabilities: capabilities,
   );
 }

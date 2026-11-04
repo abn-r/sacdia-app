@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
-import 'package:sacdia_app/core/auth/club_role_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -67,15 +66,6 @@ class ActivityDetailView extends ConsumerStatefulWidget {
 }
 
 class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
-  static const Set<String> _attendanceScannerRoles = {
-    ClubRoleNames.director,
-    ClubRoleNames.deputyDirector,
-    ClubRoleNames.secretary,
-    ClubRoleNames.treasurer,
-    ClubRoleNames.secretaryTreasurer,
-    ClubRoleNames.counselor,
-  };
-
   bool _descriptionExpanded = false;
 
   // ── hero height (platform-aware) ───────────────────────────────────────────
@@ -516,7 +506,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
 
     final canScanAttendance = activityAsync.hasValue &&
         (hasAnyPermission(user, const {'attendance:manage'}) ||
-            hasAnyRole(user, _attendanceScannerRoles));
+            hasCapability(user, 'club.operational_staff'));
     final canEditActivity = canUpdateActivities(user);
     final canDeleteActivity = canDeleteActivities(user);
 

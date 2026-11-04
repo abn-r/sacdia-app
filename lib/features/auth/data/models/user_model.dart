@@ -27,6 +27,7 @@ class UserModel extends UserEntity {
     super.analyticsAnonymous,
     super.serverMode,
     super.pendingClubMembership,
+    super.authorizationStale,
   });
 
   /// Crea un UserModel a partir de la respuesta de la API personalizada
@@ -370,6 +371,26 @@ class UserModel extends UserEntity {
       activeAssignmentId: activeAssignment is Map<String, dynamic>
           ? activeAssignment['assignment_id']?.toString()
           : null,
+      // Ausente mientras el backend de la fase 7 no esté desplegado: lista
+      // vacía (deny), nunca se infiere de los roles.
+      capabilities: [..._parseStringList(value['capabilities'])]..sort(),
+      territory: _parseTerritory(value['territory']),
+      assignableGlobalRoles: _parseStringList(value['assignable_global_roles']),
+    );
+  }
+
+  /// `authorization.territory`: `{level, division_id, union_id,
+  /// local_field_id}`. Ausente, malformado o sin `level` es nulo.
+  static AuthorizationTerritory? _parseTerritory(dynamic value) {
+    if (value is! Map) return null;
+    final level = value['level']?.toString().trim().toLowerCase();
+    if (level == null || level.isEmpty) return null;
+    int? id(dynamic raw) => int.tryParse(raw?.toString() ?? '');
+    return AuthorizationTerritory(
+      level: level,
+      divisionId: id(value['division_id']),
+      unionId: id(value['union_id']),
+      localFieldId: id(value['local_field_id']),
     );
   }
 
@@ -412,6 +433,16 @@ class UserModel extends UserEntity {
       'active_assignment': {
         'assignment_id': authorization.activeAssignmentId,
       },
+      'capabilities': authorization.capabilities,
+      'territory': authorization.territory == null
+          ? null
+          : {
+              'level': authorization.territory!.level,
+              'division_id': authorization.territory!.divisionId,
+              'union_id': authorization.territory!.unionId,
+              'local_field_id': authorization.territory!.localFieldId,
+            },
+      'assignable_global_roles': authorization.assignableGlobalRoles,
     };
   }
 
@@ -451,6 +482,7 @@ class UserModel extends UserEntity {
     bool? analyticsAnonymous,
     AccountMode? serverMode,
     PendingClubMembership? pendingClubMembership,
+    bool? authorizationStale,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -473,6 +505,7 @@ class UserModel extends UserEntity {
       serverMode: serverMode ?? this.serverMode,
       pendingClubMembership:
           pendingClubMembership ?? this.pendingClubMembership,
+      authorizationStale: authorizationStale ?? this.authorizationStale,
     );
   }
 }

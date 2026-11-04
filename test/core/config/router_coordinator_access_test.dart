@@ -13,6 +13,7 @@ import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import '../../support/capability_fixtures.dart';
 import '../../support/riverpod_test_support.dart';
 
 UserEntity _user({
@@ -30,12 +31,24 @@ UserEntity _user({
       actingFor: actingFor,
       family: family,
       serverMode: serverMode,
-      authorization: AuthorizationSnapshot(
-        effectivePermissions: const ['clubs:read'],
-        globalGrants: [for (final r in roles) AuthorizationGrant(roleName: r)],
-        clubAssignments: clubAssignments,
+      authorization: withDerivedCapabilities(
+        AuthorizationSnapshot(
+          effectivePermissions: const ['clubs:read'],
+          globalGrants: [
+            for (final r in roles) AuthorizationGrant(roleName: r),
+          ],
+          clubAssignments: clubAssignments,
+        ),
       ),
     );
+
+/// Roles globales de coordinación (los que el backend resume en
+/// `coordination.hub_view` junto a la administración y el Campo).
+const coordinatorRoleNames = [
+  'coordinator',
+  'zone-coordinator',
+  'general-coordinator',
+];
 
 const _activeClubGrant = AuthorizationGrant(
   assignmentId: 'a1',
@@ -141,10 +154,29 @@ void main() {
       );
     });
 
+    test('field and admin roles qualify too (coordination.hub_view)', () {
+      for (final role in ['director-lf', 'assistant-lf', 'admin']) {
+        expect(isCoordinatorWithoutClub(_user(roles: [role])), isTrue,
+            reason: role);
+      }
+    });
+
+    test('a user whose server omits capabilities never qualifies', () {
+      // Servidor anterior a la fase 7: sin `capabilities`, deny.
+      final user = UserEntity(
+        id: 'u1',
+        email: 'u1@example.com',
+        authorization: const AuthorizationSnapshot(
+          globalGrants: [AuthorizationGrant(roleName: 'coordinator')],
+        ),
+      );
+      expect(isCoordinatorWithoutClub(user), isFalse);
+    });
+
     test('other roles, pastors and anonymous users do not qualify', () {
       expect(isCoordinatorWithoutClub(null), isFalse);
       expect(isCoordinatorWithoutClub(_user(roles: ['pastor'])), isFalse);
-      expect(isCoordinatorWithoutClub(_user(roles: ['director-lf'])), isFalse);
+      expect(isCoordinatorWithoutClub(_user(roles: ['user'])), isFalse);
       expect(isCoordinatorWithoutClub(_user(roles: const [])), isFalse);
       expect(
         isCoordinatorWithoutClub(const UserEntity(id: 'x')),
@@ -376,7 +408,12 @@ void main() {
         ),
       );
       expect(await redirectFor(container, RouteNames.homeHonors), isNull);
-      expect(await redirectFor(container, RouteNames.homeClub), isNull);
+      // «Mi club» sí está gobernado por el catálogo (`clubs:update`): lo
+      // decide el guard de pantallas, no la regla del coordinador sin club.
+      expect(
+        await redirectFor(container, RouteNames.homeClub),
+        RouteNames.accessDenied,
+      );
     });
 
     testWidgets('a coordinator with a club still completes post-registration',

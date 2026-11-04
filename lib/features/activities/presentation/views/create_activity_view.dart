@@ -27,7 +27,8 @@ import '../widgets/activity_form_widgets.dart';
 import '../widgets/activity_audience_section.dart';
 import '../widgets/activity_series_form_section.dart';
 import 'location_picker_view.dart';
-import '../../../members/presentation/providers/members_providers.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
@@ -473,7 +474,6 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
     final createState = ref.watch(createActivityNotifierProvider);
     final seriesState = ref.watch(createActivitySeriesNotifierProvider);
     final activityTypesAsync = ref.watch(activityTypesProvider);
-    final clubCtxAsync = ref.watch(clubContextProvider);
     final sectionsAsync = ref.watch(clubSectionsForActivityProvider);
     final c = context.sac;
     final isLoading =
@@ -485,8 +485,12 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
       orElse: () => const <PickerItem>[],
     );
 
-    // Only directors can create joint activities
-    final isDirector = clubCtxAsync.value?.isDirector ?? false;
+    // Only the active director can create joint activities
+    // (`club.active_director`, calculated by the server).
+    final isDirector = hasCapability(
+      ref.watch(authNotifierProvider.select((v) => v.value)),
+      'club.active_director',
+    );
 
     // Mostrar error del notifier si hay uno nuevo
     ref.listen<CreateActivityState>(

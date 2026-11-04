@@ -489,6 +489,7 @@
     "mr_already_pending": "Cette demande a déjà été traitée.",
     "mr_already_processed": "Cette demande a déjà été traitée.",
     "guard_permission_denied": "Vous n'avez pas la permission d'effectuer cette action.",
+    "authorization_stale": "Vos permissions n'ont pas encore pu être vérifiées auprès du serveur. Connectez-vous à internet et réessayez.",
     "file_required": "Sélectionnez un fichier.",
     "file_type_invalid": "Type de fichier non autorisé. Utilisez JPG, PNG, WebP ou PDF.",
     "file_too_large": "Le fichier dépasse la limite de 10 Mo.",
@@ -4452,6 +4453,9 @@
     }
   },
   "router": {
+    "access_denied": {
+      "action": "Aller à l'accueil"
+    },
     "not_found": {
       "title": "Nous n'avons pas trouvé cet écran",
       "body": "Le lien que vous avez ouvert n'existe pas ou n'est plus disponible.",
