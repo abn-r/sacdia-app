@@ -43,25 +43,37 @@ class TransactionTypeTabs extends StatelessWidget {
         children: [
           for (final (label, type) in _tabs)
             Expanded(
-              child: GestureDetector(
+              child: Semantics(
+                button: true,
+                selected: selected == type,
+                label: label,
+                excludeSemantics: true,
                 onTap: () => onChanged(type),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  padding: const EdgeInsets.symmetric(vertical: 9),
-                  decoration: BoxDecoration(
-                    color: selected == type ? activeColor : Colors.transparent,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                  ),
-                  child: Text(
-                    label,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: SacFontSize.bodyMedium,
-                      fontWeight:
-                          selected == type ? FontWeight.w600 : FontWeight.w400,
-                      color: selected == type
-                          ? context.sac.text
-                          : context.sac.textSecondary,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => onChanged(type),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    constraints: const BoxConstraints(minHeight: 44),
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(vertical: 9),
+                    decoration: BoxDecoration(
+                      color:
+                          selected == type ? activeColor : Colors.transparent,
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                    ),
+                    child: Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: SacFontSize.bodyMedium,
+                        fontWeight: selected == type
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                        color: selected == type
+                            ? context.sac.text
+                            : context.sac.textSecondary,
+                      ),
                     ),
                   ),
                 ),

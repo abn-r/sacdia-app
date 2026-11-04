@@ -6,7 +6,6 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/errors/user_error_message.dart';
-import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/widgets/secure_screen.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -25,6 +24,8 @@ import 'transaction_detail_view.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -68,31 +69,26 @@ class FinancesView extends ConsumerWidget {
                   ),
                 ),
               ),
-            if (financeMonthAsync.isLoading)
-              const Padding(
-                padding: EdgeInsets.all(14),
-                child: SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              )
-            else
-              SacPressable(
-                listenOnly: true,
-                child: IconButton(
-                  enableFeedback: false,
-                  onPressed: () {
-                    ref.invalidate(financeMonthProvider);
-                    ref.invalidate(financeSummaryProvider);
-                  },
-                  icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedRefresh,
-                    size: 20,
-                    color: context.sac.textSecondary,
-                  ),
-                ),
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                tooltip: 'common.refresh'.tr(),
+                onPressed: financeMonthAsync.isLoading
+                    ? null
+                    : () {
+                        ref.invalidate(financeMonthProvider);
+                        ref.invalidate(financeSummaryProvider);
+                      },
+                icon: financeMonthAsync.isLoading
+                    ? const SacLoadingSmall()
+                    : HugeIcon(
+                        icon: HugeIcons.strokeRoundedRefresh,
+                        size: 20,
+                        color: context.sac.textSecondary,
+                      ),
               ),
+            ),
           ],
         ),
         body: SacFrostedVeil(
@@ -117,7 +113,8 @@ class FinancesView extends ConsumerWidget {
                     SliverToBoxAdapter(
                       child: financeMonthAsync.when(
                         loading: () => const FinancesLoadingSkeleton(),
-                        error: (e, _) => _ErrorBody(
+                        error: (e, _) => SacErrorState(
+                          title: 'finances.view.error_title'.tr(),
                           message: userErrorMessage(e),
                           onRetry: () {
                             ref.invalidate(financeMonthProvider);
@@ -197,7 +194,11 @@ class _FinanceBody extends ConsumerWidget {
 
         // Transactions or empty state
         if (transactions.isEmpty)
-          _EmptyTransactions()
+          SacEmptyState(
+            icon: HugeIcons.strokeRoundedMoneyReceive01,
+            title: 'finances.view.empty_title'.tr(),
+            body: 'finances.view.empty_subtitle'.tr(),
+          )
         else
           ..._buildGroupedTransactions(context, transactions),
 
@@ -267,65 +268,6 @@ class _FinanceBody extends ConsumerWidget {
     Navigator.of(context).push(
       SacSharedAxisRoute(
         builder: (_) => AllTransactionsView(initialMonth: selected),
-      ),
-    );
-  }
-}
-
-// ── Empty transactions ─────────────────────────────────────────────────────────
-
-class _EmptyTransactions extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SacEmptyState(
-      icon: HugeIcons.strokeRoundedMoneyReceive01,
-      title: 'finances.view.empty_title'.tr(),
-      body: 'finances.view.empty_subtitle'.tr(),
-    );
-  }
-}
-
-// ── Error body ─────────────────────────────────────────────────────────────────
-
-class _ErrorBody extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorBody({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(40),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedAlert02,
-            size: 56,
-            color: AppColors.error,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'finances.view.error_title'.tr(),
-            style: Theme.of(context).textTheme.titleMedium,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            message,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: context.sac.textSecondary),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          SacButton(
-            text: 'common.retry'.tr(),
-            icon: HugeIcons.strokeRoundedRefresh,
-            onPressed: onRetry,
-          ),
-        ],
       ),
     );
   }
@@ -404,16 +346,10 @@ class _TransactionsSectionHeader extends StatelessWidget {
               color: c.text,
             ),
           ),
-          GestureDetector(
-            onTap: onViewAll,
-            child: Text(
-              'finances.view.view_all'.tr(),
-              style: TextStyle(
-                fontSize: SacFontSize.bodyMedium,
-                fontWeight: FontWeight.w500,
-                color: c.textTertiary,
-              ),
-            ),
+          SacButton.text(
+            text: 'finances.view.view_all'.tr(),
+            onPressed: onViewAll,
+            color: c.textSecondary,
           ),
         ],
       ),

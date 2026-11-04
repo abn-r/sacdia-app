@@ -6,11 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import '../../../camporee_orders/presentation/providers/camporee_orders_providers.dart';
@@ -75,13 +75,16 @@ class PaymentOrdersView extends ConsumerWidget {
                       padding: EdgeInsets.symmetric(vertical: 32),
                       child: Center(child: SacLoading()),
                     ),
-                    error: (error, _) => _ErrorState(
-                      message: error.toString().replaceFirst('Exception: ', ''),
+                    error: (error, _) => SacErrorState.inline(
+                      message: userErrorMessage(error),
                       onRetry: () =>
                           ref.invalidate(paymentOrdersListProvider(filter)),
                     ),
                     data: (orders) => orders.isEmpty
-                        ? const _EmptyState()
+                        ? SacEmptyState(
+                            icon: HugeIcons.strokeRoundedInvoice01,
+                            title: 'payment_orders.list.empty'.tr(),
+                          )
                         : Column(
                             children: [
                               for (var i = 0; i < orders.length; i++) ...[
@@ -333,51 +336,6 @@ class _OrderCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    return SacEmptyState(
-      icon: HugeIcons.strokeRoundedInvoice01,
-      title: 'payment_orders.list.empty'.tr(),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorState({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Column(
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedAlert02,
-            size: 42,
-            color: AppColors.error,
-          ),
-          const SizedBox(height: 10),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                fontSize: SacFontSize.bodyMedium,
-                color: context.sac.textSecondary),
-          ),
-          const SizedBox(height: 14),
-          SacButton.outline(text: 'common.retry'.tr(), onPressed: onRetry),
-        ],
       ),
     );
   }

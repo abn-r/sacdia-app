@@ -1,5 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -77,8 +80,9 @@ class _FaqViewState extends ConsumerState<FaqView> {
         child: Builder(
           builder: (context) => filteredAsync.when(
             loading: () => const Center(child: SacLoading()),
-            error: (e, _) => FaqErrorState(
-              message: e.toString(),
+            error: (e, _) => SacErrorState(
+              title: 'support.errors.faq_load_failed'.tr(),
+              message: userErrorMessage(e),
               onRetry: () => ref.invalidate(faqItemsProvider),
             ),
             data: (items) {
@@ -151,7 +155,13 @@ class _FaqViewState extends ConsumerState<FaqView> {
                   ),
                   const SizedBox(height: 12),
                   if (visibleItems.isEmpty)
-                    FaqEmptyState(query: _searchCtrl.text)
+                    SacEmptyState(
+                      icon: HugeIcons.strokeRoundedSearch01,
+                      title: _searchCtrl.text.isEmpty
+                          ? 'support.faq_empty'.tr()
+                          : 'support.faq_no_results'
+                              .tr(args: [_searchCtrl.text]),
+                    )
                   else
                     ...visibleItems.asMap().entries.map((entry) {
                       final index = entry.key;

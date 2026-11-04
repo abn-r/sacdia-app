@@ -1,8 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
 
 import '../../domain/entities/payment_order.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
@@ -23,7 +25,7 @@ Color paymentOrderStatusColor(
     case PaymentOrderStatus.expired:
       return AppColors.error;
     case PaymentOrderStatus.cancelled:
-      return Colors.grey;
+      return context.sac.textTertiary;
   }
 }
 
@@ -53,23 +55,36 @@ class PaymentOrderStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = paymentOrderStatusColor(status, context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Text(
-        paymentOrderStatusLabel(status),
-        style: TextStyle(
-          fontSize: SacFontSize.labelSmall,
-          fontWeight: FontWeight.w700,
-          color: color,
-        ),
-      ),
-    );
+    final label = paymentOrderStatusLabel(status);
+    switch (status) {
+      case PaymentOrderStatus.issued:
+        return SacBadge.warning(
+          label: label,
+          icon: HugeIcons.strokeRoundedClock01,
+        );
+      case PaymentOrderStatus.proofSubmitted:
+        return SacBadge.info(
+          label: label,
+          icon: HugeIcons.strokeRoundedUpload01,
+        );
+      case PaymentOrderStatus.approved:
+        return SacBadge.success(
+          label: label,
+          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+        );
+      case PaymentOrderStatus.proofRejected:
+      case PaymentOrderStatus.expired:
+        return SacBadge.error(
+          label: label,
+          icon: HugeIcons.strokeRoundedAlert02,
+        );
+      case PaymentOrderStatus.cancelled:
+        return SacBadge(
+          label: label,
+          icon: HugeIcons.strokeRoundedCancelCircle,
+          variant: SacBadgeVariant.neutral,
+        );
+    }
   }
 }
 
@@ -98,6 +113,7 @@ class PaymentOrderTimeline extends StatelessWidget {
 
   List<_TimelineStep> _steps(BuildContext context) {
     final status = order.status;
+    final c = context.sac;
 
     if (status == PaymentOrderStatus.cancelled) {
       return [
@@ -109,7 +125,7 @@ class PaymentOrderTimeline extends StatelessWidget {
         _TimelineStep(
           label: 'payment_orders.status.cancelled'.tr(),
           done: true,
-          color: Colors.grey,
+          color: c.textTertiary,
         ),
       ];
     }

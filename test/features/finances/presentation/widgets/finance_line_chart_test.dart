@@ -5,6 +5,7 @@ library;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/features/finances/domain/entities/finance_category.dart';
 import 'package:sacdia_app/features/finances/domain/entities/finance_month.dart';
 import 'package:sacdia_app/features/finances/domain/entities/finance_summary.dart';
@@ -183,9 +184,11 @@ void main() {
       ]);
       expect(items, hasLength(2));
       expect(items[0]!.text, r'$1.5k');
-      expect(items[0]!.textStyle.color, const Color(0xFF4FBF9F));
+      expect(items[0]!.textStyle.color,
+          const SacColors(Brightness.light).onSuccessContainer);
       expect(items[1]!.text, r'$80');
-      expect(items[1]!.textStyle.color, const Color(0xFFDC2626));
+      expect(items[1]!.textStyle.color,
+          const SacColors(Brightness.light).onErrorContainer);
     });
 
     testWidgets('shows the empty state without transactions', (tester) async {

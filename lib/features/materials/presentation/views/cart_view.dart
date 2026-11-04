@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../providers/cart_provider.dart';
@@ -43,10 +42,10 @@ class CartView extends ConsumerWidget {
                   enableFeedback: false,
                   tooltip: 'materials.cart.clear'.tr(),
                   onPressed: () => _confirmClear(context, ref),
-                  icon: const HugeIcon(
+                  icon: HugeIcon(
                     icon: HugeIcons.strokeRoundedDelete02,
                     size: 22,
-                    color: AppColors.error,
+                    color: context.sac.error,
                   ),
                 ),
               ),
@@ -55,8 +54,14 @@ class CartView extends ConsumerWidget {
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) => cart.lines.isEmpty
-              ? _EmptyCart(
-                  onBackToCatalog: () => context.pop(),
+              ? SacEmptyState(
+                  icon: HugeIcons.strokeRoundedShoppingCart01,
+                  title: 'materials.cart.empty_title'.tr(),
+                  body: 'materials.cart.empty_subtitle'.tr(),
+                  actionLabel: 'materials.cart.go_catalog'.tr(),
+                  onAction: () => context.pop(),
+                  actionIcon: HugeIcons.strokeRoundedArrowLeft01,
+                  actionVariant: SacButtonVariant.outline,
                 )
               : ListView.separated(
                   padding: SacTopBar.paddingBelowBar(
@@ -246,6 +251,7 @@ class _CartLineItem extends StatelessWidget {
             listenOnly: true,
             child: IconButton(
               enableFeedback: false,
+              tooltip: 'common.delete'.tr(),
               icon: HugeIcon(
                 icon: HugeIcons.strokeRoundedCancel01,
                 size: 20,
@@ -256,25 +262,6 @@ class _CartLineItem extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _EmptyCart extends StatelessWidget {
-  final VoidCallback onBackToCatalog;
-
-  const _EmptyCart({required this.onBackToCatalog});
-
-  @override
-  Widget build(BuildContext context) {
-    return SacEmptyState(
-      icon: HugeIcons.strokeRoundedShoppingCart01,
-      title: 'materials.cart.empty_title'.tr(),
-      body: 'materials.cart.empty_subtitle'.tr(),
-      actionLabel: 'materials.cart.go_catalog'.tr(),
-      onAction: onBackToCatalog,
-      actionIcon: HugeIcons.strokeRoundedArrowLeft01,
-      actionVariant: SacButtonVariant.outline,
     );
   }
 }

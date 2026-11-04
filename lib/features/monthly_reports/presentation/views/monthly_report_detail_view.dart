@@ -1,9 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/app_logger.dart';
@@ -40,8 +41,9 @@ class MonthlyReportDetailView extends ConsumerWidget {
         child: Builder(
           builder: (context) => reportAsync.when(
             loading: () => const MonthlyReportDetailSkeleton(),
-            error: (e, _) => _ErrorBody(
-              message: e.toString().replaceFirst('Exception: ', ''),
+            error: (e, _) => SacErrorState(
+              title: 'common.error_state.title'.tr(),
+              message: userErrorMessage(e),
               onRetry: () =>
                   ref.invalidate(monthlyReportDetailProvider(reportId)),
             ),
@@ -196,12 +198,12 @@ class _ReportDetail extends ConsumerWidget {
                       _InfoRow(
                         label: 'monthly_reports.detail.income'.tr(),
                         value: _money(snapshot?.finances.income),
-                        valueColor: AppColors.secondary,
+                        valueColor: context.sac.onSuccessContainer,
                       ),
                       _InfoRow(
                         label: 'monthly_reports.detail.expenses'.tr(),
                         value: _money(snapshot?.finances.expenses),
-                        valueColor: AppColors.error,
+                        valueColor: context.sac.onErrorContainer,
                       ),
                       _InfoRow(
                         label: 'monthly_reports.detail.month_balance'.tr(),
@@ -356,7 +358,7 @@ class _StickyActionBarState extends ConsumerState<_StickyActionBar> {
           context,
           'monthly_reports.detail.pdf_error'.tr(
             namedArgs: {
-              'error': e.toString().replaceFirst('Exception: ', ''),
+              'error': userErrorMessage(e),
             },
           ),
           behavior: SnackBarBehavior.fixed);
@@ -829,7 +831,7 @@ class _StatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cfg = _statusConfig(status).forTheme(context);
+    final cfg = _statusConfig(status, context.sac);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
@@ -854,73 +856,19 @@ class _StatusConfig {
   final Color fg;
 
   const _StatusConfig({required this.bg, required this.fg});
-
-  /// Variante para tema oscuro: fondo = acento translúcido, texto aclarado.
-  _StatusConfig forTheme(BuildContext context) {
-    if (Theme.of(context).brightness != Brightness.dark) return this;
-    return _StatusConfig(
-      bg: fg.withValues(alpha: 0.22),
-      fg: Color.lerp(fg, Colors.white, 0.35)!,
-    );
-  }
 }
 
-_StatusConfig _statusConfig(MonthlyReportStatus status) {
+_StatusConfig _statusConfig(MonthlyReportStatus status, SacColors c) {
   switch (status) {
     case MonthlyReportStatus.approved:
-      return _StatusConfig(
-        bg: AppColors.validatedBg,
-        fg: AppColors.validatedDark,
-      );
-    case MonthlyReportStatus.rejected:
-      return _StatusConfig(bg: AppColors.errorLight, fg: AppColors.errorDark);
-    case MonthlyReportStatus.submitted:
-      return _StatusConfig(bg: AppColors.sentBg, fg: AppColors.sentDark);
     case MonthlyReportStatus.generated:
-      return _StatusConfig(
-        bg: AppColors.secondaryLight,
-        fg: AppColors.secondaryDark,
-      );
+      return _StatusConfig(bg: c.successContainer, fg: c.onSuccessContainer);
+    case MonthlyReportStatus.rejected:
+      return _StatusConfig(bg: c.errorContainer, fg: c.onErrorContainer);
+    case MonthlyReportStatus.submitted:
+      return _StatusConfig(bg: c.infoContainer, fg: c.onInfoContainer);
     case MonthlyReportStatus.draft:
-      return _StatusConfig(bg: AppColors.accentLight, fg: AppColors.accentDark);
-  }
-}
-
-class _ErrorBody extends StatelessWidget {
-  final String message;
-  final VoidCallback? onRetry;
-
-  const _ErrorBody({required this.message, this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 48,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: SacFontSize.titleSmall),
-            ),
-            const SizedBox(height: 16),
-            SacButton.primary(
-              text: 'common.retry'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onRetry,
-            ),
-          ],
-        ),
-      ),
-    );
+      return _StatusConfig(bg: c.warningContainer, fg: c.onWarningContainer);
   }
 }
 

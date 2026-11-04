@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/member_insurance.dart';
 
 /// Badge de estado de seguro de un miembro.
@@ -22,7 +22,7 @@ class InsuranceStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final config = _badgeConfig(status);
+    final config = _badgeConfig(status, context.sac);
 
     final fontSize = large ? 14.0 : (compact ? 10.5 : 12.0);
     final iconSize = large ? 16.0 : (compact ? 12.0 : 13.0);
@@ -58,27 +58,27 @@ class InsuranceStatusBadge extends StatelessWidget {
     );
   }
 
-  _BadgeConfig _badgeConfig(InsuranceStatus status) {
+  _BadgeConfig _badgeConfig(InsuranceStatus status, SacColors c) {
     switch (status) {
       case InsuranceStatus.asegurado:
         return _BadgeConfig(
-          bg: AppColors.secondaryLight,
-          fg: AppColors.secondaryDark,
-          border: AppColors.secondary.withValues(alpha: 0.4),
+          bg: c.successContainer,
+          fg: c.onSuccessContainer,
+          border: c.success.withValues(alpha: 0.4),
           icon: HugeIcons.strokeRoundedShield01,
         );
       case InsuranceStatus.vencido:
         return _BadgeConfig(
-          bg: AppColors.accentLight,
-          fg: AppColors.accentDark,
-          border: AppColors.accent.withValues(alpha: 0.4),
+          bg: c.warningContainer,
+          fg: c.onWarningContainer,
+          border: c.warning.withValues(alpha: 0.4),
           icon: HugeIcons.strokeRoundedAlert02,
         );
       case InsuranceStatus.sinSeguro:
         return _BadgeConfig(
-          bg: AppColors.errorLight,
-          fg: AppColors.errorDark,
-          border: AppColors.error.withValues(alpha: 0.3),
+          bg: c.errorContainer,
+          fg: c.onErrorContainer,
+          border: c.error.withValues(alpha: 0.3),
           icon: HugeIcons.strokeRoundedShieldEnergy,
         );
     }

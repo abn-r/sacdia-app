@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -31,6 +32,7 @@ class QtyStepper extends StatelessWidget {
       children: [
         _StepButton(
           icon: HugeIcons.strokeRoundedMinusSign,
+          semanticLabel: 'common.decrease_quantity'.tr(),
           enabled: canDecrement,
           onTap: canDecrement ? () => onChanged(value - 1) : null,
         ),
@@ -49,6 +51,7 @@ class QtyStepper extends StatelessWidget {
         _StepButton(
           icon: HugeIcons.strokeRoundedAdd01,
           enabled: canIncrement,
+          semanticLabel: 'common.increase_quantity'.tr(),
           onTap: canIncrement ? () => onChanged(value + 1) : null,
         ),
       ],
@@ -59,30 +62,46 @@ class QtyStepper extends StatelessWidget {
 class _StepButton extends StatelessWidget {
   final HugeIconData icon;
   final bool enabled;
+  final String? semanticLabel;
   final VoidCallback? onTap;
 
   const _StepButton({
     required this.icon,
     required this.enabled,
+    this.semanticLabel,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        enabled ? SacAccent.of(context).color : AppColors.lightTextTertiary;
+    final c = context.sac;
+    final color = enabled ? SacAccent.of(context).color : c.textTertiary;
 
-    return GestureDetector(
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: semanticLabel,
+      excludeSemantics: semanticLabel != null,
       onTap: onTap,
-      child: Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          color: enabled ? SacAccent.of(context).light : AppColors.lightBorder,
-          borderRadius: BorderRadius.circular(AppTheme.radiusXS),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Center(
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: enabled ? SacAccent.of(context).light : c.surfaceVariant,
+                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
+              ),
+              alignment: Alignment.center,
+              child: HugeIcon(icon: icon, size: 18, color: color),
+            ),
+          ),
         ),
-        alignment: Alignment.center,
-        child: HugeIcon(icon: icon, size: 18, color: color),
       ),
     );
   }

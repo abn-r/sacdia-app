@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 /// Relative time for inbox/sheet. Null when the calendar date is clearer.
 String? notificationRelativePhrase(DateTime date, {DateTime? now}) {
   final current = now ?? DateTime.now();
@@ -17,12 +19,7 @@ String? notificationRelativePhrase(DateTime date, {DateTime? now}) {
 }
 
 String notificationAbsoluteStamp(DateTime date) {
-  final local = date.toLocal();
-  final day = local.day.toString().padLeft(2, '0');
-  final month = local.month.toString().padLeft(2, '0');
-  final hour = local.hour.toString().padLeft(2, '0');
-  final minute = local.minute.toString().padLeft(2, '0');
-  return '$day/$month/${local.year} $hour:$minute';
+  return DateFormat('dd/MM/yyyy HH:mm').format(date.toLocal());
 }
 
 String notificationInboxTime(DateTime date, {DateTime? now}) {

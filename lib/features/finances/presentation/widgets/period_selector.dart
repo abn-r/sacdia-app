@@ -57,21 +57,34 @@ class _PeriodChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final activeColor = isDark ? AppColors.darkBorder : context.sac.ink900;
 
-    return GestureDetector(
+    return Semantics(
+      button: true,
+      selected: isActive,
+      label: period,
+      excludeSemantics: true,
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-        decoration: BoxDecoration(
-          color: isActive ? activeColor : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-        ),
-        child: Text(
-          period,
-          style: TextStyle(
-            fontSize: SacFontSize.caption,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-            color: isActive ? Colors.white : context.sac.textTertiary,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+          child: Center(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              decoration: BoxDecoration(
+                color: isActive ? activeColor : Colors.transparent,
+                borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+              ),
+              child: Text(
+                period,
+                style: TextStyle(
+                  fontSize: SacFontSize.caption,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                  color: isActive ? Colors.white : context.sac.textSecondary,
+                ),
+              ),
+            ),
           ),
         ),
       ),

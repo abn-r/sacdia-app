@@ -7,10 +7,10 @@ import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_image_viewer.dart';
 import '../../../members/presentation/providers/members_providers.dart'
     show ClubContext, clubContextProvider;
@@ -157,7 +157,8 @@ class InventoryItemDetailView extends ConsumerWidget {
                       icon: HugeIcons.strokeRoundedCheckmarkCircle01,
                       label: 'inventory.detail.condition'.tr(),
                       value: detailItem.condition.label,
-                      valueColor: _conditionColor(detailItem.condition),
+                      valueColor:
+                          _conditionColor(detailItem.condition, context.sac),
                     ),
                     _InfoRow(
                       icon: HugeIcons.strokeRoundedImage01,
@@ -181,8 +182,8 @@ class InventoryItemDetailView extends ConsumerWidget {
                           ? 'inventory.detail.active_status'.tr()
                           : 'inventory.detail.inactive_status'.tr(),
                       valueColor: detailItem.isActive
-                          ? AppColors.secondary
-                          : AppColors.error,
+                          ? context.sac.onSuccessContainer
+                          : context.sac.onErrorContainer,
                     ),
                     if (detailItem.serialNumber != null &&
                         detailItem.serialNumber!.isNotEmpty)
@@ -203,7 +204,7 @@ class InventoryItemDetailView extends ConsumerWidget {
                         icon: HugeIcons.strokeRoundedMoney01,
                         label: 'inventory.detail.estimated_value'.tr(),
                         value: SacMoney.format(detailItem.estimatedValue!),
-                        valueColor: AppColors.secondary,
+                        valueColor: context.sac.onSuccessContainer,
                       ),
                   ],
                 ),
@@ -325,14 +326,14 @@ class InventoryItemDetailView extends ConsumerWidget {
   }
 }
 
-Color _conditionColor(ItemCondition condition) {
+Color _conditionColor(ItemCondition condition, SacColors c) {
   switch (condition) {
     case ItemCondition.bueno:
-      return AppColors.secondary;
+      return c.onSuccessContainer;
     case ItemCondition.regular:
-      return AppColors.warning;
+      return c.onWarningContainer;
     case ItemCondition.malo:
-      return AppColors.error;
+      return c.onErrorContainer;
   }
 }
 
@@ -394,8 +395,8 @@ class _BottomActionBar extends StatelessWidget {
                 padding: _actionPadding,
                 fullWidth: true,
                 isLoading: isDeleting,
-                textColor: AppColors.error,
-                borderColor: AppColors.error,
+                textColor: context.sac.error,
+                borderColor: context.sac.error,
                 onPressed: isDeleting ? null : onDelete,
               ),
             ),
@@ -757,11 +758,10 @@ class _ActorAvatar extends StatelessWidget {
             color: context.sac.surfaceVariant,
           ),
           child: SizedBox(
-            width: 12,
-            height: 12,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: context.sac.textTertiary,
+            width: 14,
+            height: 14,
+            child: FittedBox(
+              child: SacLoadingSmall(color: context.sac.textTertiary),
             ),
           ),
         ),

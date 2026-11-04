@@ -1,19 +1,17 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/sac_badge.dart';
 import '../../domain/entities/material_status.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Badge visual para el estado de una orden de materiales.
 ///
-/// Paleta alineada con el admin panel (AppColors únicamente):
-/// - en_revision → muted (ink400 bg / ink600 text)
-/// - aprobada    → warning (accentLight bg / accentDark text)
-/// - pagada      → success (secondaryLight bg / secondaryDark text)
-/// - entregada   → success (mismo que pagada)
-/// - cancelada   → destructive (errorLight bg / errorDark text)
+/// Usa [SacBadge] (tokens semánticos, seguro en modo oscuro) con icono:
+/// - en_revision → neutral
+/// - aprobada    → warning
+/// - pagada / entregada → success
+/// - cancelada   → error
 class MaterialStatusBadge extends StatelessWidget {
   final MaterialStatus status;
 
@@ -21,59 +19,32 @@ class MaterialStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (bg, fg, label) = _resolve(context, status);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: SacFontSize.bodySmall,
-          fontWeight: FontWeight.w600,
-          color: fg,
-          letterSpacing: 0.2,
-        ),
-      ),
-    );
-  }
-
-  static (Color bg, Color fg, String label) _resolve(
-    BuildContext context,
-    MaterialStatus status,
-  ) {
     switch (status) {
       case MaterialStatus.enRevision:
-        return (
-          context.sac.ink100,
-          context.sac.ink600,
-          'materials.status.in_review'.tr()
+        return SacBadge(
+          label: 'materials.status.in_review'.tr(),
+          icon: HugeIcons.strokeRoundedClock01,
+          variant: SacBadgeVariant.neutral,
         );
       case MaterialStatus.aprobada:
-        return (
-          AppColors.accentLight,
-          AppColors.accentDark,
-          'materials.status.approved'.tr()
+        return SacBadge.warning(
+          label: 'materials.status.approved'.tr(),
+          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
         );
       case MaterialStatus.pagada:
-        return (
-          AppColors.secondaryLight,
-          AppColors.secondaryDark,
-          'materials.status.paid'.tr()
+        return SacBadge.success(
+          label: 'materials.status.paid'.tr(),
+          icon: HugeIcons.strokeRoundedMoney01,
         );
       case MaterialStatus.entregada:
-        return (
-          AppColors.secondaryLight,
-          AppColors.secondaryDark,
-          'materials.status.delivered'.tr()
+        return SacBadge.success(
+          label: 'materials.status.delivered'.tr(),
+          icon: HugeIcons.strokeRoundedPackage,
         );
       case MaterialStatus.cancelada:
-        return (
-          AppColors.errorLight,
-          AppColors.errorDark,
-          'materials.status.cancelled'.tr()
+        return SacBadge.error(
+          label: 'materials.status.cancelled'.tr(),
+          icon: HugeIcons.strokeRoundedCancelCircle,
         );
     }
   }

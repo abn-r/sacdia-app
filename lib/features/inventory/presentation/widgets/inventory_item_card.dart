@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -52,19 +51,19 @@ class InventoryItemCard extends StatelessWidget {
         },
         background: _SwipeBackground(
           alignment: Alignment.centerLeft,
-          color: AppColors.secondary.withValues(alpha: 0.15),
+          color: context.sac.successContainer,
           icon: HugeIcons.strokeRoundedEdit02,
-          iconColor: AppColors.secondary,
+          iconColor: context.sac.onSuccessContainer,
           label: 'inventory.item_card.edit_label'.tr(),
-          labelColor: AppColors.secondary,
+          labelColor: context.sac.onSuccessContainer,
         ),
         secondaryBackground: _SwipeBackground(
           alignment: Alignment.centerRight,
-          color: AppColors.error.withValues(alpha: 0.12),
+          color: context.sac.errorContainer,
           icon: HugeIcons.strokeRoundedDelete02,
-          iconColor: AppColors.error,
+          iconColor: context.sac.onErrorContainer,
           label: 'inventory.item_card.delete_label'.tr(),
-          labelColor: AppColors.error,
+          labelColor: context.sac.onErrorContainer,
         ),
         child: card,
       );
@@ -206,7 +205,7 @@ class _CardContent extends StatelessWidget {
                           SacMoney.format(item.estimatedValue!),
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: AppColors.accent,
+                                    color: c.onWarningContainer,
                                     fontSize: SacFontSize.labelSmall,
                                     fontWeight: FontWeight.w600,
                                   ),

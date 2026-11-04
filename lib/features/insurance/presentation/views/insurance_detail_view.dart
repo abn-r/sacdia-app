@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/sac_loading.dart';
 import '../../domain/entities/member_insurance.dart';
 import '../providers/insurance_providers.dart';
 import '../widgets/insurance_status_badge.dart';
@@ -42,6 +43,7 @@ class InsuranceDetailView extends ConsumerWidget {
                 listenOnly: true,
                 child: IconButton(
                   enableFeedback: false,
+                  tooltip: 'common.edit'.tr(),
                   onPressed: () => _openEdit(context),
                   icon: HugeIcon(
                     icon: HugeIcons.strokeRoundedEdit02,
@@ -225,8 +227,8 @@ class _MemberHeaderCard extends StatelessWidget {
                           fit: BoxFit.cover,
                           memCacheWidth: 180,
                           memCacheHeight: 180,
-                          placeholder: (context, url) => const Center(
-                              child: CircularProgressIndicator.adaptive()),
+                          placeholder: (context, url) =>
+                              const Center(child: SacLoadingSmall()),
                           errorWidget: (context, url, error) => _AvatarFallback(
                               initials: initials, color: statusColor),
                         )
@@ -355,7 +357,7 @@ class _StatusSection extends StatelessWidget {
             Text(
               _vigenciaText(context, insurance.status, days),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: _vigenciaColor(insurance.status, days),
+                    color: _vigenciaColor(insurance.status, days, context.sac),
                     fontWeight: FontWeight.w600,
                   ),
             ),
@@ -384,14 +386,14 @@ class _StatusSection extends StatelessWidget {
     }
   }
 
-  Color _vigenciaColor(InsuranceStatus status, int days) {
+  Color _vigenciaColor(InsuranceStatus status, int days, SacColors c) {
     switch (status) {
       case InsuranceStatus.asegurado:
-        return days <= 30 ? AppColors.accentDark : AppColors.secondaryDark;
+        return days <= 30 ? c.onWarningContainer : c.onSuccessContainer;
       case InsuranceStatus.vencido:
-        return AppColors.errorDark;
+        return c.onErrorContainer;
       case InsuranceStatus.sinSeguro:
-        return AppColors.errorDark;
+        return c.onErrorContainer;
     }
   }
 }
@@ -487,8 +489,7 @@ class _EvidencePreview extends StatelessWidget {
             memCacheWidth: 1200,
             memCacheHeight: 600,
             fit: BoxFit.cover,
-            placeholder: (context, url) =>
-                const Center(child: CircularProgressIndicator.adaptive()),
+            placeholder: (context, url) => const Center(child: SacLoading()),
             errorWidget: (context, url, error) => Container(
               height: 100,
               color: SacAccent.of(context).surface,

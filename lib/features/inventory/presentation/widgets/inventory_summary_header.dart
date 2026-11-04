@@ -7,12 +7,12 @@ import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/widgets/fixed_input_icon_slot.dart';
+import '../../../../core/widgets/sac_filter_chip.dart';
 import '../providers/inventory_providers.dart';
 
 // ── Compact stats row ───────────────────────────────────────────────────────────
@@ -54,9 +54,9 @@ class InventoryStatsRow extends StatelessWidget {
               icon: HugeIcons.strokeRoundedMoney01,
               value: SacMoney.compact(summary.totalValue),
               label: 'valor est.',
-              iconColor: AppColors.accent,
-              bgColor: AppColors.accent.withValues(alpha: 0.10),
-              borderColor: AppColors.accent.withValues(alpha: 0.30),
+              iconColor: context.sac.onWarningContainer,
+              bgColor: context.sac.warningContainer,
+              borderColor: context.sac.warning.withValues(alpha: 0.30),
             ),
             const SizedBox(width: 8),
           ],
@@ -180,15 +180,25 @@ class _HealthRingChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final pct = (ratio * 100).round();
     final ringColor = ratio >= 0.8
-        ? AppColors.secondary
+        ? c.success
         : ratio >= 0.5
-            ? AppColors.accent
-            : AppColors.error;
+            ? c.warning
+            : c.error;
+    final textColor = ratio >= 0.8
+        ? c.onSuccessContainer
+        : ratio >= 0.5
+            ? c.onWarningContainer
+            : c.onErrorContainer;
+    final containerColor = ratio >= 0.8
+        ? c.successContainer
+        : ratio >= 0.5
+            ? c.warningContainer
+            : c.errorContainer;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: ringColor.withValues(alpha: 0.10),
+        color: containerColor,
         borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(color: ringColor.withValues(alpha: 0.30)),
       ),
@@ -211,7 +221,7 @@ class _HealthRingChip extends StatelessWidget {
                     style: TextStyle(
                       fontSize: SacFontSize.nano,
                       fontWeight: FontWeight.w800,
-                      color: ringColor,
+                      color: textColor,
                     ),
                   ),
                 ),
@@ -226,7 +236,7 @@ class _HealthRingChip extends StatelessWidget {
               Text(
                 '$buenoCount/$totalItems',
                 style: TextStyle(
-                  color: ringColor,
+                  color: textColor,
                   fontWeight: FontWeight.w800,
                   fontSize: SacFontSize.bodyMedium,
                   height: 1.1,
@@ -235,7 +245,7 @@ class _HealthRingChip extends StatelessWidget {
               Text(
                 'en buen estado',
                 style: TextStyle(
-                  color: ringColor.withValues(alpha: 0.7),
+                  color: textColor,
                   fontSize: SacFontSize.micro,
                   height: 1.1,
                 ),
@@ -342,6 +352,7 @@ class InventoryFilterBar extends StatelessWidget {
                         listenOnly: true,
                         child: IconButton(
                           enableFeedback: false,
+                          tooltip: 'common.clear'.tr(),
                           onPressed: () {
                             searchController.clear();
                             onSearchChanged('');
@@ -455,7 +466,7 @@ class InventoryCategoryChips extends ConsumerWidget {
     final filters = ref.watch(inventoryFiltersProvider);
 
     return SizedBox(
-      height: 40,
+      height: SacFilterChip.barHeight,
       child: categoriesAsync.when(
         loading: () => const SizedBox.shrink(),
         error: (_, __) => const SizedBox.shrink(),
@@ -467,9 +478,9 @@ class InventoryCategoryChips extends ConsumerWidget {
           itemBuilder: (context, index) {
             if (index == 0) {
               final isSelected = filters.categoryId == null;
-              return _CategoryChip(
+              return SacFilterChip(
                 label: 'inventory.summary_header.category_all'.tr(),
-                isSelected: isSelected,
+                selected: isSelected,
                 onTap: () {
                   ref.read(inventoryFiltersProvider.notifier).state =
                       filters.copyWith(clearCategory: true);
@@ -478,59 +489,15 @@ class InventoryCategoryChips extends ConsumerWidget {
             }
             final cat = cats[index - 1];
             final isSelected = filters.categoryId == cat.id;
-            return _CategoryChip(
+            return SacFilterChip(
               label: cat.name,
-              isSelected: isSelected,
+              selected: isSelected,
               onTap: () {
                 ref.read(inventoryFiltersProvider.notifier).state =
                     filters.copyWith(categoryId: cat.id);
               },
             );
           },
-        ),
-      ),
-    );
-  }
-}
-
-class _CategoryChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _CategoryChip({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? SacAccent.of(context).color
-              : context.sac.surfaceVariant,
-          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-          border: Border.all(
-            color:
-                isSelected ? SacAccent.of(context).color : context.sac.border,
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: SacFontSize.bodyMedium,
-              fontWeight: FontWeight.w600,
-              color: isSelected ? Colors.white : context.sac.textSecondary,
-            ),
-          ),
         ),
       ),
     );

@@ -135,6 +135,7 @@ class _TransactionSearchFieldState extends State<TransactionSearchField> {
               listenOnly: true,
               child: IconButton(
                 enableFeedback: false,
+                tooltip: 'common.clear'.tr(),
                 icon: HugeIcon(
                   icon: HugeIcons.strokeRoundedCancel01,
                   size: 18,

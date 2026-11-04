@@ -2,13 +2,15 @@ import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
@@ -289,8 +291,9 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
     final displayed = fresh ?? (catalogAsync.isLoading ? _lastCatalog : null);
 
     if (catalogAsync.hasError && fresh == null && !catalogAsync.isLoading) {
-      return _ErrorState(
-        message: catalogAsync.error.toString(),
+      return SacErrorState(
+        title: 'common.error_state.title'.tr(),
+        message: userErrorMessage(catalogAsync.error),
         onRetry: () => ref.invalidate(catalogProvider(_query)),
       );
     }
@@ -300,11 +303,15 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
     }
 
     if (displayed.items.isEmpty && displayed.errorMessage == null) {
-      return const _EmptyState();
+      return SacEmptyState(
+        icon: HugeIcons.strokeRoundedPackage,
+        title: 'materials.catalog.empty'.tr(),
+      );
     }
     if (displayed.items.isEmpty && displayed.errorMessage != null) {
-      return _ErrorState(
-        message: displayed.errorMessage!,
+      return SacErrorState(
+        title: 'common.error_state.title'.tr(),
+        message: userErrorMessage(displayed.errorMessage),
         onRetry: () => ref.invalidate(catalogProvider(_query)),
       );
     }
@@ -413,58 +420,6 @@ class _CatalogSkeleton extends StatelessWidget {
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    return SacEmptyState(
-      icon: HugeIcons.strokeRoundedPackage,
-      title: 'materials.catalog.empty'.tr(),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorState({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const HugeIcon(
-            icon: HugeIcons.strokeRoundedAlert02,
-            size: 48,
-            color: AppColors.error,
-          ),
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: c.textSecondary),
-            ),
-          ),
-          const SizedBox(height: 16),
-          SacButton(
-            text: 'common.retry'.tr(),
-            variant: SacButtonVariant.primary,
-            fullWidth: false,
-            onPressed: onRetry,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _LoadMoreButton extends StatelessWidget {
   final bool isLoading;
   final VoidCallback onTap;
@@ -475,7 +430,7 @@ class _LoadMoreButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: isLoading
-          ? CircularProgressIndicator(color: SacAccent.of(context).color)
+          ? const SacLoadingSmall()
           : SacButton(
               text: 'materials.catalog.load_more'.tr(),
               variant: SacButtonVariant.outline,

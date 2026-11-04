@@ -1,5 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,7 +10,6 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/material_status.dart';
@@ -38,9 +40,10 @@ class PaymentDetailsView extends ConsumerWidget {
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) => ordenAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => _ErrorBody(
-              message: e.toString(),
+            loading: () => const Center(child: SacLoading()),
+            error: (e, _) => SacErrorState(
+              title: 'materials.order.load_error'.tr(),
+              message: userErrorMessage(e),
               onRetry: () => ref.invalidate(orderDetailProvider(folioOrId)),
             ),
             data: (orden) {
@@ -132,24 +135,24 @@ class _PagoBody extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppColors.statusInfoBgLight,
+            color: context.sac.infoContainer,
             borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             border: Border.all(
-                color: AppColors.statusInfoText.withValues(alpha: 0.4)),
+                color: context.sac.onInfoContainer.withValues(alpha: 0.4)),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const HugeIcon(
+              HugeIcon(
                   icon: HugeIcons.strokeRoundedInformationCircle,
                   size: 16,
-                  color: AppColors.statusInfoText),
+                  color: context.sac.onInfoContainer),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'materials.payment.transfer_hint'.tr(),
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.statusInfoText,
+                    color: context.sac.onInfoContainer,
                   ),
                 ),
               ),
@@ -218,49 +221,6 @@ class _NotRequiredBody extends StatelessWidget {
 }
 
 // ── Error genérico ─────────────────────────────────────────────────────────────
-
-class _ErrorBody extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-  const _ErrorBody({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-                icon: HugeIcons.strokeRoundedAlert02,
-                size: 48,
-                color: c.textTertiary),
-            const SizedBox(height: 12),
-            Text(
-              'materials.order.load_error'.tr(),
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: TextStyle(color: c.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SacButton(
-              text: 'common.retry'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              variant: SacButtonVariant.outline,
-              onPressed: onRetry,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 // ── Supporting widgets ─────────────────────────────────────────────────────────
 

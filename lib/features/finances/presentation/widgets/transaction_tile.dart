@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/utils/money_format.dart';
 import '../theme/finance_tokens.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -50,9 +49,8 @@ class TransactionTile extends StatelessWidget {
 
     final transactionSurface = isDark ? context.sac.surface : context.sac.ink50;
 
-    final amountColor = isIncome
-        ? (isDark ? context.sac.success : AppColors.secondaryDark)
-        : context.sac.error;
+    final amountColor =
+        isIncome ? context.sac.onSuccessContainer : context.sac.error;
 
     final formatted = SacMoney.format(
       isIncome ? transaction.amount.abs() : -transaction.amount.abs(),

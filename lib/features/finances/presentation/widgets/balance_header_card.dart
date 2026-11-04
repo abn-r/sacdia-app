@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
@@ -78,6 +77,7 @@ class BalanceHeaderCard extends ConsumerWidget {
               _NavChevron(
                 icon: HugeIcons.strokeRoundedArrowLeft01,
                 enabled: true,
+                semanticLabel: 'finances.widgets.prev_month'.tr(),
                 onTap: () =>
                     ref.read(selectedMonthProvider.notifier).goToPrevious(),
               ),
@@ -95,6 +95,7 @@ class BalanceHeaderCard extends ConsumerWidget {
               _NavChevron(
                 icon: HugeIcons.strokeRoundedArrowRight01,
                 enabled: canGoNext,
+                semanticLabel: 'finances.widgets.next_month'.tr(),
                 onTap: canGoNext
                     ? () => ref.read(selectedMonthProvider.notifier).goToNext()
                     : null,
@@ -127,11 +128,13 @@ class BalanceHeaderCard extends ConsumerWidget {
 class _NavChevron extends StatelessWidget {
   final HugeIconData icon;
   final bool enabled;
+  final String semanticLabel;
   final VoidCallback? onTap;
 
   const _NavChevron({
     required this.icon,
     required this.enabled,
+    required this.semanticLabel,
     this.onTap,
   });
 
@@ -139,20 +142,34 @@ class _NavChevron extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          color: enabled ? c.surfaceVariant : c.borderLight,
-          shape: BoxShape.circle,
-        ),
-        child: Center(
-          child: HugeIcon(
-            icon: icon,
-            size: 16,
-            color: enabled ? c.text : c.textTertiary,
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: semanticLabel,
+      excludeSemantics: true,
+      onTap: enabled ? onTap : null,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Center(
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: enabled ? c.surfaceVariant : c.borderLight,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: HugeIcon(
+                  icon: icon,
+                  size: 16,
+                  color: enabled ? c.text : c.textTertiary,
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -177,8 +194,8 @@ class _ActivitySummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final incomeGreen = isDark ? context.sac.success : AppColors.secondaryDark;
-    final expenseRed = context.sac.error;
+    final incomeGreen = context.sac.onSuccessContainer;
+    final expenseRed = context.sac.onErrorContainer;
 
     final base = TextStyle(
       fontSize: SacFontSize.bodyMedium,

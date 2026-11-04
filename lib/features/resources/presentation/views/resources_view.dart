@@ -13,8 +13,9 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
@@ -225,8 +226,6 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
     BuildContext context,
     ResourcesListState state,
   ) {
-    final c = context.sac;
-
     if (state.isLoading) {
       return SliverToBoxAdapter(
         child: Padding(
@@ -239,52 +238,15 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
     if (state.errorMessage != null) {
       return SliverFillRemaining(
         hasScrollBody: false,
-        child: Padding(
+        child: SacErrorState(
+          title: 'resources.error_loading'.tr(),
+          message: userErrorMessage(state.errorMessage),
+          onRetry: _onRefresh,
           padding: EdgeInsets.fromLTRB(
             Responsive.horizontalPadding(context),
             24,
             Responsive.horizontalPadding(context),
             120,
-          ),
-          child: Center(
-            child: SacCard(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedAlert02,
-                    size: 48,
-                    color: c.error,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'resources.error_loading'.tr(),
-                    style: TextStyle(
-                      fontSize: SacFontSize.titleMedium,
-                      fontWeight: FontWeight.w700,
-                      color: c.text,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    state.errorMessage!,
-                    style: TextStyle(
-                        fontSize: SacFontSize.bodyMedium,
-                        color: c.textSecondary),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  SacButton(
-                    text: 'common.retry'.tr(),
-                    variant: SacButtonVariant.outline,
-                    icon: HugeIcons.strokeRoundedRefresh,
-                    onPressed: _onRefresh,
-                  ),
-                ],
-              ),
-            ),
           ),
         ),
       );
@@ -294,8 +256,12 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
       return SliverFillRemaining(
         hasScrollBody: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(32, 24, 32, 120),
-          child: Center(child: _ResourcesEmptyState(colors: c)),
+          padding: const EdgeInsets.only(bottom: 120),
+          child: SacEmptyState(
+            icon: HugeIcons.strokeRoundedFolder02,
+            title: 'resources.empty_title'.tr(),
+            body: 'resources.empty_subtitle'.tr(),
+          ),
         ),
       );
     }
@@ -328,53 +294,6 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
           childCount: state.items.length,
         ),
       ),
-    );
-  }
-}
-
-class _ResourcesEmptyState extends StatelessWidget {
-  final SacColors colors;
-
-  const _ResourcesEmptyState({required this.colors});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 88,
-          height: 88,
-          decoration: BoxDecoration(
-            color: SacAccent.of(context).color.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(AppTheme.radiusXL),
-          ),
-          child: Center(
-            child: HugeIcon(
-              icon: HugeIcons.strokeRoundedFolder02,
-              size: 48,
-              color: SacAccent.of(context).color,
-            ),
-          ),
-        ),
-        const SizedBox(height: 18),
-        Text(
-          'resources.empty_title'.tr(),
-          style: TextStyle(
-            fontSize: SacFontSize.titleMedium,
-            fontWeight: FontWeight.w700,
-            color: colors.text,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 6),
-        Text(
-          'resources.empty_subtitle'.tr(),
-          style: TextStyle(
-              fontSize: SacFontSize.titleSmall, color: colors.textSecondary),
-          textAlign: TextAlign.center,
-        ),
-      ],
     );
   }
 }

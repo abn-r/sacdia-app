@@ -1,12 +1,14 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/receipt.dart';
@@ -66,9 +68,10 @@ class _OrderReviewViewState extends ConsumerState<OrderReviewView> {
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) => ordenAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => _ErrorBody(
-              message: e.toString(),
+            loading: () => const Center(child: SacLoading()),
+            error: (e, _) => SacErrorState(
+              title: 'materials.order.load_error'.tr(),
+              message: userErrorMessage(e),
               onRetry: () =>
                   ref.invalidate(orderDetailProvider(widget.folioOrId)),
             ),
@@ -124,22 +127,23 @@ class _OrdenBody extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.statusInfoBgLight,
+                color: context.sac.infoContainer,
                 borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-                border: Border.all(color: AppColors.statusInfoText, width: 0.5),
+                border:
+                    Border.all(color: context.sac.onInfoContainer, width: 0.5),
               ),
               child: Row(
                 children: [
-                  const HugeIcon(
+                  HugeIcon(
                       icon: HugeIcons.strokeRoundedInformationCircle,
                       size: 16,
-                      color: AppColors.statusInfoText),
+                      color: context.sac.onInfoContainer),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'materials.order.review_banner'.tr(),
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.statusInfoText,
+                        color: context.sac.onInfoContainer,
                       ),
                     ),
                   ),
@@ -267,26 +271,26 @@ class _ActionCard extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.accentLight,
+                color: context.sac.warningContainer,
                 borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                border:
-                    Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
+                border: Border.all(
+                    color: context.sac.warning.withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const HugeIcon(
+                      HugeIcon(
                           icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                          color: AppColors.accentDark,
+                          color: context.sac.onWarningContainer,
                           size: 20),
                       const SizedBox(width: 8),
                       Text(
                         'materials.order.approved_title'.tr(),
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: AppColors.accentDark,
+                          color: context.sac.onWarningContainer,
                         ),
                       ),
                     ],
@@ -295,7 +299,7 @@ class _ActionCard extends ConsumerWidget {
                   Text(
                     'materials.order.approved_body'.tr(),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.accentDark,
+                      color: context.sac.onWarningContainer,
                     ),
                   ),
                 ],
@@ -326,23 +330,23 @@ class _ActionCard extends ConsumerWidget {
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.secondaryLight,
+            color: context.sac.successContainer,
             borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             border:
-                Border.all(color: AppColors.secondary.withValues(alpha: 0.3)),
+                Border.all(color: context.sac.success.withValues(alpha: 0.3)),
           ),
           child: Row(
             children: [
-              const HugeIcon(
+              HugeIcon(
                   icon: HugeIcons.strokeRoundedHourglass,
-                  color: AppColors.secondaryDark,
+                  color: context.sac.onSuccessContainer,
                   size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'materials.order.paid_waiting'.tr(),
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.secondaryDark,
+                    color: context.sac.onSuccessContainer,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -355,21 +359,21 @@ class _ActionCard extends ConsumerWidget {
         return Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: AppColors.secondaryLight,
+            color: context.sac.successContainer,
             borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           ),
           child: Column(
             children: [
-              const HugeIcon(
+              HugeIcon(
                   icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                  color: AppColors.secondaryDark,
+                  color: context.sac.onSuccessContainer,
                   size: 40),
               const SizedBox(height: 8),
               Text(
                 'materials.order.delivered_title'.tr(),
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: AppColors.secondaryDark,
+                  color: context.sac.onSuccessContainer,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -385,7 +389,7 @@ class _ActionCard extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.errorLight,
+                  color: context.sac.errorContainer,
                   borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 ),
                 child: Column(
@@ -394,7 +398,7 @@ class _ActionCard extends ConsumerWidget {
                     Text(
                       'materials.order.cancel_reason'.tr(),
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: AppColors.errorDark,
+                        color: context.sac.onErrorContainer,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -402,7 +406,7 @@ class _ActionCard extends ConsumerWidget {
                     Text(
                       orden.cancelReason!,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.errorDark,
+                        color: context.sac.onErrorContainer,
                       ),
                     ),
                   ],
@@ -667,7 +671,7 @@ class _ComprobantesSection extends ConsumerWidget {
       loading: () => const Center(
         child: Padding(
           padding: EdgeInsets.all(16),
-          child: CircularProgressIndicator(),
+          child: SacLoading(),
         ),
       ),
       error: (e, _) => const SizedBox.shrink(),
@@ -704,25 +708,25 @@ class _ComprobanteCard extends StatelessWidget {
   final Receipt comprobante;
   const _ComprobanteCard({required this.comprobante});
 
-  Color get _statusColor {
+  Color _statusColor(SacColors c) {
     switch (comprobante.status) {
       case MaterialReceiptStatus.aprobado:
-        return AppColors.secondaryDark;
+        return c.onSuccessContainer;
       case MaterialReceiptStatus.rechazado:
-        return AppColors.errorDark;
+        return c.onErrorContainer;
       case MaterialReceiptStatus.pendiente:
-        return AppColors.accentDark;
+        return c.onWarningContainer;
     }
   }
 
-  Color get _statusBg {
+  Color _statusBg(SacColors c) {
     switch (comprobante.status) {
       case MaterialReceiptStatus.aprobado:
-        return AppColors.secondaryLight;
+        return c.successContainer;
       case MaterialReceiptStatus.rechazado:
-        return AppColors.errorLight;
+        return c.errorContainer;
       case MaterialReceiptStatus.pendiente:
-        return AppColors.accentLight;
+        return c.warningContainer;
     }
   }
 
@@ -774,7 +778,7 @@ class _ComprobanteCard extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: _statusBg,
+                    color: _statusBg(context.sac),
                     borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                   ),
                   child: Text(
@@ -782,7 +786,7 @@ class _ComprobanteCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: SacFontSize.labelSmall,
                       fontWeight: FontWeight.w600,
-                      color: _statusColor,
+                      color: _statusColor(context.sac),
                     ),
                   ),
                 ),
@@ -801,22 +805,22 @@ class _ComprobanteCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.errorLight,
+                  color: context.sac.errorContainer,
                   borderRadius: BorderRadius.circular(AppTheme.radius2XS),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const HugeIcon(
+                    HugeIcon(
                         icon: HugeIcons.strokeRoundedInformationCircle,
                         size: 14,
-                        color: AppColors.errorDark),
+                        color: context.sac.onErrorContainer),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         comprobante.rejectReason!,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColors.errorDark,
+                          color: context.sac.onErrorContainer,
                         ),
                       ),
                     ),
@@ -824,49 +828,6 @@ class _ComprobanteCard extends StatelessWidget {
                 ),
               ),
             ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ErrorBody extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-  const _ErrorBody({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-                icon: HugeIcons.strokeRoundedAlert02,
-                size: 48,
-                color: c.textTertiary),
-            const SizedBox(height: 12),
-            Text(
-              'materials.order.load_error'.tr(),
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: TextStyle(color: c.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SacButton(
-              text: 'common.retry'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              variant: SacButtonVariant.outline,
-              onPressed: onRetry,
-            ),
           ],
         ),
       ),
