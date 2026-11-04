@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
+import '../../../../core/errors/user_error_message.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/widgets/secure_screen.dart';
@@ -117,7 +118,7 @@ class FinancesView extends ConsumerWidget {
                       child: financeMonthAsync.when(
                         loading: () => const FinancesLoadingSkeleton(),
                         error: (e, _) => _ErrorBody(
-                          message: e.toString().replaceFirst('Exception: ', ''),
+                          message: userErrorMessage(e),
                           onRetry: () {
                             ref.invalidate(financeMonthProvider);
                             ref.invalidate(financeSummaryProvider);
