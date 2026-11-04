@@ -189,9 +189,8 @@ class _CommentQuote extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
       decoration: BoxDecoration(
-        color: c.paper.withValues(alpha: 0.6),
+        color: accent.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-        border: Border(left: BorderSide(color: accent, width: 3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

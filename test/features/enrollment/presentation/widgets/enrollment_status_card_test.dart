@@ -178,7 +178,7 @@ void main() {
     );
 
     testWidgets(
-      'renders submitted validation state as a compact yellow banner',
+      'renders submitted validation state as a yellow banner at standard sizes',
       (tester) async {
         await _pumpCard(
           tester,
@@ -194,8 +194,8 @@ void main() {
             if (widget is! Container) return false;
             final decoration = widget.decoration;
             return decoration is BoxDecoration &&
-                decoration.color == AppColors.accentLight &&
-                widget.padding == const EdgeInsets.all(12.8);
+                decoration.color == AppColors.accent.withValues(alpha: 0.14) &&
+                widget.padding == const EdgeInsets.all(16);
           }),
         );
 
@@ -207,8 +207,8 @@ void main() {
             final decoration = widget.decoration;
             return decoration is BoxDecoration &&
                 decoration.color == AppColors.accent.withValues(alpha: 0.2) &&
-                widget.constraints?.maxWidth == 32 &&
-                widget.constraints?.maxHeight == 32;
+                widget.constraints?.maxWidth == 40 &&
+                widget.constraints?.maxHeight == 40;
           }),
         );
 
@@ -217,8 +217,8 @@ void main() {
         final title = tester.widget<Text>(
           find.text('enrollment.status.title_submitted'),
         );
-        expect(title.style?.color, AppColors.accentDark);
-        expect(title.style?.fontSize, closeTo(11.2, 0.001));
+        expect(title.style?.color, AppColors.lightText);
+        expect(title.style?.fontSize, 14);
       },
     );
 

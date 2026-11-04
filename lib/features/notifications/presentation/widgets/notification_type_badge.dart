@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -67,7 +68,7 @@ NotificationVisualConfig notificationVisualConfig({
 
   if (normalizedSource.startsWith('activities:')) {
     return NotificationVisualConfig(
-      label: 'Agenda',
+      label: 'notifications.types.agenda'.tr(),
       icon: HugeIcons.strokeRoundedCalendar03,
       iconColor: AppColors.info,
       backgroundColor: AppColors.info.withValues(alpha: 0.12),
@@ -78,7 +79,7 @@ NotificationVisualConfig notificationVisualConfig({
       normalizedSource.startsWith('master_honors:') ||
       normalizedSource.startsWith('units:member_of_month')) {
     return NotificationVisualConfig(
-      label: 'Logro',
+      label: 'notifications.types.achievement'.tr(),
       icon: HugeIcons.strokeRoundedAward01,
       iconColor: AppColors.accentDark,
       backgroundColor: AppColors.accent.withValues(alpha: 0.18),
@@ -90,7 +91,7 @@ NotificationVisualConfig notificationVisualConfig({
       normalizedSource.startsWith('membership_requests:') ||
       normalizedSource.startsWith('investiture:')) {
     return NotificationVisualConfig(
-      label: 'Revisión',
+      label: 'notifications.types.review'.tr(),
       icon: HugeIcons.strokeRoundedDocumentValidation,
       iconColor: SacAccent.of(context).dark,
       backgroundColor: SacAccent.of(context).color.withValues(alpha: 0.12),
@@ -100,7 +101,7 @@ NotificationVisualConfig notificationVisualConfig({
   if (normalizedSource.startsWith('monthly_reports:') ||
       normalizedSource.startsWith('camporees:')) {
     return NotificationVisualConfig(
-      label: 'Fecha importante',
+      label: 'notifications.types.important_date'.tr(),
       icon: HugeIcons.strokeRoundedClock04,
       iconColor: AppColors.observedDark,
       backgroundColor: AppColors.observedBg,
@@ -109,7 +110,7 @@ NotificationVisualConfig notificationVisualConfig({
 
   if (normalizedSource.startsWith('system_alert:')) {
     return NotificationVisualConfig(
-      label: 'Sistema',
+      label: 'notifications.types.system'.tr(),
       icon: HugeIcons.strokeRoundedAlert02,
       iconColor: AppColors.error,
       backgroundColor: AppColors.error.withValues(alpha: 0.12),
@@ -119,42 +120,42 @@ NotificationVisualConfig notificationVisualConfig({
   switch (targetType) {
     case NotificationTargetType.direct:
       return NotificationVisualConfig(
-        label: 'Personal',
+        label: 'notifications.types.personal'.tr(),
         icon: HugeIcons.strokeRoundedUser,
         iconColor: AppColors.info,
         backgroundColor: AppColors.info.withValues(alpha: 0.12),
       );
     case NotificationTargetType.broadcast:
       return NotificationVisualConfig(
-        label: 'Comunicado',
+        label: 'notifications.types.announcement'.tr(),
         icon: HugeIcons.strokeRoundedMegaphone01,
         iconColor: SacAccent.of(context).dark,
         backgroundColor: SacAccent.of(context).color.withValues(alpha: 0.12),
       );
     case NotificationTargetType.club:
       return NotificationVisualConfig(
-        label: 'Club',
+        label: 'notifications.types.club'.tr(),
         icon: HugeIcons.strokeRoundedUserGroup,
         iconColor: AppColors.secondaryDark,
         backgroundColor: AppColors.secondary.withValues(alpha: 0.12),
       );
     case NotificationTargetType.sectionRole:
       return NotificationVisualConfig(
-        label: 'Equipo',
+        label: 'notifications.types.team'.tr(),
         icon: HugeIcons.strokeRoundedShieldUser,
         iconColor: AppColors.observedDark,
         backgroundColor: AppColors.observedBg,
       );
     case NotificationTargetType.globalRole:
       return NotificationVisualConfig(
-        label: 'Campo',
+        label: 'notifications.types.field'.tr(),
         icon: HugeIcons.strokeRoundedCrown,
         iconColor: AppColors.error,
         backgroundColor: AppColors.error.withValues(alpha: 0.12),
       );
     case NotificationTargetType.unknown:
-      return const NotificationVisualConfig(
-        label: 'Aviso',
+      return NotificationVisualConfig(
+        label: 'notifications.types.notice'.tr(),
         icon: HugeIcons.strokeRoundedNotification01,
         // Gris neutro legible en ambos modos; el widget mezcla iconColor
         // sobre la superficie del tema para el fondo real.

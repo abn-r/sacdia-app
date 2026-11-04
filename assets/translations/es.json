@@ -3431,7 +3431,21 @@
       "type_club": "Club",
       "type_section_role": "Rol de sección",
       "type_global_role": "Rol global",
-      "type_unknown": "Desconocida"
+      "type_unknown": "Desconocida",
+      "end_of_history": "— Fin del historial —"
+    },
+    "types": {
+      "agenda": "Agenda",
+      "achievement": "Logro",
+      "review": "Revisión",
+      "important_date": "Fecha importante",
+      "system": "Sistema",
+      "personal": "Personal",
+      "announcement": "Comunicado",
+      "club": "Club",
+      "team": "Equipo",
+      "field": "Campo",
+      "notice": "Aviso"
     }
   },
   "achievements": {

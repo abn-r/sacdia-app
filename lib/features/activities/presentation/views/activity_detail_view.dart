@@ -507,8 +507,16 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     final canEditActivity = canUpdateActivities(user);
     final canDeleteActivity = canDeleteActivities(user);
 
+    // Light icons only over the dark photo hero; loading/error sit on the
+    // themed background.
+    final overlayStyle = activityAsync.hasValue
+        ? SystemUiOverlayStyle.light
+        : (Theme.of(context).brightness == Brightness.dark
+            ? SystemUiOverlayStyle.light
+            : SystemUiOverlayStyle.dark);
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: overlayStyle,
       child: Scaffold(
         backgroundColor: context.sac.background,
         body: activityAsync.when(

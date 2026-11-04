@@ -11,6 +11,8 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
@@ -93,7 +95,12 @@ class MemberProfileView extends ConsumerWidget {
             child: detailAsync.when(
               skipLoadingOnReload: true,
               loading: () => const Center(child: SacLoading()),
-              error: (error, _) => _ErrorState(message: error.toString()),
+              error: (error, _) => SacErrorState(
+                title: 'members.profile_view.profile_load_error'.tr(),
+                message: userErrorMessage(error),
+                onRetry: () =>
+                    ref.invalidate(memberDetailProvider(member.userId)),
+              ),
               data: (fullDetail) => _ProfileScrollBody(
                 detail: fullDetail,
                 hPad: hPad,
@@ -1066,49 +1073,6 @@ class _MemberProfileHeader extends StatelessWidget {
 }
 
 // ── Error state ───────────────────────────────────────────────────────────────
-
-class _ErrorState extends StatelessWidget {
-  final String message;
-
-  const _ErrorState({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 48,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'members.profile_view.profile_load_error'.tr(),
-              style: TextStyle(
-                fontSize: SacFontSize.titleMedium,
-                fontWeight: FontWeight.w600,
-                color: c.text,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: TextStyle(
-                  fontSize: SacFontSize.titleSmall, color: c.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 /// Iniciales de fallback cuando la foto 404 o no existe.
 class _AvatarInitials extends StatelessWidget {

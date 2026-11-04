@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/errors/user_error_message.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/sac_button.dart';
 import '../../domain/entities/finance_month.dart';
 import '../../domain/entities/finance_summary.dart';
 import '../providers/finances_providers.dart';
@@ -120,7 +122,10 @@ class _MonthlyChart extends ConsumerWidget {
         height: 180,
         child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
       ),
-      error: (_, __) => const _EmptyState(),
+      error: (e, _) => _ChartError(
+        message: userErrorMessage(e),
+        onRetry: () => ref.invalidate(financeMonthProvider),
+      ),
       data: (month) {
         if (month == null || month.transactions.isEmpty) {
           return const _EmptyState();
@@ -195,7 +200,10 @@ class _SummaryChart extends ConsumerWidget {
         height: 180,
         child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
       ),
-      error: (_, __) => const _EmptyState(),
+      error: (e, _) => _ChartError(
+        message: userErrorMessage(e),
+        onRetry: () => ref.invalidate(financeSummaryProvider),
+      ),
       data: (summary) {
         if (summary == null || summary.monthlyBars.isEmpty) {
           return const _EmptyState();
@@ -552,6 +560,46 @@ class _EmptyState extends StatelessWidget {
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: context.sac.textTertiary,
               ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Error state ────────────────────────────────────────────────────────────
+
+class _ChartError extends StatelessWidget {
+  const _ChartError({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 180,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: context.sac.textSecondary,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 200),
+              child: SacButton.outline(
+                text: 'common.retry'.tr(),
+                onPressed: onRetry,
+              ),
+            ),
+          ],
         ),
       ),
     );
