@@ -22,9 +22,10 @@ const String kAllowWhileAuthorizationStale = 'allow_while_authorization_stale';
 /// capa de datos (`businessErrorFrom`, `rethrowApiError`...) la convierte en
 /// un fallo con ese `errorCode` y la UI muestra `errors.authorization_stale`.
 ///
-/// No toca los GET ni las rutas de sesión (`/auth/*`: refresco del token,
-/// cierre de sesión), y no tiene nada que ver con `ACTING_FOR_*` ni con
-/// `PRINCIPAL_SCOPE_*`: no lee ni cambia el modo «actuar por» ni el principal.
+/// No toca los GET ni las rutas de sesión ([sessionPaths]: refresco del
+/// token, cierre de sesión, la propia sesión y su contexto), y no tiene nada
+/// que ver con `ACTING_FOR_*` ni con `PRINCIPAL_SCOPE_*`: no lee ni cambia el
+/// modo «actuar por» ni el principal.
 class AuthorizationStaleInterceptor extends Interceptor {
   AuthorizationStaleInterceptor({required this.isStale});
 
@@ -34,17 +35,48 @@ class AuthorizationStaleInterceptor extends Interceptor {
   static const _tag = 'AuthorizationStale';
   static const _mutations = {'POST', 'PUT', 'PATCH', 'DELETE'};
 
-  /// Rutas de sesión que siguen funcionando con la autorización obsoleta:
-  /// refrescar el token o cerrar sesión no son acciones de negocio. La ruta
-  /// puede venir relativa (`/auth/logout`) o absoluta (`https://.../auth/...`).
-  static bool _isSessionPath(String path) => path.contains('/auth/');
+  /// Rutas de sesión que siguen funcionando con la autorización obsoleta: no
+  /// son acciones de negocio. Es una lista explícita, nunca `/auth/*` entero:
+  /// cualquier otra mutación bajo `/auth/` (p. ej. `/auth/update-password`)
+  /// se bloquea como las demás.
+  static const Set<String> sessionPaths = {
+    // Renovar el token (AuthInterceptor).
+    '/auth/refresh',
+    // Cerrar sesión.
+    '/auth/logout',
+    // La propia sesión (`DELETE /auth/me`).
+    '/auth/me',
+    // Cambiar el contexto activo (`PATCH /auth/me/context`).
+    '/auth/me/context',
+  };
+
+  /// ¿[options] apunta a una de [sessionPaths]? Compara por sufijo del path
+  /// normalizado: la URI resuelta contra la base (los datasources pasan rutas
+  /// relativas y absolutas), sin query ni `/` final. Nunca por `contains`.
+  static bool isSessionPath(RequestOptions options) {
+    final path = _normalizedPath(options);
+    return sessionPaths.any((s) => path == s || path.endsWith(s));
+  }
+
+  static String _normalizedPath(RequestOptions options) {
+    String path;
+    try {
+      path = options.uri.path;
+    } catch (_) {
+      path = options.path.split('?').first;
+    }
+    while (path.length > 1 && path.endsWith('/')) {
+      path = path.substring(0, path.length - 1);
+    }
+    return path.startsWith('/') ? path : '/$path';
+  }
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     final method = options.method.toUpperCase();
     if (!_mutations.contains(method) ||
         options.extra[kAllowWhileAuthorizationStale] == true ||
-        _isSessionPath(options.path)) {
+        isSessionPath(options)) {
       handler.next(options);
       return;
     }

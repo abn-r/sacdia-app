@@ -63,6 +63,11 @@ void main() {
   test('session routes and explicit opt-outs pass while stale', () async {
     expect(await run(() => dio.post('/auth/logout')), isNull);
     expect(await run(() => dio.post('/auth/refresh')), isNull);
+    expect(await run(() => dio.delete('/auth/me', data: {})), isNull);
+    expect(
+      await run(() => dio.patch('/auth/me/context', data: {})),
+      isNull,
+    );
     expect(
       await run(
         () => dio.post(
@@ -72,6 +77,45 @@ void main() {
       ),
       isNull,
     );
+  });
+
+  test('session routes match by normalized path suffix', () async {
+    // Absoluta, con prefijo de la API, query y `/` final: sigue siendo sesión.
+    expect(
+      await run(
+        () => dio.post('https://api.test/api/v1/auth/refresh/?reason=x'),
+      ),
+      isNull,
+    );
+    expect(
+      await run(
+        () => dio.patch('https://api.test/api/v1/auth/me/context', data: {}),
+      ),
+      isNull,
+    );
+    expect(adapter.lastRequest?.uri.path, '/api/v1/auth/me/context');
+  });
+
+  test('other mutations under /auth/ are blocked while stale', () async {
+    for (final call in <Future<Response<dynamic>> Function()>[
+      () => dio.post('/auth/update-password', data: {}),
+      () => dio.post('/auth/password/reset-request', data: {}),
+      () => dio.post('/auth/me/context/other', data: {}),
+    ]) {
+      final error = await run(call);
+      expect(error, isNotNull);
+      expect(error!.response?.data['code'], kAuthorizationStaleCode);
+      expect(adapter.lastRequest, isNull, reason: 'never reached the network');
+    }
+  });
+
+  test('a session route inside the query string does not exempt', () async {
+    final error = await run(
+      () => dio.post('/activities?redirect=/auth/me', data: {}),
+    );
+    expect(error, isNotNull);
+    expect(error!.response?.data['code'], kAuthorizationStaleCode);
+    expect(adapter.lastRequest, isNull);
   });
 
   test('a throwing isStale never breaks the request', () async {
