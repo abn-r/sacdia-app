@@ -92,7 +92,7 @@ class InsuranceSummaryHeader extends StatelessWidget {
                 _FilterStat(
                   label: 'insurance.summary.expired'.tr(),
                   count: summary.vencidos,
-                  color: c.onWarning,
+                  color: c.onWarningContainer,
                   selected: selectedFilter == InsuranceStatusFilter.vencido,
                   onTap: () => _select(InsuranceStatusFilter.vencido),
                 ),
@@ -124,7 +124,7 @@ class InsuranceSummaryHeader extends StatelessWidget {
   Color _coverageColor(BuildContext context, double pct) {
     final c = context.sac;
     if (pct >= 80) return c.success;
-    if (pct >= 50) return c.onWarning;
+    if (pct >= 50) return c.onWarningContainer;
     return c.error;
   }
 }

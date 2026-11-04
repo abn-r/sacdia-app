@@ -107,22 +107,43 @@ class SacColors {
   Color get onPrimary => Colors.white;
 
   // ── Semantic state colors ─────────────────────────────────────
-  // Use these getters for all status/feedback paint code.
-  // NEVER use AppColors.success / AppColors.error / etc. directly
-  // in widget paint code — those are light-mode only and do not
-  // adapt to dark mode. These getters do.
+  // Solid fills (`success`, `warning`, `info`, `error`) have the same value
+  // in both modes. The light-only colors are the `AppColors.*Light` /
+  // `light*` pastels: do not use those in widget paint code.
+  //
+  // `onX` is ONLY for text/icons painted on a solid `x` fill.
+  // `xContainer` / `onXContainer` are the tinted pair for badges, banners and
+  // status cards. `onXContainer` is for text/icons on the container AND for
+  // status-colored text directly on `surface`/`background` (verified >= 5.4:1
+  // on white and on #1A1A1A/#000).
 
   Color get success => AppColors.secondary; // #4FBF9F — same value both modes
-  Color get onSuccess => Colors.white;
+  Color get onSuccess => const Color(0xFF131316); // ink on solid green, 8.2:1
+  Color get successContainer =>
+      _isDark ? const Color(0xFF253B35) : const Color(0xFFE0F5EF);
+  Color get onSuccessContainer =>
+      _isDark ? const Color(0xFF6FD3B6) : const Color(0xFF1E6B55);
 
   Color get warning => AppColors.accent; // #FBBD5E — same value both modes
-  Color get onWarning => AppColors.accentDark; // dark text on yellow bg
+  Color get onWarning => const Color(0xFF131316); // ink on solid yellow, 11.1:1
+  Color get warningContainer =>
+      _isDark ? const Color(0xFF473B28) : const Color(0xFFFFF4E0);
+  Color get onWarningContainer =>
+      _isDark ? const Color(0xFFFBBD5E) : const Color(0xFF8A5A00);
 
   Color get info => AppColors.info; // #2EA0DA — same value both modes
-  Color get onInfo => Colors.white;
+  Color get onInfo => const Color(0xFF131316); // ink on solid blue, 6.3:1
+  Color get infoContainer =>
+      _isDark ? const Color(0xFF1E3540) : const Color(0xFFEFF6FF);
+  Color get onInfoContainer =>
+      _isDark ? const Color(0xFF7CC4EE) : const Color(0xFF0B6699);
 
   Color get error => AppColors.error; // #DC2626 — same value both modes
-  Color get onError => Colors.white;
+  Color get onError => Colors.white; // 4.83:1 on solid red
+  Color get errorContainer =>
+      _isDark ? const Color(0xFF491D1D) : const Color(0xFFFEE2E2);
+  Color get onErrorContainer =>
+      _isDark ? const Color(0xFFFCA5A5) : const Color(0xFF991B1B);
 
   // ── Overlays ──────────────────────────────────────────────────
   Color get barrierColor => _isDark

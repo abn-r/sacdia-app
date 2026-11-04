@@ -139,7 +139,7 @@ class _MemberInsuranceCardState extends State<MemberInsuranceCard> {
       case InsuranceStatus.asegurado:
         return c.success;
       case InsuranceStatus.vencido:
-        return c.onWarning;
+        return c.onWarningContainer;
       case InsuranceStatus.sinSeguro:
         return c.error;
     }
@@ -174,9 +174,11 @@ class _MemberInsuranceCardState extends State<MemberInsuranceCard> {
     switch (m.status) {
       case InsuranceStatus.asegurado:
         final days = m.daysUntilExpiry;
-        return (days != null && days <= 30) ? c.onWarning : c.textTertiary;
+        return (days != null && days <= 30)
+            ? c.onWarningContainer
+            : c.textTertiary;
       case InsuranceStatus.vencido:
-        return c.onWarning;
+        return c.onWarningContainer;
       case InsuranceStatus.sinSeguro:
         return c.textTertiary;
     }

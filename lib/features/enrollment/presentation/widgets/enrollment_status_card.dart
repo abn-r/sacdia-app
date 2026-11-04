@@ -134,7 +134,7 @@ class _SubmittedCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: context.sac.warning.withValues(alpha: 0.14),
+        color: context.sac.warningContainer,
         borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: context.sac.warning.withValues(alpha: 0.4)),
       ),
@@ -151,7 +151,7 @@ class _SubmittedCard extends StatelessWidget {
             child: Center(
               child: HugeIcon(
                 icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                color: context.sac.onWarning,
+                color: context.sac.onWarningContainer,
                 size: 20,
               ),
             ),
@@ -204,7 +204,7 @@ class _PendingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: context.sac.warning.withValues(alpha: 0.14),
+        color: context.sac.warningContainer,
         borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: context.sac.warning.withValues(alpha: 0.4)),
       ),
@@ -221,7 +221,7 @@ class _PendingCard extends StatelessWidget {
             child: Center(
               child: HugeIcon(
                 icon: HugeIcons.strokeRoundedAlert02,
-                color: context.sac.onWarning,
+                color: context.sac.onWarningContainer,
                 size: 20,
               ),
             ),
