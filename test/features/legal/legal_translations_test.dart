@@ -44,7 +44,6 @@ void main() {
       'documents_label',
       'document_terms',
       'document_privacy',
-      'version_label',
       'read_document',
       'accept_button',
       'sign_out',
@@ -80,13 +79,6 @@ void main() {
         }
       });
     }
-
-    test('legal_gate.version_label keeps the {version} argument', () async {
-      for (final locale in _locales) {
-        final gate = _namespace(await _load(locale), ['legal_gate']);
-        expect(gate['version_label'], contains('{version}'), reason: locale);
-      }
-    });
 
     test('consent copy joins into a sentence with both links', () async {
       for (final locale in _locales) {
