@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -150,19 +151,11 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
         if (!mounted) return;
 
         if (!success) {
-          _showSnackbar(
-            tr('profile.edit.photo_upload_error'),
-            AppColors.error,
-            HugeIcons.strokeRoundedAlert02,
-          );
+          _showSnackbar(tr('profile.edit.photo_upload_error'), isError: true);
         } else {
           ref.invalidate(profileNotifierProvider);
           ref.invalidate(authNotifierProvider);
-          _showSnackbar(
-            tr('profile.edit.photo_upload_success'),
-            AppColors.secondary,
-            HugeIcons.strokeRoundedCheckmarkCircle02,
-          );
+          _showSnackbar(tr('profile.edit.photo_upload_success'));
         }
       } finally {
         if (mounted) {
@@ -173,11 +166,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
       AppLogger.e('Error al cambiar foto de perfil', tag: _tag, error: e);
       if (mounted) {
         setState(() => _isUploadingPhoto = false);
-        _showSnackbar(
-          tr('profile.edit.photo_upload_error'),
-          AppColors.error,
-          HugeIcons.strokeRoundedAlert02,
-        );
+        _showSnackbar(tr('profile.edit.photo_upload_error'), isError: true);
       }
     }
   }
@@ -247,18 +236,10 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
       // (navbars, dashboard greetings, etc.) reflects the updated name/avatar
       // without waiting for the next /auth/me call on app restart.
       ref.invalidate(authNotifierProvider);
-      _showSnackbar(
-        tr('profile.edit.save_success'),
-        AppColors.secondary,
-        HugeIcons.strokeRoundedCheckmarkCircle02,
-      );
+      _showSnackbar(tr('profile.edit.save_success'));
       Navigator.pop(context);
     } else {
-      _showSnackbar(
-        tr('profile.edit.save_error'),
-        AppColors.error,
-        HugeIcons.strokeRoundedAlert02,
-      );
+      _showSnackbar(tr('profile.edit.save_error'), isError: true);
     }
   }
 
@@ -320,12 +301,12 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
   // ── Helpers ──────────────────────────────────────────────────────────────
 
-  void _showSnackbar(String message, Color color, dynamic icon) {
+  void _showSnackbar(String message, {bool isError = false}) {
     SacSnackBar.show(
       context,
       message,
-      backgroundColor: color,
-      leading: HugeIcon(icon: icon, color: Colors.white, size: 18),
+      isError: isError,
+      isSuccess: !isError,
     );
   }
 
@@ -616,10 +597,7 @@ class _AvatarHeader extends StatelessWidget {
                             child: SizedBox(
                               width: 28,
                               height: 28,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2.5,
-                              ),
+                              child: SacLoadingSmall(color: Colors.white),
                             ),
                           ),
                         ),
@@ -837,7 +815,7 @@ class _DatePickerField extends StatelessWidget {
                 height: 40,
                 decoration: BoxDecoration(
                   color: errorText != null
-                      ? AppColors.errorLight
+                      ? context.sac.errorContainer
                       : (date != null
                           ? SacAccent.of(context).light
                           : context.sac.surfaceVariant),

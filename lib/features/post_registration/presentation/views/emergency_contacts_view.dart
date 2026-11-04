@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
@@ -163,7 +164,7 @@ class EmergencyContactsView extends ConsumerWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     color: contacts.length >= 5
-                        ? AppColors.accentLight
+                        ? context.sac.warningContainer
                         : SacAccent.of(context).light,
                     child: Row(
                       children: [
@@ -172,7 +173,7 @@ class EmergencyContactsView extends ConsumerWidget {
                               ? HugeIcons.strokeRoundedAlertCircle
                               : HugeIcons.strokeRoundedInformationCircle,
                           color: contacts.length >= 5
-                              ? AppColors.accentDark
+                              ? context.sac.onWarningContainer
                               : SacAccent.of(context).dark,
                           size: 24,
                         ),
@@ -189,7 +190,7 @@ class EmergencyContactsView extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: SacFontSize.titleSmall,
                               color: contacts.length >= 5
-                                  ? AppColors.accentDark
+                                  ? context.sac.onWarningContainer
                                   : SacAccent.of(context).dark,
                             ),
                           ),

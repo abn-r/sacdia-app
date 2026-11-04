@@ -511,23 +511,23 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                             // Error message
                             if (errorMessage != null) ...[
                               SacCard(
-                                backgroundColor: AppColors.errorLight,
-                                borderColor:
-                                    AppColors.error.withValues(alpha: 0.3),
+                                backgroundColor: context.sac.errorContainer,
+                                borderColor: context.sac.onErrorContainer
+                                    .withValues(alpha: 0.3),
                                 padding: const EdgeInsets.all(12),
                                 child: Row(
                                   children: [
                                     HugeIcon(
                                       icon: HugeIcons.strokeRoundedAlert02,
                                       size: 20,
-                                      color: AppColors.errorDark,
+                                      color: context.sac.onErrorContainer,
                                     ),
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: Text(
                                         errorMessage,
-                                        style: const TextStyle(
-                                          color: AppColors.errorDark,
+                                        style: TextStyle(
+                                          color: context.sac.onErrorContainer,
                                           fontSize: SacFontSize.titleSmall,
                                         ),
                                       ),
@@ -610,8 +610,8 @@ class _AgeGatePanel extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SacCard(
-          backgroundColor: AppColors.accentLight,
-          borderColor: AppColors.accent.withValues(alpha: 0.3),
+          backgroundColor: context.sac.warningContainer,
+          borderColor: context.sac.onWarningContainer.withValues(alpha: 0.3),
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -621,14 +621,14 @@ class _AgeGatePanel extends StatelessWidget {
                   HugeIcon(
                     icon: HugeIcons.strokeRoundedUserGroup,
                     size: 22,
-                    color: AppColors.accentDark,
+                    color: context.sac.onWarningContainer,
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       'auth.register.age_gate.title'.tr(),
-                      style: const TextStyle(
-                        color: AppColors.accentDark,
+                      style: TextStyle(
+                        color: context.sac.onWarningContainer,
                         fontSize: SacFontSize.titleMedium,
                         fontWeight: FontWeight.w700,
                       ),
@@ -639,8 +639,8 @@ class _AgeGatePanel extends StatelessWidget {
               const SizedBox(height: 10),
               Text(
                 'auth.register.age_gate.message'.tr(),
-                style: const TextStyle(
-                  color: AppColors.accentDark,
+                style: TextStyle(
+                  color: context.sac.onWarningContainer,
                   fontSize: SacFontSize.titleMedium,
                   fontWeight: FontWeight.w600,
                 ),
@@ -648,8 +648,8 @@ class _AgeGatePanel extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 'auth.register.age_gate.hint'.tr(),
-                style: const TextStyle(
-                  color: AppColors.accentDark,
+                style: TextStyle(
+                  color: context.sac.onWarningContainer,
                   fontSize: SacFontSize.bodyMedium,
                   height: 1.3,
                 ),
@@ -684,17 +684,18 @@ class _LegalLoadError extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const HugeIcon(
+        HugeIcon(
           icon: HugeIcons.strokeRoundedAlert02,
           size: 20,
-          color: AppColors.errorDark,
+          color: context.sac.onErrorContainer,
         ),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
             'auth.legal.load_error'.tr(),
-            style: const TextStyle(
-                color: AppColors.errorDark, fontSize: SacFontSize.titleSmall),
+            style: TextStyle(
+                color: context.sac.onErrorContainer,
+                fontSize: SacFontSize.titleSmall),
           ),
         ),
         SacButton.ghost(

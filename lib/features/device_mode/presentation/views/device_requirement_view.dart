@@ -5,7 +5,6 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/errors/user_error_message.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
 import '../../../../core/widgets/evidence_staging/staged_file.dart';
@@ -190,10 +189,14 @@ class _DeviceRequirementViewState extends ConsumerState<DeviceRequirementView> {
                   key: const ValueKey('device_requirement_feedback'),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.accentLight,
+                    color: c.warningContainer,
                     borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   ),
-                  child: Text(feedback, style: textTheme.bodyMedium),
+                  child: Text(
+                    feedback,
+                    style: textTheme.bodyMedium
+                        ?.copyWith(color: c.onWarningContainer),
+                  ),
                 ),
               ],
               if (!online) ...[

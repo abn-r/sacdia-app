@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,16 +32,16 @@ class ClubTypeSelector extends ConsumerWidget {
           return Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.accentLight,
+              color: context.sac.warningContainer,
               borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-              border:
-                  Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
+              border: Border.all(
+                  color: context.sac.onWarningContainer.withValues(alpha: 0.4)),
             ),
             child: Row(
               children: [
                 HugeIcon(
                   icon: HugeIcons.strokeRoundedAlertCircle,
-                  color: AppColors.accentDark,
+                  color: context.sac.onWarningContainer,
                   size: 20,
                 ),
                 const SizedBox(width: 12),
@@ -49,7 +50,7 @@ class ClubTypeSelector extends ConsumerWidget {
                     'post_registration.club_type.no_instances'.tr(),
                     style: TextStyle(
                       fontSize: SacFontSize.bodyMedium,
-                      color: AppColors.accentDark,
+                      color: context.sac.onWarningContainer,
                       fontWeight: FontWeight.w500,
                     ),
                   ),

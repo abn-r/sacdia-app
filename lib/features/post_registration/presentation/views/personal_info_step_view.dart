@@ -153,15 +153,16 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
           if (!widget.canReadSensitiveData &&
               widget.canManageAdministrativeCompletion) ...[
             SacCard(
-              backgroundColor: AppColors.accentLight,
-              borderColor: AppColors.accent.withValues(alpha: 0.3),
+              backgroundColor: context.sac.warningContainer,
+              borderColor:
+                  context.sac.onWarningContainer.withValues(alpha: 0.3),
               padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
                   HugeIcon(
                     icon: HugeIcons.strokeRoundedInformationCircle,
                     size: 18,
-                    color: AppColors.accentDark,
+                    color: context.sac.onWarningContainer,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -169,7 +170,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                       tr('post_registration.personal_info.admin_restricted_notice'),
                       style: TextStyle(
                         fontSize: SacFontSize.bodyMedium,
-                        color: AppColors.accentDark,
+                        color: context.sac.onWarningContainer,
                         height: 1.3,
                       ),
                     ),
@@ -410,7 +411,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                     height: 40,
                     decoration: BoxDecoration(
                       color: allergiesCount > 0 || healthNone.allergies
-                          ? AppColors.errorLight
+                          ? context.sac.errorContainer
                           : context.sac.surfaceVariant,
                       borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     ),
@@ -419,7 +420,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                         icon: HugeIcons.strokeRoundedBandage,
                         size: 20,
                         color: allergiesCount > 0 || healthNone.allergies
-                            ? AppColors.error
+                            ? context.sac.onErrorContainer
                             : context.sac.textTertiary,
                       ),
                     ),
@@ -457,7 +458,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                     height: 40,
                     decoration: BoxDecoration(
                       color: diseasesCount > 0 || healthNone.diseases
-                          ? AppColors.accentLight
+                          ? context.sac.warningContainer
                           : context.sac.surfaceVariant,
                       borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     ),
@@ -466,7 +467,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                         icon: HugeIcons.strokeRoundedStethoscope,
                         size: 20,
                         color: diseasesCount > 0 || healthNone.diseases
-                            ? AppColors.accent
+                            ? context.sac.onWarningContainer
                             : context.sac.textTertiary,
                       ),
                     ),
@@ -504,7 +505,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                     height: 40,
                     decoration: BoxDecoration(
                       color: medicinesCount > 0 || healthNone.medicines
-                          ? AppColors.secondaryLight
+                          ? context.sac.successContainer
                           : context.sac.surfaceVariant,
                       borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     ),
@@ -513,7 +514,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                         icon: HugeIcons.strokeRoundedMedicine01,
                         size: 20,
                         color: medicinesCount > 0 || healthNone.medicines
-                            ? AppColors.secondary
+                            ? context.sac.onSuccessContainer
                             : context.sac.textTertiary,
                       ),
                     ),
@@ -547,22 +548,23 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
           // Warning if incomplete
           if (widget.canReadSensitiveData && !canComplete)
             SacCard(
-              backgroundColor: AppColors.accentLight,
-              borderColor: AppColors.accent.withValues(alpha: 0.3),
+              backgroundColor: context.sac.warningContainer,
+              borderColor:
+                  context.sac.onWarningContainer.withValues(alpha: 0.3),
               padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
                   HugeIcon(
                       icon: HugeIcons.strokeRoundedAlertCircle,
                       size: 18,
-                      color: AppColors.accentDark),
+                      color: context.sac.onWarningContainer),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       tr('post_registration.personal_info.validation.complete_required'),
                       style: TextStyle(
                         fontSize: SacFontSize.bodyMedium,
-                        color: AppColors.accentDark,
+                        color: context.sac.onWarningContainer,
                       ),
                     ),
                   ),
@@ -879,15 +881,18 @@ class _BloodTypeCard extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color:
-                  selected ? AppColors.errorLight : context.sac.surfaceVariant,
+              color: selected
+                  ? context.sac.errorContainer
+                  : context.sac.surfaceVariant,
               borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Center(
               child: HugeIcon(
                 icon: HugeIcons.strokeRoundedBlood,
                 size: 20,
-                color: selected ? AppColors.error : context.sac.textTertiary,
+                color: selected
+                    ? context.sac.onErrorContainer
+                    : context.sac.textTertiary,
               ),
             ),
           ),
@@ -922,14 +927,15 @@ class _ErrorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return SacCard(
-      backgroundColor: AppColors.errorLight,
-      borderColor: AppColors.error.withValues(alpha: 0.3),
+      backgroundColor: c.errorContainer,
+      borderColor: c.onErrorContainer.withValues(alpha: 0.3),
       padding: const EdgeInsets.all(12),
       child: Text(
         message,
-        style: const TextStyle(
-            color: AppColors.errorDark, fontSize: SacFontSize.bodyMedium),
+        style: TextStyle(
+            color: c.onErrorContainer, fontSize: SacFontSize.bodyMedium),
       ),
     );
   }

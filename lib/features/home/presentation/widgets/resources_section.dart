@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:go_router/go_router.dart';
@@ -173,37 +174,10 @@ class _ResourcesSectionState extends State<ResourcesSection> {
                                   ),
                         ),
                       ),
-                      SacPressable(
-                        listenOnly: true,
-                        child: TextButton(
-                          onPressed: () {},
-                          style: (TextButton.styleFrom(
-                            foregroundColor: SacAccent.of(context).color,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          )).copyWith(enableFeedback: false),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                tr('home.resources.view_all'),
-                                style: TextStyle(
-                                  fontSize: SacFontSize.bodyMedium,
-                                  fontWeight: FontWeight.w600,
-                                  color: SacAccent.of(context).color,
-                                ),
-                              ),
-                              const SizedBox(width: 2),
-                              HugeIcon(
-                                icon: HugeIcons.strokeRoundedArrowRight01,
-                                size: 14,
-                                color: SacAccent.of(context).color,
-                              ),
-                            ],
-                          ),
-                        ),
+                      SacButton.text(
+                        text: tr('home.resources.view_all'),
+                        onPressed: () {},
+                        color: SacAccent.of(context).color,
                       ),
                     ],
                   ),

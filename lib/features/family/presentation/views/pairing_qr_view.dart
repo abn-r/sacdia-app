@@ -216,21 +216,21 @@ class _PairingQrViewState extends ConsumerState<PairingQrView> {
       children: [
         SacCard(
           key: const ValueKey('pairing_error'),
-          backgroundColor: AppColors.errorLight,
-          borderColor: AppColors.error.withValues(alpha: 0.3),
+          backgroundColor: context.sac.errorContainer,
+          borderColor: context.sac.onErrorContainer.withValues(alpha: 0.3),
           child: Row(
             children: [
               HugeIcon(
                 icon: HugeIcons.strokeRoundedAlert02,
                 size: 20,
-                color: AppColors.errorDark,
+                color: context.sac.onErrorContainer,
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   familyErrorMessage(_error),
-                  style: const TextStyle(
-                    color: AppColors.errorDark,
+                  style: TextStyle(
+                    color: context.sac.onErrorContainer,
                     fontSize: SacFontSize.titleSmall,
                   ),
                 ),

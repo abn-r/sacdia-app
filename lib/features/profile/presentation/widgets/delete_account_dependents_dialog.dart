@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/features/family/domain/entities/dependent.dart';
@@ -37,8 +36,8 @@ class _DeleteAccountDependentsDialogState
     return SacDialog(
       title: 'settings.delete_account.dependents.title'.tr(),
       icon: HugeIcons.strokeRoundedAlert02,
-      iconColor: AppColors.error,
-      iconBackgroundColor: AppColors.errorLight,
+      iconColor: c.onErrorContainer,
+      iconBackgroundColor: c.errorContainer,
       content: 'settings.delete_account.dependents.intro'.tr(),
       body: Column(
         mainAxisSize: MainAxisSize.min,

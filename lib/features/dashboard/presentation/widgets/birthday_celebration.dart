@@ -328,17 +328,17 @@ class _BirthdayCelebrationDialogState extends State<_BirthdayCelebrationDialog>
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.accentLight.withValues(alpha: 0.78),
+                        color: context.sac.warningContainer,
                         borderRadius: BorderRadius.circular(AppTheme.radiusLG),
                         border: Border.all(
-                          color: AppColors.accent.withValues(alpha: 0.45),
+                          color: context.sac.warning.withValues(alpha: 0.45),
                         ),
                       ),
                       child: Text(
                         tr('dashboard.birthday.bible_message'),
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: AppColors.accentDark,
+                        style: TextStyle(
+                          color: context.sac.onWarningContainer,
                           fontWeight: FontWeight.w700,
                           height: 1.35,
                         ),
@@ -352,30 +352,11 @@ class _BirthdayCelebrationDialogState extends State<_BirthdayCelebrationDialog>
                       backgroundColor: AppColors.accentDark,
                     ),
                     const SizedBox(height: 6),
-                    SacPressable(
-                      listenOnly: true,
-                      child: TextButton.icon(
-                        onPressed: _dismissForToday,
-                        icon: const HugeIcon(
-                          icon: HugeIcons.strokeRoundedViewOff,
-                          size: 13,
-                          color: AppColors.accentDark,
-                        ),
-                        label: Text(
-                          tr('dashboard.birthday.dismiss_today'),
-                          style: const TextStyle(
-                            color: AppColors.accentDark,
-                            fontSize: SacFontSize.labelSmall,
-                            fontWeight: FontWeight.w600,
-                            height: 1.1,
-                          ),
-                        ),
-                        style: (TextButton.styleFrom(
-                          minimumSize: const Size(44, 44),
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        )).copyWith(enableFeedback: false),
-                      ),
+                    SacButton.text(
+                      text: tr('dashboard.birthday.dismiss_today'),
+                      icon: HugeIcons.strokeRoundedViewOff,
+                      color: context.sac.onWarningContainer,
+                      onPressed: _dismissForToday,
                     ),
                   ],
                 ),

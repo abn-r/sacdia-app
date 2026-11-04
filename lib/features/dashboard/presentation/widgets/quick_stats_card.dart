@@ -55,12 +55,9 @@ class _MissionStatsCard extends StatelessWidget {
     final cardBackground = isDark ? c.surfaceVariant : c.surface;
     final cardBorder =
         isDark ? c.border : SacAccent.of(context).color.withValues(alpha: 0.12);
-    final iconBackground = isDark
-        ? AppColors.accent.withValues(alpha: 0.16)
-        : AppColors.accentLight;
-    final helperColor = isDark
-        ? c.textTertiary
-        : AppColors.lightTextSecondary.withValues(alpha: 0.86);
+    final iconBackground =
+        isDark ? AppColors.accent.withValues(alpha: 0.16) : c.warningContainer;
+    final helperColor = isDark ? c.textTertiary : c.textSecondary;
 
     return SacCard(
       padding: const EdgeInsets.all(16),
@@ -174,11 +171,11 @@ class _MissionPrimaryStat extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final panelBackground = isDark
         ? Colors.white.withValues(alpha: 0.06)
-        : AppColors.accentLight.withValues(alpha: 0.62);
+        : c.warningContainer.withValues(alpha: 0.62);
     final panelBorder = isDark
         ? Colors.white.withValues(alpha: 0.09)
-        : AppColors.accent.withValues(alpha: 0.22);
-    final valueColor = isDark ? AppColors.accent : AppColors.accentDark;
+        : c.onWarningContainer.withValues(alpha: 0.22);
+    final valueColor = isDark ? AppColors.accent : c.onWarningContainer;
 
     return Container(
       width: double.infinity,

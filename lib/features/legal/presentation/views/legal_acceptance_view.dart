@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/constants/app_constants.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -461,23 +460,24 @@ class _ErrorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return SacCard(
-      backgroundColor: AppColors.errorLight,
-      borderColor: AppColors.error.withValues(alpha: 0.3),
+      backgroundColor: c.errorContainer,
+      borderColor: c.onErrorContainer.withValues(alpha: 0.3),
       padding: const EdgeInsets.all(12),
       child: Row(
         children: [
-          const HugeIcon(
+          HugeIcon(
             icon: HugeIcons.strokeRoundedAlert02,
             size: 20,
-            color: AppColors.errorDark,
+            color: c.onErrorContainer,
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(
-                  color: AppColors.errorDark, fontSize: SacFontSize.titleSmall),
+              style: TextStyle(
+                  color: c.onErrorContainer, fontSize: SacFontSize.titleSmall),
             ),
           ),
         ],

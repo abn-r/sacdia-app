@@ -2,9 +2,8 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
@@ -132,32 +131,11 @@ class ProfilePhotoPicker extends StatelessWidget {
 
           // Remove button
           if (onRemove != null && !isUploading)
-            SacPressable(
-              listenOnly: true,
-              child: TextButton.icon(
-                onPressed: onRemove,
-                style: (TextButton.styleFrom(
-                  backgroundColor: AppColors.errorLight,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-                  ),
-                )).copyWith(enableFeedback: false),
-                icon: const HugeIcon(
-                  icon: HugeIcons.strokeRoundedDelete02,
-                  size: 18,
-                  color: AppColors.error,
-                ),
-                label: Text(
-                  'post_registration.photo.remove'.tr(),
-                  style: const TextStyle(
-                    color: AppColors.error,
-                    fontSize: SacFontSize.titleSmall,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
+            SacButton.text(
+              text: 'post_registration.photo.remove'.tr(),
+              icon: HugeIcons.strokeRoundedDelete02,
+              color: context.sac.error,
+              onPressed: onRemove,
             ),
         ] else ...[
           // Dashed circle placeholder

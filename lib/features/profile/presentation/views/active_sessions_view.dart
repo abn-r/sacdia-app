@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +16,8 @@ import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -170,14 +173,17 @@ class _ActiveSessionsViewState extends ConsumerState<ActiveSessionsView> {
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) => sessionsAsync.when(
-            loading: () => const _LoadingState(),
-            error: (error, _) => _ErrorState(
-              message: error.toString().replaceFirst('Exception: ', ''),
+            loading: () => const Center(child: SacLoading()),
+            error: (error, _) => SacErrorState(
+              title: userErrorMessage(error),
               onRetry: () =>
                   ref.read(activeSessionsProvider.notifier).refresh(),
             ),
             data: (sessions) => sessions.isEmpty
-                ? const _EmptyState()
+                ? SacEmptyState(
+                    icon: HugeIcons.strokeRoundedDeviceAccess,
+                    title: 'profile.active_sessions.ui.no_sessions'.tr(),
+                  )
                 : _SessionList(
                     sessions: currentSessionFirst(sessions),
                     revokingIds: _revokingIds,
@@ -190,75 +196,6 @@ class _ActiveSessionsViewState extends ConsumerState<ActiveSessionsView> {
           ),
         ),
       ),
-    );
-  }
-}
-
-// ── Loading state ─────────────────────────────────────────────────────────────
-
-class _LoadingState extends StatelessWidget {
-  const _LoadingState();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: CircularProgressIndicator());
-  }
-}
-
-// ── Error state ───────────────────────────────────────────────────────────────
-
-class _ErrorState extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorState({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedWifiError01,
-              size: 48,
-              color: c.textTertiary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: SacFontSize.titleMedium,
-                color: c.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 20),
-            SacButton(
-              text: 'common.retry'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onRetry,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Empty state ───────────────────────────────────────────────────────────────
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    return SacEmptyState(
-      icon: HugeIcons.strokeRoundedDeviceAccess,
-      title: 'profile.active_sessions.ui.no_sessions'.tr(),
     );
   }
 }
@@ -470,29 +407,43 @@ class _RevokeButton extends StatelessWidget {
   Widget build(BuildContext context) {
     if (isRevoking) {
       return const SizedBox(
-        width: 20,
-        height: 20,
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          color: AppColors.error,
+        width: 44,
+        height: 44,
+        child: Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: SacLoadingSmall(color: AppColors.error),
+          ),
         ),
       );
     }
 
-    return GestureDetector(
-      onTap: onRevoke,
-      child: Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          color: AppColors.error.withValues(alpha: 0.10),
-          borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-        ),
-        child: Center(
-          child: HugeIcon(
-            icon: HugeIcons.strokeRoundedDelete02,
-            size: 16,
-            color: AppColors.error,
+    return Semantics(
+      button: true,
+      label: 'profile.active_sessions.ui.action_close_sessions'.tr(),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onRevoke,
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Center(
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: AppColors.error.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
+              ),
+              child: Center(
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedDelete02,
+                  size: 16,
+                  color: AppColors.error,
+                ),
+              ),
+            ),
           ),
         ),
       ),

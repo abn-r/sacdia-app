@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -58,7 +59,7 @@ class HomeView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    error.toString(),
+                    userErrorMessage(error),
                     style: TextStyle(
                       fontSize: SacFontSize.titleSmall,
                       color: c.textSecondary,

@@ -267,13 +267,11 @@ class _DeviceTile extends StatelessWidget {
             ),
           ),
           if (onRevoke != null)
-            TextButton(
+            SacButton.text(
               key: ValueKey('device_revoke_${device.id}'),
+              text: 'family.devices.revoke'.tr(),
               onPressed: onRevoke,
-              child: Text(
-                'family.devices.revoke'.tr(),
-                style: const TextStyle(color: AppColors.error),
-              ),
+              color: context.sac.error,
             ),
         ],
       ),

@@ -3,12 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
-import '../../../../core/widgets/sac_pressable.dart';
 import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../../../core/widgets/sac_text_field.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -153,13 +151,13 @@ Future<void> runChangePasswordFlow(
                         vertical: 10,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.errorLight,
+                        color: ctx.sac.errorContainer,
                         borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                       ),
                       child: Text(
                         errorText!,
-                        style: const TextStyle(
-                          color: AppColors.errorDark,
+                        style: TextStyle(
+                          color: ctx.sac.onErrorContainer,
                           fontSize: SacFontSize.bodyMedium,
                           fontWeight: FontWeight.w600,
                         ),
@@ -174,13 +172,9 @@ Future<void> runChangePasswordFlow(
                     onPressed: submit,
                   ),
                   const SizedBox(height: 8),
-                  SacPressable(
-                    listenOnly: true,
-                    child: TextButton(
-                      style: const ButtonStyle(enableFeedback: false),
-                      onPressed: () => Navigator.pop(ctx, false),
-                      child: Text('common.cancel'.tr()),
-                    ),
+                  SacButton.text(
+                    text: 'common.cancel'.tr(),
+                    onPressed: () => Navigator.pop(ctx, false),
                   ),
                 ],
               ),

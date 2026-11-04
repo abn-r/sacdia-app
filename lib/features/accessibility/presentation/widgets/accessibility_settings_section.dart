@@ -1,9 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_settings.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import 'package:sacdia_app/core/theme/sac_accent.dart';
-import '../../../profile/presentation/widgets/setting_tile.dart';
 import '../views/accessibility_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 
@@ -15,10 +14,9 @@ class AccessibilitySettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SettingTile(
+    return SacSettingsTile(
       icon: HugeIcons.strokeRoundedUniversalAccess,
       title: 'settings.accessibility_tile'.tr(),
-      iconColor: SacAccent.of(context).color,
       onTap: () {
         Navigator.push(
           context,

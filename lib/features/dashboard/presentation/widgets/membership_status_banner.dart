@@ -6,7 +6,6 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../core/config/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -98,16 +97,18 @@ class _PendingBanner extends ConsumerWidget {
       );
     }
 
+    final c = context.sac;
+
     return _BannerContainer(
-      backgroundColor: AppColors.accentLight,
-      borderColor: AppColors.accent.withValues(alpha: 0.4),
-      iconBackgroundColor: AppColors.accent.withValues(alpha: 0.2),
+      backgroundColor: c.warningContainer,
+      borderColor: c.warning.withValues(alpha: 0.4),
+      iconBackgroundColor: c.warning.withValues(alpha: 0.2),
       icon: HugeIcons.strokeRoundedClock01,
-      iconColor: AppColors.accentDark,
+      iconColor: c.onWarningContainer,
       title: tr('dashboard.banner.pending_title'),
-      titleColor: AppColors.accentDark,
+      titleColor: c.onWarningContainer,
       subtitle: expiryLabel,
-      subtitleColor: AppColors.accentDark.withValues(alpha: 0.8),
+      subtitleColor: c.onWarningContainer.withValues(alpha: 0.8),
       action: Wrap(
         spacing: 8,
         runSpacing: 8,
@@ -116,8 +117,8 @@ class _PendingBanner extends ConsumerWidget {
             text: tr('dashboard.banner.upload_certificates'),
             variant: SacButtonVariant.primary,
             size: SacButtonSize.small,
-            backgroundColor: AppColors.accent,
-            textColor: Colors.white,
+            backgroundColor: c.warning,
+            textColor: c.onWarning,
             onPressed: () => context.push(RouteNames.certificateImportUpload),
           ),
           SacButton(
@@ -145,22 +146,24 @@ class _RejectedBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final reason = grant.rejectionReason;
 
+    final c = context.sac;
+
     return _BannerContainer(
-      backgroundColor: AppColors.errorLight,
-      borderColor: AppColors.error.withValues(alpha: 0.4),
-      iconBackgroundColor: AppColors.error.withValues(alpha: 0.2),
+      backgroundColor: c.errorContainer,
+      borderColor: c.error.withValues(alpha: 0.4),
+      iconBackgroundColor: c.error.withValues(alpha: 0.2),
       icon: HugeIcons.strokeRoundedCancel01,
-      iconColor: AppColors.errorDark,
+      iconColor: c.onErrorContainer,
       title: tr('dashboard.banner.rejected_title'),
-      titleColor: AppColors.errorDark,
+      titleColor: c.onErrorContainer,
       subtitle: reason != null && reason.isNotEmpty ? reason : null,
-      subtitleColor: AppColors.errorDark.withValues(alpha: 0.8),
+      subtitleColor: c.onErrorContainer.withValues(alpha: 0.8),
       action: SacButton(
         text: tr('dashboard.banner.reapply'),
         variant: SacButtonVariant.primary,
         size: SacButtonSize.small,
-        backgroundColor: AppColors.error,
-        textColor: Colors.white,
+        backgroundColor: c.error,
+        textColor: c.onError,
         onPressed: () => _navigateToReapply(context),
       ),
     );

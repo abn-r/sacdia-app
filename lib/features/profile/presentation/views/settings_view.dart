@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/core/widgets/sac_settings.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,14 +13,12 @@ import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/constants/app_constants.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/in_app_browser.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/theme/accent_provider.dart';
 import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/widgets/zarza_roja_credit.dart';
-import '../../../../core/utils/icon_helper.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
@@ -28,7 +28,6 @@ import '../providers/notification_preferences_providers.dart';
 import '../widgets/accent_picker_sheet.dart';
 import '../utils/change_password_flow.dart';
 import '../utils/run_delete_account_flow.dart';
-import '../widgets/setting_tile.dart';
 import '../../../qr/presentation/views/qr_scanner_view.dart';
 import '../../../accessibility/presentation/widgets/accessibility_settings_section.dart';
 import '../../../biometric/presentation/widgets/biometric_settings_section.dart';
@@ -199,48 +198,45 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 ],
 
                 // ── APARIENCIA ────────────────────────────────────────────
-                _SectionHeader(title: 'settings.section_appearance'.tr()),
-                _GroupContainer(
+                SacSettingsGroup(
+                  title: 'settings.section_appearance'.tr(),
                   children: [
-                    SettingTile(
+                    SacSettingsTile(
                       icon: HugeIcons.strokeRoundedPaintBrush01,
                       title: 'profile.settings.theme_title'.tr(),
                       subtitle: _getThemeName(themeMode),
-                      iconColor: SacAccent.of(context).color,
                       onTap: _showThemeDialog,
                     ),
-                    _groupDivider(),
-                    SettingTile(
+                    const SacSettingsDivider(),
+                    SacSettingsTile(
                       icon: HugeIcons.strokeRoundedColors,
                       title: 'profile.settings.accent_title'.tr(),
                       subtitle: accent.labelKey.tr(),
-                      iconColor: SacAccent.of(context).color,
                       onTap: () => showAccentPicker(context, ref),
                     ),
-                    _groupDivider(),
+                    const SacSettingsDivider(),
                     const AccessibilitySettingsSection(),
                   ],
                 ),
                 const SizedBox(height: 24),
 
                 // ── NOTIFICACIONES ────────────────────────────────────────
-                _SectionHeader(title: 'settings.section_notifications'.tr()),
-                _GroupContainer(
+                SacSettingsGroup(
+                  title: 'settings.section_notifications'.tr(),
                   children: [
-                    _SwitchTile(
+                    SacSettingsSwitchTile(
                       icon: HugeIcons.strokeRoundedNotification01,
                       title: 'profile.settings.notif_push'.tr(),
-                      iconColor: SacAccent.of(context).color,
                       value: master,
                       onChanged: notifPrefs == null
                           ? null
                           : (v) => _saveNotifPref({'master': v}),
                     ),
-                    _groupDivider(),
-                    _SwitchTile(
+                    const SacSettingsDivider(),
+                    SacSettingsSwitchTile(
                       icon: HugeIcons.strokeRoundedCalendarCheckIn01,
                       title: 'profile.settings.notif_activities'.tr(),
-                      iconColor: master ? c.textSecondary : c.textTertiary,
+                      muted: !master,
                       indent: true,
                       value: master && (notifPrefs?.activities ?? true),
                       // Deshabilitar (no solo ocultar) cuando master=false.
@@ -248,44 +244,44 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                           ? null
                           : (v) => _saveNotifPref({'activities': v}),
                     ),
-                    _groupDivider(),
-                    _SwitchTile(
+                    const SacSettingsDivider(),
+                    SacSettingsSwitchTile(
                       icon: HugeIcons.strokeRoundedChampion,
                       title: 'profile.settings.notif_achievements'.tr(),
-                      iconColor: master ? c.textSecondary : c.textTertiary,
+                      muted: !master,
                       indent: true,
                       value: master && (notifPrefs?.achievements ?? true),
                       onChanged: (notifPrefs == null || !master)
                           ? null
                           : (v) => _saveNotifPref({'achievements': v}),
                     ),
-                    _groupDivider(),
-                    _SwitchTile(
+                    const SacSettingsDivider(),
+                    SacSettingsSwitchTile(
                       icon: HugeIcons.strokeRoundedCheckmarkCircle01,
                       title: 'profile.settings.notif_approvals'.tr(),
-                      iconColor: master ? c.textSecondary : c.textTertiary,
+                      muted: !master,
                       indent: true,
                       value: master && (notifPrefs?.approvals ?? true),
                       onChanged: (notifPrefs == null || !master)
                           ? null
                           : (v) => _saveNotifPref({'approvals': v}),
                     ),
-                    _groupDivider(),
-                    _SwitchTile(
+                    const SacSettingsDivider(),
+                    SacSettingsSwitchTile(
                       icon: HugeIcons.strokeRoundedUserAdd01,
                       title: 'profile.settings.notif_invitations'.tr(),
-                      iconColor: master ? c.textSecondary : c.textTertiary,
+                      muted: !master,
                       indent: true,
                       value: master && (notifPrefs?.invitations ?? true),
                       onChanged: (notifPrefs == null || !master)
                           ? null
                           : (v) => _saveNotifPref({'invitations': v}),
                     ),
-                    _groupDivider(),
-                    _SwitchTile(
+                    const SacSettingsDivider(),
+                    SacSettingsSwitchTile(
                       icon: HugeIcons.strokeRoundedClock01,
                       title: 'profile.settings.notif_reminders'.tr(),
-                      iconColor: master ? c.textSecondary : c.textTertiary,
+                      muted: !master,
                       indent: true,
                       value: master && (notifPrefs?.reminders ?? true),
                       onChanged: (notifPrefs == null || !master)
@@ -305,13 +301,12 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 const SizedBox(height: 24),
 
                 // ── CUENTA ────────────────────────────────────────────────
-                _SectionHeader(title: 'settings.section_account'.tr()),
-                _GroupContainer(
+                SacSettingsGroup(
+                  title: 'settings.section_account'.tr(),
                   children: [
-                    SettingTile(
+                    SacSettingsTile(
                       icon: HugeIcons.strokeRoundedQrCode,
                       title: 'settings.member_qr'.tr(),
-                      iconColor: SacAccent.of(context).color,
                       onTap: () => Navigator.push(
                         context,
                         SacSharedAxisRoute(
@@ -320,12 +315,11 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                       ),
                     ),
                     if (!teen) ...[
-                      _groupDivider(),
-                      SettingTile(
+                      const SacSettingsDivider(),
+                      SacSettingsTile(
                         icon: HugeIcons.strokeRoundedExchange01,
                         title: 'profile.settings.change_club_tile'.tr(),
                         subtitle: 'profile.settings.change_club_subtitle'.tr(),
-                        iconColor: SacAccent.of(context).color,
                         onTap: () => Navigator.push(
                           context,
                           SacSharedAxisRoute(
@@ -339,11 +333,10 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     ],
                     if (hasAnyPermission(user, const {'attendance:manage'}) ||
                         hasAnyRole(user, _attendanceScannerRoles)) ...[
-                      _groupDivider(),
-                      SettingTile(
+                      const SacSettingsDivider(),
+                      SacSettingsTile(
                         icon: HugeIcons.strokeRoundedQrCode01,
                         title: 'settings.scan_qr'.tr(),
-                        iconColor: SacAccent.of(context).color,
                         onTap: () => Navigator.push(
                           context,
                           SacSharedAxisRoute(
@@ -353,11 +346,10 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                       ),
                     ],
                     if (!acting && !teen) ...[
-                      _groupDivider(),
-                      SettingTile(
+                      const SacSettingsDivider(),
+                      SacSettingsTile(
                         icon: HugeIcons.strokeRoundedDeviceAccess,
                         title: 'settings.active_sessions'.tr(),
-                        iconColor: SacAccent.of(context).color,
                         onTap: () => Navigator.push(
                           context,
                           SacSharedAxisRoute(
@@ -365,11 +357,10 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                           ),
                         ),
                       ),
-                      _groupDivider(),
-                      SettingTile(
+                      const SacSettingsDivider(),
+                      SacSettingsTile(
                         icon: HugeIcons.strokeRoundedDownload02,
                         title: 'settings.download_my_data'.tr(),
-                        iconColor: SacAccent.of(context).color,
                         onTap: () => Navigator.push(
                           context,
                           SacSharedAxisRoute(
@@ -379,40 +370,39 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                       ),
                     ],
                     if (!acting) ...[
-                      _groupDivider(),
-                      SettingTile(
+                      const SacSettingsDivider(),
+                      SacSettingsTile(
                         icon: HugeIcons.strokeRoundedLockPassword,
                         title: 'settings.change_password'.tr(),
-                        iconColor: SacAccent.of(context).color,
                         onTap: _showChangePasswordDialog,
                       ),
                     ],
-                    _groupDivider(),
+                    const SacSettingsDivider(),
                     const BiometricSettingsSection(),
-                    _groupDivider(),
+                    const SacSettingsDivider(),
                     const LanguagePickerTile(),
                   ],
                 ),
                 const SizedBox(height: 24),
 
                 // ── ACERCA DE ─────────────────────────────────────────────
-                _SectionHeader(title: 'settings.section_about'.tr()),
-                _GroupContainer(
+                SacSettingsGroup(
+                  title: 'settings.section_about'.tr(),
                   children: [
-                    SettingTile(
+                    SacSettingsTile(
                       icon: HugeIcons.strokeRoundedInformationCircle,
                       title: 'profile.settings.about_version'.tr(),
                       subtitle: _appVersion.isEmpty ? '—' : _appVersion,
                     ),
-                    _groupDivider(),
-                    SettingTile(
+                    const SacSettingsDivider(),
+                    SacSettingsTile(
                       icon: HugeIcons.strokeRoundedSecurityCheck,
                       title: 'profile.settings.privacy_policy'.tr(),
                       onTap: () =>
                           _openLegalDocument(AppConstants.privacyPolicyUrl),
                     ),
-                    _groupDivider(),
-                    SettingTile(
+                    const SacSettingsDivider(),
+                    SacSettingsTile(
                       icon: HugeIcons.strokeRoundedLegalDocument01,
                       title: 'profile.settings.terms'.tr(),
                       onTap: () => _openLegalDocument(AppConstants.termsUrl),
@@ -422,12 +412,12 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 const SizedBox(height: 24),
 
                 // ── SESIÓN ────────────────────────────────────────────────
-                _GroupContainer(
+                SacSettingsGroup(
                   children: [
-                    SettingTile(
+                    SacSettingsTile(
                       icon: HugeIcons.strokeRoundedLogout02,
                       title: 'profile.settings.logout_tile'.tr(),
-                      iconColor: AppColors.error,
+                      destructive: true,
                       onTap: _handleLogout,
                     ),
                   ],
@@ -436,12 +426,12 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   const SizedBox(height: 16),
 
                   // ── ZONA PELIGROSA ──────────────────────────────────────
-                  _GroupContainer(
+                  SacSettingsGroup(
                     children: [
-                      SettingTile(
+                      SacSettingsTile(
                         icon: HugeIcons.strokeRoundedDelete02,
                         title: 'profile.settings.delete_account_tile'.tr(),
-                        iconColor: AppColors.error,
+                        destructive: true,
                         onTap: _handleDeleteAccount,
                       ),
                     ],
@@ -457,13 +447,6 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
       ),
     );
   }
-
-  Widget _groupDivider() => Divider(
-        height: 1,
-        thickness: 1,
-        indent: 60,
-        color: context.sac.borderLight,
-      );
 }
 
 // ── Account header tile ───────────────────────────────────────────────────────
@@ -577,130 +560,6 @@ class _AvatarFallback extends StatelessWidget {
           color: SacAccent.of(context).color,
         ),
       ),
-    );
-  }
-}
-
-// ── Switch tile ───────────────────────────────────────────────────────────────
-
-class _SwitchTile extends StatelessWidget {
-  final HugeIconData icon;
-  final String title;
-  final Color? iconColor;
-  final bool value;
-  final bool indent;
-
-  /// null = toggle deshabilitado (usado cuando master=false).
-  final ValueChanged<bool>? onChanged;
-
-  const _SwitchTile({
-    required this.icon,
-    required this.title,
-    this.iconColor,
-    required this.value,
-    required this.onChanged,
-    this.indent = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final effectiveIconColor = iconColor ?? c.textSecondary;
-    final effectiveBg = iconColor != null
-        ? iconColor!.withValues(alpha: 0.12)
-        : c.surfaceVariant;
-
-    return Padding(
-      padding: EdgeInsets.only(
-        left: indent ? 28 : 14,
-        right: 14,
-        top: 11,
-        bottom: 11,
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: effectiveBg,
-              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-            ),
-            child: Center(
-              child: HugeIcon(
-                icon: icon,
-                color: effectiveIconColor,
-                size: 18,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: SacFontSize.titleMedium,
-                fontWeight: FontWeight.w500,
-                color: c.text,
-              ),
-            ),
-          ),
-          SacPressable(
-            listenOnly: true,
-            child: Switch(
-              value: value,
-              onChanged: onChanged,
-              activeThumbColor: SacAccent.of(context).color,
-              activeTrackColor:
-                  SacAccent.of(context).color.withValues(alpha: 0.4),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Section header ────────────────────────────────────────────────────────────
-
-class _SectionHeader extends StatelessWidget {
-  final String title;
-
-  const _SectionHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 8),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: SacFontSize.labelSmall,
-          fontWeight: FontWeight.w600,
-          color: context.sac.textTertiary,
-          letterSpacing: 0.8,
-        ),
-      ),
-    );
-  }
-}
-
-// ── Group container ───────────────────────────────────────────────────────────
-
-class _GroupContainer extends StatelessWidget {
-  final List<Widget> children;
-
-  const _GroupContainer({required this.children});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: context.sac.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        border: Border.all(color: context.sac.border, width: 1),
-      ),
-      child: Column(children: children),
     );
   }
 }
@@ -825,25 +684,9 @@ class _ThemePickerDialog extends StatelessWidget {
                 );
               }),
               Container(height: 0.5, color: c.border),
-              SacPressable(
-                listenOnly: true,
-                child: TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: (TextButton.styleFrom(
-                    foregroundColor: c.textSecondary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    minimumSize: const Size(double.infinity, 0),
-                    shape: const RoundedRectangleBorder(),
-                  )).copyWith(enableFeedback: false),
-                  child: Text(
-                    'common.cancel'.tr(),
-                    style: TextStyle(
-                      fontSize: SacFontSize.titleMedium,
-                      fontWeight: FontWeight.w400,
-                      color: c.textSecondary,
-                    ),
-                  ),
-                ),
+              SacButton.ghost(
+                text: 'common.cancel'.tr(),
+                onPressed: () => Navigator.of(context).pop(),
               ),
             ],
           ),

@@ -165,8 +165,8 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
                               const SizedBox(height: 32),
                               if (_emailSent) ...[
                                 SacCard(
-                                  backgroundColor: AppColors.secondaryLight,
-                                  borderColor: AppColors.secondary
+                                  backgroundColor: context.sac.successContainer,
+                                  borderColor: context.sac.onSuccessContainer
                                       .withValues(alpha: 0.3),
                                   padding: const EdgeInsets.all(16),
                                   child: Column(
@@ -180,10 +180,10 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
                                       Text(
                                         'auth.forgot_password_success_title'
                                             .tr(),
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: SacFontSize.headlineSmall,
                                           fontWeight: FontWeight.w600,
-                                          color: AppColors.secondaryDark,
+                                          color: context.sac.onSuccessContainer,
                                         ),
                                       ),
                                       const SizedBox(height: 8),
@@ -195,9 +195,9 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
                                           },
                                         ),
                                         textAlign: TextAlign.center,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: SacFontSize.titleSmall,
-                                          color: AppColors.secondaryDark,
+                                          color: context.sac.onSuccessContainer,
                                           height: 1.4,
                                         ),
                                       ),
@@ -228,23 +228,24 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
                                 const SizedBox(height: 24),
                                 if (_errorMessage != null) ...[
                                   SacCard(
-                                    backgroundColor: AppColors.errorLight,
-                                    borderColor:
-                                        AppColors.error.withValues(alpha: 0.3),
+                                    backgroundColor: context.sac.errorContainer,
+                                    borderColor: context.sac.onErrorContainer
+                                        .withValues(alpha: 0.3),
                                     padding: const EdgeInsets.all(12),
                                     child: Row(
                                       children: [
                                         HugeIcon(
                                           icon: HugeIcons.strokeRoundedAlert02,
                                           size: 20,
-                                          color: AppColors.errorDark,
+                                          color: context.sac.onErrorContainer,
                                         ),
                                         const SizedBox(width: 10),
                                         Expanded(
                                           child: Text(
                                             _errorMessage!,
-                                            style: const TextStyle(
-                                              color: AppColors.errorDark,
+                                            style: TextStyle(
+                                              color:
+                                                  context.sac.onErrorContainer,
                                               fontSize: SacFontSize.titleSmall,
                                             ),
                                           ),

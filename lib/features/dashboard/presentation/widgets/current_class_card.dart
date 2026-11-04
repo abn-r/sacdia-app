@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/widgets/sac_network_image.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_ring.dart';
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
@@ -140,9 +141,15 @@ class CurrentClassCard extends ConsumerWidget {
 
           // Small progress ring + percentage, OR "Completada" badge
           if (isExpired)
-            const _ExpiredBadge()
+            SacBadge.error(
+              label: tr('dashboard.class_card.expired_badge'),
+              icon: HugeIcons.strokeRoundedClock04,
+            )
           else if (isComplete)
-            const _CompletadaBadge()
+            SacBadge.success(
+              label: tr('dashboard.class_card.completed'),
+              icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+            )
           else
             SacProgressRing(
               progress: progress,
@@ -247,77 +254,6 @@ class CurrentClassCard extends ConsumerWidget {
                     size: 20,
                   ),
                 ),
-    );
-  }
-}
-
-class _ExpiredBadge extends StatelessWidget {
-  const _ExpiredBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.primarySurface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.35)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedClock04,
-            size: 14,
-            color: AppColors.errorDark,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            tr('dashboard.class_card.expired_badge'),
-            style: TextStyle(
-              fontSize: SacFontSize.bodySmall,
-              fontWeight: FontWeight.w500,
-              color: AppColors.errorDark,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Private badge widget ─────────────────────────────────────────────────────
-
-class _CompletadaBadge extends StatelessWidget {
-  const _CompletadaBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.secondaryLight,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-            size: 14,
-            color: AppColors.secondaryDark,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            tr('dashboard.class_card.completed'),
-            style: TextStyle(
-              fontSize: SacFontSize.bodySmall,
-              fontWeight: FontWeight.w500,
-              color: AppColors.secondaryDark,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

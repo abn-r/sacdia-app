@@ -166,8 +166,8 @@ class _DeleteAccountConfirmDialogState
       child: SacDialog(
         title: 'profile.settings.delete_account_second_title'.tr(),
         icon: HugeIcons.strokeRoundedAlert02,
-        iconColor: AppColors.error,
-        iconBackgroundColor: AppColors.errorLight,
+        iconColor: c.onErrorContainer,
+        iconBackgroundColor: c.errorContainer,
         content: 'profile.settings.delete_account_write_eliminate'.tr(
           namedArgs: {'word': widget.confirmationWord},
         ),

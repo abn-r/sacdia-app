@@ -149,21 +149,22 @@ class _MembershipStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     final (String label, Color bg, Color fg) = switch (grant.status) {
       'pending' => (
           tr('home.club_context.status_pending'),
-          AppColors.accentLight,
-          AppColors.accentDark
+          c.warningContainer,
+          c.onWarningContainer
         ),
       'rejected' => (
           tr('home.club_context.status_rejected'),
-          AppColors.errorLight,
-          AppColors.errorDark
+          c.errorContainer,
+          c.onErrorContainer
         ),
       'expired' => (
           tr('home.club_context.status_expired'),
-          AppColors.lightBorderLight,
-          AppColors.lightTextSecondary
+          c.surfaceVariant,
+          c.textSecondary
         ),
       _ => ('', Colors.transparent, Colors.transparent),
     };

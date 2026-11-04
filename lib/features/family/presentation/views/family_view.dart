@@ -10,6 +10,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_empty_state.dart';
+import '../../../../core/widgets/sac_error_state.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../domain/entities/dependent.dart';
@@ -39,8 +40,8 @@ class FamilyView extends ConsumerWidget {
       ),
       body: overview.when(
         loading: () => const Center(child: SacLoading()),
-        error: (error, _) => _ErrorState(
-          message: familyErrorMessage(error),
+        error: (error, _) => SacErrorState(
+          title: familyErrorMessage(error),
           onRetry: () => ref.invalidate(dependentsProvider),
         ),
         data: (family) => RefreshIndicator(
@@ -170,37 +171,6 @@ class _HaveCodeAction extends StatelessWidget {
       text: 'family.have_code'.tr(),
       icon: HugeIcons.strokeRoundedKey01,
       onPressed: () => context.push(RouteNames.familyLink),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: c.textSecondary,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            SacButton.outline(text: 'common.retry'.tr(), onPressed: onRetry),
-          ],
-        ),
-      ),
     );
   }
 }

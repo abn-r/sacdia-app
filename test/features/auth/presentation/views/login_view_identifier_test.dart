@@ -52,7 +52,9 @@ void main() {
   }
 
   Future<void> submit(WidgetTester tester) async {
-    final button = tester.widgetList<SacButton>(find.byType(SacButton)).first;
+    final button = tester
+        .widgetList<SacButton>(find.byType(SacButton))
+        .firstWhere((b) => b.variant == SacButtonVariant.primary);
     button.onPressed?.call();
     await tester.pump();
   }

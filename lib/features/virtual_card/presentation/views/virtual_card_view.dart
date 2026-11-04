@@ -16,7 +16,7 @@ import '../providers/virtual_card_providers.dart';
 import '../widgets/credencial/action_pill.dart';
 import '../widgets/credencial/credencial_card.dart';
 import '../widgets/credencial/credencial_qr_fullscreen.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import '../widgets/credencial/credencial_tokens.dart';
 import '../widgets/credencial/credencial_view_model.dart';
 import '../widgets/credencial/credential_parallax.dart';
@@ -157,9 +157,11 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
                           aspectRatio: 5 / 8,
                           child: VirtualCardSkeleton(),
                         ),
-                        error: (error, _) => _ErrorState(
+                        error: (error, _) => SacErrorState(
                           key: const ValueKey('virtual-card-error'),
-                          messageKey: virtualCardErrorMessageKey(error),
+                          title: 'virtual_card.load_error'.tr(),
+                          message: virtualCardErrorMessageKey(error).tr(),
+                          retryLabel: 'virtual_card.retry'.tr(),
                           onRetry: _refresh,
                         ),
                         data: (card) {
@@ -263,60 +265,6 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({
-    super.key,
-    required this.messageKey,
-    required this.onRetry,
-  });
-
-  final String messageKey;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusXL),
-        border: Border.all(color: Theme.of(context).dividerColor),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const HugeIcon(
-            icon: HugeIcons.strokeRoundedAlert02,
-            size: 52,
-            color: Colors.redAccent,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'virtual_card.load_error'.tr(),
-            textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            messageKey.tr(),
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 18),
-          SacButton(
-            text: 'virtual_card.retry'.tr(),
-            variant: SacButtonVariant.primary,
-            fullWidth: false,
-            onPressed: onRetry,
-          ),
-        ],
       ),
     );
   }

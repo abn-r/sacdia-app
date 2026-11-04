@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/realtime/realtime_ref.dart';
@@ -142,7 +143,8 @@ class ClearCacheController extends Notifier<ClearCacheState> {
       state = const ClearCacheState(inProgress: false, errorMessage: null);
       return true;
     } catch (e) {
-      state = ClearCacheState(inProgress: false, errorMessage: e.toString());
+      state =
+          ClearCacheState(inProgress: false, errorMessage: userErrorMessage(e));
       return false;
     }
   }

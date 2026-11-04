@@ -368,21 +368,26 @@ class _Countdown extends StatelessWidget {
     };
     return SacCard(
       key: const ValueKey('teen_pending_countdown'),
-      backgroundColor: urgent ? AppColors.errorLight : null,
-      borderColor: urgent ? AppColors.error.withValues(alpha: 0.3) : null,
+      backgroundColor: urgent ? context.sac.errorContainer : null,
+      borderColor:
+          urgent ? context.sac.onErrorContainer.withValues(alpha: 0.3) : null,
       child: Row(
         children: [
           HugeIcon(
             icon: HugeIcons.strokeRoundedClock01,
             size: 22,
-            color: urgent ? AppColors.errorDark : SacAccent.of(context).color,
+            color: urgent
+                ? context.sac.onErrorContainer
+                : SacAccent.of(context).color,
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               message,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: urgent ? AppColors.errorDark : context.sac.text,
+                    color: urgent
+                        ? context.sac.onErrorContainer
+                        : context.sac.text,
                     fontWeight: FontWeight.w600,
                     height: 1.35,
                   ),

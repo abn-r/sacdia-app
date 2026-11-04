@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -17,20 +16,22 @@ class DeviceOfflineBanner extends StatelessWidget {
     return Container(
       key: const ValueKey('device_offline_banner'),
       width: double.infinity,
-      color: AppColors.accentLight,
+      color: c.warningContainer,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
           HugeIcon(
             icon: HugeIcons.strokeRoundedWifiOff01,
             size: 16,
-            color: AppColors.accentDark,
+            color: c.onWarningContainer,
           ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               'device.offline'.tr(),
-              style: TextStyle(color: c.text, fontSize: SacFontSize.bodyMedium),
+              style: TextStyle(
+                  color: c.onWarningContainer,
+                  fontSize: SacFontSize.bodyMedium),
             ),
           ),
         ],
