@@ -9,6 +9,13 @@
 > Design identity: "Scout Vibrante" — Duolingo gamification + Apple Health minimalism.
 > White backgrounds, vibrant accents, progress as protagonist.
 
+### Changelog 2026-11-04 — home dashboard redesign
+
+- **Two compositions**: the home picks member or staff mode with `isClubStaffMode(user)` (§12.7). Members get `ClassHeroCard`, `NextActivityCard` and `ForYouSection`; staff keep the launcher and gain `PendingTasksCard` (`GET /dashboard/pending`).
+- **Club selector**: `ClubInfoCard` leaves the dashboard; `DashboardClubLine` lives under the name in `WelcomeHeader` (new `subtitle` slot) and opens the section switcher only with more than one usable assignment.
+- **Quick access**: tile model and permission filtering extracted to `quick_access_items.dart` (`resolveQuickAccessItems`, `visibleQuickAccessItemsProvider`); `QuickAccessGrid` looks and behaves the same (new optional `excludedRoutes`).
+- **Experimental layouts C/D** (compact and grouped launcher) kept compiled and tested but not routed (§12.7).
+
 ### Changelog 2026-11-04 — Phase 2 components
 
 - **Skeletons**: `SacShimmer`, `SacSkeletonBox`, `SacSkeletonList`, `SacSkeletonCard` (`sac_skeleton.dart`). Page loads use a skeleton, not a spinner (§6.12, §11.1).
@@ -1260,11 +1267,64 @@ Progress shown as linear indicator at the top of the shell.
 **File:** `lib/features/dashboard/presentation/views/dashboard_view.dart`
 
 No AppBar — uses `SafeArea` + `SingleChildScrollView` with `RefreshIndicator`.
-Contains composable widgets: `WelcomeHeader`, `ClubInfoCard`, `CurrentClassCard`,
-`QuickAccessGrid`, `QuickStatsCard`, `UpcomingActivitiesCard`,
-`MembershipStatusBanner`.
-
 Widget files in `lib/features/dashboard/presentation/widgets/`.
+
+Coordinators and pastors without a club are routed away before this view; the
+rest see one of two compositions, chosen by `isClubStaffMode(user)`
+(`authorization_utils.dart`): true when the user operates the club AND (the
+active grant is a club role other than `member`, OR holds `club_members:approve`,
+`consent:verify`, `evidence_folders:read` or `reports:submit` in the active
+scope). Everything else is member mode.
+
+**Header (both modes):** `WelcomeHeader` with a `subtitle` slot holding
+`DashboardClubLine` — 16×16 club-type logo, `Club · Tipo` (12, `textSecondary`) and
+a 14px `arrowDown01` chevron only when there is more than one usable
+assignment; that case is a ≥44dp button that opens `showSectionSwitcher`.
+Hidden without an active club grant. `ClubInfoCard` is no longer on the
+dashboard (kept in the repo, unused).
+
+**Member mode** (`Padding` h 20):
+`MembershipStatusBanner`, `EnrollmentStatusCard`, `BirthdayCelebrationGate`, 16,
+`ClassHeroCard`, 16, `NextActivityCard`, 24, `ForYouSection`, then — only if
+any tile remains — 24 + `QuickAccessGrid(excludedRoutes: {Recursos})`, 24.
+
+- `ClassHeroCard` (`SacCard` padding 20): 60×60 logo box, label `Mi clase`, class
+  name 20/w700, `X de Y requisitos`, percent 22/w700 in `onInfoContainer`,
+  `SacProgressBar` h 8 in the class color, optional `Siguiente: <requisito>` and a
+  full-width `SacButton.primary` («Continuar mi clase» / «Ver mi clase»). Percent
+  and counts come from the same source: loaded `classWithProgressProvider`
+  (validated / total for investiture, percent = floor), otherwise the dashboard
+  summary percent with a skeleton line for the counts, percent only on error.
+  Completed → `SacBadge.success`; expired → `SacBadge.error` + «Clase vencida».
+  No class → the compact `CurrentClassCard`.
+- `NextActivityCard`: 56px date badge (`SacAccent.light`), «Próxima actividad»,
+  title, `día · hora · lugar`, `SacBadge.info` (Hoy / Mañana / En N días). Empty →
+  `SacEmptyState.inline`.
+- `ForYouSection` («Para ti»): 4 equal columns (3 without `resources-list`) of
+  compact tiles — Especialidades, Logros, Credencial, Recursos.
+
+**Staff mode** (`Padding` h 20):
+`MembershipStatusBanner`, `EnrollmentStatusCard`, `BirthdayCelebrationGate`, 16,
+`PendingTasksCard` (renders nothing — and no gap — when empty, loading or
+failing), `CurrentClassCard`, 16, `QuickAccessGrid`, 16, `UpcomingActivitiesCard`, 24.
+
+- `PendingTasksCard` is collapsed by default (local state, not persisted); header
+  row ≥48dp with `Semantics(button, expanded)`, rows per pending type with
+  severity containers (`urgent`→error, `warning`→warning, `info`→info) and
+  `AnimatedSize` / `AnimatedRotation` that honour `SacMotion.reduceMotionOf`.
+  Data: `dashboardPendingProvider` (`autoDispose`, `GET /dashboard/pending`),
+  keyed on user + active assignment like `dashboardNotifierProvider` and
+  invalidated by the home's pull-to-refresh. It is auxiliary: a failing endpoint
+  just hides the card (logged with `AppLogger`).
+
+**Experimental layouts C and D.** `QuickAccessCompactGrid` (3 columns, ~104px
+tiles) and `QuickAccessGroupedGrid` (the same tiles under «Club» / «Formación» /
+«Administración») in `widgets/experimental/`, shown together by
+`QuickAccessLayoutsPreviewView` (`views/experimental/`). Not routed and not
+linked anywhere; `quick_access_layouts_preview_view_test.dart` keeps them compiled
+and exercised. They share the tile model and permission filtering of
+`QuickAccessGrid` (`visibleQuickAccessItemsProvider`), so adopting one is a
+swap in `dashboard_view.dart`.
 
 ---
 
