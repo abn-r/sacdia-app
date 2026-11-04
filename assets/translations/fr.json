@@ -525,7 +525,15 @@
     "mr_approve_permission_required": "Vous n'avez pas l'autorisation d'approuver les demandes. Vous pouvez seulement vérifier le consentement.",
     "register_email_unavailable": "Impossible de créer un compte avec cet e-mail. Si vous avez déjà un compte, connectez-vous ou réinitialisez votre mot de passe.",
     "auth_post_registration_not_started": "Votre compte n'a pas encore démarré l'enregistrement initial. Déconnectez-vous et reconnectez-vous ; si le problème persiste, contactez le support.",
-    "post_reg_not_initiated": "Votre compte n'a pas encore démarré l'enregistrement initial. Déconnectez-vous et reconnectez-vous ; si le problème persiste, contactez le support."
+    "post_reg_not_initiated": "Votre compte n'a pas encore démarré l'enregistrement initial. Déconnectez-vous et reconnectez-vous ; si le problème persiste, contactez le support.",
+    "validation_honor_requirements_incomplete": "Il reste des exigences à compléter.",
+    "validation_honor_missing_evidence": "Une exigence n'a pas encore sa preuve.",
+    "validation_honor_completed_at_required": "Choisis la date de fin pour envoyer à la révision.",
+    "validation_honor_no_changes_after_rejection": "Modifie ton travail avant de le renvoyer.",
+    "validation_honor_already_pending": "Cette spécialité est déjà en révision.",
+    "validation_honor_already_validated": "Cette spécialité a déjà été validée.",
+    "validation_honor_invalid_status": "Cette spécialité ne peut pas être envoyée dans son état actuel.",
+    "validation_honor_completion_mode_required": "Choisis d'abord comment compléter cette spécialité."
   },
   "honors": {
     "errors": {
@@ -716,7 +724,41 @@
       "mode_guard_external": "Cette spécialité est complétée hors de l'appli. Utilisez l'écran du formulaire et des preuves générales.",
       "mode_guard_undecided": "Choisissez d'abord comment vous voulez compléter cette spécialité.",
       "mode_guard_not_found": "Inscription à cette spécialité introuvable.",
-      "mode_guard_back": "Retour"
+      "mode_guard_back": "Retour",
+      "step_working": "En cours",
+      "step_semantics": "Étape {current} sur {total} : {label}",
+      "band_meta": "{percent} % · {mode}",
+      "band_progress_semantics": "{percent} % terminé",
+      "tab_requirements": "Exigences {done}/{total}",
+      "tab_info": "Informations",
+      "meta_answered": "Répondu",
+      "meta_has_evidence": "Avec preuve",
+      "meta_missing_photo": "Photo manquante",
+      "meta_children_done": "{done} sur {total} faits",
+      "meta_choose_done": {
+        "one": "Choisis {min} · {} fait",
+        "other": "Choisis {min} · {} faits"
+      },
+      "empty": "Cette spécialité n'a aucune exigence",
+      "sheet_title": "Exigence {number}",
+      "sheet_save": "Enregistrer",
+      "rejected_title": "Ta spécialité a été refusée",
+      "rejected_hint": "Corrige-la et renvoie-la",
+      "info_date_needed": "Nécessaire pour envoyer à la révision",
+      "info_instructor_optional": "Facultatif",
+      "missing_intro": "Il te manque : {items}",
+      "missing_requirements": {
+        "one": "{} exigence",
+        "other": "{} exigences"
+      },
+      "missing_evidences": {
+        "one": "{} preuve",
+        "other": "{} preuves"
+      },
+      "missing_date": "la date de fin",
+      "list_and": " et ",
+      "ready_to_send": "Tout est prêt à envoyer",
+      "under_review_hint": "Un responsable examine ton travail"
     },
     "evidence": {
       "my_honor_title": "Ma spécialité",

@@ -27,6 +27,10 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
   final Color? foregroundColor;
   final PreferredSizeWidget? bottom;
 
+  /// Estilo de la barra de estado. Null: lo decide la barra (esmerilada) o
+  /// Flutter según el fondo.
+  final SystemUiOverlayStyle? systemOverlayStyle;
+
   /// Desenfoca lo que se desliza detrás de la barra.
   ///
   /// El [Scaffold] debe usar `extendBodyBehindAppBar: true` y el scroll
@@ -47,6 +51,7 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
     this.backgroundColor,
     this.foregroundColor,
     this.bottom,
+    this.systemOverlayStyle,
     this.frosted = false,
   });
 
@@ -125,7 +130,8 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
       automaticallyImplyLeading: false,
       backgroundColor: frosted ? Colors.transparent : barColor,
       forceMaterialTransparency: frosted,
-      systemOverlayStyle: frosted ? _statusBarOnSurface(context) : null,
+      systemOverlayStyle:
+          systemOverlayStyle ?? (frosted ? _statusBarOnSurface(context) : null),
       foregroundColor: resolvedForeground,
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.transparent,

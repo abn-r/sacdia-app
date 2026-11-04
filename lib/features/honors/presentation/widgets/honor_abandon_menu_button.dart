@@ -24,11 +24,16 @@ class HonorAbandonMenuButton extends ConsumerWidget {
   final String honorName;
   final bool popOnSuccess;
 
+  /// Color of the three-dots icon. Null uses the secondary text color; pass
+  /// white when the button sits on a colored band.
+  final Color? iconColor;
+
   const HonorAbandonMenuButton({
     super.key,
     required this.userHonor,
     required this.honorName,
     this.popOnSuccess = true,
+    this.iconColor,
   });
 
   @override
@@ -47,7 +52,7 @@ class HonorAbandonMenuButton extends ConsumerWidget {
       icon: HugeIcon(
         icon: HugeIcons.strokeRoundedMoreHorizontal,
         size: 20,
-        color: c.textSecondary,
+        color: iconColor ?? c.textSecondary,
       ),
       onSelected: (action) {
         switch (action) {

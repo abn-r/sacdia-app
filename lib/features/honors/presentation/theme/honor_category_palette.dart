@@ -118,3 +118,36 @@ Color getCategoryPaintColor({int? categoryId, String? categoryName}) {
   }
   return color;
 }
+
+/// Minimum contrast of white text on the header band (WCAG AA, normal text).
+const kBandMinContrastOnWhite = 4.5;
+
+/// Contrast ratio of white text on [background] (opaque).
+double contrastOnWhite(Color background) =>
+    1.05 / (background.computeLuminance() + 0.05);
+
+/// [color] darkened (HSL lightness, in steps) until white text on it reaches
+/// [minContrast]. A color that already passes comes back unchanged.
+Color darkenForWhiteText(
+  Color color, {
+  double minContrast = kBandMinContrastOnWhite,
+}) {
+  if (contrastOnWhite(color) >= minContrast) return color;
+  final hsl = HSLColor.fromColor(color);
+  var lightness = hsl.lightness;
+  var candidate = color;
+  while (contrastOnWhite(candidate) < minContrast && lightness > 0) {
+    lightness = (lightness - 0.02).clamp(0.0, 1.0);
+    candidate = hsl.withLightness(lightness).toColor();
+  }
+  return candidate;
+}
+
+/// Background of the in-progress header band: the category paint (the
+/// accent/border color for near-white categories) darkened until white text
+/// on it reads at 4.5:1.
+Color bandColorFor({int? categoryId, String? categoryName}) {
+  return darkenForWhiteText(
+    getCategoryPaintColor(categoryId: categoryId, categoryName: categoryName),
+  );
+}

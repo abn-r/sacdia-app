@@ -40,6 +40,7 @@ import '../../domain/entities/user_honor.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/features/honors/presentation/utils/honor_level_labels.dart';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 
@@ -50,33 +51,9 @@ const _kCompletedBadgeSize = 148.0;
 
 // ── Label helpers ─────────────────────────────────────────────────────────────
 
-String _approvalLabel(int level) {
-  switch (level) {
-    case 1:
-      return 'honors.detail.approval_general'.tr();
-    case 2:
-      return 'honors.detail.approval_advanced'.tr();
-    case 3:
-      return 'honors.detail.approval_master'.tr();
-    default:
-      return 'honors.detail.approval_level'.tr(namedArgs: {'level': '$level'});
-  }
-}
+String _approvalLabel(int level) => honorApprovalLabel(level);
 
-String _skillLevelLabel(int? level) {
-  switch (level) {
-    case 1:
-      return 'honors.detail.skill_basic'.tr();
-    case 2:
-      return 'honors.detail.skill_intermediate'.tr();
-    case 3:
-      return 'honors.detail.skill_advanced'.tr();
-    default:
-      return level != null
-          ? 'honors.detail.skill_level_n'.tr(namedArgs: {'level': '$level'})
-          : '';
-  }
-}
+String _skillLevelLabel(int? level) => honorSkillLevelLabel(level);
 
 String _completionModeLabel(HonorCompletionMode mode) {
   switch (mode) {
