@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
@@ -127,17 +127,6 @@ class EnrollmentStatusCard extends ConsumerWidget {
 
 // ── Submitted card ───────────────────────────────────────────────────────────
 
-const double _submittedValidationScale = 0.8;
-const double _submittedValidationPadding = 16 * _submittedValidationScale;
-const double _submittedValidationRadius = 14 * _submittedValidationScale;
-const double _submittedValidationIconBox = 40 * _submittedValidationScale;
-const double _submittedValidationIconRadius = 10 * _submittedValidationScale;
-const double _submittedValidationIconSize = 20 * _submittedValidationScale;
-const double _submittedValidationGap = 12 * _submittedValidationScale;
-const double _submittedValidationTextGap = 2 * _submittedValidationScale;
-const double _submittedValidationTitleSize = 14 * _submittedValidationScale;
-const double _submittedValidationSubtitleSize = 12 * _submittedValidationScale;
-
 class _SubmittedCard extends StatelessWidget {
   const _SubmittedCard();
 
@@ -145,48 +134,47 @@ class _SubmittedCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.accentLight,
-        borderRadius: BorderRadius.circular(_submittedValidationRadius),
-        border: Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
+        color: context.sac.warning.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+        border: Border.all(color: context.sac.warning.withValues(alpha: 0.4)),
       ),
-      padding: const EdgeInsets.all(_submittedValidationPadding),
+      padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           Container(
-            width: _submittedValidationIconBox,
-            height: _submittedValidationIconBox,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: AppColors.accent.withValues(alpha: 0.2),
-              borderRadius:
-                  BorderRadius.circular(_submittedValidationIconRadius),
+              color: context.sac.warning.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
-            child: const Center(
+            child: Center(
               child: HugeIcon(
                 icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                color: AppColors.accentDark,
-                size: _submittedValidationIconSize,
+                color: context.sac.onWarning,
+                size: 20,
               ),
             ),
           ),
-          const SizedBox(width: _submittedValidationGap),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'enrollment.status.title_submitted'.tr(),
-                  style: const TextStyle(
-                    fontSize: _submittedValidationTitleSize,
+                  style: TextStyle(
+                    fontSize: SacFontSize.titleSmall,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.accentDark,
+                    color: context.sac.text,
                   ),
                 ),
-                const SizedBox(height: _submittedValidationTextGap),
+                const SizedBox(height: 2),
                 Text(
                   'enrollment.status.subtitle_submitted'.tr(),
                   style: TextStyle(
-                    fontSize: _submittedValidationSubtitleSize,
-                    color: AppColors.accentDark.withValues(alpha: 0.8),
+                    fontSize: SacFontSize.bodySmall,
+                    color: context.sac.text.withValues(alpha: 0.8),
                   ),
                 ),
               ],
@@ -216,9 +204,9 @@ class _PendingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.accentLight,
+        color: context.sac.warning.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        border: Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
+        border: Border.all(color: context.sac.warning.withValues(alpha: 0.4)),
       ),
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -227,13 +215,13 @@ class _PendingCard extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.accent.withValues(alpha: 0.2),
+              color: context.sac.warning.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
-            child: const Center(
+            child: Center(
               child: HugeIcon(
                 icon: HugeIcons.strokeRoundedAlert02,
-                color: AppColors.accentDark,
+                color: context.sac.onWarning,
                 size: 20,
               ),
             ),
@@ -248,7 +236,7 @@ class _PendingCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: SacFontSize.titleSmall,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.accentDark,
+                    color: context.sac.text,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -256,7 +244,7 @@ class _PendingCard extends StatelessWidget {
                   subtitle,
                   style: TextStyle(
                     fontSize: SacFontSize.bodySmall,
-                    color: AppColors.accentDark.withValues(alpha: 0.8),
+                    color: context.sac.text.withValues(alpha: 0.8),
                   ),
                 ),
               ],
@@ -269,8 +257,6 @@ class _PendingCard extends StatelessWidget {
               variant: SacButtonVariant.primary,
               size: SacButtonSize.small,
               onPressed: onTap,
-              backgroundColor: AppColors.accent,
-              textColor: Colors.white,
             ),
           ],
         ],
