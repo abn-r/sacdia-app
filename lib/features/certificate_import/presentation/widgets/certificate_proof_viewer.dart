@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
@@ -345,13 +346,10 @@ class _ProofMessage extends StatelessWidget {
             ),
             if (onRetry != null) ...[
               const SizedBox(height: 16),
-              SacPressable(
-                listenOnly: true,
-                child: TextButton(
-                  style: TextButton.styleFrom(foregroundColor: Colors.white),
-                  onPressed: onRetry,
-                  child: Text('certificate_import.errors.retry'.tr()),
-                ),
+              SacButton.text(
+                text: 'certificate_import.errors.retry'.tr(),
+                color: Colors.white,
+                onPressed: onRetry,
               ),
             ],
           ],

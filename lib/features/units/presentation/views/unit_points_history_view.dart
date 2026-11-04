@@ -5,7 +5,10 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/providers/catalogs_provider.dart';
 import 'package:sacdia_app/shared/models/catalogs/ecclesiastical_year_model.dart';
@@ -43,7 +46,10 @@ class UnitPointsHistoryView extends ConsumerWidget {
         child: Builder(
           builder: (context) {
             if (yearAsync.isLoading || clubAsync.isLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return SacSkeletonList(
+                padding: SacTopBar.paddingBelowBar(
+                    context, const EdgeInsets.all(16)),
+              );
             }
 
             final year = yearAsync.value;
@@ -60,11 +66,9 @@ class UnitPointsHistoryView extends ConsumerWidget {
 
             final ctx = clubAsync.value;
             if (clubAsync.hasError || ctx == null) {
-              return SacEmptyState(
-                icon: HugeIcons.strokeRoundedAlertDiamond,
+              return SacErrorState(
                 title: 'units.form.club_context_error'.tr(),
-                actionLabel: 'common.retry'.tr(),
-                onAction: () => ref.invalidate(clubContextProvider),
+                onRetry: () => ref.invalidate(clubContextProvider),
               );
             }
 
@@ -97,12 +101,12 @@ class _HistoryBody extends ConsumerWidget {
     final recordsAsync = ref.watch(unitPointsHistoryProvider(query));
 
     return recordsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => SacEmptyState(
-        icon: HugeIcons.strokeRoundedAlertDiamond,
-        title: error.toString().replaceFirst('Exception: ', ''),
-        actionLabel: 'common.retry'.tr(),
-        onAction: () => ref.invalidate(unitPointsHistoryProvider(query)),
+      loading: () => SacSkeletonList(
+        padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(16)),
+      ),
+      error: (error, _) => SacErrorState(
+        title: userErrorMessage(error),
+        onRetry: () => ref.invalidate(unitPointsHistoryProvider(query)),
       ),
       data: (records) {
         final weeks = weeklyPointsInRange(

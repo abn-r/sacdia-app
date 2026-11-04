@@ -3,13 +3,12 @@ import 'dart:ui';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
-import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
+import 'package:sacdia_app/core/widgets/sac_member_avatar.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -64,44 +63,19 @@ class UnitDetailView extends ConsumerWidget {
           onBack: () => Navigator.of(context).pop(),
           actions: [
             if (showBulk)
-              SacPressable(
-                listenOnly: true,
-                child: TextButton(
-                  onPressed: () => _openBulkSheet(
-                    context,
-                    categories: state.categories,
-                    onSetForAll: (category, value) {
-                      HapticFeedback.selectionClick();
-                      notifier.setCategoryPointsForAllMembers(
-                        category.scoringCategoryId,
-                        value,
-                      );
-                    },
-                  ),
-                  style: (TextButton.styleFrom(
-                    foregroundColor: SacAccent.of(context).color,
-                    splashFactory: NoSplash.splashFactory,
-                    overlayColor: Colors.transparent,
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                  )).copyWith(enableFeedback: false),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedUserMultiple,
-                        size: 18,
-                        color: SacAccent.of(context).color,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'units.detail.bulk_action_button'.tr(),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: SacFontSize.titleMedium,
-                        ),
-                      ),
-                    ],
-                  ),
+              SacButton.text(
+                text: 'units.detail.bulk_action_button'.tr(),
+                icon: HugeIcons.strokeRoundedUserMultiple,
+                onPressed: () => _openBulkSheet(
+                  context,
+                  categories: state.categories,
+                  onSetForAll: (category, value) {
+                    HapticFeedback.selectionClick();
+                    notifier.setCategoryPointsForAllMembers(
+                      category.scoringCategoryId,
+                      value,
+                    );
+                  },
                 ),
               ),
           ],
@@ -499,12 +473,12 @@ class _SavedStatusStrip extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: AppColors.secondaryLight.withValues(alpha: 0.55),
+      color: context.sac.successContainer,
       child: Text(
         'units.detail.saved_today_banner'.tr(),
         textAlign: TextAlign.center,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: AppColors.secondaryDark,
+              color: context.sac.onSuccessContainer,
               fontWeight: FontWeight.w600,
             ),
       ),
@@ -652,7 +626,11 @@ class _MemberCard extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
               child: Row(
                 children: [
-                  _MemberAvatar(member: member),
+                  SacMemberAvatar(
+                    imageUrl: member.avatar,
+                    name: member.fullName,
+                    size: 36,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -1024,48 +1002,6 @@ class _StepButton extends StatelessWidget {
             alignment: Alignment.center,
             child: HugeIcon(icon: icon, size: 15, color: fg),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MemberAvatar extends StatelessWidget {
-  final UnitMember member;
-
-  const _MemberAvatar({required this.member});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return ClipOval(
-      child: SizedBox(
-        width: 36,
-        height: 36,
-        child: member.avatar != null
-            ? SacProfileImage(
-                imageUrl: member.avatar!,
-                fit: BoxFit.cover,
-                memCacheWidth: 72,
-                memCacheHeight: 72,
-                placeholder: (_, __) => _initials(theme),
-                errorWidget: (_, __, ___) => _initials(theme),
-              )
-            : _initials(theme),
-      ),
-    );
-  }
-
-  Widget _initials(ThemeData theme) {
-    return Container(
-      color: theme.colorScheme.primaryContainer,
-      alignment: Alignment.center,
-      child: Text(
-        member.initials,
-        style: TextStyle(
-          fontSize: SacFontSize.bodySmall,
-          fontWeight: FontWeight.w600,
-          color: theme.colorScheme.onPrimaryContainer,
         ),
       ),
     );

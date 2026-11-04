@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:easy_localization/easy_localization.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/errors/user_error_message.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/sac_error_state.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../domain/entities/transfer_request.dart';
@@ -32,35 +32,12 @@ class TransferRequestDetailView extends ConsumerWidget {
         child: Builder(
           builder: (context) => requestAsync.when(
             loading: () => const Center(child: SacLoading()),
-            error: (e, _) => Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const HugeIcon(
-                      icon: HugeIcons.strokeRoundedAlert02,
-                      size: 48,
-                      color: AppColors.error,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      e.toString().replaceFirst('Exception: ', ''),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontSize: SacFontSize.titleSmall,
-                          color: c.textSecondary),
-                    ),
-                    const SizedBox(height: 16),
-                    SacButton.primary(
-                      text: tr('common.retry'),
-                      icon: HugeIcons.strokeRoundedRefresh,
-                      onPressed: () => ref
-                          .invalidate(transferRequestDetailProvider(requestId)),
-                    ),
-                  ],
-                ),
-              ),
+            error: (e, _) => SacErrorState(
+              title: userErrorMessage(e),
+              padding:
+                  SacTopBar.paddingBelowBar(context, const EdgeInsets.all(32)),
+              onRetry: () =>
+                  ref.invalidate(transferRequestDetailProvider(requestId)),
             ),
             data: (request) => _DetailBody(request: request),
           ),
@@ -78,7 +55,7 @@ class _DetailBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final statusConfig = _statusConfig(request.status);
+    final statusConfig = _statusConfig(context, request.status);
     final dateStr = request.createdAt != null
         ? DateFormat('dd/MM/yyyy HH:mm').format(request.createdAt!.toLocal())
         : '-';
@@ -185,10 +162,10 @@ class _DetailBody extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.errorLight,
+              color: c.errorContainer,
               borderRadius: BorderRadius.circular(AppTheme.radiusMD),
               border: Border.all(
-                color: AppColors.error.withValues(alpha: 0.3),
+                color: c.onErrorContainer.withValues(alpha: 0.3),
               ),
             ),
             child: Column(
@@ -198,16 +175,16 @@ class _DetailBody extends StatelessWidget {
                   children: [
                     HugeIcon(
                       icon: HugeIcons.strokeRoundedComment01,
-                      color: AppColors.errorDark,
+                      color: c.onErrorContainer,
                       size: 16,
                     ),
-                    SizedBox(width: 6),
+                    const SizedBox(width: 6),
                     Text(
                       tr('transfers.detail.reviewer_comment'),
                       style: TextStyle(
                         fontSize: SacFontSize.bodyMedium,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.errorDark,
+                        color: c.onErrorContainer,
                       ),
                     ),
                   ],
@@ -215,9 +192,9 @@ class _DetailBody extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   request.reviewerComment!,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: SacFontSize.bodyMedium,
-                    color: AppColors.errorDark,
+                    color: c.onErrorContainer,
                     fontStyle: FontStyle.italic,
                   ),
                 ),
@@ -229,24 +206,26 @@ class _DetailBody extends StatelessWidget {
     );
   }
 
-  _TransferStatusConfig _statusConfig(TransferStatus status) {
+  _TransferStatusConfig _statusConfig(
+      BuildContext context, TransferStatus status) {
+    final c = context.sac;
     switch (status) {
       case TransferStatus.approved:
         return _TransferStatusConfig(
-          bg: AppColors.secondaryLight,
-          fg: AppColors.secondaryDark,
+          bg: c.successContainer,
+          fg: c.onSuccessContainer,
           icon: HugeIcons.strokeRoundedCheckmarkCircle02,
         );
       case TransferStatus.rejected:
         return _TransferStatusConfig(
-          bg: AppColors.errorLight,
-          fg: AppColors.errorDark,
+          bg: c.errorContainer,
+          fg: c.onErrorContainer,
           icon: HugeIcons.strokeRoundedCancel01,
         );
       case TransferStatus.pending:
         return _TransferStatusConfig(
-          bg: AppColors.accentLight,
-          fg: AppColors.accentDark,
+          bg: c.warningContainer,
+          fg: c.onWarningContainer,
           icon: HugeIcons.strokeRoundedClock01,
         );
     }

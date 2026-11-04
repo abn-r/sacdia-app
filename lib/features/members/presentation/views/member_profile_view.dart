@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
-import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
+import 'package:sacdia_app/core/widgets/sac_member_avatar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -293,7 +293,8 @@ class _ClassesSectionBody extends ConsumerWidget {
         padding: EdgeInsets.symmetric(vertical: 4),
         child: SacLoadingSmall(),
       ),
-      error: (e, _) => _MedicalError(
+      error: (e, _) => SacErrorState.inline(
+        message: 'members.profile_view.load_error'.tr(),
         onRetry: () => ref.invalidate(memberClassesProvider(userId)),
       ),
       data: (classes) {
@@ -379,42 +380,34 @@ class _ClassItem extends StatelessWidget {
             ),
           ),
           if (investitureStatus != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: _investitureColor(investitureStatus)
-                    .withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(AppTheme.radius2XS),
-              ),
-              child: Text(
-                investitureStatus.label,
-                style: TextStyle(
-                  fontSize: SacFontSize.labelSmall,
-                  fontWeight: FontWeight.w600,
-                  color: _investitureColor(investitureStatus),
-                ),
-              ),
-            ),
+            _InvestitureBadge(status: investitureStatus),
         ],
       ),
     );
   }
+}
 
-  Color _investitureColor(InvestitureStatus status) {
+class _InvestitureBadge extends StatelessWidget {
+  final InvestitureStatus status;
+
+  const _InvestitureBadge({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
     switch (status) {
       case InvestitureStatus.investido:
-        return AppColors.secondary;
+        return SacBadge.success(label: status.label);
       case InvestitureStatus.submittedForValidation:
-        return AppColors.accent;
+        return SacBadge.warning(label: status.label);
       case InvestitureStatus.rejected:
       case InvestitureStatus.expired:
-        return AppColors.error;
+        return SacBadge.error(label: status.label);
       case InvestitureStatus.inProgress:
       case InvestitureStatus.clubApproved:
       case InvestitureStatus.coordinatorApproved:
       case InvestitureStatus.fieldApproved:
       case InvestitureStatus.approved:
-        return AppColors.info;
+        return SacBadge.info(label: status.label);
     }
   }
 }
@@ -451,7 +444,8 @@ class _SpecialtiesSectionBody extends ConsumerWidget {
         padding: EdgeInsets.symmetric(vertical: 4),
         child: SacLoadingSmall(),
       ),
-      error: (e, _) => _MedicalError(
+      error: (e, _) => SacErrorState.inline(
+        message: 'members.profile_view.load_error'.tr(),
         onRetry: () => ref.invalidate(memberHonorsProvider(userId)),
       ),
       data: (honors) {
@@ -469,16 +463,14 @@ class _SpecialtiesSectionBody extends ConsumerWidget {
               _SpecialtiesSubheader(
                 label: tr('members.profile_view.completed_count',
                     namedArgs: {'count': '${validated.length}'}),
-                color: AppColors.secondary,
+                color: context.sac.onSuccessContainer,
               ),
               const SizedBox(height: 6),
               _ChipWrap(
                 items: validated
                     .map((h) => h.honorName ?? 'members.common.specialty'.tr())
                     .toList(),
-                chipColor: AppColors.secondaryLight,
-                textColor: AppColors.secondaryDark,
-                borderColor: AppColors.secondary.withValues(alpha: 0.3),
+                tone: _ChipTone.success,
               ),
             ],
             if (validated.isNotEmpty && inProgress.isNotEmpty)
@@ -487,16 +479,14 @@ class _SpecialtiesSectionBody extends ConsumerWidget {
               _SpecialtiesSubheader(
                 label: tr('members.profile_view.in_progress_count',
                     namedArgs: {'count': '${inProgress.length}'}),
-                color: AppColors.accentDark,
+                color: context.sac.onWarningContainer,
               ),
               const SizedBox(height: 6),
               _ChipWrap(
                 items: inProgress
-                    .map((h) => h.honorName ?? 'Especialidad')
+                    .map((h) => h.honorName ?? 'members.common.specialty'.tr())
                     .toList(),
-                chipColor: AppColors.accentLight,
-                textColor: AppColors.accentDark,
-                borderColor: AppColors.accent.withValues(alpha: 0.3),
+                tone: _ChipTone.warning,
               ),
             ],
           ],
@@ -554,22 +544,7 @@ class _MedicalInfoSection extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppTheme.radius2XS),
-                ),
-                child: Text(
-                  'members.profile_view.confidential'.tr(),
-                  style: TextStyle(
-                    fontSize: SacFontSize.micro,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.error,
-                    letterSpacing: 0.4,
-                  ),
-                ),
-              ),
+              SacBadge.error(label: 'members.profile_view.confidential'.tr()),
             ],
           ),
         ),
@@ -689,16 +664,15 @@ class _AllergiesBody extends ConsumerWidget {
         padding: EdgeInsets.symmetric(vertical: 4),
         child: SacLoadingSmall(),
       ),
-      error: (e, _) => _MedicalError(
+      error: (e, _) => SacErrorState.inline(
+        message: 'members.profile_view.load_error'.tr(),
         onRetry: () => ref.invalidate(memberAllergiesProvider(userId)),
       ),
       data: (allergies) => allergies.isEmpty
           ? _EmptyLabel('members.profile_view.no_allergies'.tr())
           : _ChipWrap(
               items: allergies.map((a) => a.name).toList(),
-              chipColor: AppColors.errorLight,
-              textColor: AppColors.errorDark,
-              borderColor: AppColors.error.withValues(alpha: 0.3),
+              tone: _ChipTone.error,
             ),
     );
   }
@@ -718,16 +692,15 @@ class _DiseasesBody extends ConsumerWidget {
         padding: EdgeInsets.symmetric(vertical: 4),
         child: SacLoadingSmall(),
       ),
-      error: (e, _) => _MedicalError(
+      error: (e, _) => SacErrorState.inline(
+        message: 'members.profile_view.load_error'.tr(),
         onRetry: () => ref.invalidate(memberDiseasesProvider(userId)),
       ),
       data: (diseases) => diseases.isEmpty
           ? _EmptyLabel('members.profile_view.no_diseases'.tr())
           : _ChipWrap(
               items: diseases.map((d) => d.name).toList(),
-              chipColor: AppColors.accentLight,
-              textColor: AppColors.accentDark,
-              borderColor: AppColors.accent.withValues(alpha: 0.3),
+              tone: _ChipTone.warning,
             ),
     );
   }
@@ -747,16 +720,15 @@ class _MedicinesBody extends ConsumerWidget {
         padding: EdgeInsets.symmetric(vertical: 4),
         child: SacLoadingSmall(),
       ),
-      error: (e, _) => _MedicalError(
+      error: (e, _) => SacErrorState.inline(
+        message: 'members.profile_view.load_error'.tr(),
         onRetry: () => ref.invalidate(memberMedicinesProvider(userId)),
       ),
       data: (medicines) => medicines.isEmpty
           ? _EmptyLabel('members.profile_view.no_medicines'.tr())
           : _ChipWrap(
               items: medicines.map((m) => m.name).toList(),
-              chipColor: AppColors.secondaryLight,
-              textColor: AppColors.secondaryDark,
-              borderColor: AppColors.secondary.withValues(alpha: 0.3),
+              tone: _ChipTone.success,
             ),
     );
   }
@@ -777,7 +749,8 @@ class _EmergencyContactsBody extends ConsumerWidget {
         padding: EdgeInsets.symmetric(vertical: 4),
         child: SacLoadingSmall(),
       ),
-      error: (e, _) => _MedicalError(
+      error: (e, _) => SacErrorState.inline(
+        message: 'members.profile_view.load_error'.tr(),
         onRetry: () => ref.invalidate(memberEmergencyContactsProvider(userId)),
       ),
       data: (contacts) {
@@ -870,21 +843,22 @@ class _EmergencyContactsBody extends ConsumerWidget {
 
 // ── Shared micro-widgets ──────────────────────────────────────────────────────
 
+enum _ChipTone { success, warning, error }
+
 class _ChipWrap extends StatelessWidget {
   final List<String> items;
-  final Color chipColor;
-  final Color textColor;
-  final Color borderColor;
+  final _ChipTone tone;
 
-  const _ChipWrap({
-    required this.items,
-    required this.chipColor,
-    required this.textColor,
-    required this.borderColor,
-  });
+  const _ChipWrap({required this.items, required this.tone});
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+    final (Color chipColor, Color textColor) = switch (tone) {
+      _ChipTone.success => (c.successContainer, c.onSuccessContainer),
+      _ChipTone.warning => (c.warningContainer, c.onWarningContainer),
+      _ChipTone.error => (c.errorContainer, c.onErrorContainer),
+    };
     return Wrap(
       spacing: 6,
       runSpacing: 6,
@@ -899,7 +873,7 @@ class _ChipWrap extends StatelessWidget {
             ),
           ),
           backgroundColor: chipColor,
-          side: BorderSide(color: borderColor),
+          side: BorderSide(color: textColor.withValues(alpha: 0.3)),
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           padding: const EdgeInsets.symmetric(horizontal: 4),
         );
@@ -926,47 +900,6 @@ class _EmptyLabel extends StatelessWidget {
   }
 }
 
-class _MedicalError extends StatelessWidget {
-  final VoidCallback onRetry;
-
-  const _MedicalError({required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const HugeIcon(
-          icon: HugeIcons.strokeRoundedAlert02,
-          size: 16,
-          color: AppColors.error,
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            'members.profile_view.load_error'.tr(),
-            style: TextStyle(
-                fontSize: SacFontSize.bodyMedium, color: AppColors.error),
-          ),
-        ),
-        SacPressable(
-          listenOnly: true,
-          child: TextButton(
-            onPressed: onRetry,
-            style: (TextButton.styleFrom(
-              foregroundColor: SacAccent.of(context).color,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            )).copyWith(enableFeedback: false),
-            child: Text('common.retry'.tr(),
-                style: const TextStyle(fontSize: SacFontSize.bodySmall)),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 // ── Header ────────────────────────────────────────────────────────────────────
 
 class _MemberProfileHeader extends StatelessWidget {
@@ -981,46 +914,11 @@ class _MemberProfileHeader extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: SacAccent.of(context).light,
-              width: 3,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: SacAccent.of(context).color.withValues(alpha: 0.15),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: ClipOval(
-            child: SizedBox(
-              width: 88,
-              height: 88,
-              child: member.avatar != null
-                  ? SacProfileImage(
-                      imageUrl: member.avatar!,
-                      fit: BoxFit.cover,
-                      memCacheWidth: 176,
-                      memCacheHeight: 176,
-                      placeholder: (_, __) => _AvatarInitials(
-                        initials: member.initials,
-                        fontSize: SacFontSize.displayMedium,
-                      ),
-                      errorWidget: (_, __, ___) => _AvatarInitials(
-                        initials: member.initials,
-                        fontSize: SacFontSize.displayMedium,
-                      ),
-                    )
-                  : _AvatarInitials(
-                      initials: member.initials,
-                      fontSize: SacFontSize.displayMedium,
-                    ),
-            ),
-          ),
+        SacMemberAvatar(
+          imageUrl: member.avatar,
+          name: member.fullName,
+          size: 94,
+          ring: true,
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -1068,33 +966,6 @@ class _MemberProfileHeader extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-// ── Error state ───────────────────────────────────────────────────────────────
-
-/// Iniciales de fallback cuando la foto 404 o no existe.
-class _AvatarInitials extends StatelessWidget {
-  final String initials;
-  final double fontSize;
-
-  const _AvatarInitials({required this.initials, required this.fontSize});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      color: theme.colorScheme.primaryContainer,
-      alignment: Alignment.center,
-      child: Text(
-        initials,
-        style: TextStyle(
-          fontSize: fontSize,
-          fontWeight: FontWeight.w600,
-          color: theme.colorScheme.onPrimaryContainer,
-        ),
-      ),
     );
   }
 }

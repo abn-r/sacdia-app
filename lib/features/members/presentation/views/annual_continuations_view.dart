@@ -8,6 +8,8 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
@@ -51,10 +53,7 @@ class AnnualContinuationsView extends ConsumerWidget {
                 child: SizedBox(
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: c.textTertiary,
-                  ),
+                  child: SacLoadingSmall(color: c.textTertiary),
                 ),
               )
             else
@@ -62,6 +61,7 @@ class AnnualContinuationsView extends ConsumerWidget {
                 listenOnly: true,
                 child: IconButton(
                   enableFeedback: false,
+                  tooltip: 'common.refresh'.tr(),
                   onPressed: () =>
                       ref.invalidate(annualContinuationsNotifierProvider),
                   icon: HugeIcon(
@@ -96,14 +96,19 @@ class AnnualContinuationsBody extends ConsumerWidget {
 
     return asyncState.when(
       loading: () => const Center(child: SacLoading()),
-      error: (error, _) => _ErrorView(
-        message: error.toString(),
+      error: (error, _) => SacErrorState(
+        title: tr('members.continuations.errors.fetch'),
+        message: userErrorMessage(error),
         onRetry: () => ref.invalidate(annualContinuationsNotifierProvider),
       ),
       data: (state) {
         final items = state.items;
         if (items.isEmpty) {
-          return _EmptyView();
+          return SacEmptyState(
+            icon: HugeIcons.strokeRoundedUserCheck01,
+            title: tr('members.continuations.empty_title'),
+            body: tr('members.continuations.empty_subtitle'),
+          );
         }
 
         final period = state.periodLabel;
@@ -337,66 +342,5 @@ class _ContinuationItem extends StatelessWidget {
     final key = 'members.continuations.blocked_reasons.$code';
     final translated = tr(key);
     return translated == key ? code : translated;
-  }
-}
-
-class _EmptyView extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SacEmptyState(
-      icon: HugeIcons.strokeRoundedUserCheck01,
-      title: tr('members.continuations.empty_title'),
-      body: tr('members.continuations.empty_subtitle'),
-    );
-  }
-}
-
-class _ErrorView extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorView({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 48,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              tr('members.continuations.errors.fetch'),
-              style: TextStyle(
-                fontSize: SacFontSize.titleMedium,
-                fontWeight: FontWeight.w600,
-                color: c.text,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: TextStyle(
-                  fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            SacButton.primary(
-              text: tr('common.retry'),
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onRetry,
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

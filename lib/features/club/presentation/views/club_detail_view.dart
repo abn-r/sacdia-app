@@ -3,12 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:easy_localization/easy_localization.dart';
 
+import '../../../../core/errors/user_error_message.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/sac_error_state.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../domain/entities/club_info.dart';
@@ -43,8 +44,9 @@ class ClubDetailView extends ConsumerWidget {
         child: Builder(
           builder: (context) => clubAsync.when(
             loading: () => const Center(child: SacLoading()),
-            error: (error, _) => _ErrorBody(
-              message: error.toString().replaceFirst('Exception: ', ''),
+            error: (error, _) => SacErrorState(
+              title: 'club.load_error'.tr(),
+              message: userErrorMessage(error),
               onRetry: () => ref.invalidate(clubInfoProvider(clubId)),
             ),
             data: (club) => _ClubDetailBody(club: club),
@@ -244,55 +246,6 @@ class _InfoRow extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ErrorBody extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorBody({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 56,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'club.load_error'.tr(),
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: TextStyle(
-                  fontSize: SacFontSize.titleSmall, color: c.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SacButton.primary(
-              text: 'common.retry'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onRetry,
-            ),
-          ],
-        ),
       ),
     );
   }

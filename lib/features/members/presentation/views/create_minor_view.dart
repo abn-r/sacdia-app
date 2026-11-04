@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/errors/failures.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -381,11 +380,11 @@ class _LegalLoadFailed extends StatelessWidget {
           child: Text(
             'members.create_minor.legal_unavailable'.tr(),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.error,
+                  color: context.sac.onErrorContainer,
                 ),
           ),
         ),
-        TextButton(onPressed: onRetry, child: Text('common.retry'.tr())),
+        SacButton.text(text: 'common.retry'.tr(), onPressed: onRetry),
       ],
     );
   }
@@ -401,13 +400,13 @@ class _ErrorBox extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.errorLight,
+        color: context.sac.errorContainer,
         borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       ),
       child: Text(
         message,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.error,
+              color: context.sac.onErrorContainer,
             ),
       ),
     );
