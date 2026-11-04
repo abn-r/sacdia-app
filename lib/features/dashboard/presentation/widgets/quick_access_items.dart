@@ -182,6 +182,7 @@ List<QuickAccessItem> resolveQuickAccessItems({
     permissions: subject.permissions,
     roles: subject.roles,
     isSuperAdmin: false,
+    capabilities: subject.capabilities,
   );
 
   final items = _quickAccessItemsConfig.where((item) {
