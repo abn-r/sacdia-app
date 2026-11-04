@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
@@ -109,22 +110,21 @@ class InsuranceDetailView extends ConsumerWidget {
                         _InfoRow(
                           icon: HugeIcons.strokeRoundedCalendarAdd01,
                           label: 'insurance.detail.label_start_date'.tr(),
-                          value: DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es')
+                          value: DateFormat.yMMMMd()
                               .format(insurance.startDate!.toLocal()),
                         ),
                       if (insurance.endDate != null)
                         _InfoRow(
                           icon: HugeIcons.strokeRoundedCalendarRemove01,
                           label: 'insurance.detail.label_end_date'.tr(),
-                          value: DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es')
+                          value: DateFormat.yMMMMd()
                               .format(insurance.endDate!.toLocal()),
                         ),
                       if (insurance.coverageAmount != null)
                         _InfoRow(
                           icon: HugeIcons.strokeRoundedMoney01,
                           label: 'insurance.detail.label_amount'.tr(),
-                          value:
-                              '\$${insurance.coverageAmount!.toStringAsFixed(2)}',
+                          value: SacMoney.format(insurance.coverageAmount!),
                           valueColor: AppColors.secondary,
                         ),
                     ],

@@ -18,7 +18,7 @@ import '../providers/cancel_order_provider.dart';
 import '../providers/history_provider.dart';
 import '../providers/receipts_provider.dart';
 import '../providers/order_detail_provider.dart';
-import '../utils/money_format.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import '../widgets/material_status_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
@@ -588,7 +588,7 @@ class _OrdenLineItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${line.qty} × ${formatMxn(line.priceCentavos)}',
+                  '${line.qty} × ${SacMoney.fromCentavos(line.priceCentavos)}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: c.textSecondary,
                   ),
@@ -598,7 +598,7 @@ class _OrdenLineItem extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            formatMxn(line.lineTotalCentavos),
+            SacMoney.fromCentavos(line.lineTotalCentavos),
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -636,7 +636,7 @@ class _TotalRow extends StatelessWidget {
                 ),
         ),
         Text(
-          formatMxn(amount),
+          SacMoney.fromCentavos(amount),
           style: isTotal
               ? theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
@@ -790,7 +790,7 @@ class _ComprobanteCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              formatMxn(comprobante.montoCentavos),
+              SacMoney.fromCentavos(comprobante.montoCentavos),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: c.textSecondary,
               ),

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:sacdia_app/core/utils/money_format.dart';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
@@ -17,7 +18,6 @@ import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_order.dart';
 import 'package:sacdia_app/features/camporee_orders/presentation/providers/camporee_orders_providers.dart';
 import 'package:sacdia_app/features/camporee_orders/presentation/views/camporee_order_catalog_view.dart';
-import 'package:sacdia_app/features/payment_orders/presentation/widgets/payment_order_widgets.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
 const _proofAllowedExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'webp'];
@@ -264,7 +264,7 @@ class _OrderDetailBody extends StatelessWidget {
                 const SizedBox(height: 14),
                 _DetailRow(
                   label: 'camporee_orders.detail.total'.tr(),
-                  value: formatCentavos(order.totalCentavos, order.currency),
+                  value: SacMoney.fromCentavos(order.totalCentavos),
                   emphasized: true,
                 ),
                 _DetailRow(

@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -350,7 +351,7 @@ class _ChartView extends StatelessWidget {
                 getTooltipItems: (spots) => spots.map((spot) {
                   final isIncome = spot.barIndex == 0;
                   return LineTooltipItem(
-                    '\$${_formatAmount(spot.y)}',
+                    SacMoney.compact(spot.y),
                     TextStyle(
                       color: isIncome ? _incomeColor : _expenseColor,
                       fontSize: SacFontSize.labelSmall,
@@ -420,7 +421,7 @@ class _ChartView extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 4),
       child: Text(
-        _formatYValue(value),
+        SacMoney.compact(value),
         style: TextStyle(
           fontSize: SacFontSize.micro,
           color: labelColor,
@@ -429,21 +430,6 @@ class _ChartView extends StatelessWidget {
         textAlign: TextAlign.right,
       ),
     );
-  }
-
-  String _formatYValue(double v) {
-    if (v == 0) return '\$0';
-    if (v >= 1000) {
-      return '\$${(v / 1000).toStringAsFixed(v % 1000 == 0 ? 0 : 1)}k';
-    }
-    return '\$${v.toStringAsFixed(0)}';
-  }
-
-  String _formatAmount(double v) {
-    if (v >= 1000) {
-      return '${(v / 1000).toStringAsFixed(1)}k';
-    }
-    return v.toStringAsFixed(0);
   }
 
   // ── X-axis label ──────────────────────────────────────────────────────────

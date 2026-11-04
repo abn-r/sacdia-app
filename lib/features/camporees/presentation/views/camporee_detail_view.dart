@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
@@ -669,12 +670,6 @@ class _CamporeeFactsPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('d MMMM yyyy', context.locale.toString());
-    final currencyFormatter = NumberFormat.currency(
-      locale: context.locale.toString(),
-      symbol: '\$',
-      decimalDigits: 0,
-      customPattern: '¤#,##0',
-    );
     final dateRange =
         '${dateFormat.format(camporee.startDate)} – ${dateFormat.format(camporee.endDate)}';
 
@@ -691,7 +686,7 @@ class _CamporeeFactsPanel extends StatelessWidget {
           _FactRow(
             icon: HugeIcons.strokeRoundedMoney01,
             label: 'camporees.detail.cost'.tr(),
-            value: _formatCost(camporee.registrationCost, currencyFormatter),
+            value: _formatCost(camporee.registrationCost),
           ),
           if (camporee.localFieldName != null) ...[
             _PanelDivider(),
@@ -706,9 +701,9 @@ class _CamporeeFactsPanel extends StatelessWidget {
     );
   }
 
-  String _formatCost(double? cost, NumberFormat formatter) {
+  String _formatCost(double? cost) {
     if (cost == null || cost == 0) return 'camporees.common.free'.tr();
-    return formatter.format(cost);
+    return SacMoney.format(cost);
   }
 }
 
@@ -1863,7 +1858,7 @@ class _EnrollmentOrderRow extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      formatCentavos(order.totalCentavos, order.currency),
+                      SacMoney.fromCentavos(order.totalCentavos),
                       style: TextStyle(
                           fontSize: SacFontSize.bodySmall,
                           color: c.textSecondary),

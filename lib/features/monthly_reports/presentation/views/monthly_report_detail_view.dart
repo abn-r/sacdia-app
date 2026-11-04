@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -926,5 +927,4 @@ class _ErrorBody extends StatelessWidget {
 String _dash(Object? value) => value?.toString() ?? '—';
 String _yesNo(bool? value) =>
     value == null ? '—' : (value ? 'common.yes'.tr() : 'common.no'.tr());
-String _money(num? value) =>
-    value == null ? '—' : NumberFormat.currency(symbol: r'$').format(value);
+String _money(num? value) => value == null ? '—' : SacMoney.format(value);

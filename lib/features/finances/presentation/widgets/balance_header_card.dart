@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,12 +59,13 @@ class BalanceHeaderCard extends ConsumerWidget {
 
           // 2 — Balance amount
           Text(
-            _formatCurrency(balance),
+            SacMoney.format(balance),
             style: TextStyle(
               fontSize: SacFontSize.metricSmall,
               fontWeight: FontWeight.w800,
               letterSpacing: -1.0,
               color: c.text,
+              fontFeatures: SacMoney.tabularFigures,
             ),
           ),
 
@@ -114,16 +116,8 @@ class BalanceHeaderCard extends ConsumerWidget {
     );
   }
 
-  String _formatCurrency(double value) {
-    return NumberFormat.currency(
-      locale: 'en_US',
-      symbol: '\$',
-      decimalDigits: 2,
-    ).format(value);
-  }
-
   String _monthLabel(int year, int month) {
-    final label = DateFormat('MMMM yyyy', 'es').format(DateTime(year, month));
+    final label = DateFormat('MMMM yyyy').format(DateTime(year, month));
     return label[0].toUpperCase() + label.substring(1);
   }
 }
@@ -192,12 +186,6 @@ class _ActivitySummary extends StatelessWidget {
       color: textColor,
     );
 
-    final formatter = NumberFormat.currency(
-      locale: 'en_US',
-      symbol: '\$',
-      decimalDigits: 2,
-    );
-
     return RichText(
       textAlign: TextAlign.center,
       text: TextSpan(
@@ -205,20 +193,22 @@ class _ActivitySummary extends StatelessWidget {
           TextSpan(
               text: 'finances.widgets.month_summary_prefix'.tr(), style: base),
           TextSpan(
-            text: formatter.format(income),
+            text: SacMoney.format(income),
             style: base.copyWith(
               color: incomeGreen,
               fontWeight: FontWeight.w700,
+              fontFeatures: SacMoney.tabularFigures,
             ),
           ),
           TextSpan(
               text: 'finances.widgets.month_summary_connector'.tr(),
               style: base),
           TextSpan(
-            text: formatter.format(expense),
+            text: SacMoney.format(expense),
             style: base.copyWith(
               color: expenseRed,
               fontWeight: FontWeight.w700,
+              fontFeatures: SacMoney.tabularFigures,
             ),
           ),
           TextSpan(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import '../theme/finance_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
@@ -36,11 +37,6 @@ class TransactionTile extends StatelessWidget {
   };
 
   static const HugeIconData _defaultIcon = HugeIcons.strokeRoundedMoney01;
-  static final _currencyFormatter = NumberFormat.currency(
-    locale: 'en_US',
-    symbol: '\$',
-    decimalDigits: 2,
-  );
   static final _timeFormatter = DateFormat('HH:mm');
 
   @override
@@ -58,9 +54,10 @@ class TransactionTile extends StatelessWidget {
         ? (isDark ? context.sac.success : AppColors.secondaryDark)
         : context.sac.error;
 
-    final formatted = _currencyFormatter.format(transaction.amount);
-
-    final sign = isIncome ? '+' : '-';
+    final formatted = SacMoney.format(
+      isIncome ? transaction.amount.abs() : -transaction.amount.abs(),
+      signed: true,
+    );
     final timeStr = _timeFormatter.format(transaction.registeredAt.toLocal());
 
     return SacInkWell(
@@ -133,16 +130,17 @@ class TransactionTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '$sign$formatted',
+                  formatted,
                   style: TextStyle(
                     fontSize: SacFontSize.titleMedium,
                     fontWeight: FontWeight.w700,
                     color: amountColor,
+                    fontFeatures: SacMoney.tabularFigures,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '$timeStr · MXN',
+                  timeStr,
                   style: TextStyle(
                     fontSize: SacFontSize.caption,
                     fontWeight: FontWeight.w400,

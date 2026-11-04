@@ -12,7 +12,7 @@ import '../../domain/entities/material_item.dart';
 import '../../domain/entities/material_variant_option.dart';
 import '../providers/cart_provider.dart';
 import '../providers/product_detail_provider.dart';
-import '../utils/money_format.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import '../widgets/qty_stepper.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
@@ -153,7 +153,7 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
 
                     // ── Price ──
                     Text(
-                      formatMxn(item.priceCentavos),
+                      SacMoney.fromCentavos(item.priceCentavos),
                       style: theme.textTheme.headlineSmall?.copyWith(
                         color: SacAccent.of(context).color,
                         fontWeight: FontWeight.bold,

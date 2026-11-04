@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:sacdia_app/core/utils/money_format.dart';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
@@ -255,12 +256,12 @@ class _OrderDetailBody extends StatelessWidget {
                 const SizedBox(height: 14),
                 _DetailRow(
                   label: 'payment_orders.detail.total'.tr(),
-                  value: formatCentavos(order.totalCentavos, order.currency),
+                  value: SacMoney.fromCentavos(order.totalCentavos),
                   emphasized: true,
                 ),
                 _DetailRow(
                   label: 'payment_orders.detail.unit_cost'.tr(),
-                  value: formatCentavos(order.unitCostCentavos, order.currency),
+                  value: SacMoney.fromCentavos(order.unitCostCentavos),
                 ),
                 _DetailRow(
                   label: 'payment_orders.detail.beneficiaries'.tr(),

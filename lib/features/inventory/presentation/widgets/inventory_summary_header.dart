@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:sacdia_app/core/utils/money_format.dart';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -51,7 +52,7 @@ class InventoryStatsRow extends StatelessWidget {
           if (summary.totalValue > 0) ...[
             _StatChip(
               icon: HugeIcons.strokeRoundedMoney01,
-              value: '\$${_formatValue(summary.totalValue)}',
+              value: SacMoney.compact(summary.totalValue),
               label: 'valor est.',
               iconColor: AppColors.accent,
               bgColor: AppColors.accent.withValues(alpha: 0.10),
@@ -70,12 +71,6 @@ class InventoryStatsRow extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatValue(double v) {
-    if (v >= 1000000) return '${(v / 1000000).toStringAsFixed(1)}M';
-    if (v >= 1000) return '${(v / 1000).toStringAsFixed(1)}K';
-    return v.toStringAsFixed(0);
   }
 }
 

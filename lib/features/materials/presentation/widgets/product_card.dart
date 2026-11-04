@@ -7,7 +7,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 
 import '../../domain/entities/material_item.dart';
-import '../utils/money_format.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Tarjeta de producto del catálogo (grid 2 columnas).
@@ -72,7 +72,7 @@ class ProductCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      formatMxn(item.priceCentavos),
+                      SacMoney.fromCentavos(item.priceCentavos),
                       style: TextStyle(
                         fontSize: SacFontSize.titleMedium,
                         fontWeight: FontWeight.w800,

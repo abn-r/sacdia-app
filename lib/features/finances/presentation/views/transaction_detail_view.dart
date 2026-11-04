@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -238,11 +239,7 @@ class _AmountHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isIncome = transaction.type.isIncome;
-    final formatted = NumberFormat.currency(
-      locale: 'en_US',
-      symbol: '\$',
-      decimalDigits: 2,
-    ).format(transaction.amount);
+    final formatted = SacMoney.format(transaction.amount);
 
     return Container(
       width: double.infinity,
