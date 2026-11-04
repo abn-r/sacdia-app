@@ -3430,7 +3430,21 @@
       "type_club": "Club",
       "type_section_role": "Rôle de section",
       "type_global_role": "Rôle global",
-      "type_unknown": "Inconnue"
+      "type_unknown": "Inconnue",
+      "end_of_history": "— Fin de l’historique —"
+    },
+    "types": {
+      "agenda": "Agenda",
+      "achievement": "Réussite",
+      "review": "Révision",
+      "important_date": "Date importante",
+      "system": "Système",
+      "personal": "Personnel",
+      "announcement": "Communiqué",
+      "club": "Club",
+      "team": "Équipe",
+      "field": "Terrain",
+      "notice": "Avis"
     }
   },
   "achievements": {

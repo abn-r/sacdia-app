@@ -3431,7 +3431,21 @@
       "type_club": "Club",
       "type_section_role": "Section role",
       "type_global_role": "Global role",
-      "type_unknown": "Unknown"
+      "type_unknown": "Unknown",
+      "end_of_history": "— End of history —"
+    },
+    "types": {
+      "agenda": "Agenda",
+      "achievement": "Achievement",
+      "review": "Review",
+      "important_date": "Important date",
+      "system": "System",
+      "personal": "Personal",
+      "announcement": "Announcement",
+      "club": "Club",
+      "team": "Team",
+      "field": "Field",
+      "notice": "Notice"
     }
   },
   "achievements": {

@@ -375,7 +375,7 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
         padding: const EdgeInsets.symmetric(vertical: 24),
         child: Center(
           child: Text(
-            '— Fin del historial —',
+            'notifications.inbox.end_of_history'.tr(),
             style: TextStyle(
                 fontSize: SacFontSize.bodySmall, color: c.textTertiary),
           ),

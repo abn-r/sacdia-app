@@ -3430,7 +3430,21 @@
       "type_club": "Clube",
       "type_section_role": "Função da seção",
       "type_global_role": "Função global",
-      "type_unknown": "Desconhecida"
+      "type_unknown": "Desconhecida",
+      "end_of_history": "— Fim do histórico —"
+    },
+    "types": {
+      "agenda": "Agenda",
+      "achievement": "Conquista",
+      "review": "Revisão",
+      "important_date": "Data importante",
+      "system": "Sistema",
+      "personal": "Pessoal",
+      "announcement": "Comunicado",
+      "club": "Clube",
+      "team": "Equipe",
+      "field": "Campo",
+      "notice": "Aviso"
     }
   },
   "achievements": {
