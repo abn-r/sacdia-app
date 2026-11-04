@@ -46,4 +46,77 @@ void main() {
       );
     });
   });
+
+  group('bandColorFor', () {
+    test('holds 4.5:1 against white for every category in the palette', () {
+      final names = {
+        ...kCategoryColorByName.keys,
+        ...kCategoryAccentColorByName.keys,
+      };
+      for (final name in names) {
+        final band = bandColorFor(categoryName: name);
+        expect(
+          contrastOnWhite(band),
+          greaterThanOrEqualTo(kBandMinContrastOnWhite),
+          reason: name,
+        );
+      }
+      for (final id in kCategoryColorById.keys) {
+        expect(
+          contrastOnWhite(bandColorFor(categoryId: id)),
+          greaterThanOrEqualTo(kBandMinContrastOnWhite),
+          reason: 'category id $id',
+        );
+      }
+      // Unknown category falls back to the info color.
+      expect(
+        contrastOnWhite(bandColorFor()),
+        greaterThanOrEqualTo(kBandMinContrastOnWhite),
+      );
+    });
+
+    test('also holds for the raw paint and accent colors', () {
+      final colors = [
+        ...kCategoryColorByName.values,
+        ...kCategoryAccentColorByName.values,
+        ...kCategoryColorById.values,
+      ];
+      for (final color in colors) {
+        expect(
+          contrastOnWhite(darkenForWhiteText(color)),
+          greaterThanOrEqualTo(kBandMinContrastOnWhite),
+          reason: '$color',
+        );
+      }
+    });
+
+    test('leaves a color that already passes untouched', () {
+      expect(
+        bandColorFor(categoryName: 'ADRA'),
+        AppColors.catAdra,
+      );
+      expect(
+          darkenForWhiteText(AppColors.catMisioneras), AppColors.catMisioneras);
+    });
+
+    test('darkens a failing color and keeps its hue', () {
+      // #248ABA is about 3.9:1 on white.
+      const blue = AppColors.catHabilidadesManuales;
+      expect(contrastOnWhite(blue), lessThan(kBandMinContrastOnWhite));
+      final band = bandColorFor(categoryName: 'Artes y Actividades Manuales');
+      expect(band, isNot(blue));
+      expect(
+        HSLColor.fromColor(band).hue,
+        closeTo(HSLColor.fromColor(blue).hue, 6),
+      );
+    });
+
+    test('near-white categories use the darkened accent color', () {
+      final band = bandColorFor(categoryName: 'Estudio de la Naturaleza');
+      expect(
+        band,
+        darkenForWhiteText(AppColors.catNaturalezaBorde),
+      );
+    });
+  });
 }
