@@ -57,6 +57,13 @@ class RequirementTreeItem extends StatefulWidget {
   /// (honor already submitted or approved).
   final bool enabled;
 
+  /// Whether the circular check is drawn. A plain parent is satisfied by its
+  /// children (the backend ignores its own tick), so the sheet hides it.
+  final bool showCheck;
+
+  /// Starts with the full text instead of the 3-line clamp.
+  final bool initiallyExpanded;
+
   const RequirementTreeItem({
     super.key,
     required this.requirement,
@@ -69,6 +76,8 @@ class RequirementTreeItem extends StatefulWidget {
     this.isUploadingEvidence = false,
     this.onAddEvidence,
     this.enabled = true,
+    this.showCheck = true,
+    this.initiallyExpanded = false,
   });
 
   @override
@@ -76,7 +85,7 @@ class RequirementTreeItem extends StatefulWidget {
 }
 
 class _RequirementTreeItemState extends State<RequirementTreeItem> {
-  bool _textExpanded = false;
+  late bool _textExpanded = widget.initiallyExpanded;
   bool _referenceExpanded = false;
   bool _responseError = false;
 
@@ -158,13 +167,16 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _CircleCheck(
-                  key: const ValueKey('requirement-check'),
-                  checked: widget.completed,
-                  color: widget.categoryColor,
-                  enabled: widget.enabled,
-                  onToggle: _onCheck,
-                ),
+                if (widget.showCheck)
+                  _CircleCheck(
+                    key: const ValueKey('requirement-check'),
+                    checked: widget.completed,
+                    color: widget.categoryColor,
+                    enabled: widget.enabled,
+                    onToggle: _onCheck,
+                  )
+                else
+                  const SizedBox(width: 4),
                 Container(
                   width: 28,
                   height: 28,

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/errors/failures.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/datasources/validation_remote_data_source.dart';
@@ -92,22 +93,29 @@ class SubmitValidationState {
   final ValidationSubmitResult? result;
   final String? errorMessage;
 
+  /// The failure behind [errorMessage]; screens hand it to
+  /// `userErrorMessage` so a business code gets its translated message.
+  final Failure? failure;
+
   const SubmitValidationState({
     this.isLoading = false,
     this.result,
     this.errorMessage,
+    this.failure,
   });
 
   SubmitValidationState copyWith({
     bool? isLoading,
     ValidationSubmitResult? result,
     String? errorMessage,
+    Failure? failure,
     bool clearError = false,
   }) {
     return SubmitValidationState(
       isLoading: isLoading ?? this.isLoading,
       result: result ?? this.result,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      failure: clearError ? null : (failure ?? this.failure),
     );
   }
 }
@@ -130,7 +138,11 @@ class SubmitValidationNotifier extends Notifier<SubmitValidationState> {
 
     return result.fold(
       (failure) {
-        state = state.copyWith(isLoading: false, errorMessage: failure.message);
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+          failure: failure,
+        );
         return false;
       },
       (submitResult) {
