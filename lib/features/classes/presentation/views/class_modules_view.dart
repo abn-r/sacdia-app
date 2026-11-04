@@ -101,9 +101,7 @@ class ClassModulesView extends ConsumerWidget {
                           isCompleted
                               ? 'classes.modules.section_completed_snack'.tr()
                               : 'classes.modules.section_pending_snack'.tr(),
-                          backgroundColor: isCompleted
-                              ? AppColors.secondary
-                              : AppColors.accent);
+                          isSuccess: isCompleted);
                     }
                   },
                 );

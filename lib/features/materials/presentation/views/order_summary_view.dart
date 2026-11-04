@@ -319,7 +319,7 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
         SacSnackBar.showMessenger(
           messenger,
           message,
-          backgroundColor: AppColors.secondary,
+          isSuccess: true,
           action: SnackBarAction(
             label: viewLabel,
             textColor: Colors.white,

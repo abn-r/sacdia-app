@@ -316,7 +316,7 @@ class InventoryItemDetailView extends ConsumerWidget {
         .deleteItem(selectedItem.id);
     if (success && context.mounted) {
       SacSnackBar.show(context, 'inventory.detail.deleted_success'.tr(),
-          backgroundColor: AppColors.secondary);
+          isSuccess: true);
       Navigator.pop(context);
     } else if (!success && context.mounted) {
       SacSnackBar.show(context, 'inventory.detail.delete_error'.tr(),

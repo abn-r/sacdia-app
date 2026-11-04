@@ -196,7 +196,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
       ref.invalidate(userHonorForHonorProvider(widget.honorId));
 
       SacSnackBar.show(context, 'honors.evidence.sent_review'.tr(),
-          backgroundColor: AppColors.success);
+          isSuccess: true);
     }
   }
 

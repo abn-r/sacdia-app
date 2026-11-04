@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/social_credential.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/sac_dialog.dart';
 import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../../auth/domain/entities/delete_account_reauth.dart';
@@ -54,7 +53,7 @@ Future<void> runDeleteAccountFlow(BuildContext context, WidgetRef ref) async {
     SacSnackBar.showMessenger(
       messenger,
       'profile.settings.account_deleted'.tr(),
-      backgroundColor: AppColors.success,
+      isSuccess: true,
     );
     if (context.mounted) {
       Navigator.of(context).popUntil((route) => route.isFirst);

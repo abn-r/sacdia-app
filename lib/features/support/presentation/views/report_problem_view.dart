@@ -79,8 +79,7 @@ class _ReportProblemViewState extends ConsumerState<ReportProblemView> {
     if (state.success != null) {
       _showSuccessDialog();
     } else if (state.errorMessage != null) {
-      SacSnackBar.show(context, state.errorMessage!,
-          backgroundColor: context.sac.error);
+      SacSnackBar.show(context, state.errorMessage!, isError: true);
     }
   }
 

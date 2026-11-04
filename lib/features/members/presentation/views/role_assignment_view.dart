@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
@@ -122,7 +121,7 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
             'role':
                 RoleUtils.translate(_selectedRole, gender: widget.member.gender)
           }),
-          backgroundColor: AppColors.secondary);
+          isSuccess: true);
       Navigator.pop(context, true);
     } else if (failure.errorCode == 'MR_CONSENT_NOT_VERIFIED') {
       _showConsentBlocked(failure);

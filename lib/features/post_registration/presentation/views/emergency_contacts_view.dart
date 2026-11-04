@@ -45,7 +45,7 @@ class EmergencyContactsView extends ConsumerWidget {
         if (context.mounted) {
           SacSnackBar.show(context,
               'post_registration.emergency_contacts.delete_success'.tr(),
-              backgroundColor: AppColors.secondary);
+              isSuccess: true);
         }
       } catch (e) {
         if (context.mounted) {

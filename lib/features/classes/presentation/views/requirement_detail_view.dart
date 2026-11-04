@@ -436,14 +436,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                                         context,
                                         'classes.requirement_detail.submit_success'
                                             .tr(),
-                                        backgroundColor:
-                                            AppColors.validatedColor,
-                                        leading: const HugeIcon(
-                                          icon: HugeIcons
-                                              .strokeRoundedCheckmarkCircle02,
-                                          color: Colors.white,
-                                          size: 18,
-                                        ),
+                                        isSuccess: true,
                                       );
                                       Navigator.pop(context);
                                     },
@@ -555,12 +548,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
       SacSnackBar.show(
         context,
         'classes.requirement_detail.submit_success'.tr(),
-        backgroundColor: AppColors.validatedColor,
-        leading: const HugeIcon(
-          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-          color: Colors.white,
-          size: 18,
-        ),
+        isSuccess: true,
       );
       Navigator.pop(context);
     }

@@ -372,8 +372,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
 
     if (!mounted) return;
 
-    SacSnackBar.show(context, 'activities.edit.success'.tr(),
-        backgroundColor: AppColors.secondary);
+    SacSnackBar.show(context, 'activities.edit.success'.tr(), isSuccess: true);
     Navigator.of(context).pop(true);
   }
 

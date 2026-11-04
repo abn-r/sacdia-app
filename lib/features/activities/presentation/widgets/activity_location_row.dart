@@ -23,8 +23,7 @@ class ActivityLocationRow extends StatelessWidget {
   void _copyAddress(BuildContext context) {
     Clipboard.setData(ClipboardData(text: activity.activityPlace));
     SacSnackBar.show(context, 'activities.widgets.address_copied'.tr(),
-        backgroundColor: AppColors.secondaryDark,
-        duration: const Duration(seconds: 2));
+        isSuccess: true, duration: const Duration(seconds: 2));
   }
 
   @override

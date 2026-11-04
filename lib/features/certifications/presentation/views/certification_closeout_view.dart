@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
@@ -50,7 +49,7 @@ class CertificationCloseoutView extends ConsumerWidget {
       }
       if (next.submitSuccess && prev?.submitSuccess != true) {
         SacSnackBar.show(context, 'certifications.closeout.submit_success'.tr(),
-            backgroundColor: AppColors.secondary);
+            isSuccess: true);
         Navigator.of(context).pop();
       }
     });

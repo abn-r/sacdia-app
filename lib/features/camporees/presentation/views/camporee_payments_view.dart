@@ -699,7 +699,7 @@ class _CamporeePaymentFormSheetState
 
     if (success && mounted) {
       SacSnackBar.show(context, 'camporees.payments.success'.tr(),
-          backgroundColor: AppColors.secondary);
+          isSuccess: true);
       Navigator.of(context).pop();
     }
   }

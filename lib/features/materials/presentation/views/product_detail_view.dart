@@ -307,7 +307,7 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
         'materials.product.added_snackbar'.tr(
           namedArgs: {'title': item.title},
         ),
-        backgroundColor: AppColors.secondary,
+        isSuccess: true,
         action: SnackBarAction(
           label: 'materials.product.view_cart'.tr(),
           textColor: Colors.white,

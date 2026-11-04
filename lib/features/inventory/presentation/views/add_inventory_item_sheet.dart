@@ -503,7 +503,7 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
           _isEditing
               ? 'inventory.form.updated_success'.tr()
               : 'inventory.form.registered_success'.tr(),
-          backgroundColor: AppColors.secondary);
+          isSuccess: true);
       Navigator.pop(context, true);
     }
   }

@@ -294,7 +294,7 @@ class _IssueOrderForm extends ConsumerWidget {
           'payment_orders.issue.success'.tr(
             namedArgs: {'folio': order.folioReference},
           ),
-          backgroundColor: AppColors.secondary);
+          isSuccess: true);
       context.pushReplacement(
         RouteNames.paymentOrderDetailPath(order.orderId),
       );

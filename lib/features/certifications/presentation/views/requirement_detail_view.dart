@@ -57,7 +57,7 @@ class CertificationRequirementDetailView extends ConsumerWidget {
       if (next.submitSuccess && prev?.submitSuccess != true) {
         SacSnackBar.show(
             context, 'certifications.requirement_detail.submit_success'.tr(),
-            backgroundColor: AppColors.secondary);
+            isSuccess: true);
         Navigator.of(context).pop();
       }
     });

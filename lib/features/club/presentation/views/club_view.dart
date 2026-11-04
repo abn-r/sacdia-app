@@ -188,8 +188,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
 
       ref.invalidate(currentClubSectionProvider);
 
-      SacSnackBar.show(context, 'club.update_success'.tr(),
-          backgroundColor: AppColors.secondary);
+      SacSnackBar.show(context, 'club.update_success'.tr(), isSuccess: true);
     }
   }
 

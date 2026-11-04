@@ -456,7 +456,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
         _repeat
             ? 'activities.series.created'.tr(namedArgs: {'count': '$count'})
             : 'activities.create.success'.tr(),
-        backgroundColor: AppColors.secondary);
+        isSuccess: true);
 
     Navigator.of(context).pop(true);
   }

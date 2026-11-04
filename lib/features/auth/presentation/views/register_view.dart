@@ -264,8 +264,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
 
     if (success) {
       context.pop();
-      SacSnackBar.show(context, 'auth.register_success'.tr(),
-          backgroundColor: AppColors.secondary);
+      SacSnackBar.show(context, 'auth.register_success'.tr(), isSuccess: true);
       return;
     }
     // On any failure re-fetch the current documents: a LEGAL_VERSION_MISMATCH

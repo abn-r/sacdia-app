@@ -76,7 +76,7 @@ class _RedeemLinkCodeViewState extends ConsumerState<RedeemLinkCodeView> {
         SacSnackBar.show(
           context,
           'family.link.success'.tr(namedArgs: {'name': dependent.firstName}),
-          backgroundColor: AppColors.secondary,
+          isSuccess: true,
         );
         context.pop();
       },

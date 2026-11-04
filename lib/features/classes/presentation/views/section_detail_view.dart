@@ -174,8 +174,7 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
                       newStatus
                           ? 'classes.section_detail.mark_completed_snack'.tr()
                           : 'classes.section_detail.mark_pending_snack'.tr(),
-                      backgroundColor:
-                          newStatus ? AppColors.success : AppColors.warning);
+                      isSuccess: newStatus);
                 },
                 text: _isCompleted
                     ? 'classes.section_detail.button_completed'.tr()

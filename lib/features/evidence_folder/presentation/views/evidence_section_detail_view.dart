@@ -310,7 +310,7 @@ class _EvidenceSectionDetailViewState
                                 'sectionName': widget.section.name,
                               },
                             ),
-                            backgroundColor: AppColors.secondary,
+                            isSuccess: true,
                             leading: const HugeIcon(
                               icon: HugeIcons.strokeRoundedCheckmarkCircle02,
                               color: Colors.white,

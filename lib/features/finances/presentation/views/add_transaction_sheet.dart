@@ -397,7 +397,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     if (mounted) {
       ref.read(transactionFormNotifierProvider.notifier).reset();
       SacSnackBar.show(context, 'finances.add_transaction.save_success'.tr(),
-          backgroundColor: AppColors.secondary);
+          isSuccess: true);
       Navigator.pop(context, true);
     }
   }

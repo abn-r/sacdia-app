@@ -342,7 +342,7 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
           _isEditing
               ? 'insurance.form.success_updated'.tr()
               : 'insurance.form.success_created'.tr(),
-          backgroundColor: AppColors.secondary);
+          isSuccess: true);
       Navigator.pop(context, true);
     }
   }

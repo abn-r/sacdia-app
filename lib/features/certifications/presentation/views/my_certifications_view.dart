@@ -306,7 +306,7 @@ class MyCertificationsView extends ConsumerWidget {
             'certifications.my.unenroll_success'.tr(namedArgs: {
               'name': uc.certificationName,
             }),
-            backgroundColor: AppColors.secondary);
+            isSuccess: true);
       }
     } catch (e) {
       if (context.mounted) {
