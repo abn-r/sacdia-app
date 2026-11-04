@@ -128,7 +128,7 @@ void main() {
         );
         expect(find.text('Maestrías para revisar'), findsOneWidget);
 
-        await tester.tap(find.text('Entendido'));
+        await tester.tap(find.text('common.understood'));
         await tester.pumpAndSettle();
         expect(container.read(masterHonorModalQueueProvider), isEmpty);
       },

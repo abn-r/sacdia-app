@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 import '../../domain/entities/activity.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
@@ -22,7 +22,7 @@ class ActivityVirtualBanner extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        _buildContent(),
+        _buildContent(context),
         if (activity.isPast)
           Container(color: Colors.black.withValues(alpha: 0.35)),
         // "Finalizada" state is signaled via the countdown pill in
@@ -31,7 +31,7 @@ class ActivityVirtualBanner extends StatelessWidget {
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(BuildContext context) {
     final hasImage = activity.image != null && activity.image!.isNotEmpty;
     if (hasImage) {
       return CachedNetworkImage(
@@ -41,25 +41,17 @@ class ActivityVirtualBanner extends StatelessWidget {
         height: double.infinity,
         memCacheWidth: 1080,
         memCacheHeight: 210,
-        placeholder: (_, __) => _gradient(),
-        errorWidget: (_, __, ___) => _gradient(),
+        placeholder: (_, __) => _banner(context),
+        errorWidget: (_, __, ___) => _banner(context),
       );
     }
-    return _gradient();
+    return _banner(context);
   }
 
-  Widget _gradient() {
+  Widget _banner(BuildContext context) {
+    final c = context.sac;
     return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.info,
-            AppColors.info.withValues(alpha: 0.6),
-          ],
-        ),
-      ),
+      color: c.infoContainer,
       alignment: Alignment.bottomCenter,
       padding: const EdgeInsets.only(bottom: 14),
       child: Row(
@@ -69,22 +61,22 @@ class ActivityVirtualBanner extends StatelessWidget {
             width: 28,
             height: 28,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.18),
+              color: c.info.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
-            child: const Center(
+            child: Center(
               child: HugeIcon(
                 icon: HugeIcons.strokeRoundedComputerVideoCall,
                 size: 16,
-                color: Colors.white,
+                color: c.onInfoContainer,
               ),
             ),
           ),
           const SizedBox(width: 8),
           Text(
             'activities.widgets.virtual_fallback'.tr(),
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: c.onInfoContainer,
               fontSize: SacFontSize.bodyMedium,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.3,

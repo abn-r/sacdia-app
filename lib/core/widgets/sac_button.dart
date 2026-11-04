@@ -18,6 +18,9 @@ enum SacButtonVariant {
   success
 }
 
+/// Minimum interactive height of any [SacButton], regardless of visual size.
+const double kSacMinTapTarget = 44;
+
 /// Tamaños del botón
 enum SacButtonSize { small, medium, large }
 
@@ -149,6 +152,41 @@ class SacButton extends StatefulWidget {
         size = SacButtonSize.medium,
         fullWidth = false,
         minHeight = null;
+
+  /// Text action (ghost style): accent-colored label, no fill, press feedback.
+  ///
+  /// Replaces raw `TextButton`. Visually compact ([SacButtonSize.small]) but
+  /// keeps a [kSacMinTapTarget] hit area. [color] overrides the label color.
+  ///
+  /// ```dart
+  /// SacButton.text(text: 'Ver todo', onPressed: openAll)
+  /// ```
+  const SacButton.text({
+    super.key,
+    required this.text,
+    this.onPressed,
+    HugeIconData? icon,
+    Color? color,
+    this.isLoading = false,
+    this.isEnabled = true,
+    this.loadingSemanticLabel,
+  })  : variant = SacButtonVariant.ghost,
+        size = SacButtonSize.small,
+        // ignore: prefer_initializing_formals
+        icon = icon,
+        trailingIcon = null,
+        fullWidth = false,
+        backgroundColor = null,
+        textColor = color,
+        borderColor = null,
+        fontSize = null,
+        borderRadius = null,
+        padding = null,
+        minHeight = null,
+        iconSize = null,
+        spaceBetween = 8,
+        labelMaxLines = 1,
+        labelOverflow = TextOverflow.ellipsis;
 
   /// Constructor para botón destructivo (rojo)
   const SacButton.destructive({
@@ -450,15 +488,24 @@ class _SacButtonState extends State<SacButton> {
           onTapUp: _effectivelyDisabled ? null : (_) => _setPressed(false),
           onTapCancel: _effectivelyDisabled ? null : () => _setPressed(false),
           onTap: _effectivelyDisabled ? null : _handlePressed,
-          child: AnimatedScale(
-            scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
-            duration: SacMotion.press,
-            curve: SacMotion.easeOut,
-            child: AnimatedOpacity(
-              opacity: visuallyDisabled ? AppTheme.disabledOpacity : 1,
-              duration: SacMotion.press,
-              curve: SacMotion.easeOut,
-              child: visual,
+          // Hit area is at least kSacMinTapTarget tall; the visual (e.g. the
+          // 36dp small button) stays centered and unchanged.
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: kSacMinTapTarget),
+            child: Align(
+              widthFactor: 1,
+              heightFactor: 1,
+              child: AnimatedScale(
+                scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
+                duration: SacMotion.press,
+                curve: SacMotion.easeOut,
+                child: AnimatedOpacity(
+                  opacity: visuallyDisabled ? AppTheme.disabledOpacity : 1,
+                  duration: SacMotion.press,
+                  curve: SacMotion.easeOut,
+                  child: visual,
+                ),
+              ),
             ),
           ),
         ),

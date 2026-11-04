@@ -1,15 +1,14 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_settings.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/route_names.dart';
-import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../auth/presentation/providers/acting_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../../profile/presentation/widgets/setting_tile.dart';
 import 'profile_switcher_sheet.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -35,7 +34,6 @@ class FamilyProfileEntry extends ConsumerWidget {
     );
     if (isTeen) return const SizedBox.shrink();
     final c = context.sac;
-    final accent = SacAccent.of(context);
     final family = ref.watch(authNotifierProvider).value?.family;
     final count = family?.dependentsCount ?? 0;
 
@@ -49,13 +47,12 @@ class FamilyProfileEntry extends ConsumerWidget {
         ),
         child: Column(
           children: [
-            SettingTile(
+            SacSettingsTile(
               icon: HugeIcons.strokeRoundedUserGroup,
               title: 'family.profile.entry_title'.tr(),
               subtitle: count > 0
                   ? 'family.profile.entry_count'.plural(count, name: 'count')
                   : 'family.profile.entry_subtitle'.tr(),
-              iconColor: accent.color,
               onTap: () => context.push(RouteNames.family),
             ),
             if (count > 0) ...[
@@ -65,11 +62,10 @@ class FamilyProfileEntry extends ConsumerWidget {
                 indent: 60,
                 color: c.borderLight,
               ),
-              SettingTile(
+              SacSettingsTile(
                 icon: HugeIcons.strokeRoundedUserSwitch,
                 title: 'family.profile.switch_title'.tr(),
                 subtitle: 'family.profile.switch_subtitle'.tr(),
-                iconColor: accent.color,
                 onTap: () => showProfileSwitcherSheet(context),
               ),
             ],

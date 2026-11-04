@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
@@ -64,14 +63,15 @@ NotificationVisualConfig notificationVisualConfig({
   String? source,
   required NotificationTargetType targetType,
 }) {
+  final c = context.sac;
   final normalizedSource = source?.trim().toLowerCase() ?? '';
 
   if (normalizedSource.startsWith('activities:')) {
     return NotificationVisualConfig(
       label: 'notifications.types.agenda'.tr(),
       icon: HugeIcons.strokeRoundedCalendar03,
-      iconColor: AppColors.info,
-      backgroundColor: AppColors.info.withValues(alpha: 0.12),
+      iconColor: c.onInfoContainer,
+      backgroundColor: c.infoContainer,
     );
   }
 
@@ -81,8 +81,8 @@ NotificationVisualConfig notificationVisualConfig({
     return NotificationVisualConfig(
       label: 'notifications.types.achievement'.tr(),
       icon: HugeIcons.strokeRoundedAward01,
-      iconColor: AppColors.accentDark,
-      backgroundColor: AppColors.accent.withValues(alpha: 0.18),
+      iconColor: c.onWarningContainer,
+      backgroundColor: c.warningContainer,
     );
   }
 
@@ -103,8 +103,8 @@ NotificationVisualConfig notificationVisualConfig({
     return NotificationVisualConfig(
       label: 'notifications.types.important_date'.tr(),
       icon: HugeIcons.strokeRoundedClock04,
-      iconColor: AppColors.observedDark,
-      backgroundColor: AppColors.observedBg,
+      iconColor: c.onWarningContainer,
+      backgroundColor: c.warningContainer,
     );
   }
 
@@ -112,8 +112,8 @@ NotificationVisualConfig notificationVisualConfig({
     return NotificationVisualConfig(
       label: 'notifications.types.system'.tr(),
       icon: HugeIcons.strokeRoundedAlert02,
-      iconColor: AppColors.error,
-      backgroundColor: AppColors.error.withValues(alpha: 0.12),
+      iconColor: c.onErrorContainer,
+      backgroundColor: c.errorContainer,
     );
   }
 
@@ -122,8 +122,8 @@ NotificationVisualConfig notificationVisualConfig({
       return NotificationVisualConfig(
         label: 'notifications.types.personal'.tr(),
         icon: HugeIcons.strokeRoundedUser,
-        iconColor: AppColors.info,
-        backgroundColor: AppColors.info.withValues(alpha: 0.12),
+        iconColor: c.onInfoContainer,
+        backgroundColor: c.infoContainer,
       );
     case NotificationTargetType.broadcast:
       return NotificationVisualConfig(
@@ -136,22 +136,22 @@ NotificationVisualConfig notificationVisualConfig({
       return NotificationVisualConfig(
         label: 'notifications.types.club'.tr(),
         icon: HugeIcons.strokeRoundedUserGroup,
-        iconColor: AppColors.secondaryDark,
-        backgroundColor: AppColors.secondary.withValues(alpha: 0.12),
+        iconColor: c.onSuccessContainer,
+        backgroundColor: c.successContainer,
       );
     case NotificationTargetType.sectionRole:
       return NotificationVisualConfig(
         label: 'notifications.types.team'.tr(),
         icon: HugeIcons.strokeRoundedShieldUser,
-        iconColor: AppColors.observedDark,
-        backgroundColor: AppColors.observedBg,
+        iconColor: c.onWarningContainer,
+        backgroundColor: c.warningContainer,
       );
     case NotificationTargetType.globalRole:
       return NotificationVisualConfig(
         label: 'notifications.types.field'.tr(),
         icon: HugeIcons.strokeRoundedCrown,
-        iconColor: AppColors.error,
-        backgroundColor: AppColors.error.withValues(alpha: 0.12),
+        iconColor: c.onErrorContainer,
+        backgroundColor: c.errorContainer,
       );
     case NotificationTargetType.unknown:
       return NotificationVisualConfig(
@@ -159,8 +159,8 @@ NotificationVisualConfig notificationVisualConfig({
         icon: HugeIcons.strokeRoundedNotification01,
         // Gris neutro legible en ambos modos; el widget mezcla iconColor
         // sobre la superficie del tema para el fondo real.
-        iconColor: AppColors.pendingDark,
-        backgroundColor: AppColors.pendingBg,
+        iconColor: c.textSecondary,
+        backgroundColor: c.surfaceVariant,
       );
   }
 }

@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/features/honors/presentation/theme/honor_category_palette.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor_requirement.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
@@ -164,7 +165,6 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
                   enabled: widget.enabled,
                   onToggle: _onCheck,
                 ),
-                const SizedBox(width: 10),
                 Container(
                   width: 28,
                   height: 28,
@@ -350,39 +350,46 @@ class _CircleCheckState extends State<_CircleCheck> {
         onTapUp: widget.enabled ? (_) => _setPressed(false) : null,
         onTapCancel: widget.enabled ? () => _setPressed(false) : null,
         onTap: widget.enabled ? widget.onToggle : null,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 2, right: 2, bottom: 8),
-          child: AnimatedScale(
-            scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
-            duration: duration,
-            curve: SacMotion.easeOut,
-            child: AnimatedContainer(
-              duration: reduce ? SacMotion.reducedFade : SacMotion.press,
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: AnimatedScale(
+              scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
+              duration: duration,
               curve: SacMotion.easeOut,
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: widget.checked ? widget.color : Colors.transparent,
-                border: Border.all(
-                  color: widget.checked ? widget.color : c.border,
-                  width: 1.5,
+              child: AnimatedContainer(
+                duration: reduce ? SacMotion.reducedFade : SacMotion.press,
+                curve: SacMotion.easeOut,
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: widget.checked ? widget.color : Colors.transparent,
+                  border: Border.all(
+                    color: widget.checked ? widget.color : c.border,
+                    width: 1.5,
+                  ),
                 ),
-              ),
-              child: SacStateSwap(
-                duration: SacMotion.press,
-                child: widget.checked
-                    ? const Center(
-                        key: ValueKey('honor-check-on'),
-                        child: HugeIcon(
-                          icon: HugeIcons.strokeRoundedTick02,
-                          size: 13,
-                          color: Colors.white,
+                child: SacStateSwap(
+                  duration: SacMotion.press,
+                  child: widget.checked
+                      ? Center(
+                          key: const ValueKey('honor-check-on'),
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedTick02,
+                            size: 13,
+                            color: onCategoryPaintColor(
+                              widget.color,
+                              onNearWhite: c.text,
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(
+                          key: ValueKey('honor-check-off'),
                         ),
-                      )
-                    : const SizedBox.shrink(
-                        key: ValueKey('honor-check-off'),
-                      ),
+                ),
               ),
             ),
           ),

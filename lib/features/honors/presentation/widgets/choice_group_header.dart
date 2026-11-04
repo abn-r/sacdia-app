@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -33,10 +32,11 @@ class ChoiceGroupHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     final Color accentColor =
-        _isSatisfied ? AppColors.secondary : AppColors.accent;
+        _isSatisfied ? c.onSuccessContainer : c.onWarningContainer;
     final Color bgColor =
-        _isSatisfied ? AppColors.secondaryLight : AppColors.accentLight;
+        _isSatisfied ? c.successContainer : c.warningContainer;
 
     return Container(
       margin: const EdgeInsets.only(top: 6, bottom: 4),
@@ -68,8 +68,7 @@ class ChoiceGroupHeader extends StatelessWidget {
             style: TextStyle(
               fontSize: SacFontSize.bodySmall,
               fontWeight: FontWeight.w600,
-              color:
-                  _isSatisfied ? AppColors.secondaryDark : AppColors.accentDark,
+              color: accentColor,
             ),
           ),
           if (completedChildren > 0) ...[

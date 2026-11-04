@@ -6,13 +6,16 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/auth/session_mode.dart';
 import '../providers/notifications_providers.dart';
 import '../providers/unread_notifications_count_provider.dart';
 import '../widgets/notification_card.dart';
 
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -247,37 +250,10 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
   }
 
   Widget _buildEmpty(BuildContext context, SacColors c) {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: Responsive.horizontalPadding(context),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedNotification01,
-              size: 64,
-              color: c.textTertiary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'notifications.inbox.empty_title'.tr(),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: c.text,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'notifications.inbox.empty_subtitle'.tr(),
-              style: TextStyle(
-                  fontSize: SacFontSize.titleSmall, color: c.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedNotification01,
+      title: 'notifications.inbox.empty_title'.tr(),
+      body: 'notifications.inbox.empty_subtitle'.tr(),
     );
   }
 
@@ -286,42 +262,11 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
     String errorMessage,
     SacColors c,
   ) {
-    final msg = errorMessage.replaceFirst('Exception: ', '');
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 56,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'notifications.inbox.error_title'.tr(),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              msg,
-              style: TextStyle(
-                  fontSize: SacFontSize.titleSmall, color: c.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SacButton.primary(
-              text: 'notifications.inbox.retry'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: () =>
-                  ref.read(notificationsInboxProvider.notifier).refresh(),
-            ),
-          ],
-        ),
-      ),
+    return SacErrorState(
+      title: 'notifications.inbox.error_title'.tr(),
+      message: userErrorMessage(errorMessage),
+      retryLabel: 'notifications.inbox.retry'.tr(),
+      onRetry: () => ref.read(notificationsInboxProvider.notifier).refresh(),
     );
   }
 
@@ -330,16 +275,7 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
     if (state.isLoadingMore) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Center(
-          child: SizedBox(
-            width: 24,
-            height: 24,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              color: SacAccent.of(context).color,
-            ),
-          ),
-        ),
+        child: Center(child: SacLoadingSmall()),
       );
     }
 
@@ -350,19 +286,12 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
         child: Center(
           child: SacPressable(
             listenOnly: true,
-            child: TextButton.icon(
-              style: const ButtonStyle(enableFeedback: false),
+            child: SacButton.text(
+              text: 'notifications.inbox.load_more_error'.tr(),
+              icon: HugeIcons.strokeRoundedRefresh,
+              color: c.textSecondary,
               onPressed: () =>
                   ref.read(notificationsInboxProvider.notifier).loadNextPage(),
-              icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedRefresh,
-                  size: 16,
-                  color: SacAccent.of(context).color),
-              label: Text(
-                'notifications.inbox.load_more_error'.tr(),
-                style: TextStyle(
-                    fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
-              ),
             ),
           ),
         ),

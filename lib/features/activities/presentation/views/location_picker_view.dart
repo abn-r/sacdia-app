@@ -10,7 +10,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/constants/maps_constants.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
@@ -21,6 +20,7 @@ import 'package:sacdia_app/features/activities/data/datasources/nominatim_remote
 import 'package:sacdia_app/features/activities/domain/entities/location_search_result.dart';
 import 'package:sacdia_app/features/activities/presentation/providers/location_search_providers.dart';
 import 'package:sacdia_app/features/club/presentation/providers/club_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 
 /// Resultado devuelto por [LocationPickerView] al confirmar una ubicación.
 class LocationPickerResult {
@@ -394,38 +394,44 @@ class _FloatingAppBar extends StatelessWidget {
 
           // Barra de búsqueda tappable
           Expanded(
-            child: GestureDetector(
-              onTap: onSearch,
-              child: Container(
-                height: 44,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                decoration: BoxDecoration(
-                  color: c.surface,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                  boxShadow: [
-                    BoxShadow(
-                      color: c.shadow,
-                      blurRadius: 12,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedSearch01,
-                      size: 18,
-                      color: c.textSecondary,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      'activities.location_picker.search_hint'.tr(),
-                      style: TextStyle(
-                        fontSize: SacFontSize.titleSmall,
-                        color: c.textTertiary,
+            child: Semantics(
+              button: true,
+              label: 'activities.location_picker.search_hint'.tr(),
+              excludeSemantics: true,
+              child: GestureDetector(
+                onTap: onSearch,
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  height: 44,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: c.surface,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                    boxShadow: [
+                      BoxShadow(
+                        color: c.shadow,
+                        blurRadius: 12,
+                        offset: const Offset(0, 3),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedSearch01,
+                        size: 18,
+                        color: c.textSecondary,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        'activities.location_picker.search_hint'.tr(),
+                        style: TextStyle(
+                          fontSize: SacFontSize.titleSmall,
+                          color: c.textTertiary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -566,7 +572,9 @@ class _LocationBottomCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (isLoading)
-                      _ShimmerLine(width: 200, height: 16)
+                      SacShimmer(
+                        child: SacSkeletonBox(width: 200, height: 16),
+                      )
                     else
                       Text(
                         address,
@@ -623,88 +631,31 @@ class _MapIconButton extends StatelessWidget {
     final c = context.sac;
     return Tooltip(
       message: tooltip,
-      child: GestureDetector(
-        onTap: onPressed,
-        child: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: c.surface,
-            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-            boxShadow: [
-              BoxShadow(
-                color: c.shadow,
-                blurRadius: 12,
-                offset: const Offset(0, 3),
-              ),
-            ],
+      child: Semantics(
+        button: true,
+        label: tooltip,
+        excludeSemantics: true,
+        child: GestureDetector(
+          onTap: onPressed,
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: c.surface,
+              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+              boxShadow: [
+                BoxShadow(
+                  color: c.shadow,
+                  blurRadius: 12,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Center(
+              child: HugeIcon(icon: icon, size: 20, color: c.text),
+            ),
           ),
-          child: Center(
-            child: HugeIcon(icon: icon, size: 20, color: c.text),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Línea animada de carga tipo shimmer (simple, sin paquetes externos).
-class _ShimmerLine extends StatefulWidget {
-  final double width;
-  final double height;
-
-  const _ShimmerLine({required this.width, required this.height});
-
-  @override
-  State<_ShimmerLine> createState() => _ShimmerLineState();
-}
-
-class _ShimmerLineState extends State<_ShimmerLine>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-  late final Animation<double> _anim;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    );
-    _anim = Tween<double>(begin: 0.3, end: 0.8).animate(
-      CurvedAnimation(parent: _ctrl, curve: SacMotion.easeInOut),
-    );
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final reduce = SacMotion.reduceMotionOf(context);
-    if (reduce) {
-      _ctrl.stop();
-      _ctrl.value = 0;
-    } else if (!_ctrl.isAnimating) {
-      _ctrl.repeat(reverse: true);
-    }
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return AnimatedBuilder(
-      animation: _anim,
-      builder: (_, __) => Container(
-        width: widget.width,
-        height: widget.height,
-        decoration: BoxDecoration(
-          color: c.border.withValues(alpha: _anim.value),
-          borderRadius: BorderRadius.circular(AppTheme.radius2XS),
         ),
       ),
     );

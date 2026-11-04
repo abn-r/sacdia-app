@@ -100,7 +100,7 @@ void main() {
     await tester.pump();
     tester
         .widgetList<SacButton>(find.byType(SacButton))
-        .first
+        .firstWhere((b) => b.variant == SacButtonVariant.primary)
         .onPressed
         ?.call();
     await _settle(tester);
@@ -158,7 +158,7 @@ void main() {
     await tester.pump();
     tester
         .widgetList<SacButton>(find.byType(SacButton))
-        .first
+        .firstWhere((b) => b.variant == SacButtonVariant.primary)
         .onPressed
         ?.call();
     await _settle(tester);

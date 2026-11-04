@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
@@ -37,6 +38,7 @@ class RoleAssignmentsView extends ConsumerWidget {
               listenOnly: true,
               child: IconButton(
                 enableFeedback: false,
+                tooltip: 'common.refresh'.tr(),
                 icon: HugeIcon(
                   icon: HugeIcons.strokeRoundedRefresh,
                   color: c.textSecondary,
@@ -51,13 +53,20 @@ class RoleAssignmentsView extends ConsumerWidget {
         child: Builder(
           builder: (context) => assignmentsAsync.when(
             loading: () => const Center(child: SacLoading()),
-            error: (e, _) => _ErrorBody(
-              message: e.toString().replaceFirst('Exception: ', ''),
+            error: (e, _) => SacErrorState(
+              title: userErrorMessage(e),
+              padding:
+                  SacTopBar.paddingBelowBar(context, const EdgeInsets.all(32)),
+              retryLabel: 'role_assignments.view.retry'.tr(),
               onRetry: () => ref.invalidate(roleAssignmentsProvider),
             ),
             data: (assignments) {
               if (assignments.isEmpty) {
-                return const _EmptyBody();
+                return SacEmptyState(
+                  icon: HugeIcons.strokeRoundedUserStar01,
+                  title: 'role_assignments.view.empty_title'.tr(),
+                  body: 'role_assignments.view.empty_body'.tr(),
+                );
               }
 
               return RefreshIndicator(
@@ -72,10 +81,10 @@ class RoleAssignmentsView extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 10),
                       decoration: BoxDecoration(
-                        color: AppColors.accentLight,
+                        color: c.infoContainer,
                         borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                         border: Border.all(
-                            color: AppColors.accent.withValues(alpha: 0.4)),
+                            color: c.onInfoContainer.withValues(alpha: 0.4)),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,7 +92,7 @@ class RoleAssignmentsView extends ConsumerWidget {
                           HugeIcon(
                             icon: HugeIcons.strokeRoundedInformationCircle,
                             size: 16,
-                            color: AppColors.accentDark,
+                            color: c.onInfoContainer,
                           ),
                           const SizedBox(width: 8),
                           Expanded(
@@ -91,7 +100,7 @@ class RoleAssignmentsView extends ConsumerWidget {
                               'role_assignments.view.admin_note'.tr(),
                               style: TextStyle(
                                 fontSize: SacFontSize.bodySmall,
-                                color: AppColors.accentDark,
+                                color: c.onInfoContainer,
                                 height: 1.4,
                               ),
                             ),
@@ -128,7 +137,7 @@ class _AssignmentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final statusCfg = _statusConfig(assignment.assignmentStatus);
+    final statusCfg = _statusConfig(context, assignment.assignmentStatus);
     final dateFmt = DateFormat('dd/MM/yyyy');
 
     return Container(
@@ -205,22 +214,7 @@ class _AssignmentCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusCfg.bg,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-                ),
-                child: Text(
-                  assignment.assignmentStatus.label,
-                  style: TextStyle(
-                    fontSize: SacFontSize.labelSmall,
-                    fontWeight: FontWeight.w600,
-                    color: statusCfg.fg,
-                  ),
-                ),
-              ),
+              _StatusBadge(status: assignment.assignmentStatus),
             ],
           ),
           if (assignment.assignedAt != null ||
@@ -273,23 +267,15 @@ class _AssignmentCard extends StatelessWidget {
     );
   }
 
-  _StatusConfig _statusConfig(AssignmentStatus status) {
+  _StatusConfig _statusConfig(BuildContext context, AssignmentStatus status) {
+    final c = context.sac;
     switch (status) {
       case AssignmentStatus.active:
-        return _StatusConfig(
-          bg: AppColors.secondaryLight,
-          fg: AppColors.secondaryDark,
-        );
+        return _StatusConfig(bg: c.successContainer, fg: c.onSuccessContainer);
       case AssignmentStatus.revoked:
-        return _StatusConfig(
-          bg: AppColors.errorLight,
-          fg: AppColors.errorDark,
-        );
+        return _StatusConfig(bg: c.errorContainer, fg: c.onErrorContainer);
       case AssignmentStatus.pending:
-        return _StatusConfig(
-          bg: AppColors.accentLight,
-          fg: AppColors.accentDark,
-        );
+        return _StatusConfig(bg: c.warningContainer, fg: c.onWarningContainer);
     }
   }
 }
@@ -299,6 +285,24 @@ class _StatusConfig {
   final Color fg;
 
   const _StatusConfig({required this.bg, required this.fg});
+}
+
+class _StatusBadge extends StatelessWidget {
+  final AssignmentStatus status;
+
+  const _StatusBadge({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    switch (status) {
+      case AssignmentStatus.active:
+        return SacBadge.success(label: status.label);
+      case AssignmentStatus.revoked:
+        return SacBadge.error(label: status.label);
+      case AssignmentStatus.pending:
+        return SacBadge.warning(label: status.label);
+    }
+  }
 }
 
 class _MetaRow extends StatelessWidget {
@@ -335,59 +339,6 @@ class _MetaRow extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-// ── Empty / Error states ──────────────────────────────────────────────────────
-
-class _EmptyBody extends StatelessWidget {
-  const _EmptyBody();
-
-  @override
-  Widget build(BuildContext context) {
-    return SacEmptyState(
-      icon: HugeIcons.strokeRoundedUserStar01,
-      title: 'role_assignments.view.empty_title'.tr(),
-      body: 'role_assignments.view.empty_body'.tr(),
-    );
-  }
-}
-
-class _ErrorBody extends StatelessWidget {
-  final String message;
-  final VoidCallback? onRetry;
-
-  const _ErrorBody({required this.message, this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 48,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: SacFontSize.titleSmall),
-            ),
-            const SizedBox(height: 16),
-            SacButton.primary(
-              text: 'role_assignments.view.retry'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onRetry,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

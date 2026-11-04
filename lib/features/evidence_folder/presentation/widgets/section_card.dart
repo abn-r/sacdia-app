@@ -2,10 +2,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/sac_loading.dart';
 import '../../domain/entities/evidence_section.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -150,7 +151,7 @@ class _SectionProgressIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusLabel = _statusLabel(section.status);
-    final color = _statusColor(section.status);
+    final color = _statusColor(context.sac, section.status);
 
     return Semantics(
       label: '${'evidence_folder.section_status_label'.tr()}: $statusLabel',
@@ -177,7 +178,7 @@ class _SectionProgressIndicator extends StatelessWidget {
 }
 
 class _CompactMetric extends StatelessWidget {
-  final List<List<dynamic>> icon;
+  final HugeIconData icon;
   final String label;
 
   const _CompactMetric({required this.icon, required this.label});
@@ -218,7 +219,7 @@ class _CompactStatusLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _statusColor(status);
+    final color = _statusColor(context.sac, status);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -251,13 +252,14 @@ class _TraceabilitySummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     final rows = <Widget>[];
 
     if (section.submittedByName != null) {
       rows.add(
         _TraceRow(
           icon: HugeIcons.strokeRoundedSent,
-          color: AppColors.info,
+          color: c.onInfoContainer,
           text: 'evidence_folder.trace.sent_by'.tr(namedArgs: {
             'name': section.submittedByName!,
             'date': _formattedDate(section.submittedAt),
@@ -269,7 +271,7 @@ class _TraceabilitySummary extends StatelessWidget {
       rows.add(
         _TraceRow(
           icon: HugeIcons.strokeRoundedAnalytics01,
-          color: AppColors.accentDark,
+          color: c.onWarningContainer,
           text: 'evidence_folder.trace.preapproved_by'.tr(namedArgs: {
             'name': section.lfApproverName!,
             'date': _formattedDate(section.lfApprovedAt),
@@ -281,7 +283,7 @@ class _TraceabilitySummary extends StatelessWidget {
       rows.add(
         _TraceRow(
           icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-          color: AppColors.secondaryDark,
+          color: c.onSuccessContainer,
           text: 'evidence_folder.trace.validated_by'.tr(namedArgs: {
             'name': section.unionApproverName!,
             'date': _formattedDate(section.unionApprovedAt),
@@ -326,6 +328,7 @@ class _SubmitSectionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final info = context.sac.onInfoContainer;
     return Semantics(
       button: true,
       enabled: !isSubmitting,
@@ -335,7 +338,7 @@ class _SubmitSectionButton extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
         child: Material(
-          color: AppColors.info.withValues(alpha: 0.1),
+          color: context.sac.infoContainer,
           borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           child: SacInkWell(
             // Keep the nested action in the gesture arena while loading so a
@@ -353,21 +356,15 @@ class _SubmitSectionButton extends StatelessWidget {
                 children: [
                   SacStateSwap(
                     child: isSubmitting
-                        ? const SizedBox(
-                            key: ValueKey('evidence-submit-loading'),
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(AppColors.info),
-                            ),
+                        ? SacLoadingSmall(
+                            key: const ValueKey('evidence-submit-loading'),
+                            color: info,
                           )
-                        : const HugeIcon(
-                            key: ValueKey('evidence-submit-idle'),
+                        : HugeIcon(
+                            key: const ValueKey('evidence-submit-idle'),
                             icon: HugeIcons.strokeRoundedSent,
                             size: 16,
-                            color: AppColors.info,
+                            color: info,
                           ),
                   ),
                   const SizedBox(width: 8),
@@ -384,10 +381,10 @@ class _SubmitSectionButton extends StatelessWidget {
                         ),
                         textAlign: TextAlign.center,
                         softWrap: true,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: SacFontSize.bodyMedium,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.info,
+                          color: info,
                           height: 1.2,
                         ),
                       ),
@@ -404,7 +401,7 @@ class _SubmitSectionButton extends StatelessWidget {
 }
 
 class _TraceRow extends StatelessWidget {
-  final List<List<dynamic>> icon;
+  final HugeIconData icon;
   final Color color;
   final String text;
 
@@ -423,7 +420,7 @@ class _TraceRow extends StatelessWidget {
         Expanded(
           child: Text(
             text,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: color,
@@ -457,22 +454,21 @@ String _statusLabel(EvidenceSectionStatus status) {
   }
 }
 
-Color _statusColor(EvidenceSectionStatus status) {
+Color _statusColor(SacColors c, EvidenceSectionStatus status) {
   switch (status) {
     case EvidenceSectionStatus.pending:
-      return AppColors.accentDark;
-    case EvidenceSectionStatus.submitted:
-      return AppColors.info;
     case EvidenceSectionStatus.preapprovedLf:
-      return AppColors.accent;
+      return c.onWarningContainer;
+    case EvidenceSectionStatus.submitted:
+      return c.onInfoContainer;
     case EvidenceSectionStatus.validated:
-      return AppColors.secondary;
+      return c.onSuccessContainer;
     case EvidenceSectionStatus.rejected:
-      return AppColors.error;
+      return c.onErrorContainer;
   }
 }
 
-List<List<dynamic>> _statusIcon(EvidenceSectionStatus status) {
+HugeIconData _statusIcon(EvidenceSectionStatus status) {
   switch (status) {
     case EvidenceSectionStatus.pending:
       return HugeIcons.strokeRoundedClock01;

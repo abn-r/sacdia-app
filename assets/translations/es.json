@@ -1,5 +1,9 @@
 {
   "common": {
+    "refresh": "Actualizar",
+    "understood": "Entendido",
+    "decrease_quantity": "Disminuir cantidad",
+    "increase_quantity": "Aumentar cantidad",
     "loading": "Cargando…",
     "retry": "Reintentar",
     "cancel": "Cancelar",
@@ -864,6 +868,7 @@
       "fetch_club_sections": "Error al obtener secciones del club"
     },
     "list": {
+      "toggle_view": "Cambiar vista",
       "title": "Actividades",
       "add": "Agregar",
       "today_label": "Hoy",
@@ -2533,6 +2538,9 @@
       "error_retry_hint": "Desliza hacia abajo para reintentar."
     },
     "widgets": {
+      "prev_month": "Mes anterior",
+      "next_month": "Mes siguiente",
+      "chart_a11y": "Gráfico de ingresos y egresos del periodo",
       "balance_total": "SALDO TOTAL",
       "month_summary_prefix": "Este mes: ",
       "month_summary_connector": " ingresos y ",
@@ -5292,6 +5300,8 @@
     }
   },
   "master_honors": {
+    "load_error_title": "No pudimos cargar las maestrías",
+    "load_error_body": "Intenta nuevamente en unos segundos.",
     "title": "Maestrías",
     "empty_title": "No hay maestrías disponibles"
   },

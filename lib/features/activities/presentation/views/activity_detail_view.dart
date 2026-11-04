@@ -4,6 +4,7 @@ import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/auth/club_role_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
@@ -11,6 +12,9 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -89,6 +93,15 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
   }
 
   // ── type helpers ────────────────────────────────────────────────────────────
+
+  /// Text-safe variant of a status color used on its own 10-12% tint.
+  Color _statusTextFor(Color color) {
+    final c = context.sac;
+    if (color == AppColors.info) return c.onInfoContainer;
+    if (color == AppColors.accent) return c.onWarningContainer;
+    if (color == AppColors.secondary) return c.onSuccessContainer;
+    return color;
+  }
 
   Color _typeColor(int type) {
     switch (type) {
@@ -252,7 +265,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                 style: TextStyle(
                   fontSize: SacFontSize.bodySmall,
                   fontWeight: FontWeight.w700,
-                  color: typeColor,
+                  color: _statusTextFor(typeColor),
                   height: 1.2,
                 ),
               ),
@@ -272,7 +285,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                 style: TextStyle(
                   fontSize: SacFontSize.bodySmall,
                   fontWeight: FontWeight.w700,
-                  color: platColor,
+                  color: _statusTextFor(platColor),
                   height: 1.2,
                 ),
               ),
@@ -281,15 +294,15 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppColors.secondaryLight,
+                  color: context.sac.successContainer,
                   borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 ),
                 child: Text(
                   'activities.series.badge'.tr(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: SacFontSize.bodySmall,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.secondaryDark,
+                    color: context.sac.onSuccessContainer,
                     height: 1.2,
                   ),
                 ),
@@ -531,47 +544,11 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                 elevation: 0,
               ),
               Expanded(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        HugeIcon(
-                          icon: HugeIcons.strokeRoundedAlert02,
-                          size: 56,
-                          color: AppColors.error,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'activities.detail.error_load'.tr(),
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          error.toString().replaceAll('Exception: ', ''),
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: context.sac.textSecondary,
-                                  ),
-                          textAlign: TextAlign.center,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 28),
-                        SacButton.primary(
-                          text: 'common.retry'.tr(),
-                          icon: HugeIcons.strokeRoundedRefresh,
-                          onPressed: () => ref.invalidate(
-                              activityDetailProvider(widget.activityId)),
-                        ),
-                      ],
-                    ),
-                  ),
+                child: SacErrorState(
+                  title: 'activities.detail.error_load'.tr(),
+                  message: userErrorMessage(error),
+                  onRetry: () =>
+                      ref.invalidate(activityDetailProvider(widget.activityId)),
                 ),
               ),
             ],
@@ -746,14 +723,9 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                                 deleteState.isLoading ? null : _confirmDelete,
                             child: SacStateSwap(
                               child: deleteState.isLoading
-                                  ? const SizedBox(
+                                  ? const SacLoadingSmall(
                                       key: ValueKey('activity-delete-loading'),
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
+                                      color: Colors.white,
                                     )
                                   : const HugeIcon(
                                       key: ValueKey('activity-delete-idle'),
@@ -778,7 +750,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
 enum _ActionTone { primary, danger }
 
 class _ActivityActionCard extends StatelessWidget {
-  final List<List<dynamic>> icon;
+  final HugeIconData icon;
   final String title;
   final String body;
   final VoidCallback onTap;
@@ -800,7 +772,7 @@ class _ActivityActionCard extends StatelessWidget {
     final Color iconBg;
     switch (tone) {
       case _ActionTone.danger:
-        fill = AppColors.errorLight;
+        fill = sac.errorContainer;
         border = AppColors.error.withValues(alpha: 0.22);
         iconBg = AppColors.error;
       case _ActionTone.primary:

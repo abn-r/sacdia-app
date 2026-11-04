@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -173,7 +174,7 @@ class MedicalInfoView extends ConsumerWidget {
                         child: SacLoadingSmall(),
                       ),
                       error: (e, _) => _SectionError(
-                        message: e.toString(),
+                        message: userErrorMessage(e),
                         onRetry: () =>
                             ref.invalidate(emergencyContactsProvider),
                       ),
@@ -226,7 +227,7 @@ class MedicalInfoView extends ConsumerWidget {
                         child: SacLoadingSmall(),
                       ),
                       error: (e, _) => _SectionError(
-                        message: e.toString(),
+                        message: userErrorMessage(e),
                         onRetry: () => ref.invalidate(userAllergiesProvider),
                       ),
                       data: (allergyList) {
@@ -274,7 +275,7 @@ class MedicalInfoView extends ConsumerWidget {
                         child: SacLoadingSmall(),
                       ),
                       error: (e, _) => _SectionError(
-                        message: e.toString(),
+                        message: userErrorMessage(e),
                         onRetry: () => ref.invalidate(userDiseasesProvider),
                       ),
                       data: (diseaseList) {
@@ -323,7 +324,7 @@ class MedicalInfoView extends ConsumerWidget {
                         child: SacLoadingSmall(),
                       ),
                       error: (e, _) => _SectionError(
-                        message: e.toString(),
+                        message: userErrorMessage(e),
                         onRetry: () => ref.invalidate(userMedicinesProvider),
                       ),
                       data: (medicineList) {
@@ -385,21 +386,10 @@ class _SectionError extends StatelessWidget {
                 fontSize: SacFontSize.bodyMedium, color: AppColors.error),
           ),
         ),
-        SacPressable(
-          listenOnly: true,
-          child: TextButton(
-            onPressed: onRetry,
-            style: (TextButton.styleFrom(
-              foregroundColor: SacAccent.of(context).color,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            )).copyWith(enableFeedback: false),
-            child: Text(
-              'common.retry'.tr(),
-              style: const TextStyle(fontSize: SacFontSize.bodySmall),
-            ),
-          ),
+        SacButton.text(
+          text: 'common.retry'.tr(),
+          onPressed: onRetry,
+          color: SacAccent.of(context).color,
         ),
       ],
     );

@@ -861,25 +861,11 @@ class _RegisteredMedicinesSection extends StatelessWidget {
             onChanged: (d) => onDoseChange(expanded.id, d),
           ),
           const SizedBox(height: 4),
-          SacPressable(
-            listenOnly: true,
-            child: TextButton.icon(
-              onPressed: () => onRemove(expanded.id, expanded.name),
-              style: TextButton.styleFrom(
-                enableFeedback: false,
-                foregroundColor: MedicoTokens.coral600,
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                minimumSize: const Size(0, 40),
-              ),
-              icon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedDelete02,
-                size: 18,
-                color: MedicoTokens.coral600,
-              ),
-              label: Text(
-                'post_registration.health.medicines.delete_dialog_title'.tr(),
-              ),
-            ),
+          SacButton.text(
+            text: 'post_registration.health.medicines.delete_dialog_title'.tr(),
+            icon: HugeIcons.strokeRoundedDelete02,
+            color: MedicoTokens.coral600,
+            onPressed: () => onRemove(expanded.id, expanded.name),
           ),
         ],
       ],
@@ -985,22 +971,12 @@ class _MedicineTile extends StatelessWidget {
                       onChanged: onDoseChanged,
                     ),
                     const SizedBox(height: 8),
-                    SacPressable(
-                      listenOnly: true,
-                      child: TextButton(
-                        onPressed: onRemove,
-                        style: TextButton.styleFrom(
-                          enableFeedback: false,
-                          foregroundColor: m.iconMuted,
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: Text(
+                    SacButton.text(
+                      text:
                           'post_registration.health.medicines.remove_selection'
                               .tr(),
-                        ),
-                      ),
+                      color: m.iconMuted,
+                      onPressed: onRemove,
                     ),
                   ],
                 ),

@@ -151,10 +151,10 @@ void main() {
 
     expect(
         find.text('No pudimos cargar los miembros inscritos.'), findsOneWidget);
-    expect(find.text('Reintentar miembros'), findsOneWidget);
+    expect(find.text('Reintentar'), findsOneWidget);
     expect(memberLoads, 1);
 
-    await tester.tap(find.text('Reintentar miembros'));
+    await tester.tap(find.text('Reintentar'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 

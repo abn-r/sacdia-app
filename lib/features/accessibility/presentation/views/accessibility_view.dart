@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_settings.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -7,7 +8,6 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
-import '../../../profile/presentation/widgets/setting_tile.dart';
 import '../../domain/entities/accessibility_settings.dart';
 import '../providers/accessibility_provider.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
@@ -39,11 +39,10 @@ class AccessibilityView extends ConsumerWidget {
             children: [
               _GroupContainer(
                 children: [
-                  SettingTile(
+                  SacSettingsTile(
                     icon: HugeIcons.strokeRoundedTextFont,
                     title: 'accessibility.text_size_label'.tr(),
                     subtitle: _labelForTextSize(settings.textSize),
-                    iconColor: SacAccent.of(context).color,
                     onTap: () => _showTextSizePicker(context, ref),
                   ),
                   _divider(context),

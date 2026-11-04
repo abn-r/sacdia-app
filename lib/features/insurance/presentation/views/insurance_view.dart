@@ -15,8 +15,10 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/fixed_input_icon_slot.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
+import '../../../../core/errors/user_error_message.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_empty_state.dart';
+import '../../../../core/widgets/sac_error_state.dart';
 import '../../../payment_orders/presentation/providers/payment_orders_providers.dart';
 import '../../domain/entities/member_insurance.dart';
 import '../providers/insurance_providers.dart';
@@ -127,8 +129,9 @@ class _InsuranceViewState extends ConsumerState<InsuranceView> {
                   SliverToBoxAdapter(
                     child: filteredAsync.when(
                       loading: () => const InsuranceLoadingSkeleton(),
-                      error: (e, _) => _ErrorBody(
-                        message: e.toString().replaceFirst('Exception: ', ''),
+                      error: (e, _) => SacErrorState(
+                        title: 'insurance.view.error_title'.tr(),
+                        message: userErrorMessage(e),
                         onRetry: () => ref.invalidate(membersInsuranceProvider),
                       ),
                       data: (items) => _InsuranceBody(
@@ -238,9 +241,16 @@ class _InsuranceBody extends ConsumerWidget {
           onSortChanged: onSortChanged,
         ),
         if (items.isEmpty)
-          _EmptyState(
-            hasFilters: filters.hasActiveFilters,
-            canManage: canManage,
+          SacEmptyState(
+            icon: HugeIcons.strokeRoundedShield01,
+            title: filters.hasActiveFilters
+                ? 'insurance.view.empty_filtered_title'.tr()
+                : 'insurance.view.empty_title'.tr(),
+            body: filters.hasActiveFilters
+                ? 'insurance.view.empty_filtered_subtitle'.tr()
+                : canManage
+                    ? 'insurance.view.empty_subtitle_manager'.tr()
+                    : 'insurance.view.empty_subtitle_member'.tr(),
           )
         else
           _MemberGroup(
@@ -387,6 +397,7 @@ class _SearchBar extends StatelessWidget {
                   listenOnly: true,
                   child: IconButton(
                     enableFeedback: false,
+                    tooltip: 'common.clear'.tr(),
                     onPressed: () {
                       controller.clear();
                       onChanged('');
@@ -454,33 +465,11 @@ class _SortCountRow extends StatelessWidget {
           const Spacer(),
           SacPressable(
             listenOnly: true,
-            child: TextButton(
+            child: SacButton.text(
+              text: sortOrder.label,
+              icon: HugeIcons.strokeRoundedSortByUp01,
+              color: c.textSecondary,
               onPressed: () => _showSortMenu(context),
-              style: (TextButton.styleFrom(
-                minimumSize: const Size(44, 44),
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                foregroundColor: c.textSecondary,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              )).copyWith(enableFeedback: false),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedSortByUp01,
-                    size: 14,
-                    color: c.textSecondary,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    sortOrder.label,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: SacFontSize.bodyMedium,
-                      color: c.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
         ],
@@ -570,74 +559,6 @@ class _SortSheet extends StatelessWidget {
           SizedBox(height: MediaQuery.paddingOf(context).bottom + 8),
         ],
       ),
-    );
-  }
-}
-
-class _ErrorBody extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorBody({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return Padding(
-      padding: const EdgeInsets.all(40),
-      child: Column(
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedAlert02,
-            size: 48,
-            color: c.error,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'insurance.view.error_title'.tr(),
-            style: Theme.of(context).textTheme.titleMedium,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            message,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: c.textSecondary,
-                ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          SacButton(
-            text: 'common.retry'.tr(),
-            onPressed: onRetry,
-            icon: HugeIcons.strokeRoundedRefresh,
-            fullWidth: false,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  final bool hasFilters;
-  final bool canManage;
-
-  const _EmptyState({required this.hasFilters, required this.canManage});
-
-  @override
-  Widget build(BuildContext context) {
-    return SacEmptyState(
-      icon: HugeIcons.strokeRoundedShield01,
-      title: hasFilters
-          ? 'insurance.view.empty_filtered_title'.tr()
-          : 'insurance.view.empty_title'.tr(),
-      body: hasFilters
-          ? 'insurance.view.empty_filtered_subtitle'.tr()
-          : canManage
-              ? 'insurance.view.empty_subtitle_manager'.tr()
-              : 'insurance.view.empty_subtitle_member'.tr(),
     );
   }
 }

@@ -120,6 +120,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                   listenOnly: true,
                   child: IconButton(
                     enableFeedback: false,
+                    tooltip: 'common.close'.tr(),
                     onPressed: () => Navigator.pop(context),
                     icon: HugeIcon(
                       icon: HugeIcons.strokeRoundedCancel01,
@@ -200,11 +201,10 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                           Text('finances.add_transaction.category_error'.tr()),
                           SacPressable(
                             listenOnly: true,
-                            child: TextButton(
-                              style: const ButtonStyle(enableFeedback: false),
+                            child: SacButton.text(
+                              text: 'common.retry'.tr(),
                               onPressed: () =>
                                   ref.invalidate(financeCategoriesProvider),
-                              child: Text('common.retry'.tr()),
                             ),
                           ),
                         ],
@@ -1084,7 +1084,6 @@ class _DatePickerField extends StatelessWidget {
       initialDate: selectedDate,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
-      locale: const Locale('es', 'ES'),
     );
     if (picked != null) onDateSelected(picked);
   }

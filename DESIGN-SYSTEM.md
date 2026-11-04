@@ -9,6 +9,13 @@
 > Design identity: "Scout Vibrante" — Duolingo gamification + Apple Health minimalism.
 > White backgrounds, vibrant accents, progress as protagonist.
 
+### Changelog 2026-11-04 — Phase 2 components
+
+- **Skeletons**: `SacShimmer`, `SacSkeletonBox`, `SacSkeletonList`, `SacSkeletonCard` (`sac_skeleton.dart`). Page loads use a skeleton, not a spinner (§6.12, §11.1).
+- **`SacErrorState` / `SacEmptyState`**: `scrollable` flag for pull-to-refresh, `.inline` compact variants; `SacEmptyState.icon`/`actionIcon` are now `HugeIconData` (§11).
+- **`SacMemberAvatar`** (photo or initials, optional accent ring) and **`SacSettingsGroup` / `SacSettingsTile` / `SacSettingsSwitchTile` / `SacSettingsDivider`** extracted from the settings screen (§6.12).
+- **`SacButton`**: every size keeps a 44dp hit area (`kSacMinTapTarget`); new `SacButton.text` replaces raw `TextButton` (§6.1).
+
 ### Changelog 2026-11-04 — color/state foundation
 
 - **Status containers**: `SacColors` gains `success/warning/error/infoContainer` and their `on*Container`, per mode (§2.7). `onSuccess`/`onWarning`/`onInfo` now are ink (`#131316`) because white and `accentDark` failed AA on the solid fills.
@@ -845,6 +852,25 @@ import 'package:sacdia_app/core/widgets/sac_widgets.dart';
 **NOT in barrel (intentional):**
 - `sac_image_viewer.dart` — `SacImageViewer` is launched via `Navigator.push` with its own routing context; it is not a composable widget for embedding.
 
+### 6.12 Phase 2 components
+
+All exported from `sac_widgets.dart`. Colors come from `context.sac` / `SacAccent`.
+
+- **`SacButton.text({text, onPressed, icon, color})`**: ghost-style text action (accent label, press feedback). Replaces `TextButton`. Every `SacButton` size has a >= 44dp hit area (`kSacMinTapTarget`); `small` stays 36dp visually, the extra area is invisible.
+- **`SacShimmer({child, enabled})`**: one shared gradient sweep (`skeleton` -> `skeletonHighlight`), static with reduce motion. Wrap the WHOLE skeleton in one shimmer. It repaints every pixel of its child, so use it only around skeleton blocks. Tests: `pump(duration)`, not `pumpAndSettle()`.
+- **`SacSkeletonBox({width, height, radius})`**: flat block. **`SacSkeletonCard({height = 120})`**: rounded block for grids (wrap the grid in a `SacShimmer`).
+- **`SacSkeletonList({itemCount = 6, leading = true, lines = 2, padding, scrollable = true})`**: avatar + text-line rows inside its own `SacShimmer`. Shrink-wrapped `ListView`; `scrollable: true` uses `AlwaysScrollableScrollPhysics` so a parent `RefreshIndicator` works, `false` is for nesting in another scroll view.
+- **`SacMemberAvatar({imageUrl, name, size = 40, ring = false, semanticLabel})`**: cached photo (`SacProfileImage`) or two-letter initials; `Semantics(image: true)`.
+- **`SacSettingsGroup({title, children})`** + **`SacSettingsDivider`**, **`SacSettingsTile({icon, title, subtitle, trailing, onTap, destructive})`**, **`SacSettingsSwitchTile({icon, title, subtitle, value, onChanged, indent, muted})`**: iOS-Settings-style rows (>= 48dp, switch announces toggled state).
+
+```dart
+SacSettingsGroup(title: 'Cuenta'.tr(), children: [
+  SacSettingsTile(icon: HugeIcons.strokeRoundedQrCode, title: t, onTap: open),
+  const SacSettingsDivider(),
+  SacSettingsSwitchTile(icon: icon, title: t, value: on, onChanged: set),
+])
+```
+
 ### 6.11 Legacy Widgets — Deprecated
 
 The following widget is deprecated and must NOT be used in new code:
@@ -1044,6 +1070,10 @@ loading: () => const Scaffold(
 ),
 ```
 
+Page loads (lists, grids, detail screens) use a skeleton, not a spinner:
+`SacSkeletonList` for rows, `SacShimmer` + `SacSkeletonBox`/`SacSkeletonCard` for
+custom layouts (§6.12). Reserve `SacLoading` for short blocking actions.
+
 ### 11.2 Empty State
 
 Use `SacEmptyState` (`lib/core/widgets/sac_empty_state.dart`) for new screens. Older
@@ -1073,11 +1103,18 @@ Center(
 **Note**: pattern is inconsistent across legacy features. For new screens use
 `SacEmptyState`, not a hand-rolled copy of Pattern A.
 
+Inside a `RefreshIndicator`, pass `scrollable: true` so the state is centered AND
+the user can pull to refresh (a plain state is not scrollable). In panels/cards use
+the compact `SacEmptyState.inline(title:, body:, icon:)`.
+
 ### 11.3 Error State
 
 Use `SacErrorState` for full-area failures (`SacErrorState.forbidden()` for 403) and a
 compact inline card with a retry button for a failing section inside a larger screen.
-Never show `error.toString()` to users; use localized copy. Legacy inline pattern:
+Never show `error.toString()` to users; use localized copy. Pass `scrollable: true`
+when it is the child of a `RefreshIndicator`. For a failing panel/card use
+`SacErrorState.inline(message:, onRetry:)` (small icon + message + small retry).
+Legacy inline pattern:
 
 ```dart
 // In AsyncValue.when():

@@ -28,6 +28,7 @@ import 'location_picker_view.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 /// Vista para editar una actividad existente.
 ///
@@ -864,11 +865,7 @@ class _SectionMultiPicker extends ConsumerWidget {
         sectionsAsync.when(
           loading: () => const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
-            child: SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
+            child: SacLoadingSmall(),
           ),
           error: (_, __) => Text(
             'activities.form.sections_error_load'.tr(),

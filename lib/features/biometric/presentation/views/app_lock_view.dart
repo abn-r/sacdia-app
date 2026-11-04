@@ -1,6 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -123,13 +122,9 @@ class _AppLockViewState extends ConsumerState<AppLockView> {
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
-                  child: SacPressable(
-                    listenOnly: true,
-                    child: TextButton(
-                      style: const ButtonStyle(enableFeedback: false),
-                      onPressed: _signOutAndGoToLogin,
-                      child: Text('biometric.fallback_password'.tr()),
-                    ),
+                  child: SacButton.text(
+                    text: 'biometric.fallback_password'.tr(),
+                    onPressed: _signOutAndGoToLogin,
                   ),
                 ),
               ],

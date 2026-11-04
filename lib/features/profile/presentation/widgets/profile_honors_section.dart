@@ -392,7 +392,10 @@ class _HonorStatusCaption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final meta = _HonorStatusCaptionMeta.fromUserHonor(userHonor);
+    final meta = _HonorStatusCaptionMeta.fromUserHonor(
+      userHonor,
+      context.sac,
+    );
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
@@ -427,38 +430,41 @@ class _HonorStatusCaptionMeta {
     required this.foreground,
   });
 
-  factory _HonorStatusCaptionMeta.fromUserHonor(UserHonor userHonor) {
+  factory _HonorStatusCaptionMeta.fromUserHonor(
+    UserHonor userHonor,
+    SacColors c,
+  ) {
     switch (userHonor.displayStatus) {
       case 'validado':
         return _HonorStatusCaptionMeta(
           label: 'profile.honors_section.status_validated'.tr(),
-          background: AppColors.validatedBg,
-          foreground: AppColors.validatedDark,
+          background: c.successContainer,
+          foreground: c.onSuccessContainer,
         );
       case 'enviado':
         return _HonorStatusCaptionMeta(
           label: 'profile.honors_section.status_submitted'.tr(),
-          background: AppColors.statusInfoBgLight,
-          foreground: AppColors.statusInfoText,
+          background: c.infoContainer,
+          foreground: c.onInfoContainer,
         );
       case 'rechazado':
         return _HonorStatusCaptionMeta(
           label: 'profile.honors_section.status_rejected'.tr(),
-          background: AppColors.rejectedBg,
-          foreground: AppColors.rejectedDark,
+          background: c.errorContainer,
+          foreground: c.onErrorContainer,
         );
       case 'en_progreso':
         return _HonorStatusCaptionMeta(
           label: 'profile.honors_section.status_in_progress'.tr(),
-          background: AppColors.observedBg,
-          foreground: AppColors.observedDark,
+          background: c.warningContainer,
+          foreground: c.onWarningContainer,
         );
       case 'inscrito':
       default:
         return _HonorStatusCaptionMeta(
           label: 'profile.honors_section.status_enrolled'.tr(),
-          background: AppColors.pendingBg,
-          foreground: AppColors.pendingDark,
+          background: c.surfaceVariant,
+          foreground: c.textSecondary,
         );
     }
   }

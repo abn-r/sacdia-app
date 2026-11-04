@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/member_ranking.dart';
@@ -167,22 +166,21 @@ class _CompositeBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Color del badge: accent con 15% de opacidad; texto accent.
-    const tierColor = AppColors.accent;
+    final c = context.sac;
 
     return Container(
       width: 48,
       height: 24,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: tierColor.withValues(alpha: 0.15),
+        color: c.warningContainer,
         borderRadius: BorderRadius.circular(AppTheme.radiusXS),
       ),
       child: Text(
         formatScore(score),
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
               fontWeight: FontWeight.w600,
-              color: tierColor,
+              color: c.onWarningContainer,
               fontSize: SacFontSize.labelSmall,
             ),
       ),

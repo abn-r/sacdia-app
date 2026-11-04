@@ -1,8 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -38,6 +39,7 @@ class ClassDetailView extends ConsumerWidget {
         ) ??
         0.0;
     final progressPercent = (progressRatio * 100).round();
+    final onAccent = SacAccent.of(context).onColor;
 
     return Scaffold(
       backgroundColor: context.sac.background,
@@ -52,7 +54,7 @@ class ClassDetailView extends ConsumerWidget {
                 expandedHeight: 260,
                 pinned: true,
                 backgroundColor: SacAccent.of(context).color,
-                foregroundColor: Colors.white,
+                foregroundColor: onAccent,
                 flexibleSpace: FlexibleSpaceBar(
                   background: Container(
                     decoration: BoxDecoration(
@@ -75,8 +77,8 @@ class ClassDetailView extends ConsumerWidget {
                             progress: progressRatio,
                             size: 120,
                             strokeWidth: 8,
-                            color: Colors.white,
-                            trackColor: Colors.white24,
+                            color: onAccent,
+                            trackColor: onAccent.withValues(alpha: 0.24),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -87,14 +89,14 @@ class ClassDetailView extends ConsumerWidget {
                                       .headlineMedium
                                       ?.copyWith(
                                         fontWeight: FontWeight.w700,
-                                        color: Colors.white,
+                                        color: onAccent,
                                       ),
                                 ),
                                 Text(
                                   'classes.detail.progress_label'.tr(),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: SacFontSize.bodySmall,
-                                    color: Colors.white70,
+                                    color: onAccent.withValues(alpha: 0.7),
                                   ),
                                 ),
                               ],
@@ -108,7 +110,7 @@ class ClassDetailView extends ConsumerWidget {
                                 .titleLarge
                                 ?.copyWith(
                                   fontWeight: FontWeight.w700,
-                                  color: Colors.white,
+                                  color: onAccent,
                                 ),
                           ),
                         ],
@@ -177,43 +179,12 @@ class ClassDetailView extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: SacLoading()),
-        error: (error, stack) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                HugeIcon(
-                    icon: HugeIcons.strokeRoundedAlert02,
-                    size: 56,
-                    color: AppColors.error),
-                const SizedBox(height: 16),
-                Text(
-                  'classes.detail.error_loading'.tr(),
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  error.toString(),
-                  style: TextStyle(
-                      fontSize: SacFontSize.titleSmall,
-                      color: context.sac.textSecondary),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                SacButton.primary(
-                  text: 'common.retry'.tr(),
-                  icon: HugeIcons.strokeRoundedRefresh,
-                  onPressed: () {
-                    ref.invalidate(classDetailProvider(classId));
-                  },
-                ),
-              ],
-            ),
-          ),
+        error: (error, stack) => SacErrorState(
+          title: 'classes.detail.error_loading'.tr(),
+          message: userErrorMessage(error),
+          onRetry: () {
+            ref.invalidate(classDetailProvider(classId));
+          },
         ),
       ),
     );

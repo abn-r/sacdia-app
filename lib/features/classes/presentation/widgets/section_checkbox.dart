@@ -44,60 +44,69 @@ class _SectionCheckboxState extends State<SectionCheckbox> {
     final labelColor = completed ? context.sac.textTertiary : context.sac.text;
 
     return Semantics(
+      container: true,
       button: true,
+      checked: completed,
+      label: section.name,
+      excludeSemantics: true,
+      onTap: () => widget.onChanged(!completed),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => widget.onChanged(!completed),
         onTapDown: (_) => _setPressed(true),
         onTapUp: (_) => _setPressed(false),
         onTapCancel: () => _setPressed(false),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-          child: Row(
-            children: [
-              AnimatedScale(
-                scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
-                duration: SacMotion.press,
-                curve: SacMotion.easeOut,
-                child: AnimatedContainer(
-                  duration: reduce ? SacMotion.reducedFade : SacMotion.standard,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 44),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+            child: Row(
+              children: [
+                AnimatedScale(
+                  scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
+                  duration: SacMotion.press,
                   curve: SacMotion.easeOut,
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: fill,
-                    border: Border.all(color: border, width: 2),
-                  ),
-                  child: SacStateSwap(
-                    duration: SacMotion.press,
-                    child: completed
-                        ? const HugeIcon(
-                            key: ValueKey('section-check-on'),
-                            icon: HugeIcons.strokeRoundedTick02,
-                            size: 14,
-                            color: Colors.white,
-                          )
-                        : const SizedBox.shrink(
-                            key: ValueKey('section-check-off'),
-                          ),
+                  child: AnimatedContainer(
+                    duration:
+                        reduce ? SacMotion.reducedFade : SacMotion.standard,
+                    curve: SacMotion.easeOut,
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: fill,
+                      border: Border.all(color: border, width: 2),
+                    ),
+                    child: SacStateSwap(
+                      duration: SacMotion.press,
+                      child: completed
+                          ? HugeIcon(
+                              key: const ValueKey('section-check-on'),
+                              icon: HugeIcons.strokeRoundedTick02,
+                              size: 14,
+                              color: context.sac.onSuccess,
+                            )
+                          : const SizedBox.shrink(
+                              key: ValueKey('section-check-off'),
+                            ),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: AnimatedDefaultTextStyle(
-                  duration: reduce ? SacMotion.reducedFade : SacMotion.press,
-                  curve: SacMotion.easeOut,
-                  style: TextStyle(
-                    fontSize: SacFontSize.titleSmall,
-                    decoration: completed ? TextDecoration.lineThrough : null,
-                    color: labelColor,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: AnimatedDefaultTextStyle(
+                    duration: reduce ? SacMotion.reducedFade : SacMotion.press,
+                    curve: SacMotion.easeOut,
+                    style: TextStyle(
+                      fontSize: SacFontSize.titleSmall,
+                      decoration: completed ? TextDecoration.lineThrough : null,
+                      color: labelColor,
+                    ),
+                    child: Text(section.name),
                   ),
-                  child: Text(section.name),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

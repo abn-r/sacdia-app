@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:go_router/go_router.dart';
@@ -82,18 +83,12 @@ class ClassHonorActionsRow extends StatelessWidget {
                 ),
               ),
             ),
-          SacPressable(
-            listenOnly: true,
-            child: TextButton(
-              style: const ButtonStyle(enableFeedback: false),
-              onPressed: () => context.push(
-                RouteNames.honorDetailPath(honor.honorId.toString()),
-              ),
-              child: Text(
-                honor.isEnrolled
-                    ? 'classes.honors.continue_honor'.tr()
-                    : 'classes.honors.enroll'.tr(),
-              ),
+          SacButton.text(
+            text: honor.isEnrolled
+                ? 'classes.honors.continue_honor'.tr()
+                : 'classes.honors.enroll'.tr(),
+            onPressed: () => context.push(
+              RouteNames.honorDetailPath(honor.honorId.toString()),
             ),
           ),
         ],

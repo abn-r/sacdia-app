@@ -434,7 +434,7 @@ class _CategoryPill extends StatelessWidget {
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.w600,
-              fontSize: SacFontSize.caption,
+              fontSize: SacFontSize.labelSmall,
             ),
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
@@ -516,7 +516,7 @@ class _SignalDetailCard extends StatelessWidget {
                           namedArgs: {'pct': weightPct.toString()}),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: c.textTertiary,
-                            fontSize: SacFontSize.caption,
+                            fontSize: SacFontSize.labelSmall,
                           ),
                     ),
                   ],
@@ -619,7 +619,7 @@ class _WeightsSummary extends StatelessWidget {
                   namedArgs: {'source': weights.source}),
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: c.textTertiary,
-                    fontSize: SacFontSize.caption,
+                    fontSize: SacFontSize.labelSmall,
                   ),
             ),
           ],
@@ -682,7 +682,7 @@ class _CalculatedAtRow extends StatelessWidget {
         tr('rankings.breakdown.calculated_at', namedArgs: {'date': formatted}),
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: c.textTertiary,
-              fontSize: SacFontSize.caption,
+              fontSize: SacFontSize.labelSmall,
             ),
         textAlign: TextAlign.center,
       ),

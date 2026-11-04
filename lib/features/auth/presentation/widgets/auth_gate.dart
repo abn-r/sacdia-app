@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -43,7 +44,7 @@ class AuthGate extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    error.toString(),
+                    userErrorMessage(error),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),

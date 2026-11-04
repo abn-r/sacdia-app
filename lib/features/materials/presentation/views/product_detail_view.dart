@@ -1,11 +1,14 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/material_item.dart';
@@ -45,34 +48,12 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) => itemAsync.when(
-            loading: () => Center(
-              child:
-                  CircularProgressIndicator(color: SacAccent.of(context).color),
-            ),
-            error: (e, _) => Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const HugeIcon(
-                      icon: HugeIcons.strokeRoundedAlert02,
-                      size: 48,
-                      color: AppColors.error),
-                  const SizedBox(height: 12),
-                  Text(
-                    e.toString(),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: c.textSecondary),
-                  ),
-                  const SizedBox(height: 16),
-                  SacButton(
-                    text: 'common.retry'.tr(),
-                    variant: SacButtonVariant.primary,
-                    fullWidth: false,
-                    onPressed: () =>
-                        ref.invalidate(productDetailProvider(widget.productId)),
-                  ),
-                ],
-              ),
+            loading: () => const Center(child: SacLoading()),
+            error: (e, _) => SacErrorState(
+              title: 'common.error_state.title'.tr(),
+              message: userErrorMessage(e),
+              onRetry: () =>
+                  ref.invalidate(productDetailProvider(widget.productId)),
             ),
             data: (item) {
               // Determine stock limit for the stepper
@@ -129,11 +110,8 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                       spacing: 8,
                       runSpacing: 4,
                       children: [
-                        _Badge(
-                            label: item.category.label, color: AppColors.info),
-                        _Badge(
-                            label: item.programa.label,
-                            color: AppColors.secondary),
+                        SacBadge.info(label: item.category.label),
+                        SacBadge.success(label: item.programa.label),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -278,7 +256,7 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                         child: Text(
                           'materials.product.out_of_stock'.tr(),
                           style: TextStyle(
-                            color: AppColors.error,
+                            color: c.onErrorContainer,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -319,29 +297,3 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
 }
 
 // ── Helper widget ─────────────────────────────────────────────────────────────
-
-class _Badge extends StatelessWidget {
-  final String label;
-  final Color color;
-
-  const _Badge({required this.label, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: SacFontSize.labelSmall,
-          color: color,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-}

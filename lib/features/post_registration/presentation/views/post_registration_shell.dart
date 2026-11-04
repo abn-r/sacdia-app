@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -377,9 +378,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     if (!_statusLoaded) {
       return Scaffold(
         backgroundColor: context.sac.surface,
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        body: const Center(child: SacLoading()),
       );
     }
 

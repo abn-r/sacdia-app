@@ -81,7 +81,8 @@ void main() {
     expect(find.text('Pendiente'), findsNothing);
     expect(
       tester.getSize(find.byType(JoinRequestCard)).height,
-      lessThanOrEqualTo(64),
+      // 48dp hit areas + 16dp padding + 2dp border.
+      lessThanOrEqualTo(66),
     );
   });
 

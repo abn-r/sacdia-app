@@ -2,13 +2,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 import '../../domain/entities/inventory_item.dart';
 import '../providers/inventory_providers.dart';
 
@@ -64,8 +63,9 @@ class InventoryFilterSheet extends ConsumerWidget {
                   ),
                   SacPressable(
                     listenOnly: true,
-                    child: TextButton(
-                      style: const ButtonStyle(enableFeedback: false),
+                    child: SacButton.text(
+                      text: 'inventory.filter_sheet.clear'.tr(),
+                      color: SacAccent.of(context).dark,
                       onPressed: () {
                         // Only clear condition and sort — category managed by chips
                         ref.read(inventoryFiltersProvider.notifier).state =
@@ -74,10 +74,6 @@ class InventoryFilterSheet extends ConsumerWidget {
                           sortOrder: InventorySortOrder.nameAsc,
                         );
                       },
-                      child: Text(
-                        'inventory.filter_sheet.clear'.tr(),
-                        style: TextStyle(color: SacAccent.of(context).color),
-                      ),
                     ),
                   ),
                 ],
@@ -98,9 +94,10 @@ class InventoryFilterSheet extends ConsumerWidget {
                       runSpacing: 8,
                       children: InventorySortOrder.values.map((order) {
                         final isSelected = filters.sortOrder == order;
-                        return _SortChip(
+                        return SacFilterChip(
                           label: order.label,
-                          isSelected: isSelected,
+                          selected: isSelected,
+                          variant: SacFilterChipVariant.quiet,
                           onTap: () {
                             ref.read(inventoryFiltersProvider.notifier).state =
                                 filters.copyWith(sortOrder: order);
@@ -117,10 +114,10 @@ class InventoryFilterSheet extends ConsumerWidget {
                     const SizedBox(height: 10),
                     Row(
                       children: [
-                        _ConditionChip(
+                        SacFilterChip(
                           label: 'inventory.filter_sheet.condition_all'.tr(),
-                          isSelected: filters.condition == null,
-                          color: SacAccent.of(context).color,
+                          selected: filters.condition == null,
+                          variant: SacFilterChipVariant.quiet,
                           onTap: () {
                             ref.read(inventoryFiltersProvider.notifier).state =
                                 filters.copyWith(clearCondition: true);
@@ -129,10 +126,16 @@ class InventoryFilterSheet extends ConsumerWidget {
                         const SizedBox(width: 8),
                         ...ItemCondition.values.map((cond) => Padding(
                               padding: const EdgeInsets.only(right: 8),
-                              child: _ConditionChip(
+                              child: SacFilterChip(
                                 label: cond.shortLabel,
-                                isSelected: filters.condition == cond,
-                                color: _conditionColor(cond),
+                                selected: filters.condition == cond,
+                                variant: SacFilterChipVariant.quiet,
+                                accentBackground: filters.condition == cond
+                                    ? _conditionContainer(cond, context.sac)
+                                    : null,
+                                accentForeground: filters.condition == cond
+                                    ? _conditionOnContainer(cond, context.sac)
+                                    : null,
                                 onTap: () {
                                   ref
                                       .read(inventoryFiltersProvider.notifier)
@@ -160,131 +163,26 @@ class InventoryFilterSheet extends ConsumerWidget {
     );
   }
 
-  Color _conditionColor(ItemCondition c) {
+  Color _conditionContainer(ItemCondition c, SacColors sac) {
     switch (c) {
       case ItemCondition.bueno:
-        return AppColors.secondary;
+        return sac.successContainer;
       case ItemCondition.regular:
-        return AppColors.accent;
+        return sac.warningContainer;
       case ItemCondition.malo:
-        return AppColors.error;
+        return sac.errorContainer;
     }
   }
-}
 
-// ── Sort chip ───────────────────────────────────────────────────────────────────
-
-class _SortChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _SortChip({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 160),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? SacAccent.of(context).color.withValues(alpha: 0.12)
-              : context.sac.surfaceVariant,
-          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-          border: Border.all(
-            color:
-                isSelected ? SacAccent.of(context).color : context.sac.border,
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isSelected) ...[
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                size: 13,
-                color: SacAccent.of(context).color,
-              ),
-              const SizedBox(width: 5),
-            ],
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: SacFontSize.bodyMedium,
-                fontWeight: FontWeight.w600,
-                color: isSelected
-                    ? SacAccent.of(context).color
-                    : context.sac.textSecondary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Condition chip ──────────────────────────────────────────────────────────────
-
-class _ConditionChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _ConditionChip({
-    required this.label,
-    required this.isSelected,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-        decoration: BoxDecoration(
-          color:
-              isSelected ? color.withValues(alpha: 0.12) : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-          border: Border.all(
-            color: isSelected ? color : Theme.of(context).dividerColor,
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isSelected) ...[
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                size: 13,
-                color: color,
-              ),
-              const SizedBox(width: 4),
-            ],
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: SacFontSize.bodyMedium,
-                fontWeight: FontWeight.w600,
-                color: isSelected ? color : null,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  Color _conditionOnContainer(ItemCondition c, SacColors sac) {
+    switch (c) {
+      case ItemCondition.bueno:
+        return sac.onSuccessContainer;
+      case ItemCondition.regular:
+        return sac.onWarningContainer;
+      case ItemCondition.malo:
+        return sac.onErrorContainer;
+    }
   }
 }
 

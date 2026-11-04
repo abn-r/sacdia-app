@@ -1,5 +1,9 @@
 {
   "common": {
+    "refresh": "Actualiser",
+    "understood": "Compris",
+    "decrease_quantity": "Diminuer la quantité",
+    "increase_quantity": "Augmenter la quantité",
     "loading": "Chargement…",
     "retry": "Réessayer",
     "cancel": "Annuler",
@@ -864,6 +868,7 @@
       "fetch_club_sections": "Erreur lors de la récupération des sections du club"
     },
     "list": {
+      "toggle_view": "Changer de vue",
       "title": "Activités",
       "add": "Ajouter",
       "today_label": "Aujourd'hui",
@@ -2532,6 +2537,9 @@
       "error_retry_hint": "Faites glisser vers le bas pour réessayer."
     },
     "widgets": {
+      "prev_month": "Mois précédent",
+      "next_month": "Mois suivant",
+      "chart_a11y": "Graphique des revenus et dépenses de la période",
       "balance_total": "SOLDE TOTAL",
       "month_summary_prefix": "Ce mois-ci : ",
       "month_summary_connector": " de revenus et ",
@@ -5290,6 +5298,8 @@
     }
   },
   "master_honors": {
+    "load_error_title": "Impossible de charger les maîtrises",
+    "load_error_body": "Réessayez dans quelques secondes.",
     "title": "Maîtrises",
     "empty_title": "Aucune maîtrise disponible"
   },

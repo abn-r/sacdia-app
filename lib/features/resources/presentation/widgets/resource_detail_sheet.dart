@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/media/sac_audio_player_controller.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -283,7 +284,7 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: Text(
-                            signedUrlState.error.toString(),
+                            userErrorMessage(signedUrlState.error),
                             style: TextStyle(
                               color: c.error,
                               fontSize: SacFontSize.bodyMedium,

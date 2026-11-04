@@ -14,7 +14,6 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/date_formatter.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
@@ -26,6 +25,9 @@ import '../providers/camporees_providers.dart';
 import 'camporee_detail_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 
 /// Vista de lista de camporees.
 ///
@@ -97,8 +99,13 @@ class CamporeesListView extends ConsumerWidget {
                 );
               },
               loading: () => const _CamporeesSkeleton(),
-              error: (error, stack) => _ErrorState(
-                message: error.toString().replaceFirst('Exception: ', ''),
+              error: (error, stack) => SacErrorState(
+                title: 'camporees.list.error_loading'.tr(),
+                message: userErrorMessage(error),
+                padding: SacTopBar.paddingBelowBar(
+                  context,
+                  const EdgeInsets.all(32),
+                ),
                 onRetry: () => ref.invalidate(camporeesProvider),
               ),
             ),
@@ -223,8 +230,13 @@ class CamporeesHistoryView extends ConsumerWidget {
                 );
               },
               loading: () => const _CamporeesSkeleton(),
-              error: (error, stack) => _ErrorState(
-                message: error.toString().replaceFirst('Exception: ', ''),
+              error: (error, stack) => SacErrorState(
+                title: 'camporees.list.error_loading'.tr(),
+                message: userErrorMessage(error),
+                padding: SacTopBar.paddingBelowBar(
+                  context,
+                  const EdgeInsets.all(32),
+                ),
                 onRetry: () => ref.invalidate(camporeesProvider),
               ),
             ),
@@ -402,7 +414,7 @@ class _CardBanner extends StatelessWidget {
                       .tr()
                       .toUpperCase(),
                   style: TextStyle(
-                    fontSize: SacFontSize.caption,
+                    fontSize: SacFontSize.labelSmall,
                     fontWeight: FontWeight.w800,
                     color: Colors.white.withValues(alpha: 0.75),
                     letterSpacing: 1.4,
@@ -464,33 +476,6 @@ class _MetaRow extends StatelessWidget {
   }
 }
 
-class _IconTile extends StatelessWidget {
-  final HugeIconData icon;
-  final Color color;
-  final double size;
-
-  const _IconTile({
-    required this.icon,
-    required this.color,
-    required this.size,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(size * 0.3),
-      ),
-      child: Center(
-        child: HugeIcon(icon: icon, size: size * 0.50, color: color),
-      ),
-    );
-  }
-}
-
 class _ClubTypeBadges extends StatelessWidget {
   final Camporee camporee;
 
@@ -534,6 +519,12 @@ class _Badge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+    final textColor = color == c.warning
+        ? c.onWarningContainer
+        : color == c.success
+            ? c.onSuccessContainer
+            : color;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
@@ -545,7 +536,7 @@ class _Badge extends StatelessWidget {
         style: TextStyle(
           fontSize: SacFontSize.labelSmall,
           fontWeight: FontWeight.w700,
-          color: color,
+          color: textColor,
           height: 1.2,
         ),
       ),
@@ -611,75 +602,22 @@ String? _firstName(String? raw) {
   return first;
 }
 
-class _ErrorState extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorState({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _IconTile(
-              icon: HugeIcons.strokeRoundedAlert02,
-              color: c.error,
-              size: 72,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'camporees.list.error_loading'.tr(),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: c.text,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: TextStyle(
-                  fontSize: SacFontSize.titleSmall, color: c.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SacButton.primary(
-              text: 'common.retry'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onRetry,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _CamporeesSkeleton extends StatelessWidget {
   const _CamporeesSkeleton();
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
     final hPad = Responsive.horizontalPadding(context);
 
-    return ListView.builder(
-      padding: SacTopBar.paddingBelowBar(
-          context, EdgeInsets.fromLTRB(hPad, 16, hPad, 28)),
-      itemCount: 3,
-      itemBuilder: (context, index) => Container(
-        height: 152,
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(
-          color: c.surfaceVariant,
-          borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-          border: Border.all(color: c.borderLight),
+    return SacShimmer(
+      child: ExcludeSemantics(
+        child: ListView.separated(
+          physics: const NeverScrollableScrollPhysics(),
+          padding: SacTopBar.paddingBelowBar(
+              context, EdgeInsets.fromLTRB(hPad, 16, hPad, 28)),
+          itemCount: 3,
+          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          itemBuilder: (context, index) => const SacSkeletonCard(height: 152),
         ),
       ),
     );

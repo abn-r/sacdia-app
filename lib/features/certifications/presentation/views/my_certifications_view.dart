@@ -1,4 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -8,7 +11,6 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
@@ -220,44 +222,12 @@ class MyCertificationsView extends ConsumerWidget {
             );
           },
           loading: () => const Center(child: SacLoading()),
-          error: (error, stack) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedAlert02,
-                    size: 56,
-                    color: AppColors.error,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'certifications.my.load_error'.tr(),
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    error.toString().replaceFirst('Exception: ', ''),
-                    style: TextStyle(
-                        fontSize: SacFontSize.titleSmall,
-                        color: c.textSecondary),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  SacButton.primary(
-                    text: 'common.retry'.tr(),
-                    icon: HugeIcons.strokeRoundedRefresh,
-                    onPressed: () {
-                      ref.invalidate(userCertificationsProvider);
-                    },
-                  ),
-                ],
-              ),
-            ),
+          error: (error, stack) => SacErrorState(
+            title: 'certifications.my.load_error'.tr(),
+            message: userErrorMessage(error),
+            onRetry: () {
+              ref.invalidate(userCertificationsProvider);
+            },
           ),
         ),
       ),
@@ -310,8 +280,7 @@ class MyCertificationsView extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        SacSnackBar.show(context, e.toString().replaceFirst('Exception: ', ''),
-            isError: true);
+        SacSnackBar.show(context, userErrorMessage(e), isError: true);
       }
     }
   }
@@ -371,7 +340,7 @@ class _UserCertificationCard extends StatelessWidget {
                   height: 44,
                   decoration: BoxDecoration(
                     color: isComplete
-                        ? AppColors.secondaryLight
+                        ? c.successContainer
                         : SacAccent.of(context).light,
                     borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   ),
@@ -414,29 +383,13 @@ class _UserCertificationCard extends StatelessWidget {
                   ),
                 ),
                 // Badge de estado
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isComplete
-                        ? AppColors.secondaryLight
-                        : AppColors.accentLight,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-                  ),
-                  child: Text(
-                    isComplete
-                        ? 'certifications.my.status_completed'.tr()
-                        : 'certifications.my.status_in_progress'.tr(),
-                    style: TextStyle(
-                      fontSize: SacFontSize.labelSmall,
-                      fontWeight: FontWeight.w600,
-                      color: isComplete
-                          ? AppColors.secondaryDark
-                          : AppColors.accentDark,
-                    ),
-                  ),
+                SacBadge(
+                  label: isComplete
+                      ? 'certifications.my.status_completed'.tr()
+                      : 'certifications.my.status_in_progress'.tr(),
+                  variant: isComplete
+                      ? SacBadgeVariant.secondary
+                      : SacBadgeVariant.accent,
                 ),
               ],
             ),
@@ -464,7 +417,7 @@ class _UserCertificationCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: SacFontSize.bodySmall,
                     fontWeight: FontWeight.w600,
-                    color: isComplete ? AppColors.secondary : c.text,
+                    color: isComplete ? c.onSuccessContainer : c.text,
                   ),
                 ),
               ],

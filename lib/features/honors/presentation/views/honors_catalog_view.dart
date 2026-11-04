@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,6 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 
@@ -462,36 +462,14 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
   }
 
   Widget _buildErrorState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedAlert02,
-            size: 56,
-            color: AppColors.error,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'honors.catalog.error_load'.tr(),
-            style: TextStyle(
-              fontSize: SacFontSize.titleMedium,
-              fontWeight: FontWeight.w600,
-              color: context.sac.text,
-            ),
-          ),
-          const SizedBox(height: 24),
-          SacButton(
-            text: 'honors.catalog.retry'.tr(),
-            icon: HugeIcons.strokeRoundedRefresh,
-            onPressed: () {
-              ref.invalidate(honorsGroupedByCategoryProvider);
-              ref.invalidate(allHonorsProvider);
-              ref.invalidate(userHonorsProvider);
-            },
-          ),
-        ],
-      ),
+    return SacErrorState(
+      title: 'honors.catalog.error_load'.tr(),
+      retryLabel: 'honors.catalog.retry'.tr(),
+      onRetry: () {
+        ref.invalidate(honorsGroupedByCategoryProvider);
+        ref.invalidate(allHonorsProvider);
+        ref.invalidate(userHonorsProvider);
+      },
     );
   }
 }

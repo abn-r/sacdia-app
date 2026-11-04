@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
@@ -13,7 +15,9 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
-import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../../auth/domain/utils/authorization_utils.dart';
@@ -170,9 +174,14 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
     } else if (state.units.isEmpty && state.errorMessage != null) {
       content = _UnitsLoadError(message: state.errorMessage!);
     } else if (visibleUnits.isEmpty) {
-      content = _EmptyState(
-        canCreate: canCreate,
-        onCreate: canCreate
+      content = SacEmptyState(
+        icon: HugeIcons.strokeRoundedUserGroup,
+        title: 'units.list.empty_title'.tr(),
+        body: canCreate
+            ? 'units.list.empty_subtitle_can_create'.tr()
+            : 'units.list.empty_subtitle'.tr(),
+        actionLabel: canCreate ? 'units.list.empty_action'.tr() : null,
+        onAction: canCreate
             ? () => showUnitFormSheet(context: context, ref: ref)
             : null,
       );
@@ -248,40 +257,59 @@ class _Body extends ConsumerWidget {
     // Leer el contexto del club para tener clubId/sectionId
     final clubContextAsync = ref.watch(clubContextProvider);
 
-    return clubContextAsync.when(
-      data: (ctx) => ListView(
-        padding: SacTopBar.paddingBelowBar(
-            context, const EdgeInsets.fromLTRB(16, 12, 16, 100)),
-        children: [
-          if (canReadMom && ctx != null)
+    final listPadding = SacTopBar.paddingBelowBar(
+        context, const EdgeInsets.fromLTRB(16, 12, 16, 100));
+
+    Future<void> onRefresh() async {
+      ref.invalidate(clubContextProvider);
+      await ref.read(unitsNotifierProvider.notifier).refresh();
+    }
+
+    return RefreshIndicator(
+      color: SacAccent.of(context).color,
+      onRefresh: onRefresh,
+      child: clubContextAsync.when(
+        data: (ctx) => ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: listPadding,
+          children: [
+            if (canReadMom && ctx != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _MemberOfMonthHistoryLink(
+                  onTap: () => onMemberOfMonthTap(ctx.clubId, ctx.sectionId),
+                ),
+              ),
+            if (state.memberOfMonth != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _MemberOfMonthCard(
+                  memberOfMonth: state.memberOfMonth!,
+                  onTap: ctx != null
+                      ? () => onMemberOfMonthTap(ctx.clubId, ctx.sectionId)
+                      : null,
+                ),
+              ),
+            for (final entry in visibleUnits.asMap().entries)
+              _buildUnitCard(context, ref, entry.value, entry.key),
+          ],
+        ),
+        loading: () => SacSkeletonList(padding: listPadding),
+        error: (error, __) => ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: listPadding,
+          children: [
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: _MemberOfMonthHistoryLink(
-                onTap: () => onMemberOfMonthTap(ctx.clubId, ctx.sectionId),
+              child: SacErrorState.inline(
+                message: userErrorMessage(error),
+                onRetry: () => ref.invalidate(clubContextProvider),
               ),
             ),
-          if (state.memberOfMonth != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _MemberOfMonthCard(
-                memberOfMonth: state.memberOfMonth!,
-                onTap: ctx != null
-                    ? () => onMemberOfMonthTap(ctx.clubId, ctx.sectionId)
-                    : null,
-              ),
-            ),
-          for (final entry in visibleUnits.asMap().entries)
-            _buildUnitCard(context, ref, entry.value, entry.key),
-        ],
-      ),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => ListView(
-        padding: SacTopBar.paddingBelowBar(
-            context, const EdgeInsets.fromLTRB(16, 12, 16, 100)),
-        children: [
-          for (final entry in visibleUnits.asMap().entries)
-            _buildUnitCard(context, ref, entry.value, entry.key),
-        ],
+            for (final entry in visibleUnits.asMap().entries)
+              _buildUnitCard(context, ref, entry.value, entry.key),
+          ],
+        ),
       ),
     );
   }
@@ -296,7 +324,7 @@ class _Body extends ConsumerWidget {
       padding: const EdgeInsets.only(bottom: 10),
       child: SacCard(
         animate: true,
-        animationDelay: Duration(milliseconds: index * 80),
+        animationDelay: Duration(milliseconds: min(index, 6) * 80),
         onTap: () => onUnitTap(unit),
         padding: EdgeInsets.zero,
         borderColor: context.sac.borderLight,
@@ -1226,7 +1254,7 @@ class _UnitsLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: SacLoading());
+    return const SacSkeletonList();
   }
 }
 
@@ -1237,33 +1265,9 @@ class _UnitsLoadError extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SacEmptyState(
-      icon: HugeIcons.strokeRoundedAlertDiamond,
+    return SacErrorState(
       title: message,
-      actionLabel: 'common.retry'.tr(),
-      onAction: () => ref.read(unitsNotifierProvider.notifier).refresh(),
-    );
-  }
-}
-
-// ── Empty State ───────────────────────────────────────────────────────────────
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.canCreate, this.onCreate});
-
-  final bool canCreate;
-  final VoidCallback? onCreate;
-
-  @override
-  Widget build(BuildContext context) {
-    return SacEmptyState(
-      icon: HugeIcons.strokeRoundedUserGroup,
-      title: 'units.list.empty_title'.tr(),
-      body: canCreate
-          ? 'units.list.empty_subtitle_can_create'.tr()
-          : 'units.list.empty_subtitle'.tr(),
-      actionLabel: canCreate ? 'units.list.empty_action'.tr() : null,
-      onAction: onCreate,
+      onRetry: () => ref.read(unitsNotifierProvider.notifier).refresh(),
     );
   }
 }

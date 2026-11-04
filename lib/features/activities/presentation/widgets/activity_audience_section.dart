@@ -9,6 +9,7 @@ import '../../../classes/domain/entities/progressive_class.dart';
 import '../../../classes/presentation/providers/classes_providers.dart';
 import '../../domain/entities/activity_club_section.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 final activityClassOptionsProvider = FutureProvider.autoDispose
     .family<List<ProgressiveClass>, String>((ref, key) async {
@@ -165,7 +166,7 @@ class _ActivityAudienceSectionState
           classesAsync.when(
             loading: () => const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
-              child: Center(child: CircularProgressIndicator()),
+              child: Center(child: SacLoadingSmall()),
             ),
             error: (_, __) =>
                 Text('activities.form.audience_classes_error'.tr()),

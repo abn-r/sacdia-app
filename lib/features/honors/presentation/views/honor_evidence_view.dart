@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
@@ -432,7 +433,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
             queueFiles,
             file.id,
             StagedFileStatus.error,
-            errorMessage: error.toString(),
+            errorMessage: userErrorMessage(error),
           );
         }
 
@@ -1459,7 +1460,7 @@ class _EvidenceThumbnail extends StatelessWidget {
                       child: SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: FittedBox(child: SacLoadingSmall()),
                       ),
                     ),
                   ),

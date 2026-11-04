@@ -13,6 +13,7 @@ import '../../data/repositories/camporee_orders_repository_impl.dart';
 import '../../domain/entities/camporee_order.dart';
 import '../../domain/entities/camporee_order_offering.dart';
 import '../../domain/repositories/camporee_orders_repository.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 
 // ── Infrastructure ──────────────────────────────────────────────────────────
 
@@ -497,9 +498,5 @@ final camporeeOrderActionsProvider = NotifierProvider.autoDispose<
 
 String camporeeOrdersErrorMessage(Object error) {
   if (error is Failure) return error.message;
-  final text = error.toString();
-  if (text.startsWith('Exception: ')) {
-    return text.substring('Exception: '.length);
-  }
-  return text;
+  return userErrorMessage(error);
 }

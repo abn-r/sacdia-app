@@ -6,7 +6,6 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/device_pair_link.dart';
 import '../../../../core/config/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
@@ -339,22 +338,22 @@ class _PairBody extends StatelessWidget {
         if (message != null) ...[
           SacCard(
             key: const ValueKey('pair_error'),
-            backgroundColor: AppColors.errorLight,
-            borderColor: AppColors.error.withValues(alpha: 0.3),
+            backgroundColor: context.sac.errorContainer,
+            borderColor: context.sac.onErrorContainer.withValues(alpha: 0.3),
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
                 HugeIcon(
                   icon: HugeIcons.strokeRoundedAlert02,
                   size: 20,
-                  color: AppColors.errorDark,
+                  color: context.sac.onErrorContainer,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     message,
-                    style: const TextStyle(
-                      color: AppColors.errorDark,
+                    style: TextStyle(
+                      color: context.sac.onErrorContainer,
                       fontSize: SacFontSize.titleSmall,
                     ),
                   ),

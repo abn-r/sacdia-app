@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'medico_tokens.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Wrapper común para cada sección (Alergias, Enfermedades, etc.).
 ///
@@ -119,23 +118,10 @@ class MedicoSectionCard extends StatelessWidget {
           ),
         ),
         if (actionLabel != null)
-          SacPressable(
-            listenOnly: true,
-            child: TextButton(
-              onPressed: onAction,
-              style: (TextButton.styleFrom(
-                foregroundColor: m.coralAction,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                textStyle: const TextStyle(
-                  fontSize: SacFontSize.bodyMedium,
-                  fontWeight: FontWeight.w700,
-                ),
-              )).copyWith(enableFeedback: false),
-              child: Text(actionLabel!),
-            ),
+          SacButton.text(
+            text: actionLabel!,
+            onPressed: onAction,
+            color: m.coralAction,
           ),
       ],
     );

@@ -12,6 +12,7 @@ import '../../domain/entities/qr_scan_result.dart';
 import '../providers/qr_scan_provider.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -303,7 +304,12 @@ class _ScanResultSheet extends StatelessWidget {
             child: SacLoading(),
           ),
         ),
-        error: (err, _) => _ErrorBody(error: err),
+        error: (err, _) => SacErrorState(
+          title: 'qr.scan_error_title'.tr(),
+          message: qrScanErrorMessageKey(err).tr(),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          onRetry: () => Navigator.of(context).pop(),
+        ),
         data: (result) => result == null
             ? const SizedBox.shrink()
             : _SuccessBody(result: result),
@@ -387,47 +393,6 @@ class _SuccessBody extends StatelessWidget {
         const SizedBox(height: 20),
         SacButton(
           text: 'qr.scan_another'.tr(),
-          variant: SacButtonVariant.primary,
-          fullWidth: false,
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ],
-    );
-  }
-}
-
-class _ErrorBody extends StatelessWidget {
-  const _ErrorBody({required this.error});
-  final Object error;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        HugeIcon(
-          icon: HugeIcons.strokeRoundedAlert02,
-          color: context.sac.error,
-          size: 32,
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'qr.scan_error_title'.tr(),
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          qrScanErrorMessageKey(error).tr(),
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodySmall,
-          maxLines: 4,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 20),
-        SacButton(
-          text: 'common.retry'.tr(),
           variant: SacButtonVariant.primary,
           fullWidth: false,
           onPressed: () => Navigator.of(context).pop(),

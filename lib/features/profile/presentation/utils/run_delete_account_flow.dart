@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/social_credential.dart';
@@ -81,7 +82,7 @@ Future<DeleteAccountReauth?> _promptReauth(
     leading: const SizedBox(
       width: 16,
       height: 16,
-      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+      child: SacLoadingSmall(color: Colors.white),
     ),
   );
   final List<SocialProvider> providers = await ref
@@ -118,7 +119,7 @@ Future<DeleteAccountResult> _deleteWithFeedback(
       leading: const SizedBox(
         width: 16,
         height: 16,
-        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+        child: SacLoadingSmall(color: Colors.white),
       ),
     );
   }

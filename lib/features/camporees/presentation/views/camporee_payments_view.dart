@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -19,6 +18,8 @@ import '../../domain/entities/camporee_payment.dart';
 import '../providers/camporees_providers.dart';
 import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 
 /// Vista de pagos de un miembro en un camporee.
 ///
@@ -71,8 +72,13 @@ class CamporeePaymentsView extends ConsumerWidget {
         child: Builder(
           builder: (context) => paymentsAsync.when(
             loading: () => const Center(child: SacLoading()),
-            error: (e, _) => _ErrorBody(
-              message: e.toString().replaceFirst('Exception: ', ''),
+            error: (e, _) => SacErrorState(
+              title: '',
+              message: userErrorMessage(e),
+              padding: SacTopBar.paddingBelowBar(
+                context,
+                const EdgeInsets.all(32),
+              ),
               onRetry: () =>
                   ref.invalidate(camporeeMemberPaymentsProvider(params)),
             ),
@@ -233,7 +239,7 @@ class _PaymentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final statusCfg = _statusConfig(payment.paymentStatus);
+    final statusCfg = _statusConfig(context, payment.paymentStatus);
     final dateFmt = DateFormat('dd/MM/yyyy');
 
     return Container(
@@ -367,23 +373,18 @@ class _PaymentCard extends StatelessWidget {
     }
   }
 
-  _StatusConfig _statusConfig(CamporeePaymentStatus status) {
+  _StatusConfig _statusConfig(
+    BuildContext context,
+    CamporeePaymentStatus status,
+  ) {
+    final c = context.sac;
     switch (status) {
       case CamporeePaymentStatus.verified:
-        return _StatusConfig(
-          bg: AppColors.secondaryLight,
-          fg: AppColors.secondaryDark,
-        );
+        return _StatusConfig(bg: c.successContainer, fg: c.onSuccessContainer);
       case CamporeePaymentStatus.rejected:
-        return _StatusConfig(
-          bg: AppColors.errorLight,
-          fg: AppColors.errorDark,
-        );
+        return _StatusConfig(bg: c.errorContainer, fg: c.onErrorContainer);
       case CamporeePaymentStatus.pending:
-        return _StatusConfig(
-          bg: AppColors.accentLight,
-          fg: AppColors.accentDark,
-        );
+        return _StatusConfig(bg: c.warningContainer, fg: c.onWarningContainer);
     }
   }
 }
@@ -483,23 +484,23 @@ class _CamporeePaymentFormSheetState
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.errorLight,
+                      color: c.errorContainer,
                       borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     ),
                     child: Row(
                       children: [
-                        const HugeIcon(
+                        HugeIcon(
                           icon: HugeIcons.strokeRoundedAlert02,
-                          color: AppColors.error,
+                          color: c.onErrorContainer,
                           size: 16,
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             formState.errorMessage!,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: SacFontSize.bodyMedium,
-                              color: AppColors.error,
+                              color: c.onErrorContainer,
                             ),
                           ),
                         ),
@@ -711,44 +712,6 @@ class _EmptyBody extends StatelessWidget {
       body: 'camporees.payments.empty_hint'.tr(),
       actionLabel: 'camporees.payments.register_button'.tr(),
       onAction: onAdd,
-    );
-  }
-}
-
-class _ErrorBody extends StatelessWidget {
-  final String message;
-  final VoidCallback? onRetry;
-
-  const _ErrorBody({required this.message, this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 48,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: SacFontSize.titleSmall),
-            ),
-            const SizedBox(height: 16),
-            SacButton.primary(
-              text: 'common.retry'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onRetry,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

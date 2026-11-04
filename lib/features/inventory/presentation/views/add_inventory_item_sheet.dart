@@ -19,6 +19,7 @@ import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/sac_loading.dart';
 import '../../domain/entities/inventory_category.dart';
 import '../../domain/entities/inventory_item.dart';
 import '../providers/inventory_providers.dart';
@@ -136,6 +137,7 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
                   listenOnly: true,
                   child: IconButton(
                     enableFeedback: false,
+                    tooltip: 'common.close'.tr(),
                     onPressed: () => Navigator.pop(context),
                     icon: HugeIcon(
                       icon: HugeIcons.strokeRoundedCancel01,
@@ -392,17 +394,17 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppColors.error.withValues(alpha: 0.08),
+                            color: context.sac.errorContainer,
                             borderRadius:
                                 BorderRadius.circular(AppTheme.radiusXS),
                             border: Border.all(
-                              color: AppColors.error.withValues(alpha: 0.3),
+                              color: context.sac.error.withValues(alpha: 0.3),
                             ),
                           ),
                           child: Text(
                             formState.errorMessage!,
-                            style: const TextStyle(
-                              color: AppColors.error,
+                            style: TextStyle(
+                              color: context.sac.onErrorContainer,
                               fontSize: SacFontSize.bodyMedium,
                             ),
                             textAlign: TextAlign.center,
@@ -648,7 +650,8 @@ class _ConditionSelector extends StatelessWidget {
     return Row(
       children: ItemCondition.values.map((cond) {
         final isSelected = cond == selected;
-        final color = _conditionColor(cond);
+        final color = _conditionColor(cond, context.sac);
+        final textColor = _conditionTextColor(cond, context.sac);
         final isLast = cond == ItemCondition.malo;
         return Expanded(
           child: Padding(
@@ -661,7 +664,7 @@ class _ConditionSelector extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? color.withValues(alpha: 0.12)
+                      ? _conditionContainer(cond, context.sac)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   border: Border.all(
@@ -690,7 +693,9 @@ class _ConditionSelector extends StatelessWidget {
                         style: TextStyle(
                           fontSize: SacFontSize.bodySmall,
                           fontWeight: FontWeight.w700,
-                          color: isSelected ? color : context.sac.textSecondary,
+                          color: isSelected
+                              ? textColor
+                              : context.sac.textSecondary,
                         ),
                       ),
                     ],
@@ -704,14 +709,36 @@ class _ConditionSelector extends StatelessWidget {
     );
   }
 
-  Color _conditionColor(ItemCondition c) {
+  Color _conditionColor(ItemCondition c, SacColors sac) {
     switch (c) {
       case ItemCondition.bueno:
-        return AppColors.secondary;
+        return sac.success;
       case ItemCondition.regular:
-        return AppColors.accent;
+        return sac.warning;
       case ItemCondition.malo:
-        return AppColors.error;
+        return sac.error;
+    }
+  }
+
+  Color _conditionContainer(ItemCondition c, SacColors sac) {
+    switch (c) {
+      case ItemCondition.bueno:
+        return sac.successContainer;
+      case ItemCondition.regular:
+        return sac.warningContainer;
+      case ItemCondition.malo:
+        return sac.errorContainer;
+    }
+  }
+
+  Color _conditionTextColor(ItemCondition c, SacColors sac) {
+    switch (c) {
+      case ItemCondition.bueno:
+        return sac.onSuccessContainer;
+      case ItemCondition.regular:
+        return sac.onWarningContainer;
+      case ItemCondition.malo:
+        return sac.onErrorContainer;
     }
   }
 }
@@ -785,7 +812,6 @@ class _DatePickerField extends StatelessWidget {
       initialDate: selectedDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime.now(),
-      locale: const Locale('es', 'ES'),
     );
     if (picked != null) onDateSelected(picked);
   }
@@ -1266,11 +1292,10 @@ class _CategorySkeleton extends StatelessWidget {
       ),
       child: Center(
         child: SizedBox(
-          width: 20,
-          height: 20,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: context.sac.textTertiary,
+          width: 24,
+          height: 24,
+          child: FittedBox(
+            child: SacLoadingSmall(color: context.sac.textTertiary),
           ),
         ),
       ),
@@ -1290,16 +1315,17 @@ class _CategoryError extends StatelessWidget {
         Expanded(
           child: Text(
             'inventory.form.categories_error'.tr(),
-            style: const TextStyle(
-                color: AppColors.error, fontSize: SacFontSize.bodyMedium),
+            style: TextStyle(
+                color: context.sac.onErrorContainer,
+                fontSize: SacFontSize.bodyMedium),
           ),
         ),
         SacPressable(
           listenOnly: true,
-          child: TextButton(
-              style: const ButtonStyle(enableFeedback: false),
-              onPressed: onRetry,
-              child: Text('common.retry'.tr())),
+          child: SacButton.text(
+            text: 'common.retry'.tr(),
+            onPressed: onRetry,
+          ),
         ),
       ],
     );

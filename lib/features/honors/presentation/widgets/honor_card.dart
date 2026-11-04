@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -67,75 +68,78 @@ class HonorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Material(
-        color: Colors.transparent,
-        child: SacInkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-          child: Ink(
-            decoration: BoxDecoration(
-              color: context.sac.surface,
-              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-                    child: Row(
-                      children: [
-                        // Icon area: 44x44
-                        _buildIconArea(),
-                        const SizedBox(width: 12),
+    return Semantics(
+      container: true,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Material(
+          color: Colors.transparent,
+          child: SacInkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+            child: Ink(
+              decoration: BoxDecoration(
+                color: context.sac.surface,
+                borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                      child: Row(
+                        children: [
+                          // Icon area: 44x44
+                          _buildIconArea(),
+                          const SizedBox(width: 12),
 
-                        // Text area
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                honor.name,
-                                style: TextStyle(
-                                  fontSize: SacFontSize.titleSmall,
-                                  fontWeight: FontWeight.w600,
-                                  color: context.sac.text,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              if (_isEnrolled && _displayStatus != null) ...[
-                                const SizedBox(height: 3),
+                          // Text area
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
                                 Text(
-                                  _isCompleted
-                                      ? 'honors.card.completed_label'.tr()
-                                      : userHonor!.statusLabel,
+                                  honor.name,
                                   style: TextStyle(
-                                    fontSize: SacFontSize.bodySmall,
-                                    color: _categoryPaintColor,
-                                    fontWeight: FontWeight.w500,
+                                    fontSize: SacFontSize.titleSmall,
+                                    fontWeight: FontWeight.w600,
+                                    color: context.sac.text,
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
+                                if (_isEnrolled && _displayStatus != null) ...[
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    _isCompleted
+                                        ? 'honors.card.completed_label'.tr()
+                                        : userHonor!.statusLabel,
+                                    style: TextStyle(
+                                      fontSize: SacFontSize.bodySmall,
+                                      color: _categoryPaintColor,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               ],
-                            ],
+                            ),
                           ),
-                        ),
 
-                        const SizedBox(width: 8),
+                          const SizedBox(width: 8),
 
-                        // Trailing: gold star badge (validado) or chevron (available)
-                        _buildTrailing(),
-                      ],
+                          // Trailing: gold star badge (validado) or chevron (available)
+                          _buildTrailing(),
+                        ],
+                      ),
                     ),
-                  ),
 
-                  // Progress section — only for enrolled honors with data
-                  if (_showProgress) _buildProgressSection(context),
-                ],
+                    // Progress section — only for enrolled honors with data
+                    if (_showProgress) _buildProgressSection(context),
+                  ],
+                ),
               ),
             ),
           ),
@@ -156,14 +160,10 @@ class HonorCard extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
-              child: LinearProgressIndicator(
-                value: clampedValue,
-                minHeight: 3,
-                backgroundColor: context.sac.borderLight,
-                valueColor: AlwaysStoppedAnimation<Color>(_categoryPaintColor),
-              ),
+            child: SacProgressBar(
+              progress: clampedValue,
+              height: 6,
+              color: _categoryPaintColor,
             ),
           ),
           const SizedBox(width: 8),

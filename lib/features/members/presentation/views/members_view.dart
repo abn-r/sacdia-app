@@ -6,15 +6,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/consent/consent_error_messages.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
@@ -171,14 +171,12 @@ class _MembersViewState extends ConsumerState<MembersView> {
                           ref.read(membersNotifierProvider.notifier).refresh();
                         }
                       },
+                tooltip: 'common.refresh'.tr(),
                 icon: refreshing
                     ? SizedBox(
                         width: 18,
                         height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: c.textTertiary,
-                        ),
+                        child: SacLoadingSmall(color: c.textTertiary),
                       )
                     : HugeIcon(
                         icon: HugeIcons.strokeRoundedRefresh,
@@ -244,11 +242,10 @@ class _MembersViewState extends ConsumerState<MembersView> {
                       );
                     },
                     loading: () => const Center(child: SacLoading()),
-                    error: (error, _) => Center(
-                      child: Text(
-                        'members.view.club_context_error'.tr(),
-                        style: TextStyle(color: context.sac.textSecondary),
-                      ),
+                    error: (error, _) => SacErrorState(
+                      title: 'members.view.club_context_error'.tr(),
+                      message: userErrorMessage(error),
+                      onRetry: () => ref.invalidate(clubContextProvider),
                     ),
                   ),
                 ),
@@ -293,16 +290,17 @@ class _MembersTab extends ConsumerWidget {
           child: ClipRect(
             child: membersAsync.when(
               loading: () => const Center(child: SacLoading()),
-              error: (error, _) => _ErrorState(
-                message: error.toString(),
+              error: (error, _) => SacErrorState(
+                title: 'members.view.load_error'.tr(),
+                message: userErrorMessage(error),
                 onRetry: () =>
                     ref.read(membersNotifierProvider.notifier).refresh(),
               ),
               data: (_) => membersByClass.isEmpty
-                  ? _EmptyState(
+                  ? SacEmptyState(
                       icon: HugeIcons.strokeRoundedUserGroup,
                       title: 'members.view.no_members_title'.tr(),
-                      subtitle: 'members.view.no_members_subtitle'.tr(),
+                      body: 'members.view.no_members_subtitle'.tr(),
                     )
                   : RefreshIndicator(
                       color: SacAccent.of(context).color,
@@ -510,29 +508,29 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
           child: ClipRect(
             child: widget.membersAsync.when(
               loading: () => const Center(child: SacLoading()),
-              error: (error, _) => _ErrorState(
-                message: error.toString(),
+              error: (error, _) => SacErrorState(
+                title: 'members.view.load_error'.tr(),
+                message: userErrorMessage(error),
                 onRetry: () =>
                     ref.read(membersNotifierProvider.notifier).refresh(),
               ),
               data: (data) => widget.verifyOnly && data.requestsScopeDenied
-                  ? _EmptyState(
+                  ? SacEmptyState(
                       icon: HugeIcons.strokeRoundedLockKey,
                       title: 'members.view.verify_scope_title'.tr(),
-                      subtitle: 'members.view.verify_scope_subtitle'.tr(),
+                      body: 'members.view.verify_scope_subtitle'.tr(),
                     )
                   : filteredRequests.isEmpty
-                      ? _EmptyState(
+                      ? SacEmptyState(
                           icon: widget.verifyOnly
                               ? HugeIcons.strokeRoundedFileVerified
                               : HugeIcons.strokeRoundedUserAdd01,
                           title: widget.verifyOnly
                               ? 'members.view.verify_empty_title'.tr()
                               : 'members.view.no_requests_title'.tr(),
-                          subtitle:
-                              widget.verifyOnly && filters.searchQuery.isEmpty
-                                  ? 'members.view.verify_empty_subtitle'.tr()
-                                  : _emptySubtitleKey(filters).tr(),
+                          body: widget.verifyOnly && filters.searchQuery.isEmpty
+                              ? 'members.view.verify_empty_subtitle'.tr()
+                              : _emptySubtitleKey(filters).tr(),
                         )
                       : RefreshIndicator(
                           color: SacAccent.of(context).color,
@@ -723,80 +721,6 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
 }
 
 // ── Helper Widgets ────────────────────────────────────────────────────────────
-
-/// Estado vacío genérico
-class _EmptyState extends StatelessWidget {
-  final List<List<dynamic>> icon;
-  final String title;
-  final String subtitle;
-
-  const _EmptyState({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SacEmptyState(
-      icon: icon,
-      title: title,
-      body: subtitle,
-    );
-  }
-}
-
-/// Estado de error con botón de reintento
-class _ErrorState extends StatelessWidget {
-  final String message;
-  final VoidCallback? onRetry;
-
-  const _ErrorState({required this.message, this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 48,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'members.view.load_error'.tr(),
-              style: TextStyle(
-                fontSize: SacFontSize.titleMedium,
-                fontWeight: FontWeight.w600,
-                color: c.text,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: TextStyle(
-                  fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-            if (onRetry != null) ...[
-              const SizedBox(height: 20),
-              SacButton.primary(
-                text: 'common.retry'.tr(),
-                icon: HugeIcons.strokeRoundedRefresh,
-                onPressed: onRetry,
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 /// Estado cuando el usuario no tiene club asignado
 class _NoClubState extends StatelessWidget {

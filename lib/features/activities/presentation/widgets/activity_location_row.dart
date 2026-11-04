@@ -73,7 +73,7 @@ class ActivityLocationRow extends StatelessWidget {
                     Text(
                       'activities.widgets.location_label_short'.tr(),
                       style: TextStyle(
-                        fontSize: SacFontSize.caption,
+                        fontSize: SacFontSize.labelSmall,
                         fontWeight: FontWeight.w700,
                         color: sac.textTertiary,
                         letterSpacing: 0.6,

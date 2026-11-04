@@ -57,6 +57,7 @@ class TransactionDetailView extends ConsumerWidget {
                 listenOnly: true,
                 child: IconButton(
                   enableFeedback: false,
+                  tooltip: 'common.delete'.tr(),
                   onPressed: () => _confirmDelete(context, ref),
                   icon: HugeIcon(
                     icon: HugeIcons.strokeRoundedDelete02,
@@ -69,6 +70,7 @@ class TransactionDetailView extends ConsumerWidget {
                 listenOnly: true,
                 child: IconButton(
                   enableFeedback: false,
+                  tooltip: 'common.edit'.tr(),
                   onPressed: () => _openEditSheet(context, ref, current),
                   icon: HugeIcon(
                     icon: HugeIcons.strokeRoundedEdit02,

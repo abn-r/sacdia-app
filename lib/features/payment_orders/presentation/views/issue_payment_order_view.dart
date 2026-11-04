@@ -11,6 +11,8 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/insurance/domain/entities/member_insurance.dart';
@@ -125,14 +127,13 @@ class _IssueOrderForm extends ConsumerWidget {
     }
     if (membersAsync.hasError) {
       return _IssueLoadError(
-        message: membersAsync.error.toString().replaceFirst('Exception: ', ''),
+        message: userErrorMessage(membersAsync.error),
         onRetry: () => ref.invalidate(membersInsuranceProvider),
       );
     }
     if (registeredIdsAsync.hasError) {
       return _IssueLoadError(
-        message:
-            registeredIdsAsync.error.toString().replaceFirst('Exception: ', ''),
+        message: userErrorMessage(registeredIdsAsync.error),
         onRetry: () =>
             ref.invalidate(camporeeRegisteredUserIdsProvider(camporeeId!)),
       );
@@ -456,27 +457,10 @@ class _IssueLoadError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
-            ),
-            const SizedBox(height: 14),
-            SacButton.outline(
-              text: 'common.retry'.tr(),
-              onPressed: onRetry,
-            ),
-          ],
-        ),
-      ),
+    return SacErrorState(
+      title: 'common.error_state.title'.tr(),
+      message: message,
+      onRetry: onRetry,
     );
   }
 }

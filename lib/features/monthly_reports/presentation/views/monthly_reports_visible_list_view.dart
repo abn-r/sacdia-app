@@ -1,5 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -7,7 +10,6 @@ import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/features/enrollment/domain/entities/enrollment.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -52,8 +54,9 @@ class MonthlyReportsVisibleListView extends ConsumerWidget {
         child: Builder(
           builder: (context) => reportsAsync.when(
             loading: () => const MonthlyReportSkeletonList(),
-            error: (e, _) => _ErrorBody(
-              message: e.toString().replaceFirst('Exception: ', ''),
+            error: (e, _) => SacErrorState(
+              title: 'common.error_state.title'.tr(),
+              message: userErrorMessage(e),
               onRetry: () => _refresh(ref),
             ),
             data: (reports) => RefreshIndicator(
@@ -80,7 +83,24 @@ class MonthlyReportsVisibleListView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 10),
                   if (reports.isEmpty)
-                    MonthlyReportEntrance(index: 2, child: _EmptyHistory(c: c))
+                    MonthlyReportEntrance(
+                      index: 2,
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: c.surface,
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusLG),
+                          border: Border.all(
+                              color: c.border.withValues(alpha: 0.7)),
+                        ),
+                        child: SacEmptyState.inline(
+                          icon: HugeIcons.strokeRoundedFile01,
+                          title: 'monthly_reports.visible.empty_title'.tr(),
+                          body: 'monthly_reports.visible.empty_subtitle'.tr(),
+                        ),
+                      ),
+                    )
                   else
                     MonthlyReportEntrance(
                       index: 2,
@@ -239,7 +259,7 @@ class _NextActionBar extends ConsumerWidget {
                 height: 42,
                 decoration: BoxDecoration(
                   color: kind == _NextActionKind.allSet
-                      ? AppColors.secondaryLight
+                      ? c.successContainer
                       : SacAccent.of(context).color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                 ),
@@ -248,7 +268,7 @@ class _NextActionBar extends ConsumerWidget {
                       ? HugeIcons.strokeRoundedCheckmarkCircle02
                       : HugeIcons.strokeRoundedNoteEdit,
                   color: kind == _NextActionKind.allSet
-                      ? AppColors.secondaryDark
+                      ? c.onSuccessContainer
                       : SacAccent.of(context).color,
                   size: 20,
                 ),
@@ -377,7 +397,7 @@ class _VisibleReportRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final statusCfg = _statusConfig(report.reportStatus).forTheme(context);
+    final statusCfg = _statusConfig(report.reportStatus, context.sac);
     final generatedAt = report.generatedAt;
     final clubContext = [
       report.clubName,
@@ -492,124 +512,23 @@ class _VisibleStatusChip extends StatelessWidget {
   }
 }
 
-class _EmptyHistory extends StatelessWidget {
-  final SacColors c;
-
-  const _EmptyHistory({required this.c});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-        border: Border.all(color: c.border.withValues(alpha: 0.7)),
-      ),
-      child: Column(
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedFile01,
-            color: c.textTertiary,
-            size: 28,
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'monthly_reports.visible.empty_title'.tr(),
-            textAlign: TextAlign.center,
-            style: TextStyle(fontWeight: FontWeight.w800, color: c.text),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'monthly_reports.visible.empty_subtitle'.tr(),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: SacFontSize.bodyMedium,
-              height: 1.35,
-              color: c.textSecondary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _StatusConfig {
   final Color bg;
   final Color fg;
 
   const _StatusConfig({required this.bg, required this.fg});
-
-  /// Variante para tema oscuro: fondo = acento translúcido, texto aclarado.
-  _StatusConfig forTheme(BuildContext context) {
-    if (Theme.of(context).brightness != Brightness.dark) return this;
-    return _StatusConfig(
-      bg: fg.withValues(alpha: 0.22),
-      fg: Color.lerp(fg, Colors.white, 0.35)!,
-    );
-  }
 }
 
-_StatusConfig _statusConfig(MonthlyReportStatus status) {
+_StatusConfig _statusConfig(MonthlyReportStatus status, SacColors c) {
   switch (status) {
     case MonthlyReportStatus.approved:
-      return _StatusConfig(
-        bg: AppColors.validatedBg,
-        fg: AppColors.validatedDark,
-      );
-    case MonthlyReportStatus.rejected:
-      return _StatusConfig(bg: AppColors.errorLight, fg: AppColors.errorDark);
-    case MonthlyReportStatus.submitted:
-      return _StatusConfig(bg: AppColors.sentBg, fg: AppColors.sentDark);
     case MonthlyReportStatus.generated:
-      return _StatusConfig(
-        bg: AppColors.secondaryLight,
-        fg: AppColors.secondaryDark,
-      );
+      return _StatusConfig(bg: c.successContainer, fg: c.onSuccessContainer);
+    case MonthlyReportStatus.rejected:
+      return _StatusConfig(bg: c.errorContainer, fg: c.onErrorContainer);
+    case MonthlyReportStatus.submitted:
+      return _StatusConfig(bg: c.infoContainer, fg: c.onInfoContainer);
     case MonthlyReportStatus.draft:
-      return _StatusConfig(bg: AppColors.accentLight, fg: AppColors.accentDark);
-  }
-}
-
-class _ErrorBody extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorBody({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 48,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: c.textSecondary),
-            ),
-            const SizedBox(height: 16),
-            SacPressable(
-              listenOnly: true,
-              child: TextButton(
-                  style: const ButtonStyle(enableFeedback: false),
-                  onPressed: onRetry,
-                  child: Text('common.retry'.tr())),
-            ),
-          ],
-        ),
-      ),
-    );
+      return _StatusConfig(bg: c.warningContainer, fg: c.onWarningContainer);
   }
 }

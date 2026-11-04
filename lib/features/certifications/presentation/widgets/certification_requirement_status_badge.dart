@@ -1,10 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/certification_requirement.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Badge de estado para un requisito (sección) de certificación.
 ///
@@ -12,6 +12,8 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 /// APPROVED) — deliberadamente distinto del de clases progresivas
 /// (pendiente/enviado/validado/rechazado), ver decisión en el plan de
 /// ejecución (Fase 5, punto 5 de "Decisiones ya tomadas").
+///
+/// Se renderiza con [SacBadge] (tintas de estado del design system).
 class CertificationRequirementStatusBadge extends StatelessWidget {
   final CertificationRequirementStatus status;
 
@@ -19,31 +21,7 @@ class CertificationRequirementStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: _bgColor(isDark),
-        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-        border: Border.all(color: _borderColor(isDark), width: 1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          HugeIcon(icon: _icon, size: 13, color: _textColor(isDark)),
-          const SizedBox(width: 5),
-          Text(
-            _label,
-            style: TextStyle(
-              fontSize: SacFontSize.bodySmall,
-              fontWeight: FontWeight.w600,
-              color: _textColor(isDark),
-            ),
-          ),
-        ],
-      ),
-    );
+    return SacBadge(label: _label, icon: _icon, variant: _variant);
   }
 
   String get _label {
@@ -59,48 +37,19 @@ class CertificationRequirementStatusBadge extends StatelessWidget {
     }
   }
 
-  Color _bgColor(bool isDark) {
+  SacBadgeVariant get _variant {
     switch (status) {
       case CertificationRequirementStatus.draft:
-        return AppColors.accentLight;
-      case CertificationRequirementStatus.submitted:
-        return isDark
-            ? AppColors.statusInfoBgDark
-            : AppColors.statusInfoBgLight;
       case CertificationRequirementStatus.changesRequested:
-        return AppColors.observedBg;
+        return SacBadgeVariant.accent;
+      case CertificationRequirementStatus.submitted:
+        return SacBadgeVariant.info;
       case CertificationRequirementStatus.approved:
-        return AppColors.secondaryLight;
+        return SacBadgeVariant.secondary;
     }
   }
 
-  Color _borderColor(bool isDark) {
-    switch (status) {
-      case CertificationRequirementStatus.draft:
-        return AppColors.accent.withValues(alpha: 0.4);
-      case CertificationRequirementStatus.submitted:
-        return AppColors.info.withValues(alpha: 0.4);
-      case CertificationRequirementStatus.changesRequested:
-        return AppColors.observedColor.withValues(alpha: 0.4);
-      case CertificationRequirementStatus.approved:
-        return AppColors.secondary.withValues(alpha: 0.4);
-    }
-  }
-
-  Color _textColor(bool isDark) {
-    switch (status) {
-      case CertificationRequirementStatus.draft:
-        return AppColors.accentDark;
-      case CertificationRequirementStatus.submitted:
-        return isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
-      case CertificationRequirementStatus.changesRequested:
-        return AppColors.observedDark;
-      case CertificationRequirementStatus.approved:
-        return AppColors.secondaryDark;
-    }
-  }
-
-  List<List<dynamic>> get _icon {
+  HugeIconData get _icon {
     switch (status) {
       case CertificationRequirementStatus.draft:
         return HugeIcons.strokeRoundedEdit02;

@@ -4,7 +4,6 @@ import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -39,7 +38,7 @@ class CamporeeOrderDetailView extends ConsumerWidget {
     ref.listen(camporeeOrderActionsProvider, (previous, next) {
       final message = next.errorMessage;
       if (message != null && message != previous?.errorMessage) {
-        _showSnack(context, message, AppColors.error);
+        SacSnackBar.show(context, message, isError: true);
       }
     });
 
@@ -134,10 +133,10 @@ class CamporeeOrderDetailView extends ConsumerWidget {
 
     if ((await picked.length() ?? 0) > _proofMaxSizeBytes) {
       if (context.mounted) {
-        _showSnack(
+        SacSnackBar.show(
           context,
           'camporee_orders.detail.proof_too_large'.tr(),
-          AppColors.error,
+          isError: true,
         );
       }
       return;
@@ -155,10 +154,10 @@ class CamporeeOrderDetailView extends ConsumerWidget {
             );
 
     if (uploaded && context.mounted) {
-      _showSnack(
+      SacSnackBar.show(
         context,
         'camporee_orders.detail.proof_uploaded'.tr(),
-        AppColors.secondary,
+        isSuccess: true,
       );
     }
   }
@@ -177,16 +176,12 @@ class CamporeeOrderDetailView extends ConsumerWidget {
         .read(camporeeOrderActionsProvider.notifier)
         .cancelOrder(orderId);
     if (cancelled && context.mounted) {
-      _showSnack(
+      SacSnackBar.show(
         context,
         'camporee_orders.detail.cancelled'.tr(),
-        AppColors.secondary,
+        isSuccess: true,
       );
     }
-  }
-
-  void _showSnack(BuildContext context, String message, Color color) {
-    SacSnackBar.show(context, message, backgroundColor: color);
   }
 
   String _mimeFromExtension(String? extension) {
@@ -340,16 +335,10 @@ class _OrderDetailBody extends StatelessWidget {
           ],
           if (order.canCancel) ...[
             const SizedBox(height: 12),
-            SacPressable(
-              listenOnly: true,
-              child: TextButton(
-                style: const ButtonStyle(enableFeedback: false),
-                onPressed: isWorking ? null : onCancel,
-                child: Text(
-                  'camporee_orders.detail.cancel_order'.tr(),
-                  style: const TextStyle(color: AppColors.error),
-                ),
-              ),
+            SacButton.text(
+              text: 'camporee_orders.detail.cancel_order'.tr(),
+              color: context.sac.onErrorContainer,
+              onPressed: isWorking ? null : onCancel,
             ),
           ],
           const SizedBox(height: 16),

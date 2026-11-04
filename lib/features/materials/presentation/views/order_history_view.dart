@@ -1,12 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
@@ -33,8 +34,9 @@ class OrderHistoryView extends ConsumerWidget {
             loading: () => const _HistorySkeleton(),
             error: (e, _) => _RefreshableBody(
               onRefresh: () => _refresh(ref),
-              child: _ErrorBody(
-                message: e.toString(),
+              child: SacErrorState(
+                title: 'materials.history.error_title'.tr(),
+                message: userErrorMessage(e),
                 onRetry: () => ref.invalidate(historyProvider),
               ),
             ),
@@ -42,8 +44,13 @@ class OrderHistoryView extends ConsumerWidget {
               if (ordenes.isEmpty) {
                 return _RefreshableBody(
                   onRefresh: () => _refresh(ref),
-                  child: _EmptyHistorial(
-                    onGoCatalog: () => context.go(RouteNames.homeMaterials),
+                  child: SacEmptyState(
+                    icon: HugeIcons.strokeRoundedInvoice03,
+                    title: 'materials.history.empty_title'.tr(),
+                    body: 'materials.history.empty_subtitle'.tr(),
+                    actionLabel: 'materials.history.go_catalog'.tr(),
+                    onAction: () => context.go(RouteNames.homeMaterials),
+                    actionIcon: HugeIcons.strokeRoundedStoreManagement01,
                   ),
                 );
               }
@@ -185,70 +192,6 @@ class _HistorySkeleton extends StatelessWidget {
                 color: c.border.withValues(alpha: 0.4),
                 borderRadius: BorderRadius.circular(AppTheme.radiusFull),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _EmptyHistorial extends StatelessWidget {
-  final VoidCallback onGoCatalog;
-  const _EmptyHistorial({required this.onGoCatalog});
-
-  @override
-  Widget build(BuildContext context) {
-    return SacEmptyState(
-      icon: HugeIcons.strokeRoundedInvoice03,
-      title: 'materials.history.empty_title'.tr(),
-      body: 'materials.history.empty_subtitle'.tr(),
-      actionLabel: 'materials.history.go_catalog'.tr(),
-      onAction: onGoCatalog,
-      actionIcon: HugeIcons.strokeRoundedStoreManagement01,
-    );
-  }
-}
-
-class _ErrorBody extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-  const _ErrorBody({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 48,
-              color: c.textTertiary,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'materials.history.error_title'.tr(),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: c.text,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: TextStyle(color: c.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SacButton(
-              text: 'common.retry'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              variant: SacButtonVariant.outline,
-              onPressed: onRetry,
             ),
           ],
         ),

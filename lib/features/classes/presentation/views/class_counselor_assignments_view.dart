@@ -1,4 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
@@ -173,8 +175,9 @@ class ClassCounselorAssignmentsView extends ConsumerWidget {
         child: Builder(
           builder: (context) => assignmentsAsync.when(
             loading: () => const Center(child: SacLoading()),
-            error: (error, _) => _AssignmentsErrorState(
-              message: error.toString().replaceFirst('Exception: ', ''),
+            error: (error, _) => SacErrorState(
+              title: 'classes.class_assignments.load_error_title'.tr(),
+              message: userErrorMessage(error),
               onRetry: () =>
                   ref.invalidate(classCounselorAssignmentsProvider(query)),
             ),
@@ -553,9 +556,8 @@ class _AssignmentAddActionState extends State<_AssignmentAddAction> {
                           key: const ValueKey('assignment-add-loading'),
                           width: 16,
                           height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: color,
+                          child: FittedBox(
+                            child: SacLoadingSmall(color: color),
                           ),
                         )
                       : HugeIcon(
@@ -1412,54 +1414,6 @@ class _ReadOnlyField extends StatelessWidget {
                 ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _AssignmentsErrorState extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _AssignmentsErrorState({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 52,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'classes.class_assignments.load_error_title'.tr(),
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: context.sac.ink600),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            SacButton(
-              text: 'common.retry'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onRetry,
-            ),
-          ],
-        ),
       ),
     );
   }

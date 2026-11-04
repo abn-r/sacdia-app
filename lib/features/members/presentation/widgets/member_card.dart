@@ -1,12 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
+import 'package:sacdia_app/core/widgets/sac_member_avatar.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 
 import '../../domain/entities/club_member.dart';
@@ -49,7 +49,11 @@ class MemberCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(
           children: [
-            _MemberAvatar(member: member),
+            SacMemberAvatar(
+              imageUrl: member.avatar,
+              name: member.fullName,
+              size: 38,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
@@ -157,45 +161,6 @@ String? _displayClass(ClubMember member) {
   return 'members.guide_majors_group'.tr();
 }
 
-class _MemberAvatar extends StatelessWidget {
-  final ClubMember member;
-
-  const _MemberAvatar({required this.member});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: SacAccent.of(context).light,
-          width: 1.5,
-        ),
-      ),
-      child: ClipOval(
-        child: SizedBox(
-          width: 36,
-          height: 36,
-          child: member.avatar != null
-              ? SacProfileImage(
-                  imageUrl: member.avatar!,
-                  fit: BoxFit.cover,
-                  memCacheWidth: 72,
-                  memCacheHeight: 72,
-                  placeholder: (_, __) => _AvatarInitials(
-                    initials: member.initials,
-                  ),
-                  errorWidget: (_, __, ___) => _AvatarInitials(
-                    initials: member.initials,
-                  ),
-                )
-              : _AvatarInitials(initials: member.initials),
-        ),
-      ),
-    );
-  }
-}
-
 class _EnrollmentBadge extends StatelessWidget {
   final bool isEnrolled;
 
@@ -222,9 +187,10 @@ class _AssignRoleButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SacPressable(
       onTap: onTap,
+      semanticLabel: 'members.role_assignment.title'.tr(),
       child: SizedBox(
-        width: 40,
-        height: 40,
+        width: 48,
+        height: 48,
         child: Center(
           child: Container(
             width: 28,
@@ -241,29 +207,6 @@ class _AssignRoleButton extends StatelessWidget {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AvatarInitials extends StatelessWidget {
-  final String initials;
-
-  const _AvatarInitials({required this.initials});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      color: theme.colorScheme.primaryContainer,
-      alignment: Alignment.center,
-      child: Text(
-        initials,
-        style: TextStyle(
-          fontSize: SacFontSize.bodySmall,
-          fontWeight: FontWeight.w600,
-          color: theme.colorScheme.onPrimaryContainer,
         ),
       ),
     );

@@ -6,11 +6,14 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/config/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/utils/icon_helper.dart';
+import '../../../../core/widgets/sac_badge.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_empty_state.dart';
+import '../../../../core/widgets/sac_error_state.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -61,14 +64,20 @@ class TransferRequestsView extends ConsumerWidget {
         child: Builder(
           builder: (context) => requestsAsync.when(
             loading: () => const Center(child: SacLoading()),
-            error: (e, _) => _ErrorBody(
-              message: e.toString().replaceFirst('Exception: ', ''),
+            error: (e, _) => SacErrorState(
+              title: userErrorMessage(e),
+              padding:
+                  SacTopBar.paddingBelowBar(context, const EdgeInsets.all(32)),
               onRetry: () => ref.invalidate(myTransferRequestsProvider),
             ),
             data: (requests) {
               if (requests.isEmpty) {
-                return _EmptyBody(
-                  onNewRequest: () => _openNewRequest(context),
+                return SacEmptyState(
+                  icon: HugeIcons.strokeRoundedExchange01,
+                  title: tr('transfers.list.empty_title'),
+                  body: tr('transfers.list.empty_subtitle'),
+                  actionLabel: tr('transfers.list.empty_action'),
+                  onAction: () => _openNewRequest(context),
                 );
               }
 
@@ -116,7 +125,7 @@ class _TransferCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final statusConfig = _statusConfig(request.status);
+    final statusConfig = _statusConfig(context, request.status);
 
     return GestureDetector(
       onTap: onTap,
@@ -204,24 +213,26 @@ class _TransferCard extends StatelessWidget {
     );
   }
 
-  _TransferStatusConfig _statusConfig(TransferStatus status) {
+  _TransferStatusConfig _statusConfig(
+      BuildContext context, TransferStatus status) {
+    final c = context.sac;
     switch (status) {
       case TransferStatus.approved:
         return _TransferStatusConfig(
-          bg: AppColors.secondaryLight,
-          fg: AppColors.secondaryDark,
+          bg: c.successContainer,
+          fg: c.onSuccessContainer,
           icon: HugeIcons.strokeRoundedCheckmarkCircle02,
         );
       case TransferStatus.rejected:
         return _TransferStatusConfig(
-          bg: AppColors.errorLight,
-          fg: AppColors.errorDark,
+          bg: c.errorContainer,
+          fg: c.onErrorContainer,
           icon: HugeIcons.strokeRoundedCancel01,
         );
       case TransferStatus.pending:
         return _TransferStatusConfig(
-          bg: AppColors.accentLight,
-          fg: AppColors.accentDark,
+          bg: c.warningContainer,
+          fg: c.onWarningContainer,
           icon: HugeIcons.strokeRoundedClock01,
         );
     }
@@ -231,7 +242,7 @@ class _TransferCard extends StatelessWidget {
 class _TransferStatusConfig {
   final Color bg;
   final Color fg;
-  final dynamic icon;
+  final HugeIconData icon;
 
   const _TransferStatusConfig({
     required this.bg,
@@ -247,95 +258,14 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color bg, fg;
     switch (status) {
       case TransferStatus.approved:
-        bg = AppColors.secondaryLight;
-        fg = AppColors.secondaryDark;
-        break;
+        return SacBadge.success(label: status.label);
       case TransferStatus.rejected:
-        bg = AppColors.errorLight;
-        fg = AppColors.errorDark;
-        break;
+        return SacBadge.error(label: status.label);
       case TransferStatus.pending:
-        bg = AppColors.accentLight;
-        fg = AppColors.accentDark;
+        return SacBadge.warning(label: status.label);
     }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-      ),
-      child: Text(
-        status.label,
-        style: TextStyle(
-          fontSize: SacFontSize.labelSmall,
-          fontWeight: FontWeight.w600,
-          color: fg,
-        ),
-      ),
-    );
-  }
-}
-
-// ── Empty state ───────────────────────────────────────────────────────────────
-
-class _EmptyBody extends StatelessWidget {
-  final VoidCallback? onNewRequest;
-
-  const _EmptyBody({this.onNewRequest});
-
-  @override
-  Widget build(BuildContext context) {
-    return SacEmptyState(
-      icon: HugeIcons.strokeRoundedExchange01,
-      title: tr('transfers.list.empty_title'),
-      body: tr('transfers.list.empty_subtitle'),
-      actionLabel: tr('transfers.list.empty_action'),
-      onAction: onNewRequest,
-    );
-  }
-}
-
-// ── Error state ───────────────────────────────────────────────────────────────
-
-class _ErrorBody extends StatelessWidget {
-  final String message;
-  final VoidCallback? onRetry;
-
-  const _ErrorBody({required this.message, this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 48,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: SacFontSize.titleSmall),
-            ),
-            const SizedBox(height: 16),
-            SacButton.primary(
-              text: tr('common.retry'),
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onRetry,
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 
@@ -440,8 +370,8 @@ class _TransferRequestFormViewState
           builder: (context) => Padding(
             padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
             child: activeGrant == null || activeClubTypeId == null
-                ? _ErrorBody(
-                    message: 'transfers.form.no_active_membership'.tr(),
+                ? SacErrorState(
+                    title: 'transfers.form.no_active_membership'.tr(),
                     onRetry: () => ref
                         .read(authNotifierProvider.notifier)
                         .refreshCurrentUser(keepCurrentOnFailure: true),
@@ -491,23 +421,23 @@ class _InlineError extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.errorLight,
+        color: context.sac.errorContainer,
         borderRadius: BorderRadius.circular(AppTheme.radiusXS),
       ),
       child: Row(
         children: [
-          const HugeIcon(
+          HugeIcon(
             icon: HugeIcons.strokeRoundedAlert02,
-            color: AppColors.error,
+            color: context.sac.onErrorContainer,
             size: 16,
           ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: SacFontSize.bodyMedium,
-                color: AppColors.error,
+                color: context.sac.onErrorContainer,
               ),
             ),
           ),

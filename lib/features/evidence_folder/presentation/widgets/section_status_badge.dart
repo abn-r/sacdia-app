@@ -1,8 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/evidence_section.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -21,11 +22,11 @@ class SectionStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final c = context.sac;
 
-    final bgColor = _bgColor(isDark);
-    final borderColor = _borderColor(isDark);
-    final textColor = _textColor(isDark);
+    final bgColor = _bgColor(c);
+    final borderColor = _borderColor(c);
+    final textColor = _textColor(c);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -67,54 +68,50 @@ class SectionStatusBadge extends StatelessWidget {
     }
   }
 
-  Color _bgColor(bool isDark) {
+  Color _bgColor(SacColors c) {
     switch (status) {
       case EvidenceSectionStatus.pending:
-        return AppColors.accentLight;
-      case EvidenceSectionStatus.submitted:
-        return isDark
-            ? AppColors.statusInfoBgDark
-            : AppColors.statusInfoBgLight;
       case EvidenceSectionStatus.preapprovedLf:
-        return isDark ? AppColors.darkSurfaceVariant : AppColors.accentLight;
+        return c.warningContainer;
+      case EvidenceSectionStatus.submitted:
+        return c.infoContainer;
       case EvidenceSectionStatus.validated:
-        return AppColors.secondaryLight;
+        return c.successContainer;
       case EvidenceSectionStatus.rejected:
-        return AppColors.errorLight;
+        return c.errorContainer;
     }
   }
 
-  Color _borderColor(bool isDark) {
+  Color _borderColor(SacColors c) {
     switch (status) {
       case EvidenceSectionStatus.pending:
-        return AppColors.accent.withValues(alpha: 0.4);
+        return c.warning.withValues(alpha: 0.4);
       case EvidenceSectionStatus.submitted:
-        return AppColors.info.withValues(alpha: 0.4);
+        return c.info.withValues(alpha: 0.4);
       case EvidenceSectionStatus.preapprovedLf:
-        return AppColors.accent.withValues(alpha: 0.5);
+        return c.warning.withValues(alpha: 0.5);
       case EvidenceSectionStatus.validated:
-        return AppColors.secondary.withValues(alpha: 0.4);
+        return c.success.withValues(alpha: 0.4);
       case EvidenceSectionStatus.rejected:
-        return AppColors.error.withValues(alpha: 0.4);
+        return c.error.withValues(alpha: 0.4);
     }
   }
 
-  Color _textColor(bool isDark) {
+  Color _textColor(SacColors c) {
     switch (status) {
       case EvidenceSectionStatus.pending:
-        return AppColors.accentDark;
-      case EvidenceSectionStatus.submitted:
-        return isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
       case EvidenceSectionStatus.preapprovedLf:
-        return AppColors.accentDark;
+        return c.onWarningContainer;
+      case EvidenceSectionStatus.submitted:
+        return c.onInfoContainer;
       case EvidenceSectionStatus.validated:
-        return AppColors.secondaryDark;
+        return c.onSuccessContainer;
       case EvidenceSectionStatus.rejected:
-        return AppColors.errorDark;
+        return c.onErrorContainer;
     }
   }
 
-  List<List<dynamic>> get _icon {
+  HugeIconData get _icon {
     switch (status) {
       case EvidenceSectionStatus.pending:
         return HugeIcons.strokeRoundedClock01;

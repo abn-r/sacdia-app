@@ -47,6 +47,10 @@ import 'package:sacdia_app/features/payment_orders/presentation/providers/paymen
 import 'package:sacdia_app/features/payment_orders/presentation/widgets/payment_order_widgets.dart';
 import 'package:sacdia_app/features/camporee_orders/presentation/views/camporee_order_catalog_view.dart';
 import 'package:sacdia_app/features/camporee_supplies/presentation/views/camporee_supply_plan_view.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 
 /// Vista de detalle de un camporee.
 ///
@@ -71,9 +75,16 @@ class CamporeeDetailView extends ConsumerWidget {
     return detailAsync.when(
       loading: () => const _CamporeeScaffold(body: _DetailSkeleton()),
       error: (error, _) => _CamporeeScaffold(
-        body: _ErrorBody(
-          message: error.toString().replaceFirst('Exception: ', ''),
-          onRetry: () => ref.invalidate(camporeeDetailProvider(camporeeId)),
+        body: Builder(
+          builder: (context) => SacErrorState(
+            title: 'camporees.detail.error_loading'.tr(),
+            message: userErrorMessage(error),
+            padding: SacTopBar.paddingBelowBar(
+              context,
+              const EdgeInsets.all(32),
+            ),
+            onRetry: () => ref.invalidate(camporeeDetailProvider(camporeeId)),
+          ),
         ),
       ),
       data: (camporee) => _CamporeeScaffold(
@@ -918,9 +929,9 @@ class _EventsSection extends StatelessWidget {
                   ? events.where((event) => event.isScored).toList()
                   : events;
               if (visible.isEmpty) {
-                return _EmptyInlineState(
+                return SacEmptyState.inline(
                   icon: HugeIcons.strokeRoundedCalendar03,
-                  label: scoredOnly
+                  title: scoredOnly
                       ? 'camporees.detail.no_scored_events'.tr()
                       : 'camporees.detail.no_events_yet'.tr(),
                 );
@@ -990,9 +1001,9 @@ class _AgendaSection extends StatelessWidget {
           eventsAsync.when(
             data: (events) {
               if (events.isEmpty) {
-                return _EmptyInlineState(
+                return SacEmptyState.inline(
                   icon: HugeIcons.strokeRoundedCalendar03,
-                  label: 'camporees.detail.agenda_empty'.tr(),
+                  title: 'camporees.detail.agenda_empty'.tr(),
                 );
               }
 
@@ -1723,7 +1734,10 @@ class _MembersSection extends StatelessWidget {
                   ),
                 ),
               ),
-              error: (_, __) => _MembersError(onRetry: onRetryMembers),
+              error: (_, __) => SacErrorState.inline(
+                message: 'camporees.detail.members_error'.tr(),
+                onRetry: onRetryMembers,
+              ),
             ),
           _EnrollmentOrders(camporeeId: camporeeId),
           if (canRegisterParticipants) ...[
@@ -1876,45 +1890,6 @@ class _EnrollmentOrderRow extends StatelessWidget {
   }
 }
 
-class _MembersError extends StatelessWidget {
-  final VoidCallback onRetry;
-
-  const _MembersError({required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      liveRegion: true,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'camporees.detail.members_error'.tr(),
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: context.sac.text,
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-          const SizedBox(height: 12),
-          Semantics(
-            button: true,
-            label: 'camporees.detail.retry_members_semantics'.tr(),
-            child: SacButton.outline(
-              text: 'camporees.detail.retry_members'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onRetry,
-              textColor: context.sac.text,
-              borderColor: context.sac.textSecondary,
-              labelMaxLines: 2,
-              labelOverflow: TextOverflow.visible,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _ParticipantsLockedState extends StatelessWidget {
   final AsyncValue<CamporeeSectionRegistration> registrationAsync;
 
@@ -2032,48 +2007,6 @@ class _MembersPreview extends StatelessWidget {
   }
 }
 
-class _EmptyInlineState extends StatelessWidget {
-  final HugeIconData icon;
-  final String label;
-
-  const _EmptyInlineState({
-    required this.icon,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: c.surfaceVariant,
-        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-        border: Border.all(color: c.borderLight),
-      ),
-      child: Row(
-        children: [
-          HugeIcon(icon: icon, size: 18, color: c.textTertiary),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: SacFontSize.titleSmall,
-                height: 1.45,
-                color: c.textSecondary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _InlineRetryState extends StatelessWidget {
   final String label;
   final VoidCallback onRetry;
@@ -2113,13 +2046,9 @@ class _InlineRetryState extends StatelessWidget {
               ),
             ),
           ),
-          SacPressable(
-            listenOnly: true,
-            child: TextButton(
-              style: const ButtonStyle(enableFeedback: false),
-              onPressed: onRetry,
-              child: Text('common.retry'.tr()),
-            ),
+          SacButton.text(
+            text: 'common.retry'.tr(),
+            onPressed: onRetry,
           ),
         ],
       ),
@@ -2362,6 +2291,12 @@ class _Badge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+    final textColor = color == c.warning
+        ? c.onWarningContainer
+        : color == c.success
+            ? c.onSuccessContainer
+            : color;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -2374,7 +2309,7 @@ class _Badge extends StatelessWidget {
         style: TextStyle(
           fontSize: SacFontSize.bodySmall,
           fontWeight: FontWeight.w800,
-          color: color,
+          color: textColor,
           height: 1.1,
         ),
       ),
@@ -2452,89 +2387,25 @@ class _DetailSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return ListView(
-      padding: SacTopBar.paddingBelowBar(
-          context,
-          EdgeInsets.fromLTRB(
-            Responsive.horizontalPadding(context),
-            24,
-            Responsive.horizontalPadding(context),
-            48,
-          )),
-      children: [
-        Container(
-          height: 88,
-          decoration: BoxDecoration(
-            color: c.surface,
-            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+    return SacShimmer(
+      child: ExcludeSemantics(
+        child: ListView(
+          physics: const NeverScrollableScrollPhysics(),
+          padding: SacTopBar.paddingBelowBar(
+            context,
+            EdgeInsets.fromLTRB(
+              Responsive.horizontalPadding(context),
+              24,
+              Responsive.horizontalPadding(context),
+              48,
+            ),
           ),
-        ),
-        const SizedBox(height: 24),
-        Container(
-          height: 220,
-          decoration: BoxDecoration(
-            color: c.surface,
-            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-          ),
-        ),
-        const SizedBox(height: 20),
-        Container(
-          height: 220,
-          decoration: BoxDecoration(
-            color: c.surface,
-            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ErrorBody extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorBody({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _IconTile(
-              icon: HugeIcons.strokeRoundedAlert02,
-              color: c.error,
-              size: 72,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'camporees.detail.error_loading'.tr(),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: c.text,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: TextStyle(
-                  fontSize: SacFontSize.titleSmall, color: c.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SacButton.primary(
-              text: 'common.retry'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onRetry,
-            ),
+          children: const [
+            SacSkeletonCard(height: 88),
+            SizedBox(height: 24),
+            SacSkeletonCard(height: 220),
+            SizedBox(height: 20),
+            SacSkeletonCard(height: 220),
           ],
         ),
       ),

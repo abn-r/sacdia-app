@@ -8,6 +8,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
@@ -54,7 +55,7 @@ void main() {
       units: const UnitsState(units: [], isLoading: true),
     );
 
-    expect(find.byType(SacLoading), findsOneWidget);
+    expect(find.byType(SacSkeletonList), findsOneWidget);
     expect(find.text('Cargando…'), findsNothing);
     expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(find.text('No hay unidades'), findsNothing);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_network_image.dart';
@@ -217,7 +218,7 @@ class _AchievementBadgeState extends State<AchievementBadge>
             child: SizedBox(
               width: widget.size * 0.4,
               height: widget.size * 0.4,
-              child: const CircularProgressIndicator(strokeWidth: 2),
+              child: const FittedBox(child: SacLoadingSmall()),
             ),
           ),
         ),

@@ -10,6 +10,10 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_dialog.dart';
+import '../../../../core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../widgets/evidence_folder_loading_skeleton.dart';
@@ -79,8 +83,13 @@ class EvidenceFolderView extends ConsumerWidget {
                     onBack: () => Navigator.of(context).maybePop(),
                   );
                 }
-                return _ErrorBody(
-                  message: error.toString().replaceFirst('Exception: ', ''),
+                return SacErrorState(
+                  title: 'evidence_folder.error_load_title'.tr(),
+                  message: userErrorMessage(error),
+                  padding: SacTopBar.paddingBelowBar(
+                    context,
+                    const EdgeInsets.all(32),
+                  ),
                   onRetry: () =>
                       ref.invalidate(evidenceFolderProvider(clubSectionId)),
                 );
@@ -330,7 +339,10 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
 
           SliverToBoxAdapter(
             child: folder.sections.isEmpty
-                ? _EmptySections()
+                ? SacEmptyState.inline(
+                    title: 'evidence_folder.empty_sections'.tr(),
+                    icon: HugeIcons.strokeRoundedFolderOpen,
+                  )
                 : _query.trim().isNotEmpty && filteredSections.isEmpty
                     ? const EvidenceSearchEmpty()
                     : const SizedBox(height: 32),
@@ -400,34 +412,6 @@ class _UnderEvaluationBanner extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Empty state ───────────────────────────────────────────────────────────────
-
-class _EmptySections extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(40),
-      child: Column(
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedFolderOpen,
-            size: 56,
-            color: context.sac.textTertiary,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'evidence_folder.empty_sections'.tr(),
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall
-                ?.copyWith(color: context.sac.textSecondary),
           ),
         ],
       ),
@@ -565,11 +549,7 @@ class _NoFolderBody extends ConsumerWidget {
               ],
               const SizedBox(height: 32),
               if (isCheckingTemplate) ...[
-                const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
+                const SacLoadingSmall(),
                 const SizedBox(height: 12),
               ],
               if (showCreate) ...[
@@ -587,64 +567,6 @@ class _NoFolderBody extends ConsumerWidget {
                 text: 'common.back'.tr(),
                 icon: HugeIcons.strokeRoundedArrowLeft01,
                 onPressed: onBack,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Error state ───────────────────────────────────────────────────────────────
-
-class _ErrorBody extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorBody({
-    required this.message,
-    required this.onRetry,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Padding(
-      padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedAlert02,
-                size: 56,
-                color: AppColors.error,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'evidence_folder.error_load_title'.tr(),
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w600),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                message,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: c.textSecondary,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              SacButton.primary(
-                text: 'common.retry'.tr(),
-                icon: HugeIcons.strokeRoundedRefresh,
-                onPressed: onRetry,
               ),
             ],
           ),

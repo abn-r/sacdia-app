@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -508,11 +509,9 @@ class _EvidenceStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final bgColor = _bgColor(isDark);
-    final borderColor = _borderColor(isDark);
-    final textColor = _textColor(isDark);
+    final bgColor = _bgColor(c);
+    final borderColor = _borderColor(c);
+    final textColor = _textColor(c);
 
     return Semantics(
       button: true,
@@ -572,54 +571,50 @@ class _EvidenceStatusChip extends StatelessWidget {
     }
   }
 
-  Color _bgColor(bool isDark) {
+  Color _bgColor(SacColors c) {
     switch (status) {
       case EvidenceSectionStatus.pending:
-        return AppColors.accentLight;
-      case EvidenceSectionStatus.submitted:
-        return isDark
-            ? AppColors.statusInfoBgDark
-            : AppColors.statusInfoBgLight;
       case EvidenceSectionStatus.preapprovedLf:
-        return isDark ? AppColors.darkSurfaceVariant : AppColors.accentLight;
+        return c.warningContainer;
+      case EvidenceSectionStatus.submitted:
+        return c.infoContainer;
       case EvidenceSectionStatus.validated:
-        return AppColors.secondaryLight;
+        return c.successContainer;
       case EvidenceSectionStatus.rejected:
-        return AppColors.errorLight;
+        return c.errorContainer;
     }
   }
 
-  Color _borderColor(bool isDark) {
+  Color _borderColor(SacColors c) {
     switch (status) {
       case EvidenceSectionStatus.pending:
-        return AppColors.accent.withValues(alpha: 0.4);
+        return c.warning.withValues(alpha: 0.4);
       case EvidenceSectionStatus.submitted:
-        return AppColors.info.withValues(alpha: 0.4);
+        return c.info.withValues(alpha: 0.4);
       case EvidenceSectionStatus.preapprovedLf:
-        return AppColors.accent.withValues(alpha: 0.5);
+        return c.warning.withValues(alpha: 0.5);
       case EvidenceSectionStatus.validated:
-        return AppColors.secondary.withValues(alpha: 0.4);
+        return c.success.withValues(alpha: 0.4);
       case EvidenceSectionStatus.rejected:
-        return AppColors.error.withValues(alpha: 0.4);
+        return c.error.withValues(alpha: 0.4);
     }
   }
 
-  Color _textColor(bool isDark) {
+  Color _textColor(SacColors c) {
     switch (status) {
       case EvidenceSectionStatus.pending:
-        return AppColors.accentDark;
-      case EvidenceSectionStatus.submitted:
-        return isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
       case EvidenceSectionStatus.preapprovedLf:
-        return AppColors.accentDark;
+        return c.onWarningContainer;
+      case EvidenceSectionStatus.submitted:
+        return c.onInfoContainer;
       case EvidenceSectionStatus.validated:
-        return AppColors.secondaryDark;
+        return c.onSuccessContainer;
       case EvidenceSectionStatus.rejected:
-        return AppColors.errorDark;
+        return c.onErrorContainer;
     }
   }
 
-  List<List<dynamic>> get _icon {
+  HugeIconData get _icon {
     switch (status) {
       case EvidenceSectionStatus.pending:
         return HugeIcons.strokeRoundedClock01;
@@ -651,9 +646,9 @@ class _EvaluationResultCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.secondaryLight,
+        color: c.successContainer,
         borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        border: Border.all(color: AppColors.secondary.withValues(alpha: 0.4)),
+        border: Border.all(color: c.success.withValues(alpha: 0.4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -664,13 +659,13 @@ class _EvaluationResultCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.secondary.withValues(alpha: 0.15),
+                  color: c.success.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                 ),
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedStar,
                   size: 20,
-                  color: AppColors.secondaryDark,
+                  color: c.onSuccessContainer,
                 ),
               ),
               const SizedBox(width: 12),
@@ -687,10 +682,10 @@ class _EvaluationResultCard extends StatelessWidget {
                   ),
                   Text(
                     '${section.earnedPoints} / ${section.pointValue}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: SacFontSize.headlineMedium,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.secondaryDark,
+                      color: c.onSuccessContainer,
                     ),
                   ),
                 ],
@@ -703,7 +698,7 @@ class _EvaluationResultCard extends StatelessWidget {
               section.unionApproverName != null) ...[
             const SizedBox(height: 12),
             Divider(
-              color: AppColors.secondary.withValues(alpha: 0.25),
+              color: c.success.withValues(alpha: 0.25),
               height: 1,
             ),
             const SizedBox(height: 12),
@@ -714,7 +709,7 @@ class _EvaluationResultCard extends StatelessWidget {
                   HugeIcon(
                     icon: HugeIcons.strokeRoundedAnalytics01,
                     size: 13,
-                    color: AppColors.accentDark,
+                    color: c.onSuccessContainer,
                   ),
                   const SizedBox(width: 6),
                   Expanded(
@@ -728,7 +723,7 @@ class _EvaluationResultCard extends StatelessWidget {
                         },
                       ),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: AppColors.accentDark,
+                            color: c.onSuccessContainer,
                             fontWeight: FontWeight.w600,
                             height: 1.3,
                           ),
@@ -745,7 +740,7 @@ class _EvaluationResultCard extends StatelessWidget {
                   HugeIcon(
                     icon: HugeIcons.strokeRoundedUserCheck01,
                     size: 13,
-                    color: AppColors.secondaryDark,
+                    color: c.onSuccessContainer,
                   ),
                   const SizedBox(width: 6),
                   Expanded(
@@ -759,7 +754,7 @@ class _EvaluationResultCard extends StatelessWidget {
                         },
                       ),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: AppColors.secondaryDark,
+                            color: c.onSuccessContainer,
                             fontWeight: FontWeight.w600,
                             height: 1.3,
                           ),
@@ -786,7 +781,7 @@ class _EvaluationResultCard extends StatelessWidget {
             Text(
               section.evaluationNotes!,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.secondaryDark,
+                    color: c.onSuccessContainer,
                     height: 1.5,
                   ),
             ),
@@ -860,18 +855,13 @@ class _ReviewerNoteCalloutState extends State<_ReviewerNoteCallout> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final c = context.sac;
 
-    // Colores info (azul suave) — dark-mode aware, reutiliza los tokens de
-    // AppColors.statusInfoBg* que ya existen para el estado "enviado".
-    final bgColor =
-        isDark ? AppColors.statusInfoBgDark : AppColors.statusInfoBgLight;
-    final borderColor = AppColors.info.withValues(alpha: isDark ? 0.3 : 0.35);
-    final noteColor =
-        isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
-    final labelColor = isDark
-        ? AppColors.statusInfoTextDark.withValues(alpha: 0.7)
-        : AppColors.statusInfoText.withValues(alpha: 0.75);
+    // Colores info (contenedor azul) — dark-mode aware vía tokens semánticos.
+    final bgColor = c.infoContainer;
+    final borderColor = c.info.withValues(alpha: 0.35);
+    final noteColor = c.onInfoContainer;
+    final labelColor = c.onInfoContainer.withValues(alpha: 0.8);
 
     return Container(
       width: double.infinity,

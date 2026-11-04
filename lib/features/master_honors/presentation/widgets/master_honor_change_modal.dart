@@ -1,5 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
@@ -46,8 +47,11 @@ class MasterHonorChangeModal extends StatelessWidget {
                         .withValues(alpha: 0.9),
                   ),
                   alignment: Alignment.center,
-                  child: const Text('🏅',
-                      style: TextStyle(fontSize: SacFontSize.headlineMedium)),
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedAward01,
+                    size: 24,
+                    color: SacAccent.of(context).color,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -80,14 +84,8 @@ class MasterHonorChangeModal extends StatelessWidget {
             const SizedBox(height: 16),
             Align(
               alignment: Alignment.centerRight,
-              child: SacPressable(
-                listenOnly: true,
-                child: TextButton(
-                  style: const ButtonStyle(enableFeedback: false),
-                  onPressed: onConfirm,
-                  child: const Text('Entendido'),
-                ),
-              ),
+              child: SacButton.text(
+                  text: 'common.understood'.tr(), onPressed: onConfirm),
             ),
           ],
         ),

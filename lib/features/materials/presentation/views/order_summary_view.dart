@@ -1,12 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../features/members/presentation/providers/members_providers.dart';
@@ -53,13 +53,13 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
 
     // Redirect to catalog if cart is empty (e.g. after a back navigation).
     if (cart.lines.isEmpty && _submitted) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: Center(child: SacLoading()));
     }
     if (cart.lines.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) context.go(RouteNames.homeMaterials);
       });
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: Center(child: SacLoading()));
     }
 
     final configAsync = ref.watch(configProvider);
@@ -146,23 +146,23 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppColors.accentLight,
+                            color: context.sac.warningContainer,
                             borderRadius:
                                 BorderRadius.circular(AppTheme.radiusXS),
                           ),
                           child: Row(
                             children: [
-                              const HugeIcon(
+                              HugeIcon(
                                 icon: HugeIcons.strokeRoundedInformationCircle,
                                 size: 16,
-                                color: AppColors.accentDark,
+                                color: context.sac.onWarningContainer,
                               ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   'materials.summary.ship_hint'.tr(),
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: AppColors.accentDark,
+                                    color: context.sac.onWarningContainer,
                                   ),
                                 ),
                               ),

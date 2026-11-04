@@ -14,6 +14,7 @@ import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
@@ -664,10 +665,7 @@ class _PdfRowState extends ConsumerState<_PdfRow> {
                 SizedBox(
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: SacAccent.of(context).color,
-                  ),
+                  child: const SacLoadingSmall(),
                 )
               else
                 HugeIcon(

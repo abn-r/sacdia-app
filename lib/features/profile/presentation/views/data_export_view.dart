@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,6 +21,9 @@ import '../../domain/entities/data_export.dart';
 import '../providers/data_export_providers.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -246,8 +250,9 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
             ),
             error: (error, _) => Padding(
               padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
-              child: _ErrorState(
-                message: error.toString().replaceFirst('Exception: ', ''),
+              child: SacErrorState(
+                title: userErrorMessage(error),
+                retryLabel: 'profile.data_export.ui.action_retry'.tr(),
                 onRetry: () => ref.read(dataExportProvider.notifier).refresh(),
               ),
             ),
@@ -325,7 +330,10 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
           if (isLoading)
             _LoadingSkeleton(c: c)
           else if (exports == null || exports.isEmpty)
-            _EmptyState(c: c)
+            SacEmptyState.inline(
+              title: 'profile.data_export.ui.empty_title'.tr(),
+              icon: HugeIcons.strokeRoundedFileDownload,
+            )
           else
             _ExportList(
               exports: exports,
@@ -561,87 +569,6 @@ class _SkeletonBox extends StatelessWidget {
   }
 }
 
-// ── Empty state ───────────────────────────────────────────────────────────────
-
-class _EmptyState extends StatelessWidget {
-  final SacColors c;
-
-  const _EmptyState({required this.c});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        border: Border.all(color: c.border, width: 1),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedFileDownload,
-            size: 40,
-            color: c.textTertiary,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'profile.data_export.ui.empty_title'.tr(),
-            style: TextStyle(
-              fontSize: SacFontSize.titleSmall,
-              color: c.textSecondary,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Error state ───────────────────────────────────────────────────────────────
-
-class _ErrorState extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorState({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedWifiError01,
-              size: 48,
-              color: c.textTertiary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: SacFontSize.titleMedium, color: c.textSecondary),
-            ),
-            const SizedBox(height: 20),
-            SacButton(
-              text: 'profile.data_export.ui.action_retry'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onRetry,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 // ── Export list ───────────────────────────────────────────────────────────────
 
 class _ExportList extends StatelessWidget {
@@ -826,30 +753,40 @@ class _DownloadButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isDownloading) {
-      return SizedBox(
-        width: 20,
-        height: 20,
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          color: SacAccent.of(context).color,
+      return const SizedBox(
+        width: 44,
+        height: 44,
+        child: Center(
+          child: SizedBox(width: 20, height: 20, child: SacLoadingSmall()),
         ),
       );
     }
 
-    return GestureDetector(
-      onTap: onDownload,
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: SacAccent.of(context).color.withValues(alpha: 0.10),
-          borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-        ),
-        child: Center(
-          child: HugeIcon(
-            icon: HugeIcons.strokeRoundedDownload02,
-            size: 18,
-            color: SacAccent.of(context).color,
+    return Semantics(
+      button: true,
+      label: 'profile.data_export.ui.title'.tr(),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onDownload,
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Center(
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: SacAccent.of(context).color.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
+              ),
+              child: Center(
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedDownload02,
+                  size: 18,
+                  color: SacAccent.of(context).color,
+                ),
+              ),
+            ),
           ),
         ),
       ),

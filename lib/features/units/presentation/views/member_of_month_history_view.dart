@@ -5,6 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../../domain/entities/member_of_month.dart';
@@ -91,33 +94,16 @@ class _MemberOfMonthHistoryViewState
   ) {
     // Cargando primera página
     if (historyState.isLoading && historyState.items.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return SacSkeletonList(
+        padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(16)),
+      );
     }
 
     // Error en primera carga
     if (historyState.errorMessage != null && historyState.items.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedAlertDiamond,
-                size: 48,
-                color: c.textTertiary,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                historyState.errorMessage!,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: c.textSecondary,
-                    ),
-              ),
-            ],
-          ),
-        ),
+      return SacErrorState(
+        title: historyState.errorMessage!,
+        onRetry: () => ref.invalidate(memberOfMonthHistoryProvider(_params)),
       );
     }
 
@@ -156,7 +142,7 @@ class _MemberOfMonthHistoryViewState
           if (historyState.isLoading) {
             return const Padding(
               padding: EdgeInsets.symmetric(vertical: 16),
-              child: Center(child: CircularProgressIndicator()),
+              child: Center(child: SacLoadingSmall()),
             );
           }
           if (!historyState.hasMore && historyState.items.isNotEmpty) {

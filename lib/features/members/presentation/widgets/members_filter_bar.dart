@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
+import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../providers/members_providers.dart';
@@ -72,17 +73,22 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
               ),
               suffixIconConstraints: FixedInputIconSlot.constraints,
               suffixIcon: filters.searchQuery.isNotEmpty
-                  ? GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () {
-                        _searchController.clear();
-                        ref.read(memberFiltersProvider.notifier).state =
-                            filters.copyWith(searchQuery: '');
-                      },
-                      child: FixedInputIconSlot(
-                        icon: HugeIcons.strokeRoundedCancel01,
-                        color: c.textTertiary,
-                        iconSize: 18,
+                  ? Semantics(
+                      button: true,
+                      label: 'common.clear'.tr(),
+                      excludeSemantics: true,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          _searchController.clear();
+                          ref.read(memberFiltersProvider.notifier).state =
+                              filters.copyWith(searchQuery: '');
+                        },
+                        child: FixedInputIconSlot(
+                          icon: HugeIcons.strokeRoundedCancel01,
+                          color: c.textTertiary,
+                          iconSize: 18,
+                        ),
                       ),
                     )
                   : null,
@@ -168,39 +174,16 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
               // Clear all button
               if (filters.hasActiveFilters) ...[
                 const SizedBox(width: 8),
-                GestureDetector(
+                SacFilterChip(
+                  label: 'common.clear'.tr(),
+                  selected: false,
+                  icon: HugeIcons.strokeRoundedFilterRemove,
+                  accentForeground: c.onErrorContainer,
                   onTap: () {
                     _searchController.clear();
                     ref.read(memberFiltersProvider.notifier).state =
                         const MemberFilters();
                   },
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.error.withValues(alpha: 0.10),
-                      borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const HugeIcon(
-                          icon: HugeIcons.strokeRoundedFilterRemove,
-                          color: AppColors.error,
-                          size: 14,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'common.clear'.tr(),
-                          style: TextStyle(
-                            fontSize: SacFontSize.bodySmall,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.error,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ),
               ],
             ],
@@ -279,7 +262,8 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
   }
 }
 
-/// Chip de filtro reutilizable
+/// Chip de filtro: [SacFilterChip] (44dp de área táctil) más, cuando hay un
+/// valor activo, un botón propio de 44dp para limpiarlo.
 class _FilterChip extends StatelessWidget {
   final String label;
   final bool isActive;
@@ -295,54 +279,31 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    final bgColor = isActive
-        ? SacAccent.of(context).color.withValues(alpha: 0.12)
-        : c.surfaceVariant;
-    final fgColor = isActive ? SacAccent.of(context).color : c.textSecondary;
-    final borderColor = isActive ? SacAccent.of(context).light : c.border;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-          border: Border.all(color: borderColor),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SacFilterChip(
+          label: label,
+          selected: isActive,
+          variant: SacFilterChipVariant.quiet,
+          icon: onClear == null ? HugeIcons.strokeRoundedArrowDown01 : null,
+          onTap: onTap,
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: SacFontSize.bodySmall,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                color: fgColor,
-              ),
+        if (onClear != null)
+          IconButton(
+            tooltip: 'common.clear'.tr(),
+            onPressed: onClear,
+            constraints: const BoxConstraints.tightFor(
+              width: SacFilterChip.hitExtent,
+              height: SacFilterChip.hitExtent,
             ),
-            if (onClear != null) ...[
-              const SizedBox(width: 4),
-              GestureDetector(
-                onTap: onClear,
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedCancel01,
-                  color: fgColor,
-                  size: 12,
-                ),
-              ),
-            ] else ...[
-              const SizedBox(width: 4),
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowDown01,
-                color: fgColor,
-                size: 12,
-              ),
-            ],
-          ],
-        ),
-      ),
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedCancel01,
+              color: context.sac.textSecondary,
+              size: 16,
+            ),
+          ),
+      ],
     );
   }
 }

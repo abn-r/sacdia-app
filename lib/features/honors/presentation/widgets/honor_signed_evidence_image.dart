@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/honors_providers.dart';
@@ -107,7 +108,7 @@ class _RefreshingEvidencePlaceholder extends StatelessWidget {
         child: SizedBox(
           width: 18,
           height: 18,
-          child: CircularProgressIndicator(strokeWidth: 2),
+          child: FittedBox(child: SacLoadingSmall()),
         ),
       ),
     );

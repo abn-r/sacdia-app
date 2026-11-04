@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -294,24 +295,10 @@ class _MasterHonorProfileError extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              SacPressable(
-                listenOnly: true,
-                child: TextButton(
-                  onPressed: onRetry,
-                  style: (TextButton.styleFrom(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  )).copyWith(enableFeedback: false),
-                  child: Text(
-                    'Reintentar',
-                    style: TextStyle(
-                      fontSize: SacFontSize.bodyMedium,
-                      color: context.sac.info,
-                    ),
-                  ),
-                ),
+              SacButton.text(
+                text: 'common.retry'.tr(),
+                onPressed: onRetry,
+                color: context.sac.info,
               ),
             ],
           ),
@@ -369,9 +356,7 @@ class _MasterHonorStripSkeleton extends StatelessWidget {
             width: 120,
             height: 54,
             decoration: BoxDecoration(
-              color: _isDark(context)
-                  ? AppColors.darkSurfaceVariant
-                  : AppColors.lightSurfaceVariant,
+              color: context.sac.surfaceVariant,
               borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             ),
           ),
@@ -506,8 +491,4 @@ String _formatShortDate(DateTime date) {
   final day = date.day.toString().padLeft(2, '0');
   final month = date.month.toString().padLeft(2, '0');
   return '$day/$month/${date.year}';
-}
-
-bool _isDark(BuildContext context) {
-  return Theme.of(context).brightness == Brightness.dark;
 }

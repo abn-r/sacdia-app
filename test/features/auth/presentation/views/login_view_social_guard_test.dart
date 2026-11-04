@@ -51,8 +51,9 @@ void main() {
     return notifier;
   }
 
-  SacButton primaryButton(WidgetTester tester) =>
-      tester.widgetList<SacButton>(find.byType(SacButton)).first;
+  SacButton primaryButton(WidgetTester tester) => tester
+      .widgetList<SacButton>(find.byType(SacButton))
+      .firstWhere((b) => b.variant == SacButtonVariant.primary);
 
   testWidgets('email sign-in is blocked while a social sign-in is in flight', (
     tester,

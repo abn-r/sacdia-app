@@ -9,7 +9,6 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../providers/receipts_provider.dart';
@@ -289,7 +288,7 @@ class _FormBody extends StatelessWidget {
               text: 'materials.receipt.pick_file'.tr(),
               icon: HugeIcons.strokeRoundedAttachment01,
               borderColor: fileError != null
-                  ? AppColors.error
+                  ? context.sac.error
                   : SacAccent.of(context).color,
               labelMaxLines: 2,
               onPressed: onPickFile,
@@ -304,8 +303,8 @@ class _FormBody extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               fileError!,
-              style:
-                  theme.textTheme.bodySmall?.copyWith(color: AppColors.error),
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: context.sac.onErrorContainer),
             ),
           ],
 
@@ -446,10 +445,9 @@ class _FilePreview extends StatelessWidget {
           ),
           SacPressable(
             listenOnly: true,
-            child: TextButton(
+            child: SacButton.text(
+              text: 'materials.receipt.change'.tr(),
               onPressed: onReplace,
-              style: TextButton.styleFrom(enableFeedback: false),
-              child: Text('materials.receipt.change'.tr()),
             ),
           ),
         ],

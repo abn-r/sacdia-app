@@ -13,6 +13,7 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/sac_member_avatar.dart';
 import '../../../../core/widgets/fixed_input_icon_slot.dart';
 import '../../../../core/widgets/sac_text_field.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
@@ -722,23 +723,23 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.errorLight,
+                      color: c.errorContainer,
                       borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                     ),
                     child: Row(
                       children: [
-                        const HugeIcon(
+                        HugeIcon(
                           icon: HugeIcons.strokeRoundedAlert02,
-                          color: AppColors.error,
+                          color: c.onErrorContainer,
                           size: 16,
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             formState.errorMessage!,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: SacFontSize.bodyMedium,
-                              color: AppColors.error,
+                              color: c.onErrorContainer,
                             ),
                           ),
                         ),
@@ -1588,19 +1589,9 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                       ),
                   ],
                 ),
-                SacPressable(
-                  listenOnly: true,
-                  child: TextButton(
-                    onPressed: _confirm,
-                    style: (TextButton.styleFrom(
-                      foregroundColor: SacAccent.of(context).color,
-                      textStyle: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: SacFontSize.titleMedium,
-                      ),
-                    )).copyWith(enableFeedback: false),
-                    child: Text('enrollment.picker.done'.tr()),
-                  ),
+                SacButton.text(
+                  text: 'enrollment.picker.done'.tr(),
+                  onPressed: _confirm,
                 ),
               ],
             ),
@@ -1672,20 +1663,10 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                             type: MaterialType.transparency,
                             child: ListTile(
                               enableFeedback: false,
-                              leading: CircleAvatar(
-                                backgroundColor:
-                                    SacAccent.of(context).color.withValues(
-                                          alpha: 0.15,
-                                        ),
-                                radius: 18,
-                                child: Text(
-                                  member.initials,
-                                  style: TextStyle(
-                                    color: SacAccent.of(context).color,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: SacFontSize.bodyMedium,
-                                  ),
-                                ),
+                              leading: SacMemberAvatar(
+                                imageUrl: member.avatar,
+                                name: member.fullName,
+                                size: 36,
                               ),
                               title: Text(
                                 member.fullName,

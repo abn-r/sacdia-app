@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -11,7 +12,6 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -99,8 +99,8 @@ class MyHonorsView extends ConsumerWidget {
                         _StatMini(
                           value: stats['completed'] ?? 0,
                           label: 'honors.my_honors.stat_completed'.tr(),
-                          color: AppColors.accent,
-                          bgColor: AppColors.accentLight,
+                          color: context.sac.onWarningContainer,
+                          bgColor: context.sac.warningContainer,
                         ),
                       ],
                     ),
@@ -225,30 +225,12 @@ class MyHonorsView extends ConsumerWidget {
                     );
                   },
                   loading: () => const Center(child: SacLoading()),
-                  error: (error, stack) => Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          HugeIcon(
-                              icon: HugeIcons.strokeRoundedAlert02,
-                              size: 56,
-                              color: AppColors.error),
-                          const SizedBox(height: 16),
-                          Text('honors.my_honors.error_load'.tr(),
-                              style: Theme.of(context).textTheme.titleMedium),
-                          const SizedBox(height: 24),
-                          SacButton.primary(
-                            text: 'Reintentar',
-                            icon: HugeIcons.strokeRoundedRefresh,
-                            onPressed: () {
-                              ref.invalidate(userHonorsProvider);
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
+                  error: (error, stack) => SacErrorState(
+                    title: 'honors.my_honors.error_load'.tr(),
+                    retryLabel: 'honors.my_honors.retry'.tr(),
+                    onRetry: () {
+                      ref.invalidate(userHonorsProvider);
+                    },
                   ),
                 ),
               ),

@@ -352,7 +352,7 @@ class _LegalLoadFailed extends StatelessWidget {
                 ),
           ),
         ),
-        TextButton(onPressed: onRetry, child: Text('common.retry'.tr())),
+        SacButton.text(text: 'common.retry'.tr(), onPressed: onRetry),
       ],
     );
   }
@@ -370,7 +370,7 @@ class _ErrorBox extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.errorLight,
+        color: context.sac.errorContainer,
         borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       ),
       child: Column(
@@ -379,7 +379,7 @@ class _ErrorBox extends StatelessWidget {
           Text(
             familyErrorMessage(error),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.error,
+                  color: context.sac.onErrorContainer,
                 ),
           ),
           if (isGuardianProfileIncomplete(error)) ...[

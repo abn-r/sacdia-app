@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
@@ -532,13 +531,14 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
 
   Widget _buildErrorText(String message) {
     return SacCard(
-      backgroundColor: AppColors.errorLight,
-      borderColor: AppColors.error.withValues(alpha: 0.3),
+      backgroundColor: context.sac.errorContainer,
+      borderColor: context.sac.onErrorContainer.withValues(alpha: 0.3),
       padding: const EdgeInsets.all(12),
       child: Text(
         message,
-        style: const TextStyle(
-            color: AppColors.errorDark, fontSize: SacFontSize.bodyMedium),
+        style: TextStyle(
+            color: context.sac.onErrorContainer,
+            fontSize: SacFontSize.bodyMedium),
       ),
     );
   }

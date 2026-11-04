@@ -1,71 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
-import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 
-/// Shimmer-style skeleton that mirrors the ActivitiesListView loaded layout.
-///
-/// Replicates the same shimmer sweep technique used in [FinancesLoadingSkeleton],
-/// [InsuranceLoadingSkeleton], and [ActivityDetailSkeleton]: a single
-/// [AnimationController] drives a [LinearGradient] across every skeleton box
-/// so the animation is properly disposed when the widget leaves the tree.
+/// Skeleton that mirrors the ActivitiesListView loaded layout, built on the
+/// shared [SacShimmer] + [SacSkeletonBox] (one shimmer for the whole list;
+/// cards carry no fill of their own because the shimmer paints every pixel).
 ///
 /// Structure mirrored (one ActivityCard):
 ///   Top row:  type badge (pill) + arrow circle button
 ///   Middle:   title text (2 lines max)
 ///   Bottom:   metadata row — date icon+text, time icon+text, place icon+text
-class ActivitiesLoadingSkeleton extends StatefulWidget {
+class ActivitiesLoadingSkeleton extends StatelessWidget {
   const ActivitiesLoadingSkeleton({super.key});
 
   @override
-  State<ActivitiesLoadingSkeleton> createState() =>
-      _ActivitiesLoadingSkeletonState();
-}
-
-class _ActivitiesLoadingSkeletonState extends State<ActivitiesLoadingSkeleton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _shimmer;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    );
-
-    _shimmer = Tween<double>(begin: -2, end: 2).animate(
-      CurvedAnimation(parent: _controller, curve: SacMotion.easeInOut),
-    );
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final reduce = SacMotion.reduceMotionOf(context);
-    if (reduce) {
-      _controller.stop();
-      _controller.value = 0;
-    } else if (!_controller.isAnimating) {
-      _controller.repeat();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _shimmer,
-      builder: (context, _) => ListView.builder(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-        itemCount: 5,
-        itemBuilder: (context, index) => _buildActivityCard(context, index),
+    return SacShimmer(
+      child: ExcludeSemantics(
+        child: ListView.builder(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: 5,
+          itemBuilder: (context, index) => _buildActivityCard(context, index),
+        ),
       ),
     );
   }
@@ -73,18 +30,9 @@ class _ActivitiesLoadingSkeletonState extends State<ActivitiesLoadingSkeleton>
   // ── ActivityCard skeleton ───────────────────────────────────────────────────
 
   Widget _buildActivityCard(BuildContext context, int index) {
-    final sv = _shimmer.value;
-
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: context.sac.skeletonSurface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        border: Border.all(
-          color: context.sac.border,
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -93,40 +41,27 @@ class _ActivitiesLoadingSkeletonState extends State<ActivitiesLoadingSkeleton>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               // Type badge pill
-              _SkeletonBox(
-                width: _badgeWidths[index % _badgeWidths.length],
-                height: 22,
-                borderRadius:
-                    const BorderRadius.all(Radius.circular(AppTheme.radiusLG)),
-                shimmerValue: sv,
-              ),
+              SacSkeletonBox(
+                  width: _badgeWidths[index % _badgeWidths.length],
+                  height: 22,
+                  radius: AppTheme.radiusLG),
 
               // Arrow circle button (32×32)
-              _SkeletonBox(
-                width: 32,
-                height: 32,
-                borderRadius: const BorderRadius.all(
-                    Radius.circular(AppTheme.radiusFull)),
-                shimmerValue: sv,
-              ),
+              SacSkeletonBox(
+                  width: 32, height: 32, radius: AppTheme.radiusFull),
             ],
           ),
           const SizedBox(height: 10),
 
           // ── Title (up to 2 lines) ─────────────────────────────────────────
-          _SkeletonBox(
-            width: _titleWidths[index % _titleWidths.length],
-            height: 16,
-            shimmerValue: sv,
-          ),
+          SacSkeletonBox(
+              width: _titleWidths[index % _titleWidths.length], height: 16),
           // Second title line — shown for alternating cards to feel natural
           if (index % 3 == 0) ...[
             const SizedBox(height: 6),
-            _SkeletonBox(
-              width: _titleWidths[(index + 2) % _titleWidths.length] * 0.65,
-              height: 16,
-              shimmerValue: sv,
-            ),
+            SacSkeletonBox(
+                width: _titleWidths[(index + 2) % _titleWidths.length] * 0.65,
+                height: 16),
           ],
           const SizedBox(height: 12),
 
@@ -136,11 +71,11 @@ class _ActivitiesLoadingSkeletonState extends State<ActivitiesLoadingSkeleton>
             runSpacing: 6,
             children: [
               // Date meta item
-              _MetaItemSkeleton(iconSize: 13, labelWidth: 80, shimmerValue: sv),
+              _MetaItemSkeleton(iconSize: 13, labelWidth: 80),
               // Time meta item
-              _MetaItemSkeleton(iconSize: 13, labelWidth: 52, shimmerValue: sv),
+              _MetaItemSkeleton(iconSize: 13, labelWidth: 52),
               // Place meta item (slightly wider)
-              _MetaItemSkeleton(iconSize: 13, labelWidth: 96, shimmerValue: sv),
+              _MetaItemSkeleton(iconSize: 13, labelWidth: 96),
             ],
           ),
         ],
@@ -163,12 +98,10 @@ class _ActivitiesLoadingSkeletonState extends State<ActivitiesLoadingSkeleton>
 class _MetaItemSkeleton extends StatelessWidget {
   final double iconSize;
   final double labelWidth;
-  final double shimmerValue;
 
   const _MetaItemSkeleton({
     required this.iconSize,
     required this.labelWidth,
-    required this.shimmerValue,
   });
 
   @override
@@ -177,62 +110,12 @@ class _MetaItemSkeleton extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         // Icon placeholder
-        _SkeletonBox(
-          width: iconSize,
-          height: iconSize,
-          borderRadius:
-              const BorderRadius.all(Radius.circular(AppTheme.radiusHairline)),
-          shimmerValue: shimmerValue,
-        ),
+        SacSkeletonBox(
+            width: iconSize, height: iconSize, radius: AppTheme.radiusHairline),
         const SizedBox(width: 4),
         // Text label placeholder
-        _SkeletonBox(
-          width: labelWidth,
-          height: 12,
-          shimmerValue: shimmerValue,
-        ),
+        SacSkeletonBox(width: labelWidth, height: 12),
       ],
-    );
-  }
-}
-
-// ── _SkeletonBox ───────────────────────────────────────────────────────────────
-//
-// Identical to the one in FinancesLoadingSkeleton, InsuranceLoadingSkeleton,
-// and ActivityDetailSkeleton — a standalone private class so this file has
-// zero cross-feature imports.
-
-class _SkeletonBox extends StatelessWidget {
-  final double width;
-  final double height;
-  final BorderRadius borderRadius;
-  final double shimmerValue;
-
-  const _SkeletonBox({
-    required this.width,
-    required this.height,
-    this.borderRadius =
-        const BorderRadius.all(Radius.circular(AppTheme.radiusXS)),
-    required this.shimmerValue,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final baseColor = context.sac.skeleton;
-    final highlightColor = context.sac.skeletonHighlight;
-
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        borderRadius: borderRadius,
-        gradient: LinearGradient(
-          begin: Alignment(shimmerValue - 1, 0),
-          end: Alignment(shimmerValue + 1, 0),
-          colors: [baseColor, highlightColor, baseColor],
-          stops: const [0.0, 0.5, 1.0],
-        ),
-      ),
     );
   }
 }

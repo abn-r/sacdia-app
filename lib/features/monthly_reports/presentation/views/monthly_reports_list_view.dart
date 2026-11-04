@@ -1,10 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
@@ -69,14 +69,19 @@ class MonthlyReportsListView extends ConsumerWidget {
         child: Builder(
           builder: (context) => reportsAsync.when(
             loading: () => const Center(child: SacLoading()),
-            error: (e, _) => _ErrorBody(
-              message: e.toString().replaceFirst('Exception: ', ''),
+            error: (e, _) => SacErrorState(
+              title: 'common.error_state.title'.tr(),
+              message: userErrorMessage(e),
               onRetry: () => ref
                   .invalidate(monthlyReportsByEnrollmentProvider(enrollmentId)),
             ),
             data: (groups) {
               if (groups.isEmpty) {
-                return _EmptyBody();
+                return SacEmptyState(
+                  icon: HugeIcons.strokeRoundedFile01,
+                  title: 'monthly_reports.list.empty_title'.tr(),
+                  body: 'monthly_reports.list.empty_subtitle'.tr(),
+                );
               }
 
               return RefreshIndicator(
@@ -160,7 +165,7 @@ class _ReportCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final statusCfg = _statusConfig(report.reportStatus).forTheme(context);
+    final statusCfg = _statusConfig(report.reportStatus, context.sac);
 
     return GestureDetector(
       onTap: onTap,
@@ -262,36 +267,6 @@ class _ReportCard extends StatelessWidget {
       ),
     );
   }
-
-  _StatusConfig _statusConfig(MonthlyReportStatus status) {
-    switch (status) {
-      case MonthlyReportStatus.approved:
-        return _StatusConfig(
-          bg: AppColors.validatedBg,
-          fg: AppColors.validatedDark,
-        );
-      case MonthlyReportStatus.rejected:
-        return _StatusConfig(
-          bg: AppColors.errorLight,
-          fg: AppColors.errorDark,
-        );
-      case MonthlyReportStatus.submitted:
-        return _StatusConfig(
-          bg: AppColors.sentBg,
-          fg: AppColors.sentDark,
-        );
-      case MonthlyReportStatus.generated:
-        return _StatusConfig(
-          bg: AppColors.secondaryLight,
-          fg: AppColors.secondaryDark,
-        );
-      case MonthlyReportStatus.draft:
-        return _StatusConfig(
-          bg: AppColors.accentLight,
-          fg: AppColors.accentDark,
-        );
-    }
-  }
 }
 
 class _StatusConfig {
@@ -299,74 +274,20 @@ class _StatusConfig {
   final Color fg;
 
   const _StatusConfig({required this.bg, required this.fg});
+}
 
-  /// Variante para tema oscuro: fondo = acento translúcido, texto aclarado.
-  _StatusConfig forTheme(BuildContext context) {
-    if (Theme.of(context).brightness != Brightness.dark) return this;
-    return _StatusConfig(
-      bg: fg.withValues(alpha: 0.22),
-      fg: Color.lerp(fg, Colors.white, 0.35)!,
-    );
+_StatusConfig _statusConfig(MonthlyReportStatus status, SacColors c) {
+  switch (status) {
+    case MonthlyReportStatus.approved:
+    case MonthlyReportStatus.generated:
+      return _StatusConfig(bg: c.successContainer, fg: c.onSuccessContainer);
+    case MonthlyReportStatus.rejected:
+      return _StatusConfig(bg: c.errorContainer, fg: c.onErrorContainer);
+    case MonthlyReportStatus.submitted:
+      return _StatusConfig(bg: c.infoContainer, fg: c.onInfoContainer);
+    case MonthlyReportStatus.draft:
+      return _StatusConfig(bg: c.warningContainer, fg: c.onWarningContainer);
   }
 }
 
 // ── Empty / Error states ──────────────────────────────────────────────────────
-
-class _EmptyBody extends StatelessWidget {
-  const _EmptyBody();
-
-  @override
-  Widget build(BuildContext context) {
-    return SacEmptyState(
-      icon: HugeIcons.strokeRoundedFile01,
-      title: 'monthly_reports.list.empty_title'.tr(),
-      body: 'monthly_reports.list.empty_subtitle'.tr(),
-    );
-  }
-}
-
-class _ErrorBody extends StatelessWidget {
-  final String message;
-  final VoidCallback? onRetry;
-
-  const _ErrorBody({required this.message, this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 48,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: SacFontSize.titleSmall),
-            ),
-            const SizedBox(height: 16),
-            SacPressable(
-              listenOnly: true,
-              child: TextButton.icon(
-                style: const ButtonStyle(enableFeedback: false),
-                onPressed: onRetry,
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedRefresh,
-                  size: 16,
-                  color: SacAccent.of(context).color,
-                ),
-                label: Text('common.retry'.tr()),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

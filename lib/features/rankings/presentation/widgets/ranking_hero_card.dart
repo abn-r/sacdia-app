@@ -209,7 +209,7 @@ class _CategoryPill extends StatelessWidget {
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
-                fontSize: SacFontSize.caption,
+                fontSize: SacFontSize.labelSmall,
               ),
           overflow: TextOverflow.ellipsis,
           maxLines: 1,

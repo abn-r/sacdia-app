@@ -1,4 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
@@ -56,8 +58,9 @@ class CertificationProgressView extends ConsumerWidget {
       body: SafeArea(
         child: progressAsync.when(
           loading: () => const Center(child: SacLoading()),
-          error: (error, _) => _ErrorBody(
-            message: error.toString().replaceFirst('Exception: ', ''),
+          error: (error, _) => SacErrorState(
+            title: 'certifications.progress.load_error'.tr(),
+            message: userErrorMessage(error),
             onRetry: () =>
                 ref.invalidate(certificationProgressProvider(certificationId)),
           ),
@@ -202,6 +205,8 @@ class _GlobalProgressCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final percentage = progress.progressPercentage;
     final isComplete = progress.completionStatus.toLowerCase() == 'completed';
+    final c = context.sac;
+    final onHero = isComplete ? c.onSuccess : SacAccent.of(context).onColor;
     final completedModules = progress.modules
         .where((m) =>
             m.completedSections == m.totalSections && m.totalSections > 0)
@@ -239,7 +244,7 @@ class _GlobalProgressCard extends StatelessWidget {
                     ? HugeIcons.strokeRoundedCheckmarkCircle02
                     : HugeIcons.strokeRoundedCertificate01,
                 size: 22,
-                color: Colors.white,
+                color: onHero,
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -247,19 +252,19 @@ class _GlobalProgressCard extends StatelessWidget {
                   isComplete
                       ? 'certifications.progress.completed'.tr()
                       : 'certifications.progress.in_progress'.tr(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: SacFontSize.titleSmall,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: onHero,
                   ),
                 ),
               ),
               Text(
                 '${percentage.toStringAsFixed(0)}%',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: SacFontSize.headlineLarge,
                   fontWeight: FontWeight.w800,
-                  color: Colors.white,
+                  color: onHero,
                 ),
               ),
             ],
@@ -268,9 +273,9 @@ class _GlobalProgressCard extends StatelessWidget {
           SacProgressBar(
             progress: percentage / 100,
             height: 8,
-            trackColor: Colors.white.withValues(alpha: 0.25),
+            trackColor: onHero.withValues(alpha: 0.25),
             useGradient: false,
-            color: Colors.white,
+            color: onHero,
             showShimmer: false,
           ),
           const SizedBox(height: 12),
@@ -279,7 +284,7 @@ class _GlobalProgressCard extends StatelessWidget {
               HugeIcon(
                 icon: HugeIcons.strokeRoundedCheckList,
                 size: 14,
-                color: Colors.white70,
+                color: onHero.withValues(alpha: 0.7),
               ),
               const SizedBox(width: 5),
               Text(
@@ -287,9 +292,9 @@ class _GlobalProgressCard extends StatelessWidget {
                   'completed': '$completedModules',
                   'total': '${progress.modules.length}',
                 }),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: SacFontSize.bodySmall,
-                  color: Colors.white70,
+                  color: onHero.withValues(alpha: 0.7),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -302,8 +307,8 @@ class _GlobalProgressCard extends StatelessWidget {
               icon: HugeIcons.strokeRoundedCertificate01,
               variant: SacButtonVariant.secondary,
               fullWidth: true,
-              backgroundColor: Colors.white,
-              textColor: AppColors.secondaryDark,
+              backgroundColor: c.successContainer,
+              textColor: c.onSuccessContainer,
               onPressed: onCloseoutTap,
             ),
           ],
@@ -366,7 +371,7 @@ class _ModuleProgressSectionState
               curve: SacMotion.easeOut,
               padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
               decoration: BoxDecoration(
-                color: isComplete ? AppColors.secondaryLight : c.surfaceVariant,
+                color: isComplete ? c.successContainer : c.surfaceVariant,
                 borderRadius: BorderRadius.circular(AppTheme.radiusMD),
               ),
               child: Row(
@@ -386,21 +391,21 @@ class _ModuleProgressSectionState
                     child: SacStateSwap(
                       duration: SacMotion.standard,
                       child: isComplete
-                          ? const HugeIcon(
-                              key: ValueKey('cert-module-done'),
+                          ? HugeIcon(
+                              key: const ValueKey('cert-module-done'),
                               icon: HugeIcons.strokeRoundedCheckmarkCircle01,
                               size: 20,
-                              color: Colors.white,
+                              color: c.onSuccess,
                             )
                           : Text(
                               '${module.completedSections}/${module.totalSections}',
                               key: ValueKey(
                                 'cert-module-${module.completedSections}-${module.totalSections}',
                               ),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: SacFontSize.labelSmall,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.white,
+                                color: SacAccent.of(context).onColor,
                               ),
                             ),
                     ),
@@ -526,8 +531,7 @@ class _SectionCheckTileState extends ConsumerState<_SectionCheckTile> {
       ref.invalidate(userCertificationsProvider);
     } catch (e) {
       if (mounted) {
-        SacSnackBar.show(context, e.toString().replaceFirst('Exception: ', ''),
-            isError: true);
+        SacSnackBar.show(context, userErrorMessage(e), isError: true);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -616,9 +620,11 @@ class _SectionCheckTileState extends ConsumerState<_SectionCheckTile> {
                 listenOnly: true,
                 child: IconButton(
                   enableFeedback: false,
-                  visualDensity: VisualDensity.compact,
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
+                  constraints: const BoxConstraints(
+                    minWidth: 44,
+                    minHeight: 44,
+                  ),
                   tooltip: 'certifications.progress.open_requirement'.tr(),
                   onPressed: () => context.push(
                     RouteNames.certificationRequirementDetailPath(
@@ -654,9 +660,8 @@ Widget _sectionCheckFace({
       ),
       width: 14,
       height: 14,
-      child: CircularProgressIndicator(
-        strokeWidth: 2,
-        color: completed ? Colors.white : idleColor,
+      child: FittedBox(
+        child: SacLoadingSmall(color: completed ? Colors.white : idleColor),
       ),
     );
   }
@@ -672,53 +677,3 @@ Widget _sectionCheckFace({
 }
 
 // ── Error Body ────────────────────────────────────────────────────────────────
-
-class _ErrorBody extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorBody({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 56,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'certifications.progress.load_error'.tr(),
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: TextStyle(
-                fontSize: SacFontSize.titleSmall,
-                color: context.sac.textSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SacButton.primary(
-              text: 'common.retry'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onRetry,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

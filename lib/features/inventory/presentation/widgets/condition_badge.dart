@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/sac_badge.dart';
 import '../../domain/entities/inventory_item.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
 
-/// Badge de color que indica el estado de conservación del ítem.
+/// Badge que indica el estado de conservación del ítem.
+///
+/// Usa [SacBadge] (tokens semánticos, seguro en modo oscuro) con un icono
+/// para no depender solo del color.
 class ConditionBadge extends StatelessWidget {
   final ItemCondition condition;
   final bool compact;
@@ -17,53 +20,24 @@ class ConditionBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _conditionColor(condition);
-    final bg = color.withValues(alpha: 0.12);
     final label = compact ? condition.shortLabel : condition.label;
 
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: compact ? 8 : 10,
-        vertical: compact ? 3 : 5,
-      ),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-        border: Border.all(color: color.withValues(alpha: 0.35)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: compact ? 11 : 12,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static Color _conditionColor(ItemCondition condition) {
     switch (condition) {
       case ItemCondition.bueno:
-        return AppColors.secondary;
+        return SacBadge.success(
+          label: label,
+          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+        );
       case ItemCondition.regular:
-        return AppColors.accent;
+        return SacBadge.warning(
+          label: label,
+          icon: HugeIcons.strokeRoundedAlert02,
+        );
       case ItemCondition.malo:
-        return AppColors.error;
+        return SacBadge.error(
+          label: label,
+          icon: HugeIcons.strokeRoundedCancelCircle,
+        );
     }
   }
 }

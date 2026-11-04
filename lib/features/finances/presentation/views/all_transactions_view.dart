@@ -5,11 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import '../../../../core/animations/page_transitions.dart';
-import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_empty_state.dart';
+import '../../../../core/widgets/sac_error_state.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../domain/entities/transaction.dart';
 import '../providers/finances_providers.dart';
@@ -145,6 +145,7 @@ class _AllTransactionsViewState extends ConsumerState<AllTransactionsView> {
               listenOnly: true,
               child: IconButton(
                 enableFeedback: false,
+                tooltip: 'finances.widgets.sort_title'.tr(),
                 onPressed: _openSortSheet,
                 icon: HugeIcon(
                   icon: HugeIcons.strokeRoundedSortByDown02,
@@ -157,6 +158,7 @@ class _AllTransactionsViewState extends ConsumerState<AllTransactionsView> {
               listenOnly: true,
               child: IconButton(
                 enableFeedback: false,
+                tooltip: 'finances.widgets.range_title'.tr(),
                 onPressed: _openRangeSheet,
                 icon: HugeIcon(
                   icon: HugeIcons.strokeRoundedCalendar03,
@@ -273,17 +275,24 @@ class _TransactionListBodyState extends State<_TransactionListBody> {
 
     // Full-page error
     if (txState.errorMessage != null && txState.transactions.isEmpty) {
-      return _ErrorState(
-        message: txState.errorMessage!,
-        onRetry: () {}, // pull-to-refresh handles this
+      return SacErrorState(
+        title: 'finances.all_transactions.error_title'.tr(),
+        message: 'finances.all_transactions.error_retry_hint'.tr(),
+        scrollable: true,
       );
     }
 
     // Empty state
     if (txState.transactions.isEmpty) {
-      return _EmptyState(
-        hasActiveSearch:
-            txState.filter.search != null && txState.filter.search!.isNotEmpty,
+      final hasActiveSearch =
+          txState.filter.search != null && txState.filter.search!.isNotEmpty;
+      return SacEmptyState(
+        icon: HugeIcons.strokeRoundedSearch01,
+        title: 'finances.all_transactions.empty_title'.tr(),
+        body: hasActiveSearch
+            ? 'finances.all_transactions.empty_search_subtitle'.tr()
+            : 'finances.all_transactions.empty_range_subtitle'.tr(),
+        scrollable: true,
       );
     }
 
@@ -369,14 +378,10 @@ class _LoadMoreIndicator extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(
-            width: 16,
-            height: 16,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: SacAccent.of(context).color,
-            ),
-          ),
+          const SizedBox(
+              width: 24,
+              height: 24,
+              child: FittedBox(child: SacLoadingSmall())),
           const SizedBox(width: 10),
           Text(
             'finances.all_transactions.loading_more'.tr(),
@@ -387,79 +392,6 @@ class _LoadMoreIndicator extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ── Empty state ────────────────────────────────────────────────────────────────
-
-class _EmptyState extends StatelessWidget {
-  final bool hasActiveSearch;
-
-  const _EmptyState({required this.hasActiveSearch});
-
-  @override
-  Widget build(BuildContext context) {
-    return SacEmptyState(
-      icon: HugeIcons.strokeRoundedSearch01,
-      title: 'finances.all_transactions.empty_title'.tr(),
-      body: hasActiveSearch
-          ? 'finances.all_transactions.empty_search_subtitle'.tr()
-          : 'finances.all_transactions.empty_range_subtitle'.tr(),
-    );
-  }
-}
-
-// ── Error state ────────────────────────────────────────────────────────────────
-
-class _ErrorState extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorState({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(40),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 56,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'finances.all_transactions.error_title'.tr(),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: context.sac.text,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: TextStyle(
-                fontSize: SacFontSize.bodyMedium,
-                color: context.sac.textSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'finances.all_transactions.error_retry_hint'.tr(),
-              style: TextStyle(
-                fontSize: SacFontSize.bodySmall,
-                color: context.sac.textTertiary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
       ),
     );
   }

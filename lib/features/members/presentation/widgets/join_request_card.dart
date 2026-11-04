@@ -1,10 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
+import 'package:sacdia_app/core/widgets/sac_member_avatar.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 
 import '../../domain/entities/join_request.dart';
@@ -60,7 +60,11 @@ class JoinRequestCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(
           children: [
-            _RequestAvatar(request: request),
+            SacMemberAvatar(
+              imageUrl: request.avatar,
+              name: request.fullName,
+              size: 38,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
@@ -112,15 +116,18 @@ class JoinRequestCard extends StatelessWidget {
               ),
             ),
             if (canAct) ...[
-              if (onReject != null)
+              if (onReject != null) ...[
+                const SizedBox(width: 4),
                 _IconAction(
                   semanticLabel: 'members.join_request.reject'.tr(),
                   icon: HugeIcons.strokeRoundedCancel01,
-                  color: AppColors.error,
-                  background: AppColors.error.withValues(alpha: 0.10),
+                  color: c.onErrorContainer,
+                  background: c.errorContainer,
                   onTap: onReject!,
                 ),
-              if (primary != null)
+              ],
+              if (primary != null) ...[
+                const SizedBox(width: 8),
                 _IconAction(
                   // Un menor sin ficha verificada no se aprueba directo: el
                   // mismo botón abre la verificación (FP-76).
@@ -130,10 +137,11 @@ class JoinRequestCard extends StatelessWidget {
                   icon: needsVerification
                       ? HugeIcons.strokeRoundedFileVerified
                       : HugeIcons.strokeRoundedCheckmarkCircle01,
-                  color: AppColors.secondary,
-                  background: AppColors.secondary.withValues(alpha: 0.12),
+                  color: c.onSuccessContainer,
+                  background: c.successContainer,
                   onTap: primary,
                 ),
+              ],
             ] else ...[
               const SizedBox(width: 8),
               _StatusBadge(status: request.status),
@@ -168,68 +176,6 @@ class _ConsentBadge extends StatelessWidget {
   }
 }
 
-class _RequestAvatar extends StatelessWidget {
-  final JoinRequest request;
-
-  const _RequestAvatar({required this.request});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: AppColors.accentLight,
-          width: 1.5,
-        ),
-      ),
-      child: ClipOval(
-        child: SizedBox(
-          width: 36,
-          height: 36,
-          child: request.avatar != null
-              ? SacProfileImage(
-                  imageUrl: request.avatar!,
-                  fit: BoxFit.cover,
-                  memCacheWidth: 72,
-                  memCacheHeight: 72,
-                  placeholder: (_, __) => _AvatarInitials(
-                    initials: request.initials,
-                  ),
-                  errorWidget: (_, __, ___) => _AvatarInitials(
-                    initials: request.initials,
-                  ),
-                )
-              : _AvatarInitials(initials: request.initials),
-        ),
-      ),
-    );
-  }
-}
-
-class _AvatarInitials extends StatelessWidget {
-  final String initials;
-
-  const _AvatarInitials({required this.initials});
-
-  @override
-  Widget build(BuildContext context) {
-    return ColoredBox(
-      color: AppColors.accentLight,
-      child: Center(
-        child: Text(
-          initials,
-          style: const TextStyle(
-            fontSize: SacFontSize.bodySmall,
-            fontWeight: FontWeight.w600,
-            color: AppColors.accentDark,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _StatusBadge extends StatelessWidget {
   final JoinRequestStatus status;
 
@@ -250,7 +196,7 @@ class _StatusBadge extends StatelessWidget {
 
 class _IconAction extends StatelessWidget {
   final String semanticLabel;
-  final List<List<dynamic>> icon;
+  final HugeIconData icon;
   final Color color;
   final Color background;
   final VoidCallback onTap;
@@ -269,8 +215,8 @@ class _IconAction extends StatelessWidget {
       onTap: onTap,
       semanticLabel: semanticLabel,
       child: SizedBox(
-        width: 40,
-        height: 40,
+        width: 48,
+        height: 48,
         child: Center(
           child: Container(
             width: 28,

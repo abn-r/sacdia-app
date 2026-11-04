@@ -512,14 +512,14 @@ class _CurrentEvidence extends ConsumerWidget {
             isConsentEvidenceUnavailable(error)
                 ? consentErrorMessage(error)
                 : 'members.consent.evidence_load_error'.tr(),
-            style: textTheme.bodyMedium?.copyWith(color: AppColors.error),
+            style: textTheme.bodyMedium?.copyWith(color: c.onErrorContainer),
           ),
           if (!isConsentEvidenceUnavailable(error))
-            TextButton(
+            SacButton.text(
+              text: 'core.consent.retry'.tr(),
               onPressed: () => ref.invalidate(
                 joinRequestConsentEvidenceProvider(assignmentId),
               ),
-              child: Text('core.consent.retry'.tr()),
             ),
         ],
       ),

@@ -283,22 +283,11 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                         const SizedBox(height: 4),
                                         Align(
                                           alignment: Alignment.centerRight,
-                                          child: SacPressable(
-                                            listenOnly: true,
-                                            child: TextButton(
-                                              style: const ButtonStyle(
-                                                  enableFeedback: false),
-                                              onPressed: () => context.push(
-                                                  RouteNames.forgotPassword),
-                                              child: Text(
-                                                'auth.forgot_password'.tr(),
-                                                style: const TextStyle(
-                                                  color: AppColors
-                                                      .loginBrandBlueDark,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ),
+                                          child: SacButton.text(
+                                            text: 'auth.forgot_password'.tr(),
+                                            color: AppColors.loginBrandBlueDark,
+                                            onPressed: () => context.push(
+                                                RouteNames.forgotPassword),
                                           ),
                                         ),
                                       ],
@@ -307,8 +296,10 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                     if (errorMessage != null &&
                                         !_isCoolingDown) ...[
                                       SacCard(
-                                        backgroundColor: AppColors.errorLight,
-                                        borderColor: AppColors.error
+                                        backgroundColor:
+                                            context.sac.errorContainer,
+                                        borderColor: context
+                                            .sac.onErrorContainer
                                             .withValues(alpha: 0.3),
                                         padding: const EdgeInsets.all(12),
                                         child: Row(
@@ -317,14 +308,16 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                               icon: HugeIcons
                                                   .strokeRoundedAlert02,
                                               size: 20,
-                                              color: AppColors.errorDark,
+                                              color:
+                                                  context.sac.onErrorContainer,
                                             ),
                                             const SizedBox(width: 10),
                                             Expanded(
                                               child: Text(
                                                 errorMessage,
-                                                style: const TextStyle(
-                                                  color: AppColors.errorDark,
+                                                style: TextStyle(
+                                                  color: context
+                                                      .sac.onErrorContainer,
                                                   fontSize:
                                                       SacFontSize.titleSmall,
                                                 ),
@@ -350,8 +343,10 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                     ],
                                     if (cooldownMessage != null) ...[
                                       SacCard(
-                                        backgroundColor: AppColors.accentLight,
-                                        borderColor: AppColors.accent
+                                        backgroundColor:
+                                            context.sac.warningContainer,
+                                        borderColor: context
+                                            .sac.onWarningContainer
                                             .withValues(alpha: 0.3),
                                         padding: const EdgeInsets.all(12),
                                         child: Row(
@@ -360,14 +355,16 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                               icon: HugeIcons
                                                   .strokeRoundedClock01,
                                               size: 20,
-                                              color: AppColors.accentDark,
+                                              color: context
+                                                  .sac.onWarningContainer,
                                             ),
                                             const SizedBox(width: 10),
                                             Expanded(
                                               child: Text(
                                                 cooldownMessage,
-                                                style: const TextStyle(
-                                                  color: AppColors.accentDark,
+                                                style: TextStyle(
+                                                  color: context
+                                                      .sac.onWarningContainer,
                                                   fontSize:
                                                       SacFontSize.titleSmall,
                                                 ),
@@ -433,21 +430,15 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                     // Entrada del teléfono de un menor de 13:
                                     // se vincula escaneando el QR de su tutor.
                                     Center(
-                                      child: TextButton(
+                                      child: SacButton.text(
                                         key:
                                             const ValueKey('login_pair_device'),
+                                        text: 'device.pair.entry'.tr(),
+                                        color: context.sac.textSecondary,
                                         onPressed: isLoading || socialInFlight
                                             ? null
                                             : () => context
                                                 .push(RouteNames.devicePair),
-                                        child: Text(
-                                          'device.pair.entry'.tr(),
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            color: context.sac.textSecondary,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
                                       ),
                                     ),
                                     const SizedBox(height: 32),

@@ -1,10 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
-import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/errors/user_error_message.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -12,6 +12,9 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/utils/role_utils.dart';
 import '../../../../core/widgets/fixed_input_icon_slot.dart';
+import '../../../../core/widgets/sac_error_state.dart';
+import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/widgets/sac_member_avatar.dart';
 import '../../../../core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
@@ -294,9 +297,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
   // ── Helpers ───────────────────────────────────────────────────────────────────
 
   String _formatLoadError(Object? error) {
-    final message = error?.toString().replaceFirst('Exception: ', '').trim();
-    if (message == null || message.isEmpty) return 'common.error_generic'.tr();
-    return message;
+    return userErrorMessage(error);
   }
 
   /// Maps the club type name string (from [ClubContext]) to its backend integer ID.
@@ -449,19 +450,20 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                 // ── Scrollable form body ───────────────────────────────────
                 Expanded(
                   child: isLoadingFormData
-                      ? const Center(child: CircularProgressIndicator())
+                      ? const Center(child: SacLoading())
                       : formLoadError != null
-                          ? Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(24),
-                                child: Text(
-                                  _formatLoadError(formLoadError),
-                                  textAlign: TextAlign.center,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: c.textSecondary,
-                                  ),
-                                ),
-                              ),
+                          ? SacErrorState(
+                              title: _formatLoadError(formLoadError),
+                              onRetry: () {
+                                if (_isEditMode) {
+                                  ref.invalidate(
+                                      _unitFormDetailProvider(widget.unit!.id));
+                                }
+                                if (targetSectionId != null) {
+                                  ref.invalidate(_unitFormMembersProvider(
+                                      targetSectionId));
+                                }
+                              },
                             )
                           : ListView(
                               controller: scrollController,
@@ -571,26 +573,12 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                                               fontWeight: FontWeight.w600),
                                     ),
                                     const Spacer(),
-                                    SacPressable(
-                                      listenOnly: true,
-                                      child: TextButton.icon(
-                                        onPressed: allMembers.isEmpty
-                                            ? null
-                                            : () => _pickMembers(allMembers),
-                                        icon: const HugeIcon(
-                                          icon: HugeIcons.strokeRoundedAdd01,
-                                          size: 18,
-                                        ),
-                                        label: Text(
-                                            'units.form.add_member_button'
-                                                .tr()),
-                                        style: (TextButton.styleFrom(
-                                          foregroundColor:
-                                              SacAccent.of(context).color,
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 12, vertical: 6),
-                                        )).copyWith(enableFeedback: false),
-                                      ),
+                                    SacButton.text(
+                                      text: 'units.form.add_member_button'.tr(),
+                                      icon: HugeIcons.strokeRoundedAdd01,
+                                      onPressed: allMembers.isEmpty
+                                          ? null
+                                          : () => _pickMembers(allMembers),
                                     ),
                                   ],
                                 ),
@@ -1209,24 +1197,10 @@ class _MemberAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (member.avatar != null && member.avatar!.isNotEmpty) {
-      return CircleAvatar(
-        radius: size / 2,
-        backgroundImage: sacProfileImageProvider(member.avatar!),
-        backgroundColor: SacAccent.of(context).light,
-      );
-    }
-    return CircleAvatar(
-      radius: size / 2,
-      backgroundColor: SacAccent.of(context).light,
-      child: Text(
-        member.initials,
-        style: TextStyle(
-          fontSize: size * 0.35,
-          fontWeight: FontWeight.w600,
-          color: SacAccent.of(context).dark,
-        ),
-      ),
+    return SacMemberAvatar(
+      imageUrl: member.avatar,
+      name: member.fullName,
+      size: size,
     );
   }
 }

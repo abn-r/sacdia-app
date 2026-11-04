@@ -1,20 +1,21 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
 
 import '../../../../core/animations/motion_tokens.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/class_requirement.dart';
 import '../utils/status_meta.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Badge de color con icono que indica el estado de un requerimiento.
 ///
-/// Cuatro variantes visuales:
-/// - pendiente  -> amarillo / naranja
-/// - enviado    -> azul (dark-mode aware)
-/// - validado   -> verde
-/// - rechazado  -> rojo
+/// Se renderiza con [SacBadge] (tintas de estado del design system):
+/// - pendiente  -> advertencia (amarillo)
+/// - enviado    -> informacion (azul)
+/// - validado   -> exito (verde)
+/// - rechazado  -> error (rojo)
+/// - observado  -> advertencia (distinguido por icono y etiqueta)
 class RequirementStatusBadge extends StatelessWidget {
   final RequirementStatus status;
 
@@ -22,12 +23,7 @@ class RequirementStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final reduce = SacMotion.reduceMotionOf(context);
-
-    final bgColor = _bgColor(isDark);
-    final borderColor = _borderColor(isDark);
-    final textColor = _textColor(isDark);
 
     // Transición al cambiar de estado (enviado → validado, etc.):
     // scale sutil + fade; con Reduced Motion cambia sin animación.
@@ -39,29 +35,11 @@ class RequirementStatusBadge extends StatelessWidget {
         scale: Tween<double>(begin: 0.92, end: 1).animate(animation),
         child: FadeTransition(opacity: animation, child: child),
       ),
-      child: Container(
+      child: SacBadge(
         key: ValueKey<RequirementStatus>(status),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-          border: Border.all(color: borderColor, width: 1),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            HugeIcon(icon: _icon, size: 13, color: textColor),
-            const SizedBox(width: 5),
-            Text(
-              _label,
-              style: TextStyle(
-                fontSize: SacFontSize.bodySmall,
-                fontWeight: FontWeight.w600,
-                color: textColor,
-              ),
-            ),
-          ],
-        ),
+        label: _label,
+        icon: _icon,
+        variant: _variant,
       ),
     );
   }
@@ -81,54 +59,21 @@ class RequirementStatusBadge extends StatelessWidget {
     }
   }
 
-  Color _bgColor(bool isDark) {
+  SacBadgeVariant get _variant {
     switch (status) {
       case RequirementStatus.pendiente:
-        return AppColors.accentLight;
-      case RequirementStatus.enviado:
-        return isDark
-            ? AppColors.statusInfoBgDark
-            : AppColors.statusInfoBgLight;
-      case RequirementStatus.validado:
-        return AppColors.secondaryLight;
-      case RequirementStatus.rechazado:
-        return AppColors.errorLight;
       case RequirementStatus.observado:
-        return AppColors.observedBg;
+        return SacBadgeVariant.accent;
+      case RequirementStatus.enviado:
+        return SacBadgeVariant.info;
+      case RequirementStatus.validado:
+        return SacBadgeVariant.secondary;
+      case RequirementStatus.rechazado:
+        return SacBadgeVariant.error;
     }
   }
 
-  Color _borderColor(bool isDark) {
-    switch (status) {
-      case RequirementStatus.pendiente:
-        return AppColors.accent.withValues(alpha: 0.4);
-      case RequirementStatus.enviado:
-        return AppColors.info.withValues(alpha: 0.4);
-      case RequirementStatus.validado:
-        return AppColors.secondary.withValues(alpha: 0.4);
-      case RequirementStatus.rechazado:
-        return AppColors.error.withValues(alpha: 0.4);
-      case RequirementStatus.observado:
-        return AppColors.observedColor.withValues(alpha: 0.4);
-    }
-  }
-
-  Color _textColor(bool isDark) {
-    switch (status) {
-      case RequirementStatus.pendiente:
-        return AppColors.accentDark;
-      case RequirementStatus.enviado:
-        return isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
-      case RequirementStatus.validado:
-        return AppColors.secondaryDark;
-      case RequirementStatus.rechazado:
-        return AppColors.errorDark;
-      case RequirementStatus.observado:
-        return AppColors.observedDark;
-    }
-  }
-
-  List<List<dynamic>> get _icon {
+  HugeIconData get _icon {
     switch (status) {
       case RequirementStatus.pendiente:
         return HugeIcons.strokeRoundedClock01;

@@ -12,7 +12,9 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
@@ -40,7 +42,7 @@ class PaymentOrderDetailView extends ConsumerWidget {
     ref.listen(orderActionsNotifierProvider, (previous, next) {
       final message = next.errorMessage;
       if (message != null && message != previous?.errorMessage) {
-        _showSnack(context, message, AppColors.error);
+        _showSnack(context, message, isError: true);
       }
     });
 
@@ -58,33 +60,14 @@ class PaymentOrderDetailView extends ConsumerWidget {
             top: false,
             child: orderAsync.when(
               loading: () => const Center(child: SacLoading()),
-              error: (error, _) => Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedAlert02,
-                        size: 42,
-                        color: AppColors.error,
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        error.toString().replaceFirst('Exception: ', ''),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontSize: SacFontSize.bodyMedium,
-                            color: c.textSecondary),
-                      ),
-                      const SizedBox(height: 14),
-                      SacButton.outline(
-                        text: 'common.retry'.tr(),
-                        onPressed: () =>
-                            ref.invalidate(paymentOrderDetailProvider(orderId)),
-                      ),
-                    ],
-                  ),
+              error: (error, _) => SacErrorState(
+                title: 'common.error_state.title'.tr(),
+                message: userErrorMessage(error),
+                onRetry: () =>
+                    ref.invalidate(paymentOrderDetailProvider(orderId)),
+                padding: SacTopBar.paddingBelowBar(
+                  context,
+                  const EdgeInsets.all(24),
                 ),
               ),
               data: (order) => _OrderDetailBody(
@@ -133,7 +116,7 @@ class PaymentOrderDetailView extends ConsumerWidget {
         _showSnack(
           context,
           'payment_orders.detail.proof_too_large'.tr(),
-          AppColors.error,
+          isError: true,
         );
       }
       return;
@@ -154,7 +137,7 @@ class PaymentOrderDetailView extends ConsumerWidget {
       _showSnack(
         context,
         'payment_orders.detail.proof_uploaded'.tr(),
-        AppColors.secondary,
+        isSuccess: true,
       );
     }
   }
@@ -176,13 +159,23 @@ class PaymentOrderDetailView extends ConsumerWidget {
       _showSnack(
         context,
         'payment_orders.detail.cancelled'.tr(),
-        AppColors.secondary,
+        isSuccess: true,
       );
     }
   }
 
-  void _showSnack(BuildContext context, String message, Color color) {
-    SacSnackBar.show(context, message, backgroundColor: color);
+  void _showSnack(
+    BuildContext context,
+    String message, {
+    bool isError = false,
+    bool isSuccess = false,
+  }) {
+    SacSnackBar.show(
+      context,
+      message,
+      isError: isError,
+      isSuccess: isSuccess,
+    );
   }
 
   String _mimeFromExtension(String? extension) {
@@ -370,13 +363,10 @@ class _OrderDetailBody extends StatelessWidget {
             const SizedBox(height: 12),
             SacPressable(
               listenOnly: true,
-              child: TextButton(
-                style: const ButtonStyle(enableFeedback: false),
+              child: SacButton.text(
+                text: 'payment_orders.detail.cancel_order'.tr(),
+                color: context.sac.error,
                 onPressed: isWorking ? null : onCancel,
-                child: Text(
-                  'payment_orders.detail.cancel_order'.tr(),
-                  style: const TextStyle(color: AppColors.error),
-                ),
               ),
             ),
           ],

@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
@@ -88,9 +87,9 @@ class ProductCard extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                         color: hasStock
                             ? (item.stock <= 5
-                                ? AppColors.warning
+                                ? c.onWarningContainer
                                 : c.textTertiary)
-                            : AppColors.error,
+                            : c.onErrorContainer,
                       ),
                     ),
                   ],

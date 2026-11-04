@@ -100,23 +100,23 @@ class ValidationSection extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.errorLight,
+                color: context.sac.errorContainer,
                 borderRadius: BorderRadius.circular(AppTheme.radiusXS),
               ),
               child: Row(
                 children: [
-                  const HugeIcon(
+                  HugeIcon(
                     icon: HugeIcons.strokeRoundedAlert02,
-                    color: AppColors.error,
+                    color: context.sac.onErrorContainer,
                     size: 14,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       submitState.errorMessage!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: SacFontSize.bodySmall,
-                        color: AppColors.error,
+                        color: context.sac.onErrorContainer,
                       ),
                     ),
                   ),

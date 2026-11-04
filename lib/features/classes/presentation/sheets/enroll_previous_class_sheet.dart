@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -275,7 +276,7 @@ class _EnrollPreviousClassSheetState
             ),
             const SizedBox(height: 4),
             Text(
-              error.toString().replaceFirst('Exception: ', ''),
+              userErrorMessage(error),
               style: TextStyle(
                   fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
               textAlign: TextAlign.center,

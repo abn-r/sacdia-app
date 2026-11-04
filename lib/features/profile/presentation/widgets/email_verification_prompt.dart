@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -103,7 +104,7 @@ class _EmailVerificationPromptState
               ? const SizedBox(
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+                  child: SacLoadingSmall(),
                 )
               : null,
           onTap: _sending ? null : () => _resend(email),

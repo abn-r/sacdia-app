@@ -2,12 +2,13 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/user_error_message.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/sac_empty_state.dart';
+import '../../../../core/widgets/sac_error_state.dart';
+import '../../../../core/widgets/sac_loading.dart';
 import '../../domain/entities/finance_month.dart';
 import '../../domain/entities/finance_summary.dart';
 import '../providers/finances_providers.dart';
@@ -22,14 +23,12 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 class FinanceLineChart extends ConsumerWidget {
   const FinanceLineChart({super.key});
 
-  // ── Brand colors ────────────────────────────────────────────────────────────
-  static const _incomeColor = AppColors.secondary;
-  static const _expenseColor = AppColors.error;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final period = ref.watch(selectedPeriodProvider);
+    final incomeColor = context.sac.success;
+    final expenseColor = context.sac.error;
 
     final chartSurface = context.sac.canvas;
     final gridColor = isDark
@@ -60,11 +59,12 @@ class FinanceLineChart extends ConsumerWidget {
               Row(
                 children: [
                   _LegendDot(
-                      color: _incomeColor,
+                      color: incomeColor,
                       label: 'finances.widgets.chart_income'.tr()),
                   const SizedBox(width: 12),
                   _LegendDot(
-                      color: _expenseColor,
+                      color: expenseColor,
+                      square: true,
                       label: 'finances.widgets.chart_expense'.tr()),
                 ],
               ),
@@ -121,7 +121,7 @@ class _MonthlyChart extends ConsumerWidget {
     return asyncMonth.when(
       loading: () => const SizedBox(
         height: 180,
-        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        child: Center(child: SacLoading()),
       ),
       error: (e, _) => _ChartError(
         message: userErrorMessage(e),
@@ -129,7 +129,7 @@ class _MonthlyChart extends ConsumerWidget {
       ),
       data: (month) {
         if (month == null || month.transactions.isEmpty) {
-          return const _EmptyState();
+          return const _ChartEmpty();
         }
         final data = _aggregateByDay(month);
         return _ChartView(
@@ -199,7 +199,7 @@ class _SummaryChart extends ConsumerWidget {
     return asyncSummary.when(
       loading: () => const SizedBox(
         height: 180,
-        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        child: Center(child: SacLoading()),
       ),
       error: (e, _) => _ChartError(
         message: userErrorMessage(e),
@@ -207,11 +207,11 @@ class _SummaryChart extends ConsumerWidget {
       ),
       data: (summary) {
         if (summary == null || summary.monthlyBars.isEmpty) {
-          return const _EmptyState();
+          return const _ChartEmpty();
         }
 
         final bars = _filterBars(summary.monthlyBars, period);
-        if (bars.isEmpty) return const _EmptyState();
+        if (bars.isEmpty) return const _ChartEmpty();
 
         final incomeSpots = <FlSpot>[];
         final expenseSpots = <FlSpot>[];
@@ -282,11 +282,13 @@ class _ChartView extends StatelessWidget {
     required this.monthlyBars,
   });
 
-  static const _incomeColor = FinanceLineChart._incomeColor;
-  static const _expenseColor = FinanceLineChart._expenseColor;
-
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+    final incomeColor = c.success;
+    final expenseColor = c.error;
+    final incomeTextColor = c.onSuccessContainer;
+    final expenseTextColor = c.onErrorContainer;
     final allValues = [
       ...incomeSpots.map((s) => s.y),
       ...expenseSpots.map((s) => s.y),
@@ -295,87 +297,92 @@ class _ChartView extends StatelessWidget {
         allValues.isEmpty ? 1.0 : allValues.reduce((a, b) => a > b ? a : b);
     final chartMaxY = maxValue <= 0 ? 1.0 : maxValue * 1.15;
 
-    return RepaintBoundary(
-      child: SizedBox(
-        height: 180,
-        child: LineChart(
-          LineChartData(
-            minY: 0,
-            maxY: chartMaxY,
-            clipData: const FlClipData.all(),
+    return Semantics(
+      container: true,
+      label: 'finances.widgets.chart_a11y'.tr(),
+      child: RepaintBoundary(
+        child: SizedBox(
+          height: 180,
+          child: LineChart(
+            LineChartData(
+              minY: 0,
+              maxY: chartMaxY,
+              clipData: const FlClipData.all(),
 
-            // ── Grid ──────────────────────────────────────────────────────────
-            gridData: FlGridData(
-              show: true,
-              drawVerticalLine: false,
-              horizontalInterval: chartMaxY / 4,
-              getDrawingHorizontalLine: (_) => FlLine(
-                color: gridColor,
-                strokeWidth: 1,
-              ),
-            ),
-
-            // ── Borders ───────────────────────────────────────────────────────
-            borderData: FlBorderData(show: false),
-
-            // ── Axes ──────────────────────────────────────────────────────────
-            titlesData: FlTitlesData(
-              topTitles:
-                  const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              rightTitles:
-                  const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              leftTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  reservedSize: 40,
-                  interval: chartMaxY / 4,
-                  getTitlesWidget: (value, meta) =>
-                      _yLabel(value, context, isDark),
+              // ── Grid ──────────────────────────────────────────────────────────
+              gridData: FlGridData(
+                show: true,
+                drawVerticalLine: false,
+                horizontalInterval: chartMaxY / 4,
+                getDrawingHorizontalLine: (_) => FlLine(
+                  color: gridColor,
+                  strokeWidth: 1,
                 ),
               ),
-              bottomTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  reservedSize: 22,
-                  interval: _xInterval,
-                  getTitlesWidget: (value, meta) =>
-                      _xLabel(value, context, isDark),
+
+              // ── Borders ───────────────────────────────────────────────────────
+              borderData: FlBorderData(show: false),
+
+              // ── Axes ──────────────────────────────────────────────────────────
+              titlesData: FlTitlesData(
+                topTitles:
+                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles:
+                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 40,
+                    interval: chartMaxY / 4,
+                    getTitlesWidget: (value, meta) =>
+                        _yLabel(value, context, isDark),
+                  ),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 22,
+                    interval: _xInterval,
+                    getTitlesWidget: (value, meta) =>
+                        _xLabel(value, context, isDark),
+                  ),
                 ),
               ),
-            ),
 
-            // ── Touch ─────────────────────────────────────────────────────────
-            lineTouchData: LineTouchData(
-              touchTooltipData: LineTouchTooltipData(
-                getTooltipColor: (_) => tooltipBg,
-                getTooltipItems: (spots) => spots.map((spot) {
-                  final isIncome = spot.barIndex == 0;
-                  return LineTooltipItem(
-                    SacMoney.compact(spot.y),
-                    TextStyle(
-                      color: isIncome ? _incomeColor : _expenseColor,
-                      fontSize: SacFontSize.labelSmall,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  );
-                }).toList(),
+              // ── Touch ─────────────────────────────────────────────────────────
+              lineTouchData: LineTouchData(
+                touchTooltipData: LineTouchTooltipData(
+                  getTooltipColor: (_) => tooltipBg,
+                  getTooltipItems: (spots) => spots.map((spot) {
+                    final isIncome = spot.barIndex == 0;
+                    return LineTooltipItem(
+                      SacMoney.compact(spot.y),
+                      TextStyle(
+                        color: isIncome ? incomeTextColor : expenseTextColor,
+                        fontSize: SacFontSize.labelSmall,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    );
+                  }).toList(),
+                ),
+                handleBuiltInTouches: true,
               ),
-              handleBuiltInTouches: true,
-            ),
 
-            // ── Lines ─────────────────────────────────────────────────────────
-            lineBarsData: [
-              _buildLine(
-                spots: incomeSpots,
-                color: _incomeColor,
-                fillOpacity: 0.30,
-              ),
-              _buildLine(
-                spots: expenseSpots,
-                color: _expenseColor,
-                fillOpacity: 0.25,
-              ),
-            ],
+              // ── Lines ─────────────────────────────────────────────────────────
+              lineBarsData: [
+                _buildLine(
+                  spots: incomeSpots,
+                  color: incomeColor,
+                  fillOpacity: 0.30,
+                ),
+                _buildLine(
+                  spots: expenseSpots,
+                  color: expenseColor,
+                  fillOpacity: 0.25,
+                  dashed: true,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -388,6 +395,7 @@ class _ChartView extends StatelessWidget {
     required List<FlSpot> spots,
     required Color color,
     required double fillOpacity,
+    bool dashed = false,
   }) {
     return LineChartBarData(
       spots: spots,
@@ -395,6 +403,7 @@ class _ChartView extends StatelessWidget {
       curveSmoothness: 0.35,
       color: color,
       barWidth: 2.5,
+      dashArray: dashed ? const [6, 4] : null,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
       belowBarData: BarAreaData(
@@ -414,9 +423,7 @@ class _ChartView extends StatelessWidget {
   // ── Y-axis label ──────────────────────────────────────────────────────────
 
   Widget _yLabel(double value, BuildContext context, bool isDark) {
-    final labelColor = isDark
-        ? Colors.white.withValues(alpha: 0.4)
-        : Colors.black.withValues(alpha: 0.4);
+    final labelColor = context.sac.textSecondary;
 
     return Padding(
       padding: const EdgeInsets.only(right: 4),
@@ -453,9 +460,7 @@ class _ChartView extends StatelessWidget {
   }
 
   Widget _xLabel(double value, BuildContext context, bool isDark) {
-    final labelColor = isDark
-        ? Colors.white.withValues(alpha: 0.4)
-        : Colors.black.withValues(alpha: 0.4);
+    final labelColor = context.sac.textSecondary;
 
     final label = _buildXLabel(value);
     if (label.isEmpty) return const SizedBox.shrink();
@@ -531,28 +536,23 @@ class _ChartView extends StatelessWidget {
   }
 }
 
-// ── Empty state ────────────────────────────────────────────────────────────
+// ── Empty / error (inline, fixed chart height) ─────────────────────────────
 
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
+class _ChartEmpty extends StatelessWidget {
+  const _ChartEmpty();
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 180,
       child: Center(
-        child: Text(
-          'finances.widgets.chart_no_data'.tr(),
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: context.sac.textTertiary,
-              ),
+        child: SacEmptyState.inline(
+          title: 'finances.widgets.chart_no_data'.tr(),
         ),
       ),
     );
   }
 }
-
-// ── Error state ────────────────────────────────────────────────────────────
 
 class _ChartError extends StatelessWidget {
   const _ChartError({required this.message, required this.onRetry});
@@ -565,28 +565,7 @@ class _ChartError extends StatelessWidget {
     return SizedBox(
       height: 180,
       child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: context.sac.textSecondary,
-                  ),
-            ),
-            const SizedBox(height: 12),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 200),
-              child: SacButton.outline(
-                text: 'common.retry'.tr(),
-                onPressed: onRetry,
-              ),
-            ),
-          ],
-        ),
+        child: SacErrorState.inline(message: message, onRetry: onRetry),
       ),
     );
   }
@@ -597,8 +576,13 @@ class _ChartError extends StatelessWidget {
 class _LegendDot extends StatelessWidget {
   final Color color;
   final String label;
+  final bool square;
 
-  const _LegendDot({required this.color, required this.label});
+  const _LegendDot({
+    required this.color,
+    required this.label,
+    this.square = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -607,7 +591,12 @@ class _LegendDot extends StatelessWidget {
         Container(
           width: 8,
           height: 8,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          decoration: BoxDecoration(
+            color: color,
+            shape: square ? BoxShape.rectangle : BoxShape.circle,
+            borderRadius:
+                square ? BorderRadius.circular(AppTheme.radiusHairline) : null,
+          ),
         ),
         const SizedBox(width: 4),
         Text(

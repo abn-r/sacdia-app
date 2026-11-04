@@ -287,6 +287,7 @@ class _MonthlyReportManualDataFormViewState
               listenOnly: true,
               child: IconButton(
                 enableFeedback: false,
+                tooltip: isSheet ? 'common.close'.tr() : 'common.back'.tr(),
                 icon: HugeIcon(
                   icon: isSheet
                       ? HugeIcons.strokeRoundedCancel01

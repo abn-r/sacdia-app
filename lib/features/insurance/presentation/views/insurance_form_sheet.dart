@@ -13,7 +13,6 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/member_insurance.dart';
@@ -118,6 +117,7 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                   listenOnly: true,
                   child: IconButton(
                     enableFeedback: false,
+                    tooltip: 'common.close'.tr(),
                     onPressed: () => Navigator.pop(context),
                     icon: HugeIcon(
                       icon: HugeIcons.strokeRoundedCancel01,
@@ -254,7 +254,7 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                         padding: const EdgeInsets.only(bottom: 12),
                         child: Text(
                           formState.errorMessage!,
-                          style: const TextStyle(color: AppColors.error),
+                          style: TextStyle(color: context.sac.onErrorContainer),
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -496,7 +496,6 @@ class _DatePickerField extends StatelessWidget {
       initialDate: selectedDate ?? DateTime.now(),
       firstDate: firstDate,
       lastDate: lastDate,
-      locale: const Locale('es', 'ES'),
     );
     if (picked != null) onDateSelected(picked);
   }
@@ -611,12 +610,13 @@ class _SelectedFileTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.secondaryLight,
+        color: c.successContainer,
         borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-        border: Border.all(color: AppColors.secondary.withValues(alpha: 0.4)),
+        border: Border.all(color: c.success.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [
@@ -642,10 +642,10 @@ class _SelectedFileTile extends StatelessWidget {
               children: [
                 Text(
                   file.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: SacFontSize.bodyMedium,
-                    color: AppColors.secondaryDark,
+                    color: c.onSuccessContainer,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -655,7 +655,7 @@ class _SelectedFileTile extends StatelessWidget {
                   'insurance.form.file_selected'.tr(),
                   style: TextStyle(
                     fontSize: SacFontSize.labelSmall,
-                    color: AppColors.secondaryDark.withValues(alpha: 0.7),
+                    color: c.onSuccessContainer.withValues(alpha: 0.85),
                   ),
                 ),
               ],
@@ -665,11 +665,12 @@ class _SelectedFileTile extends StatelessWidget {
             listenOnly: true,
             child: IconButton(
               enableFeedback: false,
+              tooltip: 'common.delete'.tr(),
               onPressed: onRemove,
               icon: HugeIcon(
                 icon: HugeIcons.strokeRoundedCancel01,
                 size: 18,
-                color: AppColors.secondaryDark,
+                color: c.onSuccessContainer,
               ),
             ),
           ),
@@ -682,15 +683,16 @@ class _SelectedFileTile extends StatelessWidget {
 class _FileIconBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Container(
       width: 52,
       height: 52,
-      color: AppColors.secondary.withValues(alpha: 0.15),
+      color: c.successContainer,
       child: Center(
         child: HugeIcon(
           icon: HugeIcons.strokeRoundedFiles01,
           size: 28,
-          color: AppColors.secondaryDark,
+          color: c.onSuccessContainer,
         ),
       ),
     );
@@ -747,17 +749,10 @@ class _ExistingFileTile extends StatelessWidget {
           ),
           SacPressable(
             listenOnly: true,
-            child: TextButton(
-              style: const ButtonStyle(enableFeedback: false),
+            child: SacButton.text(
+              text: 'insurance.form.replace_button'.tr(),
               onPressed: onReplace,
-              child: Text(
-                'insurance.form.replace_button'.tr(),
-                style: TextStyle(
-                  color: SacAccent.of(context).color,
-                  fontWeight: FontWeight.w700,
-                  fontSize: SacFontSize.bodySmall,
-                ),
-              ),
+              color: SacAccent.of(context).dark,
             ),
           ),
         ],
@@ -849,14 +844,14 @@ class _FilePickerSheet extends StatelessWidget {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: AppColors.secondaryLight,
+                      color: context.sac.successContainer,
                       borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: HugeIcon(
                         icon: HugeIcons.strokeRoundedImage01,
                         size: 22,
-                        color: AppColors.secondary,
+                        color: context.sac.onSuccessContainer,
                       ),
                     ),
                   ),
@@ -886,14 +881,14 @@ class _FilePickerSheet extends StatelessWidget {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: AppColors.accentLight,
+                      color: context.sac.warningContainer,
                       borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                     ),
                     child: Center(
                       child: HugeIcon(
                         icon: HugeIcons.strokeRoundedFiles01,
                         size: 22,
-                        color: AppColors.accentDark,
+                        color: context.sac.onWarningContainer,
                       ),
                     ),
                   ),

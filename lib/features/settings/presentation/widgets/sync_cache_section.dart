@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -56,7 +57,7 @@ class SyncCacheSection extends ConsumerWidget {
                   ? const SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: SacLoadingSmall(),
                     )
                   : null,
               onTap: clearState.inProgress
@@ -76,7 +77,7 @@ class SyncCacheSection extends ConsumerWidget {
                   ? const SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: SacLoadingSmall(),
                     )
                   : null,
               onTap: syncState.inProgress ? null : () => _runSync(context, ref),

@@ -7,7 +7,6 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
-import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -19,9 +18,10 @@ import 'add_inventory_item_sheet.dart';
 import 'inventory_filter_sheet.dart';
 import 'inventory_item_detail_view.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
@@ -79,6 +79,7 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
             listenOnly: true,
             child: IconButton(
               enableFeedback: false,
+              tooltip: 'common.refresh'.tr(),
               onPressed: () => ref.invalidate(inventoryItemsProvider),
               icon: HugeIcon(
                 icon: HugeIcons.strokeRoundedRefresh,
@@ -139,20 +140,38 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
                     loading: () =>
                         const SliverToBoxAdapter(child: _SkeletonBody()),
                     error: (e, _) => SliverToBoxAdapter(
-                      child: _ErrorBody(
-                        message: e.toString().replaceFirst('Exception: ', ''),
+                      child: SacErrorState(
+                        title: 'inventory.view.error_load'.tr(),
+                        message: userErrorMessage(e),
                         onRetry: () => ref.invalidate(inventoryItemsProvider),
                       ),
                     ),
                     data: (items) {
                       if (items.isEmpty) {
+                        final canAdd = canManage && !filters.hasActiveFilters;
                         return SliverToBoxAdapter(
-                          child: _EmptyState(
-                            hasActiveFilters: filters.hasActiveFilters,
-                            canAdd: canManage && !filters.hasActiveFilters,
-                            onAddTap:
-                                canManage ? () => _openAddSheet(context) : null,
-                          ),
+                          child: filters.hasActiveFilters
+                              ? SacEmptyState(
+                                  icon: HugeIcons.strokeRoundedSearch01,
+                                  title: 'inventory.view.no_results_title'.tr(),
+                                  body:
+                                      'inventory.view.no_results_subtitle'.tr(),
+                                )
+                              : SacEmptyState(
+                                  icon: HugeIcons.strokeRoundedBoxingBag,
+                                  title: 'inventory.view.empty_title'.tr(),
+                                  body: canAdd
+                                      ? 'inventory.view.empty_subtitle_can_add'
+                                          .tr()
+                                      : 'inventory.view.empty_subtitle_cannot_add'
+                                          .tr(),
+                                  actionLabel: canAdd
+                                      ? 'inventory.view.add_first_item'.tr()
+                                      : null,
+                                  onAction: canAdd
+                                      ? () => _openAddSheet(context)
+                                      : null,
+                                ),
                         );
                       }
 
@@ -470,115 +489,6 @@ class _SkeletonBoxState extends State<_SkeletonBox>
           borderRadius: BorderRadius.circular(AppTheme.radiusXS),
         ),
       ),
-    );
-  }
-}
-
-// ── Error body ──────────────────────────────────────────────────────────────────
-
-class _ErrorBody extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorBody({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final icon = Container(
-      width: 72,
-      height: 72,
-      decoration: BoxDecoration(
-        color: AppColors.error.withValues(alpha: 0.10),
-        shape: BoxShape.circle,
-      ),
-      child: const Center(
-        child: HugeIcon(
-          icon: HugeIcons.strokeRoundedAlert02,
-          size: 36,
-          color: AppColors.error,
-        ),
-      ),
-    );
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 48, 32, 16),
-      child: Column(
-        children: [
-          if (SacMotion.reduceMotionOf(context))
-            icon
-          else
-            TweenAnimationBuilder<double>(
-              tween: Tween(begin: SacMotion.enterScale, end: 1.0),
-              duration: SacMotion.standard,
-              curve: SacMotion.easeOut,
-              builder: (context, scale, child) =>
-                  Transform.scale(scale: scale, child: child),
-              child: icon,
-            ),
-          const SizedBox(height: 16),
-          Text(
-            'inventory.view.error_load'.tr(),
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: context.sac.text,
-                  fontWeight: FontWeight.w700,
-                ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 6),
-          Text(
-            message,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: context.sac.textSecondary,
-                ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          SacButton(
-            text: 'common.retry'.tr(),
-            icon: HugeIcons.strokeRoundedRefresh,
-            onPressed: onRetry,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Empty state ─────────────────────────────────────────────────────────────────
-
-class _EmptyState extends StatelessWidget {
-  /// True cuando hay búsqueda o filtros activos: la lista está vacía por el
-  /// filtro, no porque el club no tenga artículos.
-  final bool hasActiveFilters;
-  final bool canAdd;
-  final VoidCallback? onAddTap;
-
-  const _EmptyState({
-    required this.hasActiveFilters,
-    required this.canAdd,
-    this.onAddTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (hasActiveFilters) {
-      return SacEmptyState(
-        icon: HugeIcons.strokeRoundedSearch01,
-        title: 'inventory.view.no_results_title'.tr(),
-        body: 'inventory.view.no_results_subtitle'.tr(),
-      );
-    }
-
-    return SacEmptyState(
-      icon: HugeIcons.strokeRoundedBoxingBag,
-      title: 'inventory.view.empty_title'.tr(),
-      body: canAdd
-          ? 'inventory.view.empty_subtitle_can_add'.tr()
-          : 'inventory.view.empty_subtitle_cannot_add'.tr(),
-      actionLabel: canAdd && onAddTap != null
-          ? 'inventory.view.add_first_item'.tr()
-          : null,
-      onAction: onAddTap,
     );
   }
 }

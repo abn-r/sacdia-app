@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_expansion_tile.dart';
@@ -18,6 +17,8 @@ import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_ord
 import 'package:sacdia_app/features/camporee_orders/presentation/providers/camporee_orders_providers.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 
 /// Captura nominada: roster del camporee + artículo/talla por persona.
 class CamporeeMemberOrderView extends ConsumerWidget {
@@ -55,22 +56,28 @@ class CamporeeMemberOrderView extends ConsumerWidget {
             top: false,
             child: rosterAsync.when(
               loading: () => const Center(child: SacLoading()),
-              error: (error, _) => _CaptureError(
+              error: (error, _) => SacErrorState(
+                title: '',
                 message: camporeeOrdersErrorMessage(error),
                 onRetry: () =>
                     ref.invalidate(camporeeOrderRosterProvider(camporeeId)),
               ),
               data: (roster) {
                 if (roster.isEmpty) {
-                  return _CaptureError(
-                    message: 'camporee_orders.capture.empty_roster'.tr(),
-                    onRetry: () =>
+                  return SacEmptyState(
+                    icon: HugeIcons.strokeRoundedUserGroup,
+                    title: 'camporee_orders.capture.empty_roster'.tr(),
+                    actionLabel: 'common.retry'.tr(),
+                    actionIcon: HugeIcons.strokeRoundedRefresh,
+                    actionVariant: SacButtonVariant.outline,
+                    onAction: () =>
                         ref.invalidate(camporeeOrderRosterProvider(camporeeId)),
                   );
                 }
                 return offeringsAsync.when(
                   loading: () => const Center(child: SacLoading()),
-                  error: (error, _) => _CaptureError(
+                  error: (error, _) => SacErrorState(
+                    title: '',
                     message: camporeeOrdersErrorMessage(error),
                     onRetry: () =>
                         ref.invalidate(camporeeOrderOfferingsProvider(scope)),
@@ -79,8 +86,9 @@ class CamporeeMemberOrderView extends ConsumerWidget {
                     final window =
                         evaluateCamporeeOrdersWindow(catalog.settings);
                     if (window != CamporeeOrdersWindow.open) {
-                      return _CaptureError(
-                        message: window == CamporeeOrdersWindow.notOpen
+                      return SacEmptyState(
+                        icon: HugeIcons.strokeRoundedCalendar03,
+                        title: window == CamporeeOrdersWindow.notOpen
                             ? 'camporee_orders.catalog.not_open'.tr()
                             : 'camporee_orders.catalog.closed'.tr(),
                       );
@@ -90,8 +98,9 @@ class CamporeeMemberOrderView extends ConsumerWidget {
                         .toList()
                       ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
                     if (offerings.isEmpty) {
-                      return _CaptureError(
-                        message: 'camporee_orders.catalog.offerings_empty'.tr(),
+                      return SacEmptyState(
+                        icon: HugeIcons.strokeRoundedShoppingBag01,
+                        title: 'camporee_orders.catalog.offerings_empty'.tr(),
                       );
                     }
                     return Column(
@@ -352,7 +361,7 @@ class _QtyRow extends StatelessWidget {
             listenOnly: true,
             child: IconButton(
               enableFeedback: false,
-              visualDensity: VisualDensity.compact,
+              tooltip: 'common.decrease_quantity'.tr(),
               onPressed: qty <= 0 ? null : () => onQty(qty - 1),
               icon: HugeIcon(
                 icon: HugeIcons.strokeRoundedMinusSign,
@@ -373,7 +382,7 @@ class _QtyRow extends StatelessWidget {
             listenOnly: true,
             child: IconButton(
               enableFeedback: false,
-              visualDensity: VisualDensity.compact,
+              tooltip: 'common.increase_quantity'.tr(),
               onPressed: () => onQty(qty + 1),
               icon: HugeIcon(
                 icon: HugeIcons.strokeRoundedAdd01,
@@ -428,47 +437,6 @@ class _CaptureFooter extends StatelessWidget {
             onPressed: onContinue,
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _CaptureError extends StatelessWidget {
-  final String message;
-  final VoidCallback? onRetry;
-
-  const _CaptureError({required this.message, this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 42,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: SacFontSize.bodyMedium,
-                  color: context.sac.textSecondary),
-            ),
-            if (onRetry != null) ...[
-              const SizedBox(height: 14),
-              SacButton.outline(
-                text: 'common.retry'.tr(),
-                onPressed: onRetry,
-              ),
-            ],
-          ],
-        ),
       ),
     );
   }

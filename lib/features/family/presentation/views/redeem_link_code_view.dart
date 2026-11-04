@@ -177,7 +177,7 @@ class _RedeemLinkCodeViewState extends ConsumerState<RedeemLinkCodeView> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.errorLight,
+                      color: c.errorContainer,
                       borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                     ),
                     child: Column(
@@ -188,7 +188,7 @@ class _RedeemLinkCodeViewState extends ConsumerState<RedeemLinkCodeView> {
                           style: Theme.of(context)
                               .textTheme
                               .bodyMedium
-                              ?.copyWith(color: AppColors.error),
+                              ?.copyWith(color: c.onErrorContainer),
                         ),
                         if (isGuardianProfileIncomplete(error)) ...[
                           const SizedBox(height: 8),
