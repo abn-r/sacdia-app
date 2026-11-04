@@ -1,17 +1,15 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/master_honors/presentation/providers/master_honors_providers.dart';
 import 'package:sacdia_app/features/master_honors/presentation/widgets/master_honor_roadmap_grid.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Pantalla completa con el roadmap de maestrías.
 ///
@@ -39,7 +37,9 @@ class MasterHonorsView extends ConsumerWidget {
               ),
               error: (_, __) => Padding(
                 padding: EdgeInsets.only(top: top),
-                child: _ErrorState(
+                child: SacErrorState(
+                  title: 'master_honors.load_error_title'.tr(),
+                  message: 'master_honors.load_error_body'.tr(),
                   onRetry: () => ref.invalidate(userMasterHonorRoadmapProvider),
                 ),
               ),
@@ -81,55 +81,6 @@ class _EmptyState extends StatelessWidget {
     return SacEmptyState(
       icon: HugeIcons.strokeRoundedAward01,
       title: 'master_honors.empty_title'.tr(),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.onRetry});
-
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 56,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No pudimos cargar las maestrías',
-              style: TextStyle(
-                color: context.sac.text,
-                fontSize: SacFontSize.titleMedium,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Intenta nuevamente en unos segundos.',
-              style: TextStyle(
-                color: context.sac.textSecondary,
-                fontSize: SacFontSize.bodyMedium,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SacButton.primary(
-              text: 'Reintentar',
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onRetry,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

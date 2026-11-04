@@ -1,4 +1,8 @@
 import 'dart:async';
+import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'dart:ui' as ui;
 
 import 'package:easy_localization/easy_localization.dart';
@@ -75,8 +79,9 @@ class ClassDetailWithProgressView extends ConsumerWidget {
             top: false,
             child: classAsync.when(
               loading: () => const _SkeletonBody(),
-              error: (error, _) => _ErrorBody(
-                message: error.toString().replaceFirst('Exception: ', ''),
+              error: (error, _) => SacErrorState(
+                title: 'classes.detail_with_progress.error_loading'.tr(),
+                message: userErrorMessage(error),
                 onRetry: () =>
                     ref.invalidate(classWithProgressProvider(progressQuery)),
               ),
@@ -395,7 +400,13 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
 
               // ── Modules list inside a single card ──────────────────────────
               if (classData.modules.isEmpty || buckets.isEmpty) {
-                return const SliverToBoxAdapter(child: _EmptyModules());
+                return SliverToBoxAdapter(
+                    child: SacEmptyState(
+                  title:
+                      'classes.detail_with_progress.empty_modules_title'.tr(),
+                  body: 'classes.detail_with_progress.empty_modules_body'.tr(),
+                  icon: HugeIcons.strokeRoundedSchool,
+                ));
               }
 
               return SliverToBoxAdapter(
@@ -446,24 +457,22 @@ class _ExpiredTrajectoryBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final c = context.sac;
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.error.withValues(alpha: 0.2)
-            : AppColors.primarySurface,
+        color: c.errorContainer,
         borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: AppColors.error.withValues(alpha: 0.35)),
       ),
       child: Text(
         'classes.requirement_detail.expired_banner'.tr(),
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: SacFontSize.bodySmall,
           fontWeight: FontWeight.w600,
-          color: AppColors.errorDark,
+          color: c.onErrorContainer,
           height: 1.35,
         ),
       ),
@@ -890,21 +899,10 @@ class _AdvancedTrackSection extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 9),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-              child: TweenAnimationBuilder<double>(
-                tween: Tween<double>(begin: 0, end: _percentage / 100),
-                duration: SacMotion.reduceMotionOf(context)
-                    ? Duration.zero
-                    : SacMotion.standard,
-                curve: SacMotion.easeOut,
-                builder: (context, value, _) => LinearProgressIndicator(
-                  value: value,
-                  minHeight: 2,
-                  backgroundColor: c.ink150,
-                  color: AppColors.sentColor.withValues(alpha: 0.6),
-                ),
-              ),
+            SacProgressBar(
+              progress: _percentage / 100,
+              height: 6,
+              color: c.info,
             ),
           ],
         ),
@@ -1640,112 +1638,7 @@ class _SkeletonBox extends StatelessWidget {
 
 // ── Empty modules ──────────────────────────────────────────────────────────────
 
-class _EmptyModules extends StatelessWidget {
-  const _EmptyModules();
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 48),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedSchool,
-            size: 48,
-            color: c.ink400,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'classes.detail_with_progress.empty_modules_title'.tr(),
-            style: TextStyle(
-              fontSize: SacFontSize.titleMedium,
-              fontWeight: FontWeight.w600,
-              color: c.ink500,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'classes.detail_with_progress.empty_modules_body'.tr(),
-            style: TextStyle(
-              fontSize: SacFontSize.bodyMedium,
-              color: c.ink400,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 // ── Error state ────────────────────────────────────────────────────────────────
-
-class _ErrorBody extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorBody({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 56,
-              color: AppColors.rejectedColor,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'classes.detail_with_progress.error_loading'.tr(),
-              style: TextStyle(
-                fontSize: SacFontSize.titleMedium,
-                fontWeight: FontWeight.w600,
-                color: context.sac.ink900,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: TextStyle(
-                  fontSize: SacFontSize.bodyMedium, color: context.sac.ink500),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            GestureDetector(
-              onTap: onRetry,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.coral500,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-                ),
-                child: const Text(
-                  'Reintentar',
-                  style: TextStyle(
-                    fontSize: SacFontSize.titleSmall,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 /// «Investido» para una inscripción ya investida que no tiene entrada del flujo
 /// de autorización (acreditación por certificado o investidura de la vía

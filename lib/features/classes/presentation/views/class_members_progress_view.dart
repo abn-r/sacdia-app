@@ -1,4 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,7 +10,6 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
-import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../domain/entities/class_members_progress.dart';
 import '../providers/classes_providers.dart';
@@ -50,8 +52,9 @@ class ClassMembersProgressView extends ConsumerWidget {
         child: Builder(
           builder: (context) => membersAsync.when(
             loading: () => const Center(child: SacLoading()),
-            error: (error, _) => _ErrorState(
-              message: error.toString().replaceFirst('Exception: ', ''),
+            error: (error, _) => SacErrorState(
+              title: 'classes.members_progress.load_error_title'.tr(),
+              message: userErrorMessage(error),
               onRetry: () =>
                   ref.invalidate(classMembersProgressProvider(query)),
             ),
@@ -295,14 +298,10 @@ class _MemberProgressTile extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                child: LinearProgressIndicator(
-                  minHeight: 8,
-                  value: safeProgress / 100,
-                  backgroundColor: c.ink100,
-                  color: classColor,
-                ),
+              SacProgressBar(
+                progress: safeProgress / 100,
+                height: 8,
+                color: classColor,
               ),
             ],
           ),
@@ -345,57 +344,6 @@ class _CrossTypeChip extends StatelessWidget {
               fontWeight: FontWeight.w700,
               fontSize: SacFontSize.caption,
             ),
-      ),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorState({
-    required this.message,
-    required this.onRetry,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 52,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'classes.members_progress.load_error_title'.tr(),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: context.sac.ink600,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            SacButton(
-              text: 'common.retry'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onRetry,
-            ),
-          ],
-        ),
       ),
     );
   }

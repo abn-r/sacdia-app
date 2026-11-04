@@ -1,4 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,7 +10,6 @@ import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
-import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -105,7 +106,7 @@ class TeachingScopeView extends ConsumerWidget {
             error: (error, _) => _MessageState(
               icon: HugeIcons.strokeRoundedAlert02,
               title: 'classes.teaching_scope.context_error_title'.tr(),
-              message: error.toString().replaceFirst('Exception: ', ''),
+              message: userErrorMessage(error),
             ),
             data: (clubContext) {
               if (clubContext == null) {
@@ -125,8 +126,9 @@ class TeachingScopeView extends ConsumerWidget {
 
               return scopeAsync.when(
                 loading: () => const Center(child: SacLoading()),
-                error: (error, _) => _ErrorState(
-                  message: error.toString().replaceFirst('Exception: ', ''),
+                error: (error, _) => SacErrorState(
+                  title: 'classes.teaching_scope.load_error_title'.tr(),
+                  message: userErrorMessage(error),
                   onRetry: () =>
                       ref.invalidate(classProgressScopeProvider(query)),
                 ),
@@ -346,57 +348,6 @@ class _ClassScopeTile extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorState({
-    required this.message,
-    required this.onRetry,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 52,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'classes.teaching_scope.load_error_title'.tr(),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: context.sac.ink600,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            SacButton(
-              text: 'common.retry'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onRetry,
-            ),
-          ],
         ),
       ),
     );

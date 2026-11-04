@@ -1145,9 +1145,8 @@ class _BigCTA extends StatelessWidget {
               const SizedBox(
                 width: 16,
                 height: 16,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2,
+                child: FittedBox(
+                  child: SacLoadingSmall(color: Colors.white),
                 ),
               )
             else

@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -408,38 +409,10 @@ class _ErrorScaffold extends StatelessWidget {
         child: Builder(
           builder: (context) => Padding(
             padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedAlert02,
-                    size: 48,
-                    color: context.sac.textTertiary,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'honors.detail.error_load'.tr(),
-                    style: TextStyle(
-                        fontSize: SacFontSize.titleMedium,
-                        color: context.sac.textSecondary),
-                  ),
-                  const SizedBox(height: 20),
-                  SacPressable(
-                    listenOnly: true,
-                    child: TextButton(
-                      style: const ButtonStyle(enableFeedback: false),
-                      onPressed: onRetry,
-                      child: Text(
-                        'honors.catalog.retry'.tr(),
-                        style: TextStyle(
-                            color: context.sac.text,
-                            fontSize: SacFontSize.titleSmall),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            child: SacErrorState(
+              title: 'honors.detail.error_load'.tr(),
+              retryLabel: 'honors.catalog.retry'.tr(),
+              onRetry: onRetry,
             ),
           ),
         ),
@@ -2143,10 +2116,7 @@ class _RequirementsHistoryCard extends StatelessWidget {
         animationDelay: animationDelay,
         padding: const EdgeInsets.all(24),
         child: Center(
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: categoryColor,
-          ),
+          child: SacLoading(color: categoryColor),
         ),
       ),
       error: (_, __) => SacCard(
@@ -3334,10 +3304,7 @@ class _RequirementsPreviewCard extends ConsumerWidget {
         child: Container(
           height: 140,
           alignment: Alignment.center,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: categoryColor,
-          ),
+          child: SacLoading(color: categoryColor),
         ),
       ),
       error: (_, __) => const SizedBox.shrink(),
@@ -3703,21 +3670,10 @@ class _BottomCtaBar extends ConsumerWidget {
                       error: (err, _) => Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(10),
-                            margin: const EdgeInsets.only(bottom: 8),
-                            decoration: BoxDecoration(
-                              color: AppColors.errorLight,
-                              borderRadius:
-                                  BorderRadius.circular(AppTheme.radiusXS),
-                            ),
-                            child: Text(
-                              err.toString().replaceAll('Exception: ', ''),
-                              style: const TextStyle(
-                                color: AppColors.errorDark,
-                                fontSize: SacFontSize.bodySmall,
-                              ),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: SacErrorState.inline(
+                              message: userErrorMessage(err),
                             ),
                           ),
                           _EnrollCtaButton(

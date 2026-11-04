@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_network_image.dart';
@@ -25,50 +26,53 @@ class MasterHonorBadge extends StatelessWidget {
     final status = _statusLabel(honor);
     final initials = _initials(honor.name);
 
-    return Container(
-      width: compact ? 128 : 150,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: _badgeColor(context, isCurrent).withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        border: Border.all(
-            color: _badgeColor(context, isCurrent).withValues(alpha: 0.5)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _HonorImage(
-                imageUrl: honor.masterImage,
-                initials: initials,
-                height: compact ? 26 : 30,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  honor.name,
-                  maxLines: compact ? 2 : 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: compact ? 12 : 13,
+    return Semantics(
+      container: true,
+      child: Container(
+        width: compact ? 128 : 150,
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: _badgeColor(context, isCurrent).withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+          border: Border.all(
+              color: _badgeColor(context, isCurrent).withValues(alpha: 0.5)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _HonorImage(
+                  imageUrl: honor.masterImage,
+                  initials: initials,
+                  height: compact ? 26 : 30,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    honor.name,
+                    maxLines: compact ? 2 : 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: compact ? 12 : 13,
+                    ),
                   ),
                 ),
+              ],
+            ),
+            if (showStatus) ...[
+              const SizedBox(height: 6),
+              _MasterHonorStatusBadge(
+                label: status,
+                isCurrent: isCurrent,
               ),
             ],
-          ),
-          if (showStatus) ...[
-            const SizedBox(height: 6),
-            _MasterHonorStatusBadge(
-              label: status,
-              isCurrent: isCurrent,
-            ),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -116,9 +120,7 @@ class _HonorImage extends StatelessWidget {
       height: height,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? AppColors.darkSurfaceVariant
-            : AppColors.lightSurfaceVariant,
+        color: context.sac.surfaceVariant,
         borderRadius: BorderRadius.circular(AppTheme.radiusFull),
       ),
       child: Text(
@@ -126,9 +128,7 @@ class _HonorImage extends StatelessWidget {
         style: TextStyle(
           fontSize: height * 0.4,
           fontWeight: FontWeight.w700,
-          color: Theme.of(context).brightness == Brightness.dark
-              ? AppColors.darkText
-              : AppColors.lightText,
+          color: context.sac.text,
         ),
       ),
     );
@@ -166,10 +166,9 @@ class _MasterHonorStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final badgeColor =
-        isCurrent ? AppColors.secondaryLight : AppColors.errorLight;
-    final labelColor =
-        isCurrent ? AppColors.secondaryDark : AppColors.errorDark;
+    final c = context.sac;
+    final badgeColor = isCurrent ? c.successContainer : c.errorContainer;
+    final labelColor = isCurrent ? c.onSuccessContainer : c.onErrorContainer;
 
     return Container(
       decoration: BoxDecoration(

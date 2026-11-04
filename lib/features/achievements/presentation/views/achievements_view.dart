@@ -1,12 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
@@ -17,7 +16,6 @@ import '../../domain/repositories/achievements_repository.dart';
 import '../providers/achievements_providers.dart';
 import '../widgets/achievement_grid_card.dart';
 import 'achievement_detail_sheet.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Misma composición que Maestrías: barra esmerilada y grilla de tarjetas.
 class AchievementsView extends ConsumerWidget {
@@ -47,7 +45,10 @@ class AchievementsView extends ConsumerWidget {
               ),
               error: (_, __) => Padding(
                 padding: EdgeInsets.only(top: top),
-                child: _ErrorState(
+                child: SacErrorState(
+                  title: 'achievements.views.error_title'.tr(),
+                  message: 'achievements.views.error_subtitle'.tr(),
+                  retryLabel: 'achievements.views.retry'.tr(),
                   onRetry: () => ref.invalidate(userAchievementsProvider),
                 ),
               ),
@@ -143,53 +144,6 @@ class _EmptyState extends StatelessWidget {
     return SacEmptyState(
       icon: HugeIcons.strokeRoundedAward01,
       title: 'achievements.views.empty_title'.tr(),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  final VoidCallback onRetry;
-  const _ErrorState({required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 56,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'achievements.views.error_title'.tr(),
-              style: TextStyle(
-                color: context.sac.text,
-                fontSize: SacFontSize.titleMedium,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'achievements.views.error_subtitle'.tr(),
-              style: TextStyle(
-                  color: context.sac.textSecondary,
-                  fontSize: SacFontSize.bodyMedium),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SacButton.primary(
-              text: 'achievements.views.retry'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onRetry,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -36,158 +36,163 @@ class ClassCard extends StatelessWidget {
     final logoAsset = AppColors.classLogoAsset(progressiveClass.name);
     final isExpired = progressiveClass.isExpired;
 
-    return SacCard(
-      onTap: onTap,
-      borderColor: isExpired
-          ? AppColors.error.withValues(alpha: 0.45)
-          : isCurrent
-              ? classColor
-              : null,
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              // Class icon
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: classColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+    return Semantics(
+      container: true,
+      child: SacCard(
+        onTap: onTap,
+        borderColor: isExpired
+            ? AppColors.error.withValues(alpha: 0.45)
+            : isCurrent
+                ? classColor
+                : null,
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                // Class icon
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: classColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                  ),
+                  child: progressiveClass.imageUrl != null
+                      ? ClipRRect(
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusSM),
+                          child: SacNetworkImage(
+                            imageUrl: progressiveClass.imageUrl!,
+                            memCacheWidth:
+                                132, // 44 * 3 (max device pixel ratio)
+                            memCacheHeight: 132, // 44 * 3
+                            fit: BoxFit.cover,
+                            errorWidget: (_, __, ___) => logoAsset != null
+                                ? Padding(
+                                    padding: const EdgeInsets.all(6),
+                                    child: Image.asset(
+                                      logoAsset,
+                                      fit: BoxFit.contain,
+                                      cacheWidth: 132,
+                                      cacheHeight: 132,
+                                    ),
+                                  )
+                                : Center(
+                                    child: HugeIcon(
+                                      icon: HugeIcons.strokeRoundedSchool,
+                                      color: classColor,
+                                      size: 24,
+                                    ),
+                                  ),
+                          ),
+                        )
+                      : logoAsset != null
+                          ? Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: Image.asset(
+                                logoAsset,
+                                fit: BoxFit.contain,
+                                cacheWidth: 132,
+                                cacheHeight: 132,
+                              ),
+                            )
+                          : Center(
+                              child: HugeIcon(
+                                icon: HugeIcons.strokeRoundedSchool,
+                                color: classColor,
+                                size: 24,
+                              ),
+                            ),
                 ),
-                child: progressiveClass.imageUrl != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                        child: SacNetworkImage(
-                          imageUrl: progressiveClass.imageUrl!,
-                          memCacheWidth: 132, // 44 * 3 (max device pixel ratio)
-                          memCacheHeight: 132, // 44 * 3
-                          fit: BoxFit.cover,
-                          errorWidget: (_, __, ___) => logoAsset != null
-                              ? Padding(
-                                  padding: const EdgeInsets.all(6),
-                                  child: Image.asset(
-                                    logoAsset,
-                                    fit: BoxFit.contain,
-                                    cacheWidth: 132,
-                                    cacheHeight: 132,
-                                  ),
-                                )
-                              : Center(
-                                  child: HugeIcon(
-                                    icon: HugeIcons.strokeRoundedSchool,
-                                    color: classColor,
-                                    size: 24,
-                                  ),
-                                ),
-                        ),
-                      )
-                    : logoAsset != null
-                        ? Padding(
-                            padding: const EdgeInsets.all(6),
-                            child: Image.asset(
-                              logoAsset,
-                              fit: BoxFit.contain,
-                              cacheWidth: 132,
-                              cacheHeight: 132,
-                            ),
-                          )
-                        : Center(
-                            child: HugeIcon(
-                              icon: HugeIcons.strokeRoundedSchool,
-                              color: classColor,
-                              size: 24,
-                            ),
-                          ),
-              ),
-              const SizedBox(width: 14),
+                const SizedBox(width: 14),
 
-              // Class info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            progressiveClass.name,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w700),
-                            overflow: TextOverflow.ellipsis,
+                // Class info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              progressiveClass.name,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
+                          if (isExpired)
+                            SacBadge(
+                              label: 'classes.class_card.expired_badge'.tr(),
+                            )
+                          else if (isCurrent)
+                            SacBadge(
+                              label: 'classes.class_card.current_badge'.tr(),
+                            ),
+                        ],
+                      ),
+                      if (isExpired) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'classes.class_card.expired_description'.tr(),
+                          style: TextStyle(
+                            fontSize: SacFontSize.bodySmall,
+                            color: AppColors.errorDark,
+                            height: 1.25,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        if (isExpired)
-                          SacBadge(
-                            label: 'classes.class_card.expired_badge'.tr(),
-                          )
-                        else if (isCurrent)
-                          SacBadge(
-                            label: 'classes.class_card.current_badge'.tr(),
-                          ),
                       ],
-                    ),
-                    if (isExpired) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        'classes.class_card.expired_description'.tr(),
-                        style: TextStyle(
-                          fontSize: SacFontSize.bodySmall,
-                          color: AppColors.errorDark,
-                          height: 1.25,
+                      if (progressiveClass.description != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          progressiveClass.description!,
+                          style: TextStyle(
+                            fontSize: SacFontSize.bodyMedium,
+                            color: context.sac.textSecondary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      ],
                     ],
-                    if (progressiveClass.description != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        progressiveClass.description!,
-                        style: TextStyle(
-                          fontSize: SacFontSize.bodyMedium,
-                          color: context.sac.textSecondary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
+              ],
+            ),
+            const SizedBox(height: 14),
 
-          // Progress bar
-          Row(
-            children: [
-              Expanded(
-                child: SacProgressBar(
-                  progress: clampedProgress,
-                  color: classColor,
-                  height: 8,
-                  useGradient: false,
-                  showShimmer: false,
+            // Progress bar
+            Row(
+              children: [
+                Expanded(
+                  child: SacProgressBar(
+                    progress: clampedProgress,
+                    color: classColor,
+                    height: 8,
+                    useGradient: false,
+                    showShimmer: false,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                '$progressPercent%',
-                style: TextStyle(
-                  fontSize: SacFontSize.displaySmall,
-                  fontWeight: FontWeight.w800,
-                  height: 1,
-                  color: classColor,
+                const SizedBox(width: 12),
+                Text(
+                  '$progressPercent%',
+                  style: TextStyle(
+                    fontSize: SacFontSize.displaySmall,
+                    fontWeight: FontWeight.w800,
+                    height: 1,
+                    color: classColor,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

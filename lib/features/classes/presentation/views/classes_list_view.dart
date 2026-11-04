@@ -1,4 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,7 +9,6 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
@@ -273,42 +275,12 @@ class ClassesListViewBody extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: SacLoading()),
-      error: (error, stack) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              HugeIcon(
-                  icon: HugeIcons.strokeRoundedAlert02,
-                  size: 56,
-                  color: AppColors.error),
-              const SizedBox(height: 16),
-              Text(
-                'classes.list.error_loading'.tr(),
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                error.toString().replaceFirst('Exception: ', ''),
-                style: TextStyle(
-                    fontSize: SacFontSize.titleSmall, color: c.textSecondary),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              SacButton.primary(
-                text: 'common.retry'.tr(),
-                icon: HugeIcons.strokeRoundedRefresh,
-                onPressed: () {
-                  ref.invalidate(userClassesProvider);
-                },
-              ),
-            ],
-          ),
-        ),
+      error: (error, stack) => SacErrorState(
+        title: 'classes.list.error_loading'.tr(),
+        message: userErrorMessage(error),
+        onRetry: () {
+          ref.invalidate(userClassesProvider);
+        },
       ),
     );
   }
@@ -414,14 +386,14 @@ class _CertificationsChip extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: AppColors.secondaryLight,
+                  color: context.sac.successContainer,
                   borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                 ),
-                child: const Center(
+                child: Center(
                   child: HugeIcon(
                     icon: HugeIcons.strokeRoundedCertificate01,
                     size: 22,
-                    color: AppColors.secondary,
+                    color: context.sac.onSuccessContainer,
                   ),
                 ),
               ),
@@ -501,25 +473,9 @@ class _EmptyBody extends StatelessWidget {
       children: [
         _RoadmapChip(hPad: hPad),
         const SizedBox(height: 40),
-        Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedSchool,
-                size: 56,
-                color: c.textTertiary,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'classes.list.empty'.tr(),
-                style: TextStyle(
-                  fontSize: SacFontSize.titleMedium,
-                  color: c.textSecondary,
-                ),
-              ),
-            ],
-          ),
+        SacEmptyState(
+          icon: HugeIcons.strokeRoundedSchool,
+          title: 'classes.list.empty'.tr(),
         ),
         if (hasActiveClub) ...[
           const SizedBox(height: 32),

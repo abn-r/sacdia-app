@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
@@ -11,7 +13,6 @@ import 'package:image_picker/image_picker.dart';
 
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
-import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
@@ -540,8 +541,9 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
                 Expanded(
                   child: requirementsAsync.when(
                     loading: () => const _LoadingBody(),
-                    error: (err, _) => _ErrorBody(
-                      message: err.toString().replaceAll('Exception: ', ''),
+                    error: (err, _) => SacErrorState(
+                      retryLabel: 'honors.requirements.retry'.tr(),
+                      title: userErrorMessage(err),
                       onRetry: () {
                         ref.invalidate(
                             honorRequirementsProvider(widget.honorId));
@@ -552,8 +554,9 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
                     data: (requirements) {
                       return progressAsync.when(
                         loading: () => const _LoadingBody(),
-                        error: (err, _) => _ErrorBody(
-                          message: err.toString().replaceAll('Exception: ', ''),
+                        error: (err, _) => SacErrorState(
+                          retryLabel: 'honors.requirements.retry'.tr(),
+                          title: userErrorMessage(err),
                           onRetry: () {
                             ref.invalidate(
                                 userHonorProgressProvider(widget.honorId));
@@ -1102,57 +1105,3 @@ class _LoadingBody extends StatelessWidget {
 }
 
 // ── Error Body ────────────────────────────────────────────────────────────────
-
-class _ErrorBody extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorBody({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 48,
-              color: SacAccent.of(context).color,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              message.isNotEmpty
-                  ? message
-                  : 'honors.requirements.error_load'.tr(),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: SacFontSize.titleSmall,
-                color: context.sac.textSecondary,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 20),
-            SacPressable(
-              listenOnly: true,
-              child: TextButton(
-                style: const ButtonStyle(enableFeedback: false),
-                onPressed: onRetry,
-                child: Text(
-                  'honors.requirements.retry'.tr(),
-                  style: const TextStyle(
-                    color: AppColors.info,
-                    fontSize: SacFontSize.titleSmall,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

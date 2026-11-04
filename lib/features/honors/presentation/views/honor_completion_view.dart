@@ -1,6 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -107,41 +107,15 @@ class _ErrorScaffold extends StatelessWidget {
         automaticallyImplyLeading: false,
         leading: sacAutoBackButton(context),
         backgroundColor: AppColors.success,
-        foregroundColor: Colors.white,
+        foregroundColor: c.onSuccess,
         elevation: 0,
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 48,
-              color: AppColors.success,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              style: TextStyle(
-                fontSize: SacFontSize.titleMedium,
-                color: c.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 20),
-            SacPressable(
-              listenOnly: true,
-              child: TextButton(
-                style: const ButtonStyle(enableFeedback: false),
-                onPressed: () => context.pop(),
-                child: Text(
-                  'honors.completion.back'.tr(),
-                  style: const TextStyle(
-                      color: AppColors.info, fontSize: SacFontSize.titleSmall),
-                ),
-              ),
-            ),
-          ],
-        ),
+      body: SacEmptyState(
+        icon: HugeIcons.strokeRoundedAlert02,
+        title: message,
+        actionLabel: 'honors.completion.back'.tr(),
+        actionVariant: SacButtonVariant.outline,
+        onAction: () => context.pop(),
       ),
     );
   }
@@ -174,7 +148,7 @@ class _CompletionBody extends StatelessWidget {
             expandedHeight: 210,
             pinned: true,
             backgroundColor: AppColors.success,
-            foregroundColor: Colors.white,
+            foregroundColor: c.onSuccess,
             elevation: 0,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
@@ -188,12 +162,12 @@ class _CompletionBody extends StatelessWidget {
                         width: 72,
                         height: 72,
                         decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(51),
+                          color: c.onSuccess.withAlpha(51),
                           shape: BoxShape.circle,
                         ),
-                        child: const HugeIcon(
+                        child: HugeIcon(
                           icon: HugeIcons.strokeRoundedTick02,
-                          color: Colors.white,
+                          color: c.onSuccess,
                           size: 40,
                         ),
                       ),
@@ -202,10 +176,10 @@ class _CompletionBody extends StatelessWidget {
                       // Title
                       Text(
                         'honors.completion.title'.tr(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: SacFontSize.headlineLarge,
                           fontWeight: FontWeight.w800,
-                          color: Colors.white,
+                          color: c.onSuccess,
                           letterSpacing: -0.3,
                         ),
                       ),
@@ -216,7 +190,7 @@ class _CompletionBody extends StatelessWidget {
                         '$honorName \u2022 ${DateFormat('d MMM yyyy').format(completionDate)}',
                         style: TextStyle(
                           fontSize: SacFontSize.bodySmall,
-                          color: Colors.white.withAlpha(179),
+                          color: c.onSuccess.withAlpha(179),
                         ),
                       ),
                     ],

@@ -142,7 +142,7 @@ class _ComponentCard extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: AppColors.errorLight,
+                    color: context.sac.errorContainer,
                     borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                   ),
                   child: Text(
@@ -150,7 +150,7 @@ class _ComponentCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: SacFontSize.caption,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.errorDark,
+                      color: context.sac.onErrorContainer,
                     ),
                   ),
                 ),

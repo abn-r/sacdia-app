@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
@@ -118,9 +117,7 @@ class _CategoryHeader extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
               color: completedCount == totalCount
-                  ? (isDark
-                      ? AppColors.secondary.withValues(alpha: 0.2)
-                      : AppColors.secondaryLight)
+                  ? context.sac.successContainer
                   : context.sac.surfaceVariant,
               borderRadius: BorderRadius.circular(AppTheme.radiusLG),
             ),
@@ -130,7 +127,7 @@ class _CategoryHeader extends StatelessWidget {
                 fontSize: SacFontSize.labelSmall,
                 fontWeight: FontWeight.w600,
                 color: completedCount == totalCount
-                    ? (isDark ? AppColors.secondary : AppColors.secondaryDark)
+                    ? context.sac.onSuccessContainer
                     : context.sac.textSecondary,
               ),
             ),

@@ -371,8 +371,8 @@ class _StatusChip extends StatelessWidget {
     final (label, fg, bg, icon) = switch (visualState) {
       AchievementVisualState.unlocked => (
           'achievements.views.filter_unlocked'.tr(),
-          AppColors.secondaryDark,
-          AppColors.secondaryLight,
+          context.sac.onSuccessContainer,
+          context.sac.successContainer,
           HugeIcons.strokeRoundedCheckmarkCircle02,
         ),
       AchievementVisualState.inProgress => (

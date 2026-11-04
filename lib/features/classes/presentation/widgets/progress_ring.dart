@@ -6,62 +6,6 @@ import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 
-/// Widget de anillo de progreso circular — versión original (legacy).
-///
-/// Para el HeroCard de avances usa [HeroDonut] (56×56, stroke 6px, coral500).
-class ProgressRing extends StatelessWidget {
-  final double progress; // 0.0 a 100.0
-  final double size;
-  final double strokeWidth;
-
-  const ProgressRing({
-    super.key,
-    required this.progress,
-    this.size = 60,
-    this.strokeWidth = 4,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          SizedBox(
-            width: size,
-            height: size,
-            child: CircularProgressIndicator(
-              value: progress / 100,
-              strokeWidth: strokeWidth,
-              backgroundColor: context.sac.divider,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                _getProgressColor(progress),
-              ),
-            ),
-          ),
-          Text(
-            '${progress.toInt()}%',
-            style: TextStyle(
-              fontSize: size * 0.25,
-              fontWeight: FontWeight.bold,
-              color: _getProgressColor(progress),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Color _getProgressColor(double progress) {
-    if (progress >= 100) return AppColors.success;
-    if (progress >= 50) return AppColors.info;
-    if (progress >= 25) return AppColors.warning;
-    return AppColors.error;
-  }
-}
-
 /// Donut de 56×56 para el HeroCard de avances.
 ///
 /// Track: `ink100`, arco configurable, stroke 6px, linecap round, arranca arriba.

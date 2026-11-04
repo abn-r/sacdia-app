@@ -65,18 +65,18 @@ class ModuleExpansionTile extends StatelessWidget {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: isComplete
-                  ? AppColors.secondaryLight
+                  ? context.sac.successContainer
                   : SacAccent.of(context).light,
               borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: SacStateSwap(
               duration: SacMotion.standard,
               child: isComplete
-                  ? const HugeIcon(
-                      key: ValueKey('module-badge-done'),
+                  ? HugeIcon(
+                      key: const ValueKey('module-badge-done'),
                       icon: HugeIcons.strokeRoundedTick02,
                       size: 20,
-                      color: AppColors.secondaryDark,
+                      color: context.sac.onSuccessContainer,
                     )
                   : Text(
                       '$completedCount/$totalCount',

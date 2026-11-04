@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -77,8 +78,8 @@ class CertificationRequirementDetailView extends ConsumerWidget {
             child: state.isLoading && state.requirement == null
                 ? const Center(child: SacLoading())
                 : state.requirement == null
-                    ? _ErrorBody(
-                        message: state.errorMessage ??
+                    ? SacErrorState(
+                        title: state.errorMessage ??
                             'certifications.errors.get_requirement'.tr(),
                         onRetry: () => ref
                             .read(
@@ -385,44 +386,6 @@ class _ChangesRequestedBanner extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ErrorBody extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorBody({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 48,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              style: const TextStyle(fontSize: SacFontSize.titleSmall),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            SacButton.primary(
-              text: 'common.retry'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onRetry,
-            ),
-          ],
-        ),
       ),
     );
   }
