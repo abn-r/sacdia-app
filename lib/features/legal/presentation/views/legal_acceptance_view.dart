@@ -201,14 +201,12 @@ class _LegalAcceptanceViewState extends ConsumerState<LegalAcceptanceView> {
               _DocumentRow(
                 icon: HugeIcons.strokeRoundedFile02,
                 title: 'legal_gate.document_terms'.tr(),
-                version: terms.version,
                 onRead: () => _openDocument(terms.url),
               ),
             if (privacy != null)
               _DocumentRow(
                 icon: HugeIcons.strokeRoundedSecurityCheck,
                 title: 'legal_gate.document_privacy'.tr(),
-                version: privacy.version,
                 onRead: () => _openDocument(privacy.url),
               ),
           ],
@@ -351,7 +349,6 @@ class _DocumentGroup extends StatelessWidget {
 class _DocumentRow extends StatelessWidget {
   final HugeIconData icon;
   final String title;
-  final String version;
   final VoidCallback onRead;
 
   /// Sangría del texto (padding + icono + separación); alinea los divisores.
@@ -360,7 +357,6 @@ class _DocumentRow extends StatelessWidget {
   const _DocumentRow({
     required this.icon,
     required this.title,
-    required this.version,
     required this.onRead,
   });
 
@@ -368,13 +364,11 @@ class _DocumentRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final tones = _accentTones(context);
-    final versionLabel =
-        'legal_gate.version_label'.tr(namedArgs: {'version': version});
     final readLabel = 'legal_gate.read_document'.tr();
 
     return SacPressable(
       onTap: onRead,
-      semanticLabel: '$readLabel: $title, $versionLabel',
+      semanticLabel: '$readLabel: $title',
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 64),
         child: Padding(
@@ -398,21 +392,9 @@ class _DocumentRow extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: ExcludeSemantics(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        versionLabel,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: context.sac.textSecondary,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    title,
+                    style: textTheme.titleMedium,
                   ),
                 ),
               ),
