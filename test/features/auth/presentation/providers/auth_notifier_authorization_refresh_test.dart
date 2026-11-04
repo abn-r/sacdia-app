@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:dartz/dartz.dart';
@@ -62,12 +63,17 @@ class _Repo extends FakeAuthRepository {
   Either<Failure, UserEntity?> me;
   int meCalls = 0;
 
+  /// Si está, cada `/auth/me` espera a que se complete (vuelo controlado).
+  Completer<void>? gate;
+
   @override
   Future<bool> hasLocalToken() async => true;
 
   @override
   Future<Either<Failure, UserEntity?>> getCurrentUser() async {
     meCalls++;
+    final pending = gate;
+    if (pending != null) await pending.future;
     return me;
   }
 }
@@ -197,6 +203,61 @@ void main() {
       expect(c.read(authNotifierProvider).hasError, isFalse);
     });
 
+    test('a failed fetch does not consume the minimum interval', () async {
+      final repo = _Repo(Right(_me()));
+      final c = await build(repo);
+      final notifier = c.read(authNotifierProvider.notifier);
+      final calls = repo.meCalls;
+
+      // Sin red: cada `resumed` vuelve a intentarlo, nada lo bloquea 30 s.
+      repo.me = const Left(NetworkFailure(message: 'offline'));
+      expect(await notifier.refreshAuthorization(), isFalse);
+      expect(await notifier.refreshAuthorization(), isFalse);
+      expect(repo.meCalls - calls, 2);
+
+      // La primera respuesta fresca abre la ventana.
+      repo.me = Right(_me());
+      expect(await notifier.refreshAuthorization(), isFalse);
+      expect(repo.meCalls - calls, 3);
+      expect(await notifier.refreshAuthorization(), isFalse);
+      expect(repo.meCalls - calls, 3, reason: 'throttled after a success');
+    });
+
+    test('a response that lands after acting started is discarded', () async {
+      final storage = FakeSecureStorage();
+      final repo = _Repo(Right(_me()));
+      final session = ActingForSession();
+      final c = await build(
+        repo,
+        storage: storage,
+        extra: [actingForSessionProvider.overrideWithValue(session)],
+      );
+      final notifier = c.read(authNotifierProvider.notifier);
+      final before = c.read(authNotifierProvider).value;
+
+      repo.gate = Completer<void>();
+      repo.me = Right(_me(capabilities: const ['units.manage']));
+      final inFlight =
+          notifier.refreshAuthorization(minInterval: Duration.zero);
+      // El usuario empieza a actuar por un menor mientras `/auth/me` vuela.
+      session.enter(const ActingDependent(userId: 'ana-1'));
+      repo.gate!.complete();
+
+      expect(await inFlight, isFalse);
+      expect(identical(c.read(authNotifierProvider).value, before), isTrue);
+      expect(
+        hasCapability(c.read(authNotifierProvider).value, 'units.manage'),
+        isFalse,
+      );
+      // Tampoco se cachea como la autorización del perfil activo.
+      expect(
+        jsonDecode(
+          (await storage.read(AppConstants.cachedAuthorizationCapabilities))!,
+        ),
+        ['club.operational_staff'],
+      );
+    });
+
     test('a response for another account is ignored', () async {
       final repo = _Repo(Right(_me()));
       final c = await build(repo);
@@ -305,6 +366,31 @@ void main() {
 
       expect(changed, isTrue);
       expect(c.read(authNotifierProvider).value!.authorizationStale, isFalse);
+    });
+
+    test('recovering the network refreshes a stale authorization at once',
+        () async {
+      final repo = _Repo(const Left(NetworkFailure(message: 'offline')));
+      final c = await build(repo, storage: cachedSession());
+      final notifier = c.read(authNotifierProvider.notifier);
+      expect(c.read(authNotifierProvider).value!.authorizationStale, isTrue);
+
+      // Mientras no hay red, el reintento falla y no consume la ventana.
+      expect(await notifier.onConnectivityRestored(), isFalse);
+      expect(c.read(authNotifierProvider).value!.authorizationStale, isTrue);
+
+      // Vuelve la red: se refresca sin esperar el intervalo mínimo.
+      repo.me = Right(_me(
+        capabilities: const ['club.operational_staff', 'club.staff_mode'],
+      ));
+      final calls = repo.meCalls;
+      expect(await notifier.onConnectivityRestored(), isTrue);
+      expect(repo.meCalls - calls, 1);
+      expect(c.read(authNotifierProvider).value!.authorizationStale, isFalse);
+
+      // Con la autorización fresca, recuperar la red no pide nada.
+      expect(await notifier.onConnectivityRestored(), isFalse);
+      expect(repo.meCalls - calls, 1);
     });
 
     test('a session without cached capabilities restores with none (deny)',

@@ -1,6 +1,6 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/network/network_info.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 
 /// ¿Hay red ahora? Primero la lectura puntual y luego los cambios.
@@ -9,10 +9,7 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 /// deja una subida en cola: sin red las acciones de escritura se desactivan.
 final deviceOnlineProvider = StreamProvider.autoDispose<bool>((ref) async* {
   yield await ref.read(networkInfoProvider).isConnected;
-  yield* Connectivity().onConnectivityChanged.map(
-        (result) =>
-            result.isNotEmpty && !result.contains(ConnectivityResult.none),
-      );
+  yield* connectionChanges();
 });
 
 /// `true` salvo que se sepa que NO hay red (mientras carga se asume que sí).

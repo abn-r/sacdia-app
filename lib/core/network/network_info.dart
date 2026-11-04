@@ -1,5 +1,19 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 
+/// ¿[results] (de `connectivity_plus`) significa que hay red? La lista vacía
+/// o que solo contenga [ConnectivityResult.none] es «sin conexión».
+bool hasConnection(List<ConnectivityResult> results) =>
+    results.isNotEmpty && !results.contains(ConnectivityResult.none);
+
+/// Cambios de conectividad como `true`/`false`, sin repetir el mismo valor.
+/// Lo escuchan quienes reaccionan a recuperar la red (p. ej. la raíz de la
+/// app para refrescar una autorización obsoleta).
+Stream<bool> connectionChanges({Connectivity? connectivity}) =>
+    (connectivity ?? Connectivity())
+        .onConnectivityChanged
+        .map(hasConnection)
+        .distinct();
+
 /// Abstracción para verificar la conectividad de red
 abstract class NetworkInfo {
   Future<bool> get isConnected;
@@ -14,9 +28,7 @@ class NetworkInfoImpl implements NetworkInfo {
 
   @override
   Future<bool> get isConnected async {
-    final result = await connectivity.checkConnectivity();
     // connectivity_plus devuelve List<ConnectivityResult>
-    // Verificamos que no contenga solo 'none' (sin conexión)
-    return result.isNotEmpty && !result.contains(ConnectivityResult.none);
+    return hasConnection(await connectivity.checkConnectivity());
   }
 }
