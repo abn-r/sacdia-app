@@ -227,7 +227,8 @@ void main() {
 
     expect(where(h.router), RouteNames.legalAcceptance);
     expect(find.byType(LegalAcceptanceView), findsOneWidget);
-    expect(find.text('Versión $_versionTerms'), findsNWidgets(2));
+    expect(find.text('Términos y Condiciones'), findsOneWidget);
+    expect(find.text('Aviso de Privacidad'), findsOneWidget);
 
     // Cualquier destino rebota al gate (gate duro).
     h.router.go(RouteNames.homeDashboard);
