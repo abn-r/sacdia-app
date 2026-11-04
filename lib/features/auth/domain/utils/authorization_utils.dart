@@ -1,3 +1,4 @@
+import '../../../../core/authorization/generated/role_names.dart';
 import '../entities/authorization_snapshot.dart';
 import '../entities/principal_info.dart';
 import '../entities/user_entity.dart';
@@ -186,6 +187,39 @@ bool canAccessClubOperationalSurface(UserEntity? user) {
   final authorization = user?.authorization;
   if (authorization == null) return false;
   return membershipGrantForDisplay(authorization) == null;
+}
+
+/// Permisos cuya sola presencia en el ámbito activo convierte el inicio en el
+/// de gestión (pendientes, accesos operativos), aunque el rol sea de miembro.
+const Set<String> clubStaffHomePermissions = {
+  'club_members:approve',
+  'consent:verify',
+  'evidence_folders:read',
+  'reports:submit',
+};
+
+/// ¿El inicio debe mostrarse en modo gestión (staff) y no en modo miembro?
+///
+/// Es modo gestión cuando el usuario opera el club (ver
+/// [canAccessClubOperationalSurface]) y además:
+///   - su concesión activa está vigente y su rol es de club distinto de
+///     `member` (director, consejero, instructor, tesorero...), o
+///   - conserva alguno de [clubStaffHomePermissions] en el ámbito activo.
+///
+/// Todo lo demás (miembro sin esos permisos, concesión pendiente o inactiva,
+/// sin autorización) es modo miembro.
+bool isClubStaffMode(UserEntity? user) {
+  if (!canAccessClubOperationalSurface(user)) return false;
+
+  final activeGrant = user?.authorization?.activeGrant;
+  if (activeGrant != null && activeGrant.isActive) {
+    final role = activeGrant.roleName?.trim().toLowerCase();
+    if (role != null && role != 'member' && kClubRoleNames.contains(role)) {
+      return true;
+    }
+  }
+
+  return hasAnyPermission(user, clubStaffHomePermissions);
 }
 
 /// Rol global que solo autoriza investiduras en la app, sin pertenecer a un
