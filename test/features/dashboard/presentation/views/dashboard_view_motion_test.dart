@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
 import 'package:sacdia_app/features/dashboard/domain/entities/dashboard_summary.dart';
+import 'package:sacdia_app/features/dashboard/presentation/providers/dashboard_pending_provider.dart';
 import 'package:sacdia_app/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:sacdia_app/features/dashboard/presentation/views/dashboard_view.dart';
 import 'package:sacdia_app/features/dashboard/presentation/widgets/birthday_celebration.dart';
-import 'package:sacdia_app/features/dashboard/presentation/widgets/club_info_card.dart';
+import 'package:sacdia_app/features/dashboard/presentation/widgets/class_hero_card.dart';
 import 'package:sacdia_app/features/dashboard/presentation/widgets/current_class_card.dart';
+import 'package:sacdia_app/features/dashboard/presentation/widgets/dashboard_club_line.dart';
+import 'package:sacdia_app/features/dashboard/presentation/widgets/for_you_section.dart';
+import 'package:sacdia_app/features/dashboard/presentation/widgets/next_activity_card.dart';
+import 'package:sacdia_app/features/dashboard/presentation/widgets/pending_tasks_card.dart';
 import 'package:sacdia_app/features/dashboard/presentation/widgets/membership_status_banner.dart';
 import 'package:sacdia_app/features/dashboard/presentation/widgets/quick_access_grid.dart';
 import 'package:sacdia_app/features/dashboard/presentation/widgets/upcoming_activities_card.dart';
@@ -59,7 +65,10 @@ const _summary = DashboardSummary(
   upcomingActivities: [],
 );
 
-UserEntity _userWithPermissions(List<String> permissions) {
+UserEntity _userWithPermissions(
+  List<String> permissions, {
+  String roleName = 'member',
+}) {
   const assignmentId = 'assignment-1';
 
   return UserEntity(
@@ -69,11 +78,13 @@ UserEntity _userWithPermissions(List<String> permissions) {
     authorization: AuthorizationSnapshot(
       effectivePermissions: permissions,
       activeAssignmentId: assignmentId,
-      clubAssignments: const [
+      clubAssignments: [
         AuthorizationGrant(
           assignmentId: assignmentId,
-          roleName: 'member',
+          roleName: roleName,
           clubId: 1,
+          clubName: 'Club Central',
+          clubTypeName: 'Conquistadores',
           sectionId: 2,
           status: 'active',
         ),
@@ -85,6 +96,7 @@ UserEntity _userWithPermissions(List<String> permissions) {
 Future<void> _pumpLoadedDashboard(
   WidgetTester tester, {
   required List<String> permissions,
+  String roleName = 'member',
 }) async {
   await tester.pumpWidget(
     testProviderScope(
@@ -93,8 +105,11 @@ Future<void> _pumpLoadedDashboard(
           () => _LoadedDashboardNotifier(_summary),
         ),
         authNotifierProvider.overrideWith(
-          () => _FakeAuthNotifier(_userWithPermissions(permissions)),
+          () => _FakeAuthNotifier(
+            _userWithPermissions(permissions, roleName: roleName),
+          ),
         ),
+        dashboardPendingProvider.overrideWith((ref) async => null),
         profileNotifierProvider.overrideWith(_NullProfileNotifier.new),
         currentEnrollmentProvider.overrideWith((ref) async => null),
         camporeeJudgeAssignmentsProvider.overrideWith((ref) async => []),
@@ -133,108 +148,209 @@ Column _loadedSectionsColumn(WidgetTester tester) {
 }
 
 void main() {
-  testWidgets(
-    'renders late dashboard content fully stable on the first loaded frame',
-    (tester) async {
-      await _pumpLoadedDashboard(
-        tester,
-        permissions: const ['reports:read'],
-      );
-
-      final functionalSections = <Finder>[
-        find.byType(WelcomeHeader),
-        find.byType(BirthdayCelebrationGate),
-        find.byType(QuickAccessGrid),
-        find.byType(UpcomingActivitiesCard),
-      ];
-
-      for (final section in functionalSections) {
-        expect(section, findsOneWidget);
-
-        expect(
-          _dashboardCompositionAncestors<StaggeredListItem>(tester, section),
-          isEmpty,
-          reason: '$section must not be wrapped in dashboard-owned stagger',
-        );
-        expect(
-          _dashboardCompositionAncestors<StaggeredColumn>(tester, section),
-          isEmpty,
-          reason: '$section must not be inside a dashboard-owned stagger',
-        );
-
-        for (final fade in _dashboardCompositionAncestors<FadeTransition>(
-          tester,
-          section,
-        )) {
-          expect(
-            fade.opacity.value,
-            1,
-            reason: '$section must not wait for an entrance fade',
-          );
-        }
-        for (final slide in _dashboardCompositionAncestors<SlideTransition>(
-          tester,
-          section,
-        )) {
-          expect(
-            slide.position.value,
-            Offset.zero,
-            reason: '$section must not wait for an entrance slide',
-          );
-        }
-      }
-    },
-  );
-
-  for (final permissionCase in <({String name, List<String> permissions})>[
-    (name: 'without optional permissions', permissions: const []),
-    (name: 'with reports permission', permissions: const ['reports:read']),
-  ]) {
+  group('member mode', () {
     testWidgets(
-      'preserves loaded section order and spacing ${permissionCase.name}',
+      'renders late dashboard content fully stable on the first loaded frame',
       (tester) async {
         await _pumpLoadedDashboard(
           tester,
-          permissions: permissionCase.permissions,
+          permissions: const ['reports:read'],
         );
 
-        final outerColumn =
-            tester.widgetList<Column>(find.byType(Column)).singleWhere(
-                  (column) =>
-                      column.children.length == 2 &&
-                      column.children.first is WelcomeHeader &&
-                      column.children.last is Padding,
-                );
-        expect(outerColumn.crossAxisAlignment, CrossAxisAlignment.start);
-
-        final children = _loadedSectionsColumn(tester).children;
-        expect(children, hasLength(12));
-        expect(children[0], isA<MembershipStatusBanner>());
-        expect(children[1], isA<EnrollmentStatusCard>());
-        expect(children[2], isA<BirthdayCelebrationGate>());
-        expect((children[3] as SizedBox).height, 16);
-        expect(children[4], isA<ClubInfoCard>());
-        expect((children[5] as SizedBox).height, 16);
-        expect(children[6], isA<CurrentClassCard>());
-        expect((children[7] as SizedBox).height, 16);
-        expect(children[8], isA<QuickAccessGrid>());
-        expect((children[9] as SizedBox).height, 16);
-        expect(children[10], isA<UpcomingActivitiesCard>());
-        expect((children[11] as SizedBox).height, 24);
-        expect(
-          find.text('Demo temporal de animaciones'),
-          findsNothing,
-          reason: 'the temporary motion launcher is intentionally hidden',
-        );
-
-        final reportsShortcut = find.text('dashboard.quick_access.reports');
-        expect(
-          reportsShortcut,
-          permissionCase.permissions.contains('reports:read')
-              ? findsOneWidget
-              : findsNothing,
-        );
+        await _expectNoDashboardOwnedEntrance(tester, <Finder>[
+          find.byType(WelcomeHeader),
+          find.byType(BirthdayCelebrationGate),
+          find.byType(ClassHeroCard),
+          find.byType(NextActivityCard),
+          find.byType(ForYouSection),
+          find.byType(QuickAccessGrid),
+        ]);
       },
     );
+
+    for (final permissionCase in <({String name, List<String> permissions})>[
+      (name: 'without optional permissions', permissions: const []),
+      (name: 'with reports permission', permissions: const ['reports:read']),
+    ]) {
+      testWidgets(
+        'preserves member section order and spacing ${permissionCase.name}',
+        (tester) async {
+          await _pumpLoadedDashboard(
+            tester,
+            permissions: permissionCase.permissions,
+          );
+
+          final outerColumn =
+              tester.widgetList<Column>(find.byType(Column)).singleWhere(
+                    (column) =>
+                        column.children.length == 2 &&
+                        column.children.first is WelcomeHeader &&
+                        column.children.last is Padding,
+                  );
+          expect(outerColumn.crossAxisAlignment, CrossAxisAlignment.start);
+
+          final withGrid = permissionCase.permissions.contains('reports:read');
+          final children = _loadedSectionsColumn(tester).children;
+          expect(children, hasLength(withGrid ? 12 : 10));
+          expect(children[0], isA<MembershipStatusBanner>());
+          expect(children[1], isA<EnrollmentStatusCard>());
+          expect(children[2], isA<BirthdayCelebrationGate>());
+          expect((children[3] as SizedBox).height, 16);
+          expect(children[4], isA<ClassHeroCard>());
+          expect((children[5] as SizedBox).height, 16);
+          expect(children[6], isA<NextActivityCard>());
+          expect((children[7] as SizedBox).height, 24);
+          expect(children[8], isA<ForYouSection>());
+          if (withGrid) {
+            expect((children[9] as SizedBox).height, 24);
+            expect(children[10], isA<QuickAccessGrid>());
+            expect(
+              (children[10] as QuickAccessGrid).excludedRoutes,
+              contains(RouteNames.homeResources),
+            );
+            expect((children[11] as SizedBox).height, 24);
+          } else {
+            expect((children[9] as SizedBox).height, 24);
+          }
+
+          // The club selector line lives inside the welcome header.
+          expect(find.byType(DashboardClubLine), findsOneWidget);
+          // The member home has neither the staff cards nor the old club card.
+          expect(find.byType(PendingTasksCard), findsNothing);
+          expect(find.byType(CurrentClassCard), findsNothing);
+          expect(find.byType(UpcomingActivitiesCard), findsNothing);
+          expect(
+            find.text('Demo temporal de animaciones'),
+            findsNothing,
+            reason: 'the temporary motion launcher is intentionally hidden',
+          );
+          // Resources lives in "Para ti", never twice.
+          expect(find.text('dashboard.quick_access.resources'), findsNothing);
+          expect(
+            find.text('dashboard.quick_access.reports'),
+            withGrid ? findsOneWidget : findsNothing,
+          );
+        },
+      );
+    }
+  });
+
+  group('staff mode', () {
+    testWidgets(
+      'renders late dashboard content fully stable on the first loaded frame',
+      (tester) async {
+        await _pumpLoadedDashboard(
+          tester,
+          permissions: const ['reports:read'],
+          roleName: 'director',
+        );
+
+        await _expectNoDashboardOwnedEntrance(tester, <Finder>[
+          find.byType(WelcomeHeader),
+          find.byType(BirthdayCelebrationGate),
+          find.byType(QuickAccessGrid),
+          find.byType(UpcomingActivitiesCard),
+        ]);
+      },
+    );
+
+    for (final permissionCase in <({String name, List<String> permissions})>[
+      (name: 'without optional permissions', permissions: const []),
+      (name: 'with reports permission', permissions: const ['reports:read']),
+    ]) {
+      testWidgets(
+        'preserves staff section order and spacing ${permissionCase.name}',
+        (tester) async {
+          await _pumpLoadedDashboard(
+            tester,
+            permissions: permissionCase.permissions,
+            roleName: 'director',
+          );
+
+          final children = _loadedSectionsColumn(tester).children;
+          expect(children, hasLength(11));
+          expect(children[0], isA<MembershipStatusBanner>());
+          expect(children[1], isA<EnrollmentStatusCard>());
+          expect(children[2], isA<BirthdayCelebrationGate>());
+          expect((children[3] as SizedBox).height, 16);
+          expect(children[4], isA<PendingTasksCard>());
+          expect(children[5], isA<CurrentClassCard>());
+          expect((children[6] as SizedBox).height, 16);
+          expect(children[7], isA<QuickAccessGrid>());
+          expect((children[8] as SizedBox).height, 16);
+          expect(children[9], isA<UpcomingActivitiesCard>());
+          expect((children[10] as SizedBox).height, 24);
+
+          // Staff keeps the unrestricted launcher and no member-only cards.
+          expect((children[7] as QuickAccessGrid).excludedRoutes, isEmpty);
+          expect(find.byType(DashboardClubLine), findsOneWidget);
+          expect(find.byType(ClassHeroCard), findsNothing);
+          expect(find.byType(NextActivityCard), findsNothing);
+          expect(find.byType(ForYouSection), findsNothing);
+          // No pending data -> the card renders nothing at all.
+          expect(find.byType(PendingTasksPanel), findsNothing);
+
+          final reportsShortcut = find.text('dashboard.quick_access.reports');
+          expect(
+            reportsShortcut,
+            permissionCase.permissions.contains('reports:read')
+                ? findsOneWidget
+                : findsNothing,
+          );
+        },
+      );
+    }
+
+    testWidgets('a member holding a staff permission gets the staff home',
+        (tester) async {
+      await _pumpLoadedDashboard(
+        tester,
+        permissions: const ['reports:submit'],
+      );
+
+      expect(find.byType(CurrentClassCard), findsOneWidget);
+      expect(find.byType(ClassHeroCard), findsNothing);
+    });
+  });
+}
+
+Future<void> _expectNoDashboardOwnedEntrance(
+  WidgetTester tester,
+  List<Finder> functionalSections,
+) async {
+  for (final section in functionalSections) {
+    expect(section, findsOneWidget);
+
+    expect(
+      _dashboardCompositionAncestors<StaggeredListItem>(tester, section),
+      isEmpty,
+      reason: '$section must not be wrapped in dashboard-owned stagger',
+    );
+    expect(
+      _dashboardCompositionAncestors<StaggeredColumn>(tester, section),
+      isEmpty,
+      reason: '$section must not be inside a dashboard-owned stagger',
+    );
+
+    for (final fade in _dashboardCompositionAncestors<FadeTransition>(
+      tester,
+      section,
+    )) {
+      expect(
+        fade.opacity.value,
+        1,
+        reason: '$section must not wait for an entrance fade',
+      );
+    }
+    for (final slide in _dashboardCompositionAncestors<SlideTransition>(
+      tester,
+      section,
+    )) {
+      expect(
+        slide.position.value,
+        Offset.zero,
+        reason: '$section must not wait for an entrance slide',
+      );
+    }
   }
 }

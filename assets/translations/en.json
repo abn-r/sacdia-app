@@ -4073,7 +4073,8 @@
   },
   "dashboard": {
     "errors": {
-      "get_summary": "Error fetching dashboard summary"
+      "get_summary": "Error fetching dashboard summary",
+      "get_pending": "Error fetching the dashboard pending items"
     },
     "load_null_error": "Could not load the dashboard",
     "guardian_no_club": {
@@ -4136,7 +4137,10 @@
       "my_ranking": "My ranking",
       "section_ranking": "Section ranking",
       "materials": "Orders",
-      "authorizations": "Authorizations"
+      "authorizations": "Authorizations",
+      "group_club": "Club",
+      "group_training": "Training",
+      "group_admin": "Administration"
     },
     "stats": {
       "honors_completed": "Honors completed",
@@ -4159,6 +4163,65 @@
       "banner_title": "Your special day is still active",
       "banner_body": "Tap to reopen your birthday greeting.",
       "banner_semantics": "Open birthday greeting"
+    },
+    "club_line": {
+      "switch_semantics": "Switch club or section. Current: {club}"
+    },
+    "class_hero": {
+      "label": "My class",
+      "requirements_count": {
+        "one": "{} of {} requirement",
+        "other": "{} of {} requirements"
+      },
+      "next": "Next:",
+      "continue": "Continue my class",
+      "view": "View my class"
+    },
+    "next_activity": {
+      "label": "Next activity",
+      "in_days": {
+        "one": "In {} day",
+        "other": "In {} days"
+      }
+    },
+    "for_you": {
+      "title": "For you",
+      "honors": "Honors",
+      "achievements": "Achievements",
+      "credential": "Credential",
+      "resources": "Resources"
+    },
+    "pending": {
+      "title": "Pending",
+      "to_attend": {
+        "one": "{} to handle",
+        "other": "{} to handle"
+      },
+      "urgent_count": {
+        "one": "{} urgent",
+        "other": "{} urgent"
+      },
+      "membership_requests": "Membership requests",
+      "evidence_folder": "Evidence folder",
+      "monthly_report": "Monthly report",
+      "investiture_authorizations": "Investiture authorizations",
+      "rejected_count": {
+        "one": "{} rejected",
+        "other": "{} rejected"
+      },
+      "not_submitted_count": {
+        "one": "{} not submitted",
+        "other": "{} not submitted"
+      },
+      "due_today": "Due today",
+      "due_in_days": {
+        "one": "Due in {} day",
+        "other": "Due in {} days"
+      },
+      "overdue_days": {
+        "one": "Overdue by {} day",
+        "other": "Overdue by {} days"
+      }
     }
   },
   "domain": {

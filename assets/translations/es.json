@@ -4073,7 +4073,8 @@
   },
   "dashboard": {
     "errors": {
-      "get_summary": "Error al obtener el resumen del dashboard"
+      "get_summary": "Error al obtener el resumen del dashboard",
+      "get_pending": "Error al obtener los pendientes del dashboard"
     },
     "load_null_error": "No se pudo cargar el dashboard",
     "guardian_no_club": {
@@ -4136,7 +4137,10 @@
       "my_ranking": "Mi ranking",
       "section_ranking": "Ranking de sección",
       "materials": "Pedidos",
-      "authorizations": "Autorizaciones"
+      "authorizations": "Autorizaciones",
+      "group_club": "Club",
+      "group_training": "Formación",
+      "group_admin": "Administración"
     },
     "stats": {
       "honors_completed": "Esp. completadas",
@@ -4159,6 +4163,65 @@
       "banner_title": "Tu día especial sigue activo",
       "banner_body": "Toca para volver a abrir tu saludo de cumpleaños.",
       "banner_semantics": "Abrir saludo de cumpleaños"
+    },
+    "club_line": {
+      "switch_semantics": "Cambiar de club o sección. Actual: {club}"
+    },
+    "class_hero": {
+      "label": "Mi clase",
+      "requirements_count": {
+        "one": "{} de {} requisito",
+        "other": "{} de {} requisitos"
+      },
+      "next": "Siguiente:",
+      "continue": "Continuar mi clase",
+      "view": "Ver mi clase"
+    },
+    "next_activity": {
+      "label": "Próxima actividad",
+      "in_days": {
+        "one": "En {} día",
+        "other": "En {} días"
+      }
+    },
+    "for_you": {
+      "title": "Para ti",
+      "honors": "Especialidades",
+      "achievements": "Logros",
+      "credential": "Credencial",
+      "resources": "Recursos"
+    },
+    "pending": {
+      "title": "Pendientes",
+      "to_attend": {
+        "one": "{} por atender",
+        "other": "{} por atender"
+      },
+      "urgent_count": {
+        "one": "{} urgente",
+        "other": "{} urgentes"
+      },
+      "membership_requests": "Solicitudes de membresía",
+      "evidence_folder": "Carpeta de evidencias",
+      "monthly_report": "Informe mensual",
+      "investiture_authorizations": "Autorizaciones de investidura",
+      "rejected_count": {
+        "one": "{} rechazada",
+        "other": "{} rechazadas"
+      },
+      "not_submitted_count": {
+        "one": "{} sin enviar",
+        "other": "{} sin enviar"
+      },
+      "due_today": "Vence hoy",
+      "due_in_days": {
+        "one": "Vence en {} día",
+        "other": "Vence en {} días"
+      },
+      "overdue_days": {
+        "one": "Venció hace {} día",
+        "other": "Venció hace {} días"
+      }
     }
   },
   "domain": {

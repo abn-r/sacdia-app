@@ -29,6 +29,9 @@ class WelcomeHeader extends StatelessWidget {
   /// Si es null, el botón Más no se muestra.
   final VoidCallback? onMoreTap;
 
+  /// Línea opcional bajo el nombre (p. ej. el selector de club del inicio).
+  final Widget? subtitle;
+
   const WelcomeHeader({
     super.key,
     required this.userName,
@@ -36,6 +39,7 @@ class WelcomeHeader extends StatelessWidget {
     this.onNotificationsTap,
     this.unreadNotificationsCount = 0,
     this.onMoreTap,
+    this.subtitle,
   });
 
   String _getGreeting() {
@@ -77,6 +81,7 @@ class WelcomeHeader extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
+                if (subtitle != null) subtitle!,
               ],
             ),
           ),

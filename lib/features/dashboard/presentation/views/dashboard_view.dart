@@ -8,7 +8,6 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
-import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -22,11 +21,18 @@ import '../../../post_registration/presentation/providers/post_registration_prov
 import '../../../post_registration/presentation/utils/acting_copy.dart';
 import '../../../notifications/presentation/providers/unread_notifications_count_provider.dart';
 import '../providers/dashboard_providers.dart';
-import '../widgets/club_info_card.dart';
+import '../providers/dashboard_pending_provider.dart';
+import '../widgets/class_hero_card.dart';
+import '../widgets/dashboard_club_line.dart';
+import '../widgets/for_you_section.dart';
+import '../widgets/next_activity_card.dart';
+import '../widgets/pending_tasks_card.dart';
 import '../widgets/current_class_card.dart';
 // Stats card kept available for future dashboard experiments.
 // import '../widgets/quick_stats_card.dart';
 import '../widgets/quick_access_grid.dart';
+import '../widgets/quick_access_items.dart';
+import '../../domain/entities/dashboard_summary.dart';
 import '../../../activities/presentation/views/activity_detail_view.dart';
 import '../widgets/upcoming_activities_card.dart';
 import '../widgets/membership_status_banner.dart';
@@ -56,7 +62,6 @@ class DashboardView extends ConsumerWidget {
     if (isPastorWithoutClub(user)) return const AuthorizerRequestsView();
 
     final dashboardState = ref.watch(dashboardNotifierProvider);
-    final userGender = user?.metadata?['gender']?.toString();
     final unreadNotificationsCount =
         ref.watch(unreadNotificationsCountProvider);
 
@@ -110,96 +115,32 @@ class DashboardView extends ConsumerWidget {
               color: SacAccent.of(context).color,
               onRefresh: () async {
                 await ref.read(dashboardNotifierProvider.notifier).refresh();
+                // Auxiliary staff card: refetch with the summary.
+                ref.invalidate(dashboardPendingProvider);
               },
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Welcome header
+                    // Welcome header (+ club selector line under the name)
                     WelcomeHeader(
                       userName: dashboard.userName,
                       userAvatar: dashboard.userAvatar ?? user?.avatar,
                       unreadNotificationsCount: unreadNotificationsCount,
                       onNotificationsTap: () =>
                           context.push(RouteNames.notificationsInbox),
+                      subtitle: DashboardClubLine(clubName: dashboard.clubName),
                     ),
 
-                    // Content cards
+                    // Content cards: two compositions (staff vs member).
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: hPad),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Membership status banner (pending/rejected/expired)
-                          const MembershipStatusBanner(),
-
-                          // Enrollment status banner
-                          const EnrollmentStatusCard(),
-
-                          // Birthday celebration entry point
-                          const BirthdayCelebrationGate(),
-                          const SizedBox(height: 16),
-
-                          // Club info
-                          ClubInfoCard(
-                            clubName: dashboard.clubName,
-                            clubType: dashboard.clubType,
-                            userRole: RoleUtils.translate(
-                              dashboard.userRole,
-                              gender: userGender,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Current class with progress ring.
-                          // Uses classWithProgressProvider for accurate % (same
-                          // source as "Mis Clases" screen). Falls back to the
-                          // dashboard summary's classProgress while loading.
-                          CurrentClassCard(
-                            currentClassName: dashboard.currentClassName,
-                            currentClassId: dashboard.currentClassId,
-                            initialIsExpired: dashboard.isCurrentClassExpired,
-                            fallbackProgress: dashboard.classProgress,
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Stats section intentionally hidden for now.
-                          // Current available metrics repeat information already
-                          // shown by CurrentClassCard or add little action value.
-                          // Keep this block as a future reactivation point if the
-                          // dashboard summary gains stronger metrics such as
-                          // pending validations, role-based tasks, or next-step
-                          // actions.
-                          //
-                          // QuickStatsCard(
-                          //   honorsCompleted: dashboard.honorsCompleted,
-                          //   honorsInProgress: dashboard.honorsInProgress,
-                          //   classProgress: dashboard.classProgress,
-                          // ),
-                          // const SizedBox(height: 16),
-
-                          // Acceso rápido — launcher de módulos
-                          const QuickAccessGrid(),
-                          const SizedBox(height: 16),
-
-                          // Upcoming activities
-                          UpcomingActivitiesCard(
-                            activities:
-                                dashboard.upcomingActivities.take(3).toList(),
-                            onActivityTap: (activity) {
-                              Navigator.push(
-                                context,
-                                SacSharedAxisRoute(
-                                  builder: (context) => ActivityDetailView(
-                                    activityId: activity.id,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 24),
-                        ],
+                        children: isClubStaffMode(user)
+                            ? _staffChildren(context, dashboard)
+                            : _memberChildren(context, ref, dashboard),
                       ),
                     ),
                   ],
@@ -218,6 +159,114 @@ class DashboardView extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Quick-access tiles the member home does not repeat (already in «Para ti»).
+const Set<String> _memberQuickAccessExcludedRoutes = {
+  RouteNames.homeResources,
+};
+
+void _openActivity(BuildContext context, UpcomingActivity activity) {
+  Navigator.push(
+    context,
+    SacSharedAxisRoute(
+      builder: (context) => ActivityDetailView(activityId: activity.id),
+    ),
+  );
+}
+
+/// Banners shared by both home compositions, followed by the 16 gap.
+const List<Widget> _statusBanners = [
+  // Membership status banner (pending/rejected/expired)
+  MembershipStatusBanner(),
+
+  // Enrollment status banner
+  EnrollmentStatusCard(),
+
+  // Birthday celebration entry point
+  BirthdayCelebrationGate(),
+  SizedBox(height: 16),
+];
+
+/// Staff home: pending tasks (only when there are any), current class, the
+/// full quick-access launcher and the upcoming activities list.
+List<Widget> _staffChildren(BuildContext context, DashboardSummary dashboard) {
+  return [
+    ..._statusBanners,
+
+    // Pending tasks: hides itself (and its 16 gap) when empty or failing.
+    const PendingTasksCard(),
+
+    // Current class with progress ring. Uses classWithProgressProvider for
+    // accurate % (same source as "Mis Clases"), falling back to the dashboard
+    // summary's classProgress while loading.
+    CurrentClassCard(
+      currentClassName: dashboard.currentClassName,
+      currentClassId: dashboard.currentClassId,
+      initialIsExpired: dashboard.isCurrentClassExpired,
+      fallbackProgress: dashboard.classProgress,
+    ),
+    const SizedBox(height: 16),
+
+    // Acceso rápido — launcher de módulos
+    const QuickAccessGrid(),
+    const SizedBox(height: 16),
+
+    // Upcoming activities
+    UpcomingActivitiesCard(
+      activities: dashboard.upcomingActivities.take(3).toList(),
+      onActivityTap: (activity) => _openActivity(context, activity),
+    ),
+    const SizedBox(height: 24),
+  ];
+}
+
+/// Member home: class hero, next activity, «Para ti» and (only when there is
+/// anything left to show) the quick-access launcher without «Recursos».
+List<Widget> _memberChildren(
+  BuildContext context,
+  WidgetRef ref,
+  DashboardSummary dashboard,
+) {
+  final className = dashboard.currentClassName?.trim();
+  final hasClass = className != null && className.isNotEmpty;
+  final hasQuickAccess = ref
+      .watch(visibleQuickAccessItemsProvider)
+      .any((item) => !_memberQuickAccessExcludedRoutes.contains(item.route));
+
+  return [
+    ..._statusBanners,
+
+    // Class hero, or the compact card when the user has no class.
+    if (hasClass)
+      ClassHeroCard(
+        currentClassName: className,
+        currentClassId: dashboard.currentClassId,
+        initialIsExpired: dashboard.isCurrentClassExpired,
+        fallbackProgress: dashboard.classProgress,
+      )
+    else
+      CurrentClassCard(
+        currentClassName: dashboard.currentClassName,
+        currentClassId: dashboard.currentClassId,
+        initialIsExpired: dashboard.isCurrentClassExpired,
+        fallbackProgress: dashboard.classProgress,
+      ),
+    const SizedBox(height: 16),
+
+    NextActivityCard(
+      activity: nextUpcomingActivity(dashboard.upcomingActivities),
+      onTap: (activity) => _openActivity(context, activity),
+    ),
+    const SizedBox(height: 24),
+
+    const ForYouSection(),
+    if (hasQuickAccess) ...const [
+      SizedBox(height: 24),
+      QuickAccessGrid(excludedRoutes: _memberQuickAccessExcludedRoutes),
+    ],
+    const SizedBox(height: 24),
+  ];
 }
 
 /// Solicitud de membresía pendiente.
