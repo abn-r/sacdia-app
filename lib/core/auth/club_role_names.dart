@@ -1,5 +1,7 @@
-/// Canonical CLUB-scope role_name values from
-/// sacdia-backend/prisma/seeds/role-permissions.seed.sql.
+/// Canonical CLUB-scope role_name values. The source of truth is the
+/// generated catalog `lib/core/authorization/generated/role_names.dart`
+/// (`kClubRoleNames`); `test/core/authorization/generated_catalog_parity_test.dart`
+/// enforces that these constants and groups stay inside it.
 ///
 /// `activeGrant.roleName` returns these strings verbatim — never Spanish
 /// or snake_case variants.

@@ -1,38 +1,11 @@
-/// Mirror of `GLOBAL_ROLE_ALIASES` in
-/// `sacdia-backend/src/common/guards/global-roles.guard.ts`
-/// and `sacdia-admin/src/lib/auth/screen-catalog/role-aliases.ts`.
-/// Keep in sync via `test/fixtures/screen-catalog.snapshot.json`.
-const List<String> _fieldAdminRoles = [
-  'director-lf',
-  'assistant-lf',
-  'director-union',
-  'assistant-union',
-  'director-dia',
-  'assistant-dia',
-];
+import 'generated/role_aliases.dart';
 
-const Map<String, List<String>> kGlobalRoleAliases = {
-  'admin': ['admin', 'assistant-admin'],
-  'assistant-admin': ['assistant-admin', 'admin'],
-  'assistant-dia': _fieldAdminRoles,
-  'assistant-lf': _fieldAdminRoles,
-  'assistant-union': _fieldAdminRoles,
-  'coordinator': [
-    'coordinator',
-    'zone-coordinator',
-    'general-coordinator',
-    'director-lf',
-    'assistant-lf',
-  ],
-  'director-dia': _fieldAdminRoles,
-  'director-lf': _fieldAdminRoles,
-  'director-union': _fieldAdminRoles,
-  'general-coordinator': ['general-coordinator'],
-  'pastor': ['pastor'],
-  'super-admin': ['super-admin'],
-  'user': ['user'],
-  'zone-coordinator': ['zone-coordinator', 'general-coordinator'],
-};
+export 'generated/role_aliases.dart';
+
+// `kGlobalRoleAliases` is GENERATED from the backend catalog
+// (`pnpm authz:generate` in sacdia-backend) into
+// `generated/role_aliases.dart` and re-exported here. No manual sync needed;
+// `test/fixtures/screen-catalog.snapshot.json` stays as is.
 
 List<String> expandRequiredRoles(Iterable<String> requiredRoles) {
   final out = <String>{};
