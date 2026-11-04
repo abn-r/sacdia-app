@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -13,6 +14,8 @@ import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 class QrScannerView extends ConsumerStatefulWidget {
   const QrScannerView({super.key, this.activityId});
@@ -58,6 +61,7 @@ class _QrScannerViewState extends ConsumerState<QrScannerView> {
 
     if (!mounted) return;
     final state = ref.read(qrScanProvider);
+    if (state.hasValue && state.value != null) HapticFeedback.mediumImpact();
     await showSacSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -281,10 +285,10 @@ class _ScanResultSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLG)),
+      decoration: BoxDecoration(
+        color: context.sac.surface,
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppTheme.radiusLG)),
       ),
       padding: EdgeInsets.only(
         left: 20,
@@ -296,7 +300,7 @@ class _ScanResultSheet extends StatelessWidget {
         loading: () => const Center(
           child: Padding(
             padding: EdgeInsets.all(24),
-            child: CircularProgressIndicator(),
+            child: SacLoading(),
           ),
         ),
         error: (err, _) => _ErrorBody(error: err),
@@ -332,9 +336,9 @@ class _SuccessBody extends StatelessWidget {
       children: [
         Row(
           children: [
-            const HugeIcon(
+            HugeIcon(
               icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-              color: Colors.green,
+              color: context.sac.success,
               size: 28,
             ),
             const SizedBox(width: 12),
@@ -367,16 +371,14 @@ class _SuccessBody extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: attendance!.alreadyPresent
-                  ? Colors.orange.withValues(alpha: 0.1)
-                  : Colors.green.withValues(alpha: 0.1),
+                  ? context.sac.warning.withValues(alpha: 0.12)
+                  : context.sac.success.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppTheme.radiusXS),
             ),
             child: Text(
               attendanceLabel,
               style: TextStyle(
-                color: attendance.alreadyPresent
-                    ? Colors.orange.shade900
-                    : Colors.green.shade900,
+                color: context.sac.text,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -403,9 +405,9 @@ class _ErrorBody extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const HugeIcon(
+        HugeIcon(
           icon: HugeIcons.strokeRoundedAlert02,
-          color: Colors.red,
+          color: context.sac.error,
           size: 32,
         ),
         const SizedBox(height: 12),
