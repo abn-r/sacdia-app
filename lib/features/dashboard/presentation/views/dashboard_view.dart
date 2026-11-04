@@ -5,13 +5,14 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 
 import '../../../auth/domain/entities/pending_club_membership.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
@@ -96,24 +97,10 @@ class DashboardView extends ConsumerWidget {
                 return const _GuardianWithoutClubDashboardState();
               }
 
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    HugeIcon(
-                        icon: HugeIcons.strokeRoundedDashboardSquare01,
-                        size: 56,
-                        color: c.textTertiary),
-                    const SizedBox(height: 12),
-                    Text(
-                      tr('dashboard.load_null_error'),
-                      style: TextStyle(
-                        fontSize: SacFontSize.titleMedium,
-                        color: c.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
+              return SacErrorState(
+                title: tr('dashboard.load_null_error'),
+                onRetry: () =>
+                    ref.read(dashboardNotifierProvider.notifier).refresh(),
               );
             }
 
@@ -221,45 +208,11 @@ class DashboardView extends ConsumerWidget {
             );
           },
           loading: () => const Center(child: SacLoading()),
-          error: (error, stack) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedAlert02,
-                    size: 56,
-                    color: AppColors.error,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    tr('dashboard.load_error'),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    error.toString(),
-                    style: TextStyle(
-                      fontSize: SacFontSize.titleSmall,
-                      color: c.textSecondary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  SacButton.primary(
-                    text: tr('common.retry'),
-                    icon: HugeIcons.strokeRoundedRefresh,
-                    onPressed: () {
-                      ref.read(dashboardNotifierProvider.notifier).refresh();
-                    },
-                  ),
-                ],
-              ),
-            ),
+          error: (error, stack) => SacErrorState(
+            title: tr('dashboard.load_error'),
+            message: userErrorMessage(error),
+            onRetry: () =>
+                ref.read(dashboardNotifierProvider.notifier).refresh(),
           ),
         ),
       ),
