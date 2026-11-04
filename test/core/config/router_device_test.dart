@@ -32,7 +32,12 @@ UserEntity _device({
         device: DeviceInfo(linkedDeviceId: 'dev-1', label: 'Tablet'),
       ),
       authorization: const AuthorizationSnapshot(
-        effectivePermissions: ['clubs:read'],
+        effectivePermissions: [
+          'clubs:read',
+          'classes:read',
+          'activities:read',
+          'users:read_detail',
+        ],
       ),
     );
 
@@ -41,7 +46,14 @@ const _adult = UserEntity(
   email: 'a@example.com',
   postRegisterComplete: true,
   principal: PrincipalInfo(kind: PrincipalKind.user),
-  authorization: AuthorizationSnapshot(effectivePermissions: ['clubs:read']),
+  authorization: AuthorizationSnapshot(
+    effectivePermissions: [
+      'clubs:read',
+      'classes:read',
+      'activities:read',
+      'users:read_detail',
+    ],
+  ),
 );
 
 /// Auth que se resuelve cuando el test lo decide, para simular la carga.

@@ -18,7 +18,11 @@ const _user = UserEntity(
   id: 'u1',
   email: 'u1@example.com',
   postRegisterComplete: true,
-  authorization: AuthorizationSnapshot(effectivePermissions: ['clubs:read']),
+  // Permisos de un miembro: las pestañas del catálogo (`classes:read`...)
+  // las decide el guard de pantallas, no el modo «actuar por».
+  authorization: AuthorizationSnapshot(
+    effectivePermissions: ['clubs:read', 'classes:read', 'activities:read'],
+  ),
 );
 
 class _FakeAuthNotifier extends AuthNotifier {

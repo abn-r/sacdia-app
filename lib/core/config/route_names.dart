@@ -10,6 +10,11 @@ class RouteNames {
   static const String forgotPassword = '/forgot-password';
   static const String postRegistration = '/post-registration';
   static const String legalAcceptance = '/legal-acceptance';
+
+  /// Pantalla a la que el guard de rutas del router manda cuando el catálogo
+  /// de pantallas niega la ruta pedida (`route_screen_policy.dart`). La abren
+  /// todos los modos de sesión; «Ir al inicio» vuelve por splash.
+  static const String accessDenied = '/access-denied';
   static const String home = '/home';
   static const String dashboard = 'dashboard';
   static const String classes = 'classes';

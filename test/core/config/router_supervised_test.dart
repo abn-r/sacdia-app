@@ -52,8 +52,10 @@ UserEntity _user({
               ),
             )
           : const PrincipalInfo(kind: PrincipalKind.user),
+      // Permisos de un miembro: las pestañas del catálogo (`classes:read`...)
+      // las decide el guard de pantallas, no el modo de la cuenta.
       authorization: const AuthorizationSnapshot(
-        effectivePermissions: ['clubs:read'],
+        effectivePermissions: ['clubs:read', 'classes:read', 'activities:read'],
       ),
     );
 
