@@ -4072,7 +4072,8 @@
   },
   "dashboard": {
     "errors": {
-      "get_summary": "Erro ao obter o resumo do dashboard"
+      "get_summary": "Erro ao obter o resumo do dashboard",
+      "get_pending": "Erro ao obter as pendências do painel"
     },
     "load_null_error": "Não foi possível carregar o painel",
     "guardian_no_club": {
@@ -4134,7 +4135,10 @@
       "my_ranking": "Meu ranking",
       "section_ranking": "Ranking da seção",
       "club_rankings": "Progresso anual",
-      "authorizations": "Autorizações"
+      "authorizations": "Autorizações",
+      "group_club": "Clube",
+      "group_training": "Formação",
+      "group_admin": "Administração"
     },
     "stats": {
       "honors_completed": "Esp. concluídas",
@@ -4157,6 +4161,65 @@
       "banner_title": "Seu dia especial continua ativo",
       "banner_body": "Toque para abrir novamente sua mensagem de aniversário.",
       "banner_semantics": "Abrir saudação de aniversário"
+    },
+    "club_line": {
+      "switch_semantics": "Trocar de clube ou seção. Atual: {club}"
+    },
+    "class_hero": {
+      "label": "Minha classe",
+      "requirements_count": {
+        "one": "{} de {} requisito",
+        "other": "{} de {} requisitos"
+      },
+      "next": "Próximo:",
+      "continue": "Continuar minha classe",
+      "view": "Ver minha classe"
+    },
+    "next_activity": {
+      "label": "Próxima atividade",
+      "in_days": {
+        "one": "Em {} dia",
+        "other": "Em {} dias"
+      }
+    },
+    "for_you": {
+      "title": "Para você",
+      "honors": "Especialidades",
+      "achievements": "Conquistas",
+      "credential": "Credencial",
+      "resources": "Recursos"
+    },
+    "pending": {
+      "title": "Pendências",
+      "to_attend": {
+        "one": "{} para resolver",
+        "other": "{} para resolver"
+      },
+      "urgent_count": {
+        "one": "{} urgente",
+        "other": "{} urgentes"
+      },
+      "membership_requests": "Solicitações de associação",
+      "evidence_folder": "Pasta de evidências",
+      "monthly_report": "Relatório mensal",
+      "investiture_authorizations": "Autorizações de investidura",
+      "rejected_count": {
+        "one": "{} rejeitada",
+        "other": "{} rejeitadas"
+      },
+      "not_submitted_count": {
+        "one": "{} não enviada",
+        "other": "{} não enviadas"
+      },
+      "due_today": "Vence hoje",
+      "due_in_days": {
+        "one": "Vence em {} dia",
+        "other": "Vence em {} dias"
+      },
+      "overdue_days": {
+        "one": "Venceu há {} dia",
+        "other": "Venceu há {} dias"
+      }
     }
   },
   "domain": {

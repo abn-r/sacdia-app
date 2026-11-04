@@ -1,11 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/config/route_names.dart';
-import 'package:sacdia_app/core/widgets/sac_network_image.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
@@ -13,6 +9,9 @@ import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_ring.dart';
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+
+import '../utils/open_class_detail.dart';
+import 'class_logo_box.dart';
 
 /// Card de clase actual con SacProgressRing - Estilo "Scout Vibrante"
 ///
@@ -85,7 +84,10 @@ class CurrentClassCard extends ConsumerWidget {
                 FadeTransition(opacity: animation, child: child),
             child: KeyedSubtree(
               key: ValueKey(imageUrl),
-              child: _buildClassLogo(resolvedName, imageUrl),
+              child: ClassLogoBox(
+                className: resolvedName,
+                imageUrl: imageUrl,
+              ),
             ),
           )
         : HugeIcon(
@@ -100,7 +102,9 @@ class CurrentClassCard extends ConsumerWidget {
         initialIsExpired || (classState?.value?.isExpired ?? false);
 
     return SacCard(
-      onTap: currentClassId == null ? null : () => _openDetail(context, ref),
+      onTap: currentClassId == null
+          ? null
+          : () => openClassDetail(context, ref, currentClassId!),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -167,93 +171,6 @@ class CurrentClassCard extends ConsumerWidget {
             ),
         ],
       ),
-    );
-  }
-
-  // ─── Navigation ───────────────────────────────────────────────────────────
-
-  /// Opens the same class detail the Clases tab opens for its current class,
-  /// carrying the enrollment id when the user's classes are already loaded.
-  void _openDetail(BuildContext context, WidgetRef ref) {
-    final classId = currentClassId;
-    if (classId == null) return;
-    final classes = ref.read(userClassesProvider).value;
-    int? enrollmentId;
-    if (classes != null) {
-      for (final progressiveClass in classes) {
-        if (progressiveClass.id == classId) {
-          enrollmentId = progressiveClass.enrollmentId;
-          break;
-        }
-      }
-    }
-    context.push(
-      RouteNames.classDetailPath(
-        classId.toString(),
-        enrollmentId: enrollmentId,
-      ),
-    );
-  }
-
-  // ─── Logo helper ─────────────────────────────────────────────────────────────
-
-  /// Builds the 40×40 class logo container mirroring the pattern used in
-  /// [ClassCard], but scaled down to suit the compact dashboard card.
-  Widget _buildClassLogo(String className, String? imageUrl) {
-    final classColor = AppColors.classColor(className);
-    final logoAsset = AppColors.classLogoAsset(className);
-
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: classColor.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-      ),
-      child: imageUrl != null
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-              child: SacNetworkImage(
-                imageUrl: imageUrl,
-                memCacheWidth: 120, // 40 * 3 (max device pixel ratio)
-                memCacheHeight: 120,
-                fit: BoxFit.cover,
-                errorWidget: (_, __, ___) => logoAsset != null
-                    ? Padding(
-                        padding: const EdgeInsets.all(5),
-                        child: Image.asset(
-                          logoAsset,
-                          fit: BoxFit.contain,
-                          cacheWidth: 120,
-                          cacheHeight: 120,
-                        ),
-                      )
-                    : Center(
-                        child: HugeIcon(
-                          icon: HugeIcons.strokeRoundedSchool,
-                          color: classColor,
-                          size: 20,
-                        ),
-                      ),
-              ),
-            )
-          : logoAsset != null
-              ? Padding(
-                  padding: const EdgeInsets.all(5),
-                  child: Image.asset(
-                    logoAsset,
-                    fit: BoxFit.contain,
-                    cacheWidth: 120,
-                    cacheHeight: 120,
-                  ),
-                )
-              : Center(
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedSchool,
-                    color: classColor,
-                    size: 20,
-                  ),
-                ),
     );
   }
 }

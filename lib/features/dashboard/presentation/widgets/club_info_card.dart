@@ -16,6 +16,9 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Card de información del club - Estilo "Scout Vibrante"
 ///
+/// Ya no se usa en el dashboard (2026-11): su lugar lo tomó `DashboardClubLine`
+/// bajo el saludo. Se conserva con sus pruebas por si otra pantalla la necesita.
+///
 /// SacCard con badges para tipo y rol, y logo del tipo de club activo.
 ///
 /// Club type and role are derived from the auth state's active grant (the same

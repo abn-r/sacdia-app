@@ -53,4 +53,80 @@ void main() {
           canAccessClubOperationalSurface(_userWithStatus('active')), isTrue);
     });
   });
+
+  group('isClubStaffMode', () {
+    UserEntity user({
+      String? role,
+      String status = 'active',
+      List<String> permissions = const [],
+    }) {
+      return UserEntity(
+        id: 'user-1',
+        email: 'user@example.com',
+        authorization: AuthorizationSnapshot(
+          effectivePermissions: permissions,
+          activeAssignmentId: 'a-1',
+          clubAssignments: [
+            AuthorizationGrant(
+              assignmentId: 'a-1',
+              roleName: role,
+              status: status,
+            ),
+          ],
+        ),
+      );
+    }
+
+    test('is false without a user or authorization', () {
+      expect(isClubStaffMode(null), isFalse);
+      expect(
+        isClubStaffMode(const UserEntity(id: 'u', email: 'e@example.com')),
+        isFalse,
+      );
+    });
+
+    test('is false for a plain member', () {
+      expect(isClubStaffMode(user(role: 'member')), isFalse);
+      expect(
+        isClubStaffMode(
+          user(role: 'member', permissions: const ['classes:read']),
+        ),
+        isFalse,
+      );
+    });
+
+    test('is true for club roles other than member (normalized)', () {
+      for (final role in const [
+        'director',
+        'Deputy-Director',
+        ' counselor ',
+        'instructor',
+        'secretary',
+        'treasurer',
+      ]) {
+        expect(isClubStaffMode(user(role: role)), isTrue, reason: role);
+      }
+    });
+
+    test('is false for a non-club role without staff permissions', () {
+      expect(isClubStaffMode(user(role: 'pastor')), isFalse);
+    });
+
+    test('is true for a member holding any staff permission', () {
+      for (final permission in clubStaffHomePermissions) {
+        expect(
+          isClubStaffMode(user(role: 'member', permissions: [permission])),
+          isTrue,
+          reason: permission,
+        );
+      }
+    });
+
+    test('is false when the membership is not usable', () {
+      expect(
+          isClubStaffMode(user(role: 'director', status: 'pending')), isFalse);
+      expect(
+          isClubStaffMode(user(role: 'director', status: 'inactive')), isFalse);
+    });
+  });
 }

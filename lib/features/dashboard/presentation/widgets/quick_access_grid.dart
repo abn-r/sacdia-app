@@ -3,162 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/authorization/access_subject.dart';
-import 'package:sacdia_app/core/authorization/screen_catalog.dart';
-import 'package:sacdia_app/core/config/route_names.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
-import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
-import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
-import 'package:sacdia_app/features/units/presentation/providers/units_providers.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
-class _QuickAccessItemConfig {
-  /// Translation key resolved at render time via tr(labelKey).
-  final String labelKey;
-  final List<List<dynamic>> icon;
-  final Color? color;
-
-  /// Static route path.
-  final String route;
-
-  /// Screen catalog id. Omit only for runtime tiles (judge assignment).
-  final String? screenId;
-
-  /// El súper-admin pasa todo el catálogo, pero estas pantallas dependen de un
-  /// rol operativo concreto (el backend no deja autorizar ni presentar al
-  /// súper-admin): se evalúan por los roles reales, sin ese atajo.
-  final bool ignoreSuperAdminBypass;
-
-  const _QuickAccessItemConfig({
-    required this.labelKey,
-    required this.icon,
-    this.color,
-    this.route = '',
-    this.screenId,
-    this.ignoreSuperAdminBypass = false,
-  });
-}
-
-/// Pantalla del catálogo que abre «Unidades» (`units:update`). Un líder de
-/// unidad sin ese permiso entra por otra vía: ver [leadsUnitInActiveSectionProvider].
-const _unitsScreenId = 'app-units';
-
-List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.members',
-    icon: HugeIcons.strokeRoundedUserGroup,
-    route: RouteNames.homeMembers,
-    screenId: 'app-members',
-  ),
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.club',
-    icon: HugeIcons.strokeRoundedBackpack03,
-    color: AppColors.secondary,
-    route: RouteNames.homeClub,
-    screenId: 'app-club',
-  ),
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.evidence_folder',
-    icon: HugeIcons.strokeRoundedFolder01,
-    color: AppColors.accent,
-    route: RouteNames.homeEvidences,
-    screenId: 'clubs-evidence-folders-list',
-  ),
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.camporees',
-    icon: HugeIcons.strokeRoundedCampfire,
-    color: AppColors.warning,
-    route: RouteNames.homeCamporees,
-    screenId: 'campamentos-list-local',
-  ),
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.finances',
-    icon: HugeIcons.strokeRoundedCreditCard,
-    color: AppColors.info,
-    route: RouteNames.homeFinances,
-    screenId: 'finances',
-  ),
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.units',
-    icon: HugeIcons.strokeRoundedCompass01,
-    color: AppColors.secondary,
-    route: RouteNames.homeUnits,
-    screenId: _unitsScreenId,
-  ),
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.grouped_class',
-    icon: HugeIcons.strokeRoundedBookOpen01,
-    route: RouteNames.homeGroupedClass,
-    screenId: 'app-grouped-class',
-  ),
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.investiture',
-    icon: HugeIcons.strokeRoundedMedal01,
-    color: AppColors.accent,
-    route: RouteNames.sectionInvestiture,
-    screenId: 'app-section-investiture',
-    ignoreSuperAdminBypass: true,
-  ),
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.authorizations',
-    icon: HugeIcons.strokeRoundedCheckmarkBadge01,
-    color: AppColors.secondary,
-    route: RouteNames.investitureAuthorize,
-    screenId: 'app-investiture-authorizer',
-    ignoreSuperAdminBypass: true,
-  ),
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.insurance',
-    icon: HugeIcons.strokeRoundedShield01,
-    color: AppColors.secondaryDark,
-    route: RouteNames.homeInsurance,
-    screenId: 'insurance-by-section',
-  ),
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.inventory',
-    icon: HugeIcons.strokeRoundedPackage,
-    color: AppColors.accent,
-    route: RouteNames.homeInventory,
-    screenId: 'club-inventory',
-  ),
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.materials',
-    icon: HugeIcons.strokeRoundedShoppingCart01,
-    color: AppColors.info,
-    route: RouteNames.homeMaterials,
-    screenId: 'app-materials',
-  ),
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.resources',
-    icon: HugeIcons.strokeRoundedFiles01,
-    route: RouteNames.homeResources,
-    screenId: 'resources-list',
-  ),
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.reports',
-    icon: HugeIcons.strokeRoundedAnalytics01,
-    color: AppColors.info,
-    route: RouteNames.homeReports,
-    screenId: 'reports-list',
-  ),
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.club_rankings',
-    icon: HugeIcons.strokeRoundedMedal05,
-    route: RouteNames.homeClubRankings,
-    screenId: 'annual-folders-rankings',
-  ),
-];
-
-const _judgeQuickAccessItem = _QuickAccessItemConfig(
-  labelKey: 'dashboard.quick_access.camporee_judge',
-  icon: HugeIcons.strokeRoundedNoteEdit,
-  color: AppColors.warning,
-  route: RouteNames.camporeeJudgeAssignments,
-);
+import 'quick_access_items.dart';
 
 /// Acceso rápido: 2×N de [SacCard] (well centrado + label).
 ///
@@ -171,7 +22,11 @@ const _judgeQuickAccessItem = _QuickAccessItemConfig(
 ///   - data with authorization → filter items by screen catalog and render grid
 ///   - data without authorization (genuinely empty) → SizedBox.shrink()
 class QuickAccessGrid extends ConsumerWidget {
-  const QuickAccessGrid({super.key});
+  const QuickAccessGrid({super.key, this.excludedRoutes = const {}});
+
+  /// Rutas que no se pintan aunque el usuario tenga acceso (p. ej. el modo
+  /// miembro del inicio ya muestra «Recursos» en «Para ti»).
+  final Set<String> excludedRoutes;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -189,57 +44,18 @@ class QuickAccessGrid extends ConsumerWidget {
     }
 
     final user = authView.user;
-    final authorization = user?.authorization;
 
     // Auth has settled but there is no authorization data — either the user
     // has no assigned role or the response genuinely had none. Hide the grid.
-    if (authorization == null) {
+    // The provider also hides it when the membership is not operational.
+    if (user?.authorization == null) {
       return const SizedBox.shrink();
     }
 
-    if (!canAccessClubOperationalSurface(user)) {
-      return const SizedBox.shrink();
-    }
-
-    final subject = subjectFromUser(user);
-    final withoutSuperAdminBypass = AccessSubject(
-      permissions: subject.permissions,
-      roles: subject.roles,
-      isSuperAdmin: false,
-    );
-    // El catálogo (`app-units` -> `units:update`) no cambia. Un líder de unidad
-    // (capitán, secretario, consejero o suplente) con solo `units:read` ve el
-    // acceso a SU unidad. Solo se consulta si el catálogo no lo concede ya, y
-    // falla cerrado mientras carga o si falla (ver el provider).
-    final unitsViaCatalog = canViewScreen(subject, _unitsScreenId);
-    final unitsViaLeadership = !unitsViaCatalog &&
-        hasAnyPermission(user, const {'units:read'}) &&
-        ref.watch(leadsUnitInActiveSectionProvider);
-
-    final filteredItems = _quickAccessItemsConfig.where((item) {
-      final screenId = item.screenId;
-      if (screenId == null) return true;
-      if (screenId == _unitsScreenId && unitsViaLeadership) return true;
-      return canViewScreen(
-        item.ignoreSuperAdminBypass ? withoutSuperAdminBypass : subject,
-        screenId,
-      );
-    }).toList();
-
-    final showJudgeTile = ref.watch(camporeeJudgeAssignmentsProvider).maybeWhen(
-          data: (assignments) => assignments
-              .any((assignment) => assignment.canCaptureOfficialScore),
-          orElse: () => false,
-        );
-    if (showJudgeTile) {
-      final camporeeIndex = filteredItems.indexWhere(
-        (item) => item.route == RouteNames.homeCamporees,
-      );
-      filteredItems.insert(
-        camporeeIndex >= 0 ? camporeeIndex + 1 : filteredItems.length,
-        _judgeQuickAccessItem,
-      );
-    }
+    final filteredItems = ref
+        .watch(visibleQuickAccessItemsProvider)
+        .where((item) => !excludedRoutes.contains(item.route))
+        .toList();
 
     if (filteredItems.isEmpty) {
       return const SizedBox.shrink();
@@ -338,7 +154,7 @@ class _QuickAccessSkeletonTile extends StatelessWidget {
 }
 
 class _QuickAccessTile extends StatelessWidget {
-  final _QuickAccessItemConfig item;
+  final QuickAccessItem item;
 
   /// Pre-resolved navigation path (static route or resolved dynamic route).
   final String resolvedRoute;

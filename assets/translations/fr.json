@@ -4072,7 +4072,8 @@
   },
   "dashboard": {
     "errors": {
-      "get_summary": "Erreur lors de la récupération du résumé du tableau de bord"
+      "get_summary": "Erreur lors de la récupération du résumé du tableau de bord",
+      "get_pending": "Erreur lors de la récupération des tâches en attente du tableau de bord"
     },
     "load_null_error": "Impossible de charger le tableau de bord",
     "guardian_no_club": {
@@ -4134,7 +4135,10 @@
       "my_ranking": "Mon classement",
       "section_ranking": "Classement de section",
       "club_rankings": "Progression annuelle",
-      "authorizations": "Autorisations"
+      "authorizations": "Autorisations",
+      "group_club": "Club",
+      "group_training": "Formation",
+      "group_admin": "Administration"
     },
     "stats": {
       "honors_completed": "Spéc. terminées",
@@ -4157,6 +4161,65 @@
       "banner_title": "Ta journée spéciale est toujours active",
       "banner_body": "Touche ici pour rouvrir ton message d’anniversaire.",
       "banner_semantics": "Ouvrir le message d’anniversaire"
+    },
+    "club_line": {
+      "switch_semantics": "Changer de club ou de section. Actuel : {club}"
+    },
+    "class_hero": {
+      "label": "Ma classe",
+      "requirements_count": {
+        "one": "{} sur {} exigence",
+        "other": "{} sur {} exigences"
+      },
+      "next": "Suivante :",
+      "continue": "Continuer ma classe",
+      "view": "Voir ma classe"
+    },
+    "next_activity": {
+      "label": "Prochaine activité",
+      "in_days": {
+        "one": "Dans {} jour",
+        "other": "Dans {} jours"
+      }
+    },
+    "for_you": {
+      "title": "Pour vous",
+      "honors": "Spécialités",
+      "achievements": "Réalisations",
+      "credential": "Carte",
+      "resources": "Ressources"
+    },
+    "pending": {
+      "title": "En attente",
+      "to_attend": {
+        "one": "{} à traiter",
+        "other": "{} à traiter"
+      },
+      "urgent_count": {
+        "one": "{} urgent",
+        "other": "{} urgents"
+      },
+      "membership_requests": "Demandes d'adhésion",
+      "evidence_folder": "Dossier de preuves",
+      "monthly_report": "Rapport mensuel",
+      "investiture_authorizations": "Autorisations d'investiture",
+      "rejected_count": {
+        "one": "{} refusée",
+        "other": "{} refusées"
+      },
+      "not_submitted_count": {
+        "one": "{} non envoyée",
+        "other": "{} non envoyées"
+      },
+      "due_today": "Échéance aujourd'hui",
+      "due_in_days": {
+        "one": "Échéance dans {} jour",
+        "other": "Échéance dans {} jours"
+      },
+      "overdue_days": {
+        "one": "En retard de {} jour",
+        "other": "En retard de {} jours"
+      }
     }
   },
   "domain": {
