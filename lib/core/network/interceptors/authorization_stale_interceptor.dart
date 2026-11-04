@@ -1,12 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 
+import '../../errors/authorization_stale.dart';
 import '../../utils/app_logger.dart';
 
-/// Código de negocio con el que la app rechaza una mutación mientras la
-/// autorización del usuario es la de la caché (`UserEntity.authorizationStale`).
-/// Tiene traducción en `errors.authorization_stale` (ver `userErrorMessage`).
-const String kAuthorizationStaleCode = 'AUTHORIZATION_STALE';
+export '../../errors/authorization_stale.dart' show kAuthorizationStaleCode;
 
 /// Clave de `RequestOptions.extra` para dejar pasar una mutación concreta
 /// aunque la autorización sea obsoleta (p. ej. una petición de sesión).

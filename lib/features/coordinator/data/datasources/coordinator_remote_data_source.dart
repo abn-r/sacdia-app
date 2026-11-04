@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
+import '../../../../core/errors/authorization_stale.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/evidence_review_item.dart';
@@ -90,6 +91,8 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
   Never _rethrow(Object e) {
     if (e is DioException) {
       if (e.type == DioExceptionType.cancel) throw e;
+      // Rechazo local por autorización obsoleta: conserva mensaje y código.
+      if (isAuthorizationStale(e)) throw authorizationStaleException(e);
       final msg = _extractDioMessage(e);
       final code = e.response?.statusCode;
       // Código de negocio (`GUARD_CLUB_SCOPE_REQUIRED`, ...): la UI decide por

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 import '../widgets/sac_error_state.dart';
+import 'authorization_stale.dart';
 import 'exceptions.dart';
 import 'failures.dart';
 
@@ -25,10 +26,6 @@ const Set<String> _forbiddenCodes = {
 /// (adolescente, teléfono vinculado), que tienen sus propios interceptores y
 /// nunca se tocan desde aquí.
 const List<String> _excludedCodePrefixes = ['ACTING_FOR_', 'PRINCIPAL_SCOPE_'];
-
-/// Rechazo local por autorización obsoleta (sesión restaurada sin red): es un
-/// error de ESA mutación, no un acceso restringido de la pantalla.
-const String _authorizationStaleCode = 'AUTHORIZATION_STALE';
 
 /// ¿[error] significa que el usuario no tiene permiso (HTTP 403 o un código de
 /// negocio `GUARD_PERMISSION_DENIED`, `GUARD_CLUB_SCOPE_REQUIRED` o
@@ -63,7 +60,9 @@ bool isForbiddenFailure(Object error) {
   final code = rawCode?.trim().toUpperCase();
   if (code != null && code.isNotEmpty) {
     if (_excludedCodePrefixes.any(code.startsWith)) return false;
-    if (code == _authorizationStaleCode) return false;
+    // Rechazo local por autorización obsoleta (sesión restaurada sin red): es
+    // un error de ESA mutación, no un acceso restringido de la pantalla.
+    if (code == kAuthorizationStaleCode) return false;
     if (_forbiddenCodes.contains(code) || code.endsWith('_FORBIDDEN')) {
       return true;
     }

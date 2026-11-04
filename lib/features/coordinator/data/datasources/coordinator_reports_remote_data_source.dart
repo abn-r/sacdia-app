@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
+import '../../../../core/errors/authorization_stale.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../monthly_reports/data/monthly_report_pdf_filename.dart';
@@ -226,6 +227,8 @@ class CoordinatorReportsRemoteDataSourceImpl
   Never _rethrow(Object e) {
     if (e is DioException) {
       if (e.type == DioExceptionType.cancel) throw e;
+      // Rechazo local por autorización obsoleta: conserva mensaje y código.
+      if (isAuthorizationStale(e)) throw authorizationStaleException(e);
       final code = e.response?.statusCode;
       if (code == 403) {
         throw AuthException(

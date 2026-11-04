@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 
+import '../../../../core/errors/authorization_stale.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/support_report.dart';
@@ -28,6 +29,8 @@ class SupportRemoteDataSourceImpl implements SupportRemoteDataSource {
 
   Never _rethrow(Object e) {
     if (e is DioException) {
+      // Rechazo local por autorización obsoleta: conserva mensaje y código.
+      if (isAuthorizationStale(e)) throw authorizationStaleException(e);
       final msg = _extractMessage(e);
       final code = e.response?.statusCode;
       if (code == 401 || code == 403) {
