@@ -5715,7 +5715,7 @@
       "revoke_confirm": "Desvincular",
       "revoked_toast": "Teléfono desvinculado",
       "pair_title": "Vincular un teléfono",
-      "pair_instructions": "En el teléfono del niño abre SACDIA, toca «Vincular este teléfono de un niño» y escanea este código.",
+      "pair_instructions": "En el teléfono del niño abre SACDIA, toca «¿Es el teléfono de un niño?» en la pantalla de inicio de sesión y escanea este código.",
       "qr_alt": "Código QR para vincular un teléfono",
       "expires_in": "Vence en {time}",
       "expired": "El código venció",
@@ -5786,7 +5786,7 @@
     },
     "offline": "Sin conexión. Ves lo último guardado y no puedes subir ni enviar nada.",
     "pair": {
-      "entry": "Vincular este teléfono de un niño",
+      "entry": "¿Es el teléfono de un niño? Vincúlalo aquí",
       "title": "Vincular este teléfono",
       "subtitle": "Escanea el código QR que muestra tu tutor en su teléfono.",
       "confirm_body": "Código leído. Revisa el nombre de este teléfono y vincúlalo.",

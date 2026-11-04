@@ -5715,7 +5715,7 @@
       "revoke_confirm": "Unlink",
       "revoked_toast": "Phone unlinked",
       "pair_title": "Link a phone",
-      "pair_instructions": "On the child's phone open SACDIA, tap \"Link a child's phone\" and scan this code.",
+      "pair_instructions": "On the child's phone open SACDIA, tap \"Is this a child's phone?\" on the sign-in screen and scan this code.",
       "qr_alt": "QR code to link a phone",
       "expires_in": "Expires in {time}",
       "expired": "The code expired",
@@ -5786,7 +5786,7 @@
     },
     "offline": "No connection. You see what was saved last and cannot upload or send anything.",
     "pair": {
-      "entry": "Link a child's phone to this device",
+      "entry": "Is this a child's phone? Link it here",
       "title": "Link this phone",
       "subtitle": "Scan the QR code your guardian shows on their phone.",
       "confirm_body": "Code read. Check the name of this phone and link it.",

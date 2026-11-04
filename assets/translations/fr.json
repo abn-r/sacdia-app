@@ -5713,7 +5713,7 @@
       "revoke_confirm": "Dissocier",
       "revoked_toast": "Téléphone dissocié",
       "pair_title": "Associer un téléphone",
-      "pair_instructions": "Sur le téléphone de l'enfant, ouvre SACDIA, touche « Associer le téléphone d'un enfant » et scanne ce code.",
+      "pair_instructions": "Sur le téléphone de l'enfant, ouvre SACDIA, touche « C'est le téléphone d'un enfant ? » sur l'écran de connexion et scanne ce code.",
       "qr_alt": "Code QR pour associer un téléphone",
       "expires_in": "Expire dans {time}",
       "expired": "Le code a expiré",
@@ -5784,7 +5784,7 @@
     },
     "offline": "Pas de connexion. Tu vois la dernière version enregistrée et tu ne peux rien envoyer.",
     "pair": {
-      "entry": "Associer le téléphone d'un enfant",
+      "entry": "C'est le téléphone d'un enfant ? Associe-le ici",
       "title": "Associer ce téléphone",
       "subtitle": "Scanne le code QR que ton tuteur affiche sur son téléphone.",
       "confirm_body": "Code lu. Vérifie le nom de ce téléphone et associe-le.",
