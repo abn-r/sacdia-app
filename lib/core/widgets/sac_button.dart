@@ -356,16 +356,15 @@ class _SacButtonState extends State<SacButton> {
     final reduce = SacMotion.reduceMotionOf(context);
 
     // Loading blocks interaction, but keeps the configured visual hierarchy.
-    // Only genuinely disabled, non-loading buttons use disabled tokens.
+    // A disabled button keeps its variant colors and is dimmed to
+    // AppTheme.disabledOpacity, so a disabled primary still reads as primary.
     final visuallyDisabled = _effectivelyDisabled && !widget.isLoading;
-    final effectiveBg = visuallyDisabled ? c.surface : _backgroundColor;
-    final baseFg = visuallyDisabled ? c.textTertiary : _foregroundColor;
+    final effectiveBg = _backgroundColor;
+    final baseFg = _foregroundColor;
     final effectiveFg = widget.isLoading
         ? _accessibleLoadingForeground(baseFg, effectiveBg, c.surface)
         : baseFg;
-    final effectiveBorder = visuallyDisabled
-        ? BorderSide(color: c.border, width: 1.5)
-        : (_borderSide ?? BorderSide.none);
+    final effectiveBorder = _borderSide ?? BorderSide.none;
 
     final loadingIndicator = SizedBox(
       height: _iconSize,
@@ -455,7 +454,12 @@ class _SacButtonState extends State<SacButton> {
             scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
             duration: SacMotion.press,
             curve: SacMotion.easeOut,
-            child: visual,
+            child: AnimatedOpacity(
+              opacity: visuallyDisabled ? AppTheme.disabledOpacity : 1,
+              duration: SacMotion.press,
+              curve: SacMotion.easeOut,
+              child: visual,
+            ),
           ),
         ),
       ),

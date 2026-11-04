@@ -284,6 +284,7 @@
   "legal_gate": {
     "title": "Conditions et confidentialité",
     "body": "Pour utiliser SACDIA, vous devez accepter les documents en vigueur.",
+    "documents_label": "Documents",
     "document_terms": "Conditions générales",
     "document_privacy": "Avis de confidentialité",
     "version_label": "Version {version}",

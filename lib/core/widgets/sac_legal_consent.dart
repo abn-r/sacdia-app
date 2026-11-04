@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/in_app_browser.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
@@ -24,25 +24,29 @@ class _LegalLinks {
   final TapGestureRecognizer _terms = TapGestureRecognizer();
   final TapGestureRecognizer _privacy = TapGestureRecognizer();
 
-  static const TextStyle _linkStyle = TextStyle(
-    color: AppColors.loginBrandBlueDark,
-    fontWeight: FontWeight.w700,
-  );
-
-  /// `terms_link` + `and` + `privacy_link`.
-  List<InlineSpan> spans() => [
-        TextSpan(
-          text: 'auth.legal.terms_link'.tr(),
-          style: _linkStyle,
-          recognizer: _terms,
-        ),
-        TextSpan(text: 'auth.legal.and'.tr()),
-        TextSpan(
-          text: 'auth.legal.privacy_link'.tr(),
-          style: _linkStyle,
-          recognizer: _privacy,
-        ),
-      ];
+  /// `terms_link` + `and` + `privacy_link`, in the user's accent: its dark
+  /// tone on light backgrounds, its base tone on dark ones (contrast).
+  List<InlineSpan> spans(BuildContext context) {
+    final accent = SacAccent.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final linkStyle = TextStyle(
+      color: isDark ? accent.color : accent.dark,
+      fontWeight: FontWeight.w600,
+    );
+    return [
+      TextSpan(
+        text: 'auth.legal.terms_link'.tr(),
+        style: linkStyle,
+        recognizer: _terms,
+      ),
+      TextSpan(text: 'auth.legal.and'.tr()),
+      TextSpan(
+        text: 'auth.legal.privacy_link'.tr(),
+        style: linkStyle,
+        recognizer: _privacy,
+      ),
+    ];
+  }
 
   void dispose() {
     _terms.dispose();
@@ -147,7 +151,7 @@ class _SacLegalConsentCheckboxState extends State<SacLegalConsentCheckbox> {
                 TextSpan(
                   text: widget.prefixKey.tr(),
                   style: style,
-                  children: _links.spans(),
+                  children: _links.spans(context),
                 ),
               ),
             ),
@@ -207,7 +211,7 @@ class _SacLegalNoticeTextState extends State<SacLegalNoticeText> {
             TextSpan(
               text: 'auth.legal.login_notice_prefix'.tr(),
               style: style,
-              children: _links.spans(),
+              children: _links.spans(context),
             ),
             textAlign: TextAlign.center,
           ),

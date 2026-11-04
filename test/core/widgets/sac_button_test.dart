@@ -4,6 +4,7 @@ import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 void main() {
@@ -64,6 +65,41 @@ void main() {
     expect(decoration.color, background);
     expect(label.style?.color, foreground);
     expect((decoration.border! as Border).top.color, border);
+  });
+
+  testWidgets('deshabilitado conserva los colores de la variante y se atenúa',
+      (tester) async {
+    await _pumpButton(
+      tester,
+      const SacButton.primary(text: 'Aceptar', onPressed: null),
+    );
+
+    final decoration = _buttonDecoration(tester, 'Aceptar');
+    final label = tester.widget<Text>(find.text('Aceptar'));
+    final opacity = tester.widget<AnimatedOpacity>(
+      find.ancestor(
+        of: find.text('Aceptar'),
+        matching: find.byType(AnimatedOpacity),
+      ),
+    );
+    expect(decoration.color, SacAccent.logoBlue.color);
+    expect(label.style?.color, SacAccent.logoBlue.onColor);
+    expect(opacity.opacity, AppTheme.disabledOpacity);
+  });
+
+  testWidgets('habilitado se muestra opaco', (tester) async {
+    await _pumpButton(
+      tester,
+      SacButton.primary(text: 'Aceptar', onPressed: () {}),
+    );
+
+    final opacity = tester.widget<AnimatedOpacity>(
+      find.ancestor(
+        of: find.text('Aceptar'),
+        matching: find.byType(AnimatedOpacity),
+      ),
+    );
+    expect(opacity.opacity, 1);
   });
 
   testWidgets('loading conserva el ancho del label', (tester) async {

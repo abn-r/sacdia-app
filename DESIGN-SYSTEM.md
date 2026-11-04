@@ -489,7 +489,7 @@ Keyboard activation uses `FocusableActionDetector` (`ActivateIntent`).
 
 **Icon support:** `icon` and `trailingIcon` accept `dynamic` (dispatched via `buildIcon()`).
 
-**Disabled state:** resolved via `context.sac` tokens — disabled uses `surface` bg + `textTertiary` fg.
+**Disabled state:** the button keeps its variant colors (background, text, border) and is dimmed to `AppTheme.disabledOpacity` (0.4), so a disabled primary still reads as the primary action, just "not yet". It never scales on press. Loading is not disabled: it keeps full opacity and shows the spinner.
 
 ```dart
 SacButton(

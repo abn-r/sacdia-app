@@ -41,6 +41,7 @@ void main() {
     'legal_gate': {
       'title',
       'body',
+      'documents_label',
       'document_terms',
       'document_privacy',
       'version_label',
