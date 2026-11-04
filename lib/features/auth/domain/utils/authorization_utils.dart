@@ -1,4 +1,3 @@
-import '../../../../core/authorization/generated/role_names.dart';
 import '../entities/authorization_snapshot.dart';
 import '../entities/principal_info.dart';
 import '../entities/user_entity.dart';
@@ -104,10 +103,25 @@ bool hasAnyPermission(UserEntity? user, Iterable<String> permissions) {
   return false;
 }
 
+/// ¿El servidor concedió al actor la capacidad [capability]
+/// (`/auth/me.authorization.capabilities`, claves `a.b` de `kCapabilityKeys`)?
+///
+/// Es la forma canónica de preguntar «¿puede intentarlo?» en la app: nunca se
+/// compara el nombre de un rol. Semántica del contrato: «el actor puede
+/// intentarlo sobre al menos un objetivo»; el servidor sigue respondiendo 403
+/// si el objetivo no coincide. Sin autorización, o con un servidor que aún no
+/// publica capacidades, es `false` (deny).
+bool hasCapability(UserEntity? user, String capability) {
+  final authorization = user?.authorization;
+  if (authorization == null) return false;
+  return authorization.hasCapability(capability);
+}
+
 /// Canonical role-name check against `user.authorization.resolvedRoleNames`.
 /// Use this only when the gate is genuinely role-based (global roles like
 /// `coordinator`, `admin`, `super-admin`). Prefer [hasAnyPermission] for
-/// anything permission-driven.
+/// anything permission-driven and [hasCapability] for anything the backend
+/// already computes as a capability.
 bool hasAnyRole(UserEntity? user, Iterable<String> roles) {
   final granted = extractUserRoles(user);
   if (granted.isEmpty) return false;
@@ -202,31 +216,20 @@ const Set<String> clubStaffHomePermissions = {
 ///
 /// Es modo gestión cuando el usuario opera el club (ver
 /// [canAccessClubOperationalSurface]) y además:
-///   - su concesión activa está vigente y su rol es de club distinto de
-///     `member` (director, consejero, instructor, tesorero...), o
+///   - el servidor le concede `club.staff_mode` (su concesión activa es de
+///     club y su rol no es `member`), o
 ///   - conserva alguno de [clubStaffHomePermissions] en el ámbito activo.
 ///
 /// Todo lo demás (miembro sin esos permisos, concesión pendiente o inactiva,
 /// sin autorización) es modo miembro.
 bool isClubStaffMode(UserEntity? user) {
   if (!canAccessClubOperationalSurface(user)) return false;
-
-  final activeGrant = user?.authorization?.activeGrant;
-  if (activeGrant != null && activeGrant.isActive) {
-    final role = activeGrant.roleName?.trim().toLowerCase();
-    if (role != null && role != 'member' && kClubRoleNames.contains(role)) {
-      return true;
-    }
-  }
-
+  if (hasCapability(user, 'club.staff_mode')) return true;
   return hasAnyPermission(user, clubStaffHomePermissions);
 }
 
-/// Rol global que solo autoriza investiduras en la app, sin pertenecer a un
-/// club.
-const String _pastorRole = 'pastor';
-
-/// ¿Es un pastor (rol global) sin ninguna presencia en un club?
+/// ¿Es un pastor «solo pastor» (`admin_panel.pastor_only`: roles globales no
+/// vacíos y todos pastor) sin ninguna presencia en un club?
 ///
 /// Esa persona no pasa por el post-registro de club ni ve el inicio de un
 /// miembro: la app le muestra solo «Autorizaciones» y su perfil. Con cualquier
@@ -235,25 +238,11 @@ const String _pastorRole = 'pastor';
 bool isPastorWithoutClub(UserEntity? user) {
   final authorization = user?.authorization;
   if (authorization == null) return false;
-  final isPastor = authorization.globalGrants.any(
-    (grant) => grant.roleName?.trim().toLowerCase() == _pastorRole,
-  );
-  if (!isPastor) return false;
+  if (!hasCapability(user, 'admin_panel.pastor_only')) return false;
   return authorization.clubAssignments.every(_isDesignated);
 }
 
-/// Roles globales de coordinación. Su `consent:verify` es autoridad de
-/// coordinador: solo abre las secciones de sus asignaciones y se ejerce desde el
-/// panel de coordinación («Fichas por verificar»), no desde la pantalla de
-/// Miembros de la sección activa. Espejo de `COORDINATOR_GLOBAL_ROLE_NAMES` del
-/// backend.
-const Set<String> coordinatorRoleNames = {
-  'coordinator',
-  'zone-coordinator',
-  'general-coordinator',
-};
-
-/// ¿Es un coordinador (rol global de [coordinatorRoleNames]) sin ninguna
+/// ¿Puede ver el panel de coordinación (`coordination.hub_view`) sin ninguna
 /// presencia en un club?
 ///
 /// Igual que el pastor sin club: no pasa por el post-registro de club y su
@@ -271,11 +260,7 @@ bool isCoordinatorWithoutClub(UserEntity? user) {
   if (user == null || user.actingFor != null) return false;
   final authorization = user.authorization;
   if (authorization == null) return false;
-  final isCoordinator = authorization.globalGrants.any((grant) {
-    final role = grant.roleName?.trim().toLowerCase();
-    return role != null && coordinatorRoleNames.contains(role);
-  });
-  if (!isCoordinator) return false;
+  if (!hasCapability(user, 'coordination.hub_view')) return false;
   return visibleClubAssignments(authorization.clubAssignments).isEmpty;
 }
 

@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../utils/app_logger.dart';
 import 'realtime_ref.dart';
 import 'realtime_resource_registry.dart';
@@ -30,6 +33,44 @@ class RealtimeInvalidationHandler {
   static const _tag = 'RealtimeInvalidation';
   static const _prefsKey = 'pending_realtime_invalidations';
 
+  /// Recurso del push silencioso que avisa de un cambio de autorización del
+  /// usuario (`{type: 'cache_invalidate', resource: 'authorization',
+  /// action: 'UPDATED', timestamp}`). No lleva `sectionId`: se dirige al
+  /// usuario afectado y la respuesta es volver a pedir `/auth/me`.
+  static const authorizationResource = 'authorization';
+
+  /// Qué hacer ante un `authorization` recibido en primer plano o drenado al
+  /// volver al frente. Por defecto vuelve a pedir `/auth/me` sin esperar el
+  /// intervalo mínimo. Los tests lo sustituyen para capturar la llamada.
+  @visibleForTesting
+  static void Function(RealtimeRef ref) onAuthorizationInvalidate =
+      refreshAuthorization;
+
+  /// Implementación por defecto de [onAuthorizationInvalidate]: vuelve a pedir
+  /// `/auth/me` en todos los modos, sin esperar el intervalo mínimo.
+  static void refreshAuthorization(RealtimeRef ref) {
+    unawaited(
+      ref
+          .read(authNotifierProvider.notifier)
+          .refreshAuthorization(minInterval: Duration.zero),
+    );
+  }
+
+  static void _handleAuthorization(RealtimeRef ref, String origin) {
+    AppLogger.i('Autorización cambiada ($origin): refrescando /auth/me',
+        tag: _tag);
+    try {
+      onAuthorizationInvalidate(ref);
+    } catch (e, st) {
+      AppLogger.e(
+        'Error al refrescar la autorización',
+        tag: _tag,
+        error: e,
+        stackTrace: st,
+      );
+    }
+  }
+
   // ── Foreground ─────────────────────────────────────────────────────────────
 
   /// Called when the app is in the foreground and an INVALIDATE FCM message
@@ -45,6 +86,12 @@ class RealtimeInvalidationHandler {
       // notifications.processor.ts sendSilentMulticast.
       final resource = data['resource'] as String?;
       final rawSectionId = data['sectionId'] as String?;
+
+      // Sin `sectionId` por contrato: se resuelve antes de exigirlo.
+      if (resource == authorizationResource) {
+        _handleAuthorization(ref, 'foreground');
+        return;
+      }
 
       if (resource == null || rawSectionId == null) {
         AppLogger.w(
@@ -94,6 +141,10 @@ class RealtimeInvalidationHandler {
       final sectionId = data['sectionId'] as String?;
       final timestamp =
           data['timestamp'] as String? ?? DateTime.now().toIso8601String();
+
+      // Un cambio de autorización en segundo plano se descarta: al volver al
+      // frente la app vuelve a pedir `/auth/me` de todos modos.
+      if (resource == authorizationResource) return;
 
       if (resource == null || sectionId == null) {
         AppLogger.w(
@@ -180,7 +231,10 @@ class RealtimeInvalidationHandler {
       final Map<String, Map<String, String>> best = {};
       for (final entry in queue) {
         final resource = entry['resource'];
-        final sectionId = entry['sectionId'];
+        // `authorization` no lleva sección: una sola entrada basta.
+        final sectionId = resource == authorizationResource
+            ? (entry['sectionId'] ?? '')
+            : entry['sectionId'];
         if (resource == null || sectionId == null) continue;
 
         final key = '$resource|$sectionId';
@@ -209,7 +263,11 @@ class RealtimeInvalidationHandler {
 
       for (final entry in best.values) {
         final resource = entry['resource']!;
-        final rawSectionId = entry['sectionId']!;
+        if (resource == authorizationResource) {
+          _handleAuthorization(ref, 'drain');
+          continue;
+        }
+        final rawSectionId = entry['sectionId'] ?? '';
         final sectionId = int.tryParse(rawSectionId);
 
         if (sectionId == null) {

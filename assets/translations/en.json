@@ -489,6 +489,7 @@
     "mr_already_pending": "This request has already been processed.",
     "mr_already_processed": "This request has already been processed.",
     "guard_permission_denied": "You do not have permission to do this.",
+    "authorization_stale": "Your permissions could not be verified with the server yet. Connect to the internet and try again.",
     "file_required": "Select a file.",
     "file_type_invalid": "File type not allowed. Use JPG, PNG, WebP or PDF.",
     "file_too_large": "The file exceeds the 10 MB limit.",
@@ -4454,6 +4455,9 @@
     }
   },
   "router": {
+    "access_denied": {
+      "action": "Go to home"
+    },
     "not_found": {
       "title": "We couldn't find this screen",
       "body": "The link you opened doesn't exist or is no longer available.",
