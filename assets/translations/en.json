@@ -525,7 +525,15 @@
     "mr_approve_permission_required": "You are not allowed to approve requests. You can only verify the consent.",
     "register_email_unavailable": "We couldn't create an account with this email. If you already have an account, sign in or reset your password.",
     "auth_post_registration_not_started": "Your account has not started its initial registration yet. Sign out and sign back in; if the problem continues, contact support.",
-    "post_reg_not_initiated": "Your account has not started its initial registration yet. Sign out and sign back in; if the problem continues, contact support."
+    "post_reg_not_initiated": "Your account has not started its initial registration yet. Sign out and sign back in; if the problem continues, contact support.",
+    "validation_honor_requirements_incomplete": "Some requirements are still incomplete.",
+    "validation_honor_missing_evidence": "A requirement is missing its evidence.",
+    "validation_honor_completed_at_required": "Pick the completion date to send for review.",
+    "validation_honor_no_changes_after_rejection": "Make changes to your work before sending it again.",
+    "validation_honor_already_pending": "This honor is already under review.",
+    "validation_honor_already_validated": "This honor was already validated.",
+    "validation_honor_invalid_status": "This honor cannot be sent in its current state.",
+    "validation_honor_completion_mode_required": "First choose how to complete this honor."
   },
   "honors": {
     "errors": {
@@ -716,7 +724,41 @@
       "mode_guard_external": "This honor is being completed outside the app. Use the form and general evidence screen.",
       "mode_guard_undecided": "First choose how you want to complete this honor.",
       "mode_guard_not_found": "Could not find this honor enrollment.",
-      "mode_guard_back": "Back"
+      "mode_guard_back": "Back",
+      "step_working": "Working",
+      "step_semantics": "Step {current} of {total}: {label}",
+      "band_meta": "{percent}% · {mode}",
+      "band_progress_semantics": "{percent}% complete",
+      "tab_requirements": "Requirements {done}/{total}",
+      "tab_info": "Information",
+      "meta_answered": "Answered",
+      "meta_has_evidence": "With evidence",
+      "meta_missing_photo": "Photo missing",
+      "meta_children_done": "{done} of {total} done",
+      "meta_choose_done": {
+        "one": "Choose {min} · {} done",
+        "other": "Choose {min} · {} done"
+      },
+      "empty": "This honor has no requirements",
+      "sheet_title": "Requirement {number}",
+      "sheet_save": "Save",
+      "rejected_title": "Your honor was rejected",
+      "rejected_hint": "Fix it and send it again",
+      "info_date_needed": "Needed to send for review",
+      "info_instructor_optional": "Optional",
+      "missing_intro": "Still missing: {items}",
+      "missing_requirements": {
+        "one": "{} requirement",
+        "other": "{} requirements"
+      },
+      "missing_evidences": {
+        "one": "{} piece of evidence",
+        "other": "{} pieces of evidence"
+      },
+      "missing_date": "the completion date",
+      "list_and": " and ",
+      "ready_to_send": "All set to send",
+      "under_review_hint": "A reviewer is checking your work"
     },
     "evidence": {
       "my_honor_title": "My honor",

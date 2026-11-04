@@ -525,7 +525,15 @@
     "mr_approve_permission_required": "Você não tem permissão para aprovar solicitações. Só pode verificar o consentimento.",
     "register_email_unavailable": "Não foi possível criar a conta com este e-mail. Se você já tem uma conta, entre ou recupere sua senha.",
     "auth_post_registration_not_started": "Sua conta ainda não iniciou o cadastro inicial. Saia e entre novamente; se o problema continuar, entre em contato com o suporte.",
-    "post_reg_not_initiated": "Sua conta ainda não iniciou o cadastro inicial. Saia e entre novamente; se o problema continuar, entre em contato com o suporte."
+    "post_reg_not_initiated": "Sua conta ainda não iniciou o cadastro inicial. Saia e entre novamente; se o problema continuar, entre em contato com o suporte.",
+    "validation_honor_requirements_incomplete": "Ainda faltam requisitos para concluir.",
+    "validation_honor_missing_evidence": "Falta anexar evidência em algum requisito.",
+    "validation_honor_completed_at_required": "Escolha a data de conclusão para enviar para revisão.",
+    "validation_honor_no_changes_after_rejection": "Faça mudanças no seu trabalho antes de enviá-lo de novo.",
+    "validation_honor_already_pending": "Esta especialidade já está em revisão.",
+    "validation_honor_already_validated": "Esta especialidade já foi validada.",
+    "validation_honor_invalid_status": "Esta especialidade não pode ser enviada no estado atual.",
+    "validation_honor_completion_mode_required": "Primeiro escolha como concluir esta especialidade."
   },
   "honors": {
     "errors": {
@@ -716,7 +724,41 @@
       "mode_guard_external": "Esta especialidade está sendo concluída fora do app. Use a tela de formulário e evidências gerais.",
       "mode_guard_undecided": "Primeiro escolha como quer concluir esta especialidade.",
       "mode_guard_not_found": "Não foi encontrada a inscrição desta especialidade.",
-      "mode_guard_back": "Voltar"
+      "mode_guard_back": "Voltar",
+      "step_working": "Em andamento",
+      "step_semantics": "Etapa {current} de {total}: {label}",
+      "band_meta": "{percent}% · {mode}",
+      "band_progress_semantics": "{percent}% concluído",
+      "tab_requirements": "Requisitos {done}/{total}",
+      "tab_info": "Informações",
+      "meta_answered": "Respondido",
+      "meta_has_evidence": "Com evidência",
+      "meta_missing_photo": "Falta foto",
+      "meta_children_done": "{done} de {total} feitos",
+      "meta_choose_done": {
+        "one": "Escolha {min} · {} feito",
+        "other": "Escolha {min} · {} feitos"
+      },
+      "empty": "Esta especialidade não tem requisitos",
+      "sheet_title": "Requisito {number}",
+      "sheet_save": "Salvar",
+      "rejected_title": "Sua especialidade foi rejeitada",
+      "rejected_hint": "Corrija e envie de novo",
+      "info_date_needed": "Necessária para enviar para revisão",
+      "info_instructor_optional": "Opcional",
+      "missing_intro": "Falta: {items}",
+      "missing_requirements": {
+        "one": "{} requisito",
+        "other": "{} requisitos"
+      },
+      "missing_evidences": {
+        "one": "{} evidência",
+        "other": "{} evidências"
+      },
+      "missing_date": "a data de conclusão",
+      "list_and": " e ",
+      "ready_to_send": "Tudo pronto para enviar",
+      "under_review_hint": "Um responsável está revisando seu trabalho"
     },
     "evidence": {
       "my_honor_title": "Minha especialidade",
