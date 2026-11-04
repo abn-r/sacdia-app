@@ -9,6 +9,14 @@
 > Design identity: "Scout Vibrante" — Duolingo gamification + Apple Health minimalism.
 > White backgrounds, vibrant accents, progress as protagonist.
 
+### Changelog 2026-11-04 — color/state foundation
+
+- **Status containers**: `SacColors` gains `success/warning/error/infoContainer` and their `on*Container`, per mode (§2.7). `onSuccess`/`onWarning`/`onInfo` now are ink (`#131316`) because white and `accentDark` failed AA on the solid fills.
+- **`SacBadge`**: variants resolve through the container tokens (dark-aware, AA), new `info` variant, dark `primary` tints over the surface (§6.2).
+- **`SacSnackBar`**: new `isSuccess` (neutral bar + green check), `isError` forces white text (§6.9b). Green `backgroundColor:` overrides are banned.
+- **Ratchet guard**: `semantic_states_ratchet_test.dart` freezes the remaining light-only pastels and `e.toString()` leaks (§18).
+- **Formatting**: dates follow the app language (`Intl.defaultLocale` synced in `main.dart`, no hardcoded `'es'`); all money goes through `SacMoney` (es_MX, no `MXN` suffix, tabular figures). Both are hard bans in the ratchet (§16.1, §18).
+
 ### v2 changelog (2026-11-03)
 
 The app's screens had settled on a style that differed from what v1 prescribed. After
@@ -153,7 +161,7 @@ surface/border/text tokens are aliases of its steps; the old slate palette is go
 
 ### 2.6 Semantic State Aliases
 
-Raw aliases in `AppColors` (light-only — do NOT use directly in widget paint code):
+Raw aliases in `AppColors` (same value in both modes; paint code reads them through `context.sac` — see §2.7):
 
 ```dart
 AppColors.success  = AppColors.secondary  (#4FBF9F)
@@ -162,13 +170,13 @@ AppColors.info     = AppColors.sacBlue    (#2EA0DA)
 AppColors.error    = Color(0xFFDC2626)
 ```
 
-Use `context.sac.*` getters instead — see §2.7.
+Use `context.sac.*` getters instead — see §2.7. What is actually light-only are the pastels `AppColors.*Light` / `light*` (and `primarySurface`): they glare on the OLED dark theme, so use the `xContainer` tokens instead.
 
 ### 2.7 Dark-Mode Aware Color Resolution — MANDATED PATTERN
 
 **`context.sac` (the `SacColors` extension on `BuildContext`) is the MANDATED pattern for all color access in widget paint code.**
 
-NEVER use `AppColors.*` directly in widget paint code. `AppColors` constants are light-mode values and do not adapt to dark mode. The `SacColors` extension resolves the correct variant automatically based on `Theme.of(context).brightness`.
+NEVER use `AppColors.*` directly in widget paint code. `AppColors` constants are not theme-aware (the `*Light` / `light*` pastels are light-only and glare in dark mode). The `SacColors` extension resolves the correct variant automatically based on `Theme.of(context).brightness`.
 
 ```dart
 // File: lib/core/theme/sac_colors.dart
@@ -210,19 +218,31 @@ c.canvas          // #FAFAFB / #000000  (screen background)
 c.onPrimary       // Colors.white (both modes)
 c.barrierColor    // rgba(0,0,0,0.5) / rgba(0,0,0,0.7)
 
-// Semantic state (added — same Color value both modes, use these over AppColors.*)
+// Semantic state. Solid fills: same value in both modes.
 c.success         // #4FBF9F
-c.onSuccess       // Colors.white
+c.onSuccess       // #131316 (ink on solid green, 8.2:1)
 c.warning         // #FBBD5E
-c.onWarning       // #B8862B (dark text on yellow)
+c.onWarning       // #131316 (ink on solid yellow, 11.1:1)
 c.info            // #2EA0DA
-c.onInfo          // Colors.white
+c.onInfo          // #131316 (ink on solid blue, 6.3:1)
 c.error           // #DC2626
-c.onError         // Colors.white
+c.onError         // Colors.white (4.83:1)
+
+// Status containers (tinted backgrounds), light / dark
+c.successContainer    // #E0F5EF / #253B35
+c.onSuccessContainer  // #1E6B55 / #6FD3B6
+c.warningContainer    // #FFF4E0 / #473B28
+c.onWarningContainer  // #8A5A00 / #FBBD5E
+c.errorContainer      // #FEE2E2 / #491D1D
+c.onErrorContainer    // #991B1B / #FCA5A5
+c.infoContainer       // #EFF6FF / #1E3540
+c.onInfoContainer     // #0B6699 / #7CC4EE
 ```
 
-**Known tech-debt — 83-file migration pending:**
-Some widgets still use `AppColors.error` / `AppColors.success` / `AppColors.warning` directly in paint code, bypassing `context.sac`. Future agents: do NOT add more `AppColors.*` calls for colors that must adapt to dark mode — use `context.sac.*`. (Hardcoded `Color(0xFF…)` literals were removed from paint code in v2.)
+**Status color rule.** Status tint backgrounds use `xContainer`; status text and icons use `onXContainer`. That `onXContainer` is also the color for status-colored text placed directly on `surface`/`background` (at least 5.4:1 on white and on `#1A1A1A`/`#000`). `onX` (no `Container`) is only for text on a solid `x` fill. A border or a decorative fill may use the solid `x` token.
+
+**Known tech-debt — light-only pastels pending migration:**
+About 165 uses of `AppColors.*Light` / `light*` remain in feature presentation (frozen by the ratchet test, §18). Replace them with the container tokens when you touch the file. Future agents: do NOT add more `AppColors.*` calls for colors that must adapt to dark mode — use `context.sac.*`. (Hardcoded `Color(0xFF…)` literals were removed from paint code in v2.)
 
 **2026-09-04 — neutral-scale audit:** `AppColors.inkNNN`, `AppColors.paper` and `AppColors.canvas` are now `@Deprecated`; every screen that used them (Clases module, Investiduras history, Materiales checkout, Honor completion) was migrated to `context.sac.inkNNN` / `paper` / `canvas`. Feature-scoped palettes follow the same rule: `MedicoTokens.of(context)` (`MedicoPalette`) for Información Médica and its edit sub-screens.
 
@@ -275,6 +295,8 @@ AppColors.statusInfoBgDark   = #1E293B   // dark badge bg
 AppColors.statusInfoText     = #1D4ED8   // light badge text
 AppColors.statusInfoTextDark = #60A5FA   // dark badge text
 ```
+
+For a plain info badge use `SacBadge.info` (`infoContainer` / `onInfoContainer`, §2.7). The `statusInfo*` pair below is only for the validation "sent" badge.
 
 These are the only hardcoded non-semantic colors allowed for badges — they exist
 because the semantic `info` token does not map cleanly to the correct hue for "sent" status.
@@ -426,7 +448,7 @@ class MyWidget extends StatelessWidget {
 ```
 
 **Exception**: Widgets that accept BOTH Material `IconData` AND `HugeIconData`
-(e.g. `SacButton`, `SacBadge`, `DashboardCard`) keep `dynamic` and dispatch
+(e.g. `SacButton`, `DashboardCard`) keep `dynamic` and dispatch
 via `buildIcon()`:
 
 ```dart
@@ -518,18 +540,23 @@ Pill-shaped label for statuses, categories, and counts.
 
 | Variant | Background | Foreground |
 |---------|-----------|-----------|
-| `primary` | `primaryLight` | `primaryDark` |
-| `secondary` (success shortcut) | `secondaryLight` | `secondaryDark` |
-| `accent` (warning shortcut) | `accentLight` | `accentDark` |
-| `error` | `errorLight` | `errorDark` |
-| `neutral` | `context.sac.surfaceVariant` | `context.sac.textSecondary` |
+| `primary` | light: `SacAccent.light`; dark: accent at 20% over `c.surface` | light: `SacAccent.dark`; dark: `forHighContrast(Brightness.dark)` |
+| `secondary` (success shortcut) | `c.successContainer` | `c.onSuccessContainer` |
+| `accent` (warning shortcut) | `c.warningContainer` | `c.onWarningContainer` |
+| `error` | `c.errorContainer` | `c.onErrorContainer` |
+| `info` | `c.infoContainer` | `c.onInfoContainer` |
+| `neutral` | `c.surfaceVariant` | `c.textSecondary` |
+
+Every status variant is dark-aware and AA (the container pairs are verified). Do not pass
+`AppColors.*Light` as `backgroundColor`; pick the variant.
 
 **Named constructors:**
 - `SacBadge.success(label:)` — maps to `secondary` variant
 - `SacBadge.warning(label:)` — maps to `accent` variant
 - `SacBadge.error(label:)` — maps to `error` variant
+- `SacBadge.info(label:)` — maps to `info` variant
 
-Icon: `dynamic` field dispatched via `buildIcon()` at 14px.
+Icon: `HugeIconData?`, drawn via `buildIcon()` at 14px.
 Border radius: 20px (pill).
 Text: `fontSize: SacFontSize.bodySmall` (12), `fontWeight: w500`.
 
@@ -772,6 +799,22 @@ SacProgressRing(
 | `SacEmptyState` | `sac_empty_state.dart` | Canonical empty / no-data placeholder (icon 56, title, optional body + CTA) |
 | `SacErrorState` | `sac_error_state.dart` | Full-area error placeholder: icon, title, optional message, optional retry. `SacErrorState.forbidden()` is the 403 variant (lock icon, no retry). Accepts `padding` to sit below a frosted `SacTopBar` |
 | `SacStatTile` | `sac_stat_tile.dart` | KPI tile on `SacCard`: tinted icon circle, `AnimatedCounter` value (`decimals` for fractions), label, `SacStatTone` (neutral/warning/error/success/accent), optional `onTap`; `SacStatTile.skeleton()` for loading |
+
+### 6.9b SacSnackBar
+
+**File:** `lib/core/widgets/sac_snack_bar.dart`
+
+Canonical toast: `SacSnackBar.show(context, message, ...)` (or `showMessenger` after an async gap).
+
+| Flag | Result |
+|------|--------|
+| default | Neutral theme bar (dark ink in light theme, `#F2F2F2` in dark) |
+| `isSuccess: true` | Same neutral bar plus a leading green check (`#4FBF9F` on the light theme, `#1E6B55` on the dark one; 8.2:1 / 5.7:1). A caller-provided `leading` wins |
+| `isError: true` | `AppColors.error` bar, content text and close icon forced white (4.83:1; black on red was 4.35:1 in dark) |
+
+`isError` and `isSuccess` are mutually exclusive (asserted). Do not color a success toast with
+`backgroundColor: AppColors.secondary` (white on it is 2.26:1); the ratchet test (§18) forbids it.
+`backgroundColor` stays for rare custom tones.
 
 ### 6.10 Barrel File — sac_widgets.dart
 
@@ -1375,6 +1418,23 @@ role_assignments / transfers / units / validation
 - Decorative achievement shimmer and pulse loops stop and reset while Reduced
   Motion is enabled.
 
+### 16.1 Formatting: money and dates
+
+**Money** (`lib/core/utils/money_format.dart`, `SacMoney`):
+- Every amount uses `SacMoney.format(pesos)` / `fromCentavos(centavos)` -> "$1,234.50". Signed rows (`signed: true`) show "+$" or "−$" (U+2212).
+- `SacMoney.compact` ("$950", "$1.2k", "$12k", "$1.5M") only for tight spaces (chart axes, stat chips).
+- Fixed to es_MX on purpose: amounts are always MXN, so money does NOT change with the app language. Never show an "MXN" suffix.
+- Amount `TextStyle`s use `fontFeatures: SacMoney.tabularFigures` so digits align in columns.
+- No `NumberFormat.currency` outside `SacMoney` (ratchet). Editable form values stay plain numbers.
+
+**Dates** follow the app language:
+- `main.dart` keeps `Intl.defaultLocale` equal to the easy_localization locale (pt-BR -> `pt_BR`) and loads date symbols at startup. Use `DateFormat(pattern)` with NO locale argument, or `SacDateFormatter`. Never pin `'es'` (ratchet).
+- `DateFormat` captures the locale when it is built: do not keep one in a `static final`; build it per use or in `didChangeDependencies`.
+- Avoid Spanish literals in patterns (`'de'`); use skeletons such as `DateFormat.yMMMMd()`.
+- Calendar dates (`start_date`, `YYYY-MM-DD`): `parseCalendarDate` + `formatCalendar` / `range` (no UTC -> local). Timestamps (`created_at`): `format` / `toLocal()`.
+- Ranges: `SacDateFormatter.range(start, end)` -> "3 – 5 abr 2026", "28 mar – 2 abr 2026".
+- Tests start in `es` (`test/flutter_test_config.dart`); set `Intl.defaultLocale` explicitly to test another language.
+
 ---
 
 ## 17. Known Inconsistencies (explicit — prefer the canonical pattern listed)
@@ -1399,6 +1459,20 @@ role_assignments / transfers / units / validation
 ---
 
 ## 18. Design token guard
+
+`test/core/theme/semantic_states_ratchet_test.dart` is a separate ratchet over
+`lib/features/**/presentation/**`. It keeps a checked-in baseline (file → count) for:
+
+- light-only pastels `AppColors.(*Light|light*|primarySurface)` (use `xContainer` tokens, §2.7)
+- `e.toString()` / `err.toString()` / `error.toString()` (use `SacErrorState` + `userErrorMessage`)
+- green `backgroundColor:` on `SacSnackBar` calls (empty baseline = hard ban; use `isSuccess`)
+- `NumberFormat.currency/simpleCurrency/compactCurrency` anywhere in `lib/**` (hard ban; use `SacMoney`, §16.1)
+- a `DateFormat` with a quoted `'es'` locale anywhere in `lib/**` (hard ban; dates follow the app language, §16.1)
+
+A file can never exceed its baseline, and new files start at zero. When a count drops, the
+test fails until the baseline is lowered, so the debt only shrinks.
+
+### 18.1 Token literals
 
 `test/core/theme/design_tokens_guard_test.dart` scans `lib/` (except `lib/core/theme/`)
 and fails on:
