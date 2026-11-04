@@ -1,5 +1,9 @@
 {
   "common": {
+    "refresh": "Atualizar",
+    "understood": "Entendi",
+    "decrease_quantity": "Diminuir quantidade",
+    "increase_quantity": "Aumentar quantidade",
     "loading": "Carregando…",
     "retry": "Tentar de novo",
     "cancel": "Cancelar",
@@ -864,6 +868,7 @@
       "fetch_club_sections": "Erro ao obter seções do clube"
     },
     "list": {
+      "toggle_view": "Alternar visualização",
       "title": "Atividades",
       "add": "Adicionar",
       "today_label": "Hoje",
@@ -2532,6 +2537,9 @@
       "error_retry_hint": "Deslize para baixo para tentar novamente."
     },
     "widgets": {
+      "prev_month": "Mês anterior",
+      "next_month": "Próximo mês",
+      "chart_a11y": "Gráfico de receitas e despesas do período",
       "balance_total": "SALDO TOTAL",
       "month_summary_prefix": "Este mês: ",
       "month_summary_connector": " receitas e ",
@@ -5290,6 +5298,8 @@
     }
   },
   "master_honors": {
+    "load_error_title": "Não conseguimos carregar as maestrias",
+    "load_error_body": "Tente novamente em alguns segundos.",
     "title": "Maestrias",
     "empty_title": "Não há maestrias disponíveis"
   },

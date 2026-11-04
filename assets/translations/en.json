@@ -1,5 +1,9 @@
 {
   "common": {
+    "refresh": "Refresh",
+    "understood": "Got it",
+    "decrease_quantity": "Decrease quantity",
+    "increase_quantity": "Increase quantity",
     "loading": "Loading…",
     "retry": "Retry",
     "cancel": "Cancel",
@@ -864,6 +868,7 @@
       "fetch_club_sections": "Error fetching club sections"
     },
     "list": {
+      "toggle_view": "Switch view",
       "title": "Activities",
       "add": "Add",
       "today_label": "Today",
@@ -2533,6 +2538,9 @@
       "error_retry_hint": "Swipe down to retry."
     },
     "widgets": {
+      "prev_month": "Previous month",
+      "next_month": "Next month",
+      "chart_a11y": "Income and expense chart for the period",
       "balance_total": "TOTAL BALANCE",
       "month_summary_prefix": "This month: ",
       "month_summary_connector": " income and ",
@@ -5292,6 +5300,8 @@
     }
   },
   "master_honors": {
+    "load_error_title": "We couldn't load the master honors",
+    "load_error_body": "Please try again in a few seconds.",
     "title": "Master honors",
     "empty_title": "No master honors available"
   },
