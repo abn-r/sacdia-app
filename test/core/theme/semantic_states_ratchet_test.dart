@@ -53,10 +53,7 @@ const Map<String, int> _lightOnlyColorBaseline = {
 };
 
 // BASELINE:errorToString
-const Map<String, int> _errorToStringBaseline = {
-  'lib/features/coordinator/presentation/providers/coordinator_providers.dart':
-      1,
-};
+const Map<String, int> _errorToStringBaseline = {};
 
 // BASELINE:snackBarSuccessOverride
 const Map<String, int> _snackBarSuccessOverrideBaseline = {};

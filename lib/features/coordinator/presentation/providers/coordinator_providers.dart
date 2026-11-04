@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/forbidden.dart';
 import '../../data/datasources/coordinator_remote_data_source.dart';
 import '../../data/repositories/coordinator_repository_impl.dart';
 import '../../domain/entities/coordinator_club.dart';
@@ -21,29 +22,25 @@ import '../widgets/evidence_age.dart' show kEvidenceOverdueDays;
 /// Keeps the historical `Exception: <message>` text (some views still strip
 /// that prefix) while exposing [isForbidden] so views can show the
 /// access-restricted state without sniffing the message.
-class CoordinatorLoadException implements Exception {
+class CoordinatorLoadException implements Exception, ForbiddenAware {
   const CoordinatorLoadException(this.message, {this.isForbidden = false});
 
+  /// [isForbidden] sigue el criterio único de la app ([isForbiddenFailure]):
+  /// HTTP 403 o un código `GUARD_*`/`*_FORBIDDEN`, nunca `ACTING_FOR_*` ni
+  /// `PRINCIPAL_SCOPE_*`.
   factory CoordinatorLoadException.fromFailure(Failure failure) =>
       CoordinatorLoadException(
         failure.message,
-        isForbidden: failure.code == 403,
+        isForbidden: isForbiddenFailure(failure),
       );
 
   final String message;
+
+  @override
   final bool isForbidden;
 
   @override
   String toString() => 'Exception: $message';
-}
-
-/// Whether [error] means the user lacks permission for the coordinator API
-/// (HTTP 403). Falls back to the legacy message match for errors that did not
-/// come through [CoordinatorLoadException].
-bool isCoordinatorForbidden(Object error) {
-  if (error is CoordinatorLoadException) return error.isForbidden;
-  final msg = error.toString();
-  return msg.contains('permiso') || msg.contains('403');
 }
 
 // ── Infrastructure providers ──────────────────────────────────────────────────

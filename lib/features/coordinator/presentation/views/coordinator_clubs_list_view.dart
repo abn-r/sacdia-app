@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/errors/forbidden.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
@@ -75,8 +76,8 @@ class CoordinatorClubsListView extends ConsumerWidget {
                 onRefresh: () => _refresh(ref),
                 slivers: const [_SkeletonSliver()],
               ),
-              error: (error, _) => isCoordinatorForbidden(error)
-                  ? SacErrorState.forbidden(
+              error: (error, _) => isForbiddenFailure(error)
+                  ? ForbiddenView(
                       padding: SacTopBar.paddingBelowBar(
                         context,
                         const EdgeInsets.all(32),

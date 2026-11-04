@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:sacdia_app/core/errors/forbidden.dart';
 import 'package:sacdia_app/core/animations/animated_counter.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
@@ -136,8 +137,8 @@ class CoordinatorHubView extends ConsumerWidget {
                 _ClubsSkeleton(),
               ],
             ),
-            error: (error, _) => isCoordinatorForbidden(error)
-                ? SacErrorState.forbidden(
+            error: (error, _) => isForbiddenFailure(error)
+                ? ForbiddenView(
                     padding: SacTopBar.paddingBelowBar(
                       context,
                       const EdgeInsets.all(32),
@@ -1133,7 +1134,7 @@ class _ReportsSection extends ConsumerWidget {
         ref.watch(reportComplianceProvider(kWholeYearCompliance));
     final forbidden = complianceAsync.hasError &&
         !complianceAsync.isLoading &&
-        isCoordinatorForbidden(complianceAsync.error!);
+        isForbiddenFailure(complianceAsync.error!);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
