@@ -1339,7 +1339,11 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       final generation = _session.generation;
       final result = await ref.read(getCurrentUserProvider)(NoParams());
       // El perfil o la sesión cambiaron mientras volaba: la respuesta es vieja.
-      if (_session.generation != generation || state.isLoading) return false;
+      // Si se empezó a actuar por un menor, la respuesta es la del tutor y no
+      // debe publicarse ni cachearse como la del perfil activo.
+      if (_session.generation != generation || state.isLoading || _isActing) {
+        return false;
+      }
       final fresh = result.fold<UserEntity?>((_) => null, (u) => u);
       final still = state.value;
       if (fresh == null || still == null || fresh.id != still.id) return false;
@@ -1366,12 +1370,15 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   /// club o la activa), `territory` o la marca [UserEntity.authorizationStale].
   /// Una respuesta fresca siempre limpia esa marca.
   ///
-  /// Lo llama la app al volver al frente y el push silencioso
+  /// Lo llama la app al volver al frente, al recuperar la red con la
+  /// autorización obsoleta ([onConnectivityRestored]) y el push silencioso
   /// `cache_invalidate` con `resource == 'authorization'`. Nunca mientras se
   /// actúa por un menor (la respuesta sería la del dependiente) ni durante una
   /// carga, y no sale de ningún modo «actuar por». Un fallo (sin red, 401...)
-  /// no toca el estado. [minInterval] limita la frecuencia (el push pasa
-  /// `Duration.zero`). Devuelve `true` si el estado cambió.
+  /// no toca el estado ni consume la ventana de [minInterval]: solo una
+  /// respuesta fresca la abre, así el siguiente `resumed` reintenta.
+  /// [minInterval] limita la frecuencia (el push pasa `Duration.zero`).
+  /// Devuelve `true` si el estado cambió.
   Future<bool> refreshAuthorization({
     Duration minInterval = const Duration(seconds: 30),
   }) async {
@@ -1386,16 +1393,22 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     if (last != null && DateTime.now().difference(last) < minInterval) {
       return false;
     }
-    _lastAuthorizationRefresh = DateTime.now();
     _refreshingAuthorization = true;
     try {
       final generation = _session.generation;
       final result = await ref.read(getCurrentUserProvider)(NoParams());
       // El perfil o la sesión cambiaron mientras volaba: la respuesta es vieja.
-      if (_session.generation != generation || state.isLoading) return false;
+      // Si se empezó a actuar por un menor, la respuesta es la del tutor y no
+      // debe publicarse ni cachearse como la del perfil activo.
+      if (_session.generation != generation || state.isLoading || _isActing) {
+        return false;
+      }
       final fresh = result.fold<UserEntity?>((_) => null, (u) => u);
+      if (fresh == null) return false;
+      // Solo una respuesta fresca abre la ventana: un fallo no la consume.
+      _lastAuthorizationRefresh = DateTime.now();
       final still = state.value;
-      if (fresh == null || still == null || fresh.id != still.id) return false;
+      if (still == null || fresh.id != still.id) return false;
       if (!authorizationChanged(still, fresh)) {
         // Nada cambió, pero la respuesta es fresca: renueva su marca de tiempo.
         if (!_isActing) {
@@ -1413,6 +1426,19 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     } finally {
       _refreshingAuthorization = false;
     }
+  }
+
+  /// Volvió la red. Si la sesión se restauró sin ella (autorización de la
+  /// caché, [UserEntity.authorizationStale]) vuelve a pedir `/auth/me` sin
+  /// esperar el intervalo mínimo, para que la siguiente mutación ya no la
+  /// rechace `AuthorizationStaleInterceptor`. Con la autorización fresca no
+  /// hace nada: el `resumed` y el push ya cubren el resto. Devuelve `true` si
+  /// el estado cambió.
+  Future<bool> onConnectivityRestored() {
+    if (state.value?.authorizationStale != true) return Future.value(false);
+    AppLogger.i('Red recuperada con autorización obsoleta: refrescando',
+        tag: _tag);
+    return refreshAuthorization(minInterval: Duration.zero);
   }
 
   /// ¿Cambió lo que decide el acceso entre [before] y [after]? Compara solo

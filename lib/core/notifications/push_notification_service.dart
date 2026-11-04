@@ -17,7 +17,6 @@ import '../auth/session_mode.dart';
 import '../config/pending_navigation.dart';
 import '../config/route_names.dart';
 import '../config/dashboard_drill_in.dart';
-import '../realtime/feature_flags.dart';
 import '../realtime/realtime_invalidation_handler.dart';
 import '../realtime/realtime_ref.dart';
 import '../theme/sac_colors.dart';
@@ -54,11 +53,11 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // INVALIDATE data messages must be staged BEFORE the notification-null guard
   // below because they carry no notification object by design. Riverpod is NOT
   // accessible from this isolate — we write to SharedPreferences and drain on
-  // the next app resume (see RealtimeInvalidationHandler.drainPending).
+  // the next app resume (see RealtimeInvalidationHandler.drainPending). The
+  // handler decides what to stage: `authorization` always, the club resources
+  // only behind their feature flag.
   if (message.data['type'] == 'cache_invalidate') {
-    if (RealtimeFeatureFlags.realtimeInvalidationEnabled) {
-      await RealtimeInvalidationHandler.stagePending(message);
-    }
+    await RealtimeInvalidationHandler.stagePending(message);
     return;
   }
 
@@ -551,14 +550,14 @@ class PushNotificationService {
 
     // cache_invalidate data messages are intercepted BEFORE the notification-null
     // guard because they intentionally carry no notification payload.
-    // They are handled silently — no inbox entry, no badge, no snackbar.
+    // They are handled silently — no inbox entry, no badge, no snackbar. The
+    // handler decides what to process: `authorization` always, the club
+    // resources only behind their feature flag.
     if (message.data['type'] == 'cache_invalidate') {
-      if (RealtimeFeatureFlags.realtimeInvalidationEnabled) {
-        RealtimeInvalidationHandler.handleForeground(
-          message,
-          RealtimeRef.fromRef(_ref),
-        );
-      }
+      RealtimeInvalidationHandler.handleForeground(
+        message,
+        RealtimeRef.fromRef(_ref),
+      );
       return;
     }
 

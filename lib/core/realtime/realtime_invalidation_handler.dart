@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../utils/app_logger.dart';
+import 'feature_flags.dart';
 import 'realtime_ref.dart';
 import 'realtime_resource_registry.dart';
 
@@ -27,6 +28,13 @@ import 'realtime_resource_registry.dart';
 /// collapsed into one — keeping the entry with the latest timestamp. This
 /// prevents redundant network fetches when several mutations arrive while the
 /// app is backgrounded.
+///
+/// ## Feature flag
+/// The handler itself decides what to process (see [shouldHandleResource]):
+/// the `authorization` push is part of the phase 7 contract and is ALWAYS
+/// handled; club-data resources (those carrying a `sectionId`) stay behind
+/// [RealtimeFeatureFlags.realtimeInvalidationEnabled]. Callers
+/// (`push_notification_service.dart`, `main.dart`) never consult the flag.
 class RealtimeInvalidationHandler {
   RealtimeInvalidationHandler._();
 
@@ -38,6 +46,30 @@ class RealtimeInvalidationHandler {
   /// action: 'UPDATED', timestamp}`). No lleva `sectionId`: se dirige al
   /// usuario afectado y la respuesta es volver a pedir `/auth/me`.
   static const authorizationResource = 'authorization';
+
+  /// ¿Se procesa un `cache_invalidate` de [resource]?
+  ///
+  /// `authorization` siempre: no depende de la bandera. El resto (datos de
+  /// club con `sectionId`) solo con [realtimeEnabled], que por defecto es
+  /// [RealtimeFeatureFlags.realtimeInvalidationEnabled] (constante de
+  /// compilación); los tests la inyectan.
+  static bool shouldHandleResource(
+    String? resource, {
+    bool realtimeEnabled = RealtimeFeatureFlags.realtimeInvalidationEnabled,
+  }) {
+    return resource == authorizationResource || realtimeEnabled;
+  }
+
+  /// [shouldHandleResource] leyendo `resource` de [msg.data].
+  static bool shouldHandle(
+    RemoteMessage msg, {
+    bool realtimeEnabled = RealtimeFeatureFlags.realtimeInvalidationEnabled,
+  }) {
+    return shouldHandleResource(
+      msg.data['resource'] as String?,
+      realtimeEnabled: realtimeEnabled,
+    );
+  }
 
   /// Qué hacer ante un `authorization` recibido en primer plano o drenado al
   /// volver al frente. Por defecto vuelve a pedir `/auth/me` sin esperar el
@@ -78,14 +110,27 @@ class RealtimeInvalidationHandler {
   ///
   /// Parses [resource] and [sectionId] from [msg.data], then delegates to
   /// [RealtimeResourceRegistry]. Errors are caught and logged — a bad payload
-  /// must never crash the app.
-  static void handleForeground(RemoteMessage msg, RealtimeRef ref) {
+  /// must never crash the app. Resources behind the flag are ignored unless
+  /// [realtimeEnabled] (see [shouldHandleResource]).
+  static void handleForeground(
+    RemoteMessage msg,
+    RealtimeRef ref, {
+    bool realtimeEnabled = RealtimeFeatureFlags.realtimeInvalidationEnabled,
+  }) {
     try {
       final data = msg.data;
       // Discriminator matches backend `type: 'cache_invalidate'` from
       // notifications.processor.ts sendSilentMulticast.
       final resource = data['resource'] as String?;
       final rawSectionId = data['sectionId'] as String?;
+
+      if (!shouldHandleResource(resource, realtimeEnabled: realtimeEnabled)) {
+        AppLogger.d(
+          'Foreground invalidation ignored (flag off): resource=$resource',
+          tag: _tag,
+        );
+        return;
+      }
 
       // Sin `sectionId` por contrato: se resuelve antes de exigirlo.
       if (resource == authorizationResource) {
@@ -133,8 +178,16 @@ class RealtimeInvalidationHandler {
   ///
   /// Called from the top-level [firebaseMessagingBackgroundHandler] where
   /// Riverpod is not available. Errors are caught so the background isolate
-  /// never crashes.
-  static Future<void> stagePending(RemoteMessage msg) async {
+  /// never crashes. Resources behind the flag are not staged unless
+  /// [realtimeEnabled] (see [shouldHandleResource]).
+  ///
+  /// Un `authorization` se encola sin `sectionId` (no lo lleva por contrato):
+  /// al drenar, la app vuelve a pedir `/auth/me` sin esperar el intervalo
+  /// mínimo, aunque el refresco de `resumed` ya se hubiera saltado por él.
+  static Future<void> stagePending(
+    RemoteMessage msg, {
+    bool realtimeEnabled = RealtimeFeatureFlags.realtimeInvalidationEnabled,
+  }) async {
     try {
       final data = msg.data;
       final resource = data['resource'] as String?;
@@ -142,11 +195,16 @@ class RealtimeInvalidationHandler {
       final timestamp =
           data['timestamp'] as String? ?? DateTime.now().toIso8601String();
 
-      // Un cambio de autorización en segundo plano se descarta: al volver al
-      // frente la app vuelve a pedir `/auth/me` de todos modos.
-      if (resource == authorizationResource) return;
+      if (!shouldHandleResource(resource, realtimeEnabled: realtimeEnabled)) {
+        AppLogger.d(
+          'Background invalidation ignored (flag off): resource=$resource',
+          tag: _tag,
+        );
+        return;
+      }
 
-      if (resource == null || sectionId == null) {
+      final isAuthorization = resource == authorizationResource;
+      if (resource == null || (sectionId == null && !isAuthorization)) {
         AppLogger.w(
           'Background cache_invalidate message missing resource or sectionId',
           tag: _tag,
@@ -171,14 +229,15 @@ class RealtimeInvalidationHandler {
 
       queue.add({
         'resource': resource,
-        'sectionId': sectionId,
+        if (sectionId != null) 'sectionId': sectionId,
         'timestamp': timestamp,
       });
 
       await prefs.setString(_prefsKey, jsonEncode(queue));
 
       AppLogger.i(
-        'Staged background invalidation: resource=$resource sectionId=$sectionId',
+        'Staged background invalidation: resource=$resource '
+        'sectionId=${sectionId ?? '-'}',
         tag: _tag,
       );
     } catch (e, st) {
@@ -201,7 +260,13 @@ class RealtimeInvalidationHandler {
   /// invalidations are processed the moment the user brings the app to front.
   ///
   /// Errors are caught so a corrupt queue never breaks the resume path.
-  static Future<void> drainPending(RealtimeRef ref) async {
+  /// Entries for resources behind the flag are dropped unless
+  /// [realtimeEnabled] (see [shouldHandleResource]); the queue is cleared
+  /// either way.
+  static Future<void> drainPending(
+    RealtimeRef ref, {
+    bool realtimeEnabled = RealtimeFeatureFlags.realtimeInvalidationEnabled,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final raw = prefs.getString(_prefsKey);
@@ -231,6 +296,9 @@ class RealtimeInvalidationHandler {
       final Map<String, Map<String, String>> best = {};
       for (final entry in queue) {
         final resource = entry['resource'];
+        if (!shouldHandleResource(resource, realtimeEnabled: realtimeEnabled)) {
+          continue;
+        }
         // `authorization` no lleva sección: una sola entrada basta.
         final sectionId = resource == authorizationResource
             ? (entry['sectionId'] ?? '')

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 
+import '../../../../core/errors/authorization_stale.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/investiture_resolution.dart';
@@ -112,6 +113,8 @@ class InvestitureRequestsRemoteDataSourceImpl
 
   Never _rethrow(Object e) {
     if (e is DioException) {
+      // Rechazo local por autorización obsoleta: conserva mensaje y código.
+      if (isAuthorizationStale(e)) throw authorizationStaleException(e);
       final status = e.response?.statusCode;
       final errorCode = _extractDioCode(e);
       final mapped = investitureRequestErrorMessage(errorCode);

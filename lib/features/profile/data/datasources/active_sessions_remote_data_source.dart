@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
+import '../../../../core/errors/authorization_stale.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/active_session_model.dart';
@@ -156,6 +157,16 @@ class ActiveSessionsRemoteDataSourceImpl
     final serverMessage = e.response?.data is Map
         ? (e.response!.data['message'] as String?)
         : null;
+
+    // Rechazo local por autorización obsoleta: conserva mensaje y código (el
+    // repositorio solo conoce ServerException).
+    if (isAuthorizationStale(e)) {
+      throw ServerException(
+        message: authorizationStaleMessage(e),
+        code: statusCode,
+        errorCode: kAuthorizationStaleCode,
+      );
+    }
 
     final message = switch (statusCode) {
       400 when serverMessage?.contains('logout') == true =>

@@ -24,7 +24,7 @@ import 'core/l10n/sunday_first_material_localizations.dart';
 import 'core/config/router.dart';
 import 'core/onboarding/sac_onboarding.dart';
 import 'core/providers/app_provider_retry.dart';
-import 'core/realtime/feature_flags.dart';
+import 'core/network/network_info.dart';
 import 'core/realtime/realtime_invalidation_handler.dart';
 import 'core/realtime/realtime_ref.dart';
 import 'core/theme/accent_provider.dart';
@@ -330,16 +330,35 @@ class MyApp extends ConsumerStatefulWidget {
 
 class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   late final void Function() _unbindWidgetLaunches;
+  StreamSubscription<bool>? _connectivitySubscription;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _unbindWidgetLaunches = bindNextActivityWidgetLaunches(ref);
+    // Una sesión restaurada sin red queda en solo lectura (autorización de la
+    // caché) hasta que `/auth/me` responda: al recuperar la red se vuelve a
+    // pedir sin esperar al siguiente `resumed`. Con la autorización fresca no
+    // hace nada. Un fallo del canal de conectividad nunca rompe la app.
+    _connectivitySubscription = connectionChanges().listen(
+      (online) {
+        if (!online) return;
+        unawaited(
+          ref.read(authNotifierProvider.notifier).onConnectivityRestored(),
+        );
+      },
+      onError: (Object e) => AppLogger.w(
+        'No se pudo observar la conectividad',
+        tag: 'MyApp',
+        error: e,
+      ),
+    );
   }
 
   @override
   void dispose() {
+    _connectivitySubscription?.cancel();
     _unbindWidgetLaunches();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -359,10 +378,14 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
       // sin red sigue en solo lectura hasta que `/auth/me` responda). Para
       // todos los modos; no depende del push ni de su bandera.
       unawaited(auth.refreshAuthorization());
-    }
-    if (state == AppLifecycleState.resumed &&
-        RealtimeFeatureFlags.realtimeInvalidationEnabled) {
-      RealtimeInvalidationHandler.drainPending(RealtimeRef.fromWidgetRef(ref));
+      // Lo encolado por el handler en segundo plano: un `authorization` (que
+      // refresca sin esperar el intervalo mínimo) siempre; los recursos de
+      // club solo si su bandera está activa. Lo decide el handler.
+      unawaited(
+        RealtimeInvalidationHandler.drainPending(
+          RealtimeRef.fromWidgetRef(ref),
+        ),
+      );
     }
   }
 

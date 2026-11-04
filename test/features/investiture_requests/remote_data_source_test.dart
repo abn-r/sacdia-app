@@ -228,6 +228,28 @@ void main() {
       );
     });
 
+    test('the local AUTHORIZATION_STALE rejection keeps message and code',
+        () async {
+      // Lo que emite AuthorizationStaleInterceptor: 403 sintético con el
+      // mensaje ya traducido. No debe convertirse en el «sin permiso» genérico.
+      final t = _build(
+        (o) => _ok(
+          o,
+          {'code': 'AUTHORIZATION_STALE', 'message': 'Sin verificar'},
+          status: 403,
+        ),
+      );
+      await expectLater(
+        t.ds.getPresentationContext(4, 9),
+        throwsA(
+          isA<AuthException>()
+              .having((e) => e.errorCode, 'errorCode', 'AUTHORIZATION_STALE')
+              .having((e) => e.message, 'message', 'Sin verificar')
+              .having((e) => e.code, 'code', 403),
+        ),
+      );
+    });
+
     test('the backend error code travels on the exception', () async {
       final forbidden = _build(
         (o) => _ok(
