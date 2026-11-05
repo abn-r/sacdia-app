@@ -78,7 +78,12 @@ class _BirthdayCelebrationGateState
 
     if (!shouldShow) return const SizedBox.shrink();
 
-    return BirthdayCelebrationBanner(onTap: _openBirthdayDialog);
+    // The home's banner gap is only 8, so the banner adds its own 8 to keep
+    // 16 between it and the class card.
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: BirthdayCelebrationBanner(onTap: _openBirthdayDialog),
+    );
   }
 }
 

@@ -208,7 +208,7 @@ void main() {
           expect(children[0], isA<MembershipStatusBanner>());
           expect(children[1], isA<EnrollmentStatusCard>());
           expect(children[2], isA<BirthdayCelebrationGate>());
-          expect((children[3] as SizedBox).height, 16);
+          expect((children[3] as SizedBox).height, 8);
           expect(children[4], isA<ClassHeroCard>());
           expect((children[5] as SizedBox).height, 16);
           expect(children[6], isA<NextActivityCard>());
@@ -285,7 +285,7 @@ void main() {
           expect(children[0], isA<MembershipStatusBanner>());
           expect(children[1], isA<EnrollmentStatusCard>());
           expect(children[2], isA<BirthdayCelebrationGate>());
-          expect((children[3] as SizedBox).height, 16);
+          expect((children[3] as SizedBox).height, 8);
           expect(children[4], isA<PendingTasksCard>());
           expect(children[5], isA<CurrentClassCard>());
           expect((children[6] as SizedBox).height, 16);

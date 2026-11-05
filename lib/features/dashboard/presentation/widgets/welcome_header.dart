@@ -57,7 +57,7 @@ class WelcomeHeader extends StatelessWidget {
     final hPad = Responsive.horizontalPadding(context);
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 8),
+      padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 0),
       child: Row(
         children: [
           // Greeting and name

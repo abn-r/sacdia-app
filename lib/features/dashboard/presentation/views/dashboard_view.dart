@@ -175,7 +175,11 @@ void _openActivity(BuildContext context, UpcomingActivity activity) {
   );
 }
 
-/// Banners shared by both home compositions, followed by the 16 gap.
+/// Banners shared by both home compositions, followed by an 8 gap.
+///
+/// The gap is short because it is also the space between the club line and
+/// the first card when no banner shows (the club line already keeps a 44 pt
+/// tap target). Each banner brings its own bottom spacing.
 const List<Widget> _statusBanners = [
   // Membership status banner (pending/rejected/expired)
   MembershipStatusBanner(),
@@ -185,7 +189,7 @@ const List<Widget> _statusBanners = [
 
   // Birthday celebration entry point
   BirthdayCelebrationGate(),
-  SizedBox(height: 16),
+  SizedBox(height: 8),
 ];
 
 /// Staff home: pending tasks (only when there are any), current class, the
