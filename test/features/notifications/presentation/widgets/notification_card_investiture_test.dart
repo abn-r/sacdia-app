@@ -70,10 +70,34 @@ Future<List<String>> _pumpCard(
     );
   }
 
+  // Same shape as the app: the section screen is a sibling of the dashboard
+  // inside the Inicio shell branch; the inbox and the own list are root
+  // routes. Pushing a branch route over the root inbox broke the navigator.
+  final root = GlobalKey<NavigatorState>();
   final router = GoRouter(
-    initialLocation: '/inbox',
+    navigatorKey: root,
+    initialLocation: RouteNames.homeDashboard,
     routes: [
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, shell) => Scaffold(body: shell),
+        branches: [
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: RouteNames.homeDashboard,
+              pageBuilder: (context, state) => MaterialPage<void>(
+                key: state.pageKey,
+                child: const Scaffold(body: Text('dashboard')),
+              ),
+            ),
+            GoRoute(
+              path: RouteNames.sectionInvestiture,
+              pageBuilder: (context, state) => stub(state),
+            ),
+          ]),
+        ],
+      ),
       GoRoute(
+        parentNavigatorKey: root,
         path: '/inbox',
         pageBuilder: (context, state) => MaterialPage<void>(
           key: state.pageKey,
@@ -81,10 +105,7 @@ Future<List<String>> _pumpCard(
         ),
       ),
       GoRoute(
-        path: RouteNames.sectionInvestiture,
-        pageBuilder: (context, state) => stub(state),
-      ),
-      GoRoute(
+        parentNavigatorKey: root,
         path: RouteNames.ownInvestiture,
         pageBuilder: (context, state) => stub(state),
       ),
@@ -107,7 +128,8 @@ Future<List<String>> _pumpCard(
     ),
   );
   await tester.pump();
-  await tester.pump();
+  router.push('/inbox');
+  await tester.pumpAndSettle();
   await tester.tap(find.text('Resultado de investidura'));
   await tester.pumpAndSettle();
   return visited;
@@ -133,6 +155,17 @@ void main() {
         role: 'secretary',
       );
       expect(visited, [RouteNames.sectionInvestiture]);
+      expect(tester.takeException(), isNull);
+      expect(
+        find.text('screen ${RouteNames.sectionInvestiture}'),
+        findsOneWidget,
+      );
+      // Back lands on the dashboard, not on a broken stack.
+      GoRouter.of(tester.element(find.text(
+        'screen ${RouteNames.sectionInvestiture}',
+      ))).pop();
+      await tester.pumpAndSettle();
+      expect(find.text('dashboard'), findsOneWidget);
     });
 
     testWidgets('keep the detail sheet for any other notification',
