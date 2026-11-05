@@ -396,6 +396,9 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
           if (e.containsKey('ecclesiastical_year')) {
             classJson['ecclesiastical_year'] = e['ecclesiastical_year'];
           }
+          if (e.containsKey('investiture_date')) {
+            classJson['investiture_date'] = e['investiture_date'];
+          }
           return ClassModel.fromJson(classJson);
         }).toList();
       }
