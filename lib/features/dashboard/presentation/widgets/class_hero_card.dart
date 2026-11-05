@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/class_tone.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
@@ -112,6 +113,9 @@ class ClassHeroCard extends ConsumerWidget {
     final isComplete = !isExpired && progress >= 1.0;
     final className = loaded?.name ?? currentClassName;
     final classColor = AppColors.classColor(className);
+    // The card speaks in the class color: logo, bar, percentage and a tonal
+    // button. Only the expired/completed badges keep their semantic colors.
+    final tone = ClassTone.of(context, classColor);
     final next = (loaded == null || isExpired || isComplete)
         ? null
         : nextClassRequirement(loaded);
@@ -186,7 +190,7 @@ class ClassHeroCard extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: SacFontSize.headlineLarge,
                     fontWeight: FontWeight.w700,
-                    color: c.onInfoContainer,
+                    color: tone.onContainer,
                   ),
                 ),
             ],
@@ -206,6 +210,8 @@ class ClassHeroCard extends ConsumerWidget {
                     : 'dashboard.class_hero.continue',
               ),
               trailingIcon: HugeIcons.strokeRoundedArrowRight01,
+              backgroundColor: tone.container,
+              textColor: tone.onContainer,
               onPressed: () => openClassDetail(context, ref, classId),
             ),
           ],
