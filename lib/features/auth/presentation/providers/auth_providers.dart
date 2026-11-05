@@ -1364,6 +1364,12 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   DateTime? _lastAuthorizationRefresh;
   bool _refreshingAuthorization = false;
 
+  /// Un push `authorization` (`minInterval == Duration.zero`) llegó mientras
+  /// `/auth/me` volaba: la respuesta en vuelo puede ser anterior al cambio de
+  /// permisos, así que al terminar se repite UNA vez. Los `resumed` con el
+  /// intervalo normal no lo marcan.
+  bool _authorizationRefreshRequested = false;
+
   /// Vuelve a pedir `/auth/me` para TODOS los modos (a diferencia de
   /// [refreshSupervision]) y publica el usuario SOLO si cambió su autorización:
   /// `capabilities`, `effectivePermissions`, las concesiones (globales, de
@@ -1378,15 +1384,16 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   /// no toca el estado ni consume la ventana de [minInterval]: solo una
   /// respuesta fresca la abre, así el siguiente `resumed` reintenta.
   /// [minInterval] limita la frecuencia (el push pasa `Duration.zero`).
+  /// Un push que llega con otro `/auth/me` en vuelo no se pierde: se vuelve a
+  /// pedir una vez al terminar ([_authorizationRefreshRequested]).
   /// Devuelve `true` si el estado cambió.
   Future<bool> refreshAuthorization({
     Duration minInterval = const Duration(seconds: 30),
   }) async {
     final current = state.value;
-    if (current == null ||
-        state.isLoading ||
-        _isActing ||
-        _refreshingAuthorization) {
+    if (current == null || state.isLoading || _isActing) return false;
+    if (_refreshingAuthorization) {
+      if (minInterval == Duration.zero) _authorizationRefreshRequested = true;
       return false;
     }
     final last = _lastAuthorizationRefresh;
@@ -1425,6 +1432,22 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       return true;
     } finally {
       _refreshingAuthorization = false;
+      if (_authorizationRefreshRequested) {
+        // Una sola repetición por descarte: la bandera se limpia antes de
+        // lanzarla y la repetición no la vuelve a marcar (ya no hay vuelo).
+        // Si el estado ya no permite refrescar, la repetición no hace nada.
+        _authorizationRefreshRequested = false;
+        AppLogger.i('Repitiendo el refresco de autorización pospuesto',
+            tag: _tag);
+        unawaited(
+          refreshAuthorization(minInterval: Duration.zero)
+              .catchError((Object e) {
+            AppLogger.w('Error al repetir el refresco de autorización',
+                tag: _tag, error: e);
+            return false;
+          }),
+        );
+      }
     }
   }
 
