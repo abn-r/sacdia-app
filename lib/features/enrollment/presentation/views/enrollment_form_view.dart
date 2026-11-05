@@ -25,6 +25,7 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/enrollment.dart';
 import '../providers/enrollment_providers.dart';
+import '../utils/board_role_matchers.dart';
 import '../../../../core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -219,33 +220,28 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
     List<String> newDeputyIds = List.from(_deputyDirectorIds);
 
     for (final member in members) {
-      final role = member.clubRole?.toLowerCase().trim() ?? '';
+      final role = member.clubRole;
 
-      // Deputy directors (up to 2).
-      // Canonical backend value is 'deputy-director' (hyphen). We also
-      // match the Spanish alias 'subdirector' as a defensive fallback.
-      if ((role == 'deputy-director' ||
-              role.contains('deputy') ||
-              role.contains('subdirector')) &&
+      // Deputy directors (up to 2). Canonical backend value plus defensive
+      // fallbacks; see board_role_matchers.dart.
+      if (isDeputyDirectorRole(role) &&
           newDeputyIds.length < 2 &&
           !newDeputyIds.contains(member.userId)) {
         newDeputyIds.add(member.userId);
       }
 
       // Secretary
-      if (role == 'secretary' && newSecretaryId == null) {
+      if (isSecretaryRole(role) && newSecretaryId == null) {
         newSecretaryId = member.userId;
       }
 
       // Treasurer
-      if (role == 'treasurer' && newTreasurerId == null) {
+      if (isTreasurerRole(role) && newTreasurerId == null) {
         newTreasurerId = member.userId;
       }
 
       // Secretary-Treasurer (combined role)
-      if ((role == 'secretary_treasurer' ||
-              role.contains('secretario_tesorero') ||
-              role.contains('secretary-treasurer')) &&
+      if (isSecretaryTreasurerRole(role) &&
           newSecretaryTreasurerId == null &&
           widget.hasSecretaryTreasurerRole) {
         newSecretaryTreasurerId = member.userId;
@@ -458,15 +454,7 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
     // El director es el usuario actual cuando es el director activo
     // (`club.active_director`; display-only)
     final directorMember = hasCapability(currentUser, 'club.active_director')
-        ? members
-            .where(
-              (m) =>
-                  m.clubRole?.toLowerCase().contains('director') == true &&
-                  !m.clubRole!.toLowerCase().contains('sub') &&
-                  !m.clubRole!.toLowerCase().contains('vice') &&
-                  !m.clubRole!.toLowerCase().contains('deputy'),
-            )
-            .firstOrNull
+        ? members.where((m) => isDirectorRole(m.clubRole)).firstOrNull
         : null;
 
     return Scaffold(
