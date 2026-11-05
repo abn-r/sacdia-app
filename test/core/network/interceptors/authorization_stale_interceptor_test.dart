@@ -79,6 +79,34 @@ void main() {
     );
   });
 
+  test('a DELETE with the explicit opt-out passes while stale', () async {
+    // El borrado del token FCM al cerrar sesión debe llegar al servidor
+    // aunque la autorización sea la de la caché.
+    final options = Options(extra: {kAllowWhileAuthorizationStale: true});
+    expect(
+      await run(() => dio.delete('/users/me/fcm-tokens/42', options: options)),
+      isNull,
+    );
+    expect(adapter.lastRequest?.method, 'DELETE');
+    expect(adapter.lastRequest?.path, '/users/me/fcm-tokens/42');
+
+    expect(
+      await run(
+        () => dio.delete(
+          '/fcm-tokens/by-token',
+          data: {'token': 'fcm-token'},
+          options: options,
+        ),
+      ),
+      isNull,
+    );
+    expect(adapter.lastRequest?.path, '/fcm-tokens/by-token');
+
+    // Sin la opción, el mismo DELETE sigue bloqueado.
+    final error = await run(() => dio.delete('/users/me/fcm-tokens/42'));
+    expect(error?.response?.data['code'], kAuthorizationStaleCode);
+  });
+
   test('session routes match by normalized path suffix', () async {
     // Absoluta, con prefijo de la API, query y `/` final: sigue siendo sesión.
     expect(

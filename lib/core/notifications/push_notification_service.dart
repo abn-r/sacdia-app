@@ -17,6 +17,7 @@ import '../auth/session_mode.dart';
 import '../config/pending_navigation.dart';
 import '../config/route_names.dart';
 import '../config/dashboard_drill_in.dart';
+import '../network/interceptors/authorization_stale_interceptor.dart';
 import '../realtime/realtime_invalidation_handler.dart';
 import '../realtime/realtime_ref.dart';
 import '../theme/sac_colors.dart';
@@ -212,15 +213,21 @@ class PushNotificationService {
     try {
       AppLogger.i('Desregistrando token FCM del backend', tag: _tag);
 
+      // Se ejecuta al cerrar sesión: también con la autorización de la caché
+      // (sesión restaurada sin red), si no el token quedaría registrado en el
+      // servidor. No es una acción de negocio, así que se exime del
+      // `AuthorizationStaleInterceptor`.
+      final options = Options(extra: {kAllowWhileAuthorizationStale: true});
       if (tokenId != null && tokenId.isNotEmpty) {
         // Ruta preferida: DELETE /users/me/fcm-tokens/:tokenId
-        await _dio.delete('/users/me/fcm-tokens/$tokenId');
+        await _dio.delete('/users/me/fcm-tokens/$tokenId', options: options);
       } else if (token != null && token.isNotEmpty) {
         // Fallback para tokens registrados antes de persistir el ID:
         // DELETE /fcm-tokens/by-token con el token en el body.
         await _dio.delete(
           '/fcm-tokens/by-token',
           data: {'token': token},
+          options: options,
         );
       }
 
