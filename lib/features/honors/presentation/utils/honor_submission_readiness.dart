@@ -129,8 +129,8 @@ class _Eval {
 ///  - `evaluateInAppRequirementCompletion` L402-L476 (empty honor: L423): only progress rows
 ///    with `completed = true` count; a honor with no requirements is
 ///    satisfied; the top level is satisfied when every top-level node is.
-///  - `evaluateRequirementNode` L501-L561: a choice group goes to
-///    `evaluateChoiceGroup`; a parent is satisfied when ALL its children are
+///  - `evaluateRequirementNode` L501-L561: a choice group WITH sub-items goes
+///    to `evaluateChoiceGroup` (one without them is a plain leaf); a parent is satisfied when ALL its children are
 ///    (its own tick is ignored); a leaf is satisfied when its own row is
 ///    ticked. A satisfied node with `requires_evidence` asks for evidence.
 ///  - `evaluateChoiceGroup` L563-L610: needs `max(choice_min ?? 1, 0)`
@@ -175,7 +175,10 @@ HonorSubmissionReadiness computeHonorSubmissionReadiness({
   _Eval evaluate(HonorRequirement node) {
     final children = ordered(node.children);
 
-    if (node.isChoiceGroup) {
+    // A "choose N" group with no sub-items is a catalog mistake: the
+    // backend treats it as a plain requirement (`evaluateRequirementNode`),
+    // completed by its own row.
+    if (node.isChoiceGroup && children.isNotEmpty) {
       final minimum = _choiceMinimum(node);
       if (minimum == 0) {
         return _Eval(
