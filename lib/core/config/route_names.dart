@@ -31,9 +31,6 @@ class RouteNames {
   static const String homeActivities = '/home/activities';
   static const String homeProfile = '/home/profile';
 
-  // Roadmap de clases (pantalla completa dentro del branch de Clases)
-  static const String homeClassesRoadmap = '/home/classes/roadmap';
-
   // «Clases por club»: catálogo informativo por tipo de club
   static const String homeClassesCatalog = '/home/classes/catalog';
 
