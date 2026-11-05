@@ -79,7 +79,9 @@ const _minAgeByAsset = <String, int>{
   'GM-03': 21,
 };
 
-int? _resolveMinimumAge(ProgressiveClass cls) {
+/// Edad mínima de [cls]: `minimum_age` del catálogo o, si falta, la oficial
+/// por `asset_code`. También la usa «Clases por club».
+int? resolveClassMinimumAge(ProgressiveClass cls) {
   if (cls.minimumAge != null) return cls.minimumAge;
   final code = cls.assetCode?.toUpperCase();
   if (code == null || code.isEmpty) return null;
@@ -187,7 +189,7 @@ List<TrackData> buildRoadmapTracks({
       // Si el usuario tiene esta clase inscrita, usar sus datos de progreso.
       final enrolledCls = enrolledById[catalogCls.id];
       final effectiveCls = enrolledCls ?? catalogCls;
-      final minimumAge = _resolveMinimumAge(catalogCls);
+      final minimumAge = resolveClassMinimumAge(catalogCls);
 
       return ClassItem(
         id: effectiveCls.id.toString(),

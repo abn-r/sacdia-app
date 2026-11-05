@@ -2088,7 +2088,9 @@
       "section_current": "Clase actual",
       "section_others": "Otras clases",
       "enroll_cta": "Inscribirme a otra clase",
-      "enroll_cta_short": "Inscribirme"
+      "enroll_cta_short": "Inscribirme",
+      "catalog_chip_title": "Clases por club",
+      "catalog_chip_subtitle": "Edades y tu avance en cada clase"
     },
     "roadmap": {
       "track_current_pill": "Cursando",
@@ -2187,6 +2189,31 @@
       "member_count": "{count} miembros inscritos",
       "completed_sections": "Secciones completadas: {value}",
       "cross_type_chip": "Cursado cruzado"
+    },
+    "catalog": {
+      "title": "Clases por club",
+      "error": "No se pudieron cargar las clases",
+      "empty": "No hay clases habilitadas",
+      "club_1": "Aventureros",
+      "club_2": "Conquistadores",
+      "club_3": "Guías Mayores",
+      "class_count": {
+        "one": "{} clase",
+        "other": "{} clases"
+      },
+      "ages_single": "{age} años",
+      "ages_range": "{min} a {max} años",
+      "ages_from": "Desde {min} años",
+      "current_label": "Tu clase actual",
+      "status": {
+        "invested": "Investido",
+        "invested_year": "Investido · {year}",
+        "in_progress": "Cursando",
+        "in_progress_year": "Cursando · {year}",
+        "expired": "Vencida",
+        "expired_year": "Vencida · {year}",
+        "not_invested": "Sin investir"
+      }
     }
   },
   "camporees": {

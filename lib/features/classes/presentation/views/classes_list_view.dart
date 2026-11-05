@@ -25,6 +25,10 @@ import 'class_detail_with_progress_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/class_tone.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
+import '../catalog/class_catalog.dart';
 
 // ── Top-level helper — reachable from AppBar and from ClassesListViewBody ───────
 
@@ -51,7 +55,8 @@ _ClassesListDerivation _deriveClassesList(List<ProgressiveClass> classes) {
   }
 
   return _ClassesListDerivation(
-    currentClass: activeClasses.isNotEmpty ? activeClasses.first : null,
+    // Same rule as «Clases por club» (`currentClassOf`).
+    currentClass: currentClassOf(classes),
     otherClasses: [
       if (activeClasses.length > 1) ...activeClasses.skip(1),
       ...expiredClasses,
@@ -170,11 +175,13 @@ class ClassesListViewBody extends ConsumerWidget {
             padding: EdgeInsets.fromLTRB(hPad, listTop, hPad, 32),
             children: [
               // ── Roadmap entry chip ─────────────────────────────────────────
-              _RoadmapChip(hPad: hPad),
+              const _RoadmapChip(),
               if (classes.any((c) => c.isInvestedMasterGuide)) ...[
                 const SizedBox(height: 12),
                 const _CertificationsChip(),
               ],
+              const SizedBox(height: 12),
+              const _ClassCatalogChip(),
               const SizedBox(height: 20),
 
               if (currentClass != null) ...[
@@ -286,12 +293,26 @@ class ClassesListViewBody extends ConsumerWidget {
   }
 }
 
-// ── Roadmap chip ──────────────────────────────────────────────────────────────
+// ── Entry chips ───────────────────────────────────────────────────────────────
 
-class _RoadmapChip extends StatelessWidget {
-  final double hPad;
+/// Row that opens a screen from the top of Mis Clases (camino, certificaciones,
+/// clases por club). Each one has its own icon color.
+class _EntryChip extends StatelessWidget {
+  const _EntryChip({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.iconColor,
+    required this.wellColor,
+    required this.onTap,
+  });
 
-  const _RoadmapChip({required this.hPad});
+  final String title;
+  final String subtitle;
+  final HugeIconData icon;
+  final Color iconColor;
+  final Color wellColor;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -303,7 +324,7 @@ class _RoadmapChip extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       clipBehavior: Clip.antiAlias,
       child: SacInkWell(
-        onTap: () => context.push(RouteNames.homeClassesRoadmap),
+        onTap: onTap,
         borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -313,15 +334,11 @@ class _RoadmapChip extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: SacAccent.of(context).light,
+                  color: wellColor,
                   borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                 ),
                 child: Center(
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedRoute01,
-                    size: 22,
-                    color: SacAccent.of(context).color,
-                  ),
+                  child: HugeIcon(icon: icon, size: 22, color: iconColor),
                 ),
               ),
               const SizedBox(width: 12),
@@ -330,14 +347,14 @@ class _RoadmapChip extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'classes.list.roadmap_chip_title'.tr(),
+                      title,
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'classes.list.roadmap_chip_subtitle'.tr(),
+                      subtitle,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -359,75 +376,54 @@ class _RoadmapChip extends StatelessWidget {
   }
 }
 
-// ── Certifications chip ───────────────────────────────────────────────────────
+class _RoadmapChip extends StatelessWidget {
+  const _RoadmapChip();
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = SacAccent.of(context);
+    return _EntryChip(
+      title: 'classes.list.roadmap_chip_title'.tr(),
+      subtitle: 'classes.list.roadmap_chip_subtitle'.tr(),
+      icon: HugeIcons.strokeRoundedRoute01,
+      iconColor: accent.color,
+      wellColor: accent.light,
+      onTap: () => context.push(RouteNames.homeClassesRoadmap),
+    );
+  }
+}
 
 /// Entrada al módulo de certificaciones (Guías Mayores) desde el tab Clases.
-/// Mismo patrón visual que [_RoadmapChip].
 class _CertificationsChip extends StatelessWidget {
   const _CertificationsChip();
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    return _EntryChip(
+      title: 'classes.list.certifications_chip_title'.tr(),
+      subtitle: 'classes.list.certifications_chip_subtitle'.tr(),
+      icon: HugeIcons.strokeRoundedCertificate01,
+      iconColor: context.sac.onSuccessContainer,
+      wellColor: context.sac.successContainer,
+      onTap: () => context.push(RouteNames.homeCertifications),
+    );
+  }
+}
 
-    return Material(
-      color: colorScheme.surfaceContainerLow,
-      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-      clipBehavior: Clip.antiAlias,
-      child: SacInkWell(
-        onTap: () => context.push(RouteNames.homeCertifications),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: context.sac.successContainer,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                ),
-                child: Center(
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedCertificate01,
-                    size: 22,
-                    color: context.sac.onSuccessContainer,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'classes.list.certifications_chip_title'.tr(),
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'classes.list.certifications_chip_subtitle'.tr(),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowRight01,
-                size: 20,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ],
-          ),
-        ),
-      ),
+/// Entrada a «Clases por club» (catálogo informativo).
+class _ClassCatalogChip extends StatelessWidget {
+  const _ClassCatalogChip();
+
+  @override
+  Widget build(BuildContext context) {
+    final tone = ClassTone.of(context, AppColors.colorViajero);
+    return _EntryChip(
+      title: 'classes.list.catalog_chip_title'.tr(),
+      subtitle: 'classes.list.catalog_chip_subtitle'.tr(),
+      icon: HugeIcons.strokeRoundedLeftToRightListBullet,
+      iconColor: tone.onContainer,
+      wellColor: tone.container,
+      onTap: () => context.push(RouteNames.homeClassesCatalog),
     );
   }
 }
@@ -471,7 +467,9 @@ class _EmptyBody extends StatelessWidget {
     return ListView(
       padding: EdgeInsets.fromLTRB(hPad, listTop, hPad, 32),
       children: [
-        _RoadmapChip(hPad: hPad),
+        const _RoadmapChip(),
+        const SizedBox(height: 12),
+        const _ClassCatalogChip(),
         const SizedBox(height: 40),
         SacEmptyState(
           icon: HugeIcons.strokeRoundedSchool,
