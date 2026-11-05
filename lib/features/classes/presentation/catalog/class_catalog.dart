@@ -1,7 +1,35 @@
 import 'package:equatable/equatable.dart';
 
 import '../../domain/entities/progressive_class.dart';
-import '../roadmap/data/roadmap_mapper.dart';
+
+/// Edad mínima oficial JA por `asset_code` cuando el catálogo no envía
+/// `minimum_age`. Coincide con el seed histórico de Pathfinders/Adventurers.
+const _minAgeByAsset = <String, int>{
+  'AV-01': 6,
+  'AV-02': 6,
+  'AV-03': 7,
+  'AV-04': 7,
+  'AV-05': 8,
+  'AV-06': 9,
+  'CQ-01': 10,
+  'CQ-02': 11,
+  'CQ-03': 12,
+  'CQ-04': 13,
+  'CQ-05': 14,
+  'CQ-06': 15,
+  'GM-01': 16,
+  'GM-02': 18,
+  'GM-03': 21,
+};
+
+/// Edad mínima de [cls]: `minimum_age` del catálogo o, si falta, la oficial
+/// por `asset_code`.
+int? resolveClassMinimumAge(ProgressiveClass cls) {
+  if (cls.minimumAge != null) return cls.minimumAge;
+  final code = cls.assetCode?.toUpperCase();
+  if (code == null || code.isEmpty) return null;
+  return _minAgeByAsset[code];
+}
 
 /// Club types in the order «Clases por club» lists them:
 /// Aventureros, Conquistadores, Guías Mayores.

@@ -5,7 +5,8 @@ import 'class_catalog.dart';
 
 /// «Clases por club»: the enabled catalog (`allClassesProvider`) merged with
 /// the user's enrollments of every year (`userClassesProvider`). Both are
-/// cached providers, so this adds no request when Mi Camino already loaded.
+/// cached providers, so this adds no request when Mis Clases already loaded
+/// the user's classes.
 final classCatalogProvider =
     FutureProvider.autoDispose<List<ClassCatalogSection>>((ref) async {
   final results = await Future.wait([

@@ -180,7 +180,7 @@ final classesByClubTypeProvider = FutureProvider.autoDispose
 /// puede haber completado clases de cualquier categoría en el pasado.
 ///
 /// El archivo pinta al instante y la primera lectura del proceso siempre
-/// revalida detrás: un catálogo viejo no puede quedarse en Mi Camino.
+/// revalida detrás: un catálogo viejo no puede quedarse en Clases por club.
 final allClassesProvider =
     FutureProvider.autoDispose<List<ProgressiveClass>>((ref) async {
   ref.keepAlive();
