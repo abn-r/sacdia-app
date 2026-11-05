@@ -48,6 +48,8 @@ void main() {
   test('drill-in detection covers the members requests deep link', () {
     expect(isDashboardDrillIn(RouteNames.homeMemberRequests), isTrue);
     expect(isDashboardDrillIn(RouteNames.homeMembers), isTrue);
+    expect(isDashboardDrillIn(RouteNames.sectionInvestiture), isTrue);
+    expect(isDashboardDrillIn(RouteNames.homeReports), isTrue);
     expect(isDashboardDrillIn(RouteNames.homeDashboard), isFalse);
     expect(isDashboardDrillIn(RouteNames.homeProfile), isFalse);
   });

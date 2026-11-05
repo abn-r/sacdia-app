@@ -23,6 +23,12 @@ const Set<String> dashboardDrillInRoutes = {
   RouteNames.homeCertifications,
   RouteNames.homeCamporees,
   RouteNames.homeAchievements,
+  // Opened from notifications (investiture results, monthly report reminders).
+  // Pushing a branch route over the root inbox duplicates its page key and
+  // breaks the navigator, so they also go through the dashboard.
+  RouteNames.sectionInvestiture,
+  RouteNames.sectionInvestitureHistory,
+  RouteNames.homeReports,
 };
 
 bool isDashboardDrillIn(String route) =>

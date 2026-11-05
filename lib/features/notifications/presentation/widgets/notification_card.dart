@@ -251,7 +251,14 @@ class NotificationCard extends ConsumerWidget {
         // Sin sesión resuelta se trata como persona: su lista siempre existe.
       }
       if (!context.mounted) return;
-      context.push(investitureInboxRoute(isBoard: isBoard));
+      final route = investitureInboxRoute(isBoard: isBoard);
+      // The board screen lives in the Inicio branch: open it on top of the
+      // dashboard instead of pushing it over the root inbox route.
+      if (isDashboardDrillIn(route)) {
+        unawaited(openDashboardDrillIn(GoRouter.of(context), route));
+      } else {
+        context.push(route);
+      }
       return;
     }
 

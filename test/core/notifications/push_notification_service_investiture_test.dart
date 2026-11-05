@@ -50,6 +50,14 @@ void main() {
               child: const Scaffold(body: Text('start')),
             ),
           ),
+          // The section screen is a dashboard drill-in: it opens over it.
+          GoRoute(
+            path: RouteNames.homeDashboard,
+            pageBuilder: (context, state) => MaterialPage<void>(
+              key: state.pageKey,
+              child: const Scaffold(body: Text('dashboard')),
+            ),
+          ),
           GoRoute(
             path: RouteNames.sectionInvestiture,
             pageBuilder: (context, state) => stub(state),
