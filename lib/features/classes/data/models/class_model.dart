@@ -33,6 +33,9 @@ class ClassModel extends Equatable {
   final DateTime? validatedAt;
   final String? ecclesiasticalYearLabel;
 
+  /// `enrollments.investiture_date` cuando viene de `GET /users/:id/classes`.
+  final DateTime? investitureDate;
+
   final int? availableFromYearId;
   final int? availableUntilYearId;
   final int minDurationYears;
@@ -56,6 +59,7 @@ class ClassModel extends Equatable {
     this.submittedAt,
     this.validatedAt,
     this.ecclesiasticalYearLabel,
+    this.investitureDate,
     this.availableFromYearId,
     this.availableUntilYearId,
     this.minDurationYears = 1,
@@ -88,6 +92,7 @@ class ClassModel extends Equatable {
       ecclesiasticalYearLabel: _yearLabel(json['ecclesiastical_year']) ??
           _collapseSameYear(
               safeStringOrNull(json['ecclesiastical_year_label'])),
+      investitureDate: _parseDate(json['investiture_date']),
       availableFromYearId: safeIntOrNull(
           json['available_from_year_id'] ?? json['availableFromYearId']),
       availableUntilYearId: safeIntOrNull(
@@ -155,6 +160,7 @@ class ClassModel extends Equatable {
       'submitted_at': submittedAt?.toIso8601String(),
       'validated_at': validatedAt?.toIso8601String(),
       'ecclesiastical_year_label': ecclesiasticalYearLabel,
+      'investiture_date': investitureDate?.toIso8601String(),
       'available_from_year_id': availableFromYearId,
       'available_until_year_id': availableUntilYearId,
       'min_duration_years': minDurationYears,
@@ -181,6 +187,7 @@ class ClassModel extends Equatable {
       submittedAt: entity.submittedAt,
       validatedAt: entity.validatedAt,
       ecclesiasticalYearLabel: entity.ecclesiasticalYearLabel,
+      investitureDate: entity.investitureDate,
       availableFromYearId: entity.availableFromYearId,
       availableUntilYearId: entity.availableUntilYearId,
       minDurationYears: entity.minDurationYears,
@@ -206,6 +213,7 @@ class ClassModel extends Equatable {
       submittedAt: submittedAt,
       validatedAt: validatedAt,
       ecclesiasticalYearLabel: ecclesiasticalYearLabel,
+      investitureDate: investitureDate,
       availableFromYearId: availableFromYearId,
       availableUntilYearId: availableUntilYearId,
       minDurationYears: minDurationYears,
@@ -230,6 +238,7 @@ class ClassModel extends Equatable {
     DateTime? submittedAt,
     DateTime? validatedAt,
     String? ecclesiasticalYearLabel,
+    DateTime? investitureDate,
     int? availableFromYearId,
     int? availableUntilYearId,
     int? minDurationYears,
@@ -252,6 +261,7 @@ class ClassModel extends Equatable {
       validatedAt: validatedAt ?? this.validatedAt,
       ecclesiasticalYearLabel:
           ecclesiasticalYearLabel ?? this.ecclesiasticalYearLabel,
+      investitureDate: investitureDate ?? this.investitureDate,
       availableFromYearId: availableFromYearId ?? this.availableFromYearId,
       availableUntilYearId: availableUntilYearId ?? this.availableUntilYearId,
       minDurationYears: minDurationYears ?? this.minDurationYears,
@@ -276,6 +286,7 @@ class ClassModel extends Equatable {
         submittedAt,
         validatedAt,
         ecclesiasticalYearLabel,
+        investitureDate,
         availableFromYearId,
         availableUntilYearId,
         minDurationYears,

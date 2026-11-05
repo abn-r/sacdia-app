@@ -2088,7 +2088,9 @@
       "section_current": "Current class",
       "section_others": "Other classes",
       "enroll_cta": "Enroll in another class",
-      "enroll_cta_short": "Enroll"
+      "enroll_cta_short": "Enroll",
+      "catalog_chip_title": "Classes by club",
+      "catalog_chip_subtitle": "Ages and your progress in each class"
     },
     "roadmap": {
       "track_current_pill": "Current",
@@ -2187,6 +2189,31 @@
       "member_count": "{count} enrolled members",
       "completed_sections": "Completed sections: {value}",
       "cross_type_chip": "Cross-type"
+    },
+    "catalog": {
+      "title": "Classes by club",
+      "error": "Couldn't load the classes",
+      "empty": "No classes are enabled",
+      "club_1": "Adventurers",
+      "club_2": "Pathfinders",
+      "club_3": "Master Guides",
+      "class_count": {
+        "one": "{} class",
+        "other": "{} classes"
+      },
+      "ages_single": "{age} years old",
+      "ages_range": "{min} to {max} years old",
+      "ages_from": "From {min} years old",
+      "current_label": "Your current class",
+      "status": {
+        "invested": "Invested",
+        "invested_year": "Invested · {year}",
+        "in_progress": "In progress",
+        "in_progress_year": "In progress · {year}",
+        "expired": "Expired",
+        "expired_year": "Expired · {year}",
+        "not_invested": "Not invested"
+      }
     }
   },
   "camporees": {

@@ -40,6 +40,10 @@ class ProgressiveClass extends Equatable {
   /// Rango del año eclesiástico del enrollment (ej. "2025–2026").
   final String? ecclesiasticalYearLabel;
 
+  /// Fecha de investidura del enrollment (`enrollments.investiture_date`).
+  /// Puede faltar en registros viejos aunque el estado sea INVESTIDO.
+  final DateTime? investitureDate;
+
   /// Año eclesiástico desde el que se puede iniciar la clase.
   final int? availableFromYearId;
 
@@ -73,6 +77,7 @@ class ProgressiveClass extends Equatable {
     this.submittedAt,
     this.validatedAt,
     this.ecclesiasticalYearLabel,
+    this.investitureDate,
     this.availableFromYearId,
     this.availableUntilYearId,
     this.minDurationYears = 1,
@@ -118,6 +123,7 @@ class ProgressiveClass extends Equatable {
         submittedAt,
         validatedAt,
         ecclesiasticalYearLabel,
+        investitureDate,
         availableFromYearId,
         availableUntilYearId,
         minDurationYears,

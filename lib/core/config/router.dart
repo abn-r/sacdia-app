@@ -138,6 +138,7 @@ import '../../features/dashboard/presentation/views/dashboard_view.dart';
 import '../../features/classes/presentation/views/classes_tabs_view.dart';
 import '../../features/classes/presentation/views/class_detail_with_progress_view.dart';
 import '../../features/classes/presentation/views/roadmap_full_screen_view.dart';
+import '../../features/classes/presentation/views/class_catalog_view.dart';
 import '../../features/classes/presentation/views/teaching_scope_view.dart';
 import '../../features/members/presentation/utils/member_requests_notification_route.dart';
 import '../../features/members/presentation/views/members_view.dart';
@@ -802,6 +803,15 @@ final routerProvider = Provider<GoRouter>((ref) {
                       context,
                       state,
                       const RoadmapFullScreenView(),
+                    ),
+                  ),
+                  // «Clases por club» (informativa), desde Mis Clases.
+                  GoRoute(
+                    path: 'catalog',
+                    pageBuilder: (context, state) => _sharedAxisBuild(
+                      context,
+                      state,
+                      const ClassCatalogView(),
                     ),
                   ),
                 ],

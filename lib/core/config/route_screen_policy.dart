@@ -17,6 +17,7 @@ const Map<String, String> routeScreenIds = {
   // Solo app.
   RouteNames.homeClasses: 'app-classes',
   RouteNames.homeClassesRoadmap: 'app-classes',
+  RouteNames.homeClassesCatalog: 'app-classes',
   RouteNames.homeActivities: 'activities',
   RouteNames.coordinator: 'coordinator-hub',
   RouteNames.coordinatorClubs: 'coordinator-hub',
