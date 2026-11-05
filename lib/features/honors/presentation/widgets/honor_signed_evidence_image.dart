@@ -18,8 +18,11 @@ void _scheduleEvidenceUrlRefresh(WidgetRef ref, String imageUrl) {
   }
   if (!_scheduledEvidenceUrlRefreshes.add(trimmedUrl)) return;
 
+  // General evidence comes with the user honors; requirement evidence with
+  // the requirement progress. Refresh both so either gets a new URL.
   WidgetsBinding.instance.addPostFrameCallback((_) {
     ref.invalidate(userHonorsProvider);
+    ref.invalidate(userHonorProgressProvider);
   });
 }
 
