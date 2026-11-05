@@ -36,12 +36,14 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
       failure = ServerFailure(
         message: exception.message,
         code: exception.code,
+        errorCode: exception.errorCode,
         stackTrace: exception.stackTrace,
       );
     } else if (exception is AuthException) {
       failure = AuthFailure(
         message: exception.message,
         code: exception.code,
+        errorCode: exception.errorCode,
         stackTrace: exception.stackTrace,
       );
     } else if (exception is ConnectionException) {

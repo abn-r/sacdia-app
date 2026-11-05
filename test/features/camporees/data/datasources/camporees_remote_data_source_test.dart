@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/core/models/paginated_result.dart';
+import 'package:sacdia_app/core/network/interceptors/authorization_stale_interceptor.dart';
 import 'package:sacdia_app/core/network/interceptors/error_interceptor.dart';
 import 'package:sacdia_app/features/camporees/data/datasources/camporees_remote_data_source.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_member_model.dart';
@@ -265,6 +266,29 @@ void main() {
         );
         expect(adapter.lastOptions, isNotNull);
       }
+    });
+
+    test('keeps the code of the stale-authorization rejection', () async {
+      final (:dio, :adapter) = _dioWith({'ok': true});
+      dio.interceptors.insert(
+        0,
+        AuthorizationStaleInterceptor(isStale: () => true),
+      );
+      final ds = CamporeesRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
+
+      await expectLater(
+        ds.registerMember(7, userId: 'user-1', insuranceId: 3),
+        throwsA(
+          isA<AuthException>()
+              .having((error) => error.code, 'code', 403)
+              .having(
+                (error) => error.errorCode,
+                'errorCode',
+                kAuthorizationStaleCode,
+              ),
+        ),
+      );
+      expect(adapter.lastOptions, isNull, reason: 'never reached the network');
     });
 
     test('preserves connection failures produced by the real ErrorInterceptor',
