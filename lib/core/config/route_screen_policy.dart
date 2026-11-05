@@ -10,13 +10,12 @@ import 'route_names.dart';
 /// modo de sesión (legal, teléfono vinculado, adolescente, «actuar por»,
 /// post-registro, pastor o coordinador sin club) van antes y mandan.
 ///
-/// Las subrutas de una pantalla (historial, detalle, roadmap, pestañas del
+/// Las subrutas de una pantalla (historial, detalle, catálogo, pestañas del
 /// panel de coordinación, carrito y pedidos de materiales) heredan su gate:
 /// no tiene sentido abrir el detalle de lo que no se puede listar.
 const Map<String, String> routeScreenIds = {
   // Solo app.
   RouteNames.homeClasses: 'app-classes',
-  RouteNames.homeClassesRoadmap: 'app-classes',
   RouteNames.homeClassesCatalog: 'app-classes',
   RouteNames.homeActivities: 'activities',
   RouteNames.coordinator: 'coordinator-hub',

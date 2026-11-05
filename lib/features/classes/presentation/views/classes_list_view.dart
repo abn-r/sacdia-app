@@ -80,7 +80,8 @@ void _openEnrollSheet(BuildContext context) {
 ///
 /// Layout (top → bottom):
 ///   1. AppBar "Clases" con acción "Inscribirme" (solo si tiene club activo)
-///   2. Chip de entrada al Roadmap
+///   2. Atajos: Clases por club y, para Guías Mayores investidos,
+///      Certificaciones (en una fila tipo bento)
 ///   3. Sección "Clase actual" (primer elemento de la lista)
 ///   4. Sección "Otras clases" (resto de elementos)
 ///
@@ -174,14 +175,9 @@ class ClassesListViewBody extends ConsumerWidget {
           child: ListView(
             padding: EdgeInsets.fromLTRB(hPad, listTop, hPad, 32),
             children: [
-              // ── Roadmap entry chip ─────────────────────────────────────────
-              const _RoadmapChip(),
-              if (classes.any((c) => c.isInvestedMasterGuide)) ...[
-                const SizedBox(height: 12),
-                const _CertificationsChip(),
-              ],
-              const SizedBox(height: 12),
-              const _ClassCatalogChip(),
+              _EntryShortcuts(
+                showCertifications: classes.any((c) => c.isInvestedMasterGuide),
+              ),
               const SizedBox(height: 20),
 
               if (currentClass != null) ...[
@@ -293,12 +289,11 @@ class ClassesListViewBody extends ConsumerWidget {
   }
 }
 
-// ── Entry chips ───────────────────────────────────────────────────────────────
+// ── Entry shortcuts ───────────────────────────────────────────────────────────
 
-/// Row that opens a screen from the top of Mis Clases (camino, certificaciones,
-/// clases por club). Each one has its own icon color.
-class _EntryChip extends StatelessWidget {
-  const _EntryChip({
+/// A screen opened from the top of Mis Clases.
+class _Shortcut {
+  const _Shortcut({
     required this.title,
     required this.subtitle,
     required this.icon,
@@ -313,93 +308,30 @@ class _EntryChip extends StatelessWidget {
   final Color iconColor;
   final Color wellColor;
   final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Material(
-      color: colorScheme.surfaceContainerLow,
-      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-      clipBehavior: Clip.antiAlias,
-      child: SacInkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: wellColor,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                ),
-                child: Center(
-                  child: HugeIcon(icon: icon, size: 22, color: iconColor),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowRight01,
-                size: 20,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
-class _RoadmapChip extends StatelessWidget {
-  const _RoadmapChip();
+/// Shortcuts at the top of Mis Clases: «Clases por club» always, and
+/// «Certificaciones» for invested Master Guides. Two shortcuts share one row
+/// as bento tiles; a single one spans the width as a row.
+class _EntryShortcuts extends StatelessWidget {
+  const _EntryShortcuts({required this.showCertifications});
+
+  final bool showCertifications;
 
   @override
   Widget build(BuildContext context) {
-    final accent = SacAccent.of(context);
-    return _EntryChip(
-      title: 'classes.list.roadmap_chip_title'.tr(),
-      subtitle: 'classes.list.roadmap_chip_subtitle'.tr(),
-      icon: HugeIcons.strokeRoundedRoute01,
-      iconColor: accent.color,
-      wellColor: accent.light,
-      onTap: () => context.push(RouteNames.homeClassesRoadmap),
+    final tone = ClassTone.of(context, AppColors.colorViajero);
+    final catalog = _Shortcut(
+      title: 'classes.list.catalog_chip_title'.tr(),
+      subtitle: 'classes.list.catalog_chip_subtitle'.tr(),
+      icon: HugeIcons.strokeRoundedLeftToRightListBullet,
+      iconColor: tone.onContainer,
+      wellColor: tone.container,
+      onTap: () => context.push(RouteNames.homeClassesCatalog),
     );
-  }
-}
+    if (!showCertifications) return _ShortcutRow(shortcut: catalog);
 
-/// Entrada al módulo de certificaciones (Guías Mayores) desde el tab Clases.
-class _CertificationsChip extends StatelessWidget {
-  const _CertificationsChip();
-
-  @override
-  Widget build(BuildContext context) {
-    return _EntryChip(
+    final certifications = _Shortcut(
       title: 'classes.list.certifications_chip_title'.tr(),
       subtitle: 'classes.list.certifications_chip_subtitle'.tr(),
       icon: HugeIcons.strokeRoundedCertificate01,
@@ -407,23 +339,160 @@ class _CertificationsChip extends StatelessWidget {
       wellColor: context.sac.successContainer,
       onTap: () => context.push(RouteNames.homeCertifications),
     );
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: _ShortcutTile(shortcut: catalog)),
+          const SizedBox(width: 12),
+          Expanded(child: _ShortcutTile(shortcut: certifications)),
+        ],
+      ),
+    );
   }
 }
 
-/// Entrada a «Clases por club» (catálogo informativo).
-class _ClassCatalogChip extends StatelessWidget {
-  const _ClassCatalogChip();
+class _ShortcutSurface extends StatelessWidget {
+  const _ShortcutSurface({required this.onTap, required this.child});
+
+  final VoidCallback onTap;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    final tone = ClassTone.of(context, AppColors.colorViajero);
-    return _EntryChip(
-      title: 'classes.list.catalog_chip_title'.tr(),
-      subtitle: 'classes.list.catalog_chip_subtitle'.tr(),
-      icon: HugeIcons.strokeRoundedLeftToRightListBullet,
-      iconColor: tone.onContainer,
-      wellColor: tone.container,
-      onTap: () => context.push(RouteNames.homeClassesCatalog),
+    final radius = BorderRadius.circular(AppTheme.radiusMD);
+    // Outlined like the class cards below, so the tiles read as a bento row.
+    return Material(
+      color: context.sac.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: radius,
+        side: BorderSide(color: context.sac.border),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: SacInkWell(onTap: onTap, borderRadius: radius, child: child),
+    );
+  }
+}
+
+class _ShortcutWell extends StatelessWidget {
+  const _ShortcutWell({required this.shortcut});
+
+  final _Shortcut shortcut;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 44,
+      height: 44,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: shortcut.wellColor,
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+      ),
+      child: HugeIcon(icon: shortcut.icon, size: 22, color: shortcut.iconColor),
+    );
+  }
+}
+
+/// Full-width shortcut: well, title and subtitle, arrow.
+class _ShortcutRow extends StatelessWidget {
+  const _ShortcutRow({required this.shortcut});
+
+  final _Shortcut shortcut;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return _ShortcutSurface(
+      onTap: shortcut.onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            _ShortcutWell(shortcut: shortcut),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    shortcut.title,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    shortcut.subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowRight01,
+              size: 20,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Half-width bento tile: well and arrow on top, title and subtitle below.
+class _ShortcutTile extends StatelessWidget {
+  const _ShortcutTile({required this.shortcut});
+
+  final _Shortcut shortcut;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return _ShortcutSurface(
+      onTap: shortcut.onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _ShortcutWell(shortcut: shortcut),
+                const Spacer(),
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowRight01,
+                  size: 18,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              shortcut.title,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              shortcut.subtitle,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -467,9 +536,7 @@ class _EmptyBody extends StatelessWidget {
     return ListView(
       padding: EdgeInsets.fromLTRB(hPad, listTop, hPad, 32),
       children: [
-        const _RoadmapChip(),
-        const SizedBox(height: 12),
-        const _ClassCatalogChip(),
+        const _EntryShortcuts(showCertifications: false),
         const SizedBox(height: 40),
         SacEmptyState(
           icon: HugeIcons.strokeRoundedSchool,
