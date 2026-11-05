@@ -3513,7 +3513,18 @@
       "type_section_role": "Rôle de section",
       "type_global_role": "Rôle global",
       "type_unknown": "Inconnue",
-      "end_of_history": "— Fin de l’historique —"
+      "end_of_history": "— Fin de l’historique —",
+      "group_today": "Aujourd’hui",
+      "group_yesterday": "Hier",
+      "group_this_week": "Cette semaine",
+      "group_unread": {
+        "one": "{} non lue",
+        "other": "{} non lues"
+      },
+      "time_now": "maintenant",
+      "time_minutes": "il y a {n} min",
+      "time_hours": "il y a {n} h",
+      "detail_close": "Fermer"
     },
     "types": {
       "agenda": "Agenda",

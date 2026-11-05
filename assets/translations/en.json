@@ -3514,7 +3514,18 @@
       "type_section_role": "Section role",
       "type_global_role": "Global role",
       "type_unknown": "Unknown",
-      "end_of_history": "— End of history —"
+      "end_of_history": "— End of history —",
+      "group_today": "Today",
+      "group_yesterday": "Yesterday",
+      "group_this_week": "This week",
+      "group_unread": {
+        "one": "{} unread",
+        "other": "{} unread"
+      },
+      "time_now": "now",
+      "time_minutes": "{n} min ago",
+      "time_hours": "{n} h ago",
+      "detail_close": "Close"
     },
     "types": {
       "agenda": "Agenda",

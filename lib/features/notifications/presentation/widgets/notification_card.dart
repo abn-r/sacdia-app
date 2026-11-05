@@ -34,7 +34,15 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 class NotificationCard extends ConsumerWidget {
   final NotificationItem notification;
 
-  const NotificationCard({super.key, required this.notification});
+  /// Time shown in the row; defaults to [notificationInboxTime]. The inbox
+  /// passes a shorter one because the day group already says the date.
+  final String? timeLabel;
+
+  const NotificationCard({
+    super.key,
+    required this.notification,
+    this.timeLabel,
+  });
 
   Future<void> _showDetailsSheet(BuildContext context) {
     final c = context.sac;
@@ -92,7 +100,7 @@ class NotificationCard extends ConsumerWidget {
                             NotificationTypeBadge(
                               type: notification.targetType,
                               source: notification.source,
-                              size: 52,
+                              size: 48,
                             ),
                             const SizedBox(width: 14),
                             Expanded(
@@ -146,28 +154,36 @@ class NotificationCard extends ConsumerWidget {
                         const SizedBox(height: 18),
                         _NotificationBodyBlock(
                           parsed: parsedBody,
-                          accent: visual.iconColor,
+                          accent: visual.toneColor,
                         ),
                         const SizedBox(height: 12),
-                        _DetailSection(
-                          children: [
-                            _DetailRow(
-                              label: 'notifications.inbox.detail_type'.tr(),
-                              value: visual.label,
-                            ),
-                            _DetailRow(
-                              label: 'notifications.inbox.detail_received'.tr(),
-                              value: notificationReceivedLabel(
-                                notification.createdAt,
+                        // When and who, in one quiet line: the category is
+                        // already in the header.
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Wrap(
+                            spacing: 14,
+                            runSpacing: 6,
+                            children: [
+                              _MetaLabel(
+                                icon: HugeIcons.strokeRoundedClock01,
+                                text: notificationReceivedLabel(
+                                  notification.createdAt,
+                                ),
+                                color: sheetC.textSecondary,
+                                semanticsPrefix:
+                                    'notifications.inbox.detail_received'.tr(),
                               ),
-                            ),
-                            if (notification.senderName != null)
-                              _DetailRow(
-                                label:
-                                    'notifications.inbox.detail_sent_by'.tr(),
-                                value: notification.senderName!,
-                              ),
-                          ],
+                              if (notification.senderName != null)
+                                _MetaLabel(
+                                  icon: HugeIcons.strokeRoundedUser,
+                                  text: notification.senderName!,
+                                  color: sheetC.textSecondary,
+                                  semanticsPrefix:
+                                      'notifications.inbox.detail_sent_by'.tr(),
+                                ),
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 18),
                         if (action != null) ...[
@@ -186,11 +202,10 @@ class NotificationCard extends ConsumerWidget {
                             },
                             borderRadius: 16,
                           ),
-                          const SizedBox(height: 10),
-                          SacButton.outline(
-                            text: 'notifications.inbox.detail_accept'.tr(),
+                          const SizedBox(height: 4),
+                          SacButton.text(
+                            text: 'notifications.inbox.detail_close'.tr(),
                             onPressed: () => Navigator.of(sheetContext).pop(),
-                            borderRadius: 16,
                           ),
                         ] else
                           SacButton.primary(
@@ -282,151 +297,90 @@ class NotificationCard extends ConsumerWidget {
       source: notification.source,
       targetType: notification.targetType,
     );
-    final rowColor = isUnread
-        ? Color.alphaBlend(
-            visual.iconColor.withValues(alpha: 0.055),
-            c.surface,
-          )
-        : c.surface;
-    final borderColor =
-        isUnread ? visual.iconColor.withValues(alpha: 0.18) : c.borderLight;
+    final theme = Theme.of(context);
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
-      child: Semantics(
-        button: true,
-        label: '${notification.title}. ${_previewBody(notification.body)}',
-        child: Material(
-          color: Colors.transparent,
-          child: Ink(
-            decoration: BoxDecoration(
-              color: rowColor,
-              borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-              border: Border.all(color: borderColor),
-            ),
-            child: SacInkWell(
-              onTap: () => _handleTap(context, ref),
-              borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 12, 10, 12),
-                child: Row(
+    // A row of the day group in the inbox: the group card draws the surface,
+    // the row only its content. Unread = bold title and a dot by the time.
+    return Semantics(
+      button: true,
+      label: [
+        visual.label,
+        notification.title,
+        _previewBody(notification.body),
+        if (isUnread) 'notifications.inbox.detail_unread'.tr(),
+      ].join('. '),
+      excludeSemantics: true,
+      child: SacInkWell(
+        onTap: () => _handleTap(context, ref),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              NotificationTypeBadge(
+                type: notification.targetType,
+                source: notification.source,
+                size: 40,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Stack(
-                      clipBehavior: Clip.none,
+                    Row(
                       children: [
-                        NotificationTypeBadge(
-                          type: notification.targetType,
-                          source: notification.source,
-                          size: 46,
-                        ),
-                        if (isUnread)
-                          Positioned(
-                            right: -1,
-                            top: -1,
-                            child: _UnreadDot(color: visual.iconColor),
+                        Expanded(
+                          child: Text(
+                            visual.label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: visual.iconColor,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          timeLabel ??
+                              notificationInboxTime(notification.createdAt),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: c.textTertiary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        if (isUnread) ...[
+                          const SizedBox(width: 6),
+                          _UnreadDot(color: SacAccent.of(context).color),
+                        ],
                       ],
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  notification.title,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleSmall
-                                      ?.copyWith(
-                                        color: c.text,
-                                        fontWeight: isUnread
-                                            ? FontWeight.w800
-                                            : FontWeight.w600,
-                                        height: 1.22,
-                                      ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Padding(
-                                padding: const EdgeInsets.only(top: 1),
-                                child: Text(
-                                  notificationInboxTime(notification.createdAt),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelSmall
-                                      ?.copyWith(
-                                        color: c.textTertiary,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            _previewBody(notification.body),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: c.textSecondary,
-                                  height: 1.38,
-                                ),
-                          ),
-                          const SizedBox(height: 9),
-                          Wrap(
-                            spacing: 10,
-                            runSpacing: 6,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              _MetaLabel(
-                                icon: visual.icon,
-                                text: visual.label,
-                                color: visual.iconColor,
-                              ),
-                              if (isUnread)
-                                _MetaLabel(
-                                  icon: HugeIcons.strokeRoundedCircle,
-                                  text:
-                                      'notifications.inbox.detail_unread'.tr(),
-                                  color: SacAccent.of(context).dark,
-                                ),
-                              if (notification.senderName != null)
-                                _MetaLabel(
-                                  icon: HugeIcons.strokeRoundedUser,
-                                  text: notification.senderName!,
-                                  color: c.textTertiary,
-                                ),
-                            ],
-                          ),
-                        ],
+                    const SizedBox(height: 3),
+                    Text(
+                      notification.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: isUnread ? c.text : c.textSecondary,
+                        fontWeight:
+                            isUnread ? FontWeight.w700 : FontWeight.w500,
+                        height: 1.25,
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    SizedBox(
-                      width: 36,
-                      height: 48,
-                      child: Center(
-                        child: HugeIcon(
-                          icon: HugeIcons.strokeRoundedArrowRight01,
-                          size: 18,
-                          color: c.textTertiary,
-                        ),
+                    const SizedBox(height: 3),
+                    Text(
+                      _previewBody(notification.body),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: c.textSecondary,
+                        height: 1.35,
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -467,14 +421,17 @@ class _NotificationBodyBlock extends StatelessWidget {
     final c = context.sac;
 
     if (!parsed.hasNameList) {
+      // Warm wash of the category: lighter than the icon well.
       return DecoratedBox(
         decoration: BoxDecoration(
           color: Color.alphaBlend(
-            accent.withValues(alpha: 0.04),
-            c.surfaceVariant,
+            accent.withValues(
+              alpha:
+                  Theme.of(context).brightness == Brightness.dark ? 0.12 : 0.07,
+            ),
+            c.surface,
           ),
           borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-          border: Border.all(color: c.borderLight),
         ),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -564,17 +521,8 @@ class _UnreadDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.sac.surface,
-        shape: BoxShape.circle,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(2.5),
-        child: DecoratedBox(
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          child: const SizedBox(width: 8, height: 8),
-        ),
-      ),
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      child: const SizedBox(width: 8, height: 8),
     );
   }
 }
@@ -588,28 +536,37 @@ class _MetaLabel extends StatelessWidget {
     required this.icon,
     required this.text,
     required this.color,
+    this.semanticsPrefix,
   });
+
+  /// Spoken before [text] («Recibida», «Enviada por»).
+  final String? semanticsPrefix;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        HugeIcon(icon: icon, size: 13, color: color),
-        const SizedBox(width: 5),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 180),
-          child: Text(
-            text,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w700,
-                  height: 1.15,
-                ),
+    final prefix = semanticsPrefix;
+    return Semantics(
+      label: prefix == null ? null : '$prefix: $text',
+      excludeSemantics: prefix != null,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          HugeIcon(icon: icon, size: 14, color: color),
+          const SizedBox(width: 5),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 220),
+            child: Text(
+              text,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w600,
+                    height: 1.15,
+                  ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -636,50 +593,6 @@ class _DetailSection extends StatelessWidget {
             if (index != children.length - 1)
               Divider(height: 1, thickness: 0.6, color: c.divider),
           ],
-        ],
-      ),
-    );
-  }
-}
-
-class _DetailRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _DetailRow({
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final base = Theme.of(context).textTheme.bodySmall;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          Text(
-            label,
-            style: base?.copyWith(
-              color: c.textTertiary,
-              fontWeight: FontWeight.w500,
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: base?.copyWith(
-                color: c.text,
-                fontWeight: FontWeight.w600,
-                height: 1.2,
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -744,9 +657,9 @@ class _NotificationCardSkeletonState extends State<NotificationCardSkeleton>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _SkeletonBlock(
-                  width: 46,
-                  height: 46,
-                  radius: 999,
+                  width: 40,
+                  height: 40,
+                  radius: AppTheme.radiusSM,
                   color: shimmerColor,
                 ),
                 const SizedBox(width: 12),
