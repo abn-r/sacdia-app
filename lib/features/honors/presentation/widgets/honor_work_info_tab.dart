@@ -1,6 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -8,7 +7,6 @@ import 'package:sacdia_app/core/constants/certificate_dates.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/date_formatter.dart';
-import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
@@ -20,9 +18,12 @@ import 'package:sacdia_app/features/honors/domain/entities/user_honor_update.dar
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/honors/presentation/utils/honor_level_labels.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_completion_details.dart';
+import 'package:sacdia_app/features/honors/presentation/widgets/honor_info_parts.dart';
+import 'package:sacdia_app/features/honors/presentation/widgets/instructor_proposal_card.dart';
 
-/// "Información" tab: description, the completion date, instructor, study
-/// material, work mode and the honor's levels.
+/// "Información" tab of an enrolled honor: description, the completion date,
+/// instructor, study material, work mode and the honor's levels. Shared by the
+/// in-app and the external screens.
 class HonorWorkInfoTab extends ConsumerWidget {
   const HonorWorkInfoTab({
     super.key,
@@ -52,22 +53,31 @@ class HonorWorkInfoTab extends ConsumerWidget {
     final description = honor?.description?.trim();
     final materialUrl = honor?.materialUrl?.trim();
     final editable = userHonor.canSubmit;
+    // An approved honor cannot be PATCHed, but a backend that knows proposals
+    // lets the member propose another instructor (D11).
+    final proposes = userHonor.isCompleted &&
+        userHonor.active &&
+        userHonor.supportsInstructorProposal;
 
-    final dateSet = userHonor.completedAt;
+    // An approved honor without a picked day falls back to when it was
+    // validated.
+    final dateSet = userHonor.isCompleted
+        ? userHonor.completionDate
+        : userHonor.completedAt;
     final instructor = userHonor.instructor;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (description != null && description.isNotEmpty) ...[
-          SacCard(child: _ClampedDescription(text: description)),
+          SacCard(child: HonorClampedDescription(text: description)),
           const SizedBox(height: 12),
         ],
         SacCard(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             children: [
-              _InfoRow(
+              HonorInfoRow(
                 key: const ValueKey('info-row-date'),
                 icon: HugeIcons.strokeRoundedCalendar03,
                 well: dateSet == null && editable
@@ -85,7 +95,7 @@ class HonorWorkInfoTab extends ConsumerWidget {
                 onTap: editable ? () => _pickDate(context, ref) : null,
               ),
               Divider(height: 1, thickness: 1, color: c.borderLight),
-              _InfoRow(
+              HonorInfoRow(
                 key: const ValueKey('info-row-instructor'),
                 icon: HugeIcons.strokeRoundedUserAdd01,
                 well: paintColor.withValues(alpha: 0.12),
@@ -96,11 +106,13 @@ class HonorWorkInfoTab extends ConsumerWidget {
                     : editable
                         ? 'honors.requirements.info_instructor_optional'.tr()
                         : 'instructor.none_registered'.tr(),
-                onTap: editable ? () => _editInstructor(context) : null,
+                onTap: (editable || proposes)
+                    ? () => _editInstructor(context)
+                    : null,
               ),
               if (materialUrl != null && materialUrl.isNotEmpty) ...[
                 Divider(height: 1, thickness: 1, color: c.borderLight),
-                _InfoRow(
+                HonorInfoRow(
                   key: const ValueKey('info-row-material'),
                   icon: HugeIcons.strokeRoundedPdf01,
                   well: paintColor.withValues(alpha: 0.12),
@@ -115,13 +127,19 @@ class HonorWorkInfoTab extends ConsumerWidget {
                 ),
               ],
               Divider(height: 1, thickness: 1, color: c.borderLight),
-              _InfoRow(
+              HonorInfoRow(
                 key: const ValueKey('info-row-mode'),
                 icon: HugeIcons.strokeRoundedRoute01,
                 well: paintColor.withValues(alpha: 0.12),
                 iconColor: chipForeground,
                 title: 'honors.detail.history_mode_label'.tr(),
-                subtitle: 'honors.detail.mode_in_app'.tr(),
+                subtitle: switch (userHonor.completionMode) {
+                  HonorCompletionMode.external =>
+                    'honors.detail.mode_external'.tr(),
+                  HonorCompletionMode.inApp => 'honors.detail.mode_in_app'.tr(),
+                  HonorCompletionMode.undecided =>
+                    'honors.detail.mode_undecided'.tr(),
+                },
               ),
               Divider(height: 1, thickness: 1, color: c.borderLight),
               Padding(
@@ -134,13 +152,13 @@ class HonorWorkInfoTab extends ConsumerWidget {
                         runSpacing: 6,
                         children: [
                           if (honor?.skillLevel != null)
-                            _LevelChip(
+                            HonorLevelChip(
                               label: honorSkillLevelLabel(honor!.skillLevel),
                               background: paintColor.withValues(alpha: 0.12),
                               foreground: chipForeground,
                             ),
                           if (honor != null)
-                            _LevelChip(
+                            HonorLevelChip(
                               label: honorApprovalLabel(honor!.approval),
                               background: paintColor.withValues(alpha: 0.12),
                               foreground: chipForeground,
@@ -209,224 +227,46 @@ class HonorWorkInfoTab extends ConsumerWidget {
         borderRadius:
             BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLG)),
       ),
-      builder: (_) => Consumer(
-        builder: (context, ref, _) {
-          // Follows the saved value so the card redraws after the PATCH.
-          final current =
-              ref.watch(userHonorForHonorProvider(honorId)) ?? userHonor;
-          return Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.viewInsetsOf(context).bottom,
-            ),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SacSheetHeader(title: 'instructor.title'.tr()),
-                  HonorInstructorCard(userHonor: current),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
+      builder: (_) => HonorInstructorSheetBody(userHonor: userHonor),
     );
   }
 }
 
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    super.key,
-    required this.icon,
-    required this.well,
-    required this.iconColor,
-    required this.title,
-    this.subtitle,
-    this.onTap,
-  });
+/// Content of the instructor sheet: the optional-instructor card while the
+/// honor can still change, or the proposal card on an approved honor of a
+/// backend that knows proposals (D11). It follows the saved value so the card
+/// redraws after the PATCH.
+class HonorInstructorSheetBody extends ConsumerWidget {
+  const HonorInstructorSheetBody({super.key, required this.userHonor});
 
-  final HugeIconData icon;
-  final Color well;
-  final Color iconColor;
-  final String title;
-  final String? subtitle;
-
-  /// Null makes the row read-only (no chevron, no tap).
-  final VoidCallback? onTap;
+  final UserHonor userHonor;
 
   @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final text = Theme.of(context).textTheme;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current =
+        ref.watch(userHonorForHonorProvider(userHonor.honorId)) ?? userHonor;
+    final propose = current.isCompleted &&
+        current.active &&
+        current.supportsInstructorProposal;
 
-    final content = ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 56),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.viewInsetsOf(context).bottom,
+      ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: well,
-                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-              ),
-              child: Center(
-                child: HugeIcon(icon: icon, size: 20, color: iconColor),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: text.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: c.text,
-                    ),
-                  ),
-                  if (subtitle != null)
-                    Text(
-                      subtitle!,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: text.bodySmall?.copyWith(color: c.textSecondary),
-                    ),
-                ],
-              ),
-            ),
-            if (onTap != null)
-              ExcludeSemantics(
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowRight01,
-                  size: 18,
-                  color: c.textTertiary,
-                ),
-              ),
+            SacSheetHeader(title: 'instructor.title'.tr()),
+            if (propose)
+              InstructorProposalCard(userHonor: current)
+            else
+              HonorInstructorCard(userHonor: current),
           ],
         ),
       ),
-    );
-
-    return MergeSemantics(
-      child: Semantics(
-        button: onTap != null,
-        child: onTap == null
-            ? content
-            : InkWell(
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  onTap!();
-                },
-                child: content,
-              ),
-      ),
-    );
-  }
-}
-
-class _LevelChip extends StatelessWidget {
-  const _LevelChip({
-    required this.label,
-    required this.background,
-    required this.foreground,
-  });
-
-  final String label;
-  final Color background;
-  final Color foreground;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: foreground,
-              height: 1,
-            ),
-      ),
-    );
-  }
-}
-
-class _ClampedDescription extends StatefulWidget {
-  const _ClampedDescription({required this.text});
-
-  final String text;
-
-  @override
-  State<_ClampedDescription> createState() => _ClampedDescriptionState();
-}
-
-class _ClampedDescriptionState extends State<_ClampedDescription> {
-  static const _maxLines = 4;
-  bool _expanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final style = Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: c.textSecondary,
-          height: 1.5,
-        );
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final painter = TextPainter(
-          text: TextSpan(text: widget.text, style: style),
-          maxLines: _maxLines,
-          textDirection: Directionality.of(context),
-          textScaler: MediaQuery.textScalerOf(context),
-        )..layout(maxWidth: constraints.maxWidth);
-        final overflows = painter.didExceedMaxLines;
-        painter.dispose();
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.text,
-              maxLines: _expanded ? null : _maxLines,
-              overflow: _expanded ? TextOverflow.visible : TextOverflow.fade,
-              style: style,
-            ),
-            if (overflows)
-              Semantics(
-                button: true,
-                child: InkWell(
-                  onTap: () => setState(() => _expanded = !_expanded),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 44),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        _expanded
-                            ? 'honors.requirements.see_less'.tr()
-                            : 'honors.requirements.see_more'.tr(),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: c.textSecondary,
-                            ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        );
-      },
     );
   }
 }

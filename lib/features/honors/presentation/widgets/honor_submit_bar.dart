@@ -6,23 +6,27 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/honors/presentation/utils/honor_submission_readiness.dart';
+import 'package:sacdia_app/features/honors/presentation/widgets/honor_action_bar.dart';
 
-/// Sticky bottom bar of the in-progress honor screen.
+/// Sticky bottom bar of the in-progress honor screens (in-app and external).
 ///
-/// While the member can still submit it says what is missing and offers
-/// "Enviar a revisión" (disabled until [HonorSubmissionReadiness.canSubmit]).
-/// Under review it shows the "En revisión" badge and no button.
+/// While the member can still submit it shows [summary] (what is missing) and
+/// offers "Enviar a revisión", disabled until [canSubmit]. Under review it
+/// shows the "En revisión" badge and no button.
 class HonorSubmitBar extends StatelessWidget {
   const HonorSubmitBar({
     super.key,
-    required this.readiness,
+    required this.summary,
+    required this.canSubmit,
     required this.bandColor,
     required this.isUnderReview,
     required this.isSubmitting,
     required this.onSubmit,
   });
 
-  final HonorSubmissionReadiness readiness;
+  /// "Te falta: …" or "Todo listo para enviar".
+  final String summary;
+  final bool canSubmit;
   final Color bandColor;
   final bool isUnderReview;
   final bool isSubmitting;
@@ -30,8 +34,8 @@ class HonorSubmitBar extends StatelessWidget {
 
   /// "Te falta: 3 requisitos y la fecha de finalización" or, when nothing is
   /// missing, "Todo listo para enviar".
-  static String summary(HonorSubmissionReadiness readiness) {
-    final parts = <String>[
+  static String summaryFor(HonorSubmissionReadiness readiness) {
+    return fromMissing([
       if (readiness.unsatisfiedCount > 0)
         'honors.requirements.missing_requirements'
             .plural(readiness.unsatisfiedCount),
@@ -39,12 +43,28 @@ class HonorSubmitBar extends StatelessWidget {
         'honors.requirements.missing_evidences'
             .plural(readiness.missingEvidenceCount),
       if (!readiness.hasCompletionDate) 'honors.requirements.missing_date'.tr(),
-    ];
-    if (parts.isEmpty) return 'honors.requirements.ready_to_send'.tr();
-    final joined = parts.length == 1
-        ? parts.first
-        : '${parts.sublist(0, parts.length - 1).join(', ')}'
-            '${'honors.requirements.list_and'.tr()}${parts.last}';
+    ]);
+  }
+
+  /// External honors: "Te falta: el formato completado, una evidencia general
+  /// y la fecha de finalización".
+  static String summaryForExternal(ExternalSubmissionReadiness readiness) {
+    return fromMissing([
+      if (!readiness.hasFormat) 'honors.evidence.missing_format'.tr(),
+      if (!readiness.hasGeneralEvidence)
+        'honors.evidence.missing_general_evidence'.tr(),
+      if (!readiness.hasCompletionDate) 'honors.requirements.missing_date'.tr(),
+    ]);
+  }
+
+  /// "Te falta: a, b y c" for the [missing] parts, or "Todo listo para
+  /// enviar" when there are none.
+  static String fromMissing(List<String> missing) {
+    if (missing.isEmpty) return 'honors.requirements.ready_to_send'.tr();
+    final joined = missing.length == 1
+        ? missing.first
+        : '${missing.sublist(0, missing.length - 1).join(', ')}'
+            '${'honors.requirements.list_and'.tr()}${missing.last}';
     return 'honors.requirements.missing_intro'.tr(namedArgs: {'items': joined});
   }
 
@@ -52,22 +72,9 @@ class HonorSubmitBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final text = Theme.of(context).textTheme;
-    final bottom = MediaQuery.paddingOf(context).bottom;
 
-    return Container(
+    return HonorActionBar(
       key: const ValueKey('honor-submit-bar'),
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(20, 12, 20, 12 + bottom),
-      decoration: BoxDecoration(
-        color: c.surface,
-        boxShadow: [
-          BoxShadow(
-            color: c.shadow,
-            blurRadius: 12,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -88,7 +95,7 @@ class HonorSubmitBar extends StatelessWidget {
             Semantics(
               liveRegion: true,
               child: Text(
-                summary(readiness),
+                summary,
                 key: const ValueKey('honor-submit-summary'),
                 textAlign: TextAlign.center,
                 style: text.bodySmall?.copyWith(color: c.textSecondary),
@@ -102,8 +109,7 @@ class HonorSubmitBar extends StatelessWidget {
               isLoading: isSubmitting,
               backgroundColor: bandColor,
               textColor: Colors.white,
-              onPressed:
-                  (readiness.canSubmit && !isSubmitting) ? onSubmit : null,
+              onPressed: (canSubmit && !isSubmitting) ? onSubmit : null,
             ),
           ],
         ],

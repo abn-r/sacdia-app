@@ -19,8 +19,9 @@ HonorWorkStep honorWorkStepFor(UserHonor userHonor) {
   return HonorWorkStep.working;
 }
 
-/// Header band of the in-progress honor screen: patch inside a progress ring,
-/// names, percentage and the four-step path.
+/// Header band of the honor screens: patch (inside a progress ring when there
+/// is a [progress]), names, an optional status [badge], a meta line and the
+/// four-step path.
 ///
 /// Paints [bandColor] edge to edge and always uses white text, so the caller
 /// must pass a color that holds 4.5:1 against white (see `bandColorFor`).
@@ -30,10 +31,11 @@ class HonorProgressBand extends StatelessWidget {
     super.key,
     required this.bandColor,
     required this.honorName,
-    required this.progress,
     required this.metaLabel,
     required this.step,
     required this.topInset,
+    this.progress,
+    this.badge,
     this.categoryName,
     this.imageUrl,
     this.bottomPadding = 34,
@@ -44,20 +46,40 @@ class HonorProgressBand extends StatelessWidget {
   final String? categoryName;
   final String? imageUrl;
 
-  /// 0..1.
-  final double progress;
+  /// 0..1. Null draws the patch without a ring (nothing to measure yet).
+  final double? progress;
+
+  /// Status pill shown before the meta line (e.g. "Validada"). It brings its
+  /// own background, so it holds contrast on any band color.
+  final Widget? badge;
 
   /// Line under the name, e.g. "40% · Dentro de la app".
   final String metaLabel;
-  final HonorWorkStep step;
+
+  /// Last step reached; null when none is (the honor is not enrolled yet).
+  final HonorWorkStep? step;
   final double topInset;
 
   /// Room left under the content for tabs that float over the band edge.
   final double bottomPadding;
 
   static const double _patchSize = 64;
+  static const double _bareSize = 72;
   static const double _ringSize = 84;
   static const double _ringStroke = 5;
+
+  Widget _meta(TextTheme text, Color color) {
+    final line = Text(metaLabel, style: text.bodySmall?.copyWith(color: color));
+    final value = progress;
+    if (value == null) return line;
+    return Semantics(
+      label: 'honors.requirements.band_progress_semantics'.tr(namedArgs: {
+        'percent': '${(value * 100).round()}',
+      }),
+      excludeSemantics: true,
+      child: line,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +101,7 @@ class HonorProgressBand extends StatelessWidget {
                 progress: progress,
                 imageUrl: imageUrl,
                 size: _ringSize,
-                patchSize: _patchSize,
+                patchSize: progress == null ? _bareSize : _patchSize,
                 stroke: _ringStroke,
               ),
               const SizedBox(width: 14),
@@ -107,16 +129,14 @@ class HonorProgressBand extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Semantics(
-                      label: 'honors.requirements.band_progress_semantics'
-                          .tr(namedArgs: {
-                        'percent': '${(progress * 100).round()}',
-                      }),
-                      excludeSemantics: true,
-                      child: Text(
-                        metaLabel,
-                        style: text.bodySmall?.copyWith(color: white90),
-                      ),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        if (badge != null) badge!,
+                        _meta(text, white90),
+                      ],
                     ),
                   ],
                 ),
@@ -140,7 +160,7 @@ class _PatchRing extends StatelessWidget {
     required this.stroke,
   });
 
-  final double progress;
+  final double? progress;
   final String? imageUrl;
   final double size;
   final double patchSize;
@@ -150,21 +170,23 @@ class _PatchRing extends StatelessWidget {
   Widget build(BuildContext context) {
     final duration =
         SacMotion.reduceMotionOf(context) ? Duration.zero : SacMotion.modal;
+    final value = progress;
     return SizedBox(
       width: size,
       height: size,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          TweenAnimationBuilder<double>(
-            tween: Tween<double>(end: progress.clamp(0.0, 1.0)),
-            duration: duration,
-            curve: SacMotion.easeOut,
-            builder: (context, value, _) => CustomPaint(
-              size: Size.square(size),
-              painter: _RingPainter(value: value, stroke: stroke),
+          if (value != null)
+            TweenAnimationBuilder<double>(
+              tween: Tween<double>(end: value.clamp(0.0, 1.0)),
+              duration: duration,
+              curve: SacMotion.easeOut,
+              builder: (context, animated, _) => CustomPaint(
+                size: Size.square(size),
+                painter: _RingPainter(value: animated, stroke: stroke),
+              ),
             ),
-          ),
           ExcludeSemantics(
             child: HonorBadgeImage(
               imageUrl: imageUrl,
@@ -222,7 +244,8 @@ class _RingPainter extends CustomPainter {
 class HonorStepPath extends StatelessWidget {
   const HonorStepPath({super.key, required this.step});
 
-  final HonorWorkStep step;
+  /// Null when no step is reached yet (not enrolled).
+  final HonorWorkStep? step;
 
   static List<String> labels() => [
         'honors.detail.status_enrolled'.tr(),
@@ -235,15 +258,17 @@ class HonorStepPath extends StatelessWidget {
   Widget build(BuildContext context) {
     final names = labels();
     final text = Theme.of(context).textTheme;
-    final current = step.index;
+    final current = step?.index ?? -1;
 
     return Semantics(
       container: true,
-      label: 'honors.requirements.step_semantics'.tr(namedArgs: {
-        'current': '${current + 1}',
-        'total': '${names.length}',
-        'label': names[current],
-      }),
+      label: current < 0
+          ? 'honors.detail.step_none_semantics'.tr()
+          : 'honors.requirements.step_semantics'.tr(namedArgs: {
+              'current': '${current + 1}',
+              'total': '${names.length}',
+              'label': names[current],
+            }),
       excludeSemantics: true,
       child: Row(
         key: const ValueKey('honor-step-path'),
