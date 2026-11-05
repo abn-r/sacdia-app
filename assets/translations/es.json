@@ -684,6 +684,9 @@
     "abandon": {
       "menu_tooltip": "Más opciones",
       "action": "Abandonar especialidad",
+      "action_hint": "Se borra tu avance",
+      "progress_in_app": "Llevas {percent} % de avance ({done} de {total} requisitos completos)",
+      "progress_external": "Llevas {percent} % de avance",
       "confirm_title": "¿Abandonar especialidad?",
       "confirm_message": "Dejarás de trabajar en {name} y ya no aparecerá en tu perfil. Si vuelves a inscribirte, tendrás que elegir el modo de trabajo y subir tus evidencias otra vez.",
       "confirm_cta": "Abandonar",

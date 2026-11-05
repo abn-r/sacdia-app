@@ -61,6 +61,7 @@ void main() {
     WidgetTester tester, {
     required UserHonor userHonor,
     required _RecordingAbandonNotifier notifier,
+    String? progressSummary,
   }) async {
     await tester.pumpWidget(
       testProviderScope(
@@ -92,6 +93,7 @@ void main() {
                                 HonorAbandonMenuButton(
                                   userHonor: userHonor,
                                   honorName: 'Amarres',
+                                  progressSummary: progressSummary,
                                 ),
                               ],
                             ),
@@ -154,6 +156,51 @@ void main() {
 
     expect(notifier.calls, isEmpty);
     expect(find.text('work-screen'), findsOneWidget);
+  });
+
+  testWidgets('opens the design-system pull-down, not a Material menu',
+      (tester) async {
+    await pumpMenu(tester,
+        userHonor: _userHonor('IN_PROGRESS'),
+        notifier: _RecordingAbandonNotifier());
+
+    await tester.tap(find.byKey(const ValueKey('honor-abandon-menu')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('honor-abandon-pull-down')), findsOne);
+    expect(find.byType(PopupMenuItem), findsNothing);
+    expect(find.text('honors.abandon.action_hint'), findsOneWidget);
+    // The panel hangs from the button, but never flush with the screen edge.
+    final panelRight = tester
+        .getTopRight(find.byKey(const ValueKey('honor-abandon-pull-down')))
+        .dx;
+    final buttonRight = tester
+        .getBottomRight(find.byKey(const ValueKey('honor-abandon-menu')))
+        .dx;
+    final screenWidth =
+        tester.view.physicalSize.width / tester.view.devicePixelRatio;
+    expect(panelRight, lessThanOrEqualTo(screenWidth - 12));
+    expect(buttonRight - panelRight, inInclusiveRange(9, 12));
+
+    // Tapping outside closes it without asking anything.
+    await tester.tapAt(const Offset(20, 400));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('honor-abandon-pull-down')), findsNothing);
+    expect(find.text('honors.abandon.confirm_title'), findsNothing);
+  });
+
+  testWidgets('the confirmation recalls the progress that would be lost',
+      (tester) async {
+    await pumpMenu(
+      tester,
+      userHonor: _userHonor('IN_PROGRESS'),
+      notifier: _RecordingAbandonNotifier(),
+      progressSummary: 'Llevas 3 de 5 requisitos (60 %)',
+    );
+
+    await openAbandonDialog(tester);
+
+    expect(find.text('Llevas 3 de 5 requisitos (60 %)'), findsOneWidget);
   });
 
   testWidgets('abandons, shows success and leaves the work screen',

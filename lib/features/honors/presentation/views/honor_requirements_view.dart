@@ -198,7 +198,13 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
         HonorAbandonMenuButton(
           userHonor: userHonor,
           honorName: name,
-          iconColor: Colors.white,
+          progressSummary: readiness.doneCount == 0
+              ? null
+              : 'honors.abandon.progress_in_app'.tr(namedArgs: {
+                  'done': '${readiness.doneCount}',
+                  'total': '${readiness.totalCount}',
+                  'percent': '$percent',
+                }),
         ),
       ],
       tabLabels: [
