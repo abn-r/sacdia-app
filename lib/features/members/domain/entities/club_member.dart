@@ -1,13 +1,14 @@
 import 'package:equatable/equatable.dart';
+import 'package:sacdia_app/core/auth/club_role_names.dart';
 
 const _sectionBoardRoles = {
-  'director',
-  'deputy-director',
-  'secretary',
-  'treasurer',
-  'secretary-treasurer',
-  'counselor',
-  'instructor',
+  ClubRoleNames.director,
+  ClubRoleNames.deputyDirector,
+  ClubRoleNames.secretary,
+  ClubRoleNames.treasurer,
+  ClubRoleNames.secretaryTreasurer,
+  ClubRoleNames.counselor,
+  ClubRoleNames.instructor,
 };
 
 /// Entidad que representa un miembro del club
@@ -76,12 +77,7 @@ class ClubMember extends Equatable {
 
   /// Cargo de la directiva de la sección, no el rol de miembro.
   bool get isSectionBoard {
-    final role = (clubRole ?? '')
-        .trim()
-        .toLowerCase()
-        .replaceAll('_', '-')
-        .replaceAll(' ', '-');
-    return _sectionBoardRoles.contains(role);
+    return _sectionBoardRoles.contains(normalizeClubRoleName(clubRole));
   }
 
   /// Tiene una clase de Guías Mayores, aunque la sección sea de otro club.
