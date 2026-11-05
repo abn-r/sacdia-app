@@ -684,6 +684,9 @@
     "abandon": {
       "menu_tooltip": "Mais opções",
       "action": "Abandonar especialidade",
+      "action_hint": "Seu progresso é apagado",
+      "progress_in_app": "Você está com {percent}% de progresso ({done} de {total} requisitos completos)",
+      "progress_external": "Você está com {percent}% de progresso",
       "confirm_title": "Abandonar especialidade?",
       "confirm_message": "Você deixará de trabalhar em {name} e ela não aparecerá mais no seu perfil. Se você se inscrever novamente, terá que escolher o modo de trabalho e enviar suas evidências outra vez.",
       "confirm_cta": "Abandonar",

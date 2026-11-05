@@ -752,7 +752,10 @@ class _EvidenceBody extends ConsumerWidget {
         HonorAbandonMenuButton(
           userHonor: userHonor,
           honorName: honorName,
-          iconColor: Colors.white,
+          progressSummary: percent == 0
+              ? null
+              : 'honors.abandon.progress_external'
+                  .tr(namedArgs: {'percent': '$percent'}),
         ),
       ],
       tabLabels: [
