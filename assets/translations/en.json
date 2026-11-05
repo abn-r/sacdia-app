@@ -2081,8 +2081,6 @@
       "title": "My Classes",
       "enroll_tooltip": "Enroll previous class",
       "error_loading": "Error loading classes",
-      "roadmap_chip_title": "View my full journey",
-      "roadmap_chip_subtitle": "See your career progress",
       "certifications_chip_title": "Certifications",
       "certifications_chip_subtitle": "Browse and enroll in certifications",
       "section_current": "Current class",
@@ -2091,19 +2089,6 @@
       "enroll_cta_short": "Enroll",
       "catalog_chip_title": "Classes by club",
       "catalog_chip_subtitle": "Ages and your progress in each class"
-    },
-    "roadmap": {
-      "track_current_pill": "Current",
-      "min_age": "From age {age}",
-      "legend_done": "Completed",
-      "legend_current": "In progress",
-      "legend_not_taken": "Not taken",
-      "legend_upcoming": "Upcoming",
-      "node_current": "IN PROGRESS · {progress}%",
-      "node_not_taken": "NOT TAKEN",
-      "node_upcoming": "UPCOMING",
-      "node_expired": "EXPIRED",
-      "title": "My Journey"
     },
     "status_history": {
       "title": "Status history",

@@ -2081,8 +2081,6 @@
       "title": "Minhas Classes",
       "enroll_tooltip": "Inscrever classe anterior",
       "error_loading": "Erro ao carregar classes",
-      "roadmap_chip_title": "Ver meu caminho completo",
-      "roadmap_chip_subtitle": "Veja o progresso da sua carreira",
       "certifications_chip_title": "Certificações",
       "certifications_chip_subtitle": "Explore e inscreva-se em certificações",
       "section_current": "Classe atual",
@@ -2091,19 +2089,6 @@
       "enroll_cta_short": "Inscrever-me",
       "catalog_chip_title": "Classes por clube",
       "catalog_chip_subtitle": "Idades e seu progresso em cada classe"
-    },
-    "roadmap": {
-      "track_current_pill": "Em curso",
-      "min_age": "A partir de {age} anos",
-      "legend_done": "Concluída",
-      "legend_current": "Em curso",
-      "legend_not_taken": "Não cursada",
-      "legend_upcoming": "A cursar",
-      "node_current": "EM CURSO · {progress}%",
-      "node_not_taken": "NÃO CURSADA",
-      "node_upcoming": "A CURSAR",
-      "node_expired": "VENCIDA",
-      "title": "Meu caminho"
     },
     "status_history": {
       "title": "Histórico de status",
