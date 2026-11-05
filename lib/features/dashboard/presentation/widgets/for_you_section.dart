@@ -35,7 +35,7 @@ class ForYouSection extends ConsumerWidget {
     final tiles = <_ForYouTile>[
       _ForYouTile(
         labelKey: 'dashboard.for_you.honors',
-        icon: HugeIcons.strokeRoundedAward01,
+        icon: HugeIcons.strokeRoundedMedal01,
         onTap: () => context.push(RouteNames.homeHonors),
       ),
       _ForYouTile(
