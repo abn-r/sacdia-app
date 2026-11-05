@@ -4234,9 +4234,12 @@
     "for_you": {
       "title": "Para ti",
       "honors": "Especialidades",
-      "achievements": "Logros",
       "credential": "Credencial",
-      "resources": "Recursos"
+      "resources": "Recursos",
+      "credential_subtitle": "Tu código QR de miembro",
+      "honors_summary": "{in_progress} en curso · {validated} validadas",
+      "honors_empty": "Explora el catálogo y empieza una",
+      "resources_subtitle": "Manuales y guías"
     },
     "pending": {
       "title": "Pendientes",
