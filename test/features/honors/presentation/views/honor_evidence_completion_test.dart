@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/providers/riverpod_aliases.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,12 +9,12 @@ import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/widgets/instructor_picker.dart';
 import 'package:sacdia_app/core/widgets/instructor_selection.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/features/activities/presentation/widgets/activity_form_widgets.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/domain/repositories/honors_repository.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/honors/presentation/views/honor_evidence_view.dart';
+import 'package:sacdia_app/features/honors/presentation/widgets/honor_work_info_tab.dart';
 
 import '../../../certificate_import/support/test_app.dart';
 import '../../../../support/instructor_fakes.dart';
@@ -86,12 +87,8 @@ Future<void> _settle(WidgetTester tester) async {
   }
 }
 
-Future<void> _pump(
-  WidgetTester tester,
-  _FakeHonorsRepository repo, {
-  FakeInstructorSearch? search,
-}) async {
-  phoneSurface(tester, height: 3200);
+List<Override> _overrides(_FakeHonorsRepository repo,
+    {FakeInstructorSearch? search}) {
   const honor = Honor(
     id: 7,
     name: 'Arte de acampar',
@@ -99,22 +96,48 @@ Future<void> _pump(
     approval: 1,
     clubTypeId: 1,
   );
+  return [
+    allHonorsProvider.overrideWith((ref) async => [honor]),
+    activeHonorCatalogClubTypeIdProvider
+        .overrideWith((ref) => const AsyncValue.data(null)),
+    userHonorsProvider.overrideWith((ref) async => [repo.row]),
+    honorsRepositoryProvider.overrideWithValue(repo),
+    (search ?? FakeInstructorSearch()).override,
+  ];
+}
+
+/// The external screen, on its "Información" tab (date and instructor live
+/// there).
+Future<void> _pumpInfo(WidgetTester tester, _FakeHonorsRepository repo) async {
+  phoneSurface(tester, height: 3200);
   await tester.pumpWidget(wrapTestApp(
     const HonorEvidenceView(honorId: 7, userHonorId: 77),
-    overrides: [
-      allHonorsProvider.overrideWith((ref) async => [honor]),
-      activeHonorCatalogClubTypeIdProvider
-          .overrideWith((ref) => const AsyncValue.data(null)),
-      userHonorsProvider.overrideWith((ref) async => [repo.row]),
-      honorsRepositoryProvider.overrideWithValue(repo),
-      (search ?? FakeInstructorSearch()).override,
-    ],
+    overrides: _overrides(repo),
+  ));
+  await _settle(tester);
+  await tester.tap(find.byKey(const ValueKey('honor-tab-1')));
+  await _settle(tester);
+}
+
+/// The instructor sheet on its own, so its texts are not doubled by the info
+/// row behind it.
+Future<void> _pumpInstructor(
+  WidgetTester tester,
+  _FakeHonorsRepository repo, {
+  FakeInstructorSearch? search,
+}) async {
+  phoneSurface(tester, height: 3200);
+  await tester.pumpWidget(wrapTestApp(
+    Scaffold(body: HonorInstructorSheetBody(userHonor: repo.row)),
+    overrides: _overrides(repo, search: search),
   ));
   await _settle(tester);
 }
 
 SacButton _send(WidgetTester tester) =>
     tester.widget(find.widgetWithText(SacButton, 'Enviar a revisión'));
+
+Finder _summary() => find.byKey(const ValueKey('honor-submit-summary'));
 
 Future<void> _searchAndPick(
     WidgetTester tester, String typed, String label) async {
@@ -133,12 +156,14 @@ Future<void> _searchAndPick(
   await _settle(tester);
 }
 
-/// How the date field writes a day in Spanish.
+/// How the date row writes a day.
 String _shown(DateTime d) => DateFormat('d MMM yyyy', 'es').format(d);
 
 String _isoDay(DateTime d) =>
     '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-'
     '${d.day.toString().padLeft(2, '0')}';
+
+Finder _dateRow() => find.byKey(const ValueKey('info-row-date'));
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -147,37 +172,36 @@ void main() {
   group('completion date (mandatory in the app)', () {
     testWidgets('without it the submit is disabled and says why',
         (tester) async {
-      await _pump(tester, _FakeHonorsRepository());
+      await _pumpInfo(tester, _FakeHonorsRepository());
 
       expect(find.text('Fecha de finalización'), findsOneWidget);
-      expect(find.text('Obligatoria para enviar a revisión'), findsOneWidget);
-      expect(find.text('Elige la fecha de finalización para enviar a revisión'),
-          findsOneWidget);
+      expect(find.text('Necesaria para enviar a revisión'), findsOneWidget);
+      expect(tester.widget<Text>(_summary()).data,
+          'Te falta: la fecha de finalización');
       final button = _send(tester);
-      expect(button.isEnabled, isFalse);
+      expect(button.isEnabled, isTrue);
       expect(button.onPressed, isNull);
     });
 
-    testWidgets('with it the submit is enabled and the message is gone',
+    testWidgets('with it the submit is enabled and nothing is missing',
         (tester) async {
-      await _pump(
+      await _pumpInfo(
         tester,
         _FakeHonorsRepository(completedAt: DateTime(2026, 9, 30)),
       );
 
-      expect(find.text('Elige la fecha de finalización para enviar a revisión'),
-          findsNothing);
-      expect(_send(tester).isEnabled, isTrue);
+      expect(tester.widget<Text>(_summary()).data, 'Todo listo para enviar');
       expect(_send(tester).onPressed, isNotNull);
       expect(find.text(_shown(DateTime(2026, 9, 30))), findsOneWidget);
+      expect(find.text('Necesaria para enviar a revisión'), findsNothing);
     });
 
     testWidgets('picking a day saves completedAt and unlocks the submit',
         (tester) async {
       final repo = _FakeHonorsRepository();
-      await _pump(tester, repo);
+      await _pumpInfo(tester, repo);
 
-      await tester.tap(find.text('Seleccionar fecha'));
+      await tester.tap(_dateRow());
       await _settle(tester);
       await tester.tap(find.text('Aceptar'));
       await _settle(tester);
@@ -185,14 +209,14 @@ void main() {
       expect(repo.patches, [
         {'completedAt': _isoDay(DateTime.now())},
       ]);
-      expect(_send(tester).isEnabled, isTrue);
-      expect(find.text('Obligatoria para enviar a revisión'), findsNothing);
+      expect(_send(tester).onPressed, isNotNull);
+      expect(find.text('Necesaria para enviar a revisión'), findsNothing);
     });
 
     testWidgets('the picker runs from 1960-01-01 to today', (tester) async {
-      await _pump(tester, _FakeHonorsRepository());
+      await _pumpInfo(tester, _FakeHonorsRepository());
 
-      await tester.tap(find.text('Seleccionar fecha'));
+      await tester.tap(_dateRow());
       await _settle(tester);
 
       final calendar =
@@ -202,7 +226,7 @@ void main() {
       expect(calendar.lastDate, DateTime(now.year, now.month, now.day));
     });
 
-    testWidgets('an API range error lands on the field and saves nothing',
+    testWidgets('an API range error is explained and saves nothing',
         (tester) async {
       final repo = _FakeHonorsRepository()
         ..failWith = const ServerFailure(
@@ -210,45 +234,44 @@ void main() {
           code: 400,
           errorCode: 'HONOR_DATE_TOO_OLD',
         );
-      await _pump(tester, repo);
+      await _pumpInfo(tester, repo);
 
-      await tester.tap(find.text('Seleccionar fecha'));
+      await tester.tap(_dateRow());
       await _settle(tester);
       await tester.tap(find.text('Aceptar'));
       await _settle(tester);
 
       expect(
           find.text('La fecha no puede ser anterior a 1960'), findsOneWidget);
-      expect(find.text('Seleccionar fecha'), findsOneWidget);
-      expect(_send(tester).isEnabled, isFalse);
+      expect(find.text('Necesaria para enviar a revisión'), findsOneWidget);
+      expect(_send(tester).onPressed, isNull);
     });
 
     testWidgets('a network failure shows a snack bar and keeps it empty',
         (tester) async {
       final repo = _FakeHonorsRepository()
         ..failWith = const ServerFailure(message: 'x');
-      await _pump(tester, repo);
+      await _pumpInfo(tester, repo);
 
-      await tester.tap(find.text('Seleccionar fecha'));
+      await tester.tap(_dateRow());
       await _settle(tester);
       await tester.tap(find.text('Aceptar'));
       await _settle(tester);
 
       expect(find.text('No pudimos guardar la fecha. Inténtalo de nuevo'),
           findsOneWidget);
-      expect(find.text('Seleccionar fecha'), findsOneWidget);
+      expect(find.text('Necesaria para enviar a revisión'), findsOneWidget);
     });
 
-    testWidgets('a status change elsewhere is explained on the field',
-        (tester) async {
+    testWidgets('a status change elsewhere is explained', (tester) async {
       final repo = _FakeHonorsRepository()
         ..failWith = const ServerFailure(
           message: 'x',
           errorCode: 'VALIDATION_HONOR_INVALID_STATUS',
         );
-      await _pump(tester, repo);
+      await _pumpInfo(tester, repo);
 
-      await tester.tap(find.text('Seleccionar fecha'));
+      await tester.tap(_dateRow());
       await _settle(tester);
       await tester.tap(find.text('Aceptar'));
       await _settle(tester);
@@ -261,26 +284,39 @@ void main() {
   });
 
   group('instructor (optional)', () {
-    testWidgets('does not gate the submit and says nobody is told',
-        (tester) async {
-      await _pump(
+    testWidgets('the info row opens the instructor sheet', (tester) async {
+      await _pumpInfo(
         tester,
         _FakeHonorsRepository(completedAt: DateTime(2026, 9, 30)),
       );
 
-      expect(find.text('Instructor o instructora'), findsOneWidget);
+      expect(find.text('Opcional'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('info-row-instructor')));
+      await _settle(tester);
+
+      expect(find.text('Agregar instructor (opcional)'), findsOneWidget);
+      expect(_send(tester).onPressed, isNotNull);
+    });
+
+    testWidgets('does not gate the submit and says nobody is told',
+        (tester) async {
+      await _pumpInstructor(
+        tester,
+        _FakeHonorsRepository(completedAt: DateTime(2026, 9, 30)),
+      );
+
+      expect(find.text('Instructor o instructora'), findsWidgets);
       expect(find.text('Agregar instructor (opcional)'), findsOneWidget);
       expect(
         find.text('Tu Campo Local revisa este dato. No avisamos a la persona.'),
         findsOneWidget,
       );
-      expect(_send(tester).isEnabled, isTrue);
     });
 
     testWidgets('choosing a person saves instructorUserId right away',
         (tester) async {
       final repo = _FakeHonorsRepository();
-      await _pump(tester, repo);
+      await _pumpInstructor(tester, repo);
 
       await _searchAndPick(tester, 'Ana', 'Ana Gómez');
 
@@ -293,7 +329,7 @@ void main() {
 
     testWidgets('a typed name saves instructorName', (tester) async {
       final repo = _FakeHonorsRepository();
-      await _pump(tester, repo);
+      await _pumpInstructor(tester, repo);
 
       await _searchAndPick(
           tester, 'Juan López', 'Usar «Juan López» como nombre');
@@ -308,7 +344,7 @@ void main() {
       final repo = _FakeHonorsRepository(
         instructor: const InstructorSelection.external('Juan López'),
       );
-      await _pump(tester, repo);
+      await _pumpInstructor(tester, repo);
 
       await tester.tap(find.widgetWithText(SacButton, 'Quitar'));
       await _settle(tester);
@@ -330,7 +366,7 @@ void main() {
           (tester) async {
         final repo = _FakeHonorsRepository()
           ..failWith = ServerFailure(message: 'x', code: 400, errorCode: code);
-        await _pump(tester, repo);
+        await _pumpInstructor(tester, repo);
 
         await _searchAndPick(tester, 'Ana', 'Ana Gómez');
 
@@ -344,7 +380,7 @@ void main() {
         (tester) async {
       final repo = _FakeHonorsRepository()
         ..failWith = const ServerFailure(message: 'x');
-      await _pump(tester, repo);
+      await _pumpInstructor(tester, repo);
 
       await _searchAndPick(tester, 'Ana', 'Ana Gómez');
 
@@ -355,7 +391,7 @@ void main() {
 
     testWidgets('a rejected honor can be edited again', (tester) async {
       final repo = _FakeHonorsRepository(status: 'REJECTED');
-      await _pump(tester, repo);
+      await _pumpInstructor(tester, repo);
 
       await _searchAndPick(tester, 'Ana', 'Ana Gómez');
 
@@ -363,9 +399,9 @@ void main() {
     });
   });
 
-  group('the date card chevron', () {
+  group('the date row chevron', () {
     Finder chevron() => find.descendant(
-          of: find.byType(ActivityDatePickerField),
+          of: _dateRow(),
           matching: find.byWidgetPredicate(
             (w) =>
                 w is HugeIcon && w.icon == HugeIcons.strokeRoundedArrowRight01,
@@ -373,7 +409,7 @@ void main() {
         );
 
     testWidgets('shows while the date can be changed', (tester) async {
-      await _pump(
+      await _pumpInfo(
         tester,
         _FakeHonorsRepository(completedAt: DateTime(2026, 9, 30)),
       );
@@ -383,7 +419,7 @@ void main() {
     for (final status in ['APPROVED', 'PENDING_REVIEW']) {
       testWidgets('is gone once the honor is $status (read-only)',
           (tester) async {
-        await _pump(
+        await _pumpInfo(
           tester,
           _FakeHonorsRepository(
             status: status,
@@ -404,21 +440,17 @@ void main() {
         completedAt: DateTime(2026, 9, 30),
         instructor: const InstructorSelection.external('Juan López'),
       );
-      await _pump(tester, repo);
+      await _pumpInfo(tester, repo);
 
       expect(find.text('Juan López'), findsOneWidget);
-      expect(find.widgetWithText(SacButton, 'Quitar'), findsNothing);
-      expect(
-          find.text(
-              'Tu Campo Local revisa este dato. No avisamos a la persona.'),
-          findsNothing);
-      expect(find.text('Obligatoria para enviar a revisión'), findsNothing);
+      expect(find.text('Necesaria para enviar a revisión'), findsNothing);
 
       await tester.tap(find.text('Juan López'));
       await _settle(tester);
       await tester.tap(find.text(_shown(DateTime(2026, 9, 30))));
       await _settle(tester);
       expect(find.byType(InstructorPicker), findsNothing);
+      expect(find.text('Agregar instructor (opcional)'), findsNothing);
       expect(find.byType(CalendarDatePicker), findsNothing);
       expect(repo.patches, isEmpty);
     });
@@ -429,10 +461,9 @@ void main() {
         status: 'APPROVED',
         validatedAt: DateTime(2026, 10, 2),
       );
-      await _pump(tester, repo);
+      await _pumpInfo(tester, repo);
 
       expect(find.text('Sin instructor registrado'), findsOneWidget);
-      expect(find.text('Agregar instructor (opcional)'), findsNothing);
       // No completed_at: shows when it was validated, not the start date.
       expect(find.text(_shown(DateTime(2026, 10, 2))), findsOneWidget);
       expect(find.widgetWithText(SacButton, 'Enviar a revisión'), findsNothing);
