@@ -9,7 +9,6 @@ import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/datasources/email_verification_remote_data_source.dart';
-import 'setting_tile.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
 final emailVerificationDataSourceProvider =
@@ -81,33 +80,97 @@ class _EmailVerificationPromptState
       return const SizedBox.shrink();
     }
     final c = context.sac;
+    final theme = Theme.of(context);
 
+    // An amber banner with its own room: it asks for an action, so it should
+    // not read as one more card stuck to Información médica.
     return Padding(
       padding: EdgeInsets.fromLTRB(
         widget.horizontalPadding,
-        12,
+        4,
         widget.horizontalPadding,
-        0,
+        20,
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: c.surface,
-          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-          border: Border.all(color: c.border, width: 1),
-        ),
-        child: SettingTile(
-          icon: HugeIcons.strokeRoundedMail01,
-          title: 'profile.email_verification.title'.tr(),
-          subtitle: 'profile.email_verification.subtitle'
-              .tr(namedArgs: {'email': email}),
-          trailing: _sending
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: SacLoadingSmall(),
-                )
-              : null,
-          onTap: _sending ? null : () => _resend(email),
+      child: Semantics(
+        container: true,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: c.warningContainer,
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 10, 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: c.surface,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                  ),
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedMailAtSign01,
+                    size: 20,
+                    color: c.onWarningContainer,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'profile.email_verification.title'.tr(),
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: c.onWarningContainer,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        email,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: c.onWarningContainer,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                if (_sending)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 14),
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: SacLoadingSmall(),
+                    ),
+                  )
+                else
+                  TextButton(
+                    key: const ValueKey('email-verification-send'),
+                    onPressed: () => _resend(email),
+                    style: TextButton.styleFrom(
+                      backgroundColor: c.surface,
+                      foregroundColor: c.onWarningContainer,
+                      minimumSize: const Size(0, 36),
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      shape: const StadiumBorder(),
+                      textStyle: const TextStyle(
+                        fontSize: SacFontSize.bodySmall,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    child: Text('profile.email_verification.send_link'.tr()),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );

@@ -6,11 +6,12 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/class_tone.dart';
+import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_snack_bar.dart';
-import '../../../../core/widgets/sac_text_field.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../profile/presentation/views/edit_profile_view.dart';
 import '../../../post_registration/presentation/widgets/relationship_type_picker_field.dart';
@@ -86,9 +87,12 @@ class _RedeemLinkCodeViewState extends ConsumerState<RedeemLinkCodeView> {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final theme = Theme.of(context);
     final hPad = Responsive.horizontalPadding(context);
     final relationshipTypes = ref.watch(guardianshipRelationshipTypesProvider);
     final error = _error;
+    final accent = SacAccent.of(context);
+    final tone = ClassTone.of(context, accent.color);
     final canSubmit = !_submitting &&
         _relationshipTypeId != null &&
         _swornDeclaration &&
@@ -101,43 +105,126 @@ class _RedeemLinkCodeViewState extends ConsumerState<RedeemLinkCodeView> {
         backgroundColor: c.background,
         foregroundColor: c.text,
       ),
+      // The action stays in the thumb zone while the form scrolls.
+      bottomNavigationBar: SafeArea(
+        minimum: EdgeInsets.fromLTRB(hPad, 8, hPad, 12),
+        child: SacButton.primary(
+          key: const ValueKey('family-link-submit'),
+          text: 'family.link.submit'.tr(),
+          isLoading: _submitting,
+          onPressed: canSubmit ? _submit : null,
+        ),
+      ),
       body: SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 32),
+          padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 24),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  'family.link.intro'.tr(),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: c.textSecondary,
+                Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: tone.container,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                       ),
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedKey01,
+                        size: 22,
+                        color: tone.onContainer,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'family.link.intro'.tr(),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: c.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 20),
-                SacTextField(
+                const SizedBox(height: 24),
+                _FieldLabel('family.link.code_label'.tr()),
+                const SizedBox(height: 8),
+                // Big, centered and spaced so a code read from another
+                // phone is easy to copy. The server normalizes case and dashes.
+                TextFormField(
+                  key: const ValueKey('family-link-code'),
                   controller: _codeController,
-                  label: 'family.link.code_label'.tr(),
-                  hint: 'family.link.code_hint'.tr(),
-                  prefixIcon: HugeIcons.strokeRoundedKey01,
+                  textAlign: TextAlign.center,
                   textCapitalization: TextCapitalization.characters,
                   keyboardType: TextInputType.visiblePassword,
-                  textInputAction: TextInputAction.next,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  textInputAction: TextInputAction.done,
                   maxLength: 32,
                   onChanged: (_) => setState(() {}),
                   validator: (v) => (v == null || v.trim().isEmpty)
                       ? 'family.link.code_required'.tr()
                       : null,
+                  style: TextStyle(
+                    fontSize: SacFontSize.displaySmall,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 4,
+                    color: c.text,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                  decoration: InputDecoration(
+                    counterText: '',
+                    hintText: 'family.link.code_hint'.tr(),
+                    hintStyle: TextStyle(
+                      fontSize: SacFontSize.displaySmall,
+                      letterSpacing: 4,
+                      color: c.textTertiary.withValues(alpha: 0.6),
+                    ),
+                    filled: true,
+                    fillColor: c.surface,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 18,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+                      borderSide: BorderSide(color: c.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+                      borderSide: BorderSide(color: accent.color, width: 1.5),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+                      borderSide: BorderSide(color: c.error),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+                      borderSide: BorderSide(color: c.error, width: 1.5),
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 6),
+                Text(
+                  'family.link.code_helper'.tr(),
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: c.textTertiary,
+                  ),
+                ),
+                const SizedBox(height: 20),
                 relationshipTypes.when(
                   loading: () => const LinearProgressIndicator(),
                   error: (_, __) => Text(
                     'family.add.relationship_error'.tr(),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.error,
-                        ),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.error,
+                    ),
                   ),
                   data: (types) => RelationshipTypePickerField(
                     selectedId: _relationshipTypeId,
@@ -149,31 +236,35 @@ class _RedeemLinkCodeViewState extends ConsumerState<RedeemLinkCodeView> {
                         setState(() => _relationshipTypeId = id),
                   ),
                 ),
-                const SizedBox(height: 16),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 48),
-                  child: Row(
-                    children: [
-                      Checkbox(
-                        value: _swornDeclaration,
-                        onChanged: (v) =>
-                            setState(() => _swornDeclaration = v ?? false),
-                        materialTapTargetSize: MaterialTapTargetSize.padded,
+                const SizedBox(height: 20),
+                // The whole card toggles the declaration.
+                Material(
+                  color: _swornDeclaration ? accent.surface : c.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+                    side: BorderSide(
+                      color: _swornDeclaration ? accent.color : c.border,
+                    ),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: CheckboxListTile(
+                    key: const ValueKey('family-link-sworn'),
+                    value: _swornDeclaration,
+                    onChanged: (v) =>
+                        setState(() => _swornDeclaration = v ?? false),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                    title: Text(
+                      'family.link.sworn'.tr(),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: c.text,
+                        height: 1.35,
                       ),
-                      Expanded(
-                        child: Text(
-                          'family.link.sworn'.tr(),
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(color: c.textSecondary),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
                 if (error != null) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -185,9 +276,7 @@ class _RedeemLinkCodeViewState extends ConsumerState<RedeemLinkCodeView> {
                       children: [
                         Text(
                           familyErrorMessage(error),
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
+                          style: theme.textTheme.bodyMedium
                               ?.copyWith(color: c.onErrorContainer),
                         ),
                         if (isGuardianProfileIncomplete(error)) ...[
@@ -207,17 +296,28 @@ class _RedeemLinkCodeViewState extends ConsumerState<RedeemLinkCodeView> {
                     ),
                   ),
                 ],
-                const SizedBox(height: 20),
-                SacButton.primary(
-                  text: 'family.link.submit'.tr(),
-                  isLoading: _submitting,
-                  onPressed: canSubmit ? _submit : null,
-                ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _FieldLabel extends StatelessWidget {
+  const _FieldLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: context.sac.text,
+          ),
     );
   }
 }

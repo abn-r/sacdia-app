@@ -221,9 +221,16 @@ void main() {
         body: const FamilyProfileEntry(horizontalPadding: 16),
       );
 
-      expect(find.text('Mi familia'), findsOneWidget);
+      await tester.pumpAndSettle();
+
+      // One compact row: count, names and a «Cambiar» button.
+      expect(find.text('MI FAMILIA'), findsOneWidget);
       expect(find.text('2 menores a tu cargo'), findsOneWidget);
-      expect(find.text('Cambiar de perfil'), findsOneWidget);
+      expect(find.text('Ana · Luis · Eva'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('family-entry-switch')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('one dependent reads in singular, not "1 menores"',
@@ -242,7 +249,7 @@ void main() {
       expect(find.text('1 menor a tu cargo'), findsOneWidget);
     });
 
-    testWidgets('with no dependents only Mi familia is offered',
+    testWidgets('with no dependents nothing is drawn (it lives in Ajustes)',
         (tester) async {
       auth.user = const UserEntity(
         id: 'guardian-1',
@@ -255,8 +262,8 @@ void main() {
         body: const FamilyProfileEntry(horizontalPadding: 16),
       );
 
-      expect(find.text('Mi familia'), findsOneWidget);
-      expect(find.text('Cambiar de perfil'), findsNothing);
+      expect(find.text('MI FAMILIA'), findsNothing);
+      expect(find.byKey(const ValueKey('family-entry-switch')), findsNothing);
     });
 
     testWidgets('is hidden for a supervised teen (no Mi familia, no switcher)',
@@ -273,24 +280,30 @@ void main() {
         body: const FamilyProfileEntry(horizontalPadding: 16),
       );
 
-      expect(find.text('Mi familia'), findsNothing);
-      expect(find.text('Cambiar de perfil'), findsNothing);
+      expect(find.text('MI FAMILIA'), findsNothing);
+      expect(find.byKey(const ValueKey('family-entry-switch')), findsNothing);
     });
 
     testWidgets('is hidden while acting for a dependent', (tester) async {
+      auth.user = const UserEntity(
+        id: 'guardian-1',
+        name: 'María',
+        postRegisterComplete: true,
+        family: FamilySummary(isGuardian: true, dependentsCount: 2),
+      );
       await pump(
         tester,
         body: const FamilyProfileEntry(horizontalPadding: 16),
       );
-      expect(find.text('Mi familia'), findsOneWidget);
+      expect(find.text('MI FAMILIA'), findsOneWidget);
 
       container
           .read(actingForSessionProvider)
           .enter(const ActingDependent(userId: 'ana-1', firstName: 'Ana'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Mi familia'), findsNothing);
-      expect(find.text('Cambiar de perfil'), findsNothing);
+      expect(find.text('MI FAMILIA'), findsNothing);
+      expect(find.byKey(const ValueKey('family-entry-switch')), findsNothing);
     });
   });
 }

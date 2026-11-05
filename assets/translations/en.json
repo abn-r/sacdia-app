@@ -173,7 +173,8 @@
         "ack": "I understand what will happen to the minors in my care",
         "continue": "Continue"
       }
-    }
+    },
+    "family_subtitle": "Register a minor in your care"
   },
   "accessibility": {
     "title": "Accessibility",
@@ -3721,7 +3722,8 @@
       "sent": "We sent a link to {email}. Check your inbox and your spam folder.",
       "already_verified": "Your email is already verified.",
       "too_many": "You already asked for several links. Wait a minute and try again.",
-      "error": "We couldn't send the email. Try again in a few minutes."
+      "error": "We couldn't send the email. Try again in a few minutes.",
+      "send_link": "Send link"
     },
     "notification_preferences": {
       "errors": {
@@ -5652,7 +5654,9 @@
     "limit_reached": "You've reached the limit of {max} minors.",
     "empty": {
       "title": "You haven't added any minors yet",
-      "body": "Register a child under 13 so they can join a club under your care."
+      "body": "Register a child under 13 so they can join a club under your care.",
+      "headline": "Look after your minors",
+      "subline": "Register them in the club and complete their profile from your account."
     },
     "frozen": "Frozen",
     "frozen_hint": "No guardian or club. It will be deleted after 90 days.",
@@ -5680,7 +5684,8 @@
         "other": "{count} minors in your care"
       },
       "switch_title": "Switch profile",
-      "switch_subtitle": "View and complete a minor's profile"
+      "switch_subtitle": "View and complete a minor's profile",
+      "switch_short": "Switch"
     },
     "errors": {
       "generic": "Something went wrong. Please try again."
@@ -5750,7 +5755,8 @@
       "code_required": "Enter the code",
       "sworn": "I declare under oath that I am the legal guardian of this minor.",
       "submit": "Link",
-      "success": "You can now manage {name}'s profile."
+      "success": "You can now manage {name}'s profile.",
+      "code_helper": "Case and dashes don’t matter"
     },
     "switcher": {
       "title": "Switch profile",
@@ -5890,6 +5896,23 @@
     "age_nudge": {
       "title": "{name} can now have their own access",
       "body": "They reached the minimum age for their own access. You can turn it on whenever you want and you will keep supervising their account."
+    },
+    "list_title": "Minors in your care",
+    "option": {
+      "add_title": "Register a minor",
+      "add_subtitle": "Under 13, in your care",
+      "code_title": "I have a code",
+      "code_subtitle": "Shared by another guardian or the director",
+      "spots_left": {
+        "one": "{} spot left",
+        "other": "{} spots left"
+      }
+    },
+    "how": {
+      "title": "How it works",
+      "step1": "You register the minor with your guardian details.",
+      "step2": "You complete their profile and join them to a club.",
+      "step3": "You switch to their profile whenever you need."
     }
   },
   "restricted_account": {

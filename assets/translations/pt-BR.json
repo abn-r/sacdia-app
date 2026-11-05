@@ -173,7 +173,8 @@
         "ack": "Entendo o que acontecerá com os menores sob meus cuidados",
         "continue": "Continuar"
       }
-    }
+    },
+    "family_subtitle": "Cadastre um menor sob sua responsabilidade"
   },
   "accessibility": {
     "title": "Acessibilidade",
@@ -3720,7 +3721,8 @@
       "sent": "Enviamos um link para {email}. Confira sua caixa de entrada e a pasta de spam.",
       "already_verified": "Seu e-mail já está verificado.",
       "too_many": "Você já pediu vários links. Espere um minuto e tente novamente.",
-      "error": "Não conseguimos enviar o e-mail. Tente novamente em alguns minutos."
+      "error": "Não conseguimos enviar o e-mail. Tente novamente em alguns minutos.",
+      "send_link": "Enviar link"
     },
     "notification_preferences": {
       "errors": {
@@ -5650,7 +5652,9 @@
     "limit_reached": "Você atingiu o limite de {max} menores.",
     "empty": {
       "title": "Você ainda não adicionou menores",
-      "body": "Cadastre uma criança menor de 13 anos para que ela possa entrar em um clube sob seus cuidados."
+      "body": "Cadastre uma criança menor de 13 anos para que ela possa entrar em um clube sob seus cuidados.",
+      "headline": "Acompanhe seus menores",
+      "subline": "Cadastre-os no clube e complete o perfil deles pela sua conta."
     },
     "frozen": "Congelado",
     "frozen_hint": "Sem responsável nem clube. Será apagado após 90 dias.",
@@ -5678,7 +5682,8 @@
         "other": "{count} menores sob seus cuidados"
       },
       "switch_title": "Trocar de perfil",
-      "switch_subtitle": "Ver e completar o perfil de um menor"
+      "switch_subtitle": "Ver e completar o perfil de um menor",
+      "switch_short": "Trocar"
     },
     "errors": {
       "generic": "Algo deu errado. Tente novamente."
@@ -5748,7 +5753,8 @@
       "code_required": "Digite o código",
       "sworn": "Declaro sob juramento que sou o responsável legal por este menor.",
       "submit": "Vincular",
-      "success": "Agora você pode gerenciar o perfil de {name}."
+      "success": "Agora você pode gerenciar o perfil de {name}.",
+      "code_helper": "Maiúsculas e hífens não importam"
     },
     "switcher": {
       "title": "Trocar de perfil",
@@ -5888,6 +5894,23 @@
     "age_nudge": {
       "title": "{name} já pode ter o próprio acesso",
       "body": "Atingiu a idade mínima para ter o próprio acesso. Você pode ativá-lo quando quiser e continuará supervisionando a conta."
+    },
+    "list_title": "Menores sob sua responsabilidade",
+    "option": {
+      "add_title": "Cadastrar um menor",
+      "add_subtitle": "Menor de 13 anos, sob seus cuidados",
+      "code_title": "Tenho um código",
+      "code_subtitle": "Compartilhado por outro responsável ou o diretor",
+      "spots_left": {
+        "one": "Resta {} vaga",
+        "other": "Restam {} vagas"
+      }
+    },
+    "how": {
+      "title": "Como funciona",
+      "step1": "Você cadastra o menor com seus dados de responsável.",
+      "step2": "Você completa o perfil e o une a um clube.",
+      "step3": "Você troca para o perfil dele quando precisar."
     }
   },
   "restricted_account": {

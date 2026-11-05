@@ -173,7 +173,8 @@
         "ack": "Je comprends ce qui arrivera aux mineurs à ma charge",
         "continue": "Continuer"
       }
-    }
+    },
+    "family_subtitle": "Inscris un mineur à ta charge"
   },
   "accessibility": {
     "title": "Accessibilité",
@@ -3720,7 +3721,8 @@
       "sent": "Nous avons envoyé un lien à {email}. Vérifiez votre boîte de réception et vos spams.",
       "already_verified": "Votre e-mail est déjà vérifié.",
       "too_many": "Vous avez déjà demandé plusieurs liens. Attendez une minute et réessayez.",
-      "error": "Nous n'avons pas pu envoyer l'e-mail. Réessayez dans quelques minutes."
+      "error": "Nous n'avons pas pu envoyer l'e-mail. Réessayez dans quelques minutes.",
+      "send_link": "Envoyer le lien"
     },
     "notification_preferences": {
       "errors": {
@@ -5650,7 +5652,9 @@
     "limit_reached": "Vous avez atteint la limite de {max} mineurs.",
     "empty": {
       "title": "Vous n'avez pas encore ajouté de mineurs",
-      "body": "Inscrivez un enfant de moins de 13 ans pour qu'il puisse rejoindre un club sous votre responsabilité."
+      "body": "Inscrivez un enfant de moins de 13 ans pour qu'il puisse rejoindre un club sous votre responsabilité.",
+      "headline": "Accompagne tes mineurs",
+      "subline": "Inscris-les au club et complète leur profil depuis ton compte."
     },
     "frozen": "Gelé",
     "frozen_hint": "Sans tuteur ni club. Il sera supprimé après 90 jours.",
@@ -5678,7 +5682,8 @@
         "other": "{count} mineurs sous votre responsabilité"
       },
       "switch_title": "Changer de profil",
-      "switch_subtitle": "Voir et compléter le profil d'un mineur"
+      "switch_subtitle": "Voir et compléter le profil d'un mineur",
+      "switch_short": "Changer"
     },
     "errors": {
       "generic": "Une erreur s'est produite. Réessayez."
@@ -5748,7 +5753,8 @@
       "code_required": "Saisissez le code",
       "sworn": "Je déclare sous serment être le tuteur légal de ce mineur.",
       "submit": "Lier",
-      "success": "Vous pouvez désormais gérer le profil de {name}."
+      "success": "Vous pouvez désormais gérer le profil de {name}.",
+      "code_helper": "Majuscules et tirets n’ont pas d’importance"
     },
     "switcher": {
       "title": "Changer de profil",
@@ -5888,6 +5894,23 @@
     "age_nudge": {
       "title": "{name} peut désormais avoir son propre accès",
       "body": "Le seuil d'âge minimal pour avoir son propre accès est atteint. Vous pouvez l'activer quand vous voulez et vous continuerez à superviser son compte."
+    },
+    "list_title": "Mineurs à ta charge",
+    "option": {
+      "add_title": "Inscrire un mineur",
+      "add_subtitle": "Moins de 13 ans, sous ta garde",
+      "code_title": "J’ai un code",
+      "code_subtitle": "Partagé par un autre tuteur ou le directeur",
+      "spots_left": {
+        "one": "Il reste {} place",
+        "other": "Il reste {} places"
+      }
+    },
+    "how": {
+      "title": "Comment ça marche",
+      "step1": "Tu inscris le mineur avec tes données de tuteur.",
+      "step2": "Tu complètes son profil et l’ajoutes à un club.",
+      "step3": "Tu passes à son profil quand tu en as besoin."
     }
   },
   "restricted_account": {
