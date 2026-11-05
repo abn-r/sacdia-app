@@ -306,3 +306,85 @@ double _fraction({
   if (childRequired <= 0) return 0;
   return (childSatisfied / childRequired).clamp(0.0, 0.99);
 }
+
+/// What an EXTERNAL honor still needs before "Enviar a revisión".
+///
+/// Three checks, each worth a third of the band ring: the completed format,
+/// at least one general evidence and the completion date.
+class ExternalSubmissionReadiness {
+  const ExternalSubmissionReadiness({
+    required this.isExternal,
+    required this.hasFormat,
+    required this.hasGeneralEvidence,
+    required this.hasCompletionDate,
+  });
+
+  /// The honor is worked outside the app (the only mode with this path).
+  final bool isExternal;
+
+  /// The completed format PDF is uploaded.
+  final bool hasFormat;
+
+  /// At least one general evidence file is uploaded.
+  final bool hasGeneralEvidence;
+
+  /// The member picked a completion date inside the accepted range.
+  final bool hasCompletionDate;
+
+  static const int totalCount = 3;
+
+  int get doneCount => [hasFormat, hasGeneralEvidence, hasCompletionDate]
+      .where((done) => done)
+      .length;
+
+  /// 0..1 progress shown in the band.
+  double get fraction => doneCount / totalCount;
+
+  /// Mirrors `submitForReview` for EXTERNAL honors (see the cited backend
+  /// lines on [computeExternalSubmissionReadiness]).
+  bool get canSubmit =>
+      isExternal && hasFormat && hasGeneralEvidence && hasCompletionDate;
+}
+
+/// Decides how ready an external honor is to be sent for review.
+///
+/// This is a Dart copy of the backend rules; keep both in sync.
+///
+/// Backend source: `sacdia-backend/src/honors/honor-validation-workflow.service.ts`
+///  - `assertSubmitEligibility` L286-L312: the mode must be EXTERNAL (L291),
+///    then the date (L301) is checked.
+///  - `assertExternalSubmitEligibility` L361-L379: the completed format
+///    (L367) and at least one general evidence (L373) are both required;
+///    either one missing answers `VALIDATION_HONOR_MISSING_EVIDENCE`.
+///  - `hasCompletedExternalFormat` L381-L385: `document` is a non-empty
+///    string.
+///  - `hasExternalGeneralEvidence` L387-L400: `images` has an entry, or the
+///    honor has an active `evidence_files` row. The client only sees
+///    `images`, which is the same list.
+///  - `assertCompletedAt` L320-L331: the date is required only while
+///    `REQUIRE_HONOR_COMPLETED_AT_ON_SUBMIT` (L27) is true; today it is
+///    false. The app already demands it, so [requireCompletionDate] defaults
+///    to true (strictest reading). When present the date must be in range.
+///
+/// Not mirrored (the client lacks the data): a REJECTED honor cannot be
+/// resent until it changes (`modified_at <= validated_at`, L303-L311); the
+/// server answers `VALIDATION_HONOR_NO_CHANGES_AFTER_REJECTION`.
+///
+/// [now] is injectable for the date range rule.
+ExternalSubmissionReadiness computeExternalSubmissionReadiness({
+  required UserHonor userHonor,
+  bool requireCompletionDate = true,
+  DateTime? now,
+}) {
+  final completedAt = userHonor.completedAt;
+  final dateOk = completedAt != null &&
+      CertificateDateRule.check(completedAt, now: now) == null;
+
+  return ExternalSubmissionReadiness(
+    isExternal: userHonor.completionMode == HonorCompletionMode.external,
+    hasFormat: userHonor.hasCompletedFormat,
+    hasGeneralEvidence: userHonor.hasGeneralEvidence,
+    hasCompletionDate:
+        requireCompletionDate ? dateOk : (completedAt == null || dateOk),
+  );
+}
