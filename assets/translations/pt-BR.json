@@ -765,6 +765,7 @@
         "other": "{} evidências"
       },
       "missing_date": "a data de conclusão",
+      "add_date_cta": "Adicionar data de conclusão",
       "list_and": " e ",
       "ready_to_send": "Tudo pronto para enviar",
       "under_review_hint": "Um responsável está revisando seu trabalho"

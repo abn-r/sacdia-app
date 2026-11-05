@@ -424,19 +424,22 @@ void main() {
         ),
       );
       expect(summaryOf(tester), 'Te falta: la fecha de finalización');
-      expect(submitButton(tester).onPressed, isNull);
+      // The main button leads to the date picker instead of a disabled send.
+      expect(find.byKey(const ValueKey('honor-submit-pick-date')), findsOne);
+      expect(find.byKey(const ValueKey('honor-submit-button')), findsNothing);
     });
 
-    testWidgets('format and evidence without a date still cannot go',
+    testWidgets('with more missing, the date is a link and send stays off',
         (tester) async {
       await pumpEvidence(
         tester,
-        userHonor(
-          document: 'https://example.com/completed.pdf',
-          images: const ['https://example.com/photo.jpg'],
-        ),
+        userHonor(images: const ['https://example.com/photo.jpg']),
       );
       expect(submitButton(tester).onPressed, isNull);
+      expect(
+        find.byKey(const ValueKey('honor-submit-pick-date-link')),
+        findsOne,
+      );
     });
 
     testWidgets('ready: enabled, and sending submits the user honor id',

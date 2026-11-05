@@ -178,9 +178,13 @@ void main() {
       expect(find.text('Necesaria para enviar a revisión'), findsOneWidget);
       expect(tester.widget<Text>(_summary()).data,
           'Te falta: la fecha de finalización');
-      final button = _send(tester);
-      expect(button.isEnabled, isTrue);
-      expect(button.onPressed, isNull);
+      // Only the date is left: the main button leads to it instead of
+      // a disabled "Enviar a revisión".
+      expect(find.widgetWithText(SacButton, 'Enviar a revisión'), findsNothing);
+      expect(
+        find.byKey(const ValueKey('honor-submit-pick-date')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('with it the submit is enabled and nothing is missing',
@@ -244,7 +248,11 @@ void main() {
       expect(
           find.text('La fecha no puede ser anterior a 1960'), findsOneWidget);
       expect(find.text('Necesaria para enviar a revisión'), findsOneWidget);
-      expect(_send(tester).onPressed, isNull);
+      // Still no date: the bar keeps offering to add it.
+      expect(
+        find.byKey(const ValueKey('honor-submit-pick-date')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('a network failure shows a snack bar and keeps it empty',

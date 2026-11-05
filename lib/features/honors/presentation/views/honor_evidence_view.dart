@@ -791,6 +791,11 @@ class _EvidenceBody extends ConsumerWidget {
               isUnderReview: userHonor.isUnderReview,
               isSubmitting: isSubmitting,
               onSubmit: onSubmit,
+              onPickDate: readiness.hasCompletionDate
+                  ? null
+                  : () => pickHonorCompletionDate(context, ref, userHonor),
+              onlyDateMissing:
+                  readiness.hasFormat && readiness.hasGeneralEvidence,
             )
           : null,
     );

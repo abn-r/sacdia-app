@@ -256,6 +256,11 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
               isUnderReview: userHonor.isUnderReview,
               isSubmitting: isSubmitting,
               onSubmit: () => _submit(userHonor),
+              onPickDate: readiness.hasCompletionDate
+                  ? null
+                  : () => pickHonorCompletionDate(context, ref, userHonor),
+              onlyDateMissing: readiness.allRequirementsSatisfied &&
+                  readiness.missingEvidenceIds.isEmpty,
             ),
     );
   }

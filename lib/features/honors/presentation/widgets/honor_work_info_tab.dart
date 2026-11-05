@@ -182,41 +182,8 @@ class HonorWorkInfoTab extends ConsumerWidget {
     );
   }
 
-  Future<void> _pickDate(BuildContext context, WidgetRef ref) async {
-    final today = (clock ?? DateTime.now)();
-    final first = kMinCertificateDate;
-    final last = CertificateDateRule.lastDate(today);
-    var initial = userHonor.completedAt ?? last;
-    if (initial.isBefore(first)) initial = first;
-    if (initial.isAfter(last)) initial = last;
-    final picked = await showSacDatePicker(
-      context: context,
-      initialDate: initial,
-      firstDate: first,
-      lastDate: last,
-      locale: context.locale,
-    );
-    if (picked == null || !context.mounted) return;
-    final day = DateTime(picked.year, picked.month, picked.day);
-    final notifier = ref.read(honorEvidenceActionsNotifierProvider.notifier);
-    final failure = await notifier.saveCompletedAt(
-      userId: userHonor.userId,
-      honorId: userHonor.honorId,
-      completedAt: day,
-    );
-    if (failure == null || !context.mounted) return;
-    final message = switch (failure.errorCode) {
-      HonorUpdateErrorCode.dateTooOld => 'honors.evidence.date_too_old'.tr(),
-      HonorUpdateErrorCode.dateInFuture => 'honors.evidence.date_future'.tr(),
-      HonorUpdateErrorCode.invalidStatus =>
-        'honors.evidence.status_changed'.tr(),
-      _ => 'honors.evidence.date_save_error'.tr(),
-    };
-    if (failure.errorCode == HonorUpdateErrorCode.invalidStatus) {
-      notifier.invalidateHonorEvidence(userHonor.honorId);
-    }
-    SacSnackBar.show(context, message, isError: true);
-  }
+  Future<void> _pickDate(BuildContext context, WidgetRef ref) =>
+      pickHonorCompletionDate(context, ref, userHonor, clock: clock);
 
   void _editInstructor(BuildContext context) {
     showSacSheet<void>(
@@ -269,4 +236,48 @@ class HonorInstructorSheetBody extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Opens the date picker for the honor's completion date and saves it.
+/// Shared by the "Información" tab and the submit bar.
+Future<void> pickHonorCompletionDate(
+  BuildContext context,
+  WidgetRef ref,
+  UserHonor userHonor, {
+  DateTime Function()? clock,
+}) async {
+  final today = (clock ?? DateTime.now)();
+  final first = kMinCertificateDate;
+  final last = CertificateDateRule.lastDate(today);
+  var initial = userHonor.completedAt ?? last;
+  if (initial.isBefore(first)) initial = first;
+  if (initial.isAfter(last)) initial = last;
+  final picked = await showSacDatePicker(
+    context: context,
+    initialDate: initial,
+    firstDate: first,
+    lastDate: last,
+    // Localizations, not context.locale: the latter throws when
+    // EasyLocalization is not mounted above (tests, previews).
+    locale: Localizations.localeOf(context),
+  );
+  if (picked == null || !context.mounted) return;
+  final day = DateTime(picked.year, picked.month, picked.day);
+  final notifier = ref.read(honorEvidenceActionsNotifierProvider.notifier);
+  final failure = await notifier.saveCompletedAt(
+    userId: userHonor.userId,
+    honorId: userHonor.honorId,
+    completedAt: day,
+  );
+  if (failure == null || !context.mounted) return;
+  final message = switch (failure.errorCode) {
+    HonorUpdateErrorCode.dateTooOld => 'honors.evidence.date_too_old'.tr(),
+    HonorUpdateErrorCode.dateInFuture => 'honors.evidence.date_future'.tr(),
+    HonorUpdateErrorCode.invalidStatus => 'honors.evidence.status_changed'.tr(),
+    _ => 'honors.evidence.date_save_error'.tr(),
+  };
+  if (failure.errorCode == HonorUpdateErrorCode.invalidStatus) {
+    notifier.invalidateHonorEvidence(userHonor.honorId);
+  }
+  SacSnackBar.show(context, message, isError: true);
 }
