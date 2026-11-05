@@ -661,8 +661,8 @@
       "tab_summary": "Resumo",
       "tab_my_work": "Meu trabalho",
       "completed_title": "Especialidade conquistada!",
-      "completed_subtitle": "Ela já aparece no seu perfil e na sua credencial.",
-      "view_credential_cta": "Ver na minha credencial",
+      "completed_subtitle": "Ela já aparece no seu perfil.",
+      "view_profile_cta": "Ver no meu perfil",
       "my_work_empty": "Não há trabalho registrado para esta especialidade."
     },
     "work_mode": {

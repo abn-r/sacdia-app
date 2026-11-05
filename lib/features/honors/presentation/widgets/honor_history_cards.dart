@@ -243,14 +243,14 @@ class _HistoryInfoRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Round well with a centered icon, like the celebration card.
+          // Without the alignment the icon stretches to fill the well.
           Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: well,
-              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-            ),
-            child: HugeIcon(icon: icon, size: 16, color: accent),
+            width: 36,
+            height: 36,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: well, shape: BoxShape.circle),
+            child: HugeIcon(icon: icon, size: 18, color: accent),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -481,9 +481,10 @@ class _HistorySectionHeader extends StatelessWidget {
         Container(
           width: 36,
           height: 36,
+          alignment: Alignment.center,
           decoration: BoxDecoration(
             color: c.surfaceVariant,
-            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
+            shape: BoxShape.circle,
           ),
           child: HugeIcon(icon: icon, size: 18, color: categoryColor),
         ),
@@ -912,6 +913,7 @@ class _HistoryImageRow extends StatelessWidget {
                 errorWidget: (_, __, ___) => Container(
                   width: 42,
                   height: 42,
+                  alignment: Alignment.center,
                   color: context.sac.border,
                   child: HugeIcon(
                     icon: HugeIcons.strokeRoundedImageDelete01,

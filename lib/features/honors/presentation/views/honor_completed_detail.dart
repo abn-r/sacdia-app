@@ -1,9 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/date_formatter.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
@@ -18,13 +19,13 @@ import 'package:sacdia_app/features/honors/presentation/widgets/honor_action_bar
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_band_scaffold.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_history_cards.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_progress_band.dart';
-import 'package:sacdia_app/features/virtual_card/presentation/views/virtual_card_view.dart';
 
 /// Screen of a validated (APPROVED) honor.
 ///
 /// The band shows the finished path with a full ring and a "Validada" badge;
 /// "Resumen" celebrates and lists who validated it, "Mi trabajo" keeps the
-/// history of what the member did. The sticky bar opens the credential.
+/// history of what the member did. The sticky bar opens the profile, where
+/// validated honors are listed (the credential does not show them).
 class HonorCompletedDetail extends ConsumerWidget {
   const HonorCompletedDetail({
     super.key,
@@ -84,15 +85,12 @@ class HonorCompletedDetail extends ConsumerWidget {
             ),
       bottomBar: HonorActionBar(
         child: SacButton.primary(
-          key: const ValueKey('honor-credential-button'),
-          text: 'honors.detail.view_credential_cta'.tr(),
-          icon: HugeIcons.strokeRoundedIdVerified,
+          key: const ValueKey('honor-profile-button'),
+          text: 'honors.detail.view_profile_cta'.tr(),
+          icon: HugeIcons.strokeRoundedUserCircle,
           backgroundColor: bandColor,
           textColor: Colors.white,
-          onPressed: () => Navigator.push(
-            context,
-            SacSharedAxisRoute(builder: (_) => const VirtualCardView()),
-          ),
+          onPressed: () => context.go(RouteNames.homeProfile),
         ),
       ),
     );

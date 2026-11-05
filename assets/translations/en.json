@@ -661,8 +661,8 @@
       "tab_summary": "Summary",
       "tab_my_work": "My work",
       "completed_title": "Honor earned!",
-      "completed_subtitle": "It now shows on your profile and on your credential.",
-      "view_credential_cta": "View on my credential",
+      "completed_subtitle": "It now shows on your profile.",
+      "view_profile_cta": "View on my profile",
       "my_work_empty": "There is no recorded work for this honor."
     },
     "work_mode": {

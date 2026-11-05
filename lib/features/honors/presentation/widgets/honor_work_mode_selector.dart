@@ -137,6 +137,7 @@ class _ModeOptionCardState extends State<_ModeOptionCard> {
                 Container(
                   width: 44,
                   height: 44,
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: selected
                         ? widget.categoryColor.withValues(alpha: 0.12)
