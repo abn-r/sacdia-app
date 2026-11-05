@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -20,26 +19,16 @@ import 'package:sacdia_app/features/honors/presentation/providers/honors_provide
 import 'package:sacdia_app/features/honors/presentation/theme/honor_category_palette.dart';
 import 'package:sacdia_app/features/honors/presentation/utils/honor_submission_readiness.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_abandon_menu_button.dart';
+import 'package:sacdia_app/features/honors/presentation/widgets/honor_band_scaffold.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_progress_band.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_rejection_card.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_requirement_row.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_requirement_sheet.dart';
-import 'package:sacdia_app/features/honors/presentation/widgets/honor_segmented_tabs.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_submit_bar.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_work_info_tab.dart';
 import 'package:sacdia_app/features/validation/domain/entities/validation.dart';
 import 'package:sacdia_app/features/validation/presentation/providers/validation_providers.dart'
     show submitValidationProvider;
-
-/// Scroll distance after which the top bar takes the band color, so its white
-/// icons stay readable over the cards.
-const double _kTopBarSolidOffset = 96;
-
-/// Horizontal page padding of the band content, tabs and cards.
-const double _kPagePadding = 20;
-
-/// How far the tabs overlap the band's bottom edge.
-const double _kTabsOverlap = 22;
 
 /// In-progress screen of an honor worked inside the app.
 ///
@@ -66,26 +55,6 @@ class HonorRequirementsView extends ConsumerStatefulWidget {
 }
 
 class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
-  final ScrollController _scroll = ScrollController();
-  final ValueNotifier<bool> _scrolled = ValueNotifier<bool>(false);
-  int _tab = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _scroll.addListener(() {
-      final solid = _scroll.hasClients && _scroll.offset > _kTopBarSolidOffset;
-      if (solid != _scrolled.value) _scrolled.value = solid;
-    });
-  }
-
-  @override
-  void dispose() {
-    _scroll.dispose();
-    _scrolled.dispose();
-    super.dispose();
-  }
-
   Future<void> _submit(UserHonor userHonor) async {
     HapticFeedback.mediumImpact();
     final notifier = ref.read(submitValidationProvider.notifier);
@@ -204,160 +173,83 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
       mode: userHonor.completionMode,
     );
 
-    final c = context.sac;
-    final isDark = Theme.brightnessOf(context) == Brightness.dark;
-    // On the tinted tab and chips the band color holds contrast in light
-    // mode; in dark mode the regular text color does.
-    final onTint = isDark ? c.text : bandColor;
+    final onTint = honorOnTint(context, bandColor);
     final name = (honor?.name.isNotEmpty ?? false)
         ? honor!.name
         : (userHonor.honorName ?? widget.honorName);
     final percent = (readiness.fraction * 100).round();
+    final rejected = userHonor.validationStatus.toUpperCase() == 'REJECTED';
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: c.background,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(SacTopBar.compactHeight),
-        child: ValueListenableBuilder<bool>(
-          valueListenable: _scrolled,
-          builder: (context, solid, _) => SacTopBar(
-            title: '',
-            foregroundColor: Colors.white,
-            backgroundColor: solid ? bandColor : Colors.transparent,
-            systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(
-              statusBarColor: Colors.transparent,
-            ),
-            onBack: () {
-              HapticFeedback.lightImpact();
-              Navigator.of(context).maybePop();
-            },
-            actions: [
-              HonorAbandonMenuButton(
-                userHonor: userHonor,
-                honorName: name,
-                iconColor: Colors.white,
-              ),
-            ],
-          ),
-        ),
+    return HonorBandScaffold(
+      bandColor: bandColor,
+      paintColor: paintColor,
+      honorName: name,
+      categoryName: categoryName,
+      imageUrl: honor?.imageUrl ?? userHonor.honorImageUrl,
+      progress: readiness.fraction,
+      metaLabel: 'honors.requirements.band_meta'.tr(
+        namedArgs: {
+          'percent': '$percent',
+          'mode': 'honors.detail.mode_in_app'.tr(),
+        },
       ),
-      body: Column(
+      step: honorWorkStepFor(userHonor),
+      actions: [
+        HonorAbandonMenuButton(
+          userHonor: userHonor,
+          honorName: name,
+          iconColor: Colors.white,
+        ),
+      ],
+      tabLabels: [
+        'honors.requirements.tab_requirements'.tr(
+          namedArgs: {
+            'done': '${readiness.doneCount}',
+            'total': '${readiness.totalCount}',
+          },
+        ),
+        'honors.requirements.tab_info'.tr(),
+      ],
+      tabBuilder: (context, tab) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(
-            child: SingleChildScrollView(
-              controller: _scroll,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Column(
-                        children: [
-                          HonorProgressBand(
-                            bandColor: bandColor,
-                            honorName: name,
-                            categoryName: categoryName,
-                            imageUrl:
-                                honor?.imageUrl ?? userHonor.honorImageUrl,
-                            progress: readiness.fraction,
-                            metaLabel: 'honors.requirements.band_meta'.tr(
-                              namedArgs: {
-                                'percent': '$percent',
-                                'mode': 'honors.detail.mode_in_app'.tr(),
-                              },
-                            ),
-                            step: honorWorkStepFor(userHonor),
-                            topInset: SacTopBar.frostedInset(context),
-                          ),
-                          const SizedBox(
-                            height: HonorSegmentedTabs.height - _kTabsOverlap,
-                          ),
-                        ],
-                      ),
-                      Positioned(
-                        left: _kPagePadding,
-                        right: _kPagePadding,
-                        bottom: 0,
-                        child: HonorSegmentedTabs(
-                          labels: [
-                            'honors.requirements.tab_requirements'.tr(
-                              namedArgs: {
-                                'done': '${readiness.doneCount}',
-                                'total': '${readiness.totalCount}',
-                              },
-                            ),
-                            'honors.requirements.tab_info'.tr(),
-                          ],
-                          selectedIndex: _tab,
-                          accent: paintColor,
-                          selectedTextColor: onTint,
-                          onChanged: (i) => setState(() => _tab = i),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      _kPagePadding,
-                      16,
-                      _kPagePadding,
-                      24,
-                    ),
-                    child: SacStateSwap(
-                      child: KeyedSubtree(
-                        key: ValueKey('honor-tab-body-$_tab'),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            if (userHonor.validationStatus.toUpperCase() ==
-                                'REJECTED') ...[
-                              HonorRejectionCard(
-                                reason: userHonor.rejectionReason,
-                              ),
-                              const SizedBox(height: 12),
-                            ],
-                            if (_tab == 0)
-                              _RequirementsList(
-                                readiness: readiness,
-                                paintColor: paintColor,
-                                onOpen: (item) => HonorRequirementSheet.show(
-                                  context,
-                                  honorId: widget.honorId,
-                                  requirement: item.requirement,
-                                  paintColor: paintColor,
-                                  bandColor: bandColor,
-                                  enabled: userHonor.canSubmit,
-                                ),
-                              )
-                            else
-                              HonorWorkInfoTab(
-                                userHonor: userHonor,
-                                honorId: widget.honorId,
-                                honor: honor,
-                                paintColor: paintColor,
-                                chipForeground: onTint,
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (!userHonor.isCompleted)
-            HonorSubmitBar(
+          if (rejected) ...[
+            HonorRejectionCard(reason: userHonor.rejectionReason),
+            const SizedBox(height: 12),
+          ],
+          if (tab == 0)
+            _RequirementsList(
               readiness: readiness,
+              paintColor: paintColor,
+              onOpen: (item) => HonorRequirementSheet.show(
+                context,
+                honorId: widget.honorId,
+                requirement: item.requirement,
+                paintColor: paintColor,
+                bandColor: bandColor,
+                enabled: userHonor.canSubmit,
+              ),
+            )
+          else
+            HonorWorkInfoTab(
+              userHonor: userHonor,
+              honorId: widget.honorId,
+              honor: honor,
+              paintColor: paintColor,
+              chipForeground: onTint,
+            ),
+        ],
+      ),
+      bottomBar: userHonor.isCompleted
+          ? null
+          : HonorSubmitBar(
+              summary: HonorSubmitBar.summaryFor(readiness),
+              canSubmit: readiness.canSubmit,
               bandColor: bandColor,
               isUnderReview: userHonor.isUnderReview,
               isSubmitting: isSubmitting,
               onSubmit: () => _submit(userHonor),
             ),
-        ],
-      ),
     );
   }
 }
@@ -513,9 +405,9 @@ class _LoadingBody extends StatelessWidget {
               child: Container(
                 color: context.sac.skeleton,
                 padding: const EdgeInsets.fromLTRB(
-                  _kPagePadding,
+                  kHonorPagePadding,
                   20,
-                  _kPagePadding,
+                  kHonorPagePadding,
                   34,
                 ),
                 child: Column(
@@ -557,7 +449,8 @@ class _LoadingBody extends StatelessWidget {
           const SacSkeletonList(
             itemCount: 5,
             scrollable: false,
-            padding: EdgeInsets.fromLTRB(_kPagePadding, 24, _kPagePadding, 24),
+            padding: EdgeInsets.fromLTRB(
+                kHonorPagePadding, 24, kHonorPagePadding, 24),
           ),
         ],
       ),

@@ -368,22 +368,25 @@ class HonorEvidenceActionsNotifier extends AsyncNotifier<void> {
   }) =>
       _patch(userId, honorId, honorCompletedAtPatch(completedAt));
 
+  // The info tab calls this with `ref.read(...notifier)` and never watches the
+  // provider, so it must stay alive until the list is refreshed.
   Future<Failure?> _patch(
     String userId,
     int honorId,
     Map<String, dynamic> data,
-  ) async {
-    final result = await ref
-        .read(honorsRepositoryProvider)
-        .updateUserHonor(userId, honorId, data);
-    return result.fold(
-      (failure) => failure,
-      (_) {
-        invalidateHonorEvidence(honorId);
-        return null;
-      },
-    );
-  }
+  ) =>
+      ref.keepAliveDuring(() async {
+        final result = await ref
+            .read(honorsRepositoryProvider)
+            .updateUserHonor(userId, honorId, data);
+        return result.fold(
+          (failure) => failure,
+          (_) {
+            invalidateHonorEvidence(honorId);
+            return null;
+          },
+        );
+      });
 
   Future<bool> deleteEvidenceFile({
     required String userId,

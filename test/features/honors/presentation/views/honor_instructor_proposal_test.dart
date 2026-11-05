@@ -12,7 +12,7 @@ import 'package:sacdia_app/features/honors/domain/entities/instructor_proposal.d
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/domain/repositories/honors_repository.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
-import 'package:sacdia_app/features/honors/presentation/views/honor_evidence_view.dart';
+import 'package:sacdia_app/features/honors/presentation/widgets/honor_work_info_tab.dart';
 
 import '../../../certificate_import/support/test_app.dart';
 import '../../../../support/instructor_fakes.dart';
@@ -110,8 +110,9 @@ Future<void> _pump(WidgetTester tester, _FakeHonorsRepository repo) async {
     approval: 1,
     clubTypeId: 1,
   );
+  // The instructor sheet of the "Información" tab, hosted on its own.
   await tester.pumpWidget(wrapTestApp(
-    const HonorEvidenceView(honorId: 7, userHonorId: 77),
+    Scaffold(body: HonorInstructorSheetBody(userHonor: repo.row)),
     overrides: [
       allHonorsProvider.overrideWith((ref) async => [honor]),
       activeHonorCatalogClubTypeIdProvider

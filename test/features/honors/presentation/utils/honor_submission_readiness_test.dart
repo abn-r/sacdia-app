@@ -381,4 +381,126 @@ void main() {
       }
     });
   });
+
+  group('external honors', () {
+    // Rules of `assertExternalSubmitEligibility`
+    // (honor-validation-workflow.service.ts L361-L379): format (L367) and a
+    // general evidence (L373); the date follows `assertCompletedAt` L320-L331.
+    UserHonor row({
+      HonorCompletionMode mode = HonorCompletionMode.external,
+      String? document,
+      List<String> images = const [],
+      DateTime? completedAt,
+    }) {
+      return UserHonor(
+        id: 77,
+        honorId: 7,
+        userId: 'user-1',
+        completionMode: mode,
+        document: document,
+        images: images,
+        completedAt: completedAt,
+        date: DateTime(2026, 6, 11),
+      );
+    }
+
+    ExternalSubmissionReadiness ready(UserHonor honor,
+            {bool requireCompletionDate = true}) =>
+        computeExternalSubmissionReadiness(
+          userHonor: honor,
+          requireCompletionDate: requireCompletionDate,
+          now: today,
+        );
+
+    test('nothing done: 0 of 3 and it cannot go (L367)', () {
+      final r = ready(row());
+      expect(r.doneCount, 0);
+      expect(r.fraction, 0);
+      expect(r.canSubmit, isFalse);
+    });
+
+    test('format, one evidence and the date: 3 of 3 and it can go', () {
+      final r = ready(row(
+        document: 'https://example.com/f.pdf',
+        images: const ['https://example.com/1.jpg'],
+        completedAt: goodDate,
+      ));
+      expect(r.hasFormat, isTrue);
+      expect(r.hasGeneralEvidence, isTrue);
+      expect(r.hasCompletionDate, isTrue);
+      expect(r.fraction, 1);
+      expect(r.canSubmit, isTrue);
+    });
+
+    test('the format alone is not enough: an evidence is required (L373)', () {
+      final r = ready(row(
+        document: 'https://example.com/f.pdf',
+        completedAt: goodDate,
+      ));
+      expect(r.hasFormat, isTrue);
+      expect(r.hasGeneralEvidence, isFalse);
+      expect(r.canSubmit, isFalse);
+      expect(r.fraction, closeTo(2 / 3, 1e-9));
+    });
+
+    test('evidence alone is not enough: the format is required (L367)', () {
+      final r = ready(row(
+        images: const ['https://example.com/1.jpg'],
+        completedAt: goodDate,
+      ));
+      expect(r.hasFormat, isFalse);
+      expect(r.hasGeneralEvidence, isTrue);
+      expect(r.canSubmit, isFalse);
+    });
+
+    test('an empty document string is no format (L381-L385)', () {
+      final r = ready(row(
+        document: '',
+        images: const ['https://example.com/1.jpg'],
+        completedAt: goodDate,
+      ));
+      expect(r.hasFormat, isFalse);
+      expect(r.canSubmit, isFalse);
+    });
+
+    test('the date is required by the app but not by the backend flag (L27)',
+        () {
+      final honor = row(
+        document: 'https://example.com/f.pdf',
+        images: const ['https://example.com/1.jpg'],
+      );
+      expect(ready(honor).canSubmit, isFalse);
+      expect(ready(honor, requireCompletionDate: false).canSubmit, isTrue);
+    });
+
+    test('a date outside 1960..today never passes (L327)', () {
+      for (final bad in [DateTime(1959, 12, 31), DateTime(2026, 11, 5)]) {
+        final r = ready(
+          row(
+            document: 'https://example.com/f.pdf',
+            images: const ['https://example.com/1.jpg'],
+            completedAt: bad,
+          ),
+          requireCompletionDate: false,
+        );
+        expect(r.canSubmit, isFalse, reason: '$bad');
+      }
+    });
+
+    test('only EXTERNAL honors can be sent from this path (L287-L292)', () {
+      for (final mode in [
+        HonorCompletionMode.inApp,
+        HonorCompletionMode.undecided,
+      ]) {
+        final r = ready(row(
+          mode: mode,
+          document: 'https://example.com/f.pdf',
+          images: const ['https://example.com/1.jpg'],
+          completedAt: goodDate,
+        ));
+        expect(r.isExternal, isFalse);
+        expect(r.canSubmit, isFalse);
+      }
+    });
+  });
 }

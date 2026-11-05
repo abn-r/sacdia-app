@@ -1,6 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -12,13 +11,15 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Selector explícito del camino de trabajo de una especialidad inscrita.
 ///
-/// Se muestra únicamente cuando el backend indica `UNDECIDED`, o al cambiar
-/// de modo. La app no debe mezclar checklist dentro de la app con formato
-/// externo en la misma CTA.
+/// Se muestra únicamente cuando el backend indica `UNDECIDED`. La app no debe
+/// mezclar checklist dentro de la app con formato externo en la misma CTA.
+/// El título y la acción de continuar viven en la pantalla que lo aloja.
+///
+/// La opción elegida lleva borde de 1.5 con [categoryColor], el icono sobre
+/// un fondo teñido y el radio relleno.
 class HonorWorkModeSelector extends StatelessWidget {
   final Color categoryColor;
   final bool isLoading;
-  final bool showIntro;
   final HonorCompletionMode? selectedMode;
   final ValueChanged<HonorCompletionMode> onSelected;
 
@@ -27,39 +28,14 @@ class HonorWorkModeSelector extends StatelessWidget {
     required this.categoryColor,
     required this.onSelected,
     this.isLoading = false,
-    this.showIntro = true,
     this.selectedMode,
   });
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (showIntro) ...[
-          Text(
-            'honors.work_mode.title'.tr(),
-            style: TextStyle(
-              color: c.text,
-              fontSize: SacFontSize.headlineSmall,
-              fontWeight: FontWeight.w800,
-              height: 1.2,
-              letterSpacing: -0.3,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'honors.work_mode.subtitle'.tr(),
-            style: TextStyle(
-              color: c.textSecondary,
-              fontSize: SacFontSize.titleSmall,
-              height: 1.45,
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
         _ModeOptionCard(
           title: 'honors.work_mode.in_app_title'.tr(),
           description: 'honors.work_mode.in_app_description'.tr(),
@@ -79,29 +55,6 @@ class HonorWorkModeSelector extends StatelessWidget {
           enabled: !isLoading,
           onTap: () => onSelected(HonorCompletionMode.external),
         ),
-        if (isLoading && showIntro) ...[
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              SizedBox(
-                width: 18,
-                height: 18,
-                child: FittedBox(
-                  child: SacLoadingSmall(color: categoryColor),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                'honors.work_mode.saving'.tr(),
-                style: TextStyle(
-                  color: c.textSecondary,
-                  fontSize: SacFontSize.bodySmall,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ],
       ],
     );
   }
@@ -185,7 +138,9 @@ class _ModeOptionCardState extends State<_ModeOptionCard> {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: c.surfaceVariant,
+                    color: selected
+                        ? widget.categoryColor.withValues(alpha: 0.12)
+                        : c.surfaceVariant,
                     borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   ),
                   child: HugeIcon(

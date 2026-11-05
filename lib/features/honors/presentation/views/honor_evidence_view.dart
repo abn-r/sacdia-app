@@ -1,34 +1,31 @@
 import 'dart:async';
-import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:sacdia_app/core/animations/motion_tokens.dart';
+
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/utils/icon_helper.dart';
-import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/evidence_staging/staged_file.dart';
 import 'package:sacdia_app/core/widgets/evidence_staging/upload_progress_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_card.dart';
-import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
-import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
-import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../validation/domain/entities/validation.dart';
@@ -39,18 +36,21 @@ import '../../domain/entities/user_honor.dart';
 import '../providers/honors_providers.dart';
 import '../theme/honor_category_palette.dart';
 import '../utils/evidence_url.dart';
+import '../utils/honor_submission_readiness.dart';
 import '../widgets/honor_abandon_menu_button.dart';
-import '../widgets/honor_badge_image.dart';
-import '../widgets/honor_completion_details.dart';
-import '../widgets/honor_signed_evidence_image.dart';
-import '../widgets/instructor_proposal_card.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
+import '../widgets/honor_band_scaffold.dart';
+import '../widgets/honor_external_work_tab.dart';
+import '../widgets/honor_progress_band.dart';
+import '../widgets/honor_submit_bar.dart';
+import '../widgets/honor_work_info_tab.dart';
 
 /// Evidence & progress screen for an enrolled honor in EXTERNAL mode.
 ///
-/// Working screen: white [SacTopBar], identity row (patch + name), one grouped
-/// work list (format, evidence, material). Category color as accent only.
-/// The bottom bar is reserved for submit when both artifacts are ready.
+/// A colored band (patch, readiness ring, path) over two tabs: "Formato y
+/// evidencias" (completed format, general evidence, material) and
+/// "Información" (completion date, instructor, levels). The sticky bar always
+/// tells what is missing and sends the honor to review once
+/// [computeExternalSubmissionReadiness] says it can go.
 ///
 /// Integration with validation feature:
 /// - Uses [SubmitValidationNotifier] from `features/validation/` for submit
@@ -181,15 +181,18 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
   }
 
   Future<void> _submitForReview(UserHonor userHonor) async {
-    // The completion date is mandatory in the app (the API still allows
-    // old versions to send without it).
-    if (userHonor.completedAt == null) return;
-    final success = await ref.read(submitValidationProvider.notifier).submit(
-          entityType: ValidationEntityType.honor,
-          entityId: userHonor.id, // user_honor_id, NOT honor_id
-        );
+    if (!computeExternalSubmissionReadiness(userHonor: userHonor).canSubmit) {
+      return;
+    }
+    HapticFeedback.mediumImpact();
+    final notifier = ref.read(submitValidationProvider.notifier);
+    final success = await notifier.submit(
+      entityType: ValidationEntityType.honor,
+      entityId: userHonor.id, // user_honor_id, NOT honor_id
+    );
+    if (!mounted) return;
 
-    if (success && mounted) {
+    if (success) {
       // Refresh user honors to reflect new status.
       // userHonorStatsLocalProvider recomputes automatically when
       // userHonorsProvider is invalidated — no explicit invalidation needed.
@@ -198,6 +201,13 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
 
       SacSnackBar.show(context, 'honors.evidence.sent_review'.tr(),
           isSuccess: true);
+    } else {
+      final state = ref.read(submitValidationProvider);
+      SacSnackBar.show(
+        context,
+        userErrorMessage(state.failure ?? state.errorMessage),
+        isError: true,
+      );
     }
   }
 
@@ -670,7 +680,7 @@ class _ModeGuardScaffold extends StatelessWidget {
 
 // ── Evidence Body ─────────────────────────────────────────────────────────────
 
-class _EvidenceBody extends StatelessWidget {
+class _EvidenceBody extends ConsumerWidget {
   final UserHonor userHonor;
   final Honor? honor;
   final VoidCallback onSubmit;
@@ -693,976 +703,93 @@ class _EvidenceBody extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final hPad = Responsive.horizontalPadding(context);
-    final categoryColor = getCategoryColor(
-      categoryId: honor?.categoryId ?? userHonor.honorCategoryId,
-      categoryName: honor?.categoryName ?? userHonor.honorCategoryName,
-    );
-    final categoryPaintColor = getCategoryPaintColor(
-      categoryId: honor?.categoryId ?? userHonor.honorCategoryId,
-      categoryName: honor?.categoryName ?? userHonor.honorCategoryName,
-    );
-    final honorName = honor?.name ??
-        userHonor.honorName ??
-        'honors.evidence.honor_fallback'.tr();
-    final hasMaterial =
-        honor?.materialUrl != null && honor!.materialUrl!.isNotEmpty;
-    final showSubmitBar = userHonor.canSubmit &&
-        userHonor.hasCompletedFormat &&
-        userHonor.hasGeneralEvidence;
-
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: c.background,
-      appBar: SacTopBar(
-          title: 'honors.detail.external_flow_cta'.tr(),
-          onBack: () {
-            HapticFeedback.lightImpact();
-            context.pop();
-          },
-          actions: [
-            Center(child: _EvidenceStatusBadge(userHonor: userHonor)),
-            if (userHonor.canAbandon)
-              HonorAbandonMenuButton(
-                userHonor: userHonor,
-                honorName: honorName,
-              )
-            else
-              const SizedBox(width: 12),
-          ],
-          frosted: true),
-      body: SacFrostedVeil(
-        child: Builder(
-          builder: (context) => Column(
-            children: [
-              Expanded(
-                child: CustomScrollView(
-                  physics: const BouncingScrollPhysics(
-                    parent: AlwaysScrollableScrollPhysics(),
-                  ),
-                  slivers: [
-                    SliverToBoxAdapter(
-                        child:
-                            SizedBox(height: SacTopBar.frostedInset(context))),
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _EvidenceIdentity(
-                              honor: honor,
-                              userHonor: userHonor,
-                              honorName: honorName,
-                            ),
-                            const SizedBox(height: 16),
-                            _EvidenceWorkCard(
-                              userHonor: userHonor,
-                              honorName: honorName,
-                              materialUrl:
-                                  hasMaterial ? honor!.materialUrl : null,
-                              categoryColor: categoryPaintColor,
-                              onUploadCompletedFormat: onUploadCompletedFormat,
-                              onAddEvidence: onAddEvidence,
-                              onDeleteEvidence: onDeleteEvidence,
-                              onViewEvidence: onViewEvidence,
-                              onOpenDocument: onOpenDocument,
-                            ),
-                            if (userHonor.displayStatus == 'rechazado') ...[
-                              const SizedBox(height: 16),
-                              _RejectionCard(
-                                reason: userHonor.rejectionReason,
-                              ),
-                            ],
-                            const SizedBox(height: 16),
-                            // Approved + the API knows proposals (D11): propose,
-                            // never PATCH. Anything else keeps the S7 card.
-                            if (userHonor.isCompleted &&
-                                userHonor.active &&
-                                userHonor.supportsInstructorProposal)
-                              InstructorProposalCard(userHonor: userHonor)
-                            else
-                              HonorInstructorCard(userHonor: userHonor),
-                            const SizedBox(height: 16),
-                            HonorCompletionDateCard(userHonor: userHonor),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (showSubmitBar)
-                _EvidenceSubmitBar(
-                  categoryColor: categoryColor,
-                  categoryPaintColor: categoryPaintColor,
-                  // Mandatory in the app: no completion date, no submit.
-                  hasCompletionDate: userHonor.completedAt != null,
-                  onSubmit: onSubmit,
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _EvidenceStatusBadge extends StatelessWidget {
-  final UserHonor userHonor;
-
-  const _EvidenceStatusBadge({required this.userHonor});
-
-  @override
-  Widget build(BuildContext context) {
-    if (userHonor.isCompleted) {
-      return SacBadge.success(
-        label: 'honors.evidence.status_validated'.tr(),
-      );
-    }
-    if (userHonor.isUnderReview) {
-      return SacBadge(
-        label: 'honors.evidence.status_sent'.tr(),
-        variant: SacBadgeVariant.accent,
-      );
-    }
-    if (userHonor.displayStatus == 'rechazado') {
-      return SacBadge.error(
-        label: 'honors.evidence.status_rejected'.tr(),
-      );
-    }
-    return SacBadge(
-      label: 'honors.evidence.status_enrolled'.tr(),
-      variant: SacBadgeVariant.neutral,
-    );
-  }
-}
-
-const _kEvidenceBadgeSize = 52.0;
-
-class _EvidenceIdentity extends StatelessWidget {
-  final Honor? honor;
-  final UserHonor userHonor;
-  final String honorName;
-
-  const _EvidenceIdentity({
-    required this.honor,
-    required this.userHonor,
-    required this.honorName,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return _EnterScale(
-      child: Row(
-        children: [
-          HonorBadgeImage(
-            imageUrl: honor?.imageUrl ?? userHonor.honorImageUrl,
-            width: _kEvidenceBadgeSize,
-            height: _kEvidenceBadgeSize,
-            memCacheWidth: (_kEvidenceBadgeSize * 3).round(),
-            memCacheHeight: (_kEvidenceBadgeSize * 3).round(),
-            fallbackColor: c.textTertiary,
-            fallbackBackgroundColor: c.surfaceVariant,
-            fallbackIconSize: 22,
-            fallbackBorderRadius: BorderRadius.circular(AppTheme.radiusSM),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(
-              honorName,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: c.text,
-                    letterSpacing: -0.3,
-                    height: 1.15,
-                  ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EnterScale extends StatefulWidget {
-  final Widget child;
-
-  const _EnterScale({required this.child});
-
-  @override
-  State<_EnterScale> createState() => _EnterScaleState();
-}
-
-class _EnterScaleState extends State<_EnterScale>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _scale;
-  bool? _reduceMotion;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: SacMotion.routeEnter,
-    );
-    _scale = Tween<double>(begin: SacMotion.enterScale, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: SacMotion.easeOut),
-    );
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final reduceMotion = SacMotion.reduceMotionOf(context);
-    if (_reduceMotion == reduceMotion) return;
-
-    final firstRead = _reduceMotion == null;
-    _reduceMotion = reduceMotion;
-
-    if (reduceMotion) {
-      _controller.stop();
-      _controller.value = 1;
-      return;
-    }
-
-    if (firstRead) _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: _scale,
-      child: widget.child,
-    );
-  }
-}
-
-Widget _iconWell({
-  required HugeIconData icon,
-  required Color iconColor,
-}) {
-  return Container(
-    width: 32,
-    height: 32,
-    decoration: BoxDecoration(
-      color: iconColor.withValues(alpha: 0.10),
-      borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-    ),
-    child: HugeIcon(icon: icon, color: iconColor, size: 16),
-  );
-}
-
-class _WorkRow extends StatefulWidget {
-  final HugeIconData icon;
-  final Color iconColor;
-  final String title;
-  final String subtitle;
-  final bool showChevron;
-  final Widget? trailing;
-  final VoidCallback? onTap;
-
-  const _WorkRow({
-    required this.icon,
-    required this.iconColor,
-    required this.title,
-    required this.subtitle,
-    this.showChevron = true,
-    this.trailing,
-    this.onTap,
-  });
-
-  @override
-  State<_WorkRow> createState() => _WorkRowState();
-}
-
-class _WorkRowState extends State<_WorkRow> {
-  bool _pressed = false;
-
-  void _setPressed(bool value) {
-    if (_pressed == value) return;
-    setState(() => _pressed = value);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final reduce = SacMotion.reduceMotionOf(context);
-    final row = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          _iconWell(
-            icon: widget.icon,
-            iconColor: widget.iconColor,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.title,
-                  style: TextStyle(
-                    fontSize: SacFontSize.titleMedium,
-                    fontWeight: FontWeight.w700,
-                    color: c.text,
-                    height: 1.25,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  widget.subtitle,
-                  style: TextStyle(
-                    fontSize: SacFontSize.bodyMedium,
-                    color: c.textSecondary,
-                    height: 1.35,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (widget.trailing != null) widget.trailing!,
-          if (widget.showChevron && widget.onTap != null) ...[
-            const SizedBox(width: 4),
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedArrowRight01,
-              size: 16,
-              color: c.textTertiary,
-            ),
-          ],
-        ],
-      ),
-    );
-
-    if (widget.onTap == null) return row;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: (_) {
-        HapticFeedback.lightImpact();
-        _setPressed(true);
-      },
-      onTapUp: (_) => _setPressed(false),
-      onTapCancel: () => _setPressed(false),
-      onTap: widget.onTap,
-      child: AnimatedScale(
-        scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
-        duration: SacMotion.press,
-        curve: SacMotion.easeOut,
-        child: row,
-      ),
-    );
-  }
-}
-
-class _RowDivider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 1,
-      margin: const EdgeInsets.only(left: 60),
-      color: context.sac.border,
-    );
-  }
-}
-
-class _EvidenceWorkCard extends StatelessWidget {
-  final UserHonor userHonor;
-  final String honorName;
-  final String? materialUrl;
-  final Color categoryColor;
-  final VoidCallback onUploadCompletedFormat;
-  final VoidCallback onAddEvidence;
-  final void Function(String imageUrl) onDeleteEvidence;
-  final void Function(String url, List<String> imageUrls, int initialIndex)
-      onViewEvidence;
-  final void Function(String url) onOpenDocument;
-
-  const _EvidenceWorkCard({
-    required this.userHonor,
-    required this.honorName,
-    required this.materialUrl,
-    required this.categoryColor,
-    required this.onUploadCompletedFormat,
-    required this.onAddEvidence,
-    required this.onDeleteEvidence,
-    required this.onViewEvidence,
-    required this.onOpenDocument,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final hasDocument = userHonor.hasCompletedFormat;
-    final hasEvidence = userHonor.images.isNotEmpty;
-    final canEdit = userHonor.canSubmit;
-    final showAddCell = canEdit && userHonor.generalEvidenceCount < 10;
-    final documentUrl = userHonor.document;
-
-    return SacCard(
-      animate: true,
-      padding: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _WorkRow(
-            icon: hasDocument
-                ? HugeIcons.strokeRoundedCheckmarkCircle02
-                : HugeIcons.strokeRoundedUpload01,
-            iconColor: hasDocument ? AppColors.success : categoryColor,
-            title: 'honors.evidence.completed_format_title'.tr(),
-            subtitle: hasDocument
-                ? 'honors.evidence.completed_format_uploaded'.tr()
-                : 'honors.evidence.completed_format_missing'.tr(),
-            showChevron: !(hasDocument && canEdit),
-            onTap: hasDocument
-                ? (documentUrl == null
-                    ? null
-                    : () => onOpenDocument(documentUrl))
-                : (canEdit ? onUploadCompletedFormat : null),
-            trailing: hasDocument && canEdit
-                ? GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: onUploadCompletedFormat,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(8, 8, 4, 8),
-                      child: Text(
-                        'honors.evidence.replace_completed_format'.tr(),
-                        style: TextStyle(
-                          fontSize: SacFontSize.bodyMedium,
-                          fontWeight: FontWeight.w700,
-                          color: categoryColor,
-                        ),
-                      ),
-                    ),
-                  )
-                : null,
-          ),
-          _RowDivider(),
-          if (!hasEvidence)
-            _WorkRow(
-              icon: HugeIcons.strokeRoundedImage01,
-              iconColor: showAddCell ? categoryColor : c.textTertiary,
-              title: 'honors.evidence.general_empty_first'.tr(),
-              subtitle: 'honors.evidence.general_empty_subtitle'.tr(),
-              onTap: showAddCell ? onAddEvidence : null,
-            )
-          else
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'honors.evidence.general_section_title'.tr(),
-                          style: TextStyle(
-                            fontSize: SacFontSize.titleMedium,
-                            fontWeight: FontWeight.w700,
-                            color: c.text,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        '${userHonor.generalEvidenceCount}/10',
-                        style: TextStyle(
-                          fontSize: SacFontSize.bodyMedium,
-                          fontWeight: FontWeight.w600,
-                          color: categoryColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  _EvidenceGrid(
-                    images: userHonor.images,
-                    showAddCell: showAddCell,
-                    canDelete: canEdit,
-                    categoryColor: categoryColor,
-                    onAddEvidence: onAddEvidence,
-                    onDeleteEvidence: onDeleteEvidence,
-                    onViewEvidence: onViewEvidence,
-                  ),
-                ],
-              ),
-            ),
-          if (materialUrl != null) ...[
-            _RowDivider(),
-            _WorkRow(
-              icon: HugeIcons.strokeRoundedPdf01,
-              iconColor: categoryColor,
-              title: 'honors.evidence.material_title'.tr(),
-              subtitle: 'honors.evidence.material_subtitle'.tr(),
-              onTap: () => SacPdfViewer.show(
-                context,
-                pdfSource: materialUrl!,
-                title: honorName,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-// ── Evidence Grid ──────────────────────────────────────────────────────────────
-
-class _EvidenceGrid extends StatelessWidget {
-  final List<String> images;
-  final bool showAddCell;
-  final bool canDelete;
-  final Color categoryColor;
-  final VoidCallback onAddEvidence;
-  final void Function(String imageUrl) onDeleteEvidence;
-  final void Function(String url, List<String> imageUrls, int initialIndex)
-      onViewEvidence;
-
-  const _EvidenceGrid({
-    required this.images,
-    required this.showAddCell,
-    required this.canDelete,
-    required this.categoryColor,
-    required this.onAddEvidence,
-    required this.onDeleteEvidence,
-    required this.onViewEvidence,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final itemCount = images.length + (showAddCell ? 1 : 0);
-
-    return GridView.builder(
-      // Zero on purpose: this grid lives inside a card, below the section
-      // header. The frosted top-bar inset only belongs to the page's first
-      // sliver (a leftover here opened a ~150pt gap under the header).
-      padding: EdgeInsets.zero,
-      // shrinkWrap OK: lives inside SliverToBoxAdapter > Column (non-scrollable).
-      // Item count is bounded by the evidence images a user uploads per honor.
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 1,
-      ),
-      itemCount: itemCount,
-      itemBuilder: (context, index) {
-        // Last cell: add-evidence button
-        if (index == images.length && showAddCell) {
-          return _AddEvidenceCell(
-            categoryColor: categoryColor,
-            onTap: onAddEvidence,
-          );
-        }
-
-        final imageUrl = images[index];
-        return _EvidenceThumbnail(
-          imageUrl: imageUrl,
-          canDelete: canDelete,
-          onDelete: () => onDeleteEvidence(imageUrl),
-          onTap: () {
-            final carouselImages = images
-                .where((url) =>
-                    !isPdfEvidenceUrl(url) && isFetchableEvidenceUrl(url))
-                .toList();
-            final initialIndex = carouselImages.indexOf(imageUrl);
-            onViewEvidence(
-              imageUrl,
-              carouselImages,
-              initialIndex < 0 ? 0 : initialIndex,
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
-// ── Add Evidence Cell ──────────────────────────────────────────────────────────
-
-class _AddEvidenceCell extends StatefulWidget {
-  final Color categoryColor;
-  final VoidCallback onTap;
-
-  const _AddEvidenceCell({
-    required this.categoryColor,
-    required this.onTap,
-  });
-
-  @override
-  State<_AddEvidenceCell> createState() => _AddEvidenceCellState();
-}
-
-class _AddEvidenceCellState extends State<_AddEvidenceCell> {
-  bool _pressed = false;
-
-  void _setPressed(bool value) {
-    if (_pressed == value) return;
-    setState(() => _pressed = value);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final reduce = SacMotion.reduceMotionOf(context);
-
-    return Semantics(
-      button: true,
-      label: 'honors.evidence.add_cell_label'.tr(),
-      child: GestureDetector(
-        onTapDown: (_) {
-          HapticFeedback.lightImpact();
-          _setPressed(true);
-        },
-        onTapUp: (_) => _setPressed(false),
-        onTapCancel: () => _setPressed(false),
-        onTap: widget.onTap,
-        child: AnimatedScale(
-          scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
-          duration: SacMotion.press,
-          curve: SacMotion.easeOut,
-          child: Container(
-            decoration: BoxDecoration(
-              color: context.sac.surfaceVariant,
-              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedAdd01,
-                  color: widget.categoryColor,
-                  size: 22,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'honors.evidence.add_cell_label'.tr(),
-                  style: TextStyle(
-                    fontSize: SacFontSize.labelSmall,
-                    fontWeight: FontWeight.w600,
-                    color: widget.categoryColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Evidence Thumbnail ─────────────────────────────────────────────────────────
-
-class _EvidenceThumbnail extends StatelessWidget {
-  final String imageUrl;
-  final bool canDelete;
-  final VoidCallback onDelete;
-  final VoidCallback onTap;
-
-  const _EvidenceThumbnail({
-    required this.imageUrl,
-    required this.canDelete,
-    required this.onDelete,
-    required this.onTap,
-  });
-
-  bool get _isPdf => isPdfEvidenceUrl(imageUrl);
-
-  /// A raw storage key cannot be downloaded: show a calm placeholder instead
-  /// of a broken image.
-  bool get _isUnavailable => !isFetchableEvidenceUrl(imageUrl);
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      onLongPress: canDelete
-          ? () async {
-              HapticFeedback.mediumImpact();
-              final confirmed = await SacDialog.show(
-                context,
-                title: 'honors.evidence.delete_title'.tr(),
-                content: 'honors.evidence.delete_content'.tr(),
-                cancelLabel: 'honors.evidence.delete_cancel'.tr(),
-                confirmLabel: 'honors.evidence.delete_confirm'.tr(),
-                confirmIsDestructive: true,
-              );
-              if (confirmed == true) onDelete();
-            }
-          : null,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // File content
-            if (_isPdf)
-              Container(
-                color: AppColors.error.withAlpha(20),
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedPdf01,
-                      color: AppColors.error,
-                      size: 28,
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'PDF',
-                      style: TextStyle(
-                        fontSize: SacFontSize.caption,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.error,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            else if (_isUnavailable)
-              Builder(
-                builder: (context) => Container(
-                  color: context.sac.surfaceVariant,
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedFile01,
-                    color: context.sac.textTertiary,
-                    size: 24,
-                  ),
-                ),
-              )
-            else
-              HonorSignedEvidenceImage(
-                imageUrl: imageUrl,
-                fit: BoxFit.cover,
-                memCacheWidth: 400,
-                placeholder: (_, __) => Builder(
-                  builder: (context) => Container(
-                    color: context.sac.surfaceVariant,
-                    child: const Center(
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: FittedBox(child: SacLoadingSmall()),
-                      ),
-                    ),
-                  ),
-                ),
-                errorWidget: (_, __, ___) => Builder(
-                  builder: (context) => Container(
-                    color: context.sac.surfaceVariant,
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedImageDelete01,
-                      color: context.sac.textTertiary,
-                      size: 24,
-                    ),
-                  ),
-                ),
-              ),
-
-            // Green checkmark overlay for images
-            if (!_isPdf && !_isUnavailable)
-              Positioned(
-                top: 4,
-                right: 4,
-                child: Container(
-                  width: 18,
-                  height: 18,
-                  decoration: const BoxDecoration(
-                    color: AppColors.success,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedTick02,
-                    color: Colors.white,
-                    size: 12,
-                  ),
-                ),
-              ),
-
-            // Long-press hint overlay (subtle gradient at bottom)
-            if (canDelete)
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  height: 28,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      colors: [
-                        Colors.black.withValues(alpha: 0.35),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Rejection Card ────────────────────────────────────────────────────────────
-
-class _RejectionCard extends StatelessWidget {
-  final String? reason;
-
-  const _RejectionCard({this.reason});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.error.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        border: Border.all(
-          color: AppColors.error.withValues(alpha: 0.25),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const HugeIcon(
-            icon: HugeIcons.strokeRoundedAlert02,
-            color: AppColors.error,
-            size: 22,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'honors.evidence.rejection_title'.tr(),
-                  style: const TextStyle(
-                    fontSize: SacFontSize.bodyMedium,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.error,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  reason?.isNotEmpty == true
-                      ? reason!
-                      : 'honors.evidence.rejection_no_reason'.tr(),
-                  style: const TextStyle(
-                    fontSize: SacFontSize.bodySmall,
-                    height: 1.5,
-                    color: AppColors.error,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'honors.evidence.rejection_hint'.tr(),
-                  style: TextStyle(
-                    fontSize: SacFontSize.labelSmall,
-                    color: AppColors.error.withValues(alpha: 0.70),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Bottom CTA Bar ────────────────────────────────────────────────────────────
-
-class _EvidenceSubmitBar extends ConsumerWidget {
-  final Color categoryColor;
-  final Color categoryPaintColor;
-  final bool hasCompletionDate;
-  final VoidCallback onSubmit;
-
-  const _EvidenceSubmitBar({
-    required this.categoryColor,
-    required this.categoryPaintColor,
-    required this.hasCompletionDate,
-    required this.onSubmit,
-  });
-
-  @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.sac;
-    final submitState = ref.watch(submitValidationProvider);
-    final nearWhiteFill = isNearWhiteCategoryColor(categoryColor);
+    final categoryId = honor?.categoryId ?? userHonor.honorCategoryId;
+    final categoryName = honor?.categoryName ??
+        userHonor.honorCategoryName ??
+        (categoryId != null
+            ? ref.watch(categoryByIdProvider(categoryId))?.name
+            : null);
+    final paintColor = getCategoryPaintColor(
+      categoryId: categoryId,
+      categoryName: categoryName,
+    );
+    final bandColor = bandColorFor(
+      categoryId: categoryId,
+      categoryName: categoryName,
+    );
+    final onTint = honorOnTint(context, bandColor);
+    final isSubmitting =
+        ref.watch(submitValidationProvider.select((s) => s.isLoading));
+    final honorName = (honor?.name.isNotEmpty ?? false)
+        ? honor!.name
+        : (userHonor.honorName ?? 'honors.evidence.honor_fallback'.tr());
+    final material = honor?.materialUrl?.trim();
+    final readiness = computeExternalSubmissionReadiness(userHonor: userHonor);
+    final percent = (readiness.fraction * 100).round();
+    final rejected = userHonor.validationStatus.toUpperCase() == 'REJECTED';
 
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        12,
-        16,
-        12 + MediaQuery.paddingOf(context).bottom,
+    return HonorBandScaffold(
+      bandColor: bandColor,
+      paintColor: paintColor,
+      honorName: honorName,
+      categoryName: categoryName,
+      imageUrl: honor?.imageUrl ?? userHonor.honorImageUrl,
+      progress: readiness.fraction,
+      badge: rejected
+          ? SacBadge.error(label: 'honors.detail.status_rejected'.tr())
+          : userHonor.isUnderReview
+              ? SacBadge.info(label: 'honors.detail.status_sent'.tr())
+              : null,
+      metaLabel: 'honors.requirements.band_meta'.tr(
+        namedArgs: {
+          'percent': '$percent',
+          'mode': 'honors.detail.mode_external'.tr(),
+        },
       ),
-      decoration: BoxDecoration(
-        color: c.surface,
-        boxShadow: [
-          BoxShadow(
-            color: c.shadow,
-            blurRadius: 12,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (!hasCompletionDate)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Semantics(
-                liveRegion: true,
-                child: Text(
-                  'honors.evidence.submit_needs_date'.tr(),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: c.textSecondary),
-                ),
-              ),
+      step: honorWorkStepFor(userHonor),
+      actions: [
+        HonorAbandonMenuButton(
+          userHonor: userHonor,
+          honorName: honorName,
+          iconColor: Colors.white,
+        ),
+      ],
+      tabLabels: [
+        'honors.detail.external_flow_cta'.tr(),
+        'honors.requirements.tab_info'.tr(),
+      ],
+      tabBuilder: (context, tab) => tab == 0
+          ? HonorExternalWorkTab(
+              userHonor: userHonor,
+              honorName: honorName,
+              materialUrl:
+                  (material != null && material.isNotEmpty) ? material : null,
+              paintColor: paintColor,
+              accent: onTint,
+              onUploadCompletedFormat: onUploadCompletedFormat,
+              onAddEvidence: onAddEvidence,
+              onDeleteEvidence: onDeleteEvidence,
+              onViewEvidence: onViewEvidence,
+              onOpenDocument: onOpenDocument,
+            )
+          : HonorWorkInfoTab(
+              userHonor: userHonor,
+              honorId: userHonor.honorId,
+              honor: honor,
+              paintColor: paintColor,
+              chipForeground: onTint,
             ),
-          SacButton.primary(
-            text: 'honors.evidence.cta_send'.tr(),
-            icon: HugeIcons.strokeRoundedSent,
-            isLoading: submitState.isLoading,
-            isEnabled: hasCompletionDate,
-            backgroundColor: categoryColor,
-            textColor: onCategoryPaintColor(categoryColor, onNearWhite: c.text),
-            borderColor: nearWhiteFill ? categoryPaintColor : null,
-            onPressed:
-                submitState.isLoading || !hasCompletionDate ? null : onSubmit,
-          ),
-        ],
-      ),
+      bottomBar: (userHonor.canSubmit || userHonor.isUnderReview)
+          ? HonorSubmitBar(
+              summary: HonorSubmitBar.summaryForExternal(readiness),
+              canSubmit: readiness.canSubmit,
+              bandColor: bandColor,
+              isUnderReview: userHonor.isUnderReview,
+              isSubmitting: isSubmitting,
+              onSubmit: onSubmit,
+            )
+          : null,
     );
   }
 }
