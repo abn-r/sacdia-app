@@ -81,7 +81,6 @@ class _HonorModeChoiceDetailState extends State<HonorModeChoiceDetail> {
           userHonor: userHonor,
           honorName: honor.name,
           popOnSuccess: false,
-          iconColor: Colors.white,
         ),
       ],
       tabLabels: [

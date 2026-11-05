@@ -752,7 +752,10 @@ class _EvidenceBody extends ConsumerWidget {
         HonorAbandonMenuButton(
           userHonor: userHonor,
           honorName: honorName,
-          iconColor: Colors.white,
+          progressSummary: percent == 0
+              ? null
+              : 'honors.abandon.progress_external'
+                  .tr(namedArgs: {'percent': '$percent'}),
         ),
       ],
       tabLabels: [
@@ -788,6 +791,11 @@ class _EvidenceBody extends ConsumerWidget {
               isUnderReview: userHonor.isUnderReview,
               isSubmitting: isSubmitting,
               onSubmit: onSubmit,
+              onPickDate: readiness.hasCompletionDate
+                  ? null
+                  : () => pickHonorCompletionDate(context, ref, userHonor),
+              onlyDateMissing:
+                  readiness.hasFormat && readiness.hasGeneralEvidence,
             )
           : null,
     );

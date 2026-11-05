@@ -661,8 +661,8 @@
       "tab_summary": "Resumo",
       "tab_my_work": "Meu trabalho",
       "completed_title": "Especialidade conquistada!",
-      "completed_subtitle": "Ela já aparece no seu perfil e na sua credencial.",
-      "view_credential_cta": "Ver na minha credencial",
+      "completed_subtitle": "Ela já aparece no seu perfil.",
+      "view_profile_cta": "Ver no meu perfil",
       "my_work_empty": "Não há trabalho registrado para esta especialidade."
     },
     "work_mode": {
@@ -684,6 +684,9 @@
     "abandon": {
       "menu_tooltip": "Mais opções",
       "action": "Abandonar especialidade",
+      "action_hint": "Seu progresso é apagado",
+      "progress_in_app": "Você está com {percent}% de progresso ({done} de {total} requisitos completos)",
+      "progress_external": "Você está com {percent}% de progresso",
       "confirm_title": "Abandonar especialidade?",
       "confirm_message": "Você deixará de trabalhar em {name} e ela não aparecerá mais no seu perfil. Se você se inscrever novamente, terá que escolher o modo de trabalho e enviar suas evidências outra vez.",
       "confirm_cta": "Abandonar",
@@ -706,6 +709,16 @@
       "see_more": "Ver mais",
       "see_less": "Ver menos",
       "response_hint": "Escreva sua resposta",
+      "your_answer": "Sua resposta",
+      "sub_title": "Item {label}",
+      "group_context": "Requisito {number}",
+      "group_context_choice": "Requisito {number} · escolha {min} de {total}",
+      "group_goal_choice": "Escolha {min} de {total} · {done} feitos",
+      "group_goal_all": "{done} de {total} feitos",
+      "evidence_required_caption": "Evidência · obrigatória",
+      "parent_evidence_caption": "Evidência do requisito · obrigatória",
+      "evidence_hint": "Uma foto ou PDF do que você fez. O envio é imediato.",
+      "evidence_add": "Adicionar",
       "response_required": "Escreva uma resposta para concluir este item",
       "requires_demo": "Requer demonstração",
       "requirement_evidence_button": "Adicionar evidência do requisito",
@@ -752,6 +765,7 @@
         "other": "{} evidências"
       },
       "missing_date": "a data de conclusão",
+      "add_date_cta": "Adicionar data de conclusão",
       "list_and": " e ",
       "ready_to_send": "Tudo pronto para enviar",
       "under_review_hint": "Um responsável está revisando seu trabalho"

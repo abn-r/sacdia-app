@@ -661,8 +661,8 @@
       "tab_summary": "Summary",
       "tab_my_work": "My work",
       "completed_title": "Honor earned!",
-      "completed_subtitle": "It now shows on your profile and on your credential.",
-      "view_credential_cta": "View on my credential",
+      "completed_subtitle": "It now shows on your profile.",
+      "view_profile_cta": "View on my profile",
       "my_work_empty": "There is no recorded work for this honor."
     },
     "work_mode": {
@@ -684,6 +684,9 @@
     "abandon": {
       "menu_tooltip": "More options",
       "action": "Leave honor",
+      "action_hint": "Your progress is deleted",
+      "progress_in_app": "You are {percent}% done ({done} of {total} requirements complete)",
+      "progress_external": "You are {percent}% done",
       "confirm_title": "Leave this honor?",
       "confirm_message": "You will stop working on {name} and it will no longer show on your profile. If you enroll again, you will need to choose the work mode and upload your evidence again.",
       "confirm_cta": "Leave",
@@ -706,6 +709,16 @@
       "see_more": "See more",
       "see_less": "See less",
       "response_hint": "Write your answer",
+      "your_answer": "Your answer",
+      "sub_title": "Item {label}",
+      "group_context": "Requirement {number}",
+      "group_context_choice": "Requirement {number} · choose {min} of {total}",
+      "group_goal_choice": "Choose {min} of {total} · {done} done",
+      "group_goal_all": "{done} of {total} done",
+      "evidence_required_caption": "Evidence · required",
+      "parent_evidence_caption": "Requirement evidence · required",
+      "evidence_hint": "A photo or PDF of what you did. It uploads right away.",
+      "evidence_add": "Add",
       "response_required": "Write an answer to complete this item",
       "requires_demo": "Requires demonstration",
       "requirement_evidence_button": "Add requirement evidence",
@@ -752,6 +765,7 @@
         "other": "{} pieces of evidence"
       },
       "missing_date": "the completion date",
+      "add_date_cta": "Add completion date",
       "list_and": " and ",
       "ready_to_send": "All set to send",
       "under_review_hint": "A reviewer is checking your work"

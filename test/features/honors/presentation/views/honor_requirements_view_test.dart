@@ -303,53 +303,93 @@ void main() {
       await pumpView(tester);
 
       expect(find.text('Guardar cambios'), findsNothing);
-      expect(find.byType(SacButton), findsOneWidget);
+      // The only main button is "Enviar a revisión" (plus the date link).
+      expect(find.byKey(const ValueKey('honor-submit-button')), findsOneWidget);
       expect(find.text('Enviar a revisión'), findsOneWidget);
     });
   });
 
   group('requirement sheet', () {
-    testWidgets('saves only the nodes that changed in its subtree',
-        (tester) async {
-      await pumpView(tester, progress: [_done(1), _done(21)]);
-
-      await tester.tap(find.byKey(const ValueKey('requirement-row-2')));
+    Future<void> settle(WidgetTester tester) async {
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 600));
+    }
 
-      expect(find.text('Requisito 2'), findsOneWidget);
-      // One response field per child; the plain parent has none.
-      final fields = find.byType(TextField);
-      expect(fields, findsNWidgets(3));
+    SacButton save(WidgetTester tester) => tester
+        .widget<SacButton>(find.byKey(const ValueKey('requirement-save')));
 
-      await tester.enterText(fields.at(1), 'mi respuesta');
+    testWidgets(
+        'a plain requirement opens the focused sheet and saving the '
+        'answer marks it done', (tester) async {
+      await pumpView(tester);
+
+      await tester.tap(find.byKey(const ValueKey('requirement-row-1')));
+      await settle(tester);
+
+      expect(find.text('Requisito 1'), findsOneWidget);
+      expect(find.text('Tu respuesta'), findsOneWidget);
+      // One answer field, no tick to tap.
+      expect(find.byType(TextField), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), 'mi respuesta');
       await tester.pump();
-      await tester.tap(find.byKey(const ValueKey('requirement-check')).at(1));
-      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('requirement-save')));
+      await settle(tester);
 
-      await tester.tap(find.text('Guardar'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
-
-      expect(bulkCalls, hasLength(1));
       expect(bulkCalls.single, [
         {
-          'requirementId': 22,
+          'requirementId': 1,
           'completed': true,
           'notes': '',
           'textResponse': 'mi respuesta',
         },
       ]);
-      // The sheet is gone.
-      expect(find.text('Requisito 2'), findsNothing);
+      expect(find.text('Requisito 1'), findsNothing);
     });
 
-    testWidgets('closing with unsaved edits asks first', (tester) async {
+    testWidgets('"Guardar" stays off until the answer changes', (tester) async {
       await pumpView(tester);
 
       await tester.tap(find.byKey(const ValueKey('requirement-row-1')));
+      await settle(tester);
+      expect(save(tester).onPressed, isNull);
+
+      // Blank space is not an answer.
+      await tester.enterText(find.byType(TextField), '   ');
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
+      expect(save(tester).onPressed, isNull);
+
+      await tester.enterText(find.byType(TextField), 'respuesta');
+      await tester.pump();
+      expect(save(tester).onPressed, isNotNull);
+    });
+
+    testWidgets('saving an emptied answer marks the requirement pending again',
+        (tester) async {
+      await pumpView(tester, progress: [_done(1, response: 'vieja')]);
+
+      await tester.tap(find.byKey(const ValueKey('requirement-row-1')));
+      await settle(tester);
+      await tester.enterText(find.byType(TextField), '');
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('requirement-save')));
+      await settle(tester);
+
+      expect(bulkCalls.single, [
+        {
+          'requirementId': 1,
+          'completed': false,
+          'notes': '',
+          'textResponse': '',
+        },
+      ]);
+    });
+
+    testWidgets('closing with an unsaved answer asks first', (tester) async {
+      await pumpView(tester);
+
+      await tester.tap(find.byKey(const ValueKey('requirement-row-1')));
+      await settle(tester);
       await tester.enterText(find.byType(TextField), 'borrador');
       await tester.pump();
 
@@ -362,41 +402,86 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.text('Requisito 1'), findsOneWidget);
-      expect(bulkCalls, isEmpty);
 
       await tester.tap(find.byTooltip('Close'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
       await tester.tap(find.text('Salir'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
+      await settle(tester);
       expect(find.text('Requisito 1'), findsNothing);
       expect(bulkCalls, isEmpty);
     });
 
-    testWidgets('saving without changes just closes', (tester) async {
-      await pumpView(tester);
+    testWidgets(
+        'a requirement with sub-items opens its own screen; each '
+        'sub-item opens the focused sheet', (tester) async {
+      await pumpView(tester, progress: [_done(21)]);
 
-      await tester.tap(find.byKey(const ValueKey('requirement-row-1')));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
-      await tester.tap(find.text('Guardar'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
+      await tester.tap(find.byKey(const ValueKey('requirement-row-2')));
+      await settle(tester);
 
-      expect(bulkCalls, isEmpty);
-      expect(find.text('Requisito 1'), findsNothing);
+      expect(find.byKey(const ValueKey('requirement-group-header')),
+          findsOneWidget);
+      expect(find.text('1 de 3 hechos'), findsOneWidget);
+      // No answer fields on this screen: one task at a time.
+      expect(find.byType(TextField), findsNothing);
+
+      await tester.tap(find.byKey(const ValueKey('requirement-row-22')));
+      await settle(tester);
+      expect(find.text('Inciso 22'), findsOneWidget);
+      expect(find.text('Requisito 2'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), 'otra');
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('requirement-save')));
+      await settle(tester);
+
+      expect(bulkCalls.single.map((u) => u['requirementId']), [22]);
+      // Back on the sub-items screen.
+      expect(find.byKey(const ValueKey('requirement-group-header')),
+          findsOneWidget);
     });
 
-    testWidgets('a choice group sheet shows how many to complete',
-        (tester) async {
+    testWidgets('a choice group shows how many to choose', (tester) async {
       await pumpView(tester, progress: [_done(31)]);
 
       await tester.tap(find.byKey(const ValueKey('requirement-row-3')));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
+      await settle(tester);
 
-      expect(find.text('Completa 1 de 2'), findsOneWidget);
+      expect(find.text('Elige 1 de 2 · 1 hechos'), findsOneWidget);
+    });
+
+    testWidgets('a parent that needs evidence completes with its children',
+        (tester) async {
+      await pumpView(
+        tester,
+        requirements: [
+          _req(5, evidence: true, children: [
+            _req(51, parentId: 5),
+            _req(52, parentId: 5),
+          ]),
+        ],
+        progress: [_done(51)],
+      );
+
+      await tester.tap(find.byKey(const ValueKey('requirement-row-5')));
+      await settle(tester);
+      // The parent's own evidence lives on its screen.
+      expect(
+          find.byKey(const ValueKey('requirement-evidence')), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('requirement-row-52')));
+      await settle(tester);
+      await tester.enterText(find.byType(TextField), 'segunda');
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('requirement-save')));
+      await settle(tester);
+
+      // The backend only counts the parent's photo on a completed row.
+      final updates = {
+        for (final u in bulkCalls.single) u['requirementId']: u['completed'],
+      };
+      expect(updates, {52: true, 5: true});
     });
   });
 
@@ -409,6 +494,11 @@ void main() {
         findsOneWidget,
       );
       expect(submitButton(tester).onPressed, isNull);
+      // With more missing, the date is a link under the summary.
+      expect(
+        find.byKey(const ValueKey('honor-submit-pick-date-link')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('names missing evidence on its own', (tester) async {
@@ -431,7 +521,19 @@ void main() {
       );
 
       expect(find.text('Te falta: la fecha de finalización'), findsOneWidget);
-      expect(submitButton(tester).onPressed, isNull);
+      // The date lives in "Información": the main button leads to it.
+      expect(find.byKey(const ValueKey('honor-submit-button')), findsNothing);
+      expect(
+        find.byKey(const ValueKey('honor-submit-pick-date')),
+        findsOneWidget,
+      );
+      expect(find.text('Agregar fecha de finalización'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('honor-submit-pick-date')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      // The picker opens right there.
+      expect(find.byType(DatePickerDialog), findsOneWidget);
     });
 
     testWidgets('enables when ready and submits the user honor id',

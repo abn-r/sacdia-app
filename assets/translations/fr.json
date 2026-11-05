@@ -661,8 +661,8 @@
       "tab_summary": "Résumé",
       "tab_my_work": "Mon travail",
       "completed_title": "Spécialité obtenue !",
-      "completed_subtitle": "Elle apparaît déjà sur ton profil et sur ta carte.",
-      "view_credential_cta": "Voir sur ma carte",
+      "completed_subtitle": "Elle apparaît déjà sur ton profil.",
+      "view_profile_cta": "Voir sur mon profil",
       "my_work_empty": "Aucun travail enregistré pour cette spécialité."
     },
     "work_mode": {
@@ -684,6 +684,9 @@
     "abandon": {
       "menu_tooltip": "Plus d'options",
       "action": "Abandonner la spécialité",
+      "action_hint": "Ta progression est supprimée",
+      "progress_in_app": "Tu en es à {percent} % ({done} exigences sur {total} terminées)",
+      "progress_external": "Tu en es à {percent} %",
       "confirm_title": "Abandonner la spécialité ?",
       "confirm_message": "Vous arrêterez de travailler sur {name} et elle n'apparaîtra plus sur votre profil. Si vous vous réinscrivez, vous devrez choisir à nouveau le mode de travail et téléverser vos preuves.",
       "confirm_cta": "Abandonner",
@@ -706,6 +709,16 @@
       "see_more": "Voir plus",
       "see_less": "Voir moins",
       "response_hint": "Écris ta réponse",
+      "your_answer": "Ta réponse",
+      "sub_title": "Point {label}",
+      "group_context": "Exigence {number}",
+      "group_context_choice": "Exigence {number} · choisis {min} sur {total}",
+      "group_goal_choice": "Choisis {min} sur {total} · {done} faits",
+      "group_goal_all": "{done} sur {total} faits",
+      "evidence_required_caption": "Preuve · obligatoire",
+      "parent_evidence_caption": "Preuve de l’exigence · obligatoire",
+      "evidence_hint": "Une photo ou un PDF de ce que tu as fait. L’envoi est immédiat.",
+      "evidence_add": "Ajouter",
       "response_required": "Écris une réponse pour terminer cet item",
       "requires_demo": "Nécessite une démonstration",
       "requirement_evidence_button": "Ajouter une preuve de l'exigence",
@@ -752,6 +765,7 @@
         "other": "{} preuves"
       },
       "missing_date": "la date de fin",
+      "add_date_cta": "Ajouter la date de fin",
       "list_and": " et ",
       "ready_to_send": "Tout est prêt à envoyer",
       "under_review_hint": "Un responsable examine ton travail"

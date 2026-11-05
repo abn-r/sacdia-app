@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/providers/riverpod_aliases.dart';
 import 'package:sacdia_app/core/utils/date_formatter.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
@@ -500,8 +501,7 @@ void main() {
       );
 
       expect(find.text('¡Especialidad lograda!'), findsOneWidget);
-      expect(find.text('Ya aparece en tu perfil y en tu credencial.'),
-          findsOneWidget);
+      expect(find.text('Ya aparece en tu perfil.'), findsOneWidget);
       expect(find.text('Inscrita el'), findsOneWidget);
       expect(find.text('Enviada a revisión'), findsOneWidget);
       expect(find.text('Validada el'), findsOneWidget);
@@ -623,18 +623,54 @@ void main() {
       expect(find.text('Trabajo externo y evidencias'), findsOneWidget);
     });
 
-    testWidgets('the sticky CTA opens the credential', (tester) async {
-      await pumpDetail(tester, userHonors: [approved()]);
+    testWidgets('the sticky CTA opens the profile, where honors are listed',
+        (tester) async {
+      tester.view.physicalSize = const Size(800, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, __) =>
+                const HonorDetailView(honorId: 7, initialHonor: honor),
+          ),
+          GoRoute(
+            path: RouteNames.homeProfile,
+            builder: (_, __) => const Text('profile-page'),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
 
-      expect(find.text('Ver en mi credencial'), findsOneWidget);
-      expect(buttonOf(tester, 'honor-credential-button').backgroundColor,
-          bandColor);
-      final before = observer.pushed.length;
+      await tester.pumpWidget(
+        testProviderScope(
+          overrides: [
+            honorCategoriesProvider
+                .overrideWith((ref) async => const <HonorCategory>[]),
+            allHonorsProvider.overrideWith((ref) async => [honor]),
+            activeHonorCatalogClubTypeIdProvider
+                .overrideWith((ref) => const AsyncValue.data(null)),
+            userHonorsProvider.overrideWith((ref) async => [approved()]),
+            userHonorProgressProvider(7).overrideWith((ref) async => const []),
+            honorRequirementsProvider(7)
+                .overrideWith((ref) => Future.value(tree)),
+          ],
+          child: MaterialApp.router(routerConfig: router),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
 
-      await tester.tap(find.byKey(const ValueKey('honor-credential-button')));
+      expect(find.text('Ya aparece en tu perfil.'), findsOneWidget);
+      expect(find.text('Ver en mi perfil'), findsOneWidget);
+      expect(
+          buttonOf(tester, 'honor-profile-button').backgroundColor, bandColor);
 
-      expect(observer.pushed.length, before + 1);
-      expect(observer.pushed.last, isA<SacSharedAxisRoute<dynamic>>());
+      await tester.tap(find.byKey(const ValueKey('honor-profile-button')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('profile-page'), findsOneWidget);
     });
   });
 }

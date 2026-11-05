@@ -318,7 +318,12 @@ void main() {
         isEmpty,
       );
       // choice_min 0: still asks for the group's own evidence (backend L574).
-      final zero = req(1, choice: true, choiceMin: 0, evidence: true);
+      // (A group with no sub-items at all is a plain leaf instead.)
+      final zero = req(1,
+          choice: true,
+          choiceMin: 0,
+          evidence: true,
+          children: [req(2, parentId: 1)]);
       expect(compute([zero], const []).missingEvidenceIds, [1]);
     });
 
@@ -501,6 +506,83 @@ void main() {
         expect(r.isExternal, isFalse);
         expect(r.canSubmit, isFalse);
       }
+    });
+  });
+
+  group('evidenceParentUpdates', () {
+    test('ticks an evidence parent once its children satisfy it', () {
+      final parent = req(5, evidence: true, children: [
+        req(51, parentId: 5),
+        req(52, parentId: 5),
+      ]);
+      final updates = evidenceParentUpdates(
+        roots: [parent],
+        progress: [done(51), done(52)],
+      );
+      expect(updates.single['requirementId'], 5);
+      expect(updates.single['completed'], isTrue);
+    });
+
+    test('unticks it when a child stops satisfying it', () {
+      final parent = req(5, evidence: true, children: [
+        req(51, parentId: 5),
+        req(52, parentId: 5),
+      ]);
+      final updates = evidenceParentUpdates(
+        roots: [parent],
+        progress: [done(5, evidences: 1), done(51)],
+      );
+      expect(updates.single['completed'], isFalse);
+    });
+
+    test('a choice group needs only choice_min children', () {
+      final group = req(6,
+          choice: true,
+          choiceMin: 1,
+          evidence: true,
+          children: [req(61, parentId: 6), req(62, parentId: 6)]);
+      final updates = evidenceParentUpdates(
+        roots: [group],
+        progress: [done(62)],
+      );
+      expect(updates.single['completed'], isTrue);
+    });
+
+    test('leaves parents without evidence and parents in step alone', () {
+      final plain = req(7, children: [req(71, parentId: 7)]);
+      final inStep = req(8, evidence: true, children: [req(81, parentId: 8)]);
+      expect(
+        evidenceParentUpdates(
+          roots: [plain, inStep],
+          progress: [done(71), done(81), done(8)],
+        ),
+        isEmpty,
+      );
+    });
+  });
+
+  group('a "choose N" group with no sub-items (catalog mistake)', () {
+    HonorSubmissionReadiness run(List<UserHonorRequirementProgress> progress) =>
+        computeHonorSubmissionReadiness(
+          requirements: [req(102, choice: true, choiceMin: 3)],
+          progress: progress,
+          completedAt: goodDate,
+          mode: HonorCompletionMode.inApp,
+          now: today,
+        );
+
+    test('is a plain requirement: done once its own row is completed', () {
+      final r = run([done(102)]);
+      expect(r.items.single.isSatisfied, isTrue);
+      expect(r.items.single.status, RequirementStatus.done);
+      expect(r.items.single.isLeaf, isTrue);
+      expect(r.canSubmit, isTrue);
+    });
+
+    test('is pending without a completed row', () {
+      final r = run(const []);
+      expect(r.items.single.isSatisfied, isFalse);
+      expect(r.canSubmit, isFalse);
     });
   });
 }

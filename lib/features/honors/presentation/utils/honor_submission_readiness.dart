@@ -129,8 +129,8 @@ class _Eval {
 ///  - `evaluateInAppRequirementCompletion` L402-L476 (empty honor: L423): only progress rows
 ///    with `completed = true` count; a honor with no requirements is
 ///    satisfied; the top level is satisfied when every top-level node is.
-///  - `evaluateRequirementNode` L501-L561: a choice group goes to
-///    `evaluateChoiceGroup`; a parent is satisfied when ALL its children are
+///  - `evaluateRequirementNode` L501-L561: a choice group WITH sub-items goes
+///    to `evaluateChoiceGroup` (one without them is a plain leaf); a parent is satisfied when ALL its children are
 ///    (its own tick is ignored); a leaf is satisfied when its own row is
 ///    ticked. A satisfied node with `requires_evidence` asks for evidence.
 ///  - `evaluateChoiceGroup` L563-L610: needs `max(choice_min ?? 1, 0)`
@@ -175,7 +175,10 @@ HonorSubmissionReadiness computeHonorSubmissionReadiness({
   _Eval evaluate(HonorRequirement node) {
     final children = ordered(node.children);
 
-    if (node.isChoiceGroup) {
+    // A "choose N" group with no sub-items is a catalog mistake: the
+    // backend treats it as a plain requirement (`evaluateRequirementNode`),
+    // completed by its own row.
+    if (node.isChoiceGroup && children.isNotEmpty) {
       final minimum = _choiceMinimum(node);
       if (minimum == 0) {
         return _Eval(
@@ -387,4 +390,44 @@ ExternalSubmissionReadiness computeExternalSubmissionReadiness({
     hasCompletionDate:
         requireCompletionDate ? dateOk : (completedAt == null || dateOk),
   );
+}
+
+/// Progress updates that keep the evidence-carrying parents in step with
+/// their children, under [roots].
+///
+/// The backend counts a requirement's evidence only on a completed row, and
+/// a parent's own row is never ticked by hand any more: a parent that
+/// `requires_evidence` is sent as completed exactly when its children satisfy
+/// it (all of them, or `choice_min` of a choice group). Pass the progress as
+/// it will be after the pending edits.
+List<Map<String, dynamic>> evidenceParentUpdates({
+  required List<HonorRequirement> roots,
+  required List<UserHonorRequirementProgress> progress,
+}) {
+  final byId = {for (final p in progress) p.requirementId: p};
+  final updates = <Map<String, dynamic>>[];
+
+  void visit(HonorRequirement node) {
+    if (node.children.isEmpty) return;
+    node.children.forEach(visit);
+    if (!node.requiresEvidence) return;
+    final satisfied = computeHonorSubmissionReadiness(
+      requirements: [node],
+      progress: progress,
+      completedAt: null,
+      mode: HonorCompletionMode.inApp,
+      requireCompletionDate: false,
+    ).items.single.isSatisfied;
+    final row = byId[node.id];
+    if (satisfied == (row?.completed ?? false)) return;
+    updates.add({
+      'requirementId': node.id,
+      'completed': satisfied,
+      'notes': row?.notes ?? '',
+      'textResponse': row?.textResponse ?? '',
+    });
+  }
+
+  roots.forEach(visit);
+  return updates;
 }

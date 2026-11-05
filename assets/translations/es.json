@@ -661,8 +661,8 @@
       "tab_summary": "Resumen",
       "tab_my_work": "Mi trabajo",
       "completed_title": "¡Especialidad lograda!",
-      "completed_subtitle": "Ya aparece en tu perfil y en tu credencial.",
-      "view_credential_cta": "Ver en mi credencial",
+      "completed_subtitle": "Ya aparece en tu perfil.",
+      "view_profile_cta": "Ver en mi perfil",
       "my_work_empty": "No hay trabajo registrado para esta especialidad."
     },
     "work_mode": {
@@ -684,6 +684,9 @@
     "abandon": {
       "menu_tooltip": "Más opciones",
       "action": "Abandonar especialidad",
+      "action_hint": "Se borra tu avance",
+      "progress_in_app": "Llevas {percent} % de avance ({done} de {total} requisitos completos)",
+      "progress_external": "Llevas {percent} % de avance",
       "confirm_title": "¿Abandonar especialidad?",
       "confirm_message": "Dejarás de trabajar en {name} y ya no aparecerá en tu perfil. Si vuelves a inscribirte, tendrás que elegir el modo de trabajo y subir tus evidencias otra vez.",
       "confirm_cta": "Abandonar",
@@ -706,6 +709,16 @@
       "see_more": "Ver más",
       "see_less": "Ver menos",
       "response_hint": "Escribe tu respuesta",
+      "your_answer": "Tu respuesta",
+      "sub_title": "Inciso {label}",
+      "group_context": "Requisito {number}",
+      "group_context_choice": "Requisito {number} · elige {min} de {total}",
+      "group_goal_choice": "Elige {min} de {total} · {done} hechos",
+      "group_goal_all": "{done} de {total} hechos",
+      "evidence_required_caption": "Evidencia · obligatoria",
+      "parent_evidence_caption": "Evidencia del requisito · obligatoria",
+      "evidence_hint": "Foto o PDF de lo que hiciste. Se sube al momento.",
+      "evidence_add": "Agregar",
       "response_required": "Escribe una respuesta para completar este inciso",
       "requires_demo": "Requiere demostración",
       "requirement_evidence_button": "Agregar evidencia del requisito",
@@ -752,6 +765,7 @@
         "other": "{} evidencias"
       },
       "missing_date": "la fecha de finalización",
+      "add_date_cta": "Agregar fecha de finalización",
       "list_and": " y ",
       "ready_to_send": "Todo listo para enviar",
       "under_review_hint": "Un responsable está revisando tu trabajo"
