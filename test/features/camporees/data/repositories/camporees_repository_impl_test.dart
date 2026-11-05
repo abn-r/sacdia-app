@@ -385,6 +385,36 @@ void main() {
       }
     });
 
+    test('keeps the business code of server and auth exceptions', () async {
+      dataSource.registerSectionResult = AuthException(
+        message: 'Sin verificar',
+        code: 403,
+        errorCode: 'AUTHORIZATION_STALE',
+      );
+      final authResult = await repository.registerActiveSection(7);
+      authResult.fold(
+        (failure) {
+          expect(failure, isA<AuthFailure>());
+          expect(failure.errorCode, 'AUTHORIZATION_STALE');
+        },
+        (_) => fail('Expected Left'),
+      );
+
+      dataSource.registerSectionResult = ServerException(
+        message: 'Denegado',
+        code: 403,
+        errorCode: 'PRINCIPAL_SCOPE_DENIED',
+      );
+      final serverResult = await repository.registerActiveSection(7);
+      serverResult.fold(
+        (failure) {
+          expect(failure, isA<ServerFailure>());
+          expect(failure.errorCode, 'PRINCIPAL_SCOPE_DENIED');
+        },
+        (_) => fail('Expected Left'),
+      );
+    });
+
     test('maps contextual connection errors to NetworkFailure', () async {
       dataSource.getSectionRegistrationResult = ConnectionException(
         message: 'Network unavailable',

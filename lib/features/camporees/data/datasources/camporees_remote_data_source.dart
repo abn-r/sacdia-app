@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
+import '../../../../core/errors/authorization_stale.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/models/paginated_result.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -173,6 +174,9 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
       if (e.error is AppException) {
         throw e.error as AppException;
       }
+      // Rechazo local por autorización obsoleta: conserva mensaje y código,
+      // así la UI no lo confunde con un 403 de negocio (p. ej. el seguro).
+      if (isAuthorizationStale(e)) throw authorizationStaleException(e);
       final msg = _extractDioMessage(e);
       throw ServerException(message: msg, code: e.response?.statusCode);
     }

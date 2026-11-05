@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/errors/authorization_stale.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/models/paginated_result.dart';
 import '../../../../core/providers/keep_alive_during.dart';
@@ -450,13 +452,10 @@ class CamporeeRegistrationNotifier extends Notifier<CamporeeRegistrationState> {
 
     return result.fold(
       (failure) {
-        final isInsuranceError = failure.code == 403 ||
-            (failure.message.toLowerCase().contains('seguro') ||
-                failure.message.toLowerCase().contains('insurance'));
         state = state.copyWith(
           isLoading: false,
-          errorMessage: failure.message,
-          isInsuranceError: isInsuranceError,
+          errorMessage: _registrationErrorMessage(failure),
+          isInsuranceError: _isInsuranceFailure(failure),
         );
         return false;
       },
@@ -468,6 +467,25 @@ class CamporeeRegistrationNotifier extends Notifier<CamporeeRegistrationState> {
         return true;
       },
     );
+  }
+
+  /// ¿[failure] es el rechazo del backend por seguro (403 o mensaje de
+  /// seguro)? El 403 sintético `AUTHORIZATION_STALE` del interceptor (sesión
+  /// restaurada sin red) no lo es: no habla del seguro sino de la
+  /// autorización, y se resuelve recuperando la red.
+  static bool _isInsuranceFailure(Failure failure) {
+    if (isAuthorizationStale(failure)) return false;
+    final message = failure.message.toLowerCase();
+    return failure.code == 403 ||
+        message.contains('seguro') ||
+        message.contains('insurance');
+  }
+
+  /// Mensaje de [failure] para el estado: el rechazo por autorización
+  /// obsoleta siempre muestra `errors.authorization_stale`.
+  static String _registrationErrorMessage(Failure failure) {
+    if (isAuthorizationStale(failure)) return tr('errors.authorization_stale');
+    return failure.message;
   }
 
   /// Registra múltiples miembros en el camporee usando el contrato individual
@@ -506,11 +524,8 @@ class CamporeeRegistrationNotifier extends Notifier<CamporeeRegistrationState> {
       result.fold(
         (failure) {
           failureCount += 1;
-          firstErrorMessage ??= failure.message;
-          hasInsuranceError = hasInsuranceError ||
-              failure.code == 403 ||
-              failure.message.toLowerCase().contains('seguro') ||
-              failure.message.toLowerCase().contains('insurance');
+          firstErrorMessage ??= _registrationErrorMessage(failure);
+          hasInsuranceError = hasInsuranceError || _isInsuranceFailure(failure);
         },
         (_) {
           successCount += 1;

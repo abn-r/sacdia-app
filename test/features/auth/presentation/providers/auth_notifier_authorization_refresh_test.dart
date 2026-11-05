@@ -66,15 +66,19 @@ class _Repo extends FakeAuthRepository {
   /// Si está, cada `/auth/me` espera a que se complete (vuelo controlado).
   Completer<void>? gate;
 
+  /// Respuestas por orden de llegada de la petición; agotadas, se usa [me].
+  final List<Either<Failure, UserEntity?>> queued = [];
+
   @override
   Future<bool> hasLocalToken() async => true;
 
   @override
   Future<Either<Failure, UserEntity?>> getCurrentUser() async {
     meCalls++;
+    final response = queued.isNotEmpty ? queued.removeAt(0) : me;
     final pending = gate;
     if (pending != null) await pending.future;
-    return me;
+    return response;
   }
 }
 
@@ -287,6 +291,89 @@ void main() {
 
       expect(changed, isFalse);
       expect(repo.meCalls, calls);
+    });
+
+    test('a push dropped by an in-flight refresh runs again afterwards',
+        () async {
+      final repo = _Repo(Right(_me()));
+      final c = await build(repo);
+      final notifier = c.read(authNotifierProvider.notifier);
+      final calls = repo.meCalls;
+
+      // El `/auth/me` en vuelo lleva una autorización anterior al cambio que
+      // anuncia el push; solo la segunda respuesta trae la definitiva.
+      repo.queued.addAll([
+        Right(_me(capabilities: const ['units.manage'])),
+        Right(_me(capabilities: const ['units.manage', 'club.staff_mode'])),
+      ]);
+      repo.gate = Completer<void>();
+      final inFlight =
+          notifier.refreshAuthorization(minInterval: Duration.zero);
+      expect(repo.meCalls - calls, 1);
+
+      // Llega el push mientras vuela: se descarta, pero queda pendiente.
+      expect(
+        await notifier.refreshAuthorization(minInterval: Duration.zero),
+        isFalse,
+      );
+      expect(repo.meCalls - calls, 1, reason: 'no second fetch while flying');
+
+      repo.gate!.complete();
+      expect(await inFlight, isTrue);
+      await pumpEventQueue();
+
+      expect(repo.meCalls - calls, 2, reason: 'exactly one extra fetch');
+      final user = c.read(authNotifierProvider).value;
+      expect(hasCapability(user, 'club.staff_mode'), isTrue,
+          reason: 'the state is the one of the second response');
+      expect(hasCapability(user, 'units.manage'), isTrue);
+    });
+
+    test('several pushes during one flight cause a single extra fetch',
+        () async {
+      final repo = _Repo(Right(_me()));
+      final c = await build(repo);
+      final notifier = c.read(authNotifierProvider.notifier);
+      final calls = repo.meCalls;
+
+      repo.gate = Completer<void>();
+      final inFlight =
+          notifier.refreshAuthorization(minInterval: Duration.zero);
+      expect(
+        await notifier.refreshAuthorization(minInterval: Duration.zero),
+        isFalse,
+      );
+      expect(
+        await notifier.refreshAuthorization(minInterval: Duration.zero),
+        isFalse,
+      );
+      repo.gate!.complete();
+      await inFlight;
+      await pumpEventQueue();
+
+      expect(repo.meCalls - calls, 2);
+
+      // Y la repetición no se vuelve a programar a sí misma.
+      await pumpEventQueue();
+      expect(repo.meCalls - calls, 2, reason: 'no loop');
+    });
+
+    test('a resume throttled during the flight does not run again', () async {
+      final repo = _Repo(Right(_me()));
+      final c = await build(repo);
+      final notifier = c.read(authNotifierProvider.notifier);
+      final calls = repo.meCalls;
+
+      repo.gate = Completer<void>();
+      final inFlight =
+          notifier.refreshAuthorization(minInterval: Duration.zero);
+      // `resumed`: intervalo normal, no es un push.
+      expect(await notifier.refreshAuthorization(), isFalse);
+      repo.gate!.complete();
+      await inFlight;
+      await pumpEventQueue();
+
+      expect(repo.meCalls - calls, 1, reason: 'nothing re-runs');
     });
 
     test('authorizationChanged compares only what decides access', () {
