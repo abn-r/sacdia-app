@@ -2,6 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/class_tone.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
@@ -96,6 +98,13 @@ class CurrentClassCard extends ConsumerWidget {
             color: SacAccent.of(context).color,
           );
 
+    // Same rule as ClassHeroCard: the ring and the percentage speak the class
+    // color; the expired/completed badges keep their semantic colors.
+    final Color? classColor =
+        resolvedName != null ? AppColors.classColor(resolvedName) : null;
+    final ClassTone? tone =
+        classColor != null ? ClassTone.of(context, classColor) : null;
+
     final int progressPercentage = (progress * 100).toInt();
     final bool isComplete = progress >= 1.0;
     final bool isExpired =
@@ -160,12 +169,14 @@ class CurrentClassCard extends ConsumerWidget {
               size: 44,
               strokeWidth: 5,
               animate: false,
+              color: classColor,
+              trackColor: tone?.container,
               child: Text(
                 '$progressPercentage%',
                 style: TextStyle(
                   fontSize: SacFontSize.caption,
                   fontWeight: FontWeight.w700,
-                  color: context.sac.text,
+                  color: tone?.onContainer ?? context.sac.text,
                 ),
               ),
             ),
