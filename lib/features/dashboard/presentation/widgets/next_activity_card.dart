@@ -127,7 +127,9 @@ class NextActivityCard extends StatelessWidget {
           ),
           if (_proximity(days) case final badge?) ...[
             const SizedBox(width: 8),
-            SacBadge.info(label: badge),
+            // Accent badge: "Hoy" is emphasis, not a status, so it follows the
+            // accent like the date tile beside it.
+            SacBadge(label: badge),
           ],
         ],
       ),

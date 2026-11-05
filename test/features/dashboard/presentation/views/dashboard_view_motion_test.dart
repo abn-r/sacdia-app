@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
@@ -22,6 +23,7 @@ import 'package:sacdia_app/features/dashboard/presentation/widgets/quick_access_
 import 'package:sacdia_app/features/dashboard/presentation/widgets/upcoming_activities_card.dart';
 import 'package:sacdia_app/features/dashboard/presentation/widgets/welcome_header.dart';
 import 'package:sacdia_app/features/enrollment/presentation/providers/enrollment_providers.dart';
+import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/enrollment/presentation/widgets/enrollment_status_card.dart';
 import 'package:sacdia_app/features/profile/domain/entities/user_detail.dart';
 import 'package:sacdia_app/features/profile/presentation/providers/profile_providers.dart';
@@ -116,6 +118,14 @@ Future<void> _pumpLoadedDashboard(
         profileNotifierProvider.overrideWith(_NullProfileNotifier.new),
         currentEnrollmentProvider.overrideWith((ref) async => null),
         camporeeJudgeAssignmentsProvider.overrideWith((ref) async => []),
+        userHonorStatsLocalProvider.overrideWithValue(
+          const AsyncValue.data(<String, dynamic>{
+            'total': 0,
+            'validated': 0,
+            'completed': 0,
+            'in_progress': 0,
+          }),
+        ),
       ],
       child: const MaterialApp(home: DashboardView()),
     ),
@@ -198,7 +208,7 @@ void main() {
           expect(children[0], isA<MembershipStatusBanner>());
           expect(children[1], isA<EnrollmentStatusCard>());
           expect(children[2], isA<BirthdayCelebrationGate>());
-          expect((children[3] as SizedBox).height, 16);
+          expect((children[3] as SizedBox).height, 8);
           expect(children[4], isA<ClassHeroCard>());
           expect((children[5] as SizedBox).height, 16);
           expect(children[6], isA<NextActivityCard>());
@@ -275,7 +285,7 @@ void main() {
           expect(children[0], isA<MembershipStatusBanner>());
           expect(children[1], isA<EnrollmentStatusCard>());
           expect(children[2], isA<BirthdayCelebrationGate>());
-          expect((children[3] as SizedBox).height, 16);
+          expect((children[3] as SizedBox).height, 8);
           expect(children[4], isA<PendingTasksCard>());
           expect(children[5], isA<CurrentClassCard>());
           expect((children[6] as SizedBox).height, 16);

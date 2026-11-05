@@ -4234,9 +4234,12 @@
     "for_you": {
       "title": "For you",
       "honors": "Honors",
-      "achievements": "Achievements",
       "credential": "Credential",
-      "resources": "Resources"
+      "resources": "Resources",
+      "credential_subtitle": "Your member QR code",
+      "honors_summary": "{in_progress} in progress · {validated} validated",
+      "honors_empty": "Browse the catalog and start one",
+      "resources_subtitle": "Manuals and guides"
     },
     "pending": {
       "title": "Pending",
