@@ -184,6 +184,11 @@ void main() {
             body: NotificationCard(notification: notification),
           ),
         ),
+        // Reportes is a dashboard drill-in: it opens over the dashboard.
+        GoRoute(
+          path: RouteNames.homeDashboard,
+          builder: (context, state) => const Scaffold(body: Text('dashboard')),
+        ),
         GoRoute(
           path: RouteNames.homeReports,
           builder: (context, state) =>
