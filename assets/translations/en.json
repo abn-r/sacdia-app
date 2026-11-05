@@ -765,6 +765,7 @@
         "other": "{} pieces of evidence"
       },
       "missing_date": "the completion date",
+      "add_date_cta": "Add completion date",
       "list_and": " and ",
       "ready_to_send": "All set to send",
       "under_review_hint": "A reviewer is checking your work"

@@ -765,6 +765,7 @@
         "other": "{} preuves"
       },
       "missing_date": "la date de fin",
+      "add_date_cta": "Ajouter la date de fin",
       "list_and": " et ",
       "ready_to_send": "Tout est prêt à envoyer",
       "under_review_hint": "Un responsable examine ton travail"

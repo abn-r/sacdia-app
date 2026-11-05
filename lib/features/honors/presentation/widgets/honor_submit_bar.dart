@@ -7,12 +7,18 @@ import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/honors/presentation/utils/honor_submission_readiness.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_action_bar.dart';
+import 'package:sacdia_app/features/honors/presentation/widgets/honor_band_scaffold.dart';
 
 /// Sticky bottom bar of the in-progress honor screens (in-app and external).
 ///
 /// While the member can still submit it shows [summary] (what is missing) and
 /// offers "Enviar a revisión", disabled until [canSubmit]. Under review it
 /// shows the "En revisión" badge and no button.
+///
+/// The completion date lives in "Información", out of sight, so the bar
+/// leads to it ([onPickDate]): when the date is the only thing missing
+/// ([onlyDateMissing]) the main button opens the date picker; when other
+/// parts are missing too, a link under the summary does.
 class HonorSubmitBar extends StatelessWidget {
   const HonorSubmitBar({
     super.key,
@@ -22,6 +28,8 @@ class HonorSubmitBar extends StatelessWidget {
     required this.isUnderReview,
     required this.isSubmitting,
     required this.onSubmit,
+    this.onPickDate,
+    this.onlyDateMissing = false,
   });
 
   /// "Te falta: …" or "Todo listo para enviar".
@@ -31,6 +39,12 @@ class HonorSubmitBar extends StatelessWidget {
   final bool isUnderReview;
   final bool isSubmitting;
   final VoidCallback onSubmit;
+
+  /// Opens the completion date picker; null when the date is set.
+  final VoidCallback? onPickDate;
+
+  /// Everything but the date is ready.
+  final bool onlyDateMissing;
 
   /// "Te falta: 3 requisitos y la fecha de finalización" or, when nothing is
   /// missing, "Todo listo para enviar".
@@ -101,16 +115,37 @@ class HonorSubmitBar extends StatelessWidget {
                 style: text.bodySmall?.copyWith(color: c.textSecondary),
               ),
             ),
-            const SizedBox(height: 10),
-            SacButton.primary(
-              key: const ValueKey('honor-submit-button'),
-              text: 'honors.detail.send_review_cta'.tr(),
-              icon: HugeIcons.strokeRoundedSent,
-              isLoading: isSubmitting,
-              backgroundColor: bandColor,
-              textColor: Colors.white,
-              onPressed: (canSubmit && !isSubmitting) ? onSubmit : null,
-            ),
+            if (onPickDate != null && !onlyDateMissing)
+              Center(
+                child: SacButton.text(
+                  key: const ValueKey('honor-submit-pick-date-link'),
+                  text: 'honors.requirements.add_date_cta'.tr(),
+                  icon: HugeIcons.strokeRoundedCalendar03,
+                  color: honorOnTint(context, bandColor),
+                  onPressed: onPickDate,
+                ),
+              )
+            else
+              const SizedBox(height: 10),
+            if (onPickDate != null && onlyDateMissing)
+              SacButton.primary(
+                key: const ValueKey('honor-submit-pick-date'),
+                text: 'honors.requirements.add_date_cta'.tr(),
+                icon: HugeIcons.strokeRoundedCalendar03,
+                backgroundColor: bandColor,
+                textColor: Colors.white,
+                onPressed: onPickDate,
+              )
+            else
+              SacButton.primary(
+                key: const ValueKey('honor-submit-button'),
+                text: 'honors.detail.send_review_cta'.tr(),
+                icon: HugeIcons.strokeRoundedSent,
+                isLoading: isSubmitting,
+                backgroundColor: bandColor,
+                textColor: Colors.white,
+                onPressed: (canSubmit && !isSubmitting) ? onSubmit : null,
+              ),
           ],
         ],
       ),

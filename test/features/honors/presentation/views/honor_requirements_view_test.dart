@@ -303,7 +303,8 @@ void main() {
       await pumpView(tester);
 
       expect(find.text('Guardar cambios'), findsNothing);
-      expect(find.byType(SacButton), findsOneWidget);
+      // The only main button is "Enviar a revisión" (plus the date link).
+      expect(find.byKey(const ValueKey('honor-submit-button')), findsOneWidget);
       expect(find.text('Enviar a revisión'), findsOneWidget);
     });
   });
@@ -350,12 +351,12 @@ void main() {
       await pumpView(tester);
 
       await tester.tap(find.byKey(const ValueKey('requirement-row-1')));
-      await tester.pump();
       await settle(tester);
       expect(save(tester).onPressed, isNull);
 
       // Blank space is not an answer.
       await tester.enterText(find.byType(TextField), '   ');
+      await tester.pump();
       expect(save(tester).onPressed, isNull);
 
       await tester.enterText(find.byType(TextField), 'respuesta');
@@ -493,6 +494,11 @@ void main() {
         findsOneWidget,
       );
       expect(submitButton(tester).onPressed, isNull);
+      // With more missing, the date is a link under the summary.
+      expect(
+        find.byKey(const ValueKey('honor-submit-pick-date-link')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('names missing evidence on its own', (tester) async {
@@ -515,7 +521,19 @@ void main() {
       );
 
       expect(find.text('Te falta: la fecha de finalización'), findsOneWidget);
-      expect(submitButton(tester).onPressed, isNull);
+      // The date lives in "Información": the main button leads to it.
+      expect(find.byKey(const ValueKey('honor-submit-button')), findsNothing);
+      expect(
+        find.byKey(const ValueKey('honor-submit-pick-date')),
+        findsOneWidget,
+      );
+      expect(find.text('Agregar fecha de finalización'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('honor-submit-pick-date')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      // The picker opens right there.
+      expect(find.byType(DatePickerDialog), findsOneWidget);
     });
 
     testWidgets('enables when ready and submits the user honor id',
