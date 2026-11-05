@@ -41,6 +41,7 @@ void main() {
       ClubRoleNames.secretaryTreasurer,
       ClubRoleNames.counselor,
       ClubRoleNames.member,
+      ClubRoleNames.instructor,
     };
     expect(all.difference(kClubRoleNames.toSet()), isEmpty);
   });
