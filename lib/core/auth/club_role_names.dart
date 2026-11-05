@@ -46,3 +46,17 @@ String canonicalClubRoleName(String? raw) {
   final normalized = normalizeClubRoleName(raw);
   return kClubRoleSpanishAliases[normalized] ?? normalized;
 }
+
+/// Names under which [role] may appear in `GET /catalogs/roles`: the
+/// normalized input first, then its canonical name and every Spanish alias
+/// of that canonical name (the table is read in both directions).
+List<String> clubRoleLookupCandidates(String role) {
+  final normalized = normalizeClubRoleName(role);
+  final canonical = kClubRoleSpanishAliases[normalized] ?? normalized;
+  return <String>{
+    normalized,
+    canonical,
+    for (final e in kClubRoleSpanishAliases.entries)
+      if (e.value == canonical) e.key,
+  }.toList();
+}

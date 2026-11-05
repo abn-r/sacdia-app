@@ -62,4 +62,47 @@ void main() {
       expect(normalizeClubRoleName(k), k);
     }
   });
+
+  group('clubRoleLookupCandidates', () {
+    // The previous datasource table (normalized input -> aliases) and its
+    // `{normalized, ...aliases}` set semantics.
+    const oldAliases = <String, List<String>>{
+      'deputy-director': ['subdirector'],
+      'subdirector': ['deputy-director'],
+      'secretary': ['secretario'],
+      'treasurer': ['tesorero'],
+      'counselor': ['consejero'],
+      'member': ['miembro'],
+    };
+
+    test('yields the same candidates as the old table for each entry', () {
+      oldAliases.forEach((input, aliases) {
+        final expected = <String>{input, ...aliases};
+        final actual = clubRoleLookupCandidates(input);
+        expect(actual.toSet(), expected, reason: input);
+        expect(actual.first, input, reason: input);
+      });
+    });
+
+    test('normalizes the input before looking it up', () {
+      expect(
+        clubRoleLookupCandidates('Deputy_Director'),
+        ['deputy-director', 'subdirector'],
+      );
+    });
+
+    test('unaliased roles resolve to themselves', () {
+      expect(clubRoleLookupCandidates('instructor'), ['instructor']);
+      expect(clubRoleLookupCandidates('director'), ['director']);
+    });
+
+    test('now also resolves the canonical name from a Spanish alias', () {
+      expect(
+          clubRoleLookupCandidates('secretario'), ['secretario', 'secretary']);
+      expect(
+        clubRoleLookupCandidates('secretary-treasurer'),
+        ['secretary-treasurer', 'secretario-tesorero'],
+      );
+    });
+  });
 }
