@@ -173,7 +173,8 @@
         "ack": "I understand what will happen to the minors in my care",
         "continue": "Continue"
       }
-    }
+    },
+    "family_subtitle": "Register a minor in your care"
   },
   "accessibility": {
     "title": "Accessibility",
@@ -3736,7 +3737,8 @@
       "sent": "We sent a link to {email}. Check your inbox and your spam folder.",
       "already_verified": "Your email is already verified.",
       "too_many": "You already asked for several links. Wait a minute and try again.",
-      "error": "We couldn't send the email. Try again in a few minutes."
+      "error": "We couldn't send the email. Try again in a few minutes.",
+      "send_link": "Send link"
     },
     "notification_preferences": {
       "errors": {
@@ -5695,7 +5697,8 @@
         "other": "{count} minors in your care"
       },
       "switch_title": "Switch profile",
-      "switch_subtitle": "View and complete a minor's profile"
+      "switch_subtitle": "View and complete a minor's profile",
+      "switch_short": "Switch"
     },
     "errors": {
       "generic": "Something went wrong. Please try again."

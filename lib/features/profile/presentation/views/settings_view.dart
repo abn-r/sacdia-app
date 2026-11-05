@@ -1,3 +1,5 @@
+import 'package:go_router/go_router.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
@@ -210,6 +212,108 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 ),
                 const SizedBox(height: 24),
 
+                // ── CUENTA ────────────────────────────────────────────────
+                SacSettingsGroup(
+                  title: 'settings.section_account'.tr(),
+                  children: [
+                    SacSettingsTile(
+                      icon: HugeIcons.strokeRoundedQrCode,
+                      title: 'settings.member_qr'.tr(),
+                      onTap: () => Navigator.push(
+                        context,
+                        SacSharedAxisRoute(
+                          builder: (_) => const VirtualCardView(),
+                        ),
+                      ),
+                    ),
+                    // Mi familia lives here for everyone (most users have no
+                    // minors); the profile shows it only to guardians.
+                    if (!acting && !teen) ...[
+                      const SacSettingsDivider(),
+                      SacSettingsTile(
+                        key: const ValueKey('settings-family'),
+                        icon: HugeIcons.strokeRoundedUserGroup,
+                        title: 'family.profile.entry_title'.tr(),
+                        subtitle: (user?.family?.dependentsCount ?? 0) > 0
+                            ? 'family.profile.entry_count'.plural(
+                                user!.family!.dependentsCount,
+                                name: 'count',
+                              )
+                            : 'settings.family_subtitle'.tr(),
+                        onTap: () => context.push(RouteNames.family),
+                      ),
+                    ],
+                    if (!teen) ...[
+                      const SacSettingsDivider(),
+                      SacSettingsTile(
+                        icon: HugeIcons.strokeRoundedExchange01,
+                        title: 'profile.settings.change_club_tile'.tr(),
+                        subtitle: 'profile.settings.change_club_subtitle'.tr(),
+                        onTap: () => Navigator.push(
+                          context,
+                          SacSharedAxisRoute(
+                            // «Mis solicitudes»: muestra la pendiente (si hay)
+                            // y desde ahí se crea una nueva. Ir directo al
+                            // formulario ocultaba la solicitud en trámite.
+                            builder: (_) => const TransferRequestsView(),
+                          ),
+                        ),
+                      ),
+                    ],
+                    if (hasAnyPermission(user, const {'attendance:manage'}) ||
+                        hasCapability(user, 'club.operational_staff')) ...[
+                      const SacSettingsDivider(),
+                      SacSettingsTile(
+                        icon: HugeIcons.strokeRoundedQrCode01,
+                        title: 'settings.scan_qr'.tr(),
+                        onTap: () => Navigator.push(
+                          context,
+                          SacSharedAxisRoute(
+                            builder: (_) => const QrScannerView(),
+                          ),
+                        ),
+                      ),
+                    ],
+                    if (!acting && !teen) ...[
+                      const SacSettingsDivider(),
+                      SacSettingsTile(
+                        icon: HugeIcons.strokeRoundedDeviceAccess,
+                        title: 'settings.active_sessions'.tr(),
+                        onTap: () => Navigator.push(
+                          context,
+                          SacSharedAxisRoute(
+                            builder: (_) => const ActiveSessionsView(),
+                          ),
+                        ),
+                      ),
+                      const SacSettingsDivider(),
+                      SacSettingsTile(
+                        icon: HugeIcons.strokeRoundedDownload02,
+                        title: 'settings.download_my_data'.tr(),
+                        onTap: () => Navigator.push(
+                          context,
+                          SacSharedAxisRoute(
+                            builder: (_) => const DataExportView(),
+                          ),
+                        ),
+                      ),
+                    ],
+                    if (!acting) ...[
+                      const SacSettingsDivider(),
+                      SacSettingsTile(
+                        icon: HugeIcons.strokeRoundedLockPassword,
+                        title: 'settings.change_password'.tr(),
+                        onTap: _showChangePasswordDialog,
+                      ),
+                    ],
+                    const SacSettingsDivider(),
+                    const BiometricSettingsSection(),
+                    const SacSettingsDivider(),
+                    const LanguagePickerTile(),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
                 // ── NOTIFICACIONES ────────────────────────────────────────
                 SacSettingsGroup(
                   title: 'settings.section_notifications'.tr(),
@@ -288,91 +392,6 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
                 // ── SINCRONIZACIÓN / CACHÉ ────────────────────────────────
                 const SyncCacheSection(),
-                const SizedBox(height: 24),
-
-                // ── CUENTA ────────────────────────────────────────────────
-                SacSettingsGroup(
-                  title: 'settings.section_account'.tr(),
-                  children: [
-                    SacSettingsTile(
-                      icon: HugeIcons.strokeRoundedQrCode,
-                      title: 'settings.member_qr'.tr(),
-                      onTap: () => Navigator.push(
-                        context,
-                        SacSharedAxisRoute(
-                          builder: (_) => const VirtualCardView(),
-                        ),
-                      ),
-                    ),
-                    if (!teen) ...[
-                      const SacSettingsDivider(),
-                      SacSettingsTile(
-                        icon: HugeIcons.strokeRoundedExchange01,
-                        title: 'profile.settings.change_club_tile'.tr(),
-                        subtitle: 'profile.settings.change_club_subtitle'.tr(),
-                        onTap: () => Navigator.push(
-                          context,
-                          SacSharedAxisRoute(
-                            // «Mis solicitudes»: muestra la pendiente (si hay)
-                            // y desde ahí se crea una nueva. Ir directo al
-                            // formulario ocultaba la solicitud en trámite.
-                            builder: (_) => const TransferRequestsView(),
-                          ),
-                        ),
-                      ),
-                    ],
-                    if (hasAnyPermission(user, const {'attendance:manage'}) ||
-                        hasCapability(user, 'club.operational_staff')) ...[
-                      const SacSettingsDivider(),
-                      SacSettingsTile(
-                        icon: HugeIcons.strokeRoundedQrCode01,
-                        title: 'settings.scan_qr'.tr(),
-                        onTap: () => Navigator.push(
-                          context,
-                          SacSharedAxisRoute(
-                            builder: (_) => const QrScannerView(),
-                          ),
-                        ),
-                      ),
-                    ],
-                    if (!acting && !teen) ...[
-                      const SacSettingsDivider(),
-                      SacSettingsTile(
-                        icon: HugeIcons.strokeRoundedDeviceAccess,
-                        title: 'settings.active_sessions'.tr(),
-                        onTap: () => Navigator.push(
-                          context,
-                          SacSharedAxisRoute(
-                            builder: (_) => const ActiveSessionsView(),
-                          ),
-                        ),
-                      ),
-                      const SacSettingsDivider(),
-                      SacSettingsTile(
-                        icon: HugeIcons.strokeRoundedDownload02,
-                        title: 'settings.download_my_data'.tr(),
-                        onTap: () => Navigator.push(
-                          context,
-                          SacSharedAxisRoute(
-                            builder: (_) => const DataExportView(),
-                          ),
-                        ),
-                      ),
-                    ],
-                    if (!acting) ...[
-                      const SacSettingsDivider(),
-                      SacSettingsTile(
-                        icon: HugeIcons.strokeRoundedLockPassword,
-                        title: 'settings.change_password'.tr(),
-                        onTap: _showChangePasswordDialog,
-                      ),
-                    ],
-                    const SacSettingsDivider(),
-                    const BiometricSettingsSection(),
-                    const SacSettingsDivider(),
-                    const LanguagePickerTile(),
-                  ],
-                ),
                 const SizedBox(height: 24),
 
                 // ── ACERCA DE ─────────────────────────────────────────────

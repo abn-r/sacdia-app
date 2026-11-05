@@ -173,7 +173,8 @@
         "ack": "Entendo o que acontecerá com os menores sob meus cuidados",
         "continue": "Continuar"
       }
-    }
+    },
+    "family_subtitle": "Cadastre um menor sob sua responsabilidade"
   },
   "accessibility": {
     "title": "Acessibilidade",
@@ -3735,7 +3736,8 @@
       "sent": "Enviamos um link para {email}. Confira sua caixa de entrada e a pasta de spam.",
       "already_verified": "Seu e-mail já está verificado.",
       "too_many": "Você já pediu vários links. Espere um minuto e tente novamente.",
-      "error": "Não conseguimos enviar o e-mail. Tente novamente em alguns minutos."
+      "error": "Não conseguimos enviar o e-mail. Tente novamente em alguns minutos.",
+      "send_link": "Enviar link"
     },
     "notification_preferences": {
       "errors": {
@@ -5693,7 +5695,8 @@
         "other": "{count} menores sob seus cuidados"
       },
       "switch_title": "Trocar de perfil",
-      "switch_subtitle": "Ver e completar o perfil de um menor"
+      "switch_subtitle": "Ver e completar o perfil de um menor",
+      "switch_short": "Trocar"
     },
     "errors": {
       "generic": "Algo deu errado. Tente novamente."

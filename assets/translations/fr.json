@@ -173,7 +173,8 @@
         "ack": "Je comprends ce qui arrivera aux mineurs à ma charge",
         "continue": "Continuer"
       }
-    }
+    },
+    "family_subtitle": "Inscris un mineur à ta charge"
   },
   "accessibility": {
     "title": "Accessibilité",
@@ -3735,7 +3736,8 @@
       "sent": "Nous avons envoyé un lien à {email}. Vérifiez votre boîte de réception et vos spams.",
       "already_verified": "Votre e-mail est déjà vérifié.",
       "too_many": "Vous avez déjà demandé plusieurs liens. Attendez une minute et réessayez.",
-      "error": "Nous n'avons pas pu envoyer l'e-mail. Réessayez dans quelques minutes."
+      "error": "Nous n'avons pas pu envoyer l'e-mail. Réessayez dans quelques minutes.",
+      "send_link": "Envoyer le lien"
     },
     "notification_preferences": {
       "errors": {
@@ -5693,7 +5695,8 @@
         "other": "{count} mineurs sous votre responsabilité"
       },
       "switch_title": "Changer de profil",
-      "switch_subtitle": "Voir et compléter le profil d'un mineur"
+      "switch_subtitle": "Voir et compléter le profil d'un mineur",
+      "switch_short": "Changer"
     },
     "errors": {
       "generic": "Une erreur s'est produite. Réessayez."
