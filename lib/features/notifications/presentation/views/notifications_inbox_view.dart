@@ -7,9 +7,11 @@ import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/sac_badge.dart';
 import '../../../../core/auth/session_mode.dart';
 import '../providers/notifications_providers.dart';
 import '../providers/unread_notifications_count_provider.dart';
+import '../utils/notification_day_groups.dart';
 import '../widgets/notification_card.dart';
 
 import 'package:sacdia_app/core/errors/user_error_message.dart';
@@ -222,21 +224,22 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
     return RefreshIndicator(
       color: SacAccent.of(context).color,
       onRefresh: () => ref.read(notificationsInboxProvider.notifier).refresh(),
-      child: ListView.builder(
-        padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
-        controller: _scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
-        // +1 para el footer de "cargando más" o el indicador de fin de lista
-        itemCount: state.items.length + 1,
-        itemBuilder: (context, index) {
-          if (index < state.items.length) {
-            return NotificationCard(notification: state.items[index]);
-          }
-
-          // Footer
-          return _buildListFooter(state, c);
-        },
-      ),
+      child: Builder(builder: (context) {
+        final groups = groupNotificationsByDay(state.items);
+        return ListView.builder(
+          padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+          controller: _scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          // One entry per day group, +1 for the loading/end footer.
+          itemCount: groups.length + 1,
+          itemBuilder: (context, index) {
+            if (index < groups.length) {
+              return _DayGroup(group: groups[index], isFirst: index == 0);
+            }
+            return _buildListFooter(state, c);
+          },
+        );
+      }),
     );
   }
 
@@ -313,5 +316,93 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
     }
 
     return const SizedBox(height: 24);
+  }
+}
+
+/// A day of the inbox: header («Hoy», «Ayer»…, with the unread count) and one
+/// card holding its notifications separated by hairlines.
+class _DayGroup extends StatelessWidget {
+  const _DayGroup({required this.group, required this.isFirst});
+
+  final NotificationDayGroup group;
+  final bool isFirst;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final unread = group.unreadCount;
+    final accent = SacAccent.of(context);
+    final radius = BorderRadius.circular(AppTheme.radiusLG);
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, isFirst ? 8 : 20, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Semantics(
+                    header: true,
+                    child: Text(
+                      group.label,
+                      style: TextStyle(
+                        fontSize: SacFontSize.titleMedium,
+                        fontWeight: FontWeight.w700,
+                        color: c.text,
+                      ),
+                    ),
+                  ),
+                ),
+                if (unread > 0)
+                  SacBadge(
+                    label: 'notifications.inbox.group_unread'.plural(unread),
+                    backgroundColor: accent.light,
+                    foregroundColor: accent.dark,
+                  ),
+              ],
+            ),
+          ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: c.surface,
+              borderRadius: radius,
+              border: Border.all(color: c.border),
+            ),
+            child: ClipRRect(
+              borderRadius: radius,
+              child: Material(
+                type: MaterialType.transparency,
+                child: Column(
+                  children: [
+                    for (var i = 0; i < group.items.length; i++) ...[
+                      if (i > 0)
+                        Divider(
+                          height: 1,
+                          thickness: 1,
+                          indent: 66,
+                          color: c.borderLight,
+                        ),
+                      NotificationCard(
+                        key: ValueKey(
+                          group.items[i].deliveryId ?? group.items[i].logId,
+                        ),
+                        notification: group.items[i],
+                        timeLabel: notificationGroupedTime(
+                          group.items[i],
+                          group.bucket,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

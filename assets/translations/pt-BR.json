@@ -3513,7 +3513,18 @@
       "type_section_role": "Função da seção",
       "type_global_role": "Função global",
       "type_unknown": "Desconhecida",
-      "end_of_history": "— Fim do histórico —"
+      "end_of_history": "— Fim do histórico —",
+      "group_today": "Hoje",
+      "group_yesterday": "Ontem",
+      "group_this_week": "Esta semana",
+      "group_unread": {
+        "one": "{} não lida",
+        "other": "{} não lidas"
+      },
+      "time_now": "agora",
+      "time_minutes": "há {n} min",
+      "time_hours": "há {n} h",
+      "detail_close": "Fechar"
     },
     "types": {
       "agenda": "Agenda",

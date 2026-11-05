@@ -3514,7 +3514,18 @@
       "type_section_role": "Rol de sección",
       "type_global_role": "Rol global",
       "type_unknown": "Desconocida",
-      "end_of_history": "— Fin del historial —"
+      "end_of_history": "— Fin del historial —",
+      "group_today": "Hoy",
+      "group_yesterday": "Ayer",
+      "group_this_week": "Esta semana",
+      "group_unread": {
+        "one": "{} sin leer",
+        "other": "{} sin leer"
+      },
+      "time_now": "ahora",
+      "time_minutes": "hace {n} min",
+      "time_hours": "hace {n} h",
+      "detail_close": "Cerrar"
     },
     "types": {
       "agenda": "Agenda",

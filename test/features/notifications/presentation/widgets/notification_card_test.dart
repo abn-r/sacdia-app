@@ -202,7 +202,9 @@ void main() {
 
     final action = find.byKey(const ValueKey('notification-detail-action'));
     expect(action, findsOneWidget);
-    expect(find.text('notifications.inbox.detail_accept'), findsOneWidget);
+    // With a destination, closing is a quiet text button.
+    expect(find.text('notifications.inbox.detail_close'), findsOneWidget);
+    expect(find.text('notifications.inbox.detail_accept'), findsNothing);
 
     await tester.tap(action);
     await tester.pumpAndSettle();
