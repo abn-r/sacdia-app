@@ -55,8 +55,8 @@ void main() {
     expect(find.text('Consentimiento verificado'), findsOneWidget);
     expect(find.text('9 años'), findsOneWidget);
     expect(find.text('Sin club'), findsNWidgets(2));
-    expect(find.text('Añadir menor'), findsOneWidget);
-    expect(find.text('Tengo un código de vinculación'), findsOneWidget);
+    expect(find.text('Registrar a un menor'), findsOneWidget);
+    expect(find.text('Tengo un código'), findsOneWidget);
   });
 
   testWidgets('club status shows on the card', (tester) async {
@@ -108,8 +108,8 @@ void main() {
 
     final router = await pump(tester);
 
-    expect(find.text('Aún no has añadido menores'), findsOneWidget);
-    await tester.tap(find.text('Añadir menor'));
+    expect(find.text('Acompaña a tus menores'), findsOneWidget);
+    await tester.tap(find.text('Registrar a un menor'));
     await tester.pumpAndSettle();
     expect(router.state.uri.path, '/family/add');
     expect(find.text('route:/family/add'), findsOneWidget);
@@ -132,7 +132,7 @@ void main() {
     );
 
     expect(find.text('Alcanzaste el máximo de 10 menores.'), findsOneWidget);
-    await tester.tap(find.text('Añadir menor'), warnIfMissed: false);
+    await tester.tap(find.text('Registrar a un menor'), warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(router.state.uri.path, '/');
   });
@@ -141,12 +141,12 @@ void main() {
       (tester) async {
     final router = await pump(tester);
     await tester.scrollUntilVisible(
-      find.text('Tengo un código de vinculación'),
+      find.text('Tengo un código'),
       300,
       scrollable: find.byType(Scrollable).first,
     );
 
-    await tester.tap(find.text('Tengo un código de vinculación'));
+    await tester.tap(find.text('Tengo un código'));
     await tester.pumpAndSettle();
 
     expect(router.state.uri.path, '/family/link');

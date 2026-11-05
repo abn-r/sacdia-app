@@ -5669,7 +5669,9 @@
     "limit_reached": "Alcanzaste el máximo de {max} menores.",
     "empty": {
       "title": "Aún no has añadido menores",
-      "body": "Registra a un menor de 13 años para que pueda unirse a un club bajo tu cuidado."
+      "body": "Registra a un menor de 13 años para que pueda unirse a un club bajo tu cuidado.",
+      "headline": "Acompaña a tus menores",
+      "subline": "Regístralos en el club y completa su perfil desde tu cuenta."
     },
     "frozen": "Congelado",
     "frozen_hint": "Sin tutor ni club. Se borrará pasados 90 días.",
@@ -5768,7 +5770,8 @@
       "code_required": "Ingresa el código",
       "sworn": "Declaro bajo protesta de decir verdad que soy el tutor legal de este menor.",
       "submit": "Vincular",
-      "success": "Ya puedes gestionar el perfil de {name}."
+      "success": "Ya puedes gestionar el perfil de {name}.",
+      "code_helper": "Mayúsculas y guiones no importan"
     },
     "switcher": {
       "title": "Cambiar de perfil",
@@ -5908,6 +5911,23 @@
     "age_nudge": {
       "title": "{name} ya puede tener su propio acceso",
       "body": "Alcanzó la edad mínima para tener su propio acceso. Puedes activarlo cuando quieras y seguirás supervisando su cuenta."
+    },
+    "list_title": "Menores a tu cargo",
+    "option": {
+      "add_title": "Registrar a un menor",
+      "add_subtitle": "Menor de 13 años, bajo tu cuidado",
+      "code_title": "Tengo un código",
+      "code_subtitle": "Te lo compartió otro tutor o el director",
+      "spots_left": {
+        "one": "Queda {} lugar",
+        "other": "Quedan {} lugares"
+      }
+    },
+    "how": {
+      "title": "Cómo funciona",
+      "step1": "Registras al menor con tus datos de tutor.",
+      "step2": "Completas su perfil y lo unes a un club.",
+      "step3": "Cambias a su perfil cuando lo necesites."
     }
   },
   "restricted_account": {
