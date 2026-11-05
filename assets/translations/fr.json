@@ -661,8 +661,8 @@
       "tab_summary": "Résumé",
       "tab_my_work": "Mon travail",
       "completed_title": "Spécialité obtenue !",
-      "completed_subtitle": "Elle apparaît déjà sur ton profil et sur ta carte.",
-      "view_credential_cta": "Voir sur ma carte",
+      "completed_subtitle": "Elle apparaît déjà sur ton profil.",
+      "view_profile_cta": "Voir sur mon profil",
       "my_work_empty": "Aucun travail enregistré pour cette spécialité."
     },
     "work_mode": {
