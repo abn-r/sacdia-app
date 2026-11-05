@@ -23,7 +23,7 @@ import 'package:sacdia_app/features/honors/presentation/widgets/honor_band_scaff
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_progress_band.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_rejection_card.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_requirement_row.dart';
-import 'package:sacdia_app/features/honors/presentation/widgets/honor_requirement_sheet.dart';
+import 'package:sacdia_app/features/honors/presentation/views/honor_requirement_group_view.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_submit_bar.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_work_info_tab.dart';
 import 'package:sacdia_app/features/validation/domain/entities/validation.dart';
@@ -227,9 +227,10 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
             _RequirementsList(
               readiness: readiness,
               paintColor: paintColor,
-              onOpen: (item) => HonorRequirementSheet.show(
+              onOpen: (item) => openHonorRequirement(
                 context,
                 honorId: widget.honorId,
+                honorName: name,
                 requirement: item.requirement,
                 paintColor: paintColor,
                 bandColor: bandColor,

@@ -1,49 +1,59 @@
-import 'dart:io';
-
 import 'package:easy_localization/easy_localization.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:image_picker/image_picker.dart';
 
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
-import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor_requirement.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor_requirement_progress.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
-import 'package:sacdia_app/features/honors/presentation/widgets/choice_group_header.dart';
-import 'package:sacdia_app/features/honors/presentation/widgets/requirement_tree_item.dart';
+import 'package:sacdia_app/features/honors/presentation/utils/honor_submission_readiness.dart';
+import 'package:sacdia_app/features/honors/presentation/widgets/honor_requirement_evidence.dart';
 
-/// Sheet that edits ONE top-level requirement and everything under it.
+/// Focused sheet that works ONE requirement without sub-items: its text,
+/// "Tu respuesta", its evidence (when it asks for it) and the folded
+/// reference.
 ///
-/// It owns its edits (ticks and written answers). "Guardar" sends only the
-/// nodes that changed with `bulkUpdate` and closes; closing with edits asks
-/// for confirmation. Evidence uploads happen immediately and are not part of
-/// the edits. With [enabled] false (under review) it is read-only.
+/// Saving with an answer marks it done; saving it emptied marks it pending.
+/// "Guardar" stays off until the answer changes. In the same request it
+/// brings the evidence-carrying parents under [root] in step (see
+/// [evidenceParentUpdates]). Closing with an unsaved answer asks first.
+/// Evidence uploads happen right away and are not part of the edit. With
+/// [enabled] false (under review) it is read-only.
 class HonorRequirementSheet extends ConsumerStatefulWidget {
   const HonorRequirementSheet({
     super.key,
     required this.honorId,
     required this.requirement,
+    required this.title,
     required this.paintColor,
     required this.bandColor,
     required this.enabled,
+    this.contextLine,
+    this.root,
   });
 
   final int honorId;
   final HonorRequirement requirement;
 
-  /// Category paint (ticks, evidence actions).
+  /// "Requisito 3", "Inciso c".
+  final String title;
+
+  /// Line above the text that places a sub-item ("Requisito 4 · Elige 3").
+  final String? contextLine;
+
+  /// Top-level requirement this one belongs to, when it is a sub-item.
+  final HonorRequirement? root;
+
+  /// Category paint (evidence tile).
   final Color paintColor;
 
   /// Darkened category color that holds white text (the save button).
@@ -54,9 +64,12 @@ class HonorRequirementSheet extends ConsumerStatefulWidget {
     BuildContext context, {
     required int honorId,
     required HonorRequirement requirement,
+    required String title,
     required Color paintColor,
     required Color bandColor,
     required bool enabled,
+    String? contextLine,
+    HonorRequirement? root,
   }) {
     return showSacSheet<void>(
       context: context,
@@ -71,6 +84,9 @@ class HonorRequirementSheet extends ConsumerStatefulWidget {
       builder: (_) => HonorRequirementSheet(
         honorId: honorId,
         requirement: requirement,
+        title: title,
+        contextLine: contextLine,
+        root: root,
         paintColor: paintColor,
         bandColor: bandColor,
         enabled: enabled,
@@ -83,74 +99,38 @@ class HonorRequirementSheet extends ConsumerStatefulWidget {
       _HonorRequirementSheetState();
 }
 
-class _Snapshot {
-  const _Snapshot(this.completed, this.notes, this.response);
-  final bool completed;
-  final String notes;
-  final String response;
-}
-
 class _HonorRequirementSheetState extends ConsumerState<HonorRequirementSheet> {
-  final Map<int, bool> _completed = {};
-  final Map<int, TextEditingController> _responses = {};
-  final Map<int, _Snapshot> _snapshot = {};
-
+  late final TextEditingController _answer;
+  late String _savedAnswer;
   bool _saving = false;
-  int? _uploadingId;
+  bool _textExpanded = false;
+  bool _referenceOpen = false;
 
   @override
   void initState() {
     super.initState();
-    final progress = ref.read(userHonorProgressProvider(widget.honorId)).value;
-    final byId = {
-      for (final p in progress ?? const <UserHonorRequirementProgress>[])
-        p.requirementId: p,
-    };
-    void init(HonorRequirement node) {
-      final p = byId[node.id];
-      final response = p?.textResponse ?? '';
-      _completed[node.id] = p?.completed ?? false;
-      _snapshot[node.id] = _Snapshot(
-        p?.completed ?? false,
-        p?.notes ?? '',
-        response,
-      );
-      final controller = TextEditingController(text: response)
-        ..addListener(_onEdited);
-      _responses[node.id] = controller;
-      node.children.forEach(init);
-    }
-
-    init(widget.requirement);
+    final row = _row(ref.read(userHonorProgressProvider(widget.honorId)).value);
+    _savedAnswer = row?.textResponse ?? '';
+    _answer = TextEditingController(text: _savedAnswer)
+      ..addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
-    for (final c in _responses.values) {
-      c.dispose();
-    }
+    _answer.dispose();
     super.dispose();
   }
 
-  void _onEdited() {
-    if (mounted) setState(() {});
+  UserHonorRequirementProgress? _row(
+    List<UserHonorRequirementProgress>? progress,
+  ) {
+    for (final p in progress ?? const <UserHonorRequirementProgress>[]) {
+      if (p.requirementId == widget.requirement.id) return p;
+    }
+    return null;
   }
 
-  bool get _isDirty => _changedIds().isNotEmpty;
-
-  List<int> _changedIds() {
-    return [
-      for (final entry in _snapshot.entries)
-        if (_completed[entry.key] != entry.value.completed ||
-            (_responses[entry.key]?.text ?? '') != entry.value.response)
-          entry.key,
-    ];
-  }
-
-  void _toggle(int id) {
-    if (!widget.enabled) return;
-    setState(() => _completed[id] = !(_completed[id] ?? false));
-  }
+  bool get _isDirty => _answer.text.trim() != _savedAnswer.trim();
 
   Future<void> _confirmDiscard() async {
     final confirm = await SacDialog.show(
@@ -165,37 +145,52 @@ class _HonorRequirementSheetState extends ConsumerState<HonorRequirementSheet> {
   }
 
   Future<void> _save() async {
-    final changed = _changedIds();
-    if (changed.isEmpty) {
-      Navigator.of(context).pop();
-      return;
-    }
-    setState(() => _saving = true);
-    final updates = [
-      for (final id in changed)
-        {
-          'requirementId': id,
-          'completed': _completed[id] ?? false,
-          'notes': _snapshot[id]?.notes ?? '',
-          'textResponse': _responses[id]?.text ?? '',
-        },
+    if (!_isDirty) return;
+    final answer = _answer.text.trim();
+    final done = answer.isNotEmpty;
+    final progress =
+        ref.read(userHonorProgressProvider(widget.honorId)).value ?? const [];
+    final row = _row(progress);
+
+    // The progress as it will be once this answer is saved.
+    final after = [
+      for (final p in progress)
+        if (p.requirementId == widget.requirement.id)
+          p.copyWith(completed: done, textResponse: answer)
+        else
+          p,
+      if (row == null)
+        UserHonorRequirementProgress(
+          requirementId: widget.requirement.id,
+          requirementNumber: widget.requirement.requirementNumber,
+          text: widget.requirement.text,
+          completed: done,
+          textResponse: answer,
+        ),
     ];
+    final root = widget.root;
+    final updates = [
+      {
+        'requirementId': widget.requirement.id,
+        'completed': done,
+        'notes': row?.notes ?? '',
+        'textResponse': answer,
+      },
+      if (root != null)
+        ...evidenceParentUpdates(roots: [root], progress: after),
+    ];
+
+    setState(() => _saving = true);
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     final notifier =
         ref.read(requirementProgressNotifierProvider(widget.honorId).notifier);
     final success = await notifier.bulkUpdate(updates);
     if (!mounted) return;
+    setState(() => _saving = false);
     if (success) {
       // Everything saved: closing needs no confirmation.
-      for (final id in changed) {
-        _snapshot[id] = _Snapshot(
-          _completed[id] ?? false,
-          _snapshot[id]?.notes ?? '',
-          _responses[id]?.text ?? '',
-        );
-      }
-      setState(() => _saving = false);
+      _savedAnswer = answer;
       navigator.pop();
       SacSnackBar.showMessenger(
         messenger,
@@ -204,7 +199,6 @@ class _HonorRequirementSheetState extends ConsumerState<HonorRequirementSheet> {
         duration: const Duration(seconds: 2),
       );
     } else {
-      setState(() => _saving = false);
       final error =
           ref.read(requirementProgressNotifierProvider(widget.honorId)).error;
       SacSnackBar.showMessenger(
@@ -215,125 +209,31 @@ class _HonorRequirementSheetState extends ConsumerState<HonorRequirementSheet> {
     }
   }
 
-  // ── Evidence ──────────────────────────────────────────────────────────────
-
-  void _showEvidenceOptions(HonorRequirement requirement) {
-    if (!widget.enabled) return;
-    showSacSheet<void>(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLG)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SacSheetGrabber(),
-            const SizedBox(height: 8),
-            _PickerTile(
-              icon: HugeIcons.strokeRoundedCamera01,
-              color: ctx.sac.info,
-              label: 'honors.requirements.pick_camera'.tr(),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickImage(requirement, ImageSource.camera);
-              },
-            ),
-            _PickerTile(
-              icon: HugeIcons.strokeRoundedImage01,
-              color: ctx.sac.success,
-              label: 'honors.requirements.pick_gallery'.tr(),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickImage(requirement, ImageSource.gallery);
-              },
-            ),
-            _PickerTile(
-              icon: HugeIcons.strokeRoundedPdf01,
-              color: ctx.sac.error,
-              label: 'honors.requirements.pick_pdf'.tr(),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickPdf(requirement);
-              },
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
+  /// A parent's evidence counts only on a completed row: after an upload
+  /// creates the row, bring the parents in step.
+  Future<void> _syncParents() async {
+    final root = widget.root;
+    if (root == null) return;
+    final progress =
+        await ref.read(userHonorProgressProvider(widget.honorId).future);
+    final updates = evidenceParentUpdates(roots: [root], progress: progress);
+    if (updates.isEmpty) return;
+    await ref
+        .read(requirementProgressNotifierProvider(widget.honorId).notifier)
+        .bulkUpdate(updates);
   }
-
-  Future<void> _pickImage(
-    HonorRequirement requirement,
-    ImageSource source,
-  ) async {
-    final image = await ImagePicker().pickImage(
-      source: source,
-      maxWidth: 1920,
-      maxHeight: 1920,
-      imageQuality: 85,
-    );
-    if (image == null) return;
-    await _upload(requirement, File(image.path));
-  }
-
-  Future<void> _pickPdf(HonorRequirement requirement) async {
-    final picked = await FilePicker.pickFile(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
-    );
-    final path = picked?.path;
-    if (path == null) return;
-    await _upload(requirement, File(path));
-  }
-
-  Future<void> _upload(HonorRequirement requirement, File file) async {
-    final userId = ref.read(authNotifierProvider).value?.id;
-    if (userId == null) {
-      if (!mounted) return;
-      SacSnackBar.show(context, 'honors.evidence.no_session'.tr(),
-          isError: true);
-      return;
-    }
-    setState(() => _uploadingId = requirement.id);
-    final success = await ref
-        .read(
-            requirementEvidenceActionsNotifierProvider(widget.honorId).notifier)
-        .uploadRequirementEvidence(
-          userId: userId,
-          honorId: widget.honorId,
-          requirementId: requirement.id,
-          file: file,
-        );
-    if (!mounted) return;
-    setState(() => _uploadingId = null);
-    SacSnackBar.show(
-      context,
-      success
-          ? 'honors.requirements.requirement_evidence_success'.tr()
-          : 'honors.requirements.requirement_evidence_error'.tr(),
-      isSuccess: success,
-      isError: !success,
-    );
-  }
-
-  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
     final req = widget.requirement;
-    final progress =
-        ref.watch(userHonorProgressProvider(widget.honorId)).value ?? const [];
-    final evidenceCount = {
-      for (final p in progress) p.requirementId: p.evidences.length,
-    };
-    final label = (req.displayLabel != null && req.displayLabel!.isNotEmpty)
-        ? req.displayLabel!
-        : '${req.requirementNumber}';
+    final row =
+        _row(ref.watch(userHonorProgressProvider(widget.honorId)).value);
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final reference = req.referenceText?.trim() ?? '';
+    final duration =
+        SacMotion.reduceMotionOf(context) ? Duration.zero : SacMotion.standard;
+    final longText = req.text.length > 160;
 
     return PopScope(
       canPop: !_isDirty || _saving,
@@ -347,16 +247,100 @@ class _HonorRequirementSheetState extends ConsumerState<HonorRequirementSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SacSheetHeader(
-              title: 'honors.requirements.sheet_title'
-                  .tr(namedArgs: {'number': label}),
-              showClose: true,
-            ),
+            SacSheetHeader(title: widget.title, showClose: true),
             Flexible(
               child: SingleChildScrollView(
                 key: const ValueKey('requirement-sheet-scroll'),
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                child: _node(req, 0, evidenceCount),
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (widget.contextLine != null) ...[
+                      Text(
+                        widget.contextLine!,
+                        style: TextStyle(
+                          fontSize: SacFontSize.labelSmall,
+                          fontWeight: FontWeight.w600,
+                          color: c.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                    ],
+                    GestureDetector(
+                      onTap: longText
+                          ? () => setState(() => _textExpanded = !_textExpanded)
+                          : null,
+                      child: AnimatedSize(
+                        duration: duration,
+                        curve: SacMotion.easeOut,
+                        alignment: Alignment.topLeft,
+                        child: Text(
+                          req.text,
+                          key: const ValueKey('requirement-text'),
+                          maxLines: !longText || _textExpanded ? null : 4,
+                          overflow: !longText || _textExpanded
+                              ? TextOverflow.visible
+                              : TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: SacFontSize.titleMedium,
+                            fontWeight: FontWeight.w500,
+                            height: 1.45,
+                            color: c.text,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (longText)
+                      GestureDetector(
+                        onTap: () =>
+                            setState(() => _textExpanded = !_textExpanded),
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Text(
+                            _textExpanded
+                                ? 'honors.requirements.see_less'.tr()
+                                : 'honors.requirements.see_more'.tr(),
+                            style: TextStyle(
+                              fontSize: SacFontSize.bodyMedium,
+                              fontWeight: FontWeight.w600,
+                              color: c.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 20),
+                    HonorFieldCaption('honors.requirements.your_answer'.tr()),
+                    SacTextField(
+                      key: const ValueKey('requirement-answer'),
+                      controller: _answer,
+                      hint: 'honors.requirements.response_hint'.tr(),
+                      maxLines: 5,
+                      maxLength: 800,
+                      enabled: widget.enabled,
+                      textCapitalization: TextCapitalization.sentences,
+                    ),
+                    if (req.requiresEvidence) ...[
+                      const SizedBox(height: 16),
+                      HonorRequirementEvidence(
+                        honorId: widget.honorId,
+                        requirementId: req.id,
+                        evidences: row?.evidences ?? const [],
+                        paintColor: widget.paintColor,
+                        enabled: widget.enabled,
+                        onChanged: _syncParents,
+                      ),
+                    ],
+                    if (reference.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      HonorReferenceCard(
+                        text: reference,
+                        open: _referenceOpen,
+                        onToggle: () =>
+                            setState(() => _referenceOpen = !_referenceOpen),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
             if (widget.enabled)
@@ -367,11 +351,13 @@ class _HonorRequirementSheetState extends ConsumerState<HonorRequirementSheet> {
                   border: Border(top: BorderSide(color: c.borderLight)),
                 ),
                 child: SacButton.primary(
+                  key: const ValueKey('requirement-save'),
                   text: 'honors.requirements.sheet_save'.tr(),
                   isLoading: _saving,
                   backgroundColor: widget.bandColor,
                   textColor: Colors.white,
-                  onPressed: _saving ? null : _save,
+                  // Nothing to save until the answer changes.
+                  onPressed: _saving || !_isDirty ? null : _save,
                 ),
               ),
           ],
@@ -379,100 +365,101 @@ class _HonorRequirementSheetState extends ConsumerState<HonorRequirementSheet> {
       ),
     );
   }
+}
 
-  Widget _node(
-    HonorRequirement node,
-    int depth,
-    Map<int, int> evidenceCount,
-  ) {
+/// Folded reference text: a tinted row that opens to show the reference.
+class HonorReferenceCard extends StatelessWidget {
+  const HonorReferenceCard({
+    super.key,
+    required this.text,
+    required this.open,
+    required this.onToggle,
+  });
+
+  final String text;
+  final bool open;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context) {
     final c = context.sac;
-    final hasChildren = node.children.isNotEmpty;
-    // A plain parent is satisfied by its children; only show its own tick
-    // when it asks for evidence (the backend then wants it ticked).
-    final showCheck = !hasChildren || node.requiresEvidence;
-    final done =
-        node.children.where((child) => _completed[child.id] == true).length;
+    final duration =
+        SacMotion.reduceMotionOf(context) ? Duration.zero : SacMotion.standard;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        RequirementTreeItem(
-          key: ValueKey('sheet-req-${node.id}'),
-          requirement: node,
-          completed: _completed[node.id] ?? false,
-          responseController: _responses[node.id],
-          depth: 0,
-          categoryColor: widget.paintColor,
-          enabled: widget.enabled,
-          showCheck: showCheck,
-          initiallyExpanded: depth == 0,
-          onToggle: () => _toggle(node.id),
-          evidenceCount: evidenceCount[node.id] ?? 0,
-          isUploadingEvidence: _uploadingId == node.id,
-          onAddEvidence:
-              node.requiresEvidence ? () => _showEvidenceOptions(node) : null,
-        ),
-        if (hasChildren) ...[
-          if (node.isChoiceGroup && node.choiceMin != null)
-            ChoiceGroupHeader(
-              choiceMin: node.choiceMin!,
-              totalChildren: node.children.length,
-              completedChildren: done,
-            ),
-          Padding(
-            padding: const EdgeInsets.only(left: 11, top: 4),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                border: Border(
-                  left: BorderSide(color: c.border, width: 1.5),
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(left: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (var i = 0; i < node.children.length; i++) ...[
-                      if (i > 0)
-                        Divider(height: 1, thickness: 1, color: c.divider),
-                      _node(node.children[i], depth + 1, evidenceCount),
+    return Container(
+      key: const ValueKey('requirement-reference'),
+      decoration: BoxDecoration(
+        color: c.surfaceVariant,
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Semantics(
+            button: true,
+            expanded: open,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+              onTap: onToggle,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: Row(
+                    children: [
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedBookOpen01,
+                        size: 18,
+                        color: c.textSecondary,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'honors.requirements.reference_label'.tr(),
+                          style: TextStyle(
+                            fontSize: SacFontSize.titleSmall,
+                            fontWeight: FontWeight.w600,
+                            color: c.textSecondary,
+                          ),
+                        ),
+                      ),
+                      AnimatedRotation(
+                        turns: open ? 0.5 : 0,
+                        duration: duration,
+                        curve: SacMotion.easeOut,
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedArrowDown01,
+                          size: 18,
+                          color: c.textTertiary,
+                        ),
+                      ),
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
+          ClipRect(
+            child: AnimatedSize(
+              duration: duration,
+              curve: SacMotion.easeOut,
+              alignment: Alignment.topCenter,
+              child: open
+                  ? Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                      child: Text(
+                        text,
+                        style: TextStyle(
+                          fontSize: SacFontSize.bodyMedium,
+                          height: 1.5,
+                          color: c.textSecondary,
+                        ),
+                      ),
+                    )
+                  : const SizedBox(width: double.infinity),
+            ),
+          ),
         ],
-      ],
-    );
-  }
-}
-
-class _PickerTile extends StatelessWidget {
-  const _PickerTile({
-    required this.icon,
-    required this.color,
-    required this.label,
-    required this.onTap,
-  });
-
-  final HugeIconData icon;
-  final Color color;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return SacPressable(
-      listenOnly: true,
-      child: ListTile(
-        enableFeedback: false,
-        leading: HugeIcon(icon: icon, color: color),
-        title: Text(label),
-        onTap: () {
-          HapticFeedback.selectionClick();
-          onTap();
-        },
       ),
     );
   }

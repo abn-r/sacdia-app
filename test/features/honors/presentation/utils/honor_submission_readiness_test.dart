@@ -503,4 +503,55 @@ void main() {
       }
     });
   });
+  group('evidenceParentUpdates', () {
+    test('ticks an evidence parent once its children satisfy it', () {
+      final parent = req(5, evidence: true, children: [
+        req(51, parentId: 5),
+        req(52, parentId: 5),
+      ]);
+      final updates = evidenceParentUpdates(
+        roots: [parent],
+        progress: [done(51), done(52)],
+      );
+      expect(updates.single['requirementId'], 5);
+      expect(updates.single['completed'], isTrue);
+    });
+
+    test('unticks it when a child stops satisfying it', () {
+      final parent = req(5, evidence: true, children: [
+        req(51, parentId: 5),
+        req(52, parentId: 5),
+      ]);
+      final updates = evidenceParentUpdates(
+        roots: [parent],
+        progress: [done(5, evidences: 1), done(51)],
+      );
+      expect(updates.single['completed'], isFalse);
+    });
+
+    test('a choice group needs only choice_min children', () {
+      final group = req(6,
+          choice: true,
+          choiceMin: 1,
+          evidence: true,
+          children: [req(61, parentId: 6), req(62, parentId: 6)]);
+      final updates = evidenceParentUpdates(
+        roots: [group],
+        progress: [done(62)],
+      );
+      expect(updates.single['completed'], isTrue);
+    });
+
+    test('leaves parents without evidence and parents in step alone', () {
+      final plain = req(7, children: [req(71, parentId: 7)]);
+      final inStep = req(8, evidence: true, children: [req(81, parentId: 8)]);
+      expect(
+        evidenceParentUpdates(
+          roots: [plain, inStep],
+          progress: [done(71), done(81), done(8)],
+        ),
+        isEmpty,
+      );
+    });
+  });
 }

@@ -36,6 +36,7 @@ import '../../domain/usecases/start_honor.dart';
 import '../../domain/usecases/update_requirement_progress.dart';
 import '../../domain/usecases/upload_honor_file.dart';
 import '../../domain/usecases/upload_requirement_evidence.dart';
+import '../../domain/usecases/delete_requirement_evidence.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 
 /// Provider para el data source remoto de especialidades
@@ -104,6 +105,11 @@ final uploadHonorFileProvider = Provider<UploadHonorFile>((ref) {
 final uploadRequirementEvidenceProvider =
     Provider<UploadRequirementEvidence>((ref) {
   return UploadRequirementEvidence(ref.read(honorsRepositoryProvider));
+});
+
+final deleteRequirementEvidenceProvider =
+    Provider<DeleteRequirementEvidence>((ref) {
+  return DeleteRequirementEvidence(ref.read(honorsRepositoryProvider));
 });
 
 /// Provider para las categorías de especialidades
@@ -508,6 +514,38 @@ class RequirementEvidenceActionsNotifier extends AsyncNotifier<void> {
             honorId: honorId,
             requirementId: requirementId,
             file: file,
+          ),
+        );
+
+        return result.fold<bool>(
+          (failure) {
+            state = AsyncValue.error(failure.message, StackTrace.current);
+            return false;
+          },
+          (_) {
+            state = const AsyncValue.data(null);
+            ref.invalidate(userHonorProgressProvider(honorId));
+            return true;
+          },
+        );
+      });
+
+  Future<bool> deleteRequirementEvidence({
+    required String userId,
+    required int honorId,
+    required int requirementId,
+    required int evidenceId,
+  }) =>
+      // Same as the upload: callers only `ref.read` this notifier.
+      ref.keepAliveDuring(() async {
+        state = const AsyncValue.loading();
+
+        final result = await ref.read(deleteRequirementEvidenceProvider)(
+          DeleteRequirementEvidenceParams(
+            userId: userId,
+            honorId: honorId,
+            requirementId: requirementId,
+            evidenceId: evidenceId,
           ),
         );
 
