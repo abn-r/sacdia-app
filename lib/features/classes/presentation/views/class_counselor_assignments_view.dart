@@ -28,6 +28,7 @@ import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/class_counselor_assignment.dart';
 import '../../domain/entities/progressive_class.dart';
 import '../providers/classes_providers.dart';
+import '../utils/assignable_responsible.dart';
 import '../widgets/class_identity_badge.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -35,16 +36,6 @@ const _responsibilityTypes = <String>['primary', 'assistant', 'substitute'];
 
 String _normalizeRole(String? role) =>
     role?.trim().toLowerCase().replaceAll(RegExp(r'[\s_]+'), '-') ?? '';
-
-bool _isAssignableResponsible(ClubMember member) {
-  if (!member.classCounselorEligible) return false;
-
-  final role = _normalizeRole(member.clubRole);
-  return role == 'counselor' ||
-      role == 'consejero' ||
-      role == 'secretary' ||
-      role == 'secretario';
-}
 
 String _normalizeClassName(String value) => value
     .trim()
@@ -234,7 +225,7 @@ class ClassCounselorAssignmentsView extends ConsumerWidget {
     final isEditing = initialAssignment != null;
     final classes = classesAsync?.value ?? const <ProgressiveClass>[];
     final candidates = (membersAsync.value?.members ?? const <ClubMember>[])
-        .where(_isAssignableResponsible)
+        .where(isAssignableResponsible)
         .toList()
       ..sort((a, b) => a.fullName.compareTo(b.fullName));
 
