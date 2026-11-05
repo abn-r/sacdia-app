@@ -388,3 +388,43 @@ ExternalSubmissionReadiness computeExternalSubmissionReadiness({
         requireCompletionDate ? dateOk : (completedAt == null || dateOk),
   );
 }
+
+/// Progress updates that keep the evidence-carrying parents in step with
+/// their children, under [roots].
+///
+/// The backend counts a requirement's evidence only on a completed row, and
+/// a parent's own row is never ticked by hand any more: a parent that
+/// `requires_evidence` is sent as completed exactly when its children satisfy
+/// it (all of them, or `choice_min` of a choice group). Pass the progress as
+/// it will be after the pending edits.
+List<Map<String, dynamic>> evidenceParentUpdates({
+  required List<HonorRequirement> roots,
+  required List<UserHonorRequirementProgress> progress,
+}) {
+  final byId = {for (final p in progress) p.requirementId: p};
+  final updates = <Map<String, dynamic>>[];
+
+  void visit(HonorRequirement node) {
+    if (node.children.isEmpty) return;
+    node.children.forEach(visit);
+    if (!node.requiresEvidence) return;
+    final satisfied = computeHonorSubmissionReadiness(
+      requirements: [node],
+      progress: progress,
+      completedAt: null,
+      mode: HonorCompletionMode.inApp,
+      requireCompletionDate: false,
+    ).items.single.isSatisfied;
+    final row = byId[node.id];
+    if (satisfied == (row?.completed ?? false)) return;
+    updates.add({
+      'requirementId': node.id,
+      'completed': satisfied,
+      'notes': row?.notes ?? '',
+      'textResponse': row?.textResponse ?? '',
+    });
+  }
+
+  roots.forEach(visit);
+  return updates;
+}
