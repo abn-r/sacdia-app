@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/auth/club_role_names.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -49,13 +50,13 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
   /// Orden de visualización. También es el respaldo si falla el endpoint de
   /// roles asignables (el servidor igual valida al guardar).
   static const _displayOrder = [
-    'director',
-    'deputy-director',
-    'secretary',
-    'treasurer',
-    'secretary-treasurer',
-    'counselor',
-    'member',
+    ClubRoleNames.director,
+    ClubRoleNames.deputyDirector,
+    ClubRoleNames.secretary,
+    ClubRoleNames.treasurer,
+    ClubRoleNames.secretaryTreasurer,
+    ClubRoleNames.counselor,
+    ClubRoleNames.member,
   ];
 
   /// Roles del endpoint en orden de visualización; los desconocidos al final.

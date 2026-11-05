@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../../../core/auth/club_role_names.dart';
 import '../../../../core/consent/consent_evidence.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -136,29 +137,10 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
     return {};
   }
 
-  String _normalizeRoleKey(String value) {
-    return value.trim().toLowerCase().replaceAll(RegExp(r'[\s_]+'), '-');
-  }
-
-  List<String> _roleLookupCandidates(String role) {
-    final normalized = _normalizeRoleKey(role);
-    const aliases = <String, List<String>>{
-      'deputy-director': ['subdirector'],
-      'subdirector': ['deputy-director'],
-      'secretary': ['secretario'],
-      'treasurer': ['tesorero'],
-      'counselor': ['consejero'],
-      'member': ['miembro'],
-    };
-
-    final values = <String>{normalized, ...(aliases[normalized] ?? const [])};
-    return values.toList();
-  }
-
   final Map<String, String> _clubRoleIdsByName = {};
 
   Future<String?> _resolveClubRoleId(String role) async {
-    for (final candidate in _roleLookupCandidates(role)) {
+    for (final candidate in clubRoleLookupCandidates(role)) {
       final cached = _clubRoleIdsByName[candidate];
       if (cached != null && cached.isNotEmpty) {
         return cached;
@@ -187,7 +169,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
           continue;
         }
 
-        final normalizedName = _normalizeRoleKey(roleName);
+        final normalizedName = normalizeClubRoleName(roleName);
         _clubRoleIdsByName[normalizedName] = roleId;
       }
     } on DioException catch (e) {
@@ -196,7 +178,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       return null;
     }
 
-    for (final candidate in _roleLookupCandidates(role)) {
+    for (final candidate in clubRoleLookupCandidates(role)) {
       final resolved = _clubRoleIdsByName[candidate];
       if (resolved != null && resolved.isNotEmpty) {
         return resolved;
@@ -451,7 +433,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       // queda como respaldo.
       for (final role in result.roles) {
         if (role.roleId.isEmpty) continue;
-        _clubRoleIdsByName[_normalizeRoleKey(role.roleName)] = role.roleId;
+        _clubRoleIdsByName[normalizeClubRoleName(role.roleName)] = role.roleId;
       }
       return result;
     } on DioException catch (e) {
