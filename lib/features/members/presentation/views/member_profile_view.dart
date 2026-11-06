@@ -63,7 +63,6 @@ class MemberProfileView extends ConsumerWidget {
       backgroundColor: c.background,
       appBar: SacTopBar(
           title: title ?? 'members.profile_view.title'.tr(),
-          centerTitle: true,
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 16),

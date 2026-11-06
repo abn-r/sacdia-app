@@ -49,8 +49,7 @@ class _SupportViewState extends ConsumerState<SupportView> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: c.background,
-      appBar: SacTopBar(
-          title: 'support.title'.tr(), centerTitle: true, frosted: true),
+      appBar: SacTopBar(title: 'support.title'.tr(), frosted: true),
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) => ListView(

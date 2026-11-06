@@ -68,11 +68,8 @@ class ClassDetailWithProgressView extends ConsumerWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: c.canvas,
-      appBar: SacTopBar(
-          title: 'Clase',
-          centerTitle: true,
-          backgroundColor: c.canvas,
-          frosted: true),
+      appBar:
+          SacTopBar(title: 'Clase', backgroundColor: c.canvas, frosted: true),
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) => SafeArea(

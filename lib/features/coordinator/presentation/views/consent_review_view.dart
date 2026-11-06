@@ -50,11 +50,6 @@ class ConsentReviewView extends ConsumerWidget {
       backgroundColor: c.background,
       appBar: SacTopBar(
         title: 'coordinator.consent_review.title'.tr(),
-        titleIcon: HugeIcon(
-          icon: HugeIcons.strokeRoundedFileVerified,
-          size: 22,
-          color: SacAccent.of(context).color,
-        ),
         actions: [
           SacPressable(
             listenOnly: true,

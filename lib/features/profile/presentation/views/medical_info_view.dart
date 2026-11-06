@@ -128,7 +128,6 @@ class MedicalInfoView extends ConsumerWidget {
         backgroundColor: m.canvas,
         appBar: SacTopBar(
           title: 'profile.medical_info.title'.tr(),
-          centerTitle: true,
           frosted: true,
         ),
         body: SacFrostedVeil(

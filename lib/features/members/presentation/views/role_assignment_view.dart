@@ -277,7 +277,6 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
       backgroundColor: c.background,
       appBar: SacTopBar(
           title: 'members.role_assignment.title'.tr(),
-          centerTitle: true,
           automaticallyImplyLeading: !_isLoading,
           frosted: true),
       body: SacFrostedVeil(

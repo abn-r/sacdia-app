@@ -110,11 +110,6 @@ class CoordinatorHubView extends ConsumerWidget {
         subtitle: subtitle,
         frosted: true,
         automaticallyImplyLeading: false,
-        titleIcon: HugeIcon(
-          icon: HugeIcons.strokeRoundedAnalytics01,
-          size: 22,
-          color: accent.color,
-        ),
         // Without a club the hub is the dashboard home and there is no other
         // bell: the inbox opens from here.
         actions: [

@@ -1,13 +1,16 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
@@ -64,6 +67,15 @@ class _HonorRequirementEvidenceState
     extends ConsumerState<HonorRequirementEvidence> {
   bool _uploading = false;
   final Set<int> _deleting = {};
+
+  /// File being uploaded, shown as its own tile until it settles.
+  File? _pendingFile;
+  double _pendingProgress = 0;
+  bool _pendingDone = false;
+
+  /// Evidences before the upload: while the pending tile is on screen the
+  /// new server thumbnail stays hidden, so the file never shows twice.
+  int _countBefore = 0;
 
   String? get _userId => ref.read(authNotifierProvider).value?.id;
 
@@ -145,7 +157,13 @@ class _HonorRequirementEvidenceState
           isError: true);
       return;
     }
-    setState(() => _uploading = true);
+    setState(() {
+      _uploading = true;
+      _pendingFile = file;
+      _pendingProgress = 0;
+      _pendingDone = false;
+      _countBefore = widget.evidences.length;
+    });
     final success = await ref
         .read(
             requirementEvidenceActionsNotifierProvider(widget.honorId).notifier)
@@ -154,18 +172,65 @@ class _HonorRequirementEvidenceState
           honorId: widget.honorId,
           requirementId: widget.requirementId,
           file: file,
+          onProgress: (value) {
+            if (mounted) setState(() => _pendingProgress = value);
+          },
         );
     if (!mounted) return;
-    setState(() => _uploading = false);
-    SacSnackBar.show(
-      context,
-      success
-          ? 'honors.requirements.requirement_evidence_success'.tr()
-          : 'honors.requirements.requirement_evidence_error'.tr(),
-      isSuccess: success,
-      isError: !success,
-    );
-    if (success) widget.onChanged?.call();
+    if (!success) {
+      setState(() {
+        _uploading = false;
+        _pendingFile = null;
+      });
+      SacSnackBar.show(
+        context,
+        'honors.requirements.requirement_evidence_error'.tr(),
+        isError: true,
+      );
+      return;
+    }
+    // The tile finishes its fill and shows the check, then hands over to the
+    // server thumbnail (see [_onPendingSettled]).
+    setState(() {
+      _pendingProgress = 1;
+      _pendingDone = true;
+    });
+    HapticFeedback.lightImpact();
+    widget.onChanged?.call();
+  }
+
+  /// Set once the tile showed its check but the refreshed list has not
+  /// arrived yet: the tile stays until the server thumbnail can replace it.
+  bool _awaitingList = false;
+
+  @override
+  void didUpdateWidget(covariant HonorRequirementEvidence oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_awaitingList && widget.evidences.length > _countBefore) {
+      _clearPending();
+    }
+  }
+
+  void _onPendingSettled() {
+    if (!mounted) return;
+    if (widget.evidences.length > _countBefore) {
+      _clearPending();
+      return;
+    }
+    _awaitingList = true;
+    // The list may never grow (refresh failed): do not keep the tile forever.
+    Future.delayed(const Duration(seconds: 4), () {
+      if (mounted && _awaitingList) _clearPending();
+    });
+  }
+
+  void _clearPending() {
+    setState(() {
+      _awaitingList = false;
+      _uploading = false;
+      _pendingFile = null;
+      _pendingDone = false;
+    });
   }
 
   Future<void> _delete(RequirementEvidence evidence) async {
@@ -218,12 +283,22 @@ class _HonorRequirementEvidenceState
           spacing: 8,
           runSpacing: 8,
           children: [
-            for (final e in widget.evidences)
+            for (final e in _pendingFile == null
+                ? widget.evidences
+                : widget.evidences.take(_countBefore))
               _EvidenceThumb(
                 key: ValueKey('requirement-evidence-${e.id}'),
                 evidence: e,
                 deleting: _deleting.contains(e.id),
                 onDelete: widget.enabled ? () => _delete(e) : null,
+              ),
+            if (_pendingFile != null)
+              RequirementEvidenceUploadingTile(
+                key: const ValueKey('requirement-evidence-uploading'),
+                file: _pendingFile!,
+                progress: _pendingProgress,
+                done: _pendingDone,
+                onSettled: _onPendingSettled,
               ),
             if (widget.enabled)
               _AddTile(
@@ -435,7 +510,16 @@ class _AddTile extends StatelessWidget {
             border: Border.all(color: ink.withValues(alpha: 0.45), width: 1.5),
           ),
           child: uploading
-              ? const Center(child: SacLoadingSmall())
+              ? Opacity(
+                  opacity: 0.35,
+                  child: Center(
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedCameraAdd01,
+                      size: 22,
+                      color: ink,
+                    ),
+                  ),
+                )
               : Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -486,6 +570,206 @@ class _PickerTile extends StatelessWidget {
           HapticFeedback.selectionClick();
           onTap();
         },
+      ),
+    );
+  }
+}
+
+/// The file being uploaded: its real preview clears from the bottom up with
+/// its percentage, then a check, then it hands over to the server thumbnail.
+///
+/// The shown progress follows the reported one but takes at least
+/// [_minSweep] from 0 to 100%, so a small file still visibly fills.
+@visibleForTesting
+class RequirementEvidenceUploadingTile extends StatefulWidget {
+  const RequirementEvidenceUploadingTile({
+    super.key,
+    required this.file,
+    required this.progress,
+    required this.done,
+    required this.onSettled,
+  });
+
+  final File file;
+  final double progress;
+  final bool done;
+  final VoidCallback onSettled;
+
+  @override
+  State<RequirementEvidenceUploadingTile> createState() =>
+      RequirementEvidenceUploadingTileState();
+}
+
+class RequirementEvidenceUploadingTileState
+    extends State<RequirementEvidenceUploadingTile>
+    with SingleTickerProviderStateMixin {
+  static const Duration _minSweep = Duration(milliseconds: 600);
+  static const Duration _checkHold = Duration(milliseconds: 600);
+
+  late final Ticker _ticker;
+  Duration _last = Duration.zero;
+  double _shown = 0;
+  bool _settling = false;
+
+  bool get _isPdf => widget.file.path.toLowerCase().endsWith('.pdf');
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker = createTicker(_tick);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _sync());
+  }
+
+  @override
+  void didUpdateWidget(covariant RequirementEvidenceUploadingTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _sync();
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    super.dispose();
+  }
+
+  double get _target => widget.progress.clamp(0.0, 1.0);
+
+  void _sync() {
+    if (!mounted) return;
+    if (SacMotion.reduceMotionOf(context)) {
+      setState(() => _shown = _target);
+      _maybeSettle();
+      return;
+    }
+    if (_shown < _target && !_ticker.isActive) {
+      _last = Duration.zero;
+      _ticker.start();
+    }
+    _maybeSettle();
+  }
+
+  void _tick(Duration elapsed) {
+    final step = (elapsed - _last).inMicroseconds / _minSweep.inMicroseconds;
+    _last = elapsed;
+    setState(() => _shown = math.min(_target, _shown + step));
+    if (_shown >= _target) {
+      _ticker.stop();
+      _maybeSettle();
+    }
+  }
+
+  void _maybeSettle() {
+    if (!widget.done || _shown < 1 || _settling) return;
+    _settling = true;
+    Future.delayed(_checkHold, () {
+      if (mounted) widget.onSettled();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final radius = BorderRadius.circular(AppTheme.radiusSM);
+    final full = _shown >= 1;
+    final showCheck = widget.done && full;
+
+    return Semantics(
+      label: showCheck
+          ? 'honors.requirements.requirement_evidence_success'.tr()
+          : '${(_shown * 100).round()}%',
+      liveRegion: true,
+      excludeSemantics: true,
+      child: SizedBox.square(
+        dimension: kHonorEvidenceTileSize,
+        child: ClipRRect(
+          borderRadius: radius,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (_isPdf)
+                ColoredBox(
+                  color: c.surfaceVariant,
+                  child: Center(
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedPdf01,
+                      size: 26,
+                      color: c.textSecondary,
+                    ),
+                  ),
+                )
+              else
+                Image.file(
+                  widget.file,
+                  fit: BoxFit.cover,
+                  cacheWidth: 216,
+                  errorBuilder: (_, __, ___) =>
+                      ColoredBox(color: c.surfaceVariant),
+                ),
+              // Covers what is not sent yet: clears from the bottom up.
+              Align(
+                alignment: Alignment.topCenter,
+                child: FractionallySizedBox(
+                  heightFactor: 1 - _shown,
+                  widthFactor: 1,
+                  child: ColoredBox(color: c.surface.withValues(alpha: 0.6)),
+                ),
+              ),
+              Center(
+                child: AnimatedSwitcher(
+                  duration: SacMotion.standard,
+                  child: showCheck
+                      ? Container(
+                          key: const ValueKey('check'),
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: c.success,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: c.surface, width: 2),
+                          ),
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedTick02,
+                            size: 16,
+                            color: c.onSuccess,
+                          ),
+                        )
+                      : Container(
+                          key: const ValueKey('progress'),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: c.text.withValues(alpha: 0.72),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusFull),
+                          ),
+                          child: full
+                              ? SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: c.surface,
+                                  ),
+                                )
+                              : Text(
+                                  '${(_shown * 100).round()}%',
+                                  key: const ValueKey(
+                                    'requirement-evidence-upload-percent',
+                                  ),
+                                  style: TextStyle(
+                                    fontSize: SacFontSize.bodySmall,
+                                    fontWeight: FontWeight.w700,
+                                    color: c.surface,
+                                  ),
+                                ),
+                        ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

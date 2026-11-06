@@ -434,11 +434,6 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
           title: 'activities.edit.title'.tr(),
           subtitle: 'activities.edit.subtitle'.tr(),
           automaticallyImplyLeading: !isLoading,
-          titleIcon: HugeIcon(
-            icon: HugeIcons.strokeRoundedEdit02,
-            size: 22,
-            color: SacAccent.of(context).color,
-          ),
           frosted: true),
       body: SacFrostedVeil(
         child: Builder(

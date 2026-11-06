@@ -51,7 +51,6 @@ class EvidenceReviewListView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.sac;
-    final accent = SacAccent.of(context);
     final filter = ref.watch(evidenceTypeFilterProvider);
     final evidenceAsync = ref.watch(pendingEvidenceProvider(filter));
 
@@ -61,11 +60,6 @@ class EvidenceReviewListView extends ConsumerWidget {
       appBar: SacTopBar(
         title: 'coordinator.evidence_review.list.title'.tr(),
         frosted: true,
-        titleIcon: HugeIcon(
-          icon: HugeIcons.strokeRoundedTaskDone01,
-          size: 22,
-          color: accent.color,
-        ),
       ),
       body: SacFrostedVeil(
         child: Builder(

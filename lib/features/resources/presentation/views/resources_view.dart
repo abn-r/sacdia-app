@@ -103,7 +103,6 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
       backgroundColor: c.background,
       appBar: SacTopBar(
           title: 'resources.title'.tr(),
-          centerTitle: true,
           onBack: () => context.go(RouteNames.homeDashboard),
           frosted: true),
       body: SacFrostedVeil(

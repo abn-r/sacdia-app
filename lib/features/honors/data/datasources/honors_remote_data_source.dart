@@ -137,12 +137,14 @@ abstract class HonorsRemoteDataSource {
   /// POST /users/:userId/honors/:honorId/requirements/:requirementId/evidence/upload
   /// Envía el archivo como multipart/form-data con el campo `file`.
   /// [mimeType] se pasa explícitamente para fijar el Content-Type del part.
+  /// [onProgress] recibe la fracción enviada (0–1) mientras sube.
   Future<RequirementEvidenceModel> uploadRequirementEvidence(
     String userId,
     int honorId,
     int requirementId,
     File file, {
     required String mimeType,
+    void Function(double progress)? onProgress,
   });
 
   /// Agrega un enlace como evidencia de un requisito.
@@ -790,6 +792,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     int requirementId,
     File file, {
     required String mimeType,
+    void Function(double progress)? onProgress,
   }) async {
     try {
       final formData = FormData.fromMap({
@@ -803,6 +806,11 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.users}/$userId/honors/$honorId/requirements/$requirementId/evidence/upload',
         data: formData,
+        onSendProgress: onProgress == null
+            ? null
+            : (sent, total) {
+                if (total > 0) onProgress(sent / total);
+              },
         options: Options(
           headers: {
             'Content-Type': 'multipart/form-data',

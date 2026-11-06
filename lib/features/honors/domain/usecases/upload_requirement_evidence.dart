@@ -45,6 +45,7 @@ class UploadRequirementEvidence
       params.requirementId,
       params.file,
       mimeType: mimeType,
+      onProgress: params.onProgress,
     );
   }
 }
@@ -58,10 +59,14 @@ class UploadRequirementEvidenceParams {
   /// Archivo local a subir (imagen, PDF, etc.).
   final File file;
 
+  /// Fracción enviada (0–1) mientras sube; null si no interesa.
+  final void Function(double progress)? onProgress;
+
   const UploadRequirementEvidenceParams({
     required this.userId,
     required this.honorId,
     required this.requirementId,
     required this.file,
+    this.onProgress,
   });
 }

@@ -74,8 +74,7 @@ class _FaqViewState extends ConsumerState<FaqView> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: c.background,
-      appBar: SacTopBar(
-          title: 'support.faq_title'.tr(), centerTitle: true, frosted: true),
+      appBar: SacTopBar(title: 'support.faq_title'.tr(), frosted: true),
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) => filteredAsync.when(

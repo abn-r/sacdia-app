@@ -165,7 +165,6 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
         backgroundColor: c.canvas,
         appBar: SacTopBar(
             title: 'classes.requirement_detail.title'.tr(),
-            centerTitle: true,
             backgroundColor: c.canvas,
             leading: SacPressable(
               listenOnly: true,

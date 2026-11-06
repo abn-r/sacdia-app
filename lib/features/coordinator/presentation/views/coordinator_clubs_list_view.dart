@@ -43,7 +43,6 @@ class CoordinatorClubsListView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.sac;
-    final accent = SacAccent.of(context);
     final rawAsync = ref.watch(coordinatorClubsRawProvider);
     final clubsAsync = ref.watch(coordinatorClubsProvider);
     final total = rawAsync.value?.length ?? 0;
@@ -60,11 +59,6 @@ class CoordinatorClubsListView extends ConsumerWidget {
                 .tr(namedArgs: {'count': '$total'})
             : null,
         frosted: true,
-        titleIcon: HugeIcon(
-          icon: HugeIcons.strokeRoundedBuilding04,
-          size: 22,
-          color: accent.color,
-        ),
       ),
       body: SacFrostedVeil(
         child: Builder(

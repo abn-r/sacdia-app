@@ -519,11 +519,6 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
           title: 'activities.create.title'.tr(),
           subtitle: 'activities.create.subtitle'.tr(),
           automaticallyImplyLeading: !isLoading,
-          titleIcon: HugeIcon(
-            icon: HugeIcons.strokeRoundedCalendarAdd01,
-            size: 22,
-            color: SacAccent.of(context).color,
-          ),
           frosted: true),
       body: SacFrostedVeil(
         child: Builder(

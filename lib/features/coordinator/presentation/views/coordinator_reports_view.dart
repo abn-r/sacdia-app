@@ -59,11 +59,6 @@ class CoordinatorReportsView extends ConsumerWidget {
       appBar: SacTopBar(
         title: 'coordinator.reports.title'.tr(),
         frosted: true,
-        titleIcon: HugeIcon(
-          icon: HugeIcons.strokeRoundedChartBarLine,
-          size: 22,
-          color: accent.color,
-        ),
       ),
       body: SacFrostedVeil(
         child: Builder(

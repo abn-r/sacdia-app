@@ -126,6 +126,7 @@ abstract class HonorsRepository {
     int requirementId,
     File file, {
     required String mimeType,
+    void Function(double progress)? onProgress,
   });
 
   /// Agrega un enlace como evidencia de un requisito.

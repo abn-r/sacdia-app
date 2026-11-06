@@ -66,10 +66,7 @@ class ContactView extends StatelessWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: c.background,
-      appBar: SacTopBar(
-          title: 'support.contact_title'.tr(),
-          centerTitle: true,
-          frosted: true),
+      appBar: SacTopBar(title: 'support.contact_title'.tr(), frosted: true),
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) => ListView(

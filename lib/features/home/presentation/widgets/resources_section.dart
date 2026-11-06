@@ -134,7 +134,6 @@ class _ResourcesSectionState extends State<ResourcesSection> {
       extendBodyBehindAppBar: true,
       appBar: SacTopBar(
           title: tr('home.resources.title'),
-          centerTitle: true,
           onBack: () => context.go(RouteNames.homeDashboard),
           frosted: true),
       body: SacFrostedVeil(

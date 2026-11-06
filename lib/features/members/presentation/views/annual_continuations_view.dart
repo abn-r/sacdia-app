@@ -41,11 +41,6 @@ class AnnualContinuationsView extends ConsumerWidget {
       appBar: SacTopBar(
           title: tr('members.continuations.title'),
           onBack: () => Navigator.of(context).maybePop(),
-          titleIcon: HugeIcon(
-            icon: HugeIcons.strokeRoundedUserCheck01,
-            size: 22,
-            color: SacAccent.of(context).color,
-          ),
           actions: [
             if (asyncState.isLoading)
               Padding(

@@ -11,7 +11,6 @@ import 'package:sacdia_app/core/providers/riverpod_aliases.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
-import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sacdia_app/features/evidence_folder/domain/entities/evidence_file.dart';
 import 'package:sacdia_app/features/evidence_folder/domain/entities/evidence_folder.dart';
@@ -21,7 +20,6 @@ import 'package:sacdia_app/features/evidence_folder/domain/entities/evidence_sec
 import 'package:sacdia_app/features/evidence_folder/presentation/providers/evidence_folder_providers.dart';
 import 'package:sacdia_app/features/evidence_folder/presentation/views/evidence_folder_view.dart';
 import 'package:sacdia_app/features/evidence_folder/presentation/views/evidence_section_detail_view.dart';
-import 'package:sacdia_app/features/evidence_folder/presentation/widgets/section_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../support/riverpod_test_support.dart';
 
@@ -91,33 +89,51 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('shows the folder hero and one count for every section status',
+  testWidgets('open folder: one summary with ready sections and a legend',
       (tester) async {
     await pumpEvidenceFolder(tester);
 
-    final hero = find.byKey(const ValueKey('evidence-folder-hero'));
-    expect(hero, findsOneWidget);
+    final summary = find.byKey(const ValueKey('evidence-folder-summary'));
+    expect(summary, findsOneWidget);
+    // 4 submitted/preapproved... ready = 2 + 3 + 4 = 9 of 15.
     expect(
       find.descendant(
-        of: hero,
-        matching: find.text('Carpeta 2026 · Avance'),
+        of: summary,
+        matching: find.textContaining('9 de 15', findRichText: true),
       ),
       findsOneWidget,
     );
     expect(
-      find.descendant(of: hero, matching: find.text('62%')),
+      find.descendant(
+        of: summary,
+        matching: find.textContaining('faltan 6', findRichText: true),
+      ),
       findsOneWidget,
     );
-    expect(
-      find.descendant(of: hero, matching: find.text('31 / 50 pts')),
-      findsOneWidget,
-    );
-
-    _expectStatusCount('evidence-status-validated', 4);
-    _expectStatusCount('evidence-status-preapproved', 3);
-    _expectStatusCount('evidence-status-submitted', 2);
-    _expectStatusCount('evidence-status-rejected', 5);
-    _expectStatusCount('evidence-status-pending', 1);
+    for (final label in [
+      '4 validadas',
+      '5 en revisión',
+      '5 por corregir',
+      '1 sin enviar',
+    ]) {
+      expect(
+          find.descendant(
+              of: summary,
+              matching: find.textContaining(label, findRichText: true)),
+          findsOneWidget);
+    }
+    expect(find.descendant(of: summary, matching: find.text('31 de 50')),
+        findsOneWidget);
+    // The bar paints: every segment is as tall as the track.
+    final bar = find.byKey(const ValueKey('evidence-folder-status-bar'));
+    final segments =
+        find.descendant(of: bar, matching: find.byType(ColoredBox));
+    expect(segments, findsNWidgets(4));
+    for (final segment in segments.evaluate()) {
+      expect(tester.getSize(find.byWidget(segment.widget)).height, 8);
+    }
+    // No search, no counters with zeros.
+    expect(find.byType(TextField), findsNothing);
   });
 
   testWidgets('reloads the folder when the user pulls to refresh',
@@ -135,184 +151,118 @@ void main() {
     final refresh = tester
         .state<RefreshIndicatorState>(find.byType(RefreshIndicator))
         .show();
-    await tester.pump();
     await tester.pumpAndSettle();
     await refresh;
 
     expect(requests, 2);
   });
 
-  testWidgets('scales the folder hero content down twenty percent',
-      (tester) async {
-    await pumpEvidenceFolder(tester);
-
-    final hero = find.byKey(const ValueKey('evidence-folder-hero'));
-    final heroProgress =
-        find.byKey(const ValueKey('evidence-folder-hero-progress'));
-    final percentage = find.descendant(of: hero, matching: find.text('62%'));
-
-    expect(tester.getSize(heroProgress), const Size(52, 52));
-    expect(tester.widget<Text>(percentage).style?.fontSize, 44);
-  });
-
-  testWidgets('keeps evidence status counters compact', (tester) async {
-    await pumpEvidenceFolder(tester);
-
-    for (final key in const [
-      'evidence-status-validated',
-      'evidence-status-preapproved',
-      'evidence-status-submitted',
-      'evidence-status-rejected',
-      'evidence-status-pending',
-    ]) {
-      final pill = find.byKey(ValueKey(key));
-      expect(pill, findsOneWidget);
-      expect(tester.getSize(pill).height, 34);
-    }
-  });
-
-  testWidgets('shows submitted folder state before the closed fallback',
-      (tester) async {
+  testWidgets('sent folder says it is waiting, not closed', (tester) async {
     await pumpEvidenceFolder(tester, folder: _submittedFolderFixture);
 
-    final hero = find.byKey(const ValueKey('evidence-folder-hero'));
-    expect(
-      find.descendant(of: hero, matching: find.text('Enviado')),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(of: hero, matching: find.text('Cerrada')),
-      findsNothing,
-    );
+    final summary = find.byKey(const ValueKey('evidence-folder-summary'));
+    expect(find.descendant(of: summary, matching: find.text('Carpeta enviada')),
+        findsOneWidget);
+    expect(find.text('Carpeta cerrada'), findsNothing);
   });
 
-  testWidgets('filters sections by name', (tester) async {
-    await pumpEvidenceFolder(tester);
+  testWidgets('closed folder says so once', (tester) async {
+    await pumpEvidenceFolder(tester, folder: _closedFolderFixture);
 
-    final searchField = find.byKey(const ValueKey('evidence-section-search'));
-    expect(searchField, findsOneWidget);
-    await tester.enterText(
-      searchField,
-      'Camporee Readiness',
-    );
-    await tester.pumpAndSettle();
+    expect(find.text('Carpeta cerrada'), findsOneWidget);
+  });
+
+  testWidgets('evaluated folder shows a single result and one plain list',
+      (tester) async {
+    await pumpEvidenceFolder(tester, folder: _evaluatedFolderFixture);
+
+    final result = find.byKey(const ValueKey('evidence-folder-summary-result'));
+    expect(result, findsOneWidget);
+    final resultText = tester
+        .widget<RichText>(
+            find.descendant(of: result, matching: find.byType(RichText)).first)
+        .text
+        .toPlainText();
+    expect(resultText, contains('3,700'));
+    expect(resultText, contains('de 4,000 pts'));
+    expect(find.text('93% · 2 de 2 secciones validadas'), findsOneWidget);
+    expect(find.byKey(const ValueKey('evidence-group-all')), findsOneWidget);
+    expect(
+        find.byKey(const ValueKey('evidence-folder-status-bar')), findsNothing);
+  });
+
+  testWidgets('groups sections by what the club has to do', (tester) async {
+    await pumpEvidenceFolder(tester, viewportHeight: 5000);
+
+    final attention = find.byKey(const ValueKey('evidence-group-attention'));
+    final review = find.byKey(const ValueKey('evidence-group-review'));
+    final validated = find.byKey(const ValueKey('evidence-group-validated'));
+    expect(attention, findsOneWidget);
+    expect(review, findsOneWidget);
+    expect(validated, findsOneWidget);
 
     expect(
       find.descendant(
-        of: find.byType(SectionCard),
-        matching: find.text('Camporee Readiness'),
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('Administration Records'), findsNothing);
-    expect(find.text('Community Service'), findsNothing);
-    expect(find.text('Leadership Training'), findsNothing);
-    expect(find.text('Health and Safety'), findsNothing);
-  });
-
-  testWidgets('adds space between the section search and visible results',
-      (tester) async {
-    await pumpEvidenceFolder(tester, viewportHeight: 5000);
-
-    final spacing = find.byKey(const ValueKey('evidence-sections-spacing'));
-    expect(spacing, findsOneWidget);
-    expect(tester.getSize(spacing).height, 8);
-  });
-
-  testWidgets('constrains the section search icon to a fixed size',
-      (tester) async {
-    await pumpEvidenceFolder(tester);
-
-    final searchField = find.byKey(const ValueKey('evidence-section-search'));
-    final searchIcon =
-        find.byKey(const ValueKey('evidence-section-search-icon'));
-
-    expect(searchIcon, findsOneWidget);
-    expect(tester.getSize(searchIcon), const Size(20, 20));
-
-    final field = tester.widget<TextField>(searchField);
-    final constraints = field.decoration?.prefixIconConstraints;
-    expect(constraints, isNotNull);
-    expect(constraints?.minWidth, 48);
-    expect(constraints?.maxWidth, 48);
-    expect(constraints?.minHeight, 48);
-    expect(constraints?.maxHeight, 48);
-  });
-
-  testWidgets('groups compact section rows and shows their summary',
-      (tester) async {
-    await pumpEvidenceFolder(tester, viewportHeight: 5000);
-
-    final groupedCard = find.byKey(const ValueKey('evidence-sections-card'));
-    final pendingRow =
-        find.byKey(const ValueKey('evidence-section-section-pending'));
-
-    expect(groupedCard, findsOneWidget);
-    for (final section in _evidenceFolderFixture.sections) {
-      expect(
-        find.descendant(
-          of: groupedCard,
-          matching: find.byKey(ValueKey('evidence-section-${section.id}')),
-        ),
-        findsOneWidget,
-      );
-    }
-    expect(
-      find.descendant(of: groupedCard, matching: pendingRow),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(
-        of: pendingRow,
-        matching: find.text('Administration Records'),
+        of: attention,
+        matching:
+            find.byKey(const ValueKey('evidence-section-section-pending')),
       ),
       findsOneWidget,
     );
     expect(
-      find.descendant(of: pendingRow, matching: find.text('Pendiente')),
+      find.descendant(
+        of: attention,
+        matching:
+            find.byKey(const ValueKey('evidence-section-section-rejected-1')),
+      ),
       findsOneWidget,
     );
     expect(
-      find.descendant(of: pendingRow, matching: find.text('0 / 10 pts')),
+      find.descendant(
+        of: validated,
+        matching:
+            find.byKey(const ValueKey('evidence-section-section-validated-1')),
+      ),
       findsOneWidget,
     );
-    expect(
-      find.descendant(of: pendingRow, matching: find.text('1 / 5 archivos')),
-      findsOneWidget,
-    );
+    // Rejected first inside «Por atender».
+    final rejectedY = tester
+        .getTopLeft(
+            find.byKey(const ValueKey('evidence-section-section-rejected-1')))
+        .dy;
+    final pendingY = tester
+        .getTopLeft(
+            find.byKey(const ValueKey('evidence-section-section-pending')))
+        .dy;
+    expect(rejectedY, lessThan(pendingY));
   });
 
-  testWidgets('uses a complete status circle independent of file count',
-      (tester) async {
+  testWidgets('a row says only what matters in its state', (tester) async {
     await pumpEvidenceFolder(tester, viewportHeight: 5000);
 
     final pendingRow =
         find.byKey(const ValueKey('evidence-section-section-pending'));
-    final statusIndicator = find.byKey(
-      const ValueKey('evidence-section-status-section-pending'),
-    );
-
-    expect(statusIndicator, findsOneWidget);
     expect(
       find.descendant(
-        of: pendingRow,
-        matching: find.byType(CircularProgressIndicator),
-      ),
-      findsNothing,
+          of: pendingRow, matching: find.text('1 de 5 archivos · 10 pts')),
+      findsOneWidget,
     );
-
-    final indicator = tester.widget<Container>(statusIndicator);
-    final decoration = indicator.decoration! as BoxDecoration;
-    final border = decoration.border! as Border;
-    expect(tester.getSize(statusIndicator), const Size(44, 44));
-    expect(decoration.shape, BoxShape.circle);
+    final rejectedRow =
+        find.byKey(const ValueKey('evidence-section-section-rejected-1'));
     expect(
-        border.top.color, const SacColors(Brightness.light).onWarningContainer);
-    expect(border.top.width, 3);
+      find.descendant(
+          of: rejectedRow, matching: find.text('«Falta la foto del grupo»')),
+      findsOneWidget,
+    );
+    final validatedRow =
+        find.byKey(const ValueKey('evidence-section-section-validated-1'));
+    expect(
+      find.descendant(of: validatedRow, matching: find.text('10 / 10 pts')),
+      findsOneWidget,
+    );
   });
 
-  testWidgets('opens section detail when a compact row is tapped',
-      (tester) async {
+  testWidgets('opens section detail when a row is tapped', (tester) async {
     await pumpEvidenceFolder(tester);
 
     final pendingRow =
@@ -345,14 +295,10 @@ void main() {
   testWidgets('hides send action when the folder is closed', (tester) async {
     await pumpEvidenceFolder(tester, folder: _closedFolderFixture);
 
-    final closedPendingRow =
-        find.byKey(const ValueKey('evidence-section-section-pending'));
-    expect(closedPendingRow, findsOneWidget);
+    expect(find.byKey(const ValueKey('evidence-section-section-pending')),
+        findsOneWidget);
     expect(
-      find.descendant(
-        of: closedPendingRow,
-        matching: find.text('Enviar a validación'),
-      ),
+      find.byKey(const ValueKey('evidence-section-submit-section-pending')),
       findsNothing,
     );
   });
@@ -361,13 +307,8 @@ void main() {
       (tester) async {
     await pumpEvidenceFolder(tester);
 
-    final pendingRow =
-        find.byKey(const ValueKey('evidence-section-section-pending'));
-    final sendAction = find.descendant(
-      of: pendingRow,
-      matching: find.byKey(
-        const ValueKey('evidence-section-submit-section-pending'),
-      ),
+    final sendAction = find.byKey(
+      const ValueKey('evidence-section-submit-section-pending'),
     );
     expect(sendAction, findsOneWidget);
 
@@ -378,8 +319,7 @@ void main() {
     expect(find.byType(EvidenceSectionDetailView), findsNothing);
   });
 
-  testWidgets('compact rows honor large text without layout overflow',
-      (tester) async {
+  testWidgets('rows honor large text without layout overflow', (tester) async {
     tester.platformDispatcher.textScaleFactorTestValue = 2;
     addTearDown(
       tester.platformDispatcher.clearTextScaleFactorTestValue,
@@ -391,105 +331,24 @@ void main() {
       viewportHeight: 844,
     );
 
-    final groupedCard = find.byKey(const ValueKey('evidence-sections-card'));
+    final pendingRow =
+        find.byKey(const ValueKey('evidence-section-section-pending'));
     await tester.scrollUntilVisible(
-      groupedCard,
+      pendingRow,
       240,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
 
-    final pendingRow =
-        find.byKey(const ValueKey('evidence-section-section-pending'));
-    final pendingTitle = find.descendant(
-      of: pendingRow,
-      matching: find.text('Administration Records'),
-    );
     final sendAction = find.descendant(
       of: pendingRow,
       matching: find.byKey(
         const ValueKey('evidence-section-submit-section-pending'),
       ),
     );
-
-    expect(groupedCard, findsOneWidget);
-    expect(pendingRow, findsOneWidget);
     expect(sendAction, findsOneWidget);
     expect(tester.getSize(sendAction).height, greaterThanOrEqualTo(48));
-    expect(
-      MediaQuery.textScalerOf(tester.element(pendingTitle)).scale(10),
-      20,
-    );
-    expect(tester.widget<Text>(pendingTitle).textScaler, isNull);
     expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('filters sections by description without matching case',
-      (tester) async {
-    await pumpEvidenceFolder(tester);
-
-    final searchField = find.byKey(const ValueKey('evidence-section-search'));
-    expect(searchField, findsOneWidget);
-    await tester.enterText(
-      searchField,
-      'mission archive',
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('Community Service'), findsOneWidget);
-    expect(find.text('Administration Records'), findsNothing);
-    expect(find.text('Camporee Readiness'), findsNothing);
-    expect(find.text('Leadership Training'), findsNothing);
-    expect(find.text('Health and Safety'), findsNothing);
-  });
-
-  testWidgets('clears the query and restores the complete section list',
-      (tester) async {
-    await pumpEvidenceFolder(tester, viewportHeight: 5000);
-
-    final searchField = find.byKey(const ValueKey('evidence-section-search'));
-    await tester.enterText(searchField, 'Administration Records');
-    await tester.pumpAndSettle();
-    expect(find.byType(SectionCard), findsOneWidget);
-
-    final clearAction =
-        find.byKey(const ValueKey('evidence-section-search-clear'));
-    expect(clearAction, findsOneWidget);
-    expect(tester.getSize(clearAction).width, greaterThanOrEqualTo(48));
-    expect(tester.getSize(clearAction).height, greaterThanOrEqualTo(48));
-
-    await tester.tap(clearAction);
-    await tester.pump();
-
-    final field = tester.widget<TextField>(searchField);
-    expect(field.controller?.text, isEmpty);
-    expect(
-      find.byType(SectionCard),
-      findsNWidgets(_evidenceFolderFixture.sections.length),
-    );
-    await tester.pumpAndSettle();
-  });
-
-  testWidgets('shows a no-results state when no section matches',
-      (tester) async {
-    await pumpEvidenceFolder(tester);
-
-    final searchField = find.byKey(const ValueKey('evidence-section-search'));
-    expect(searchField, findsOneWidget);
-    await tester.enterText(
-      searchField,
-      'missing section',
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('No se encontraron resultados'), findsOneWidget);
-    expect(
-      find.text('Intenta con otro nombre o descripción.'),
-      findsOneWidget,
-    );
-    for (final section in _evidenceFolderFixture.sections) {
-      expect(find.text(section.name), findsNothing);
-    }
   });
 
   group('no folder yet', () {
@@ -623,15 +482,6 @@ class _TestAssetLoader extends AssetLoader {
       translations;
 }
 
-void _expectStatusCount(String key, int count) {
-  final statusPill = find.byKey(ValueKey(key));
-  expect(statusPill, findsOneWidget);
-  expect(
-    find.descendant(of: statusPill, matching: find.text('$count')),
-    findsOneWidget,
-  );
-}
-
 final _evidenceFolderFixture = EvidenceFolder(
   folderId: 'folder-1',
   id: 'template-1',
@@ -709,6 +559,38 @@ const _submittedFolderFixture = EvidenceFolder(
   sections: [],
 );
 
+final _evaluatedFolderFixture = EvidenceFolder(
+  folderId: 'folder-evaluated',
+  id: 'template-evaluated',
+  name: 'Carpeta evaluada',
+  isOpen: false,
+  totalPoints: 4000,
+  totalPercentage: 100,
+  totalEarnedPoints: 3700,
+  totalMaxPoints: 4000,
+  progressPercentage: 92.5,
+  evaluatedAt: DateTime.utc(2026, 7, 30),
+  status: 'evaluated',
+  sections: const [
+    EvidenceSection(
+      id: 'section-a',
+      name: 'Servicio a la comunidad',
+      pointValue: 2000,
+      percentage: 50,
+      status: EvidenceSectionStatus.validated,
+      earnedPoints: 2000,
+    ),
+    EvidenceSection(
+      id: 'section-b',
+      name: 'Salidas recreativas',
+      pointValue: 2000,
+      percentage: 50,
+      status: EvidenceSectionStatus.validated,
+      earnedPoints: 1700,
+    ),
+  ],
+);
+
 final _closedFolderFixture = EvidenceFolder(
   folderId: 'folder-closed',
   id: 'template-closed',
@@ -741,6 +623,9 @@ List<EvidenceSection> _sectionsForStatus({
       percentage: 20,
       status: status,
       earnedPoints: status == EvidenceSectionStatus.validated ? 10 : 0,
+      evaluationNotes: status == EvidenceSectionStatus.rejected && index == 0
+          ? 'Falta la foto del grupo'
+          : null,
     ),
   );
 }

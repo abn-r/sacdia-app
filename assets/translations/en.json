@@ -3410,7 +3410,90 @@
     "points_ratio": "{earned} / {max} pts",
     "points_value": "{points} pts",
     "files_count": "{count} files",
-    "files_ratio": "{current} / {max} files"
+    "files_ratio": "{current} / {max} files",
+    "state": {
+      "pending": "Not sent",
+      "rejected": "Needs changes",
+      "submitted": "Sent",
+      "preapproved": "Approved by the local field",
+      "validated": "Validated"
+    },
+    "summary": {
+      "ready_label": "Sections ready",
+      "ready_count": "{ready} of {total}",
+      "missing": {
+        "one": "1 to go",
+        "other": "{} to go"
+      },
+      "evaluating_title": "Under evaluation",
+      "submitted_title": "Folder sent",
+      "evaluating_body": "The local field is reviewing the sections. We'll let you know when it's done.",
+      "closed_title": "Folder closed",
+      "closed_body": "Evidence can't be uploaded or sent anymore. To change something, contact the local field.",
+      "evaluated_title": "Folder evaluated",
+      "evaluated_on": "Folder evaluated · {date}",
+      "of_points": "of {max} pts",
+      "evaluated_detail": "{percent}% · {validated} of {total} sections validated",
+      "points_label": "Validated points",
+      "points_value": "{earned} of {max}",
+      "legend_validated": {
+        "one": "1 validated",
+        "other": "{} validated"
+      },
+      "legend_review": {
+        "one": "1 in review",
+        "other": "{} in review"
+      },
+      "legend_rejected": {
+        "one": "1 needs changes",
+        "other": "{} need changes"
+      },
+      "legend_pending": {
+        "one": "1 not sent",
+        "other": "{} not sent"
+      }
+    },
+    "groups": {
+      "all": "Sections",
+      "attention": "Needs attention",
+      "review": "In review",
+      "validated": "Validated"
+    },
+    "row": {
+      "rejected": "Returned for changes",
+      "no_files": "No files · {points} pts",
+      "files": "{count} of {max} files · {points} pts",
+      "submitted_on": "Sent on {date}",
+      "preapproved": "Approved by the local field · union pending",
+      "points": "{earned} / {max} pts",
+      "see_note": "see note",
+      "send": "Send"
+    },
+    "detail": {
+      "subtitle": "Worth {points} pts · up to {max} files",
+      "files": "Files",
+      "files_count": "{count} of {max}",
+      "file_notes": "Comments per file",
+      "reviewer_note": "Note from the local field",
+      "evaluator_note": "Evaluator's note"
+    },
+    "panel": {
+      "pending_hint": "Upload the files and send it when it is ready.",
+      "folder_closed": "The folder is closed.",
+      "waiting_local_field": "Waiting for the local field review.",
+      "sent_on": "Sent on {date} · waiting for the local field review",
+      "waiting_union": "Waiting for the union validation.",
+      "validated_on": "Validated on {date}",
+      "returned": "Returned for changes",
+      "returned_on": "Returned on {date}",
+      "fix_hint": "make the changes and send it again",
+      "step_files": "Files",
+      "step_sent": "Sent",
+      "step_local_field": "Local field",
+      "step_union": "Union",
+      "step_semantics": "Step {current} of {total}: {label}",
+      "fix_full": "Make the changes and send it again."
+    }
   },
   "investiture": {
     "status": {
@@ -4090,11 +4173,12 @@
     "discard_changes_body": "Do you want to discard the changes made?",
     "discard": "Discard",
     "update_success": "Club information updated",
-    "my_club_title": "MY CLUB",
+    "my_club_title": "My club",
     "save_changes": "Save changes",
     "section": {
       "general_info": "General information",
-      "contact": "Contact"
+      "contact": "Contact",
+      "location": "Location"
     },
     "name_label": "Club name",
     "name_hint": "Ex: Club Falcons",
@@ -4125,6 +4209,28 @@
       "invalid_email": "Enter a valid email",
       "invalid_url": "Enter a valid URL (e.g: https://...)",
       "invalid_url_short": "Enter a valid URL"
+    },
+    "edit": {
+      "title": "Edit club",
+      "keep_editing": "Keep editing",
+      "logo_helper": "Without a logo, the club type logo is shown."
+    },
+    "profile": {
+      "club_of": "{type} club",
+      "missing_title": {
+        "one": "1 club detail missing",
+        "other": "{} club details missing"
+      },
+      "missing_body": "Members only see the details you register.",
+      "complete": "Complete",
+      "not_registered": "Not registered",
+      "call": "Call",
+      "write": "Send email",
+      "open_site": "Open website",
+      "open_failed": "Couldn't open it. Try again.",
+      "directions": "Get directions",
+      "pinned_on_map": "Pinned on the map",
+      "no_public_data": "The club hasn't registered a location or contact details yet."
     }
   },
   "role_assignments": {
@@ -4412,7 +4518,27 @@
       "upload_all_failed": "All files failed",
       "upload_all_success": "All files uploaded",
       "upload_partial": "{completed} of {total} uploaded, {failed} failed",
-      "uploading_progress": "Uploading {current} of {total} files..."
+      "uploading_progress": "Uploading {current} of {total} files...",
+      "remove_file": "Remove file",
+      "uploading_title": "Uploading {current} of {total}",
+      "uploading_hint": "Don't close the app while they upload.",
+      "done_title": {
+        "one": "1 file uploaded",
+        "other": "{} files uploaded"
+      },
+      "done_body": "They are saved. Continue to send them for review.",
+      "failed_body": "Check your connection and try again.",
+      "partial_title": {
+        "one": "1 file didn't upload",
+        "other": "{} files didn't upload"
+      },
+      "partial_body": "The rest are saved. Retry the ones that failed.",
+      "show_all": "See all ({count})",
+      "show_stack": "See less",
+      "waiting": "Waiting",
+      "uploaded": "Uploaded",
+      "upload_failed": "Didn't upload",
+      "saving": "Saving…"
     },
     "image_viewer": {
       "error_load": "Could not load the image"

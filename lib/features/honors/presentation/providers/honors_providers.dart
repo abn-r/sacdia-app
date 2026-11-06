@@ -502,6 +502,7 @@ class RequirementEvidenceActionsNotifier extends AsyncNotifier<void> {
     required int honorId,
     required int requirementId,
     required File file,
+    void Function(double progress)? onProgress,
   }) =>
       // Callers only `ref.read` this notifier: keep it alive until the upload
       // settles (see keepAliveDuring).
@@ -514,6 +515,7 @@ class RequirementEvidenceActionsNotifier extends AsyncNotifier<void> {
             honorId: honorId,
             requirementId: requirementId,
             file: file,
+            onProgress: onProgress,
           ),
         );
 
