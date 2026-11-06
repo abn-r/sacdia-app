@@ -1,11 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/errors/exceptions.dart';
-import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -17,16 +17,15 @@ import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../widgets/evidence_folder_loading_skeleton.dart';
-import '../widgets/evidence_folder_overview.dart';
+import '../widgets/evidence_folder_summary.dart';
 import '../../domain/entities/evidence_folder.dart';
 import '../../domain/entities/evidence_section.dart';
 import '../providers/evidence_folder_providers.dart';
-import '../widgets/folder_closed_banner.dart';
-import '../widgets/section_card.dart';
+import '../widgets/section_row.dart';
+import '../widgets/section_status_style.dart';
 import 'evidence_section_detail_view.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista principal de la Carpeta Anual de Evidencias.
 ///
@@ -120,39 +119,6 @@ class _FolderBody extends ConsumerStatefulWidget {
 class _FolderBodyState extends ConsumerState<_FolderBody> {
   /// Tracks which sectionId is currently being submitted (null = none).
   String? _submittingSectionId;
-  final TextEditingController _searchController = TextEditingController();
-  final FocusNode _searchFocusNode = FocusNode();
-  String _query = '';
-
-  List<EvidenceSection> get _filteredSections {
-    final normalizedQuery = _query.trim().toLowerCase();
-    if (normalizedQuery.isEmpty) return widget.folder.sections;
-
-    return widget.folder.sections.where((section) {
-      final nameMatches = section.name.toLowerCase().contains(normalizedQuery);
-      final descriptionMatches =
-          section.description?.toLowerCase().contains(normalizedQuery) ?? false;
-      return nameMatches || descriptionMatches;
-    }).toList(growable: false);
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _searchFocusNode.dispose();
-    super.dispose();
-  }
-
-  void _handleQueryChanged(String query) {
-    if (query == _query) return;
-    setState(() => _query = query);
-  }
-
-  void _clearQuery() {
-    _searchController.clear();
-    setState(() => _query = '');
-    _searchFocusNode.requestFocus();
-  }
 
   Future<void> _handleSectionSubmit(EvidenceSection section) async {
     final confirmed = await SacDialog.show(
@@ -179,33 +145,20 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
     setState(() => _submittingSectionId = null);
 
     if (success) {
+      HapticFeedback.mediumImpact();
       SacSnackBar.show(
         context,
         'evidence_folder.submit_success'.tr(namedArgs: {
           'sectionName': section.name,
         }),
         isSuccess: true,
-        leading: const HugeIcon(
-          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-          color: Colors.white,
-          size: 18,
-        ),
       );
     } else {
       final errorMsg = ref
           .read(evidenceSectionNotifierProvider(widget.clubSectionId))
           .errorMessage;
       if (errorMsg != null && errorMsg.isNotEmpty) {
-        SacSnackBar.show(
-          context,
-          errorMsg,
-          isError: true,
-          leading: const HugeIcon(
-            icon: HugeIcons.strokeRoundedAlert02,
-            color: Colors.white,
-            size: 18,
-          ),
-        );
+        SacSnackBar.show(context, errorMsg, isError: true);
       }
     }
   }
@@ -218,16 +171,59 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
           section: section,
           folderIsOpen: widget.folder.isOpen,
           clubSectionId: widget.clubSectionId,
+          requiresUnion: widget.folder.requiresUnionConfirmation,
         ),
       ),
     );
   }
 
+  Widget _row(EvidenceSection section) {
+    final folder = widget.folder;
+    return EvidenceSectionRow(
+      section: section,
+      onTap: () => _openSectionDetail(section),
+      onSubmit: folder.isOpen && section.canSubmit
+          ? () => _handleSectionSubmit(section)
+          : null,
+      isSubmitting: _submittingSectionId == section.id,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
     final folder = widget.folder;
-    final filteredSections = _filteredSections;
+    final sections = folder.sections;
+
+    // What needs the club first: rejected, then not sent; then what waits on
+    // someone else; validated last. An evaluated folder is one plain list.
+    final groups = <(String, String, List<EvidenceSection>)>[];
+    if (folder.isEvaluated) {
+      groups.add(('all', 'evidence_folder.groups.all'.tr(), sections));
+    } else {
+      final attention = [
+        ...sections.where((s) => s.status == EvidenceSectionStatus.rejected),
+        ...sections.where((s) => s.status == EvidenceSectionStatus.pending),
+      ];
+      final review = [
+        ...sections
+            .where((s) => s.status == EvidenceSectionStatus.preapprovedLf),
+        ...sections.where((s) => s.status == EvidenceSectionStatus.submitted),
+      ];
+      final validated = sections
+          .where((s) => s.status.group == EvidenceStatusGroup.validated)
+          .toList();
+      if (attention.isNotEmpty) {
+        groups.add(
+            ('attention', 'evidence_folder.groups.attention'.tr(), attention));
+      }
+      if (review.isNotEmpty) {
+        groups.add(('review', 'evidence_folder.groups.review'.tr(), review));
+      }
+      if (validated.isNotEmpty) {
+        groups.add(
+            ('validated', 'evidence_folder.groups.validated'.tr(), validated));
+      }
+    }
 
     return RefreshIndicator(
       color: SacAccent.of(context).color,
@@ -244,175 +240,24 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
           SliverToBoxAdapter(
             child: SizedBox(height: SacTopBar.frostedInset(context)),
           ),
-
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Banner evaluado / cerrado
-                if (!folder.isOpen || folder.isEvaluated)
-                  FolderClosedBanner(folder: folder),
-
-                // Banner en evaluación (carpeta abierta pero bajo evaluación)
-                if (folder.isOpen && folder.isUnderEvaluation)
-                  _UnderEvaluationBanner(folder: folder),
-
-                EvidenceFolderHero(folder: folder),
-
-                EvidenceStatusPills(sections: folder.sections),
-
-                const SizedBox(height: 8),
-
-                // Sections header
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  child: Text(
-                    'evidence_folder.sections_title'.tr(),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: c.text,
-                        ),
-                  ),
-                ),
-
-                EvidenceSectionSearchField(
-                  controller: _searchController,
-                  focusNode: _searchFocusNode,
-                  query: _query,
-                  onChanged: _handleQueryChanged,
-                  onClear: _clearQuery,
-                ),
-                if (filteredSections.isNotEmpty)
-                  const SizedBox(
-                    key: ValueKey('evidence-sections-spacing'),
-                    height: 8,
-                  ),
-              ],
-            ),
-          ),
-
-          // Compact sections grouped inside one paper container.
-          if (filteredSections.isNotEmpty)
+          SliverToBoxAdapter(child: EvidenceFolderSummary(folder: folder)),
+          if (sections.isEmpty)
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Material(
-                  key: const ValueKey('evidence-sections-card'),
-                  color: c.surface,
-                  clipBehavior: Clip.antiAlias,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-                    side: BorderSide(color: c.border),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (var index = 0;
-                          index < filteredSections.length;
-                          index++) ...[
-                        if (index > 0)
-                          Divider(
-                            height: 1,
-                            thickness: 1,
-                            color: c.divider,
-                          ),
-                        SectionCard(
-                          section: filteredSections[index],
-                          folderIsOpen: folder.isOpen,
-                          onTap: () =>
-                              _openSectionDetail(filteredSections[index]),
-                          onSubmit:
-                              folder.isOpen && filteredSections[index].canSubmit
-                                  ? () => _handleSectionSubmit(
-                                        filteredSections[index],
-                                      )
-                                  : null,
-                          isSubmitting: _submittingSectionId ==
-                              filteredSections[index].id,
-                        ),
-                      ],
-                    ],
-                  ),
+              child: SacEmptyState.inline(
+                title: 'evidence_folder.empty_sections'.tr(),
+                icon: HugeIcons.strokeRoundedFolderOpen,
+              ),
+            )
+          else
+            for (final (id, label, items) in groups)
+              SliverToBoxAdapter(
+                child: EvidenceSectionGroup(
+                  key: ValueKey('evidence-group-$id'),
+                  label: label,
+                  children: [for (final s in items) _row(s)],
                 ),
               ),
-            ),
-
-          SliverToBoxAdapter(
-            child: folder.sections.isEmpty
-                ? SacEmptyState.inline(
-                    title: 'evidence_folder.empty_sections'.tr(),
-                    icon: HugeIcons.strokeRoundedFolderOpen,
-                  )
-                : _query.trim().isNotEmpty && filteredSections.isEmpty
-                    ? const EvidenceSearchEmpty()
-                    : const SizedBox(height: 32),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Banner bajo evaluación ────────────────────────────────────────────────────
-
-class _UnderEvaluationBanner extends StatelessWidget {
-  final EvidenceFolder folder;
-
-  const _UnderEvaluationBanner({required this.folder});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.observedBg,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        border: Border.all(
-          color: AppColors.observedColor.withValues(alpha: 0.5),
-          width: 1.5,
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.observedColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-            ),
-            child: Center(
-              child: HugeIcon(
-                icon: HugeIcons.strokeRoundedAnalytics01,
-                size: 22,
-                color: AppColors.observedDark,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'evidence_folder.evaluation_banner.title'.tr(),
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.observedDark,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'evidence_folder.evaluation_banner.description'.tr(),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.observedDark,
-                        height: 1.45,
-                      ),
-                ),
-              ],
-            ),
-          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 40)),
         ],
       ),
     );
@@ -541,7 +386,7 @@ class _NoFolderBody extends ConsumerWidget {
                 Text(
                   creationState.errorMessage!,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.error,
+                        color: c.onErrorContainer,
                         height: 1.4,
                       ),
                   textAlign: TextAlign.center,

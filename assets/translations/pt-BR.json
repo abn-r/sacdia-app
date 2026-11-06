@@ -3409,7 +3409,90 @@
     "points_ratio": "{earned} / {max} pts",
     "points_value": "{points} pts",
     "files_count": "{count} arquivos",
-    "files_ratio": "{current} / {max} arquivos"
+    "files_ratio": "{current} / {max} arquivos",
+    "state": {
+      "pending": "Não enviada",
+      "rejected": "Para corrigir",
+      "submitted": "Enviada",
+      "preapproved": "Aprovada pelo campo local",
+      "validated": "Validada"
+    },
+    "summary": {
+      "ready_label": "Seções prontas",
+      "ready_count": "{ready} de {total}",
+      "missing": {
+        "one": "falta 1",
+        "other": "faltam {}"
+      },
+      "evaluating_title": "Em avaliação",
+      "submitted_title": "Pasta enviada",
+      "evaluating_body": "O campo local está revisando as seções. Avisaremos quando terminar.",
+      "closed_title": "Pasta fechada",
+      "closed_body": "Não é mais possível enviar evidências. Para mudar algo, fale com o campo local.",
+      "evaluated_title": "Pasta avaliada",
+      "evaluated_on": "Pasta avaliada · {date}",
+      "of_points": "de {max} pts",
+      "evaluated_detail": "{percent}% · {validated} de {total} seções validadas",
+      "points_label": "Pontos validados",
+      "points_value": "{earned} de {max}",
+      "legend_validated": {
+        "one": "1 validada",
+        "other": "{} validadas"
+      },
+      "legend_review": {
+        "one": "1 em revisão",
+        "other": "{} em revisão"
+      },
+      "legend_rejected": {
+        "one": "1 para corrigir",
+        "other": "{} para corrigir"
+      },
+      "legend_pending": {
+        "one": "1 não enviada",
+        "other": "{} não enviadas"
+      }
+    },
+    "groups": {
+      "all": "Seções",
+      "attention": "Para fazer",
+      "review": "Em revisão",
+      "validated": "Validadas"
+    },
+    "row": {
+      "rejected": "Devolvida para correção",
+      "no_files": "Sem arquivos · {points} pts",
+      "files": "{count} de {max} arquivos · {points} pts",
+      "submitted_on": "Enviada em {date}",
+      "preapproved": "Aprovada pelo campo local · falta a união",
+      "points": "{earned} / {max} pts",
+      "see_note": "ver nota",
+      "send": "Enviar"
+    },
+    "detail": {
+      "subtitle": "Vale {points} pts · até {max} arquivos",
+      "files": "Arquivos",
+      "files_count": "{count} de {max}",
+      "file_notes": "Comentários por arquivo",
+      "reviewer_note": "Nota do campo local",
+      "evaluator_note": "Nota do avaliador"
+    },
+    "panel": {
+      "pending_hint": "Envie os arquivos e mande quando estiver pronta.",
+      "folder_closed": "A pasta está fechada.",
+      "waiting_local_field": "Aguardando a revisão do campo local.",
+      "sent_on": "Enviada em {date} · aguardando o campo local",
+      "waiting_union": "Aguardando a validação da união.",
+      "validated_on": "Validada em {date}",
+      "returned": "Devolvida para correção",
+      "returned_on": "Devolvida em {date}",
+      "fix_hint": "corrija e envie de novo",
+      "step_files": "Arquivos",
+      "step_sent": "Enviada",
+      "step_local_field": "Campo local",
+      "step_union": "União",
+      "step_semantics": "Etapa {current} de {total}: {label}",
+      "fix_full": "Corrija e envie de novo."
+    }
   },
   "investiture": {
     "status": {

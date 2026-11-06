@@ -2,23 +2,19 @@ import 'dart:ui' as ui;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/utils/icon_helper.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
 import '../../../../core/widgets/evidence_staging/staged_file.dart';
 import '../../../../core/widgets/sac_dialog.dart';
-import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../domain/entities/evidence_file.dart';
 import '../../domain/entities/evidence_section.dart';
 import '../providers/evidence_folder_providers.dart';
-import '../sheets/evidence_status_history_sheet.dart';
-import '../widgets/section_status_badge.dart';
+import '../widgets/evidence_folder_summary.dart';
+import '../widgets/section_status_panel.dart';
 
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
@@ -42,7 +38,11 @@ class EvidenceSectionDetailView extends ConsumerStatefulWidget {
     required this.section,
     required this.folderIsOpen,
     required this.clubSectionId,
+    this.requiresUnion = false,
   });
+
+  /// `requires_union_confirmation` of the folder: adds the union step.
+  final bool requiresUnion;
 
   @override
   ConsumerState<EvidenceSectionDetailView> createState() =>
@@ -99,13 +99,14 @@ class _EvidenceSectionDetailViewState
         extendBodyBehindAppBar: true,
         backgroundColor: c.background,
         appBar: SacTopBar(
-            title: 'evidence_folder.section_title'.tr(),
-            backgroundColor: c.background,
-            actions: [
-              SectionStatusBadge(status: widget.section.status),
-              const SizedBox(width: 16),
-            ],
-            frosted: true),
+          title: widget.section.name,
+          subtitle: 'evidence_folder.detail.subtitle'.tr(namedArgs: {
+            'points': formatEvidencePoints(context, widget.section.pointValue),
+            'max': '${widget.section.maxFiles}',
+          }),
+          backgroundColor: c.background,
+          frosted: true,
+        ),
         bottomNavigationBar: canModify
             ? EvidenceStagingActionBar(
                 onPickImages: () {
@@ -134,107 +135,36 @@ class _EvidenceSectionDetailViewState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Bloque de título — igual al patrón de clases
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'evidence_folder.section_detail_label'.tr(),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelSmall
-                                  ?.copyWith(
-                                    color: c.textSecondary,
-                                    letterSpacing: 0.8,
-                                  ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              widget.section.name,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: c.text,
-                                    height: 1.25,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Descripción + métricas
-                      _SectionMetaCard(section: widget.section),
-
-                      const SizedBox(height: 16),
-
-                      // Estado actual del sección (chip visual, solo lectura)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                        child: Text(
-                          'evidence_folder.section_status_label'.tr(),
-                          style:
-                              Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    color: c.textSecondary,
-                                    letterSpacing: 0.8,
-                                  ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: _EvidenceStatusChip(
-                          status: widget.section.status,
-                          onTap: () => showEvidenceStatusHistorySheet(
-                            context,
-                            section: widget.section,
-                          ),
-                        ),
-                      ),
-
-                      // Resultado de evaluación (solo lectura, si existe)
-                      if (widget.section.status ==
-                              EvidenceSectionStatus.validated ||
-                          widget.section.lfApproverName != null ||
-                          widget.section.unionApproverName != null) ...[
-                        const SizedBox(height: 24),
+                      if ((widget.section.description ?? '').trim().isNotEmpty)
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
                           child: Text(
-                            'evidence_folder.evaluation_result_title'.tr(),
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: c.text,
-                                ),
+                            widget.section.description!.trim(),
+                            style: TextStyle(
+                              fontSize: SacFontSize.titleMedium,
+                              height: 1.45,
+                              color: c.text,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: _EvaluationResultCard(section: widget.section),
-                        ),
-                      ],
-
-                      const SizedBox(height: 24),
-
-                      // Archivos de evidencia header
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                        child: EvidenceSectionStatusPanel(
+                          section: widget.section,
+                          folderIsOpen: widget.folderIsOpen,
+                          requiresUnion: widget.requiresUnion,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
                         child: Text(
-                          'evidence_folder.evidence_files_title'.tr(),
-                          style:
-                              Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: c.text,
-                                  ),
+                          'evidence_folder.detail.files'.tr().toUpperCase(),
+                          style: TextStyle(
+                            fontSize: SacFontSize.labelSmall,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.8,
+                            color: c.textTertiary,
+                          ),
                         ),
                       ),
 
@@ -312,11 +242,6 @@ class _EvidenceSectionDetailViewState
                               },
                             ),
                             isSuccess: true,
-                            leading: const HugeIcon(
-                              icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                              color: Colors.white,
-                              size: 18,
-                            ),
                           );
                           Navigator.pop(context);
                         },
@@ -334,11 +259,11 @@ class _EvidenceSectionDetailViewState
                   ),
                 ),
 
-                // Loading overlay
+                // Block taps while deleting or sending; the action bar
+                // shows the progress. No dimming over the whole screen.
                 if (isLoading)
-                  Container(
-                    color: Colors.black.withValues(alpha: 0.35),
-                    child: const Center(child: SacLoading()),
+                  const Positioned.fill(
+                    child: AbsorbPointer(child: SizedBox.expand()),
                   ),
               ],
             ),
@@ -365,429 +290,6 @@ class _EvidenceSectionDetailViewState
       context,
       message,
       isError: true,
-      leading: const HugeIcon(
-        icon: HugeIcons.strokeRoundedAlert02,
-        color: Colors.white,
-        size: 18,
-      ),
-    );
-  }
-}
-
-// ── Meta card ─────────────────────────────────────────────────────────────────
-
-class _SectionMetaCard extends StatelessWidget {
-  final EvidenceSection section;
-
-  const _SectionMetaCard({required this.section});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: c.surfaceVariant,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        border: Border.all(color: c.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (section.description != null &&
-              section.description!.isNotEmpty) ...[
-            Text(
-              section.description!,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: c.textSecondary,
-                    height: 1.5,
-                  ),
-            ),
-            const SizedBox(height: 14),
-            Divider(color: c.divider),
-            const SizedBox(height: 10),
-          ],
-          Row(
-            children: [
-              Expanded(
-                child: _MetaItem(
-                  icon: HugeIcons.strokeRoundedStar,
-                  label: 'evidence_folder.points_label'.tr(),
-                  value: 'evidence_folder.points_value'.tr(
-                    namedArgs: {'points': '${section.pointValue}'},
-                  ),
-                  color: AppColors.accent,
-                  context: context,
-                ),
-              ),
-              const SizedBox(width: 24),
-              Expanded(
-                child: _MetaItem(
-                  icon: HugeIcons.strokeRoundedFiles01,
-                  label: 'evidence_folder.limit_label'.tr(),
-                  value: 'evidence_folder.files_count'.tr(
-                    namedArgs: {'count': '${section.maxFiles}'},
-                  ),
-                  color: c.textSecondary,
-                  context: context,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MetaItem extends StatelessWidget {
-  final List<List<dynamic>> icon;
-  final String label;
-  final String value;
-  final Color color;
-  final BuildContext context;
-
-  const _MetaItem({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
-    required this.context,
-  });
-
-  @override
-  Widget build(BuildContext _) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            HugeIcon(icon: icon, size: 13, color: color),
-            const SizedBox(width: 4),
-            Expanded(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: SacFontSize.bodyMedium,
-                  fontWeight: FontWeight.w500,
-                  color: context.sac.textTertiary,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 3),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: SacFontSize.headlineSmall,
-            fontWeight: FontWeight.w700,
-            color: color,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ── Chip de estado actual (tappable) ─────────────────────────────────────────
-
-/// Chip compacto que muestra el estado actual de la sección de evidencias.
-///
-/// Al tocarlo abre el [EvidenceStatusHistorySheet] con el historial de
-/// transiciones de estado disponibles en la entidad.
-class _EvidenceStatusChip extends StatelessWidget {
-  final EvidenceSectionStatus status;
-  final VoidCallback onTap;
-
-  const _EvidenceStatusChip({required this.status, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final bgColor = _bgColor(c);
-    final borderColor = _borderColor(c);
-    final textColor = _textColor(c);
-
-    return Semantics(
-      button: true,
-      label: 'evidence_folder.status_semantics'.tr(
-        namedArgs: {'label': _label},
-      ),
-      child: SacInkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-            border: Border.all(color: borderColor, width: 1),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              HugeIcon(icon: _icon, size: 15, color: textColor),
-              const SizedBox(width: 8),
-              Text(
-                _label,
-                style: TextStyle(
-                  fontSize: SacFontSize.bodyMedium,
-                  fontWeight: FontWeight.w600,
-                  color: textColor,
-                ),
-              ),
-              const Spacer(),
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedInformationCircle,
-                size: 15,
-                color: c.textTertiary,
-              ),
-              const SizedBox(width: 2),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  String get _label {
-    switch (status) {
-      case EvidenceSectionStatus.pending:
-        return 'evidence_folder.status.pending'.tr();
-      case EvidenceSectionStatus.submitted:
-        return 'evidence_folder.status.submitted'.tr();
-      case EvidenceSectionStatus.preapprovedLf:
-        return 'evidence_folder.status.preapproved'.tr();
-      case EvidenceSectionStatus.validated:
-        return 'evidence_folder.status.validated'.tr();
-      case EvidenceSectionStatus.rejected:
-        return 'evidence_folder.status.rejected'.tr();
-    }
-  }
-
-  Color _bgColor(SacColors c) {
-    switch (status) {
-      case EvidenceSectionStatus.pending:
-      case EvidenceSectionStatus.preapprovedLf:
-        return c.warningContainer;
-      case EvidenceSectionStatus.submitted:
-        return c.infoContainer;
-      case EvidenceSectionStatus.validated:
-        return c.successContainer;
-      case EvidenceSectionStatus.rejected:
-        return c.errorContainer;
-    }
-  }
-
-  Color _borderColor(SacColors c) {
-    switch (status) {
-      case EvidenceSectionStatus.pending:
-        return c.warning.withValues(alpha: 0.4);
-      case EvidenceSectionStatus.submitted:
-        return c.info.withValues(alpha: 0.4);
-      case EvidenceSectionStatus.preapprovedLf:
-        return c.warning.withValues(alpha: 0.5);
-      case EvidenceSectionStatus.validated:
-        return c.success.withValues(alpha: 0.4);
-      case EvidenceSectionStatus.rejected:
-        return c.error.withValues(alpha: 0.4);
-    }
-  }
-
-  Color _textColor(SacColors c) {
-    switch (status) {
-      case EvidenceSectionStatus.pending:
-      case EvidenceSectionStatus.preapprovedLf:
-        return c.onWarningContainer;
-      case EvidenceSectionStatus.submitted:
-        return c.onInfoContainer;
-      case EvidenceSectionStatus.validated:
-        return c.onSuccessContainer;
-      case EvidenceSectionStatus.rejected:
-        return c.onErrorContainer;
-    }
-  }
-
-  HugeIconData get _icon {
-    switch (status) {
-      case EvidenceSectionStatus.pending:
-        return HugeIcons.strokeRoundedClock01;
-      case EvidenceSectionStatus.submitted:
-        return HugeIcons.strokeRoundedSent;
-      case EvidenceSectionStatus.preapprovedLf:
-        return HugeIcons.strokeRoundedAnalytics01;
-      case EvidenceSectionStatus.validated:
-        return HugeIcons.strokeRoundedCheckmarkCircle01;
-      case EvidenceSectionStatus.rejected:
-        return HugeIcons.strokeRoundedCancel01;
-    }
-  }
-}
-
-// ── Tarjeta de resultado de evaluación (solo lectura) ─────────────────────────
-
-class _EvaluationResultCard extends StatelessWidget {
-  final EvidenceSection section;
-
-  const _EvaluationResultCard({required this.section});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final dateFormat = DateFormat('d MMM yyyy, HH:mm');
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: c.successContainer,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        border: Border.all(color: c.success.withValues(alpha: 0.4)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Puntos obtenidos
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: c.success.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-                ),
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedStar,
-                  size: 20,
-                  color: c.onSuccessContainer,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'evidence_folder.earned_points'.tr(),
-                    style: TextStyle(
-                      fontSize: SacFontSize.labelSmall,
-                      fontWeight: FontWeight.w500,
-                      color: c.textSecondary,
-                    ),
-                  ),
-                  Text(
-                    '${section.earnedPoints} / ${section.pointValue}',
-                    style: TextStyle(
-                      fontSize: SacFontSize.headlineMedium,
-                      fontWeight: FontWeight.w800,
-                      color: c.onSuccessContainer,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-
-          // Actores de aprobación dual-level
-          if (section.lfApproverName != null ||
-              section.unionApproverName != null) ...[
-            const SizedBox(height: 12),
-            Divider(
-              color: c.success.withValues(alpha: 0.25),
-              height: 1,
-            ),
-            const SizedBox(height: 12),
-            // LF actor — siempre presente cuando existe
-            if (section.lfApproverName != null) ...[
-              Row(
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedAnalytics01,
-                    size: 13,
-                    color: c.onSuccessContainer,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      'evidence_folder.trace.preapproved_by'.tr(
-                        namedArgs: {
-                          'name': section.lfApproverName!,
-                          'date': section.lfApprovedAt != null
-                              ? ' · ${dateFormat.format(section.lfApprovedAt!.toLocal())}'
-                              : '',
-                        },
-                      ),
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: c.onSuccessContainer,
-                            fontWeight: FontWeight.w600,
-                            height: 1.3,
-                          ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-            // Union actor — presente solo cuando actuó la unión
-            if (section.unionApproverName != null) ...[
-              if (section.lfApproverName != null) const SizedBox(height: 8),
-              Row(
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedUserCheck01,
-                    size: 13,
-                    color: c.onSuccessContainer,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      'evidence_folder.trace.validated_by'.tr(
-                        namedArgs: {
-                          'name': section.unionApproverName!,
-                          'date': section.unionApprovedAt != null
-                              ? ' · ${dateFormat.format(section.unionApprovedAt!.toLocal())}'
-                              : '',
-                        },
-                      ),
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: c.onSuccessContainer,
-                            fontWeight: FontWeight.w600,
-                            height: 1.3,
-                          ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ],
-
-          // Notas del evaluador
-          if (section.evaluationNotes != null &&
-              section.evaluationNotes!.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Text(
-              'evidence_folder.evaluator_notes'.tr(),
-              style: TextStyle(
-                fontSize: SacFontSize.labelSmall,
-                fontWeight: FontWeight.w600,
-                color: c.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              section.evaluationNotes!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: c.onSuccessContainer,
-                    height: 1.5,
-                  ),
-            ),
-          ],
-        ],
-      ),
     );
   }
 }
@@ -812,12 +314,12 @@ class _ReviewerNotesBlock extends StatelessWidget {
     if (filesWithNotes.isEmpty) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'evidence_folder.reviewer_comments'.tr(),
+            'evidence_folder.detail.file_notes'.tr(),
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: context.sac.textSecondary,
                   letterSpacing: 0.8,
