@@ -4090,11 +4090,12 @@
     "discard_changes_body": "Do you want to discard the changes made?",
     "discard": "Discard",
     "update_success": "Club information updated",
-    "my_club_title": "MY CLUB",
+    "my_club_title": "My club",
     "save_changes": "Save changes",
     "section": {
       "general_info": "General information",
-      "contact": "Contact"
+      "contact": "Contact",
+      "location": "Location"
     },
     "name_label": "Club name",
     "name_hint": "Ex: Club Falcons",
@@ -4125,6 +4126,28 @@
       "invalid_email": "Enter a valid email",
       "invalid_url": "Enter a valid URL (e.g: https://...)",
       "invalid_url_short": "Enter a valid URL"
+    },
+    "edit": {
+      "title": "Edit club",
+      "keep_editing": "Keep editing",
+      "logo_helper": "Without a logo, the club type logo is shown."
+    },
+    "profile": {
+      "club_of": "{type} club",
+      "missing_title": {
+        "one": "1 club detail missing",
+        "other": "{} club details missing"
+      },
+      "missing_body": "Members only see the details you register.",
+      "complete": "Complete",
+      "not_registered": "Not registered",
+      "call": "Call",
+      "write": "Send email",
+      "open_site": "Open website",
+      "open_failed": "Couldn't open it. Try again.",
+      "directions": "Get directions",
+      "pinned_on_map": "Pinned on the map",
+      "no_public_data": "The club hasn't registered a location or contact details yet."
     }
   },
   "role_assignments": {

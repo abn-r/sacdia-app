@@ -4089,11 +4089,12 @@
     "discard_changes_body": "Deseja descartar as alterações realizadas?",
     "discard": "Descartar",
     "update_success": "Informações do clube atualizadas",
-    "my_club_title": "MEU CLUBE",
+    "my_club_title": "Meu clube",
     "save_changes": "Salvar alterações",
     "section": {
       "general_info": "Informações gerais",
-      "contact": "Contato"
+      "contact": "Contato",
+      "location": "Localização"
     },
     "name_label": "Nome do clube",
     "name_hint": "Ex: Club Falcões",
@@ -4124,6 +4125,28 @@
       "invalid_email": "Insira um e-mail válido",
       "invalid_url": "Insira uma URL válida (ex: https://...)",
       "invalid_url_short": "Insira uma URL válida"
+    },
+    "edit": {
+      "title": "Editar clube",
+      "keep_editing": "Continuar editando",
+      "logo_helper": "Sem logo, aparece o do tipo de clube."
+    },
+    "profile": {
+      "club_of": "Clube de {type}",
+      "missing_title": {
+        "one": "Falta 1 dado do clube",
+        "other": "Faltam {} dados do clube"
+      },
+      "missing_body": "Os membros só veem os dados registrados.",
+      "complete": "Completar",
+      "not_registered": "Não registrado",
+      "call": "Ligar",
+      "write": "Enviar e-mail",
+      "open_site": "Abrir site",
+      "open_failed": "Não foi possível abrir. Tente novamente.",
+      "directions": "Como chegar",
+      "pinned_on_map": "Marcada no mapa",
+      "no_public_data": "O clube ainda não registrou localização nem dados de contato."
     }
   },
   "role_assignments": {

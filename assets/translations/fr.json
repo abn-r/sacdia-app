@@ -4089,11 +4089,12 @@
     "discard_changes_body": "Voulez-vous abandonner les modifications apportées ?",
     "discard": "Abandonner",
     "update_success": "Informations du club mises à jour",
-    "my_club_title": "MON CLUB",
+    "my_club_title": "Mon club",
     "save_changes": "Enregistrer les modifications",
     "section": {
       "general_info": "Informations générales",
-      "contact": "Contact"
+      "contact": "Contact",
+      "location": "Emplacement"
     },
     "name_label": "Nom du club",
     "name_hint": "Ex : Club Faucons",
@@ -4124,6 +4125,28 @@
       "invalid_email": "Saisissez un e-mail valide",
       "invalid_url": "Saisissez une URL valide (ex : https://...)",
       "invalid_url_short": "Saisissez une URL valide"
+    },
+    "edit": {
+      "title": "Modifier le club",
+      "keep_editing": "Continuer",
+      "logo_helper": "Sans logo, celui du type de club s'affiche."
+    },
+    "profile": {
+      "club_of": "Club de {type}",
+      "missing_title": {
+        "one": "1 information du club manquante",
+        "other": "{} informations du club manquantes"
+      },
+      "missing_body": "Les membres ne voient que les informations enregistrées.",
+      "complete": "Compléter",
+      "not_registered": "Non renseigné",
+      "call": "Appeler",
+      "write": "Écrire un e-mail",
+      "open_site": "Ouvrir le site",
+      "open_failed": "Impossible d'ouvrir. Réessayez.",
+      "directions": "Itinéraire",
+      "pinned_on_map": "Indiqué sur la carte",
+      "no_public_data": "Le club n'a pas encore enregistré d'emplacement ni de coordonnées."
     }
   },
   "role_assignments": {

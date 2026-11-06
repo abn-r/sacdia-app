@@ -4090,11 +4090,12 @@
     "discard_changes_body": "¿Deseas descartar los cambios realizados?",
     "discard": "Descartar",
     "update_success": "Información del club actualizada",
-    "my_club_title": "MI CLUB",
+    "my_club_title": "Mi club",
     "save_changes": "Guardar cambios",
     "section": {
       "general_info": "Información general",
-      "contact": "Contacto"
+      "contact": "Contacto",
+      "location": "Ubicación"
     },
     "name_label": "Nombre del club",
     "name_hint": "Ej: Club Halcones",
@@ -4125,6 +4126,28 @@
       "invalid_email": "Ingresa un correo válido",
       "invalid_url": "Ingresa una URL válida (ej: https://...)",
       "invalid_url_short": "Ingresa una URL válida"
+    },
+    "edit": {
+      "title": "Editar club",
+      "keep_editing": "Seguir editando",
+      "logo_helper": "Si no hay logo se muestra el del tipo de club."
+    },
+    "profile": {
+      "club_of": "Club de {type}",
+      "missing_title": {
+        "one": "Falta 1 dato del club",
+        "other": "Faltan {} datos del club"
+      },
+      "missing_body": "Los miembros solo ven los datos registrados.",
+      "complete": "Completar",
+      "not_registered": "Sin registrar",
+      "call": "Llamar",
+      "write": "Escribir correo",
+      "open_site": "Abrir sitio",
+      "open_failed": "No se pudo abrir. Intenta de nuevo.",
+      "directions": "Cómo llegar",
+      "pinned_on_map": "Marcada en el mapa",
+      "no_public_data": "El club aún no registra ubicación ni datos de contacto."
     }
   },
   "role_assignments": {

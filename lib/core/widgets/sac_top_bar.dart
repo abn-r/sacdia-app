@@ -19,6 +19,10 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
   final String? subtitle;
   final Widget? titleIcon;
   final Widget? leading;
+
+  /// Width reserved for [leading]. Null: 56, enough for an icon button.
+  /// A text action such as «Cancelar» needs more.
+  final double? leadingWidth;
   final List<Widget> actions;
   final VoidCallback? onBack;
   final bool automaticallyImplyLeading;
@@ -44,6 +48,7 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
     this.subtitle,
     this.titleIcon,
     this.leading,
+    this.leadingWidth,
     this.actions = const [],
     this.onBack,
     this.automaticallyImplyLeading = true,
@@ -138,7 +143,7 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: centerTitle,
-      leadingWidth: showBack || leading != null ? 56 : 0,
+      leadingWidth: showBack || leading != null ? (leadingWidth ?? 56) : 0,
       leading: leading ??
           (showBack
               ? SacBackButton(
