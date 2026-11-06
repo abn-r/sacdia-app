@@ -181,6 +181,7 @@ class _StaleCompletionModeRepository implements HonorsRepository {
     int requirementId,
     File file, {
     required String mimeType,
+    void Function(double progress)? onProgress,
   }) =>
       throw UnimplementedError();
 

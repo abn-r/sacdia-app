@@ -144,7 +144,8 @@ class _FakeHonorsRepository implements HonorsRepository {
   @override
   Future<Either<Failure, RequirementEvidence>> uploadRequirementEvidence(
           String userId, int honorId, int requirementId, File file,
-          {required String mimeType}) =>
+          {required String mimeType,
+          void Function(double progress)? onProgress}) =>
       throw UnimplementedError();
 }
 

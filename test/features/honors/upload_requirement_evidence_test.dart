@@ -46,6 +46,7 @@ class _StubHonorsRepository implements HonorsRepository {
     int requirementId,
     File file, {
     required String mimeType,
+    void Function(double progress)? onProgress,
   }) async {
     capturedMimeType = mimeType;
     return uploadResult;

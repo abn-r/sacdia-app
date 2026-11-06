@@ -386,11 +386,12 @@ class HonorsRepositoryImpl implements HonorsRepository {
     int requirementId,
     File file, {
     required String mimeType,
+    void Function(double progress)? onProgress,
   }) async {
     try {
       final model = await remoteDataSource.uploadRequirementEvidence(
           userId, honorId, requirementId, file,
-          mimeType: mimeType);
+          mimeType: mimeType, onProgress: onProgress);
       return Right(model.toEntity());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
