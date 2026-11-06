@@ -52,7 +52,6 @@ class CamporeesListView extends ConsumerWidget {
       backgroundColor: c.background,
       appBar: SacTopBar(
           title: 'camporees.list.title'.tr(),
-          centerTitle: true,
           onBack: () => context.go(RouteNames.homeDashboard),
           actions: hasHistory
               ? [
@@ -181,7 +180,6 @@ class CamporeesHistoryView extends ConsumerWidget {
       backgroundColor: c.background,
       appBar: SacTopBar(
         title: 'camporees.list.history_title'.tr(),
-        centerTitle: true,
         frosted: true,
       ),
       body: SacFrostedVeil(

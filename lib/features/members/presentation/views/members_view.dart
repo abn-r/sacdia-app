@@ -138,11 +138,6 @@ class _MembersViewState extends ConsumerState<MembersView> {
       appBar: SacTopBar(
           title: 'members.view.title'.tr(),
           onBack: () => Navigator.of(context).maybePop(),
-          titleIcon: HugeIcon(
-            icon: HugeIcons.strokeRoundedUserList,
-            size: 22,
-            color: SacAccent.of(context).color,
-          ),
           actions: [
             if (registerSectionId != null)
               SacPressable(

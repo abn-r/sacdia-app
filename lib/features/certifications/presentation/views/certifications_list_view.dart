@@ -43,11 +43,6 @@ class CertificationsListView extends ConsumerWidget {
       appBar: SacTopBar(
           title: 'certifications.list.title'.tr(),
           onBack: () => Navigator.of(context).maybePop(),
-          titleIcon: HugeIcon(
-            icon: HugeIcons.strokeRoundedCertificate01,
-            size: 22,
-            color: SacAccent.of(context).color,
-          ),
           frosted: true),
       body: SacFrostedVeil(
         child: Builder(

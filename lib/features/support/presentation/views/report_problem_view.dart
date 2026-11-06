@@ -163,8 +163,7 @@ class _ReportProblemViewState extends ConsumerState<ReportProblemView> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: c.background,
-      appBar: SacTopBar(
-          title: 'support.report_title'.tr(), centerTitle: true, frosted: true),
+      appBar: SacTopBar(title: 'support.report_title'.tr(), frosted: true),
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) => AbsorbPointer(

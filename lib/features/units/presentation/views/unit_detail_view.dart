@@ -59,7 +59,6 @@ class UnitDetailView extends ConsumerWidget {
       backgroundColor: c.background,
       appBar: SacTopBar(
           title: unit.name,
-          centerTitle: true,
           onBack: () => Navigator.of(context).pop(),
           actions: [
             if (showBulk)

@@ -114,7 +114,6 @@ class _CamporeeScaffold extends StatelessWidget {
       appBar: SacTopBar(
           title: title ?? 'camporees.list.title'.tr(),
           backgroundColor: c.background,
-          centerTitle: true,
           onBack: () {
             final navigator = Navigator.of(context);
             if (navigator.canPop()) {
@@ -1315,9 +1314,7 @@ class _CamporeeEventDetailPage extends StatelessWidget {
       extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-          title: 'camporees.detail.event_detail_title'.tr(),
-          centerTitle: true,
-          frosted: true),
+          title: 'camporees.detail.event_detail_title'.tr(), frosted: true),
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) => SafeArea(

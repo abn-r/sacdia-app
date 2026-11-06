@@ -75,11 +75,6 @@ class _SLADashboardViewState extends ConsumerState<SLADashboardView> {
       appBar: SacTopBar(
         title: 'coordinator.sla.dashboard.title'.tr(),
         frosted: true,
-        titleIcon: HugeIcon(
-          icon: HugeIcons.strokeRoundedAnalytics01,
-          size: 22,
-          color: accent.color,
-        ),
         actions: [
           SacPressable(
             listenOnly: true,

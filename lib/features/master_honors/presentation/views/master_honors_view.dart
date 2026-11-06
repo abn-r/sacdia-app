@@ -24,8 +24,7 @@ class MasterHonorsView extends ConsumerWidget {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: SacTopBar(
-          title: 'master_honors.title'.tr(), centerTitle: true, frosted: true),
+      appBar: SacTopBar(title: 'master_honors.title'.tr(), frosted: true),
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) {

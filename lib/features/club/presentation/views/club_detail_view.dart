@@ -32,14 +32,7 @@ class ClubDetailView extends ConsumerWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: c.background,
-      appBar: SacTopBar(
-          title: 'club.detail_title'.tr(),
-          titleIcon: HugeIcon(
-            icon: HugeIcons.strokeRoundedBackpack03,
-            size: 22,
-            color: SacAccent.of(context).color,
-          ),
-          frosted: true),
+      appBar: SacTopBar(title: 'club.detail_title'.tr(), frosted: true),
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) => clubAsync.when(

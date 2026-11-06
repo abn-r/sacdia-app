@@ -326,7 +326,6 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
       backgroundColor: context.sac.background,
       appBar: SacTopBar(
         title: tr('profile.edit.title'),
-        centerTitle: true,
         frosted: true,
       ),
       body: SacFrostedVeil(

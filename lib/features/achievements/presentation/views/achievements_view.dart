@@ -31,7 +31,6 @@ class AchievementsView extends ConsumerWidget {
       backgroundColor: c.background,
       appBar: SacTopBar(
         title: 'achievements.views.title'.tr(),
-        centerTitle: true,
         frosted: true,
       ),
       body: SacFrostedVeil(
