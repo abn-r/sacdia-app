@@ -1,18 +1,21 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../animations/motion_tokens.dart';
-import '../../theme/app_colors.dart';
-import 'package:sacdia_app/core/theme/sac_accent.dart';
+import '../../theme/app_theme.dart';
+import '../../theme/sac_accent.dart';
 import '../../theme/sac_colors.dart';
-import '../sac_dialog.dart';
 import '../sac_button.dart';
+import '../sac_dialog.dart';
 import 'staged_file.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Result returned from the upload progress sheet when it closes.
 enum UploadSheetResult {
@@ -72,37 +75,138 @@ class _UploadProgressSheetContent extends StatefulWidget {
 }
 
 class _UploadProgressSheetContentState
-    extends State<_UploadProgressSheetContent> {
+    extends State<_UploadProgressSheetContent>
+    with SingleTickerProviderStateMixin {
   late List<StagedFile> _files;
   late final StreamSubscription<List<StagedFile>> _subscription;
+
+  /// The deck opens into a grid only when the user asks («Ver todos»).
+  bool _showAll = false;
+  bool _celebrated = false;
+
+  /// Progress shown per file. It follows the real upload but never runs
+  /// faster than [_minSweep] from 0 to 100%, so a small file that the server
+  /// takes at once still visibly fills up. Nothing is invented: the shown
+  /// value only catches up with what was reported.
+  final Map<String, double> _shown = {};
+  late final Ticker _ticker;
+  Duration _lastTick = Duration.zero;
+  static const Duration _minSweep = Duration(milliseconds: 600);
 
   @override
   void initState() {
     super.initState();
     _files = List.from(widget.initialFiles);
+    for (final f in _files) {
+      // Files already done when the sheet opens start full.
+      _shown[f.id] = f.status == StagedFileStatus.uploaded ||
+              f.status == StagedFileStatus.completed
+          ? 1
+          : 0;
+    }
+    _ticker = createTicker(_onTick);
+    // reduceMotion reads MediaQuery: wait for the first frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _syncTicker();
+    });
     _subscription = widget.uploadStream.listen((updatedFiles) {
-      if (mounted) {
-        setState(() => _files = updatedFiles);
-      }
+      if (!mounted) return;
+      setState(() => _files = updatedFiles);
+      _syncTicker();
     });
   }
 
   @override
   void dispose() {
+    _ticker.dispose();
     _subscription.cancel();
     super.dispose();
   }
 
+  double _target(StagedFile f) {
+    switch (f.status) {
+      case StagedFileStatus.completed:
+      case StagedFileStatus.uploaded:
+        return 1;
+      case StagedFileStatus.uploading:
+        return f.uploadProgress.clamp(0.0, 1.0);
+      case StagedFileStatus.error:
+        // Freeze where it stopped.
+        return _shown[f.id] ?? 0;
+      case StagedFileStatus.local:
+        return 0;
+    }
+  }
+
+  bool get _catchingUp =>
+      _files.any((f) => (_shown[f.id] ?? 0) < _target(f) - 0.0001);
+
+  void _syncTicker() {
+    if (SacMotion.reduceMotionOf(context)) {
+      setState(() {
+        for (final f in _files) {
+          _shown[f.id] = _target(f);
+        }
+      });
+      _checkCelebration();
+      return;
+    }
+    if (_catchingUp && !_ticker.isActive) {
+      _lastTick = Duration.zero;
+      _ticker.start();
+    }
+    _checkCelebration();
+  }
+
+  void _onTick(Duration elapsed) {
+    final dt = elapsed - _lastTick;
+    _lastTick = elapsed;
+    final step = dt.inMicroseconds / _minSweep.inMicroseconds;
+    setState(() {
+      for (final f in _files) {
+        final current = _shown[f.id] ?? 0;
+        final target = _target(f);
+        if (current < target) {
+          _shown[f.id] = math.min(target, current + step);
+        }
+      }
+    });
+    if (!_catchingUp) {
+      _ticker.stop();
+      _checkCelebration();
+    }
+  }
+
+  void _checkCelebration() {
+    if (_allSuccess && !_celebrated) {
+      _celebrated = true;
+      HapticFeedback.mediumImpact();
+    }
+  }
+
+  /// The files as the user sees them: a file reads as completed only once
+  /// its bar has visibly reached 100%.
+  List<StagedFile> get _visible => [
+        for (final f in _files)
+          switch (f.status) {
+            StagedFileStatus.uploading ||
+            StagedFileStatus.completed when (_shown[f.id] ?? 0) < 1 =>
+              f.copyWith(
+                status: StagedFileStatus.uploading,
+                uploadProgress: _shown[f.id] ?? 0,
+              ),
+            _ => f,
+          },
+      ];
+
   // ── Computed state ──────────────────────────────────────────────────────────
 
-  int get _completedCount =>
-      _files.where((f) => f.status == StagedFileStatus.completed).length;
-  int get _errorCount =>
-      _files.where((f) => f.status == StagedFileStatus.error).length;
-  int get _uploadingCount =>
-      _files.where((f) => f.status == StagedFileStatus.uploading).length;
-  int get _pendingCount =>
-      _files.where((f) => f.status == StagedFileStatus.local).length;
+  int _count(StagedFileStatus status) =>
+      _visible.where((f) => f.status == status).length;
+  int get _completedCount => _count(StagedFileStatus.completed);
+  int get _errorCount => _count(StagedFileStatus.error);
+  int get _uploadingCount => _count(StagedFileStatus.uploading);
+  int get _pendingCount => _count(StagedFileStatus.local);
 
   bool get _isInProgress => _uploadingCount > 0 || _pendingCount > 0;
   bool get _allDone => !_isInProgress;
@@ -112,140 +216,176 @@ class _UploadProgressSheetContentState
 
   double get _overallProgress {
     if (_files.isEmpty) return 0;
-    final total = _files.length.toDouble();
-    final completed = _completedCount.toDouble();
-    // Add partial progress from the currently uploading file
-    final uploading =
-        _files.where((f) => f.status == StagedFileStatus.uploading);
-    final partialProgress =
-        uploading.fold<double>(0, (sum, f) => sum + f.uploadProgress);
-    return (completed + partialProgress) / total;
+    final sum = _files.fold<double>(
+      0,
+      (total, f) =>
+          total +
+          (f.status == StagedFileStatus.error ? 0 : (_shown[f.id] ?? 0)),
+    );
+    return sum / _files.length;
+  }
+
+  /// The file on top of the deck: the one uploading, else the first failure,
+  /// else the next in line, else the last one.
+  int get _focusIndex {
+    final files = _visible;
+    if (files.isEmpty) return 0;
+    for (final status in [
+      StagedFileStatus.uploading,
+      StagedFileStatus.error,
+      StagedFileStatus.local,
+    ]) {
+      final index = files.indexWhere((f) => f.status == status);
+      if (index >= 0) return index;
+    }
+    return files.length - 1;
   }
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final visible = _visible;
+    final focus = visible.isEmpty ? null : visible[_focusIndex];
+    final canExpand = _allDone && _files.length > 1;
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SacSheetGrabber(padded: false),
-            const SizedBox(height: 16),
-
-            // Header
-            _buildHeader(c),
-            const SizedBox(height: 12),
-
-            // Overall progress bar. The value comes from Dio upload bytes and
-            // is animated between updates so short progress events still feel
-            // smooth without inventing progress that has not been reported.
-            _AnimatedOverallProgress(
-              progress: _overallProgress,
-              color: _hasErrors
-                  ? AppColors.accent
-                  : _allSuccess
-                      ? AppColors.secondary
-                      : SacAccent.of(context).color,
-              backgroundColor: c.surfaceVariant,
-            ),
-            const SizedBox(height: 16),
-
-            // File list
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.35,
-              ),
-              child: ListView.separated(
-                // shrinkWrap removed: ConstrainedBox(maxHeight) provides a
-                // bounded height constraint — ListView can scroll normally.
-                itemCount: _files.length,
-                separatorBuilder: (_, __) => Divider(
-                  height: 1,
-                  color: c.divider,
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SacSheetGrabber(padded: false),
+                const SizedBox(height: 18),
+                _buildHeader(c),
+                const SizedBox(height: 18),
+                _FileDeck(
+                  files: visible,
+                  focusIndex: _focusIndex,
+                  expanded: _showAll && canExpand,
+                  done: _allSuccess,
                 ),
-                itemBuilder: (context, index) =>
-                    _FileProgressRow(file: _files[index]),
-              ),
+                if (!(_showAll && canExpand) && focus != null)
+                  _FocusCaption(file: focus, done: _allSuccess),
+                const SizedBox(height: 16),
+                _AnimatedOverallProgress(
+                  progress: _overallProgress,
+                  color: _hasErrors
+                      ? c.warning
+                      : _allSuccess
+                          ? c.success
+                          : SacAccent.of(context).color,
+                  backgroundColor: c.surfaceVariant,
+                ),
+                if (canExpand) ...[
+                  const SizedBox(height: 4),
+                  Center(
+                    child: TextButton.icon(
+                      key: const ValueKey('upload-toggle-view'),
+                      onPressed: () => setState(() => _showAll = !_showAll),
+                      icon: HugeIcon(
+                        icon: _showAll
+                            ? HugeIcons.strokeRoundedLayers01
+                            : HugeIcons.strokeRoundedGridView,
+                        size: 18,
+                        color: SacAccent.of(context).color,
+                      ),
+                      label: Text(
+                        _showAll
+                            ? tr('core.evidence_staging.show_stack')
+                            : tr(
+                                'core.evidence_staging.show_all',
+                                namedArgs: {'count': '${_files.length}'},
+                              ),
+                      ),
+                      style: TextButton.styleFrom(
+                        foregroundColor: SacAccent.of(context).color,
+                        minimumSize: const Size(44, 44),
+                        textStyle: const TextStyle(
+                          fontSize: SacFontSize.titleSmall,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 12),
+                if (_allDone) _buildActionButtons(c),
+              ],
             ),
-
-            const SizedBox(height: 16),
-
-            // Action buttons
-            if (_allDone) _buildActionButtons(c),
-          ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildHeader(SacColors c) {
+    final String title;
+    final String? body;
+    Color titleColor = c.text;
     if (_isInProgress) {
-      return Text(
-        tr(
-          'core.evidence_staging.uploading_progress',
-          namedArgs: {
-            'current': '${_completedCount + 1}',
-            'total': '${_files.length}',
-          },
-        ),
-        style: TextStyle(
-          fontSize: SacFontSize.titleMedium,
-          fontWeight: FontWeight.w700,
-          color: c.text,
-        ),
-      );
-    }
-    if (_allSuccess) {
-      return Text(
-        tr('core.evidence_staging.upload_all_success'),
-        style: TextStyle(
-          fontSize: SacFontSize.titleMedium,
-          fontWeight: FontWeight.w700,
-          color: AppColors.secondary,
-        ),
-      );
-    }
-    if (_allFailed) {
-      return Text(
-        tr('core.evidence_staging.upload_all_failed'),
-        style: TextStyle(
-          fontSize: SacFontSize.titleMedium,
-          fontWeight: FontWeight.w700,
-          color: AppColors.error,
-        ),
-      );
-    }
-    // Partial failure
-    return Text(
-      tr(
-        'core.evidence_staging.upload_partial',
+      title = tr(
+        'core.evidence_staging.uploading_title',
         namedArgs: {
-          'completed': '$_completedCount',
+          'current': '${math.min(_completedCount + 1, _files.length)}',
           'total': '${_files.length}',
-          'failed': '$_errorCount',
         },
-      ),
-      style: const TextStyle(
-        fontSize: SacFontSize.titleMedium,
-        fontWeight: FontWeight.w700,
-        color: AppColors.accentDark,
-      ),
+      );
+      body = tr('core.evidence_staging.uploading_hint');
+    } else if (_allSuccess) {
+      title = 'core.evidence_staging.done_title'.plural(_completedCount);
+      body = tr('core.evidence_staging.done_body');
+    } else if (_allFailed) {
+      title = tr('core.evidence_staging.upload_all_failed');
+      body = tr('core.evidence_staging.failed_body');
+      titleColor = c.onErrorContainer;
+    } else {
+      title = 'core.evidence_staging.partial_title'.plural(_errorCount);
+      body = tr('core.evidence_staging.partial_body');
+      titleColor = c.onWarningContainer;
+    }
+
+    return Column(
+      children: [
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: SacFontSize.headlineSmall,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.2,
+            color: titleColor,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          body,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: SacFontSize.bodyMedium,
+            height: 1.4,
+            color: c.textSecondary,
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildActionButtons(SacColors c) {
     if (_allSuccess) {
-      return SacButton.success(
+      return SacButton.primary(
         text: tr('core.evidence_staging.btn_continue'),
         onPressed: () =>
             Navigator.pop(context, UploadSheetResult.continueSubmit),
       );
     }
 
-    // Partial failure or all failed: 3 buttons
+    // Partial failure or all failed: retry first, then the way out.
     return Column(
       children: [
         SacButton.primary(
@@ -258,8 +398,6 @@ class _UploadProgressSheetContentState
           SacButton.outline(
             text: tr('core.evidence_staging.btn_continue_partial',
                 namedArgs: {'count': '$_completedCount'}),
-            textColor: AppColors.secondary,
-            borderColor: AppColors.secondary,
             onPressed: () => _confirmContinuePartial(context),
           ),
         ],
@@ -276,6 +414,7 @@ class _UploadProgressSheetContentState
   }
 
   Future<void> _confirmContinuePartial(BuildContext ctx) async {
+    final c = ctx.sac;
     final confirm = await SacDialog.show(
       ctx,
       title: tr('core.evidence_staging.partial_dialog_title'),
@@ -284,8 +423,8 @@ class _UploadProgressSheetContentState
         name: 'count',
       ),
       icon: HugeIcons.strokeRoundedAlert02,
-      iconColor: AppColors.observedDark,
-      iconBackgroundColor: AppColors.observedBg,
+      iconColor: c.onWarningContainer,
+      iconBackgroundColor: c.warningContainer,
       cancelLabel: tr('core.evidence_staging.cancel'),
       confirmLabel: tr('core.evidence_staging.btn_continue'),
     );
@@ -296,114 +435,382 @@ class _UploadProgressSheetContentState
   }
 }
 
-// ── Individual file row ────────────────────────────────────────────────────────
+// ── Deck: stacked by default, a grid on demand ────────────────────────────────
 
-class _FileProgressRow extends StatelessWidget {
+/// Every file as a card. Collapsed, the focused file sits on top of a small
+/// pile (option A: one file at a time). Expanded, the same cards fly to their
+/// place in a three-column grid. Each card animates its own position, size
+/// and tilt, so the switch reads as the pile opening up.
+class _FileDeck extends StatelessWidget {
+  const _FileDeck({
+    required this.files,
+    required this.focusIndex,
+    required this.expanded,
+    required this.done,
+  });
+
+  final List<StagedFile> files;
+  final int focusIndex;
+  final bool expanded;
+  final bool done;
+
+  static const double _focusSize = 156;
+  static const double _backSize = 140;
+  static const double _collapsedHeight = 176;
+  static const double _gap = 8;
+  static const int _columns = 3;
+
+  @override
+  Widget build(BuildContext context) {
+    final reduce = SacMotion.reduceMotionOf(context);
+    final duration = reduce ? Duration.zero : SacMotion.modal * 1.5;
+    const curve = SacMotion.drawer;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final cell = (width - _gap * (_columns - 1)) / _columns;
+        final rows = (files.length / _columns).ceil();
+        final gridHeight = rows * cell + (rows - 1) * _gap;
+        final height = expanded ? gridHeight : _collapsedHeight;
+
+        // Up to two cards peek out behind the focused one: the ones just
+        // before it (already handled), else the ones after it.
+        final behind = <int>[
+          for (var i = focusIndex - 1; i >= 0 && i >= focusIndex - 2; i--) i,
+        ];
+        for (var i = focusIndex + 1;
+            behind.length < 2 && i < files.length;
+            i++) {
+          behind.add(i);
+        }
+
+        // Paint order: hidden cards, then the pile, then the focus on top.
+        final order = [
+          for (var i = 0; i < files.length; i++)
+            if (i != focusIndex && !behind.contains(i)) i,
+          ...behind.reversed,
+          focusIndex,
+        ];
+
+        Rect collapsedRect(int index) {
+          final center = width / 2;
+          if (index == focusIndex) {
+            return Rect.fromLTWH(
+                center - _focusSize / 2, 8, _focusSize, _focusSize);
+          }
+          final slot = behind.indexOf(index);
+          final dx = slot == 0 ? -22.0 : 22.0;
+          return Rect.fromLTWH(
+            center - _backSize / 2 + (slot < 0 ? 0 : dx),
+            14,
+            _backSize,
+            _backSize,
+          );
+        }
+
+        Rect gridRect(int index) {
+          final col = index % _columns;
+          final row = index ~/ _columns;
+          return Rect.fromLTWH(
+            col * (cell + _gap),
+            row * (cell + _gap),
+            cell,
+            cell,
+          );
+        }
+
+        double tilt(int index) {
+          if (expanded || index == focusIndex) return 0;
+          final slot = behind.indexOf(index);
+          if (slot < 0) return 0;
+          return slot == 0 ? -0.07 : 0.06;
+        }
+
+        double opacity(int index) {
+          if (expanded || index == focusIndex) return 1;
+          return behind.contains(index) ? 0.7 : 0;
+        }
+
+        return AnimatedContainer(
+          key: const ValueKey('upload-file-deck'),
+          duration: duration,
+          curve: curve,
+          height: height,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              for (final i in order)
+                AnimatedPositioned.fromRect(
+                  key: ValueKey('upload-card-${files[i].id}'),
+                  duration: duration,
+                  curve: curve,
+                  rect: expanded ? gridRect(i) : collapsedRect(i),
+                  child: AnimatedRotation(
+                    turns: tilt(i) / (2 * math.pi),
+                    duration: duration,
+                    curve: curve,
+                    child: AnimatedOpacity(
+                      opacity: opacity(i),
+                      duration: duration,
+                      curve: curve,
+                      child: _FileCard(
+                        file: files[i],
+                        showProgress: expanded || i == focusIndex,
+                        celebrate: done && !expanded && i == focusIndex,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// One file: its real thumbnail (or a PDF tile) with its state on top.
+/// Waiting files are faded; the one uploading clears from the bottom up as
+/// its bytes go out.
+class _FileCard extends StatelessWidget {
+  const _FileCard({
+    required this.file,
+    required this.showProgress,
+    required this.celebrate,
+  });
+
   final StagedFile file;
-
-  const _FileProgressRow({required this.file});
+  final bool showProgress;
+  final bool celebrate;
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final path = file.localPath;
+    final Widget preview = file.isImage && path != null
+        ? Image.file(
+            File(path),
+            fit: BoxFit.cover,
+            cacheWidth: 420,
+            errorBuilder: (_, __, ___) => _PlaceholderTile(file: file),
+          )
+        : _PlaceholderTile(file: file);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          // File type icon
-          HugeIcon(
-            icon: file.isImage
-                ? HugeIcons.strokeRoundedImage01
-                : HugeIcons.strokeRoundedPdf01,
-            size: 20,
-            color: file.isImage ? SacAccent.of(context).color : AppColors.error,
-          ),
-          const SizedBox(width: 10),
-
-          // File name (+ motivo del fallo, si lo hubo)
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  file.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: SacFontSize.bodyMedium,
-                    fontWeight: FontWeight.w500,
-                    color: c.text,
-                  ),
-                ),
-                if (file.status == StagedFileStatus.error &&
-                    (file.errorMessage?.isNotEmpty ?? false)) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    file.errorMessage!,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: SacFontSize.bodySmall,
-                      color: AppColors.error,
-                      height: 1.3,
+    return Semantics(
+      label: '${file.name}, ${_statusLabel(file)}',
+      excludeSemantics: true,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+          boxShadow: [
+            BoxShadow(
+              color: c.shadow,
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              preview,
+              if (file.status == StagedFileStatus.local)
+                ColoredBox(color: c.surface.withValues(alpha: 0.55)),
+              if (file.status == StagedFileStatus.uploading)
+                _UploadVeil(file: file, showBadge: showProgress),
+              if (file.status == StagedFileStatus.error)
+                ColoredBox(
+                  color: c.error.withValues(alpha: 0.55),
+                  child: Center(
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedAlert02,
+                      size: 26,
+                      color: c.onError,
                     ),
                   ),
-                ],
-              ],
-            ),
+                ),
+              if (file.status == StagedFileStatus.completed ||
+                  file.status == StagedFileStatus.uploaded)
+                Positioned(
+                  right: 6,
+                  bottom: 6,
+                  child: AnimatedContainer(
+                    duration: SacMotion.standard,
+                    curve: SacMotion.easeOut,
+                    width: celebrate ? 30 : 20,
+                    height: celebrate ? 30 : 20,
+                    decoration: BoxDecoration(
+                      color: c.success,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: c.surface, width: 2),
+                    ),
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedTick02,
+                      size: celebrate ? 18 : 12,
+                      color: c.onSuccess,
+                    ),
+                  ),
+                ),
+            ],
           ),
-          const SizedBox(width: 8),
-
-          // Status indicator
-          _buildStatusIndicator(c),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildStatusIndicator(SacColors c) {
+  static String _statusLabel(StagedFile file) {
     switch (file.status) {
       case StagedFileStatus.local:
-        // Pending: yellow dot
-        return Container(
-          width: 10,
-          height: 10,
-          decoration: const BoxDecoration(
-            color: AppColors.accent,
-            shape: BoxShape.circle,
-          ),
-        );
-
+        return tr('core.evidence_staging.waiting');
       case StagedFileStatus.uploading:
-        // Uploading: animated determinate loader + real byte percentage.
-        return _AnimatedFileUploadStatus(file: file);
-
-      case StagedFileStatus.completed:
-        // Completed: green check
-        return const HugeIcon(
-          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-          size: 18,
-          color: AppColors.secondary,
-        );
-
+        return '${(file.uploadProgress * 100).round()}%';
       case StagedFileStatus.error:
-        // Error: red X
-        return const HugeIcon(
-          icon: HugeIcons.strokeRoundedAlert02,
-          size: 18,
-          color: AppColors.error,
-        );
-
+        return file.errorMessage ?? tr('core.evidence_staging.upload_failed');
+      case StagedFileStatus.completed:
       case StagedFileStatus.uploaded:
-        // Should not appear in upload sheet, but handle gracefully
-        return const HugeIcon(
-          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-          size: 18,
-          color: AppColors.secondary,
-        );
+        return tr('core.evidence_staging.uploaded');
     }
+  }
+}
+
+class _PlaceholderTile extends StatelessWidget {
+  const _PlaceholderTile({required this.file});
+
+  final StagedFile file;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return ColoredBox(
+      color: file.isPdf ? c.errorContainer : c.surfaceVariant,
+      child: Center(
+        child: HugeIcon(
+          icon: file.isPdf
+              ? HugeIcons.strokeRoundedPdf01
+              : HugeIcons.strokeRoundedImage01,
+          size: 32,
+          color: file.isPdf ? c.onErrorContainer : c.textTertiary,
+        ),
+      ),
+    );
+  }
+}
+
+/// Covers the part not sent yet: the photo clears from the bottom up.
+class _UploadVeil extends StatelessWidget {
+  const _UploadVeil({required this.file, required this.showBadge});
+
+  final StagedFile file;
+  final bool showBadge;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final value = file.uploadProgress.clamp(0.0, 1.0);
+    // All bytes are out but the server has not answered yet.
+    final saving = value >= 1;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Align(
+          alignment: Alignment.topCenter,
+          child: FractionallySizedBox(
+            heightFactor: 1 - value,
+            widthFactor: 1,
+            child: ColoredBox(color: c.surface.withValues(alpha: 0.55)),
+          ),
+        ),
+        if (showBadge)
+          Positioned(
+            left: 6,
+            bottom: 6,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(5, 4, 8, 4),
+              decoration: BoxDecoration(
+                color: c.text.withValues(alpha: 0.72),
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                      key: ValueKey('upload-file-progress-${file.id}'),
+                      value: saving ? null : value,
+                      strokeWidth: 2,
+                      color: c.surface,
+                      backgroundColor: c.surface.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    saving
+                        ? tr('core.evidence_staging.saving')
+                        : '${(value * 100).round()}%',
+                    key: ValueKey('upload-file-progress-value-${file.id}'),
+                    style: TextStyle(
+                      fontSize: SacFontSize.bodySmall,
+                      fontWeight: FontWeight.w700,
+                      color: c.surface,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Name of the file on top, and why it failed when it did.
+class _FocusCaption extends StatelessWidget {
+  const _FocusCaption({required this.file, required this.done});
+
+  final StagedFile file;
+  final bool done;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final failed = file.status == StagedFileStatus.error;
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(
+        children: [
+          Text(
+            file.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: SacFontSize.bodyMedium,
+              fontWeight: FontWeight.w600,
+              color: c.text,
+            ),
+          ),
+          if (failed && (file.errorMessage?.isNotEmpty ?? false)) ...[
+            const SizedBox(height: 2),
+            Text(
+              file.errorMessage!,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: SacFontSize.bodySmall,
+                height: 1.3,
+                color: c.onErrorContainer,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }
 
@@ -420,88 +827,37 @@ class _AnimatedOverallProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final targetProgress = progress.clamp(0.0, 1.0);
-    final reduce = SacMotion.reduceMotionOf(context);
-
-    return TweenAnimationBuilder<double>(
-      tween: Tween(end: targetProgress),
-      duration: reduce ? Duration.zero : SacMotion.modal,
-      curve: SacMotion.easeOut,
-      builder: (context, animatedProgress, _) {
-        return Column(
-          children: [
-            Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                '${(animatedProgress * 100).round()}%',
-                key: const ValueKey('upload-overall-progress-value'),
-                style: const TextStyle(
-                  fontSize: SacFontSize.bodySmall,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.info,
-                ),
-              ),
+    final c = context.sac;
+    final animatedProgress = progress.clamp(0.0, 1.0);
+    return Row(
+      children: [
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+            child: LinearProgressIndicator(
+              key: const ValueKey('upload-overall-progress-bar'),
+              value: animatedProgress,
+              minHeight: 6,
+              backgroundColor: backgroundColor,
+              valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
-            const SizedBox(height: 6),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AppTheme.radius2XS),
-              child: LinearProgressIndicator(
-                key: const ValueKey('upload-overall-progress-bar'),
-                value: animatedProgress,
-                minHeight: 6,
-                backgroundColor: backgroundColor,
-                valueColor: AlwaysStoppedAnimation<Color>(color),
-              ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        SizedBox(
+          width: 40,
+          child: Text(
+            '${(animatedProgress * 100).round()}%',
+            key: const ValueKey('upload-overall-progress-value'),
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              fontSize: SacFontSize.bodySmall,
+              fontWeight: FontWeight.w700,
+              color: c.textSecondary,
             ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _AnimatedFileUploadStatus extends StatelessWidget {
-  final StagedFile file;
-
-  const _AnimatedFileUploadStatus({required this.file});
-
-  @override
-  Widget build(BuildContext context) {
-    final targetProgress = file.uploadProgress.clamp(0.0, 1.0);
-    final reduce = SacMotion.reduceMotionOf(context);
-
-    return TweenAnimationBuilder<double>(
-      tween: Tween(end: targetProgress),
-      duration: reduce ? Duration.zero : SacMotion.standard,
-      curve: SacMotion.easeOut,
-      builder: (context, animatedProgress, _) {
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 22,
-              height: 22,
-              child: CircularProgressIndicator(
-                key: ValueKey('upload-file-progress-${file.id}'),
-                value: animatedProgress == 0 ? null : animatedProgress,
-                strokeWidth: 2.4,
-                color: AppColors.info,
-                backgroundColor: AppColors.info.withValues(alpha: 0.16),
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              '${(animatedProgress * 100).round()}%',
-              key: ValueKey('upload-file-progress-value-${file.id}'),
-              style: const TextStyle(
-                fontSize: SacFontSize.bodySmall,
-                fontWeight: FontWeight.w600,
-                color: AppColors.info,
-              ),
-            ),
-          ],
-        );
-      },
+          ),
+        ),
+      ],
     );
   }
 }

@@ -4516,7 +4516,27 @@
       "upload_all_failed": "Tous les fichiers ont échoué",
       "upload_all_success": "Tous les fichiers ont été téléversés",
       "upload_partial": "{completed} sur {total} téléversés, {failed} ont échoué",
-      "uploading_progress": "Envoi {current} sur {total} fichiers..."
+      "uploading_progress": "Envoi {current} sur {total} fichiers...",
+      "remove_file": "Retirer le fichier",
+      "uploading_title": "Envoi {current} sur {total}",
+      "uploading_hint": "Ne fermez pas l'app pendant l'envoi.",
+      "done_title": {
+        "one": "1 fichier envoyé",
+        "other": "{} fichiers envoyés"
+      },
+      "done_body": "Ils sont enregistrés. Continuez pour les envoyer en révision.",
+      "failed_body": "Vérifiez votre connexion et réessayez.",
+      "partial_title": {
+        "one": "1 fichier n'a pas été envoyé",
+        "other": "{} fichiers n'ont pas été envoyés"
+      },
+      "partial_body": "Les autres sont enregistrés. Réessayez ceux qui ont échoué.",
+      "show_all": "Tout voir ({count})",
+      "show_stack": "Voir moins",
+      "waiting": "En attente",
+      "uploaded": "Envoyé",
+      "upload_failed": "Échec",
+      "saving": "Enregistrement…"
     },
     "image_viewer": {
       "error_load": "Impossible de charger l'image"

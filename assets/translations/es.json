@@ -4518,7 +4518,27 @@
       "upload_all_failed": "Todos los archivos fallaron",
       "upload_all_success": "Todos los archivos subidos",
       "upload_partial": "{completed} de {total} subidos, {failed} fallaron",
-      "uploading_progress": "Subiendo {current} de {total} archivos..."
+      "uploading_progress": "Subiendo {current} de {total} archivos...",
+      "remove_file": "Quitar archivo",
+      "uploading_title": "Subiendo {current} de {total}",
+      "uploading_hint": "No cierres la app mientras se suben.",
+      "done_title": {
+        "one": "1 archivo subido",
+        "other": "{} archivos subidos"
+      },
+      "done_body": "Ya están guardados. Continúa para enviarlos a revisión.",
+      "failed_body": "Revisa tu conexión y vuelve a intentarlo.",
+      "partial_title": {
+        "one": "1 archivo no se subió",
+        "other": "{} archivos no se subieron"
+      },
+      "partial_body": "Los demás ya están guardados. Reintenta los que fallaron.",
+      "show_all": "Ver todos ({count})",
+      "show_stack": "Ver menos",
+      "waiting": "En espera",
+      "uploaded": "Subido",
+      "upload_failed": "No se subió",
+      "saving": "Guardando…"
     },
     "image_viewer": {
       "error_load": "No se pudo cargar la imagen"

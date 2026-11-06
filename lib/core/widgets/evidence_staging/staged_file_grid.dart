@@ -246,33 +246,6 @@ class _StagedFileCell extends StatelessWidget {
 
           // ── Badges ────────────────────────────────────────────────────────
 
-          // Remote: green check badge (top-right)
-          if (file.isRemote)
-            Positioned(
-              top: 4,
-              right: 4,
-              child: Container(
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
-                  color: AppColors.secondary,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: c.shadow,
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-                child: const HugeIcon(
-                  icon: HugeIcons.strokeRoundedTick02,
-                  size: 14,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-
           // Local: "Nuevo" / "Extra" badge (top-right)
           if (file.isLocal)
             Positioned(
@@ -306,61 +279,38 @@ class _StagedFileCell extends StatelessWidget {
 
           // ── Delete buttons ────────────────────────────────────────────────
 
-          // Local: instant remove (top-left)
-          if (file.isLocal && canModify)
+          // Local: instant remove. Remote: delete with confirmation.
+          // The visible circle is 24pt; the tap area is 44pt.
+          if (canModify && (file.isLocal || file.isRemote))
             Positioned(
-              top: 4,
-              left: 4,
-              child: GestureDetector(
-                onTap: onRemoveLocal,
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: AppColors.error,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: c.shadow,
-                        blurRadius: 4,
-                        offset: const Offset(0, 1),
+              top: 0,
+              left: 0,
+              child: Semantics(
+                button: true,
+                label: tr('core.evidence_staging.remove_file'),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: file.isLocal ? onRemoveLocal : onDeleteRemote,
+                  child: SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: Container(
+                        margin: const EdgeInsets.all(4),
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: c.text.withValues(alpha: 0.62),
+                          shape: BoxShape.circle,
+                        ),
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedCancel01,
+                          size: 14,
+                          color: c.surface,
+                        ),
                       ),
-                    ],
-                  ),
-                  child: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedCancel01,
-                    size: 14,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-
-          // Remote: delete with confirmation (top-left, only when canModify)
-          if (file.isRemote && canModify)
-            Positioned(
-              top: 4,
-              left: 4,
-              child: GestureDetector(
-                onTap: onDeleteRemote,
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: AppColors.error,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: c.shadow,
-                        blurRadius: 4,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
-                  ),
-                  child: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedCancel01,
-                    size: 14,
-                    color: Colors.white,
+                    ),
                   ),
                 ),
               ),

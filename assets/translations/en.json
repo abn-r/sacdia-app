@@ -4518,7 +4518,27 @@
       "upload_all_failed": "All files failed",
       "upload_all_success": "All files uploaded",
       "upload_partial": "{completed} of {total} uploaded, {failed} failed",
-      "uploading_progress": "Uploading {current} of {total} files..."
+      "uploading_progress": "Uploading {current} of {total} files...",
+      "remove_file": "Remove file",
+      "uploading_title": "Uploading {current} of {total}",
+      "uploading_hint": "Don't close the app while they upload.",
+      "done_title": {
+        "one": "1 file uploaded",
+        "other": "{} files uploaded"
+      },
+      "done_body": "They are saved. Continue to send them for review.",
+      "failed_body": "Check your connection and try again.",
+      "partial_title": {
+        "one": "1 file didn't upload",
+        "other": "{} files didn't upload"
+      },
+      "partial_body": "The rest are saved. Retry the ones that failed.",
+      "show_all": "See all ({count})",
+      "show_stack": "See less",
+      "waiting": "Waiting",
+      "uploaded": "Uploaded",
+      "upload_failed": "Didn't upload",
+      "saving": "Saving…"
     },
     "image_viewer": {
       "error_load": "Could not load the image"
