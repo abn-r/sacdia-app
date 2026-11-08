@@ -11,6 +11,7 @@ import '../entities/camporee_payment.dart';
 import '../entities/camporee_official_score.dart';
 import '../entities/camporee_rubric.dart';
 import '../entities/camporee_section_registration.dart';
+import '../entities/camporee_score_breakdown.dart';
 import '../entities/camporee_score_submission.dart';
 
 /// Repositorio de camporees (interfaz del dominio)
@@ -104,6 +105,20 @@ abstract class CamporeesRepository {
   Future<Either<Failure, CamporeeLeaderboard>> getCamporeeLeaderboard(
     int camporeeId, {
     String camporeeType = 'local',
+    RequestCancelToken? cancelToken,
+  });
+
+  /// Puntos por evento de cada sección visible, con comentarios del juez.
+  Future<Either<Failure, CamporeeScoreBreakdown>> getCamporeeScoreBreakdown(
+    int camporeeId, {
+    String camporeeType = 'local',
+    RequestCancelToken? cancelToken,
+  });
+
+  /// Adjuntos activos del evento, con URLs firmadas nuevas.
+  Future<Either<Failure, List<CamporeeEventAttachment>>>
+      getCamporeeEventAttachments(
+    int eventId, {
     RequestCancelToken? cancelToken,
   });
 

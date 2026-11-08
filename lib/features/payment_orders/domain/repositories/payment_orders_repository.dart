@@ -39,6 +39,9 @@ abstract class PaymentOrdersRepository {
     RequestCancelToken? cancelToken,
   });
 
+  /// Signed URL to open the order's latest proof of payment.
+  Future<Either<Failure, String>> getProofUrl(String orderId);
+
   Future<Either<Failure, PaymentOrder>> uploadProof({
     required String orderId,
     required String filePath,

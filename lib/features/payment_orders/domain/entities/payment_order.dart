@@ -167,6 +167,13 @@ class PaymentOrder extends Equatable {
       status == PaymentOrderStatus.issued ||
       status == PaymentOrderStatus.proofRejected;
 
+  /// Whether its beneficiaries are still held by this order. The backend
+  /// releases them only when the order is cancelled or expires; until then a
+  /// second order for the same person fails as a duplicate.
+  bool get holdsBeneficiaries =>
+      status != PaymentOrderStatus.cancelled &&
+      status != PaymentOrderStatus.expired;
+
   @override
   List<Object?> get props => [orderId, status, proofs];
 }

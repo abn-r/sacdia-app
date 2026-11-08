@@ -15,6 +15,7 @@ import '../../domain/entities/camporee.dart';
 import '../../domain/entities/camporee_event.dart';
 import '../../domain/entities/camporee_judge_assignment.dart';
 import '../../domain/entities/camporee_leaderboard.dart';
+import '../../domain/entities/camporee_score_breakdown.dart';
 import '../../domain/entities/camporee_member.dart';
 import '../../domain/entities/camporee_payment.dart';
 import '../../domain/entities/camporee_official_score.dart';
@@ -870,6 +871,11 @@ final camporeeJudgeAssignmentsProvider =
 });
 
 /// Clasificación oficial del camporee (local por defecto, igual que events).
+/// Clock for "now / next" in the camporee program. Tests override it.
+final camporeeClockProvider = Provider<DateTime Function()>(
+  (ref) => DateTime.now,
+);
+
 final camporeeLeaderboardProvider = FutureProvider.autoDispose
     .family<CamporeeLeaderboard, int>((ref, camporeeId) async {
   final cancelToken = CancelToken();
@@ -883,6 +889,42 @@ final camporeeLeaderboardProvider = FutureProvider.autoDispose
   return result.fold(
     (failure) => throw Exception(failure.message),
     (leaderboard) => leaderboard,
+  );
+});
+
+/// Puntos por evento y comentarios del juez (local por defecto, como el
+/// leaderboard). El backend ya filtra por rol.
+final camporeeScoreBreakdownProvider = FutureProvider.autoDispose
+    .family<CamporeeScoreBreakdown, int>((ref, camporeeId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final repository = ref.read(camporeesRepositoryProvider);
+  final result = await repository.getCamporeeScoreBreakdown(
+    camporeeId,
+    cancelToken: cancelToken,
+  );
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (breakdown) => breakdown,
+  );
+});
+
+/// Adjuntos de un evento, pedidos al abrir el detalle: sus URLs firmadas
+/// caducan, así que no se reutilizan las que vinieron con la lista.
+final camporeeEventAttachmentsProvider = FutureProvider.autoDispose
+    .family<List<CamporeeEventAttachment>, int>((ref, eventId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final repository = ref.read(camporeesRepositoryProvider);
+  final result = await repository.getCamporeeEventAttachments(
+    eventId,
+    cancelToken: cancelToken,
+  );
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (attachments) => attachments,
   );
 });
 

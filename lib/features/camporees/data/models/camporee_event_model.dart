@@ -386,6 +386,45 @@ class CamporeeEventScheduleBlockModel extends Equatable {
       ];
 }
 
+class CamporeeEventAttachmentModel extends Equatable {
+  final String attachmentId;
+  final String fileName;
+  final String mimeType;
+  final int sizeBytes;
+  final String url;
+
+  const CamporeeEventAttachmentModel({
+    required this.attachmentId,
+    required this.fileName,
+    required this.mimeType,
+    required this.sizeBytes,
+    required this.url,
+  });
+
+  factory CamporeeEventAttachmentModel.fromJson(Map<String, dynamic> json) {
+    return CamporeeEventAttachmentModel(
+      attachmentId: safeString(
+        json['attachment_id'] ?? json['camporee_event_attachment_id'],
+      ),
+      fileName: safeString(json['file_name']),
+      mimeType: safeString(json['mime_type']),
+      sizeBytes: safeInt(json['size_bytes']),
+      url: safeString(json['url']),
+    );
+  }
+
+  CamporeeEventAttachment toEntity() => CamporeeEventAttachment(
+        attachmentId: attachmentId,
+        fileName: fileName,
+        mimeType: mimeType,
+        sizeBytes: sizeBytes,
+        url: url,
+      );
+
+  @override
+  List<Object?> get props => [attachmentId, fileName, mimeType, sizeBytes, url];
+}
+
 class CamporeeEventHonorModel extends Equatable {
   final int honorId;
   final String name;
@@ -469,6 +508,7 @@ class CamporeeEventModel extends Equatable {
   final List<CamporeeEventScheduleBlockModel> scheduleBlocks;
   final List<CamporeeEventStaffAssignmentModel> staffAssignments;
   final List<CamporeeEventHonorModel> honors;
+  final List<CamporeeEventAttachmentModel> attachments;
 
   const CamporeeEventModel({
     required this.camporeeEventId,
@@ -494,6 +534,7 @@ class CamporeeEventModel extends Equatable {
     this.scheduleBlocks = const [],
     this.staffAssignments = const [],
     this.honors = const [],
+    this.attachments = const [],
   });
 
   factory CamporeeEventModel.fromJson(Map<String, dynamic> json) {
@@ -510,6 +551,7 @@ class CamporeeEventModel extends Equatable {
     final rawBlocks = json['schedule_blocks'];
     final staffAssignments = _staffAssignmentsFromJson(json);
     final rawHonors = json['honors'];
+    final rawAttachments = json['attachments'];
 
     return CamporeeEventModel(
       camporeeEventId: safeInt(json['camporee_event_id'] ?? json['id']),
@@ -553,6 +595,18 @@ class CamporeeEventModel extends Equatable {
                   Map<String, dynamic>.from(item),
                 ),
               )
+              .toList()
+          : const [],
+      attachments: rawAttachments is List
+          ? rawAttachments
+              .whereType<Map>()
+              .map(
+                (item) => CamporeeEventAttachmentModel.fromJson(
+                  Map<String, dynamic>.from(item),
+                ),
+              )
+              // Without a url there is nothing to open.
+              .where((item) => item.url.isNotEmpty)
               .toList()
           : const [],
     );
@@ -639,6 +693,8 @@ class CamporeeEventModel extends Equatable {
       staffAssignments:
           staffAssignments.map((assignment) => assignment.toEntity()).toList(),
       honors: honors.map((honor) => honor.toEntity()).toList(),
+      attachments:
+          attachments.map((attachment) => attachment.toEntity()).toList(),
     );
   }
 
@@ -667,5 +723,6 @@ class CamporeeEventModel extends Equatable {
         scheduleBlocks,
         staffAssignments,
         honors,
+        attachments,
       ];
 }

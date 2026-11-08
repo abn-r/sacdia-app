@@ -31,10 +31,10 @@ void main() {
 
       expect(find.text('Corte para el día siguiente: 21:00'), findsOneWidget);
       expect(find.byKey(const Key('camporee-supply-payment')), findsOneWidget);
-      expect(find.text('Orden de pago'), findsOneWidget);
+      expect(find.text('ORDEN DE PAGO'), findsOneWidget);
       expect(find.text('Estimado'), findsOneWidget);
-      expect(find.text('Día 1'), findsOneWidget);
-      expect(find.text('Día 2'), findsOneWidget);
+      expect(find.textContaining('DÍA 1'), findsOneWidget);
+      expect(find.textContaining('DÍA 2'), findsOneWidget);
 
       final payment = tester.getTopLeft(
         find.byKey(const Key('camporee-supply-payment')),
@@ -128,6 +128,64 @@ void main() {
         tester.getSize(find.text('Bolsa de hielo')).height,
         lessThan(24),
       );
+    });
+
+    testWidgets('should show quantities with readable units', (tester) async {
+      await _pumpPlan(tester, envelope: _groupedEnvelope);
+
+      expect(find.text('2 bolsas'), findsOneWidget);
+      expect(find.text('6 piezas'), findsOneWidget);
+      expect(find.text('2 L'), findsOneWidget);
+      expect(find.textContaining('BAG'), findsNothing);
+      expect(find.textContaining('UNIT'), findsNothing);
+    });
+
+    testWidgets('should show what was delivered once the plan is sent',
+        (tester) async {
+      await _pumpPlan(tester, envelope: _submittedEnvelope);
+
+      expect(
+        find.descendant(
+          of: find.byKey(const Key(
+            'camporee-supply-delivery-2026-08-21-slot-am-prod-water',
+          )),
+          matching: find.text('Entregado'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key(
+            'camporee-supply-delivery-2026-08-21-slot-am-prod-ice',
+          )),
+          matching: find.text('Entregado: 1 bolsa'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Por entregar'), findsNWidgets(2));
+    });
+
+    testWidgets('should not show delivery state while drafting',
+        (tester) async {
+      await _pumpPlan(tester, envelope: _groupedEnvelope);
+
+      expect(find.text('Por entregar'), findsNothing);
+      expect(find.text('Entregado'), findsNothing);
+    });
+
+    testWidgets('should ask before sending the plan', (tester) async {
+      await _pumpPlan(tester, envelope: _groupedEnvelope);
+
+      expect(find.text('Guardar'), findsOneWidget);
+      await tester.tap(find.text('Enviar plan'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('¿Enviar el plan?'), findsOneWidget);
+      await tester.tap(find.text('Cancelar'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('¿Enviar el plan?'), findsNothing);
     });
 
     testWidgets('should open a sheet with human-readable days', (tester) async {
@@ -298,6 +356,50 @@ final _groupedEnvelope = CamporeeSupplyPlanEnvelope(
       ),
     ],
     payments: const [],
+  ),
+);
+
+final _submittedEnvelope = CamporeeSupplyPlanEnvelope(
+  camporeeId: 41,
+  camporeeType: CamporeeKind.local,
+  catalog: _catalog,
+  plan: CamporeeSupplyPlan(
+    planId: 'plan-1',
+    status: 'SUBMITTED',
+    committedTotalCentavos: 41400,
+    netCentavos: 41400,
+    cutoff: '21:00',
+    timezone: 'America/Mexico_City',
+    lines: [
+      for (final line in _groupedEnvelope.plan!.lines)
+        CamporeeSupplyLine(
+          lineId: line.lineId,
+          date: line.date,
+          slotId: line.slotId,
+          slotLabel: line.slotLabel,
+          deliverTime: line.deliverTime,
+          productId: line.productId,
+          productName: line.productName,
+          uom: line.uom,
+          qty: line.qty,
+          deliveredQty: switch (line.lineId) {
+            'l-water' => '6',
+            'l-ice' => '1',
+            _ => '0',
+          },
+          unitCostCentavos: line.unitCostCentavos,
+          lineTotalCentavos: line.lineTotalCentavos,
+        ),
+    ],
+    payments: const [
+      CamporeeSupplyPayment(
+        paymentId: 'pay-1',
+        kind: 'PRINCIPAL',
+        folioReference: 'INS20260002',
+        totalCentavos: 41400,
+        status: 'PAID',
+      ),
+    ],
   ),
 );
 

@@ -59,4 +59,57 @@ void main() {
       expect(honor.hasMaterial, isFalse);
     });
   });
+
+  group('CamporeeEventModel attachments', () {
+    test('parses attachments and drops the ones without url', () {
+      final model = CamporeeEventModel.fromJson({
+        'camporee_event_id': 7,
+        'title': 'Marcha y orden cerrado',
+        'max_points': 500,
+        'min_points': 0,
+        'day_number': 3,
+        'display_category': 'competencia',
+        'status': 'publicado',
+        'participants_mode': 'count',
+        'attachments': [
+          {
+            'attachment_id': 'a-1',
+            'file_name': 'reglamento.pdf',
+            'mime_type': 'application/pdf',
+            'size_bytes': 245760,
+            'url': 'https://r2.example/signed/reglamento.pdf',
+          },
+          {
+            'attachment_id': 'a-2',
+            'file_name': 'mapa.png',
+            'mime_type': 'image/png',
+            'size_bytes': 1048576,
+            'url': '',
+          },
+        ],
+      });
+
+      final event = model.toEntity();
+      expect(event.attachments, hasLength(1));
+      final pdf = event.attachments.single;
+      expect(pdf.attachmentId, 'a-1');
+      expect(pdf.isPdf, isTrue);
+      expect(pdf.isImage, isFalse);
+      expect(pdf.sizeBytes, 245760);
+    });
+
+    test('an event without attachments parses to an empty list', () {
+      final model = CamporeeEventModel.fromJson({
+        'camporee_event_id': 8,
+        'title': 'Fogata',
+        'max_points': 0,
+        'min_points': 0,
+        'day_number': 2,
+        'display_category': 'social',
+        'status': 'publicado',
+        'participants_mode': 'count',
+      });
+      expect(model.toEntity().attachments, isEmpty);
+    });
+  });
 }

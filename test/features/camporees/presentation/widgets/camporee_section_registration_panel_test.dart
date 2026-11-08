@@ -5,7 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
@@ -173,7 +173,9 @@ void main() {
   });
 
   for (final brightness in Brightness.values) {
-    testWidgets('CTAs alcanzan contraste AA en $brightness', (tester) async {
+    testWidgets(
+        'CTAs usan la tinta del acento con contraste AA grande en $brightness',
+        (tester) async {
       await _pumpPanel(
         tester,
         registration: _registration(canEnroll: true),
@@ -190,8 +192,10 @@ void main() {
       final foreground = label.style!.color!;
       final background = (decorated.decoration! as BoxDecoration).color!;
 
-      expect(foreground, AppColors.inkOnBrand);
-      expect(_contrastRatio(foreground, background), greaterThanOrEqualTo(4.5));
+      // Same pairing as every primary button in the app: the accent and its
+      // own ink. The label is large and bold, so AA asks for 3:1.
+      expect(foreground, SacAccent.logoBlue.onColor);
+      expect(_contrastRatio(foreground, background), greaterThanOrEqualTo(3));
     });
   }
 

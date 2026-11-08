@@ -116,6 +116,11 @@ class PaymentOrdersRepositoryImpl implements PaymentOrdersRepository {
   }
 
   @override
+  Future<Either<Failure, String>> getProofUrl(String orderId) {
+    return _guard(() => remoteDataSource.getProofUrl(orderId));
+  }
+
+  @override
   Future<Either<Failure, PaymentOrder>> uploadProof({
     required String orderId,
     required String filePath,

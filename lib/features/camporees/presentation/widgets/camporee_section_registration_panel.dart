@@ -3,12 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
-import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_settings.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -135,8 +134,6 @@ class _RegistrationContent extends StatelessWidget {
             text: 'camporees.section_registration.enroll_action'.tr(),
             icon: HugeIcons.strokeRoundedEdit02,
             onPressed: onEnroll,
-            backgroundColor: SacAccent.of(context).color,
-            textColor: AppColors.inkOnBrand,
             labelMaxLines: 2,
             labelOverflow: TextOverflow.visible,
           ),
@@ -147,8 +144,6 @@ class _RegistrationContent extends StatelessWidget {
             text: 'camporees.section_registration.participants_action'.tr(),
             icon: HugeIcons.strokeRoundedUserAdd01,
             onPressed: onManageParticipants,
-            backgroundColor: SacAccent.of(context).color,
-            textColor: AppColors.inkOnBrand,
             labelMaxLines: 2,
             labelOverflow: TextOverflow.visible,
           ),
@@ -359,4 +354,164 @@ _RegistrationPresentation _presentationFor(
     icon: icon,
     color: color,
   );
+}
+
+/// The section's registration as rows of a grouped list: the state with the
+/// club and section, then a row to the attendees once participants are
+/// open. The enroll action lives in the screen's pinned bar, not here.
+class CamporeeSectionRegistrationGroup extends StatelessWidget {
+  final AsyncValue<CamporeeSectionRegistration> registrationAsync;
+  final VoidCallback onRetry;
+
+  /// Null hides the attendees row.
+  final VoidCallback? onOpenParticipants;
+
+  const CamporeeSectionRegistrationGroup({
+    super.key,
+    required this.registrationAsync,
+    required this.onRetry,
+    this.onOpenParticipants,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return SacSettingsGroup(
+      key: const Key('camporee-section-registration-group'),
+      title: 'camporees.section_registration.title'.tr().toUpperCase(),
+      children: registrationAsync.when(
+        loading: () => [
+          Semantics(
+            label: 'camporees.section_registration.loading'.tr(),
+            liveRegion: true,
+            child: const Padding(
+              padding: EdgeInsets.symmetric(vertical: 18),
+              child: Center(child: SacLoadingSmall()),
+            ),
+          ),
+        ],
+        error: (_, __) => [
+          _GroupRow(
+            icon: HugeIcons.strokeRoundedAlert02,
+            iconColor: c.warning,
+            title: 'camporees.section_registration.load_error'.tr(),
+            trailing: SacButton.text(
+              text: 'camporees.section_registration.retry'.tr(),
+              onPressed: onRetry,
+            ),
+          ),
+        ],
+        data: (registration) {
+          final presentation = _presentationFor(context, registration);
+          final details = <String>[
+            '${registration.clubName} · ${registration.sectionName}',
+            if (_shouldShowStatusDescription(registration))
+              presentation.description,
+          ];
+          final showParticipants =
+              onOpenParticipants != null && registration.enablesParticipants;
+          return [
+            Semantics(
+              liveRegion: true,
+              child: _GroupRow(
+                icon: presentation.icon,
+                iconColor: presentation.color,
+                title: presentation.title,
+                subtitle: details.join('\n'),
+                footer: registration.enablesParticipants &&
+                        registration.registeredBy != null
+                    ? _RegistrationMeta(registration: registration)
+                    : null,
+              ),
+            ),
+            if (showParticipants) ...[
+              const SacSettingsDivider(),
+              SacSettingsTile(
+                icon: HugeIcons.strokeRoundedUserGroup,
+                title: 'camporees.detail.tab_people'.tr(),
+                onTap: onOpenParticipants,
+              ),
+            ],
+          ];
+        },
+      ),
+    );
+  }
+}
+
+class _GroupRow extends StatelessWidget {
+  final HugeIconData icon;
+  final Color iconColor;
+  final String title;
+  final String? subtitle;
+  final Widget? footer;
+  final Widget? trailing;
+
+  const _GroupRow({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    this.subtitle,
+    this.footer,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+            ),
+            child: HugeIcon(icon: icon, size: 17, color: iconColor),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: SacFontSize.titleMedium,
+                    fontWeight: FontWeight.w600,
+                    color: c.text,
+                    height: 1.3,
+                  ),
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle!,
+                    style: TextStyle(
+                      fontSize: SacFontSize.bodySmall,
+                      color: c.textSecondary,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+                if (footer != null) ...[
+                  const SizedBox(height: 4),
+                  footer!,
+                ],
+              ],
+            ),
+          ),
+          if (trailing != null) ...[
+            const SizedBox(width: 8),
+            trailing!,
+          ],
+        ],
+      ),
+    );
+  }
 }

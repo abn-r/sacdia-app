@@ -367,7 +367,7 @@ void main() {
 
     expect(find.text('Cómo inscribir'), findsNothing);
     expect(find.text('Emitir orden de camporee'), findsOneWidget);
-    expect(find.text('Seleccionar miembros'), findsOneWidget);
+    expect(find.textContaining('SELECCIONAR MIEMBROS'), findsOneWidget);
     expect(
       find.text(
         'Solo se muestran miembros activos con seguro vigente que aún no estén inscritos.',
@@ -484,6 +484,11 @@ Future<void> _pumpView(
           onRegisteredIdsLoad();
           return const <String>{};
         }),
+        camporeeHeldBeneficiariesProvider
+            .overrideWith((ref, key) async => const <String, String>{}),
+        camporeeDetailProvider.overrideWith(
+          (ref, id) => Completer<Never>().future,
+        ),
       ],
       child: EasyLocalization(
         supportedLocales: const [Locale('es')],

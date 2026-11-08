@@ -48,6 +48,9 @@ abstract class PaymentOrdersRemoteDataSource {
   /// temporal y regresa la ruta local.
   Future<String> downloadOrderPdf(String orderId, {CancelToken? cancelToken});
 
+  /// GET /payment-orders/:orderId/proof — signed URL of the latest proof.
+  Future<String> getProofUrl(String orderId);
+
   /// POST /payment-orders/:orderId/proof — sube el comprobante (multipart).
   Future<PaymentOrderModel> uploadProof({
     required String orderId,
@@ -220,6 +223,23 @@ class PaymentOrdersRemoteDataSourceImpl
       return filePath;
     } catch (e) {
       AppLogger.e('Error en downloadOrderPdf', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  @override
+  Future<String> getProofUrl(String orderId) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.paymentOrders}/$orderId/proof',
+      );
+      final url = _unwrapMap(response.data)['url'];
+      if (url is! String || url.isEmpty) {
+        throw const FormatException('Proof URL missing');
+      }
+      return url;
+    } catch (e) {
+      AppLogger.e('Error en getProofUrl', tag: _tag, error: e);
       _rethrow(e);
     }
   }

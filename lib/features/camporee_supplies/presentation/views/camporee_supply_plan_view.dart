@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
@@ -15,8 +14,9 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/date_formatter.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_settings.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
-import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
@@ -49,6 +49,23 @@ class CamporeeSuppliesCta extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
+    void open() => context.push(
+          RouteNames.camporeeSuppliesPath(
+            camporeeId,
+            type: camporeeType == CamporeeKind.union ? 'union' : 'local',
+          ),
+        );
+
+    // Inside the camporee's «Recursos» group it is a list row.
+    if (embedded) {
+      return SacSettingsTile(
+        key: const Key('camporee-supplies-cta'),
+        icon: HugeIcons.strokeRoundedInvoice01,
+        title: 'camporee_supplies.cta.label'.tr(),
+        onTap: open,
+      );
+    }
+
     final button = SacButton(
       key: const Key('camporee-supplies-cta'),
       text: 'camporee_supplies.cta.label'.tr(),
@@ -64,13 +81,6 @@ class CamporeeSuppliesCta extends ConsumerWidget {
       labelOverflow: TextOverflow.visible,
       fullWidth: true,
     );
-
-    if (embedded) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 8),
-        child: button,
-      );
-    }
 
     return Padding(
       padding: const EdgeInsets.only(top: 16),
@@ -119,7 +129,7 @@ class _CamporeeSupplyPlanViewState
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) => envelopeAsync.when(
-            loading: () => const SacLoading(),
+            loading: () => const Center(child: SacLoading()),
             error: (error, _) => SacErrorState(
               title: '',
               message: camporeeSuppliesErrorMessage(error),
@@ -160,72 +170,115 @@ class _CamporeeSupplyPlanViewState
                 products: loaded.catalog.products,
               );
               final dueCentavos = submitted ? plan!.netCentavos : estimated;
+              // Once sent, each line also shows what the kitchen delivered.
+              final delivered = submitted
+                  ? {
+                      for (final line in plan!.lines)
+                        _lineKey(line.date, line.slotId, line.productId):
+                            double.tryParse(line.deliveredQty) ?? 0,
+                    }
+                  : null;
 
-              return ListView(
-                padding: SacTopBar.paddingBelowBar(
-                    context, const EdgeInsets.fromLTRB(16, 8, 16, 24)),
+              final ready = loaded.catalog.isReady;
+              return Column(
                 children: [
-                  _CutoffCaption(time: loaded.catalog.cutoff),
-                  const SizedBox(height: 16),
-                  _PaymentCard(
-                    plan: plan,
-                    submitted: submitted,
-                    dueCentavos: dueCentavos,
-                  ),
-                  if (!loaded.catalog.isReady) ...[
-                    const SizedBox(height: 20),
-                    Text(
-                      'camporee_supplies.plan.catalog_empty'.tr(),
-                      style: TextStyle(color: c.textSecondary),
-                    ),
-                  ] else ...[
-                    const SizedBox(height: 12),
-                    _AddSupplyButton(
-                      key: const Key('camporee-supply-add'),
-                      onPressed: () => _openAddSheet(loaded),
-                    ),
-                    const SizedBox(height: 16),
-                    if (lines.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Text(
-                          'camporee_supplies.plan.empty'.tr(),
-                          style: TextStyle(color: c.textSecondary),
+                  Expanded(
+                    child: RefreshIndicator(
+                      color: SacAccent.of(context).color,
+                      edgeOffset: SacTopBar.frostedInset(context),
+                      onRefresh: () => ref
+                          .refresh(camporeeSupplyPlanProvider(_scope).future)
+                          .then((_) {}, onError: (_) {}),
+                      child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: SacTopBar.paddingBelowBar(
+                          context,
+                          const EdgeInsets.fromLTRB(20, 16, 20, 32),
                         ),
-                      ),
-                    for (var index = 0; index < groups.length; index++) ...[
-                      _DayCard(
-                        group: groups[index],
-                        catalog: loaded.catalog,
-                        locale: context.locale.languageCode,
-                        animationDelay: SacMotion.stagger * index,
-                        onRemove: submitted
-                            ? null
-                            : (line) => setState(
-                                  () => _draftLines.removeWhere(
-                                    (row) =>
-                                        row.date == line.date &&
-                                        row.slotId == line.slotId &&
-                                        row.productId == line.productId,
-                                  ),
+                        children: [
+                          _PaymentGroup(
+                            plan: plan,
+                            submitted: submitted,
+                            dueCentavos: dueCentavos,
+                          ),
+                          SacSettingsFooter(
+                            'camporee_supplies.plan.cutoff'.tr(
+                              namedArgs: {'time': loaded.catalog.cutoff},
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          if (!ready)
+                            SacSettingsGroup(
+                              children: [
+                                _MessageRow(
+                                  icon: HugeIcons.strokeRoundedPackage,
+                                  text: 'camporee_supplies.plan.catalog_empty'
+                                      .tr(),
                                 ),
+                              ],
+                            )
+                          else ...[
+                            SacSettingsGroup(
+                              children: [
+                                SacSettingsTile(
+                                  key: const Key('camporee-supply-add'),
+                                  icon: HugeIcons.strokeRoundedAdd01,
+                                  title: 'camporee_supplies.plan.add_item'.tr(),
+                                  subtitle:
+                                      'camporee_supplies.plan.add_hint'.tr(),
+                                  onTap: () => _openAddSheet(loaded),
+                                ),
+                              ],
+                            ),
+                            if (lines.isEmpty)
+                              SacSettingsFooter(
+                                'camporee_supplies.plan.empty'.tr(),
+                              ),
+                            for (final group in groups) ...[
+                              const SizedBox(height: 24),
+                              _DayCard(
+                                group: group,
+                                catalog: loaded.catalog,
+                                locale: context.locale.languageCode,
+                                delivered: delivered,
+                                onRemove: submitted
+                                    ? null
+                                    : (line) => setState(
+                                          () => _draftLines.removeWhere(
+                                            (row) =>
+                                                row.date == line.date &&
+                                                row.slotId == line.slotId &&
+                                                row.productId == line.productId,
+                                          ),
+                                        ),
+                              ),
+                            ],
+                          ],
+                        ],
                       ),
-                      if (index < groups.length - 1) const SizedBox(height: 12),
-                    ],
-                    if (!submitted) ...[
-                      const SizedBox(height: 20),
-                      SacButton.outline(
-                        text: 'camporee_supplies.plan.save'.tr(),
-                        onPressed: () => _save(),
+                    ),
+                  ),
+                  if (ready && !submitted)
+                    SacPinnedActionBar(
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: SacButton.outline(
+                              text: 'camporee_supplies.plan.save'.tr(),
+                              onPressed: () => _save(),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: SacButton.primary(
+                              text: 'camporee_supplies.plan.submit'.tr(),
+                              isEnabled: lines.isNotEmpty,
+                              onPressed: () => _submit(estimated),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      SacButton.primary(
-                        text: 'camporee_supplies.plan.submit'.tr(),
-                        isEnabled: lines.isNotEmpty,
-                        onPressed: () => _submit(),
-                      ),
-                    ],
-                  ],
+                    ),
                 ],
               );
             },
@@ -322,7 +375,17 @@ class _CamporeeSupplyPlanViewState
     );
   }
 
-  Future<void> _submit() async {
+  Future<void> _submit(int estimatedCentavos) async {
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'camporee_supplies.plan.submit_confirm_title'.tr(),
+      content: 'camporee_supplies.plan.submit_confirm_body'.tr(),
+      highlight: _formatPesos(estimatedCentavos),
+      confirmLabel: 'camporee_supplies.plan.submit'.tr(),
+      cancelLabel: 'common.cancel'.tr(),
+    );
+    if (confirmed != true || !mounted) return;
+
     final saved =
         await ref.read(camporeeSuppliesRepositoryProvider).replaceDraft(
               camporeeId: widget.camporeeId,
@@ -353,61 +416,14 @@ class _CamporeeSupplyPlanViewState
   }
 }
 
-class _CutoffCaption extends StatelessWidget {
-  final String time;
-
-  const _CutoffCaption({required this.time});
-
-  @override
-  Widget build(BuildContext context) {
-    final label = 'camporee_supplies.plan.cutoff'.tr(
-      namedArgs: {'time': time},
-    );
-
-    final c = context.sac;
-
-    return Align(
-      alignment: Alignment.center,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: c.warningContainer,
-          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedClock01,
-                size: 14,
-                color: c.onWarningContainer,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: c.onWarningContainer,
-                  fontSize: SacFontSize.bodyMedium,
-                  fontWeight: FontWeight.w700,
-                  height: 1.25,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PaymentCard extends StatelessWidget {
+/// What the section pays for its supplies: the estimate while drafting,
+/// then the amount due and every folio once the plan is sent.
+class _PaymentGroup extends StatelessWidget {
   final CamporeeSupplyPlan? plan;
   final bool submitted;
   final int dueCentavos;
 
-  const _PaymentCard({
+  const _PaymentGroup({
     required this.plan,
     required this.submitted,
     required this.dueCentavos,
@@ -415,310 +431,124 @@ class _PaymentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
     final payments = plan?.payments ?? const <CamporeeSupplyPayment>[];
-    final amountLabel = submitted
-        ? 'camporee_supplies.plan.payment_due'.tr()
-        : 'camporee_supplies.plan.payment_estimated'.tr();
-
-    return SacCard(
+    return SacSettingsGroup(
       key: const Key('camporee-supply-payment'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      title: 'camporee_supplies.plan.payment_title'.tr().toUpperCase(),
+      children: [
+        SacSettingsValueTile(
+          icon: HugeIcons.strokeRoundedMoney03,
+          label: submitted
+              ? 'camporee_supplies.plan.payment_due'.tr()
+              : 'camporee_supplies.plan.payment_estimated'.tr(),
+          value: _formatPesos(dueCentavos),
+          sub: submitted
+              ? null
+              : 'camporee_supplies.plan.payment_pending_folio'.tr(),
+          emphasis: true,
+        ),
+        for (final payment in payments) ...[
+          const SacSettingsDivider(),
+          SacSettingsValueTile(
+            icon: HugeIcons.strokeRoundedInvoice01,
+            label: payment.folioReference,
+            value: _formatPesos(payment.totalCentavos),
+            sub: '${_paymentKindLabel(payment.kind)} · '
+                '${_paymentStatusLabel(payment.status)}',
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _MessageRow extends StatelessWidget {
+  final HugeIconData icon;
+  final String text;
+
+  const _MessageRow({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
         children: [
-          Text(
-            'camporee_supplies.plan.payment_title'.tr(),
-            style: TextStyle(
-              color: c.textTertiary,
-              fontSize: SacFontSize.bodySmall,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.6,
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            amountLabel,
-            style: TextStyle(
-              color: c.textSecondary,
-              fontSize: SacFontSize.bodyMedium,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            _formatPesos(dueCentavos),
-            style: TextStyle(
-              color: c.text,
-              fontSize: SacFontSize.displayLarge,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.6,
-              height: 1.1,
-            ),
-          ),
-          if (!submitted) ...[
-            const SizedBox(height: 8),
-            Text(
-              'camporee_supplies.plan.payment_pending_folio'.tr(),
+          HugeIcon(icon: icon, size: 20, color: c.textTertiary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
               style: TextStyle(
-                color: c.textSecondary,
                 fontSize: SacFontSize.bodyMedium,
-                height: 1.35,
+                color: c.textSecondary,
+                height: 1.4,
               ),
             ),
-          ],
-          if (payments.isNotEmpty) ...[
-            const SizedBox(height: 14),
-            Divider(height: 1, color: c.divider),
-            const SizedBox(height: 8),
-            for (final payment in payments)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            payment.folioReference,
-                            style: TextStyle(
-                              color: c.text,
-                              fontSize: SacFontSize.titleSmall,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '${_paymentKindLabel(payment.kind)} · ${_paymentStatusLabel(payment.status)}',
-                            style: TextStyle(
-                              color: c.textSecondary,
-                              fontSize: SacFontSize.bodySmall,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Text(
-                      _formatPesos(payment.totalCentavos),
-                      style: TextStyle(
-                        color: c.text,
-                        fontSize: SacFontSize.titleSmall,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ],
+          ),
         ],
       ),
     );
   }
 }
 
-class _AddSupplyButton extends StatefulWidget {
-  final VoidCallback onPressed;
-
-  const _AddSupplyButton({super.key, required this.onPressed});
-
-  @override
-  State<_AddSupplyButton> createState() => _AddSupplyButtonState();
-}
-
-class _AddSupplyButtonState extends State<_AddSupplyButton> {
-  bool _pressed = false;
-
-  void _setPressed(bool value) {
-    if (_pressed == value) return;
-    setState(() => _pressed = value);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final reduce = SacMotion.reduceMotionOf(context);
-    final label = 'camporee_supplies.plan.add_item'.tr();
-    final hint = 'camporee_supplies.plan.add_hint'.tr();
-
-    return Semantics(
-      button: true,
-      label: label,
-      hint: hint,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown: (_) {
-          HapticFeedback.lightImpact();
-          _setPressed(true);
-        },
-        onTapUp: (_) => _setPressed(false),
-        onTapCancel: () => _setPressed(false),
-        onTap: widget.onPressed,
-        child: AnimatedScale(
-          scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
-          duration: SacMotion.press,
-          curve: SacMotion.easeOut,
-          child: ExcludeSemantics(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 52),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: SacAccent.of(context).surface,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-                  border: Border.all(
-                    color: SacAccent.of(context).color.withValues(alpha: 0.28),
-                  ),
-                ),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: SacAccent.of(context).color,
-                          shape: BoxShape.circle,
-                        ),
-                        alignment: Alignment.center,
-                        child: HugeIcon(
-                          icon: HugeIcons.strokeRoundedAdd01,
-                          size: 18,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              label,
-                              style: TextStyle(
-                                color: SacAccent.of(context).color,
-                                fontSize: SacFontSize.titleMedium,
-                                fontWeight: FontWeight.w800,
-                                height: 1.2,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              hint,
-                              style: TextStyle(
-                                color: c.textSecondary,
-                                fontSize: SacFontSize.bodyMedium,
-                                fontWeight: FontWeight.w600,
-                                height: 1.25,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedArrowRight01,
-                        size: 18,
-                        color: c.textTertiary,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
+/// One day of the plan as a group: its slots with their lines.
 class _DayCard extends StatelessWidget {
   final CamporeeSupplyDayBucket group;
   final CamporeeSupplyCatalog catalog;
   final String locale;
-  final Duration animationDelay;
+  final Map<String, double>? delivered;
   final ValueChanged<CamporeeSupplyLineInput>? onRemove;
 
   const _DayCard({
     required this.group,
     required this.catalog,
     required this.locale,
-    required this.animationDelay,
+    this.delivered,
     this.onRemove,
   });
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final parsed = _parseIsoDate(group.date);
     final dateLabel = SacDateFormatter.formatCalendar(
-      parsed,
+      _parseIsoDate(group.date),
       'EEE d MMM',
       locale: locale,
     );
+    final day = 'camporee_supplies.plan.day_index'.tr(
+      namedArgs: {'day': '${group.dayNumber}'},
+    );
 
-    return SacCard(
+    return SacSettingsGroup(
       key: Key('camporee-supply-day-${group.date}'),
-      animate: true,
-      animationDelay: animationDelay,
-      padding: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'camporee_supplies.plan.day_index'.tr(
-                    namedArgs: {'day': '${group.dayNumber}'},
-                  ),
+      title: (dateLabel.isEmpty ? day : '$day · $dateLabel').toUpperCase(),
+      children: group.isEmpty
+          ? [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'camporee_supplies.plan.day_empty'.tr(),
                   style: TextStyle(
-                    color: c.text,
-                    fontSize: SacFontSize.titleMedium,
-                    fontWeight: FontWeight.w800,
-                    height: 1.2,
+                    color: c.textSecondary,
+                    fontSize: SacFontSize.bodyMedium,
                   ),
                 ),
-                if (dateLabel.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    dateLabel,
-                    style: TextStyle(
-                      color: c.textSecondary,
-                      fontSize: SacFontSize.bodyMedium,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+              ),
+            ]
+          : [
+              for (var i = 0; i < group.slots.length; i++) ...[
+                if (i > 0) Divider(height: 1, color: c.divider),
+                _SlotBlock(
+                  bucket: group.slots[i],
+                  catalog: catalog,
+                  date: group.date,
+                  delivered: delivered,
+                  onRemove: onRemove,
+                ),
               ],
-            ),
-          ),
-          if (group.isEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Text(
-                'camporee_supplies.plan.day_empty'.tr(),
-                style: TextStyle(
-                    color: c.textSecondary, fontSize: SacFontSize.bodyMedium),
-              ),
-            )
-          else
-            for (var slotIndex = 0;
-                slotIndex < group.slots.length;
-                slotIndex++) ...[
-              if (slotIndex > 0) Divider(height: 1, color: c.divider),
-              _SlotBlock(
-                bucket: group.slots[slotIndex],
-                catalog: catalog,
-                date: group.date,
-                onRemove: onRemove,
-              ),
             ],
-        ],
-      ),
     );
   }
 }
@@ -727,12 +557,14 @@ class _SlotBlock extends StatelessWidget {
   final CamporeeSupplySlotBucket bucket;
   final CamporeeSupplyCatalog catalog;
   final String date;
+  final Map<String, double>? delivered;
   final ValueChanged<CamporeeSupplyLineInput>? onRemove;
 
   const _SlotBlock({
     required this.bucket,
     required this.catalog,
     required this.date,
+    this.delivered,
     this.onRemove,
   });
 
@@ -754,8 +586,8 @@ class _SlotBlock extends StatelessWidget {
             style: TextStyle(
               color: c.textTertiary,
               fontSize: SacFontSize.labelSmall,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.6,
               height: 1.2,
             ),
           ),
@@ -765,6 +597,11 @@ class _SlotBlock extends StatelessWidget {
           _LineTile(
             line: bucket.lines[i],
             catalog: catalog,
+            deliveredQty: delivered?[_lineKey(
+              bucket.lines[i].date,
+              bucket.lines[i].slotId,
+              bucket.lines[i].productId,
+            )],
             onRemove:
                 onRemove == null ? null : () => onRemove!(bucket.lines[i]),
           ),
@@ -993,7 +830,7 @@ class _AddRow extends StatelessWidget {
           label: 'camporee_supplies.plan.product'.tr(),
           value: product == null
               ? ''
-              : '${product.name} · ${_formatPesos(product.unitCostCentavos)}/${product.uom}',
+              : '${product.name} · ${_formatPesos(product.unitCostCentavos)}/${_uomName(product.uom)}',
           prefixIcon: HugeIcons.strokeRoundedInvoice01,
           onTap: () async {
             final picked = await _pickSupplyOption(
@@ -1003,7 +840,7 @@ class _AddRow extends StatelessWidget {
                 for (final item in catalog.products)
                   (
                     item.productId,
-                    '${item.name} · ${_formatPesos(item.unitCostCentavos)}/${item.uom}',
+                    '${item.name} · ${_formatPesos(item.unitCostCentavos)}/${_uomName(item.uom)}',
                   ),
               ],
               selected: productId,
@@ -1020,7 +857,7 @@ class _AddRow extends StatelessWidget {
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
           ],
-          suffixText: product?.uom,
+          suffixText: product == null ? null : _uomName(product.uom),
         ),
         const SizedBox(height: 16),
         SacButton.primary(
@@ -1102,11 +939,15 @@ class _SupplySelectFieldState extends State<_SupplySelectField> {
 class _LineTile extends StatelessWidget {
   final CamporeeSupplyLineInput line;
   final CamporeeSupplyCatalog catalog;
+
+  /// Quantity the kitchen delivered; null while the plan is a draft.
+  final double? deliveredQty;
   final VoidCallback? onRemove;
 
   const _LineTile({
     required this.line,
     required this.catalog,
+    this.deliveredQty,
     this.onRemove,
   });
 
@@ -1117,7 +958,12 @@ class _LineTile extends StatelessWidget {
         catalog.products.where((item) => item.productId == line.productId);
     final uom = product.isEmpty ? '' : product.first.uom;
     final name = product.isEmpty ? line.productId : product.first.name;
-    final qty = '${_formatQty(line.qty)} $uom'.trim();
+    final qty = _formatQtyWithUnit(line.qty, uom);
+    final delivery = deliveredQty == null
+        ? null
+        : _deliveryLabel(delivered: deliveredQty!, ordered: line.qty, uom: uom);
+    final fullyDelivered =
+        deliveredQty != null && deliveredQty! >= line.qty && line.qty > 0;
     final icon = _supplyProductIcon(name, uom);
     final color = _supplyProductColor(context, name, uom);
 
@@ -1134,16 +980,52 @@ class _LineTile extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: c.text,
-                fontSize: SacFontSize.titleSmall,
-                fontWeight: FontWeight.w800,
-                height: 1.2,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: c.text,
+                    fontSize: SacFontSize.titleSmall,
+                    fontWeight: FontWeight.w600,
+                    height: 1.2,
+                  ),
+                ),
+                if (delivery != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Row(
+                      key: Key(
+                        'camporee-supply-delivery-${line.date}-${line.slotId}-${line.productId}',
+                      ),
+                      children: [
+                        HugeIcon(
+                          icon: fullyDelivered
+                              ? HugeIcons.strokeRoundedCheckmarkCircle02
+                              : HugeIcons.strokeRoundedDeliveryTruck01,
+                          size: 13,
+                          color: fullyDelivered ? c.success : c.textTertiary,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            delivery,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color:
+                                  fullyDelivered ? c.success : c.textSecondary,
+                              fontSize: SacFontSize.bodySmall,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
             ),
           ),
           const SizedBox(width: 8),
@@ -1152,7 +1034,7 @@ class _LineTile extends StatelessWidget {
             style: TextStyle(
               color: c.textSecondary,
               fontSize: SacFontSize.bodyMedium,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
           ),
           if (onRemove != null)
@@ -1423,6 +1305,38 @@ String _formatQty(double qty) {
 }
 
 String _formatPesos(int centavos) => SacMoney.fromCentavos(centavos);
+
+String _lineKey(String date, String slotId, String productId) =>
+    '$date|$slotId|$productId';
+
+const _knownUoms = {'UNIT', 'BAG', 'KG', 'L'};
+
+/// Unit name for prices and the qty field: "pieza", "bolsa", "kg", "L".
+String _uomName(String uom) {
+  final code = uom.toUpperCase();
+  if (!_knownUoms.contains(code)) return uom;
+  return 'camporee_supplies.uom.${code.toLowerCase()}'.tr();
+}
+
+/// Quantity with its unit, pluralized: "2 piezas", "1 bolsa", "1.5 kg".
+String _formatQtyWithUnit(double qty, String uom) {
+  final code = uom.toUpperCase();
+  if (!_knownUoms.contains(code)) return '${_formatQty(qty)} $uom'.trim();
+  return 'camporee_supplies.uom_qty.${code.toLowerCase()}'
+      .plural(qty, args: [_formatQty(qty)]);
+}
+
+String _deliveryLabel({
+  required double delivered,
+  required double ordered,
+  required String uom,
+}) {
+  if (delivered <= 0) return 'camporee_supplies.plan.delivery_pending'.tr();
+  if (delivered >= ordered) return 'camporee_supplies.plan.delivery_done'.tr();
+  return 'camporee_supplies.plan.delivery_partial'.tr(
+    namedArgs: {'qty': _formatQtyWithUnit(delivered, uom)},
+  );
+}
 
 String _paymentKindLabel(String kind) {
   switch (kind) {

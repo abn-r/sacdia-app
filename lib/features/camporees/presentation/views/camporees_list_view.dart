@@ -8,7 +8,6 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/date_formatter.dart';
@@ -16,12 +15,15 @@ import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
 import 'package:sacdia_app/features/camporees/domain/utils/camporee_period.dart';
 
 import '../providers/camporees_providers.dart';
+import '../widgets/camporee_ticket_parts.dart';
 import 'camporee_detail_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
@@ -245,6 +247,9 @@ class CamporeesHistoryView extends ConsumerWidget {
   }
 }
 
+/// One camporee as an event ticket: who it is for (club logos), name and
+/// field, where it stands, then a perforation and the three facts that
+/// decide whether to go: dates, place and cost.
 class _CamporeeCard extends StatelessWidget {
   final Camporee camporee;
   final VoidCallback onTap;
@@ -259,285 +264,260 @@ class _CamporeeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final dateRange = SacDateFormatter.range(
-      camporee.startDate,
-      camporee.endDate,
+    final status = CamporeeStatus.of(
+      context,
+      CamporeeTiming.of(camporee, DateTime.now()),
     );
+    final cost = camporee.registrationCost;
+    final showCost = !historical && cost != null;
+    final place = camporee.place.trim();
 
-    return Semantics(
-      button: true,
-      label: camporee.name,
-      hint: 'camporees.detail.description'.tr(),
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: SacPressable(
-          onTap: onTap,
-          child: Container(
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: c.surface,
-              borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-              border: Border.all(color: c.borderLight),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _CardBanner(
-                  dateRange: dateRange,
-                  historical: historical,
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        camporee.name,
-                        style: TextStyle(
-                          color: c.text,
-                          fontSize: SacFontSize.titleLarge,
-                          fontWeight: FontWeight.w800,
-                          height: 1.25,
-                          letterSpacing: -0.3,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (camporee.localFieldName != null) ...[
-                        const SizedBox(height: 3),
+    return MergeSemantics(
+      child: SacCard(
+        key: ValueKey('camporee-card-${camporee.camporeeId}'),
+        onTap: onTap,
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CamporeeClubLogos(camporee: camporee, dimmed: historical),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          camporee.localFieldName!,
+                          camporee.name,
                           style: TextStyle(
-                            color: c.textSecondary,
-                            fontSize: SacFontSize.bodyMedium,
-                            fontWeight: FontWeight.w600,
+                            color: c.text,
+                            fontSize: SacFontSize.titleMedium,
+                            fontWeight: FontWeight.w700,
+                            height: 1.3,
                           ),
-                          maxLines: 1,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      ],
-                      const SizedBox(height: 10),
-                      _MetaRow(
-                        icon: HugeIcons.strokeRoundedLocation01,
-                        text: camporee.place,
-                      ),
-                      const SizedBox(height: 14),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(child: _ClubTypeBadges(camporee: camporee)),
-                          if (camporee.registrationCost != null) ...[
-                            const SizedBox(width: 10),
-                            Text(
-                              _formatCost(camporee.registrationCost!),
-                              style: TextStyle(
-                                fontSize: SacFontSize.titleMedium,
-                                fontWeight: FontWeight.w800,
-                                color: camporee.registrationCost == 0
-                                    ? c.success
-                                    : c.text,
-                                height: 1,
-                                letterSpacing: -0.2,
-                                fontFeatures: const [
-                                  FontFeature.tabularFigures(),
-                                ],
-                              ),
+                        if (camporee.localFieldName != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            camporee.localFieldName!,
+                            style: TextStyle(
+                              color: c.textSecondary,
+                              fontSize: SacFontSize.bodySmall,
+                              height: 1.3,
                             ),
-                          ],
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ],
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        SacBadge(
+                          key: ValueKey(
+                            'camporee-status-${camporee.camporeeId}',
+                          ),
+                          label: status.label,
+                          variant: status.variant,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+            const _Perforation(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 11,
+                    child: _TicketFact(
+                      icon: HugeIcons.strokeRoundedCalendar03,
+                      label: 'camporees.detail.dates'.tr(),
+                      value: _shortRange(camporee),
+                      sub: _rangeYear(camporee),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    flex: 10,
+                    child: _TicketFact(
+                      icon: HugeIcons.strokeRoundedLocation01,
+                      label: 'camporees.detail.place'.tr(),
+                      value: place.isEmpty ? '—' : place,
+                    ),
+                  ),
+                  if (showCost) ...[
+                    const SizedBox(width: 10),
+                    Expanded(
+                      flex: 8,
+                      child: _TicketFact(
+                        key: ValueKey('camporee-cost-${camporee.camporeeId}'),
+                        icon: HugeIcons.strokeRoundedTicket01,
+                        label: 'camporees.detail.cost'.tr(),
+                        value: cost == 0
+                            ? 'camporees.common.free'.tr()
+                            : SacMoney.format(cost),
+                        emphasis: true,
+                        valueColor: cost == 0 ? c.onSuccessContainer : null,
+                        end: true,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  String _formatCost(double cost) {
-    if (cost == 0) return 'camporees.common.free'.tr();
-    return SacMoney.format(cost);
+  /// «10–12 feb» within one year; the year goes on its own line.
+  static String _shortRange(Camporee camporee) {
+    final s = camporee.startDate;
+    final e = camporee.endDate;
+    if (s.year != e.year) {
+      return SacDateFormatter.range(s, e);
+    }
+    final dayMonth = DateFormat('d MMM');
+    if (s.month == e.month) {
+      if (s.day == e.day) return dayMonth.format(s);
+      return '${s.day}–${dayMonth.format(e)}';
+    }
+    return '${dayMonth.format(s)} – ${dayMonth.format(e)}';
+  }
+
+  static String? _rangeYear(Camporee camporee) =>
+      camporee.startDate.year == camporee.endDate.year
+          ? '${camporee.startDate.year}'
+          : null;
+}
+
+/// Dashed line across the card, like the tear line of a ticket.
+class _Perforation extends StatelessWidget {
+  const _Perforation();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: CustomPaint(
+        size: const Size(double.infinity, 1),
+        painter: _DashPainter(color: context.sac.border),
+      ),
+    );
   }
 }
 
-/// Banner superior con gradiente coral y fogata como marca de agua.
-/// La fecha es la protagonista: es el dato que decide si el evento importa.
-class _CardBanner extends StatelessWidget {
-  final String dateRange;
-  final bool historical;
+class _DashPainter extends CustomPainter {
+  _DashPainter({required this.color});
 
-  const _CardBanner({
-    required this.dateRange,
-    this.historical = false,
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.2;
+    const dash = 5.0;
+    const gap = 4.0;
+    var x = 0.0;
+    while (x < size.width) {
+      canvas.drawLine(
+        Offset(x, 0.5),
+        Offset((x + dash).clamp(0, size.width), 0.5),
+        paint,
+      );
+      x += dash + gap;
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashPainter old) => old.color != color;
+}
+
+/// One fact under the perforation: icon and small label, then the value.
+class _TicketFact extends StatelessWidget {
+  final HugeIconData icon;
+  final String label;
+  final String value;
+  final String? sub;
+  final bool emphasis;
+  final Color? valueColor;
+  final bool end;
+
+  const _TicketFact({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.sub,
+    this.emphasis = false,
+    this.valueColor,
+    this.end = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: 72,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.coral500, AppColors.coral700],
-        ),
-      ),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Fogata watermark, sangrada al borde derecho
-          Positioned(
-            right: -10,
-            top: -14,
-            child: HugeIcon(
-              icon: HugeIcons.strokeRoundedCampfire,
-              size: 100,
-              color: Colors.white.withValues(alpha: 0.16),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  (historical
-                          ? 'camporees.list.ended_label'
-                          : 'camporees.list.title')
-                      .tr()
-                      .toUpperCase(),
-                  style: TextStyle(
-                    fontSize: SacFontSize.labelSmall,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white.withValues(alpha: 0.75),
-                    letterSpacing: 1.4,
-                    height: 1,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  dateRange,
-                  style: const TextStyle(
-                    fontSize: SacFontSize.headlineSmall,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: -0.3,
-                    height: 1,
-                    fontFeatures: [FontFeature.tabularFigures()],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MetaRow extends StatelessWidget {
-  final HugeIconData icon;
-  final String text;
-
-  const _MetaRow({required this.icon, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
     final c = context.sac;
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final align = end ? CrossAxisAlignment.end : CrossAxisAlignment.start;
+    return Column(
+      crossAxisAlignment: align,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 1),
-          child: HugeIcon(icon: icon, size: 15, color: c.textTertiary),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            HugeIcon(icon: icon, size: 13, color: c.textTertiary),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: SacFontSize.labelSmall,
+                  fontWeight: FontWeight.w500,
+                  color: c.textTertiary,
+                  height: 1.2,
+                ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
+        const SizedBox(height: 4),
+        Text(
+          value,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          textAlign: end ? TextAlign.end : TextAlign.start,
+          style: TextStyle(
+            fontSize:
+                emphasis ? SacFontSize.titleMedium : SacFontSize.bodyMedium,
+            fontWeight: FontWeight.w700,
+            color: valueColor ?? c.text,
+            height: 1.25,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+        if (sub != null)
+          Text(
+            sub!,
             style: TextStyle(
-              fontSize: SacFontSize.bodyMedium,
+              fontSize: SacFontSize.bodySmall,
               color: c.textSecondary,
               height: 1.3,
-              fontWeight: FontWeight.w600,
+              fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
-        ),
       ],
-    );
-  }
-}
-
-class _ClubTypeBadges extends StatelessWidget {
-  final Camporee camporee;
-
-  const _ClubTypeBadges({required this.camporee});
-
-  @override
-  Widget build(BuildContext context) {
-    final badges = <Widget>[
-      if (camporee.includesAdventurers)
-        _Badge(
-          label: 'camporees.common.adventurers'.tr(),
-          color: context.sac.warning,
-        ),
-      if (camporee.includesPathfinders)
-        _Badge(
-          label: 'camporees.common.pathfinders'.tr(),
-          color: SacAccent.of(context).color,
-        ),
-      if (camporee.includesMasterGuides)
-        _Badge(
-          label: 'camporees.common.master_guides'.tr(),
-          color: context.sac.success,
-        ),
-    ];
-
-    if (badges.isEmpty) return const SizedBox.shrink();
-
-    return Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      children: badges,
-    );
-  }
-}
-
-class _Badge extends StatelessWidget {
-  final String label;
-  final Color color;
-
-  const _Badge({required this.label, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final textColor = color == c.warning
-        ? c.onWarningContainer
-        : color == c.success
-            ? c.onSuccessContainer
-            : color;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: SacFontSize.labelSmall,
-          fontWeight: FontWeight.w700,
-          color: textColor,
-          height: 1.2,
-        ),
-      ),
     );
   }
 }

@@ -96,12 +96,14 @@ class CamporeeOfficialScoreItemModel extends Equatable {
   final String title;
   final double awardedPoints;
   final double maxPoints;
+  final String? notes;
 
   const CamporeeOfficialScoreItemModel({
     required this.rubricId,
     required this.title,
     required this.awardedPoints,
     required this.maxPoints,
+    this.notes,
   });
 
   factory CamporeeOfficialScoreItemModel.fromJson(Map<String, dynamic> json) {
@@ -110,6 +112,7 @@ class CamporeeOfficialScoreItemModel extends Equatable {
       title: safeString(json['title']),
       awardedPoints: safeDouble(json['awarded_points']),
       maxPoints: safeDouble(json['max_points']),
+      notes: safeStringOrNull(json['notes']),
     );
   }
 
@@ -119,9 +122,10 @@ class CamporeeOfficialScoreItemModel extends Equatable {
       title: title,
       awardedPoints: awardedPoints,
       maxPoints: maxPoints,
+      notes: notes,
     );
   }
 
   @override
-  List<Object?> get props => [rubricId, title, awardedPoints, maxPoints];
+  List<Object?> get props => [rubricId, title, awardedPoints, maxPoints, notes];
 }

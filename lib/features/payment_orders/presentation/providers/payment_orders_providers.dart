@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/providers/keep_alive_during.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -8,6 +9,7 @@ import '../../data/datasources/payment_orders_remote_data_source.dart';
 import '../../data/repositories/payment_orders_repository_impl.dart';
 import '../../domain/entities/payment_order.dart';
 import '../../domain/repositories/payment_orders_repository.dart';
+import '../../domain/utils/payment_order_eligibility.dart';
 
 // ── Infrastructure ──────────────────────────────────────────────────────────
 
@@ -88,6 +90,26 @@ final paymentOrdersListProvider = FutureProvider.autoDispose
   );
 });
 
+/// Camporee whose open orders are being looked up.
+typedef CamporeeOrdersKey = ({int camporeeId, String camporeeType});
+
+/// Members of the active section already held by an open order for this
+/// camporee, mapped to the order's folio. The issue screen leaves them out
+/// of the selection so the order does not fail as a duplicate.
+final camporeeHeldBeneficiariesProvider = FutureProvider.autoDispose
+    .family<Map<String, String>, CamporeeOrdersKey>((ref, key) async {
+  final isUnion = key.camporeeType == 'union';
+  final result = await ref.read(paymentOrdersRepositoryProvider).listOrders(
+        purpose: PaymentOrderPurpose.camporee,
+        camporeeId: isUnion ? null : key.camporeeId,
+        unionCamporeeId: isUnion ? key.camporeeId : null,
+      );
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    beneficiariesHeldByOrders,
+  );
+});
+
 // ── Order detail ─────────────────────────────────────────────────────────────
 
 final paymentOrderDetailProvider = FutureProvider.autoDispose
@@ -145,6 +167,12 @@ class IssueOrderNotifier extends Notifier<IssueOrderState> {
     state = state.copyWith(selectedUserIds: selected, clearError: true);
   }
 
+  /// Selects every id in [userIds] (the eligible list on screen).
+  void selectAll(Iterable<String> userIds) => state = state.copyWith(
+        selectedUserIds: {...userIds},
+        clearError: true,
+      );
+
   void clearSelection() =>
       state = state.copyWith(selectedUserIds: const {}, clearError: true);
 
@@ -176,24 +204,29 @@ class IssueOrderNotifier extends Notifier<IssueOrderState> {
     if (state.selectedUserIds.isEmpty || state.isSubmitting) return null;
     state = state.copyWith(isSubmitting: true, clearError: true);
 
-    final result = await action(ref.read(paymentOrdersRepositoryProvider));
-    return result.fold(
-      (failure) {
-        state = state.copyWith(
-          isSubmitting: false,
-          errorMessage: failure.message as String?,
-        );
-        return null;
-      },
-      (order) {
-        state = state.copyWith(
-          isSubmitting: false,
-          issuedOrder: order as PaymentOrder,
-        );
-        ref.invalidate(paymentOrdersListProvider);
-        return order;
-      },
-    );
+    // Stay alive until the order is issued and the lists are invalidated,
+    // even if the screen goes away mid-request.
+    return ref.keepAliveDuring(() async {
+      final result = await action(ref.read(paymentOrdersRepositoryProvider));
+      return result.fold(
+        (failure) {
+          state = state.copyWith(
+            isSubmitting: false,
+            errorMessage: failure.message as String?,
+          );
+          return null;
+        },
+        (order) {
+          state = state.copyWith(
+            isSubmitting: false,
+            issuedOrder: order as PaymentOrder,
+          );
+          ref.invalidate(paymentOrdersListProvider);
+          ref.invalidate(camporeeHeldBeneficiariesProvider);
+          return order;
+        },
+      );
+    });
   }
 }
 
@@ -242,22 +275,40 @@ class OrderActionsNotifier extends Notifier<OrderActionsState> {
     );
   }
 
-  Future<String?> downloadPdf(String orderId) async {
-    state = const OrderActionsState(isWorking: true);
-    final result = await ref
-        .read(paymentOrdersRepositoryProvider)
-        .downloadOrderPdf(orderId);
-    return result.fold(
-      (failure) {
-        state = OrderActionsState(errorMessage: failure.message);
-        return null;
-      },
-      (path) {
-        state = const OrderActionsState();
-        return path;
-      },
-    );
-  }
+  Future<String?> downloadPdf(String orderId) => ref.keepAliveDuring(() async {
+        state = const OrderActionsState(isWorking: true);
+        final result = await ref
+            .read(paymentOrdersRepositoryProvider)
+            .downloadOrderPdf(orderId);
+        return result.fold(
+          (failure) {
+            state = OrderActionsState(errorMessage: failure.message);
+            return null;
+          },
+          (path) {
+            state = const OrderActionsState();
+            return path;
+          },
+        );
+      });
+
+  /// Signed URL of the latest proof, or null (the error goes to state).
+  Future<String?> proofUrl(String orderId) => ref.keepAliveDuring(() async {
+        state = const OrderActionsState(isWorking: true);
+        final result = await ref
+            .read(paymentOrdersRepositoryProvider)
+            .getProofUrl(orderId);
+        return result.fold(
+          (failure) {
+            state = OrderActionsState(errorMessage: failure.message);
+            return null;
+          },
+          (url) {
+            state = const OrderActionsState();
+            return url;
+          },
+        );
+      });
 
   Future<bool> _run(
     Future<dynamic> Function() action, {
@@ -266,19 +317,24 @@ class OrderActionsNotifier extends Notifier<OrderActionsState> {
     if (state.isWorking) return false;
     state = const OrderActionsState(isWorking: true);
 
-    final result = await action();
-    return result.fold(
-      (failure) {
-        state = OrderActionsState(errorMessage: failure.message as String?);
-        return false;
-      },
-      (_) {
-        state = const OrderActionsState();
-        ref.invalidate(paymentOrderDetailProvider(invalidateOrderId));
-        ref.invalidate(paymentOrdersListProvider);
-        return true;
-      },
-    );
+    // Cancelling or uploading must still refresh the lists if the user
+    // leaves the screen before the request finishes.
+    return ref.keepAliveDuring(() async {
+      final result = await action();
+      return result.fold(
+        (failure) {
+          state = OrderActionsState(errorMessage: failure.message as String?);
+          return false;
+        },
+        (_) {
+          state = const OrderActionsState();
+          ref.invalidate(paymentOrderDetailProvider(invalidateOrderId));
+          ref.invalidate(paymentOrdersListProvider);
+          ref.invalidate(camporeeHeldBeneficiariesProvider);
+          return true;
+        },
+      );
+    });
   }
 }
 

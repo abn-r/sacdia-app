@@ -172,6 +172,30 @@ class CamporeeEventHonor extends Equatable {
       ];
 }
 
+/// Archivo adjunto a un evento (reglamento, mapa, formato): PDF o imagen.
+/// [url] es firmada y caduca; se usa al abrirlo, no se guarda.
+class CamporeeEventAttachment extends Equatable {
+  final String attachmentId;
+  final String fileName;
+  final String mimeType;
+  final int sizeBytes;
+  final String url;
+
+  const CamporeeEventAttachment({
+    required this.attachmentId,
+    required this.fileName,
+    required this.mimeType,
+    required this.sizeBytes,
+    required this.url,
+  });
+
+  bool get isPdf => mimeType == 'application/pdf';
+  bool get isImage => mimeType.startsWith('image/');
+
+  @override
+  List<Object?> get props => [attachmentId, fileName, mimeType, sizeBytes, url];
+}
+
 /// Evento/actividad registrada dentro de un camporí.
 class CamporeeEvent extends Equatable {
   final int camporeeEventId;
@@ -197,6 +221,7 @@ class CamporeeEvent extends Equatable {
   final List<CamporeeEventScheduleBlock> scheduleBlocks;
   final List<CamporeeEventStaffAssignment> staffAssignments;
   final List<CamporeeEventHonor> honors;
+  final List<CamporeeEventAttachment> attachments;
 
   const CamporeeEvent({
     required this.camporeeEventId,
@@ -222,6 +247,7 @@ class CamporeeEvent extends Equatable {
     this.scheduleBlocks = const [],
     this.staffAssignments = const [],
     this.honors = const [],
+    this.attachments = const [],
   });
 
   bool get hasTime =>
@@ -310,5 +336,6 @@ class CamporeeEvent extends Equatable {
         scheduleBlocks,
         staffAssignments,
         honors,
+        attachments,
       ];
 }

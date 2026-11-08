@@ -12,6 +12,7 @@ import 'package:sacdia_app/features/camporees/data/datasources/camporees_remote_
 import 'package:sacdia_app/features/camporees/data/models/camporee_event_model.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_judge_assignment_model.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_leaderboard_model.dart';
+import 'package:sacdia_app/features/camporees/data/models/camporee_score_breakdown_model.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_member_model.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_model.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_payment_model.dart';
@@ -166,6 +167,26 @@ class _StubDataSource implements CamporeesRemoteDataSource {
     if (r is Exception) throw r;
     return r as CamporeeLeaderboardModel;
   }
+
+  @override
+  Future<CamporeeScoreBreakdownModel> getCamporeeScoreBreakdown(
+    int camporeeId, {
+    String camporeeType = 'local',
+    CancelToken? cancelToken,
+  }) async =>
+      const CamporeeScoreBreakdownModel(
+        scopeType: 'local',
+        camporeeId: 0,
+        visibility: 'full',
+        sections: [],
+      );
+
+  @override
+  Future<List<CamporeeEventAttachmentModel>> getCamporeeEventAttachments(
+    int eventId, {
+    CancelToken? cancelToken,
+  }) async =>
+      const [];
 
   @override
   Future<CamporeeEventRubricSheetModel> getCamporeeEventRubrics(
