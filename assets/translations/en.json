@@ -2204,6 +2204,7 @@
   },
   "camporees": {
     "errors": {
+      "fetch_event_attachments": "Could not load the event attachments",
       "fetch_list": "Error fetching camporees",
       "fetch_detail": "Error fetching camporee detail",
       "register_member": "Error registering member in camporee",
@@ -2216,6 +2217,7 @@
       "fetch_camporee_payments": "Error fetching camporee payments",
       "fetch_events": "Error fetching camporee events",
       "fetch_leaderboard": "Could not load the camporee ranking.",
+      "fetch_score_breakdown": "Could not load the per-event scores.",
       "fetch_official_score": "Could not load the official score.",
       "fetch_judge_assignments": "Could not load your judge assignments."
     },
@@ -2235,11 +2237,49 @@
       "error_loading": "We couldn't load the camporees",
       "history": "Past ones",
       "history_title": "Past ones",
-      "ended_label": "Over",
+      "timing": {
+        "in_days": {
+          "one": "Tomorrow",
+          "other": "In {} days"
+        },
+        "today": "Today",
+        "ends_today": "Ends today",
+        "ongoing": "Happening · day {day} of {total}",
+        "ended_days": {
+          "one": "Ended yesterday",
+          "other": "Ended {} days ago"
+        },
+        "ended_months": {
+          "one": "Ended 1 month ago",
+          "other": "Ended {} months ago"
+        },
+        "ended_years": {
+          "one": "Ended 1 year ago",
+          "other": "Ended {} years ago"
+        }
+      },
       "history_empty": "None have ended yet",
       "history_empty_body": "When a camporee closes, it stays here with its attendees and scores."
     },
     "detail": {
+      "bar_title": "Camporee",
+      "attachments_title": "Attachments",
+      "attachment_pdf": "PDF",
+      "attachment_image": "Image",
+      "insurance_short": "Insured",
+      "order_members": {
+        "one": "1 member",
+        "other": "{} members"
+      },
+      "events_scored_title": "Scored events",
+      "leaderboard_yours": "Your section",
+      "leaderboard_all": "See all {count} sections",
+      "leaderboard_less": "See less",
+      "when_where": "When and where",
+      "duration_days": {
+        "one": "1 day",
+        "other": "{} days"
+      },
       "description": "Description",
       "dates": "Dates",
       "start": "Start",
@@ -2308,7 +2348,29 @@
       "leaderboard_empty": "It will appear when official scores are recorded.",
       "leaderboard_error": "Could not load the ranking.",
       "leaderboard_unknown_club": "Club",
-      "leaderboard_section_fallback": "Section #{id}"
+      "leaderboard_section_fallback": "Section #{id}",
+      "now_title": "Now at the camporee",
+      "now_in_progress": "In progress",
+      "now_next": "Up next",
+      "now_until": "Until {time}",
+      "now_in_minutes": "In {minutes} min",
+      "now_in_hours": "In {hours} h",
+      "now_in_hours_minutes": "In {hours} h {minutes} min",
+      "now_tomorrow": "Tomorrow",
+      "leaderboard_own_title": "Your section's score",
+      "leaderboard_own_subtitle": "You only see your section's points. The local field reviews the overall ranking.",
+      "leaderboard_own_empty": "Your section has no official scores yet.",
+      "score_own_title": "Your score",
+      "score_all_title": "Scores",
+      "score_own_empty": "Your section has no score in this event yet.",
+      "score_no_show": "No show",
+      "score_own_no_show": "Your section did not show up for this event.",
+      "score_error": "Could not load this event's scores.",
+      "score_total": "Total",
+      "score_judge_comment": "Judge's comment",
+      "score_evaluated_by": "Evaluated by {name} · {date}",
+      "score_evaluated_by_no_date": "Evaluated by {name}",
+      "score_unknown_club": "Club"
     },
     "members": {
       "title": "Enrolled members",
@@ -4898,6 +4960,8 @@
       "approved": "Payment approved"
     },
     "detail": {
+      "amounts_title": "Amount",
+      "documents_title": "Documents",
       "title": "Order detail",
       "total": "Total",
       "unit_cost": "Unit cost",
@@ -4915,9 +4979,19 @@
       "cancel_title": "Cancel order?",
       "cancel_body": "The order will no longer be valid and no spots will be reserved.",
       "cancel_confirm": "Yes, cancel",
-      "cancelled": "Order cancelled"
+      "cancelled": "Order cancelled",
+      "proof_source": "Upload receipt",
+      "proof_source_camera": "Take photo",
+      "proof_source_gallery": "Choose from photos",
+      "proof_source_file": "Choose file",
+      "proof_source_file_hint": "PDF, JPG or PNG, up to 10 MB",
+      "proof_confirm_title": "Send this receipt?",
+      "proof_send": "Send"
     },
     "issue": {
+      "select_all": "Select all",
+      "deselect_all": "Clear selection",
+      "deadline_short": "Deadline",
       "title_insurance": "Issue insurance order",
       "title_camporee": "Issue camporee order",
       "select_members": "Select members",
@@ -4930,7 +5004,15 @@
       "deadline_label": "Deadline: {date}",
       "total_label": "Total ({count} selected)",
       "submit": "Issue order",
-      "success": "Order issued successfully"
+      "success": "Order issued successfully",
+      "held_title": "Already in an order",
+      "held_in": "In order {folio}",
+      "held_hint": "To include them in another order, first cancel the order they are in.",
+      "confirm_title": "Issue the order?",
+      "confirm_body": {
+        "one": "An order will be issued for 1 member. You will then need to pay it and upload the receipt.",
+        "other": "An order will be issued for {} members. You will then need to pay it and upload the receipt."
+      }
     },
     "camporee_redirect": {
       "title": "How to enroll",
@@ -5073,7 +5155,7 @@
       "add": "Add",
       "add_item": "Add supply",
       "add_hint": "Choose day, slot, and product",
-      "save": "Save draft",
+      "save": "Save",
       "submit": "Submit plan",
       "saved": "Draft saved",
       "submitted": "Plan submitted. Principal folio issued.",
@@ -5090,7 +5172,12 @@
       "kind_refund": "Refund",
       "status_issued": "Unpaid",
       "status_paid": "Paid",
-      "status_cancelled": "Cancelled"
+      "status_cancelled": "Cancelled",
+      "submit_confirm_title": "Send the plan?",
+      "submit_confirm_body": "A payment folio will be issued for this estimated amount. After sending, each change creates a charge or a refund.",
+      "delivery_pending": "To be delivered",
+      "delivery_done": "Delivered",
+      "delivery_partial": "Delivered: {qty}"
     },
     "errors": {
       "not_found": "Supply plan not found",
@@ -5101,6 +5188,30 @@
       "not_draft": "The plan is no longer a draft",
       "not_submitted": "The plan has not been submitted yet",
       "qty_invalid": "Quantity is invalid"
+    },
+    "uom": {
+      "unit": "piece",
+      "bag": "bag",
+      "kg": "kg",
+      "l": "L"
+    },
+    "uom_qty": {
+      "unit": {
+        "one": "{} piece",
+        "other": "{} pieces"
+      },
+      "bag": {
+        "one": "{} bag",
+        "other": "{} bags"
+      },
+      "kg": {
+        "one": "{} kg",
+        "other": "{} kg"
+      },
+      "l": {
+        "one": "{} L",
+        "other": "{} L"
+      }
     }
   },
   "materials": {

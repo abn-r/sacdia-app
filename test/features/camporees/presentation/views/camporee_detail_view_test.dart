@@ -14,6 +14,8 @@ import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_event.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_leaderboard.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
+import 'package:sacdia_app/features/camporees/domain/entities/camporee_official_score.dart';
+import 'package:sacdia_app/features/camporees/domain/entities/camporee_score_breakdown.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_order_offering.dart';
 import 'package:sacdia_app/features/camporee_orders/presentation/providers/camporee_orders_providers.dart';
@@ -53,15 +55,15 @@ void main() {
 
     expect(find.text('Detalle'), findsWidgets);
     expect(
-      find.text('Inscripción de la sección', skipOffstage: false),
+      find.text('INSCRIPCIÓN DE LA SECCIÓN', skipOffstage: false),
       findsOneWidget,
     );
-    expect(find.text('Miembros inscritos'), findsNothing);
+    expect(find.textContaining('MIEMBROS INSCRITOS'), findsNothing);
     expect(memberLoads, 0);
 
     await _openTab(tester, 'Asistentes');
 
-    expect(find.text('Miembros inscritos'), findsOneWidget);
+    expect(find.textContaining('MIEMBROS INSCRITOS'), findsOneWidget);
     expect(
       find.text(
         'La inscripción de participantes está bloqueada hasta que la sección esté registrada y habilitada.',
@@ -184,7 +186,7 @@ void main() {
     expect(semantics.properties.liveRegion, isTrue);
   });
 
-  testWidgets('muestra clasificación oficial debajo de eventos',
+  testWidgets('muestra la clasificación oficial y resalta la sección propia',
       (tester) async {
     await _pumpDetail(
       tester,
@@ -212,7 +214,7 @@ void main() {
 
     await _openTab(tester, 'Eventos');
     await tester.scrollUntilVisible(
-      find.text('Clasificación'),
+      find.text('CLASIFICACIÓN'),
       400,
       scrollable: find.descendant(
         of: find.byType(ListView),
@@ -220,9 +222,104 @@ void main() {
       ),
     );
     await tester.pump();
-    expect(find.text('Clasificación'), findsOneWidget);
+    expect(find.text('CLASIFICACIÓN'), findsOneWidget);
     expect(find.text('ACV'), findsOneWidget);
     expect(find.text('85 / 100'), findsOneWidget);
+    // Row 12 is the user's own section (registration.clubSectionId).
+    expect(find.text('Tu sección'), findsOneWidget);
+  });
+
+  testWidgets(
+      'un rol de club solo ve el puntaje de su sección, sin posición ni ranking',
+      (tester) async {
+    await _pumpDetail(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      onMembersLoad: () {},
+      leaderboard: const CamporeeLeaderboard(
+        scopeType: 'local',
+        camporeeId: 41,
+        isFullRanking: false,
+        rows: [
+          CamporeeLeaderboardRow(
+            camporeeClubId: 5,
+            clubSectionId: 12,
+            clubName: 'ACV',
+            sectionName: 'Conquistadores',
+            totalAwardedPoints: 1035,
+            totalMaxPoints: 1200,
+            percentage: 86.25,
+          ),
+        ],
+      ),
+    );
+
+    await _openTab(tester, 'Eventos');
+    await tester.scrollUntilVisible(
+      find.text('PUNTAJE DE TU SECCIÓN'),
+      400,
+      scrollable: find.descendant(
+        of: find.byType(ListView),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('PUNTAJE DE TU SECCIÓN'), findsOneWidget);
+    expect(find.text('CLASIFICACIÓN'), findsNothing);
+    expect(find.text('ACV'), findsOneWidget);
+    expect(find.text('1035 / 1200'), findsOneWidget);
+    // No position, no "your section" badge, no "see all" toggle.
+    expect(find.text('1'), findsNothing);
+    expect(find.text('Tu sección'), findsNothing);
+    expect(find.byKey(const Key('camporee-leaderboard-toggle')), findsNothing);
+  });
+
+  testWidgets('pins «Inscribir mi sección» only while the section can enroll',
+      (tester) async {
+    await _pumpDetail(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.notEnrolled,
+        canEnroll: true,
+      ),
+      onMembersLoad: () {},
+      user: _director,
+    );
+    expect(find.byKey(const Key('camporee-enroll-bar')), findsOneWidget);
+
+    await _openTab(tester, 'Asistentes');
+    expect(find.byKey(const Key('camporee-enroll-bar')), findsNothing);
+  });
+
+  testWidgets('pins «Inscribir participantes» on Asistentes for the director',
+      (tester) async {
+    await _pumpDetail(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      onMembersLoad: () {},
+      user: _director,
+    );
+    expect(find.byKey(const Key('camporee-participants-bar')), findsNothing);
+
+    await _openTab(tester, 'Asistentes');
+    expect(find.byKey(const Key('camporee-participants-bar')), findsOneWidget);
+  });
+
+  testWidgets('a registered section shows no enroll bar', (tester) async {
+    await _pumpDetail(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      onMembersLoad: () {},
+      user: _director,
+    );
+    expect(find.byKey(const Key('camporee-enroll-bar')), findsNothing);
+    expect(find.text('Asistentes'), findsWidgets);
   });
 
   testWidgets(
@@ -242,8 +339,9 @@ void main() {
     expect(find.byKey(const Key('camporee-detail-tab-events')), findsOneWidget);
     expect(find.byKey(const Key('camporee-detail-tab-agenda')), findsOneWidget);
     expect(find.text('Fechas'), findsOneWidget);
-    expect(find.widgetWithText(AppBar, 'Camporí Esperanza'), findsOneWidget);
-    expect(find.text('Camporí Esperanza'), findsWidgets);
+    // The bar names the screen; the camporee name lives in the header only.
+    expect(find.widgetWithText(AppBar, 'Camporee'), findsOneWidget);
+    expect(find.text('Camporí Esperanza'), findsOneWidget);
   });
 
   testWidgets('should hide a description that only repeats the camporee name',
@@ -269,7 +367,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Descripción', skipOffstage: false), findsNothing);
+    expect(find.text('DESCRIPCIÓN', skipOffstage: false), findsNothing);
     expect(
       find.text('Camporee Navegando con Jesús', skipOffstage: false),
       findsNothing,
@@ -299,7 +397,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Descripción', skipOffstage: false), findsOneWidget);
+    expect(find.text('DESCRIPCIÓN', skipOffstage: false), findsOneWidget);
     expect(
       find.text('Llevar linterna y saco de dormir.', skipOffstage: false),
       findsOneWidget,
@@ -355,6 +453,147 @@ void main() {
     expect(find.text('Tiempo de descanso'), findsNothing);
   });
 
+  testWidgets('el detalle del evento lista sus adjuntos', (tester) async {
+    await _pumpDetail(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      onMembersLoad: () {},
+      events: [
+        _event(
+          id: 11,
+          title: 'Orden cerrado',
+          day: 1,
+          startsAt: '08:00',
+          scoring: true,
+          typeCode: 'scoring',
+          typeName: 'Puntuable',
+          category: 'competencia',
+          attachments: const [
+            CamporeeEventAttachment(
+              attachmentId: 'a-1',
+              fileName: 'Reglamento de marcha.pdf',
+              mimeType: 'application/pdf',
+              sizeBytes: 245760,
+              url: 'https://r2.example/reglamento.pdf',
+            ),
+            CamporeeEventAttachment(
+              attachmentId: 'a-2',
+              fileName: 'Mapa de la explanada.png',
+              mimeType: 'image/png',
+              sizeBytes: 1572864,
+              url: 'https://r2.example/mapa.png',
+            ),
+          ],
+        ),
+      ],
+    );
+
+    await _openTab(tester, 'Eventos');
+    await tester.tap(find.text('Orden cerrado'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('ADJUNTOS · 2'), findsOneWidget);
+    expect(find.text('Reglamento de marcha.pdf'), findsOneWidget);
+    expect(find.text('PDF · 240 KB'), findsOneWidget);
+    expect(find.text('Imagen · 1.5 MB'), findsOneWidget);
+  });
+
+  testWidgets(
+      'own view: events list shows the section points and the detail '
+      'shows rubric and judge comments', (tester) async {
+    await _pumpDetail(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      onMembersLoad: () {},
+      events: _scoredEvents,
+      breakdown: _breakdown(visibility: 'own', sections: [
+        _breakdownSection(12, 'ACV', awarded: 430),
+      ]),
+    );
+
+    await _openTab(tester, 'Eventos');
+    expect(find.text('430 / 500'), findsOneWidget);
+    // Event without a result keeps the max points.
+    expect(find.text('100 pts'), findsOneWidget);
+
+    await tester.tap(find.text('Orden cerrado'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('TU PUNTAJE'), findsOneWidget);
+    expect(find.text('430 / 500'), findsOneWidget);
+    expect(find.text('Uniforme'), findsOneWidget);
+    expect(find.text('250 / 300'), findsOneWidget);
+    expect(find.text('Falta pañoleta'), findsOneWidget);
+    expect(find.text('Comentario del juez'), findsOneWidget);
+    expect(find.text('Buena formación'), findsOneWidget);
+    expect(find.textContaining('Evaluó Ana Ruiz'), findsOneWidget);
+  });
+
+  testWidgets('own view: no result yet shows the empty message',
+      (tester) async {
+    await _pumpDetail(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      onMembersLoad: () {},
+      events: _scoredEvents,
+      breakdown: _breakdown(visibility: 'own', sections: []),
+    );
+
+    await _openTab(tester, 'Eventos');
+    await tester.tap(find.text('Orden cerrado'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Tu sección aún no tiene puntaje en este evento.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('full view: lists every section and opens the detail sheet',
+      (tester) async {
+    await _pumpDetail(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      onMembersLoad: () {},
+      user: _director,
+      events: _scoredEvents,
+      breakdown: _breakdown(visibility: 'full', sections: [
+        _breakdownSection(12, 'ACV', awarded: 300, rank: 2),
+        _breakdownSection(13, 'Orión', awarded: 450, rank: 1),
+      ]),
+    );
+
+    await _openTab(tester, 'Eventos');
+    // The list keeps the max points for non-own visibility.
+    expect(find.text('430 / 500'), findsNothing);
+
+    await tester.tap(find.text('Orden cerrado'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('PUNTAJES · 2'), findsOneWidget);
+    expect(find.text('450 / 500'), findsOneWidget);
+    expect(find.text('300 / 500'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('Orión')).dy,
+      lessThan(tester.getTopLeft(find.text('ACV')).dy),
+    );
+
+    await tester.tap(find.text('Orión'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('camporee-event-score-sheet')), findsOneWidget);
+    expect(find.text('Falta pañoleta'), findsOneWidget);
+    expect(find.text('Buena formación'), findsOneWidget);
+  });
+
   testWidgets('Agenda lista todo el programa en orden cronológico',
       (tester) async {
     await _pumpDetail(
@@ -373,8 +612,8 @@ void main() {
     expect(find.text('Nudos'), findsOneWidget);
     expect(find.text('Fútbol recreativo'), findsOneWidget);
     expect(find.text('Tiempo de descanso'), findsOneWidget);
-    expect(find.text('Día 1'), findsOneWidget);
-    expect(find.text('Día 2'), findsOneWidget);
+    expect(find.textContaining('DÍA 1'), findsOneWidget);
+    expect(find.textContaining('DÍA 2'), findsOneWidget);
 
     final culto = tester.getTopLeft(find.text('Culto de apertura'));
     final orden = tester.getTopLeft(find.text('Orden cerrado'));
@@ -415,8 +654,8 @@ void main() {
     expect(find.text('Culto de apertura'), findsOneWidget);
     expect(find.text('07:00'), findsNothing);
     expect(find.text('Auditorio'), findsNothing);
-    expect(find.text('Día 1'), findsNothing);
-    expect(find.text('Agenda pendiente'), findsWidgets);
+    expect(find.textContaining('DÍA 1'), findsNothing);
+    expect(find.text('AGENDA PENDIENTE'), findsOneWidget);
   });
 }
 
@@ -428,6 +667,7 @@ Future<void> _pumpDetail(
   bool failMembersOnce = false,
   bool keepMembersLoading = false,
   CamporeeLeaderboard? leaderboard,
+  CamporeeScoreBreakdown? breakdown,
   Camporee? camporee,
   List<CamporeeMember> members = const [],
   List<CamporeeEvent> events = const [],
@@ -443,6 +683,14 @@ Future<void> _pumpDetail(
         camporeeSectionRegistrationProvider
             .overrideWith((ref, id) async => registration),
         camporeeEventsProvider.overrideWith((ref, id) async => events),
+        // After any test program: the "now / next" group stays hidden.
+        camporeeClockProvider.overrideWithValue(() => DateTime(2100)),
+        camporeeEventAttachmentsProvider.overrideWith(
+          (ref, eventId) async => [
+            for (final event in events)
+              if (event.camporeeEventId == eventId) ...event.attachments,
+          ],
+        ),
         camporeeLeaderboardProvider.overrideWith(
           (ref, id) async =>
               leaderboard ??
@@ -450,6 +698,16 @@ Future<void> _pumpDetail(
                 scopeType: 'local',
                 camporeeId: 41,
                 rows: [],
+              ),
+        ),
+        camporeeScoreBreakdownProvider.overrideWith(
+          (ref, id) async =>
+              breakdown ??
+              const CamporeeScoreBreakdown(
+                scopeType: 'local',
+                camporeeId: 41,
+                visibility: 'full',
+                sections: [],
               ),
         ),
         camporeeMembersProvider.overrideWith((ref, id) async {
@@ -544,6 +802,81 @@ const _deputy = UserEntity(
   ),
 );
 
+final _scoredEvents = [
+  _event(
+    id: 27,
+    title: 'Orden cerrado',
+    day: 1,
+    startsAt: '08:00',
+    scoring: true,
+    typeCode: 'scoring',
+    typeName: 'Puntaje',
+    category: 'competencia',
+  ),
+  _event(
+    id: 28,
+    title: 'Nudos',
+    day: 1,
+    startsAt: '10:00',
+    scoring: true,
+    typeCode: 'scoring',
+    typeName: 'Puntaje',
+    category: 'competencia',
+  ),
+];
+
+CamporeeScoreBreakdown _breakdown({
+  required String visibility,
+  required List<CamporeeScoreBreakdownSection> sections,
+}) =>
+    CamporeeScoreBreakdown(
+      scopeType: 'local',
+      camporeeId: 41,
+      visibility: visibility,
+      sections: sections,
+    );
+
+CamporeeScoreBreakdownSection _breakdownSection(
+  int sectionId,
+  String club, {
+  required double awarded,
+  int? rank,
+}) =>
+    CamporeeScoreBreakdownSection(
+      rank: rank,
+      clubSectionId: sectionId,
+      clubName: club,
+      sectionName: 'Conquistadores',
+      totalAwardedPoints: awarded,
+      totalMaxPoints: 500,
+      results: [
+        CamporeeScoreBreakdownResult(
+          camporeeEventId: 27,
+          score: CamporeeOfficialScore(
+            resultId: 'r-$sectionId',
+            scoreStatus: 'scored',
+            isNoShow: false,
+            totalAwarded: awarded,
+            totalMax: 500,
+            rawAwarded: awarded,
+            minimumAdjustment: 0,
+            notes: 'Buena formación',
+            evaluatorName: 'Ana Ruiz',
+            submittedAt: DateTime.utc(2026, 11, 1, 12),
+            items: const [
+              CamporeeOfficialScoreItem(
+                rubricId: 1,
+                title: 'Uniforme',
+                awardedPoints: 250,
+                maxPoints: 300,
+                notes: 'Falta pañoleta',
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+
 class _FileAssetLoader extends AssetLoader {
   const _FileAssetLoader();
 
@@ -632,6 +965,7 @@ CamporeeEvent _event({
   String typeName = 'General',
   String category = 'logistico',
   bool agendaVisible = true,
+  List<CamporeeEventAttachment> attachments = const [],
 }) {
   return CamporeeEvent(
     camporeeEventId: id,
@@ -648,12 +982,14 @@ CamporeeEvent _event({
     eventTypeCode: typeCode,
     eventTypeName: typeName,
     agendaVisible: agendaVisible,
+    attachments: attachments,
   );
 }
 
 CamporeeSectionRegistration _registration(
-  CamporeeSectionRegistrationStatus status,
-) {
+  CamporeeSectionRegistrationStatus status, {
+  bool canEnroll = false,
+}) {
   return CamporeeSectionRegistration(
     camporeeId: 41,
     clubId: 8,
@@ -664,7 +1000,7 @@ CamporeeSectionRegistration _registration(
     clubTypeName: 'Conquistadores',
     status: status,
     disposition: CamporeeSectionRegistrationDisposition.open,
-    canEnroll: false,
+    canEnroll: canEnroll,
     registeredAt:
         status.enablesParticipantsForTest ? DateTime(2026, 7, 12) : null,
     registeredBy: status.enablesParticipantsForTest

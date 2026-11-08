@@ -8,6 +8,7 @@ import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/camporee_score_submission.dart';
 import '../models/camporee_judge_assignment_model.dart';
 import '../models/camporee_leaderboard_model.dart';
+import '../models/camporee_score_breakdown_model.dart';
 import '../models/camporee_model.dart';
 import '../models/camporee_event_model.dart';
 import '../models/camporee_member_model.dart';
@@ -126,6 +127,22 @@ abstract class CamporeesRemoteDataSource {
   Future<CamporeeLeaderboardModel> getCamporeeLeaderboard(
     int camporeeId, {
     String camporeeType = 'local',
+    CancelToken? cancelToken,
+  });
+
+  /// Puntos por evento de cada sección visible, con comentarios del juez.
+  /// GET /api/v1/local-camporees/:camporeeId/score-breakdown
+  /// GET /api/v1/union-camporees/:camporeeId/score-breakdown
+  Future<CamporeeScoreBreakdownModel> getCamporeeScoreBreakdown(
+    int camporeeId, {
+    String camporeeType = 'local',
+    CancelToken? cancelToken,
+  });
+
+  /// Adjuntos activos del evento con URLs firmadas recién emitidas.
+  /// GET /api/v1/camporee-events/:eventId/attachments
+  Future<List<CamporeeEventAttachmentModel>> getCamporeeEventAttachments(
+    int eventId, {
     CancelToken? cancelToken,
   });
 
@@ -788,6 +805,78 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getCamporeeLeaderboard', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /api/v1/{local|union}-camporees/:camporeeId/score-breakdown ──────
+
+  @override
+  Future<CamporeeScoreBreakdownModel> getCamporeeScoreBreakdown(
+    int camporeeId, {
+    String camporeeType = 'local',
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final camporeePath =
+          camporeeType == 'union' ? 'union-camporees' : 'local-camporees';
+      final response = await _dio.get(
+        '$_baseUrl/$camporeePath/$camporeeId/score-breakdown',
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return CamporeeScoreBreakdownModel.fromJson(
+          _extractObject(response.data),
+        );
+      }
+
+      throw ServerException(
+        message: tr('camporees.errors.fetch_score_breakdown'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
+      AppLogger.e('Error en getCamporeeScoreBreakdown', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /api/v1/camporee-events/:eventId/attachments ─────────────────────
+
+  @override
+  Future<List<CamporeeEventAttachmentModel>> getCamporeeEventAttachments(
+    int eventId, {
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl/camporee-events/$eventId/attachments',
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = response.data;
+        final data = body is Map<String, dynamic> ? body['data'] : body;
+        if (data is! List) return const [];
+        return data
+            .whereType<Map>()
+            .map(
+              (item) => CamporeeEventAttachmentModel.fromJson(
+                Map<String, dynamic>.from(item),
+              ),
+            )
+            .where((item) => item.url.isNotEmpty)
+            .toList();
+      }
+
+      throw ServerException(
+        message: tr('camporees.errors.fetch_event_attachments'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
+      AppLogger.e('Error en getCamporeeEventAttachments', tag: _tag, error: e);
       _rethrow(e);
     }
   }

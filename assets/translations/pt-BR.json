@@ -2204,6 +2204,7 @@
   },
   "camporees": {
     "errors": {
+      "fetch_event_attachments": "Não foi possível carregar os anexos do evento",
       "fetch_list": "Erro ao obter campóris",
       "fetch_detail": "Erro ao obter detalhe do campori",
       "register_member": "Erro ao registrar membro no campori",
@@ -2216,6 +2217,7 @@
       "fetch_camporee_payments": "Erro ao obter pagamentos do campori",
       "fetch_events": "Erro ao obter eventos do campori",
       "fetch_leaderboard": "Não foi possível carregar a classificação do campori.",
+      "fetch_score_breakdown": "Não foi possível carregar a pontuação por evento.",
       "fetch_official_score": "Não foi possível carregar a pontuação oficial.",
       "fetch_judge_assignments": "Não foi possível carregar suas atribuições de juiz."
     },
@@ -2235,11 +2237,49 @@
       "error_loading": "Não conseguimos carregar os camporees",
       "history": "Os que já passaram",
       "history_title": "Os que já passaram",
-      "ended_label": "Já passou",
+      "timing": {
+        "in_days": {
+          "one": "Amanhã",
+          "other": "Em {} dias"
+        },
+        "today": "Hoje",
+        "ends_today": "Termina hoje",
+        "ongoing": "Em andamento · dia {day} de {total}",
+        "ended_days": {
+          "one": "Terminou ontem",
+          "other": "Terminou há {} dias"
+        },
+        "ended_months": {
+          "one": "Terminou há 1 mês",
+          "other": "Terminou há {} meses"
+        },
+        "ended_years": {
+          "one": "Terminou há 1 ano",
+          "other": "Terminou há {} anos"
+        }
+      },
       "history_empty": "Nenhum terminou ainda",
       "history_empty_body": "Quando um camporee fechar, ele fica aqui com os participantes e as pontuações."
     },
     "detail": {
+      "bar_title": "Camporee",
+      "attachments_title": "Anexos",
+      "attachment_pdf": "PDF",
+      "attachment_image": "Imagem",
+      "insurance_short": "Com seguro",
+      "order_members": {
+        "one": "1 membro",
+        "other": "{} membros"
+      },
+      "events_scored_title": "Eventos com pontuação",
+      "leaderboard_yours": "Sua seção",
+      "leaderboard_all": "Ver as {count} seções",
+      "leaderboard_less": "Ver menos",
+      "when_where": "Quando e onde",
+      "duration_days": {
+        "one": "1 dia",
+        "other": "{} dias"
+      },
       "description": "Descrição",
       "dates": "Datas",
       "start": "Início",
@@ -2307,7 +2347,29 @@
       "leaderboard_empty": "Aparecerá quando houver pontuações oficiais.",
       "leaderboard_error": "Não foi possível carregar a classificação.",
       "leaderboard_unknown_club": "Clube",
-      "leaderboard_section_fallback": "Seção #{id}"
+      "leaderboard_section_fallback": "Seção #{id}",
+      "now_title": "Agora no camporee",
+      "now_in_progress": "Em andamento",
+      "now_next": "A seguir",
+      "now_until": "Até {time}",
+      "now_in_minutes": "Em {minutes} min",
+      "now_in_hours": "Em {hours} h",
+      "now_in_hours_minutes": "Em {hours} h {minutes} min",
+      "now_tomorrow": "Amanhã",
+      "leaderboard_own_title": "Pontuação da sua seção",
+      "leaderboard_own_subtitle": "Você vê apenas os pontos da sua seção. O campo local consulta a classificação geral.",
+      "leaderboard_own_empty": "Sua seção ainda não tem pontuações oficiais.",
+      "score_own_title": "Sua pontuação",
+      "score_all_title": "Pontuações",
+      "score_own_empty": "Sua seção ainda não tem pontuação neste evento.",
+      "score_no_show": "Não compareceu",
+      "score_own_no_show": "Sua seção não compareceu a este evento.",
+      "score_error": "Não foi possível carregar a pontuação deste evento.",
+      "score_total": "Total",
+      "score_judge_comment": "Comentário do juiz",
+      "score_evaluated_by": "Avaliado por {name} · {date}",
+      "score_evaluated_by_no_date": "Avaliado por {name}",
+      "score_unknown_club": "Clube"
     },
     "members": {
       "title": "Membros inscritos",
@@ -4896,6 +4958,8 @@
       "approved": "Pagamento aprovado"
     },
     "detail": {
+      "amounts_title": "Valor",
+      "documents_title": "Documentos",
       "title": "Detalhe da ordem",
       "total": "Total",
       "unit_cost": "Custo unitário",
@@ -4913,9 +4977,19 @@
       "cancel_title": "Cancelar ordem?",
       "cancel_body": "A ordem deixará de ser válida e nenhuma vaga ficará reservada.",
       "cancel_confirm": "Sim, cancelar",
-      "cancelled": "Ordem cancelada"
+      "cancelled": "Ordem cancelada",
+      "proof_source": "Enviar comprovante",
+      "proof_source_camera": "Tirar foto",
+      "proof_source_gallery": "Escolher das fotos",
+      "proof_source_file": "Escolher arquivo",
+      "proof_source_file_hint": "PDF, JPG ou PNG, até 10 MB",
+      "proof_confirm_title": "Enviar este comprovante?",
+      "proof_send": "Enviar"
     },
     "issue": {
+      "select_all": "Selecionar todos",
+      "deselect_all": "Limpar seleção",
+      "deadline_short": "Prazo",
       "title_insurance": "Emitir ordem de seguro",
       "title_camporee": "Emitir ordem de campori",
       "select_members": "Selecionar membros",
@@ -4928,7 +5002,15 @@
       "deadline_label": "Prazo: {date}",
       "total_label": "Total ({count} selecionados)",
       "submit": "Emitir ordem",
-      "success": "Ordem emitida com sucesso"
+      "success": "Ordem emitida com sucesso",
+      "held_title": "Já em uma ordem",
+      "held_in": "Na ordem {folio}",
+      "held_hint": "Para incluí-los em outra ordem, primeiro cancele a ordem em que estão.",
+      "confirm_title": "Emitir a ordem?",
+      "confirm_body": {
+        "one": "Será emitida uma ordem para 1 membro. Depois você precisará pagá-la e enviar o comprovante.",
+        "other": "Será emitida uma ordem para {} membros. Depois você precisará pagá-la e enviar o comprovante."
+      }
     },
     "camporee_redirect": {
       "title": "Como inscrever",
@@ -5071,7 +5153,7 @@
       "add": "Adicionar",
       "add_item": "Adicionar insumo",
       "add_hint": "Escolha o dia, o horário e o produto",
-      "save": "Salvar rascunho",
+      "save": "Salvar",
       "submit": "Enviar plano",
       "saved": "Rascunho salvo",
       "submitted": "Plano enviado. Folio principal emitido.",
@@ -5088,7 +5170,12 @@
       "kind_refund": "Reembolso",
       "status_issued": "A pagar",
       "status_paid": "Paga",
-      "status_cancelled": "Cancelada"
+      "status_cancelled": "Cancelada",
+      "submit_confirm_title": "Enviar o plano?",
+      "submit_confirm_body": "Será emitido o fólio de pagamento com este valor estimado. Depois do envio, cada alteração gera uma cobrança ou um reembolso.",
+      "delivery_pending": "A entregar",
+      "delivery_done": "Entregue",
+      "delivery_partial": "Entregue: {qty}"
     },
     "errors": {
       "not_found": "Plano de insumos não encontrado",
@@ -5099,6 +5186,30 @@
       "not_draft": "O plano já não é um rascunho",
       "not_submitted": "O plano ainda não foi enviado",
       "qty_invalid": "A quantidade é inválida"
+    },
+    "uom": {
+      "unit": "peça",
+      "bag": "saco",
+      "kg": "kg",
+      "l": "L"
+    },
+    "uom_qty": {
+      "unit": {
+        "one": "{} peça",
+        "other": "{} peças"
+      },
+      "bag": {
+        "one": "{} saco",
+        "other": "{} sacos"
+      },
+      "kg": {
+        "one": "{} kg",
+        "other": "{} kg"
+      },
+      "l": {
+        "one": "{} L",
+        "other": "{} L"
+      }
     }
   },
   "materials": {

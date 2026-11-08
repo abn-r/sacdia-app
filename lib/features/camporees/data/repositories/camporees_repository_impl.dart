@@ -9,6 +9,7 @@ import '../../domain/entities/camporee.dart';
 import '../../domain/entities/camporee_event.dart';
 import '../../domain/entities/camporee_judge_assignment.dart';
 import '../../domain/entities/camporee_leaderboard.dart';
+import '../../domain/entities/camporee_score_breakdown.dart';
 import '../../domain/entities/camporee_member.dart';
 import '../../domain/entities/camporee_payment.dart';
 import '../../domain/entities/camporee_official_score.dart';
@@ -349,6 +350,45 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
         cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(model.toEntity());
+    } on AppException catch (e) {
+      return _appFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, CamporeeScoreBreakdown>> getCamporeeScoreBreakdown(
+    int camporeeId, {
+    String camporeeType = 'local',
+    RequestCancelToken? cancelToken,
+  }) async {
+    try {
+      final model = await remoteDataSource.getCamporeeScoreBreakdown(
+        camporeeId,
+        camporeeType: camporeeType,
+        cancelToken: cancelToken.asDioCancelToken(),
+      );
+      return Right(model.toEntity());
+    } on AppException catch (e) {
+      return _appFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<CamporeeEventAttachment>>>
+      getCamporeeEventAttachments(
+    int eventId, {
+    RequestCancelToken? cancelToken,
+  }) async {
+    try {
+      final attachments = await remoteDataSource.getCamporeeEventAttachments(
+        eventId,
+        cancelToken: cancelToken.asDioCancelToken(),
+      );
+      return Right(attachments.map((item) => item.toEntity()).toList());
     } on AppException catch (e) {
       return _appFailure(e);
     } catch (e) {

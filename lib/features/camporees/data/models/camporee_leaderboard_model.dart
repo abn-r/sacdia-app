@@ -5,12 +5,17 @@ import '../../domain/entities/camporee_leaderboard.dart';
 class CamporeeLeaderboardModel extends Equatable {
   final String scopeType;
   final int camporeeId;
+
+  /// `visibility: 'own'` = solo las secciones propias, sin posición. Un
+  /// servidor anterior (sin el campo) siempre mandaba la tabla completa.
+  final bool isFullRanking;
   final List<CamporeeLeaderboardRowModel> rows;
 
   const CamporeeLeaderboardModel({
     required this.scopeType,
     required this.camporeeId,
     required this.rows,
+    this.isFullRanking = true,
   });
 
   factory CamporeeLeaderboardModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +25,7 @@ class CamporeeLeaderboardModel extends Equatable {
     return CamporeeLeaderboardModel(
       scopeType: safeString(scopeMap['type'], 'local'),
       camporeeId: safeInt(scopeMap['camporeeId'] ?? scopeMap['camporee_id']),
+      isFullRanking: json['visibility'] != 'own',
       rows: rawRows is List
           ? rawRows
               .whereType<Map>()
@@ -37,16 +43,17 @@ class CamporeeLeaderboardModel extends Equatable {
     return CamporeeLeaderboard(
       scopeType: scopeType,
       camporeeId: camporeeId,
+      isFullRanking: isFullRanking,
       rows: rows.map((row) => row.toEntity()).toList(),
     );
   }
 
   @override
-  List<Object?> get props => [scopeType, camporeeId, rows];
+  List<Object?> get props => [scopeType, camporeeId, isFullRanking, rows];
 }
 
 class CamporeeLeaderboardRowModel extends Equatable {
-  final int rank;
+  final int? rank;
   final int? camporeeClubId;
   final int clubSectionId;
   final String? clubName;
@@ -56,7 +63,7 @@ class CamporeeLeaderboardRowModel extends Equatable {
   final double percentage;
 
   const CamporeeLeaderboardRowModel({
-    required this.rank,
+    this.rank,
     this.camporeeClubId,
     required this.clubSectionId,
     this.clubName,
@@ -68,7 +75,7 @@ class CamporeeLeaderboardRowModel extends Equatable {
 
   factory CamporeeLeaderboardRowModel.fromJson(Map<String, dynamic> json) {
     return CamporeeLeaderboardRowModel(
-      rank: safeInt(json['rank']),
+      rank: safeIntOrNull(json['rank']),
       camporeeClubId: safeIntOrNull(json['camporee_club_id']),
       clubSectionId: safeInt(json['club_section_id']),
       clubName: safeStringOrNull(json['club_name']),

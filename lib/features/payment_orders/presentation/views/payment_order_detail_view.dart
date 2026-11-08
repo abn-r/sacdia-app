@@ -4,25 +4,26 @@ import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/sac_settings.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
-import 'package:sacdia_app/core/theme/sac_accent.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../domain/entities/payment_order.dart';
 import '../providers/payment_orders_providers.dart';
 import '../widgets/payment_order_widgets.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
 
 const _proofAllowedExtensions = ['pdf', 'jpg', 'jpeg', 'png'];
 const _proofMaxSizeBytes = 10 * 1024 * 1024;
@@ -75,6 +76,7 @@ class PaymentOrderDetailView extends ConsumerWidget {
                 isWorking: actionsState.isWorking,
                 onViewPdf: () => _viewPdf(context, ref, order),
                 onUploadProof: () => _pickAndUploadProof(context, ref),
+                onViewProof: (proof) => _viewProof(context, ref, proof),
                 onCancel: () => _confirmCancel(context, ref),
               ),
             ),
@@ -101,17 +103,35 @@ class PaymentOrderDetailView extends ConsumerWidget {
     }
   }
 
+  Future<void> _viewProof(
+    BuildContext context,
+    WidgetRef ref,
+    PaymentOrderProof proof,
+  ) async {
+    final url =
+        await ref.read(orderActionsNotifierProvider.notifier).proofUrl(orderId);
+    if (url == null || !context.mounted) return;
+    if (proof.mimeType == 'application/pdf') {
+      SacPdfViewer.show(context, pdfSource: url, title: proof.fileName);
+    } else {
+      SacImageViewer.show(context, imageUrl: url, title: proof.fileName);
+    }
+  }
+
+  /// Camera, photo library or a file (PDF), then a preview before sending.
   Future<void> _pickAndUploadProof(BuildContext context, WidgetRef ref) async {
-    final picked = await FilePicker.pickFile(
-      type: FileType.custom,
-      allowedExtensions: _proofAllowedExtensions,
+    final source = await showSacSheet<_ProofSource>(
+      context: context,
+      builder: (_) => const _ProofSourceSheet(),
     );
-    if (picked == null) return;
+    if (source == null || !context.mounted) return;
 
-    final path = picked.path;
-    if (path == null) return;
+    final picked = await _pickProof(source);
+    if (picked == null || !context.mounted) return;
 
-    if ((await picked.length() ?? 0) > _proofMaxSizeBytes) {
+    final file = File(picked.path);
+    if (!await file.exists()) return;
+    if (await file.length() > _proofMaxSizeBytes) {
       if (context.mounted) {
         _showSnack(
           context,
@@ -121,16 +141,23 @@ class PaymentOrderDetailView extends ConsumerWidget {
       }
       return;
     }
+    if (!context.mounted) return;
 
-    final file = File(path);
-    if (!await file.exists()) return;
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'payment_orders.detail.proof_confirm_title'.tr(),
+      body: _ProofPreview(file: picked),
+      confirmLabel: 'payment_orders.detail.proof_send'.tr(),
+      cancelLabel: 'common.cancel'.tr(),
+    );
+    if (confirmed != true || !context.mounted) return;
 
     final uploaded =
         await ref.read(orderActionsNotifierProvider.notifier).uploadProof(
               orderId: orderId,
-              filePath: path,
+              filePath: picked.path,
               fileName: picked.name,
-              mimeType: _mimeFromExtension(picked.extension),
+              mimeType: picked.mimeType,
             );
 
     if (uploaded && context.mounted) {
@@ -140,6 +167,42 @@ class PaymentOrderDetailView extends ConsumerWidget {
         isSuccess: true,
       );
     }
+  }
+
+  Future<_PickedProof?> _pickProof(_ProofSource source) async {
+    if (source == _ProofSource.file) {
+      final picked = await FilePicker.pickFile(
+        type: FileType.custom,
+        allowedExtensions: _proofAllowedExtensions,
+      );
+      final path = picked?.path;
+      if (picked == null || path == null) return null;
+      return _PickedProof(
+        path: path,
+        name: picked.name,
+        mimeType: _mimeFromExtension(picked.extension),
+      );
+    }
+
+    final image = await ImagePicker().pickImage(
+      source: source == _ProofSource.camera
+          ? ImageSource.camera
+          : ImageSource.gallery,
+      imageQuality: 85,
+      maxWidth: 2400,
+    );
+    if (image == null) return null;
+    final extension = image.name.split('.').last.toLowerCase();
+    final mimeType = _mimeFromExtension(extension);
+    return _PickedProof(
+      path: image.path,
+      // The picker names files like "image_picker_<uuid>.jpg"; the reviewer
+      // and the director only need to know it is the receipt.
+      name: 'comprobante.$extension',
+      // HEIC and other formats are re-encoded as JPEG by imageQuality.
+      mimeType:
+          mimeType == 'application/octet-stream' ? 'image/jpeg' : mimeType,
+    );
   }
 
   Future<void> _confirmCancel(BuildContext context, WidgetRef ref) async {
@@ -193,11 +256,15 @@ class PaymentOrderDetailView extends ConsumerWidget {
   }
 }
 
+/// Folio and status up top, then grouped rows: amounts, status path, proof
+/// and the PDF. Uploading the proof is pinned at the bottom; cancelling is
+/// a destructive row at the end.
 class _OrderDetailBody extends StatelessWidget {
   final PaymentOrder order;
   final bool isWorking;
   final VoidCallback onViewPdf;
   final VoidCallback onUploadProof;
+  final ValueChanged<PaymentOrderProof> onViewProof;
   final VoidCallback onCancel;
 
   const _OrderDetailBody({
@@ -205,6 +272,7 @@ class _OrderDetailBody extends StatelessWidget {
     required this.isWorking,
     required this.onViewPdf,
     required this.onUploadProof,
+    required this.onViewProof,
     required this.onCancel,
   });
 
@@ -213,144 +281,127 @@ class _OrderDetailBody extends StatelessWidget {
     final c = context.sac;
     final proof = order.latestProof;
     final dateFormat = DateFormat.yMMMd(context.locale.toString());
+    final rejected = proof?.status == PaymentOrderProofStatus.rejected &&
+        proof?.rejectReason != null;
 
-    return SingleChildScrollView(
-      padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(20)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header: folio + estado
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: c.surface,
-              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-              border: Border.all(color: c.border),
+    return Column(
+      children: [
+        Expanded(
+          child: ListView(
+            padding: SacTopBar.paddingBelowBar(
+              context,
+              const EdgeInsets.fromLTRB(20, 16, 20, 32),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Semantics(
+                      header: true,
                       child: Text(
                         order.folioReference,
                         style: TextStyle(
-                          fontSize: SacFontSize.headlineSmall,
-                          fontWeight: FontWeight.w800,
+                          fontSize: SacFontSize.titleLarge,
+                          fontWeight: FontWeight.w700,
                           color: c.text,
+                          fontFeatures: const [FontFeature.tabularFigures()],
                         ),
                       ),
                     ),
-                    PaymentOrderStatusBadge(status: order.status),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                _DetailRow(
-                  label: 'payment_orders.detail.total'.tr(),
-                  value: SacMoney.fromCentavos(order.totalCentavos),
-                  emphasized: true,
-                ),
-                _DetailRow(
-                  label: 'payment_orders.detail.unit_cost'.tr(),
-                  value: SacMoney.fromCentavos(order.unitCostCentavos),
-                ),
-                _DetailRow(
-                  label: 'payment_orders.detail.beneficiaries'.tr(),
-                  value: order.lines.length.toString(),
-                ),
-                _DetailRow(
-                  label: 'payment_orders.detail.expires'.tr(),
-                  value: dateFormat.format(order.expiresAt.toLocal()),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 18),
-
-          // Timeline
-          Text(
-            'payment_orders.detail.timeline_title'.tr(),
-            style: TextStyle(
-              fontSize: SacFontSize.titleMedium,
-              fontWeight: FontWeight.w800,
-              color: c.text,
-            ),
-          ),
-          const SizedBox(height: 12),
-          PaymentOrderTimeline(order: order),
-          const SizedBox(height: 18),
-
-          // Comprobante
-          if (proof != null) ...[
-            Text(
-              'payment_orders.detail.proof_title'.tr(),
-              style: TextStyle(
-                fontSize: SacFontSize.titleMedium,
-                fontWeight: FontWeight.w800,
-                color: c.text,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: c.surface,
-                borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-                border: Border.all(color: c.border),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedFile01,
-                        size: 18,
-                        color: SacAccent.of(context).color,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          proof.fileName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                              fontSize: SacFontSize.bodyMedium, color: c.text),
-                        ),
-                      ),
-                    ],
                   ),
-                  if (proof.status == PaymentOrderProofStatus.rejected &&
-                      proof.rejectReason != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      'payment_orders.detail.reject_reason'.tr(
-                        namedArgs: {'reason': proof.rejectReason!},
-                      ),
-                      style: const TextStyle(
-                        fontSize: SacFontSize.bodySmall,
-                        color: AppColors.error,
-                      ),
+                  PaymentOrderStatusBadge(status: order.status),
+                ],
+              ),
+              const SizedBox(height: 20),
+              SacSettingsGroup(
+                key: const Key('payment-order-amounts'),
+                title: 'payment_orders.detail.amounts_title'.tr().toUpperCase(),
+                children: [
+                  SacSettingsValueTile(
+                    icon: HugeIcons.strokeRoundedMoney03,
+                    label: 'payment_orders.detail.total'.tr(),
+                    value: SacMoney.fromCentavos(order.totalCentavos),
+                    emphasis: true,
+                  ),
+                  const SacSettingsDivider(),
+                  SacSettingsValueTile(
+                    icon: HugeIcons.strokeRoundedTicket01,
+                    label: 'payment_orders.detail.unit_cost'.tr(),
+                    value: SacMoney.fromCentavos(order.unitCostCentavos),
+                  ),
+                  const SacSettingsDivider(),
+                  SacSettingsValueTile(
+                    icon: HugeIcons.strokeRoundedUserGroup,
+                    label: 'payment_orders.detail.beneficiaries'.tr(),
+                    value: order.lines.length.toString(),
+                  ),
+                  const SacSettingsDivider(),
+                  SacSettingsValueTile(
+                    icon: HugeIcons.strokeRoundedCalendar03,
+                    label: 'payment_orders.detail.expires'.tr(),
+                    value: dateFormat.format(order.expiresAt.toLocal()),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              SacSettingsGroup(
+                title:
+                    'payment_orders.detail.timeline_title'.tr().toUpperCase(),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+                    child: PaymentOrderTimeline(order: order),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              SacSettingsGroup(
+                title:
+                    'payment_orders.detail.documents_title'.tr().toUpperCase(),
+                children: [
+                  SacSettingsTile(
+                    key: const Key('payment-order-view-pdf'),
+                    icon: HugeIcons.strokeRoundedPdf01,
+                    title: 'payment_orders.detail.view_pdf'.tr(),
+                    onTap: isWorking ? null : onViewPdf,
+                  ),
+                  if (proof != null) ...[
+                    const SacSettingsDivider(),
+                    SacSettingsTile(
+                      key: const Key('payment-order-view-proof'),
+                      icon: HugeIcons.strokeRoundedFile01,
+                      title: proof.fileName,
+                      subtitle: rejected
+                          ? '${'payment_orders.detail.reject_reason'.tr()}: '
+                              '${proof.rejectReason}'
+                          : 'payment_orders.detail.proof_title'.tr(),
+                      destructive: rejected,
+                      onTap: isWorking ? null : () => onViewProof(proof),
                     ),
                   ],
                 ],
               ),
-            ),
-            const SizedBox(height: 18),
-          ],
-
-          // Acciones
-          SacButton.outline(
-            text: 'payment_orders.detail.view_pdf'.tr(),
-            icon: HugeIcons.strokeRoundedPdf01,
-            onPressed: isWorking ? null : onViewPdf,
+              if (order.canCancel) ...[
+                const SizedBox(height: 24),
+                SacSettingsGroup(
+                  children: [
+                    SacSettingsTile(
+                      key: const Key('payment-order-cancel'),
+                      icon: HugeIcons.strokeRoundedCancelCircle,
+                      title: 'payment_orders.detail.cancel_order'.tr(),
+                      destructive: true,
+                      onTap: isWorking ? null : onCancel,
+                    ),
+                  ],
+                ),
+              ],
+            ],
           ),
-          if (order.canUploadProof) ...[
-            const SizedBox(height: 12),
-            SacButton.primary(
+        ),
+        if (order.canUploadProof)
+          SacPinnedActionBar(
+            child: SacButton.primary(
+              key: const Key('payment-order-upload-proof'),
               text: order.status == PaymentOrderStatus.proofRejected
                   ? 'payment_orders.detail.reupload_proof'.tr()
                   : 'payment_orders.detail.upload_proof'.tr(),
@@ -358,59 +409,115 @@ class _OrderDetailBody extends StatelessWidget {
               isLoading: isWorking,
               onPressed: isWorking ? null : onUploadProof,
             ),
-          ],
-          if (order.canCancel) ...[
-            const SizedBox(height: 12),
-            SacPressable(
-              listenOnly: true,
-              child: SacButton.text(
-                text: 'payment_orders.detail.cancel_order'.tr(),
-                color: context.sac.error,
-                onPressed: isWorking ? null : onCancel,
-              ),
+          ),
+      ],
+    );
+  }
+}
+
+enum _ProofSource { camera, gallery, file }
+
+class _PickedProof {
+  final String path;
+  final String name;
+  final String mimeType;
+
+  const _PickedProof({
+    required this.path,
+    required this.name,
+    required this.mimeType,
+  });
+
+  bool get isImage => mimeType.startsWith('image/');
+}
+
+class _ProofSourceSheet extends StatelessWidget {
+  const _ProofSourceSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    void pick(_ProofSource source) => Navigator.of(context).pop(source);
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SacSheetHeader(title: 'payment_orders.detail.proof_source'.tr()),
+            SacSettingsGroup(
+              children: [
+                SacSettingsTile(
+                  key: const Key('proof-source-camera'),
+                  icon: HugeIcons.strokeRoundedCamera01,
+                  title: 'payment_orders.detail.proof_source_camera'.tr(),
+                  onTap: () => pick(_ProofSource.camera),
+                ),
+                const SacSettingsDivider(),
+                SacSettingsTile(
+                  key: const Key('proof-source-gallery'),
+                  icon: HugeIcons.strokeRoundedImage01,
+                  title: 'payment_orders.detail.proof_source_gallery'.tr(),
+                  onTap: () => pick(_ProofSource.gallery),
+                ),
+                const SacSettingsDivider(),
+                SacSettingsTile(
+                  key: const Key('proof-source-file'),
+                  icon: HugeIcons.strokeRoundedPdf01,
+                  title: 'payment_orders.detail.proof_source_file'.tr(),
+                  subtitle: 'payment_orders.detail.proof_source_file_hint'.tr(),
+                  onTap: () => pick(_ProofSource.file),
+                ),
+              ],
             ),
           ],
-          const SizedBox(height: 16),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _DetailRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final bool emphasized;
+/// What will be sent: the photo itself, or the file name for a PDF.
+class _ProofPreview extends StatelessWidget {
+  final _PickedProof file;
 
-  const _DetailRow({
-    required this.label,
-    required this.value,
-    this.emphasized = false,
-  });
+  const _ProofPreview({required this.file});
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-                fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
+
+    if (file.isImage) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 280),
+          child: Image.file(
+            File(file.path),
+            key: const Key('proof-preview-image'),
+            fit: BoxFit.contain,
           ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: emphasized ? 15 : 13,
-              fontWeight: emphasized ? FontWeight.w800 : FontWeight.w600,
-              color: c.text,
-            ),
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        HugeIcon(
+          icon: HugeIcons.strokeRoundedPdf01,
+          size: 24,
+          color: c.textSecondary,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            file.name,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: SacFontSize.bodyMedium, color: c.text),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

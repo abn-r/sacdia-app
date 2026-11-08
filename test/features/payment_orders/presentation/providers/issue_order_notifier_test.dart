@@ -30,6 +30,10 @@ class _FakeRepository implements PaymentOrdersRepository {
   String? lastCamporeeType;
 
   @override
+  Future<Either<Failure, String>> getProofUrl(String orderId) async =>
+      throw UnimplementedError();
+
+  @override
   Future<Either<Failure, PaymentOrder>> createInsuranceOrder({
     required int cycleConfigId,
     required List<String> beneficiaryUserIds,
@@ -98,9 +102,13 @@ class _FakeRepository implements PaymentOrdersRepository {
   }) async =>
       Right(_order(id: orderId));
 
+  Duration cancelDelay = Duration.zero;
+
   @override
-  Future<Either<Failure, PaymentOrder>> cancelOrder(String orderId) async =>
-      Right(_order(id: orderId));
+  Future<Either<Failure, PaymentOrder>> cancelOrder(String orderId) async {
+    await Future<void>.delayed(cancelDelay);
+    return Right(_order(id: orderId));
+  }
 
   @override
   Future<Either<Failure, InsuranceReassignment>> createReassignment({
@@ -158,6 +166,20 @@ void main() {
         container.read(issueOrderNotifierProvider).selectedUserIds,
         {'user-2'},
       );
+    });
+
+    test('selectAll marca a todos y clearSelection los quita', () {
+      final notifier = container.read(issueOrderNotifierProvider.notifier);
+
+      notifier.selectAll(['user-1', 'user-2', 'user-3']);
+      expect(
+        container.read(issueOrderNotifierProvider).selectedUserIds,
+        {'user-1', 'user-2', 'user-3'},
+      );
+
+      notifier.clearSelection();
+      expect(
+          container.read(issueOrderNotifierProvider).selectedUserIds, isEmpty);
     });
 
     test('no emite sin beneficiarios seleccionados', () async {
@@ -227,6 +249,17 @@ void main() {
   });
 
   group('OrderActionsNotifier', () {
+    test('cancelOrder termina aunque nadie escuche el provider', () async {
+      // The detail screen can close while the request is in flight: the
+      // autoDispose notifier must still finish and refresh the lists.
+      repository.cancelDelay = const Duration(milliseconds: 30);
+      final notifier = container.read(orderActionsNotifierProvider.notifier);
+
+      final ok = await notifier.cancelOrder('order-1');
+
+      expect(ok, isTrue);
+    });
+
     test('cancelOrder regresa true y limpia el estado', () async {
       final notifier = container.read(orderActionsNotifierProvider.notifier);
 

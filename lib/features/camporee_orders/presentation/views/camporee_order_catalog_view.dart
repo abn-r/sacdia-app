@@ -12,6 +12,7 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_settings.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_order.dart';
 import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_order_offering.dart';
@@ -107,28 +108,42 @@ class _CtaButton extends StatelessWidget {
         ? 'camporee_orders.cta.not_open'.tr()
         : 'camporee_orders.cta.closed'.tr();
 
+    void open() => context.push(
+          RouteNames.camporeeOrdersPath(
+            camporeeId,
+            type: camporeeType == CamporeeKind.union ? 'union' : 'local',
+          ),
+        );
+
+    // Inside the camporee's «Recursos» group it is a list row; a closed
+    // window shows why as its subtitle.
+    if (embedded) {
+      return Column(
+        children: [
+          const SacSettingsDivider(),
+          SacSettingsTile(
+            key: const Key('camporee-orders-cta'),
+            icon: HugeIcons.strokeRoundedShoppingBag01,
+            title: 'camporee_orders.cta.label'.tr(),
+            subtitle: enabled ? null : closedHint,
+            onTap: enabled ? open : null,
+          ),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (!embedded) const SizedBox(height: 16),
+        const SizedBox(height: 16),
         SacButton(
           key: const Key('camporee-orders-cta'),
           text: 'camporee_orders.cta.label'.tr(),
           icon: HugeIcons.strokeRoundedShoppingBag01,
-          variant:
-              embedded ? SacButtonVariant.outline : SacButtonVariant.primary,
+          variant: SacButtonVariant.primary,
           isEnabled: enabled,
           fullWidth: true,
-          onPressed: enabled
-              ? () => context.push(
-                    RouteNames.camporeeOrdersPath(
-                      camporeeId,
-                      type: camporeeType == CamporeeKind.union
-                          ? 'union'
-                          : 'local',
-                    ),
-                  )
-              : null,
+          onPressed: enabled ? open : null,
           labelMaxLines: 2,
           labelOverflow: TextOverflow.visible,
         ),

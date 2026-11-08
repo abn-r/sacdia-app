@@ -50,13 +50,17 @@ class CamporeeOfficialScoreItem extends Equatable {
   final double awardedPoints;
   final double maxPoints;
 
+  /// Per-rubric judge comment.
+  final String? notes;
+
   const CamporeeOfficialScoreItem({
     required this.rubricId,
     required this.title,
     required this.awardedPoints,
     required this.maxPoints,
+    this.notes,
   });
 
   @override
-  List<Object?> get props => [rubricId, title, awardedPoints, maxPoints];
+  List<Object?> get props => [rubricId, title, awardedPoints, maxPoints, notes];
 }
