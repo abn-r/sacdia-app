@@ -24,6 +24,7 @@ import 'package:sacdia_app/core/widgets/sac_legal_consent.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/login_notice_provider.dart';
+import 'package:sacdia_app/features/auth/presentation/theme/auth_tokens.dart';
 import 'package:sacdia_app/features/auth/presentation/widgets/auth_sky_wash.dart';
 import 'package:sacdia_app/features/auth/presentation/widgets/login_club_constellation.dart';
 import 'package:sacdia_app/features/auth/presentation/widgets/sac_brand_mark.dart';
@@ -147,8 +148,13 @@ class _LoginViewState extends ConsumerState<LoginView> {
     final authState = ref.watch(authNotifierProvider);
     final isLoading = authState.isLoading;
     final socialInFlight = ref.watch(socialSignInInFlightProvider);
+    // `AuthNotifier` ya deja un mensaje traducido (String); cualquier otro
+    // objeto (p. ej. una Exception) cae al mensaje genérico, nunca se imprime.
+    final authError = authState.error;
     final errorMessage = authState.hasError
-        ? (authState.error?.toString() ?? 'auth.login_error'.tr())
+        ? (authError is String && authError.isNotEmpty
+            ? authError
+            : 'auth.login_error'.tr())
         : null;
     final notice = ref.watch(loginNoticeProvider);
     final cooldownMessage = _isCoolingDown
@@ -197,7 +203,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                   crossAxisAlignment:
                                       CrossAxisAlignment.stretch,
                                   children: [
-                                    const SizedBox(height: 28),
+                                    const SizedBox(height: 24),
                                     StaggeredColumn(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.stretch,
@@ -208,7 +214,10 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                       animate: !reduceMotion,
                                       children: [
                                         Center(
-                                          child: SacBrandMark(size: logoSize),
+                                          child: Hero(
+                                            tag: AuthTokens.brandMarkHeroTag,
+                                            child: SacBrandMark(size: logoSize),
+                                          ),
                                         ),
                                         SizedBox(height: logoBottomSpacing),
                                         Column(
@@ -227,7 +236,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                             ),
                                             const SizedBox(height: 8),
                                             const SacBrandHairline(),
-                                            const SizedBox(height: 10),
+                                            const SizedBox(height: 8),
                                             Text(
                                               'auth.login_subtitle'.tr(),
                                               style: Theme.of(context)
@@ -283,47 +292,54 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                         const SizedBox(height: 4),
                                         Align(
                                           alignment: Alignment.centerRight,
+                                          // SacButton.text ya garantiza 44pt de
+                                          // alto táctil (kSacMinTapTarget).
                                           child: SacButton.text(
                                             text: 'auth.forgot_password'.tr(),
-                                            color: AppColors.loginBrandBlueDark,
+                                            color: context.sac.link,
                                             onPressed: () => context.push(
                                                 RouteNames.forgotPassword),
                                           ),
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 4),
+                                    const SizedBox(height: 16),
                                     if (errorMessage != null &&
                                         !_isCoolingDown) ...[
-                                      SacCard(
-                                        backgroundColor:
-                                            context.sac.errorContainer,
-                                        borderColor: context
-                                            .sac.onErrorContainer
-                                            .withValues(alpha: 0.3),
-                                        padding: const EdgeInsets.all(12),
-                                        child: Row(
-                                          children: [
-                                            HugeIcon(
-                                              icon: HugeIcons
-                                                  .strokeRoundedAlert02,
-                                              size: 20,
-                                              color:
-                                                  context.sac.onErrorContainer,
-                                            ),
-                                            const SizedBox(width: 10),
-                                            Expanded(
-                                              child: Text(
-                                                errorMessage,
-                                                style: TextStyle(
-                                                  color: context
-                                                      .sac.onErrorContainer,
-                                                  fontSize:
-                                                      SacFontSize.titleSmall,
+                                      Semantics(
+                                        liveRegion: true,
+                                        container: true,
+                                        child: SacCard(
+                                          backgroundColor:
+                                              context.sac.errorContainer,
+                                          borderColor: context
+                                              .sac.onErrorContainer
+                                              .withValues(alpha: 0.3),
+                                          padding: const EdgeInsets.all(12),
+                                          child: Row(
+                                            children: [
+                                              HugeIcon(
+                                                icon: HugeIcons
+                                                    .strokeRoundedAlert02,
+                                                size: 20,
+                                                color: context
+                                                    .sac.onErrorContainer,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Text(
+                                                  errorMessage,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .titleSmall
+                                                      ?.copyWith(
+                                                        color: context.sac
+                                                            .onErrorContainer,
+                                                      ),
                                                 ),
                                               ),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(height: 16),
@@ -342,35 +358,40 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                       const SizedBox(height: 16),
                                     ],
                                     if (cooldownMessage != null) ...[
-                                      SacCard(
-                                        backgroundColor:
-                                            context.sac.warningContainer,
-                                        borderColor: context
-                                            .sac.onWarningContainer
-                                            .withValues(alpha: 0.3),
-                                        padding: const EdgeInsets.all(12),
-                                        child: Row(
-                                          children: [
-                                            HugeIcon(
-                                              icon: HugeIcons
-                                                  .strokeRoundedClock01,
-                                              size: 20,
-                                              color: context
-                                                  .sac.onWarningContainer,
-                                            ),
-                                            const SizedBox(width: 10),
-                                            Expanded(
-                                              child: Text(
-                                                cooldownMessage,
-                                                style: TextStyle(
-                                                  color: context
-                                                      .sac.onWarningContainer,
-                                                  fontSize:
-                                                      SacFontSize.titleSmall,
+                                      Semantics(
+                                        liveRegion: true,
+                                        container: true,
+                                        child: SacCard(
+                                          backgroundColor:
+                                              context.sac.warningContainer,
+                                          borderColor: context
+                                              .sac.onWarningContainer
+                                              .withValues(alpha: 0.3),
+                                          padding: const EdgeInsets.all(12),
+                                          child: Row(
+                                            children: [
+                                              HugeIcon(
+                                                icon: HugeIcons
+                                                    .strokeRoundedClock01,
+                                                size: 20,
+                                                color: context
+                                                    .sac.onWarningContainer,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Text(
+                                                  cooldownMessage,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .titleSmall
+                                                      ?.copyWith(
+                                                        color: context.sac
+                                                            .onWarningContainer,
+                                                      ),
                                                 ),
                                               ),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(height: 16),
@@ -390,7 +411,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                     SocialSignInButtons(
                                       enabled: !_isCoolingDown,
                                     ),
-                                    const SizedBox(height: 12),
+                                    const SizedBox(height: 16),
                                     // Static notice, not acceptance evidence:
                                     // acceptance is recorded at register and
                                     // by the legal gate.
@@ -398,7 +419,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                       termsUrl: AppConstants.termsUrl,
                                       privacyUrl: AppConstants.privacyPolicyUrl,
                                     ),
-                                    const SizedBox(height: 16),
+                                    const SizedBox(height: 12),
                                     Center(
                                       child: RichText(
                                         text: TextSpan(
@@ -413,9 +434,8 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                           children: [
                                             TextSpan(
                                               text: 'auth.register_link'.tr(),
-                                              style: const TextStyle(
-                                                color: AppColors
-                                                    .loginBrandBlueDark,
+                                              style: TextStyle(
+                                                color: context.sac.link,
                                                 fontWeight: FontWeight.w700,
                                               ),
                                               recognizer: TapGestureRecognizer()
@@ -493,12 +513,14 @@ class _LoginNoticeCard extends StatelessWidget {
             size: 20,
             color: accent.color,
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               message,
-              style: TextStyle(
-                  color: context.sac.text, fontSize: SacFontSize.titleSmall),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleSmall
+                  ?.copyWith(color: context.sac.text),
             ),
           ),
           IconButton(
@@ -539,8 +561,8 @@ class _LoginKeyboardBar extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border(top: BorderSide(color: context.sac.border)),
         ),
-        child: SizedBox(
-          height: 48,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48),
           child: Row(
             children: [
               _LoginKeyboardAction(
@@ -597,20 +619,19 @@ class _LoginKeyboardAction extends StatelessWidget {
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: SizedBox(
-              height: 48,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   HugeIcon(icon: icon, size: 18, color: color),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
                   Text(
                     label,
-                    style: TextStyle(
-                      color: color,
-                      fontSize: SacFontSize.titleSmall,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: color,
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                 ],
               ),

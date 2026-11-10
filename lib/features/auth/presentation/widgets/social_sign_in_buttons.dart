@@ -38,12 +38,12 @@ class _SocialSignInButtonsState extends ConsumerState<SocialSignInButtons> {
 
     final isBusy = _busyProvider != null;
     final c = context.sac;
-    final divider = Theme.of(context).dividerColor;
+    final divider = c.border;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
         Row(
           children: [
             Expanded(child: Divider(color: divider)),
@@ -60,14 +60,14 @@ class _SocialSignInButtonsState extends ConsumerState<SocialSignInButtons> {
           ],
         ),
         const SizedBox(height: 16),
-        for (final provider in providers) ...[
+        for (var i = 0; i < providers.length; i++) ...[
+          if (i > 0) const SizedBox(height: 12),
           _SocialButton(
-            provider: provider,
+            provider: providers[i],
             enabled: widget.enabled && !isBusy,
-            isLoading: _busyProvider == provider,
-            onPressed: () => _signIn(provider),
+            isLoading: _busyProvider == providers[i],
+            onPressed: () => _signIn(providers[i]),
           ),
-          const SizedBox(height: 12),
         ],
       ],
     );

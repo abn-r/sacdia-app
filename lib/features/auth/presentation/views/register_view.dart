@@ -566,8 +566,8 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                                 children: [
                                   TextSpan(
                                     text: 'auth.login_link'.tr(),
-                                    style: const TextStyle(
-                                      color: AppColors.loginBrandBlueDark,
+                                    style: TextStyle(
+                                      color: context.sac.link,
                                       fontWeight: FontWeight.w700,
                                     ),
                                     recognizer: TapGestureRecognizer()
@@ -665,7 +665,7 @@ class _AgeGatePanel extends StatelessWidget {
         const SizedBox(height: 8),
         SacButton.ghost(
           text: 'auth.register.age_gate.back'.tr(),
-          textColor: AppColors.loginBrandBlueDark,
+          textColor: context.sac.link,
           onPressed: onBack,
         ),
       ],
@@ -700,7 +700,7 @@ class _LegalLoadError extends StatelessWidget {
         ),
         SacButton.ghost(
           text: 'auth.legal.retry'.tr(),
-          textColor: AppColors.loginBrandBlueDark,
+          textColor: context.sac.link,
           onPressed: onRetry,
         ),
       ],

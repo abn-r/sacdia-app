@@ -8,14 +8,23 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/welcome_carousel_provider.dart';
-import 'package:sacdia_app/features/auth/presentation/widgets/welcome_carousel_visuals.dart';
+import 'package:sacdia_app/features/auth/presentation/widgets/auth_sky_wash.dart';
 import 'package:sacdia_app/features/auth/presentation/theme/auth_tokens.dart';
+import 'package:sacdia_app/features/auth/presentation/widgets/welcome/welcome_chrome.dart';
+import 'package:sacdia_app/features/auth/presentation/widgets/welcome/welcome_logo_group.dart';
+import 'package:sacdia_app/features/auth/presentation/widgets/sac_brand_mark.dart';
+import 'package:sacdia_app/features/auth/presentation/widgets/welcome/welcome_scene_classes.dart';
+import 'package:sacdia_app/features/auth/presentation/widgets/welcome/welcome_scene_converge.dart';
+import 'package:sacdia_app/features/auth/presentation/widgets/welcome/welcome_scene_deck.dart';
+import 'package:sacdia_app/features/auth/presentation/widgets/welcome/welcome_scene_honors.dart';
+import 'package:sacdia_app/features/auth/presentation/widgets/welcome/welcome_scene_impact.dart';
+import 'package:sacdia_app/features/auth/presentation/widgets/welcome/welcome_scene_journey.dart';
 
-/// First-run pre-login carousel. Rare surface: the stage is the product.
+/// First-run pre-login carousel: six animated scenes that end on the logo
+/// flying into the login screen.
 class WelcomeCarouselView extends ConsumerStatefulWidget {
   const WelcomeCarouselView({super.key});
 
@@ -25,13 +34,42 @@ class WelcomeCarouselView extends ConsumerStatefulWidget {
 }
 
 class _WelcomeCarouselViewState extends ConsumerState<WelcomeCarouselView> {
-  static const _pageCount = 5;
-  static const _ctaMinHeight = 44.8;
-  static const _ctaPadding = EdgeInsets.symmetric(horizontal: 32, vertical: 12);
+  static const _pageCount = 6;
+  static const double _sidePadding = 24;
+  static const double _topBarHeight = 44;
+  static const double _ctaHeight = 56;
+  static const double _secondaryHeight = 44;
+  static const double _bottomPadding = 24;
 
   final _pageController = PageController();
   int _index = 0;
   bool _finishing = false;
+
+  /// Scene 1 waits for the logo to be decoded so its entrance never starts
+  /// on an empty glow (first frame after a cold start).
+  bool _logoReady = false;
+  bool _logoPrecacheStarted = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_logoPrecacheStarted) return;
+    _logoPrecacheStarted = true;
+    // Same decode size SacBrandMark uses for the 173pt welcome logo.
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final cacheSize =
+        (WelcomeLogoGroup.logoSize * dpr).round().clamp(64, 1024).toInt();
+    precacheImage(
+      ResizeImage(
+        const AssetImage(SacBrandMark.assetPath),
+        width: cacheSize,
+        height: cacheSize,
+      ),
+      context,
+    ).whenComplete(() {
+      if (mounted) setState(() => _logoReady = true);
+    });
+  }
 
   @override
   void dispose() {
@@ -42,7 +80,7 @@ class _WelcomeCarouselViewState extends ConsumerState<WelcomeCarouselView> {
   bool get _isLast => _index == _pageCount - 1;
 
   Future<void> _goTo(int page) async {
-    if (page < 0 || page >= _pageCount) return;
+    if (page < 0 || page >= _pageCount || page == _index) return;
     if (SacMotion.reduceMotionOf(context)) {
       _pageController.jumpToPage(page);
     } else {
@@ -59,171 +97,148 @@ class _WelcomeCarouselViewState extends ConsumerState<WelcomeCarouselView> {
     setState(() => _finishing = true);
     await ref.read(welcomeCarouselSeenProvider.notifier).markSeen();
     if (!mounted) return;
+    if (route == RouteNames.register) {
+      // Register is a child of login (it pops back to it on "back", on
+      // "Inicia sesión" and after signing up), so open it on top of login.
+      context.go(RouteNames.login);
+      context.push(RouteNames.register);
+      return;
+    }
     context.go(route);
   }
 
+  Widget _scene(int i, bool active) => switch (i) {
+        0 => WelcomeSceneImpact(active: active && _logoReady),
+        1 => WelcomeSceneClasses(active: active),
+        2 => WelcomeSceneHonors(active: active),
+        3 => WelcomeSceneDeck(active: active),
+        4 => WelcomeSceneJourney(active: active),
+        _ => WelcomeSceneConverge(active: active),
+      };
+
   @override
   Widget build(BuildContext context) {
-    final reduceMotion = SacMotion.reduceMotionOf(context);
-    final pad = Responsive.horizontalPadding(context);
+    final c = context.sac;
+    final reduce = SacMotion.reduceMotionOf(context);
+    final link = welcomeLinkColor(context);
+    final strength =
+        (_index == 0 || _isLast) ? AuthSkyStrength.hero : AuthSkyStrength.soft;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: c.background,
       body: Stack(
         children: [
-          const _OnboardingWash(),
-          Column(
-            children: [
-              Expanded(
-                child: PageView(
-                  controller: _pageController,
-                  physics: _finishing
-                      ? const NeverScrollableScrollPhysics()
-                      : const BouncingScrollPhysics(
-                          parent: AlwaysScrollableScrollPhysics(),
-                        ),
-                  onPageChanged: (value) => setState(() => _index = value),
-                  children: [
-                    _WelcomeSlide(
-                      key: const Key('welcome-page-0'),
-                      copyPadding: pad,
-                      visual: WelcomeSlideLogo(
-                        controller: _pageController,
-                        index: 0,
-                        reduceMotion: reduceMotion,
-                      ),
-                      title: 'welcome_carousel.slide1_title'.tr(),
-                      titleEmphasis:
-                          'welcome_carousel.slide1_title_emphasis'.tr(),
-                      body: 'welcome_carousel.slide1_body'.tr(),
-                    ),
-                    _WelcomeSlide(
-                      key: const Key('welcome-page-1'),
-                      copyPadding: pad,
-                      visual: WelcomeSlideClassPath(
-                        controller: _pageController,
-                        index: 1,
-                        reduceMotion: reduceMotion,
-                      ),
-                      title: 'welcome_carousel.slide2_title'.tr(),
-                      body: 'welcome_carousel.slide2_body'.tr(),
-                    ),
-                    _WelcomeSlide(
-                      key: const Key('welcome-page-2'),
-                      copyPadding: pad,
-                      visual: WelcomeSlideHonors(
-                        controller: _pageController,
-                        index: 2,
-                        reduceMotion: reduceMotion,
-                      ),
-                      title: 'welcome_carousel.slide3_title'.tr(),
-                      body: 'welcome_carousel.slide3_body'.tr(),
-                    ),
-                    _WelcomeSlide(
-                      key: const Key('welcome-page-3'),
-                      copyPadding: pad,
-                      visual: WelcomeSlideAdmin(
-                        controller: _pageController,
-                        index: 3,
-                        reduceMotion: reduceMotion,
-                      ),
-                      title: 'welcome_carousel.slide4_title'.tr(),
-                      body: 'welcome_carousel.slide4_body'.tr(),
-                    ),
-                    _WelcomeSlide(
-                      key: const Key('welcome-page-4'),
-                      copyPadding: pad,
-                      visual: WelcomeSlideJourney(
-                        controller: _pageController,
-                        index: 4,
-                        reduceMotion: reduceMotion,
-                      ),
-                      title: 'welcome_carousel.slide5_title'.tr(),
-                      body: 'welcome_carousel.slide5_body'.tr(),
-                    ),
-                  ],
-                ),
+          Positioned.fill(
+            child: AnimatedSwitcher(
+              duration: reduce ? Duration.zero : SacMotion.routeEnter,
+              child: Stack(
+                key: ValueKey(strength),
+                fit: StackFit.expand,
+                children: [AuthSkyWash(strength: strength)],
               ),
-              SafeArea(
-                top: false,
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(pad, 15, pad, 15),
+            ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                _TopBar(
+                  showBack: _index > 0,
+                  link: link,
+                  busy: _finishing,
+                  onBack: () => _goTo(_index - 1),
+                  onSkip: () => _finish(RouteNames.login),
+                ),
+                Expanded(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: _pageCount,
+                    physics: _finishing
+                        ? const NeverScrollableScrollPhysics()
+                        : const BouncingScrollPhysics(
+                            parent: AlwaysScrollableScrollPhysics(),
+                          ),
+                    onPageChanged: (value) => setState(() => _index = value),
+                    itemBuilder: (context, i) => _WelcomePage(
+                      key: Key('welcome-page-$i'),
+                      stage: RepaintBoundary(child: _scene(i, i == _index)),
+                      title: 'welcome_carousel.s${i + 1}_title'.tr(),
+                      emphasis: 'welcome_carousel.s${i + 1}_emph'.tr(),
+                      body: 'welcome_carousel.s${i + 1}_body'.tr(),
+                      animateCopy: i == 0,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: _sidePadding),
                   child: Column(
                     children: [
-                      Semantics(
-                        label: 'welcome_carousel.page_semantics'.tr(
-                          namedArgs: {
-                            'current': '${_index + 1}',
-                            'total': '$_pageCount',
-                          },
-                        ),
-                        child: _PageDots(
-                          count: _pageCount,
-                          index: _index,
-                          onTap: _finishing ? null : _goTo,
-                        ),
+                      WelcomeProgress(
+                        count: _pageCount,
+                        index: _index,
+                        onSelect: _finishing ? null : _goTo,
                       ),
-                      const SizedBox(height: 45),
+                      const SizedBox(height: 6),
                       SacButton(
-                        key: Key(_isLast ? 'welcome-continue' : 'welcome-next'),
+                        key: Key(
+                          _isLast ? 'welcome-create-account' : 'welcome-next',
+                        ),
                         text: (_isLast
-                                ? 'welcome_carousel.continue'
+                                ? 'welcome_carousel.create_account'
                                 : 'common.next')
                             .tr(),
                         variant: SacButtonVariant.primary,
                         size: SacButtonSize.large,
                         fullWidth: true,
-                        minHeight: _ctaMinHeight,
-                        padding: _ctaPadding,
+                        minHeight: _ctaHeight,
                         iconSize: 20,
                         backgroundColor: AppColors.loginBrandBlue,
                         borderRadius: AppTheme.radiusFull,
-                        trailingIcon: HugeIcons.strokeRoundedArrowRight01,
+                        trailingIcon: _isLast
+                            ? null
+                            : HugeIcons.strokeRoundedArrowRight01,
                         isEnabled: !_finishing,
                         onPressed: _isLast
-                            ? () => _finish(RouteNames.login)
+                            ? () => _finish(RouteNames.register)
                             : () => _goTo(_index + 1),
                       ),
-                      const SizedBox(height: 24),
+                      _MaybeAnimatedSize(
+                        animate: !reduce,
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: _isLast
+                              ? Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: TextButton(
+                                    key: const Key('welcome-sign-in'),
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: link,
+                                      minimumSize: const Size(
+                                        double.infinity,
+                                        _secondaryHeight,
+                                      ),
+                                      textStyle: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                    onPressed: _finishing
+                                        ? null
+                                        : () => _finish(RouteNames.login),
+                                    child: Text(
+                                      'welcome_carousel.have_account'.tr(),
+                                    ),
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
+                        ),
+                      ),
+                      const SizedBox(height: _bottomPadding),
                     ],
                   ),
                 ),
-              ),
-            ],
-          ),
-          SafeArea(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: pad),
-              child: SizedBox(
-                height: 48,
-                child: Row(
-                  children: [
-                    if (_index > 0)
-                      IgnorePointer(
-                        ignoring: _finishing,
-                        child: _FloatingChip(
-                          child: SacBackButton(
-                            key: const Key('welcome-back'),
-                            onPressed: () => _goTo(_index - 1),
-                            tooltip: 'common.back'.tr(),
-                          ),
-                        ),
-                      )
-                    else
-                      const SizedBox(width: 48),
-                    const Spacer(),
-                    _FloatingChip(
-                      child: SacButton.text(
-                        key: const Key('welcome-skip'),
-                        text: 'welcome_carousel.skip'.tr(),
-                        color: AppColors.loginBrandBlueDark,
-                        onPressed:
-                            _finishing ? null : () => _finish(RouteNames.login),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              ],
             ),
           ),
         ],
@@ -232,206 +247,137 @@ class _WelcomeCarouselViewState extends ConsumerState<WelcomeCarouselView> {
   }
 }
 
-class _OnboardingWash extends StatelessWidget {
-  const _OnboardingWash();
+class _TopBar extends StatelessWidget {
+  const _TopBar({
+    required this.showBack,
+    required this.link,
+    required this.busy,
+    required this.onBack,
+    required this.onSkip,
+  });
+
+  final bool showBack;
+  final Color link;
+  final bool busy;
+  final VoidCallback onBack;
+  final VoidCallback onSkip;
 
   @override
   Widget build(BuildContext context) {
-    return const Positioned.fill(
-      child: IgnorePointer(
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment(-0.55, -0.42),
-              radius: 0.95,
-              colors: [
-                AuthTokens.washGold,
-                AuthTokens.washGoldClear,
-              ],
-            ),
-          ),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: Alignment(0.5, 0.62),
-                radius: 1.05,
-                colors: [
-                  AuthTokens.washBlue,
-                  AuthTokens.washBlueClear,
-                ],
+    return SizedBox(
+      height: _WelcomeCarouselViewState._topBarHeight,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Row(
+          children: [
+            SizedBox(
+              width: _WelcomeCarouselViewState._topBarHeight,
+              child: Visibility(
+                visible: showBack,
+                maintainSize: true,
+                maintainAnimation: true,
+                maintainState: true,
+                child: SacBackButton(
+                  key: const Key('welcome-back'),
+                  onPressed: busy ? null : onBack,
+                  tooltip: 'common.back'.tr(),
+                ),
               ),
             ),
-          ),
+            const Spacer(),
+            TextButton(
+              key: const Key('welcome-skip'),
+              style: TextButton.styleFrom(
+                foregroundColor: link,
+                minimumSize: const Size(
+                  _WelcomeCarouselViewState._topBarHeight,
+                  _WelcomeCarouselViewState._topBarHeight,
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                textStyle: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              onPressed: busy ? null : onSkip,
+              child: Text('welcome_carousel.skip'.tr()),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _FloatingChip extends StatelessWidget {
-  const _FloatingChip({required this.child});
+/// One page: the animated stage takes whatever height the copy leaves.
+class _WelcomePage extends StatelessWidget {
+  const _WelcomePage({
+    super.key,
+    required this.stage,
+    required this.title,
+    required this.emphasis,
+    required this.body,
+    required this.animateCopy,
+  });
 
+  final Widget stage;
+  final String title;
+  final String emphasis;
+  final String body;
+  final bool animateCopy;
+
+  static const double _copyPadding = 24;
+  static const double _copyBottom = 8;
+  static const double _copyMaxShare = 0.6;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Column(
+          children: [
+            Expanded(child: stage),
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: constraints.maxHeight * _copyMaxShare,
+              ),
+              child: SingleChildScrollView(
+                physics: const NeverScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(
+                  _copyPadding,
+                  4,
+                  _copyPadding,
+                  _copyBottom,
+                ),
+                child: WelcomeCopy(
+                  title: title,
+                  emphasis: emphasis,
+                  body: body,
+                  animateIn: animateCopy,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// AnimatedSize asserts with a zero duration, so reduced motion skips it.
+class _MaybeAnimatedSize extends StatelessWidget {
+  const _MaybeAnimatedSize({required this.animate, required this.child});
+
+  final bool animate;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    if (!animate) return child;
+    return AnimatedSize(
+      duration: SacMotion.standard,
+      curve: SacMotion.easeOut,
       child: child,
-    );
-  }
-}
-
-class _WelcomeSlide extends StatelessWidget {
-  const _WelcomeSlide({
-    super.key,
-    required this.visual,
-    required this.title,
-    required this.body,
-    required this.copyPadding,
-    this.titleEmphasis,
-  });
-
-  final Widget visual;
-  final String title;
-  final String? titleEmphasis;
-  final String body;
-  final double copyPadding;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final baseTitle = Theme.of(context).textTheme.headlineSmall;
-    final titleStyle = baseTitle?.copyWith(
-      fontWeight: FontWeight.w800,
-      letterSpacing: -0.5,
-      height: 1.12,
-      fontSize: (baseTitle.fontSize ?? 18) * 1.3,
-    );
-
-    return Semantics(
-      container: true,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(child: visual),
-          Padding(
-            padding: EdgeInsets.fromLTRB(copyPadding, 4, copyPadding, 15),
-            child: Column(
-              children: [
-                _EmphasizedTitle(
-                  title: title,
-                  emphasis: titleEmphasis,
-                  style: titleStyle,
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  body,
-                  textAlign: TextAlign.center,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: c.textSecondary,
-                        height: 1.35,
-                      ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmphasizedTitle extends StatelessWidget {
-  const _EmphasizedTitle({
-    required this.title,
-    required this.style,
-    this.emphasis,
-  });
-
-  final String title;
-  final String? emphasis;
-  final TextStyle? style;
-
-  @override
-  Widget build(BuildContext context) {
-    final needle = emphasis?.trim() ?? '';
-    if (needle.isEmpty) {
-      return Text(title, textAlign: TextAlign.center, style: style);
-    }
-    final i = title.toLowerCase().indexOf(needle.toLowerCase());
-    if (i < 0) {
-      return Text(title, textAlign: TextAlign.center, style: style);
-    }
-    final leading = title.substring(0, i).trimRight();
-    final matched = title.substring(i, i + needle.length);
-    return Semantics(
-      label: title,
-      child: Column(
-        children: [
-          Text(leading, textAlign: TextAlign.center, style: style),
-          Text(
-            matched,
-            textAlign: TextAlign.center,
-            style: style?.copyWith(color: AppColors.loginBrandBlue),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PageDots extends StatelessWidget {
-  const _PageDots({
-    required this.count,
-    required this.index,
-    required this.onTap,
-  });
-
-  final int count;
-  final int index;
-  final Future<void> Function(int page)? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final reduce = SacMotion.reduceMotionOf(context);
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        for (var i = 0; i < count; i++)
-          GestureDetector(
-            onTap: onTap == null ? null : () => onTap!(i),
-            behavior: HitTestBehavior.opaque,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-              child: AnimatedContainer(
-                duration: reduce ? Duration.zero : SacMotion.standard,
-                curve: SacMotion.easeOut,
-                width: i == index ? 22 : 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                  color: i == index
-                      ? AppColors.loginBrandBlue
-                      : context.sac.border,
-                ),
-              ),
-            ),
-          ),
-      ],
     );
   }
 }

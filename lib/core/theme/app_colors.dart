@@ -242,6 +242,9 @@ class AppColors {
   /// Azul más profundo del icono — pressed / énfasis
   static const Color loginBrandBlueDark = Color(0xFF0666C9);
 
+  /// Azul claro para texto/enlaces sobre fondo oscuro (AA sobre #000/#1A1A1A)
+  static const Color loginBrandBlueOnDark = Color(0xFF5AAEFF);
+
   /// Oro de la carpeta del icono — acento de marca en auth
   static const Color loginBrandGold = Color(0xFFF0B000);
 
