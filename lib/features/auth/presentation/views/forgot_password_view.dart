@@ -208,7 +208,7 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
                                 SacButton.outline(
                                   text: 'auth.back_to_login'.tr(),
                                   borderColor: AppColors.loginBrandBlue,
-                                  textColor: AppColors.loginBrandBlueDark,
+                                  textColor: context.sac.link,
                                   borderRadius: AppTheme.radiusFull,
                                   onPressed: () => context.pop(),
                                 ),
@@ -269,7 +269,7 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
                                 Center(
                                   child: SacButton.ghost(
                                     text: 'auth.back_to_login'.tr(),
-                                    textColor: AppColors.loginBrandBlueDark,
+                                    textColor: context.sac.link,
                                     onPressed: () => context.pop(),
                                   ),
                                 ),
