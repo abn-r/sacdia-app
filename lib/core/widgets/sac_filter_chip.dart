@@ -18,6 +18,8 @@ class SacFilterChip extends StatelessWidget {
     this.onTap,
     this.icon,
     this.logoAsset,
+    this.logoKey,
+    this.logoSize = 16,
     this.accentBackground,
     this.accentForeground,
     this.count,
@@ -38,6 +40,10 @@ class SacFilterChip extends StatelessWidget {
   final VoidCallback? onTap;
   final dynamic icon;
   final String? logoAsset;
+
+  /// Optional key for the logo image, and its size (default 16).
+  final Key? logoKey;
+  final double logoSize;
   final Color? accentBackground;
   final Color? accentForeground;
   final int? count;
@@ -101,8 +107,9 @@ class SacFilterChip extends StatelessWidget {
                     if (logoAsset != null) ...[
                       Image.asset(
                         logoAsset!,
-                        width: 16,
-                        height: 16,
+                        key: logoKey,
+                        width: logoSize,
+                        height: logoSize,
                         fit: BoxFit.contain,
                         filterQuality: FilterQuality.medium,
                         cacheWidth: 48,

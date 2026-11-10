@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
@@ -48,20 +49,28 @@ class SacMemberAvatar extends StatelessWidget {
     final ringGap = ring ? 2.0 : 0.0;
     final inner = size - 2 * (ringWidth + ringGap);
 
+    final initials = initialsOf(name);
     final fallback = Container(
       width: inner,
       height: inner,
       alignment: Alignment.center,
       decoration:
           BoxDecoration(color: c.surfaceVariant, shape: BoxShape.circle),
-      child: Text(
-        initialsOf(name),
-        style: TextStyle(
-          fontSize: inner * 0.4,
-          fontWeight: FontWeight.w600,
-          color: c.text,
-        ),
-      ),
+      // No name to take initials from: a person icon, not an empty circle.
+      child: initials.isEmpty
+          ? HugeIcon(
+              icon: HugeIcons.strokeRoundedUser,
+              size: inner * 0.5,
+              color: c.textTertiary,
+            )
+          : Text(
+              initials,
+              style: TextStyle(
+                fontSize: inner * 0.4,
+                fontWeight: FontWeight.w600,
+                color: c.text,
+              ),
+            ),
     );
 
     final avatar = ClipOval(

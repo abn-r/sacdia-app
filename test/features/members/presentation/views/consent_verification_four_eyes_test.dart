@@ -218,7 +218,7 @@ void main() {
       await open(tester, request: _custodyRequest());
       await tick(tester);
 
-      await tester.tap(find.text('Confirmar y aprobar'));
+      await tester.tap(find.widgetWithText(SacButton, 'Confirmar y aprobar'));
       await tester.pumpAndSettle();
 
       expect(repo.verifyCalls, hasLength(1));
@@ -359,10 +359,11 @@ void main() {
       ];
       await open(tester, request: _custodyRequest(), canApprove: false);
 
-      expect(find.text('Confirmar y aprobar'), findsNothing);
+      expect(
+          find.widgetWithText(SacButton, 'Confirmar y aprobar'), findsNothing);
       expect(
         find.text(
-            'Puedes verificar la ficha, pero aprobar la solicitud le corresponde a un director.'),
+            'Revisa la ficha firmada por su tutor y confírmala para verificar el consentimiento.'),
         findsOneWidget,
       );
       await tick(tester);
@@ -392,7 +393,7 @@ void main() {
       await open(tester, request: _custodyRequest());
       await tick(tester);
 
-      await tester.tap(find.text('Confirmar y aprobar'));
+      await tester.tap(find.widgetWithText(SacButton, 'Confirmar y aprobar'));
       await tester.pumpAndSettle();
 
       expect(
@@ -400,7 +401,8 @@ void main() {
             'No tienes permiso para aprobar solicitudes. Solo puedes verificar el consentimiento.'),
         findsOneWidget,
       );
-      expect(find.text('Confirmar y aprobar'), findsNothing);
+      expect(
+          find.widgetWithText(SacButton, 'Confirmar y aprobar'), findsNothing);
       expect(find.text('Confirmar verificación'), findsOneWidget);
       expect(popped, isNull);
 

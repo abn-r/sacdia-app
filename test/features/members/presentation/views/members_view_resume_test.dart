@@ -71,7 +71,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Ana Pérez'), findsOneWidget);
 
-    await tester.tap(find.bySemanticsLabel('Verificar consentimiento'));
+    await tester.tap(find.bySemanticsLabel('Revisar'));
     await tester.pumpAndSettle();
     expect(find.byType(ConsentVerificationView), findsOneWidget);
     final callsBefore = repo.joinRequestSectionCalls.length;

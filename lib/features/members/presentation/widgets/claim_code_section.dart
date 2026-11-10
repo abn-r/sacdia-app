@@ -5,10 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../../core/errors/failures.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/widgets/sac_button.dart';
-import '../../../../core/widgets/sac_card.dart';
+import '../../../../core/theme/sac_font_size.dart';
 import '../../../../core/widgets/sac_dialog.dart';
+import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/widgets/sac_pressable.dart';
 import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../../family/presentation/family_error_messages.dart';
 import '../../domain/entities/claim_code.dart';
@@ -18,6 +20,9 @@ import '../providers/members_providers.dart';
 /// "Entregar a la familia": el director genera el código de un solo uso (7 días)
 /// con el que la familia de un menor bajo custodia del club lo reclama desde
 /// Mi familia (FP3-63/64). Cierra el pendiente A15 de la Fase 2.
+///
+/// Se dibuja como una fila (título, pista y flecha) para ir dentro de un grupo
+/// de filas; el código sale en un diálogo con copiar y compartir.
 ///
 /// Solo se ofrece a quien tiene `club_members:approve` (el servidor lo exige) y
 /// para un menor sin tutor vinculado. El código se muestra en memoria: no se
@@ -61,10 +66,19 @@ class _ClaimCodeSectionState extends ConsumerState<ClaimCodeSection> {
 
     result.fold(
       // Solo el `code` de negocio; el texto crudo del servidor no se muestra.
-      (failure) => _toast(familyErrorMessage(failure), isError: true),
+      (failure) => _toast(_errorMessage(failure), isError: true),
       _showCode,
     );
   }
+
+  /// The generic family messages read wrong here (the director is not the
+  /// guardian), so the two codes this action returns get their own text.
+  String _errorMessage(Failure failure) => switch (failure.errorCode) {
+        'GUARDIANSHIP_NOT_FOUND' => 'members.claim_code.error_not_found'.tr(),
+        'GUARDIANSHIP_ALREADY_GUARDIAN' =>
+          'members.claim_code.error_already_family'.tr(),
+        _ => familyErrorMessage(failure),
+      };
 
   Future<void> _showCode(IssuedClaimCode issued) {
     final expires = DateFormat.yMMMd(context.locale.toString())
@@ -128,35 +142,59 @@ class _ClaimCodeSectionState extends ConsumerState<ClaimCodeSection> {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final textTheme = Theme.of(context).textTheme;
+    final title = 'members.claim_code.section_title'.tr();
 
-    return SacCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'members.claim_code.section_title'.tr(),
-            style: textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: c.text,
+    return Semantics(
+      button: true,
+      enabled: !_busy,
+      child: SacPressable(
+        onTap: _busy ? null : _generate,
+        enabled: !_busy,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 60),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: SacFontSize.titleSmall,
+                          fontWeight: FontWeight.w600,
+                          color: c.text,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'members.claim_code.row_hint'.tr(),
+                        style: TextStyle(
+                          fontSize: SacFontSize.bodySmall,
+                          color: c.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                if (_busy)
+                  const SacLoadingSmall()
+                else
+                  ExcludeSemantics(
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowRight01,
+                      size: 18,
+                      color: c.textTertiary,
+                    ),
+                  ),
+              ],
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            'members.claim_code.hint'.tr(),
-            style: textTheme.bodyMedium?.copyWith(color: c.textSecondary),
-          ),
-          const SizedBox(height: 12),
-          SacButton.outline(
-            text: 'members.claim_code.action'.tr(),
-            icon: HugeIcons.strokeRoundedKey01,
-            // A 402pt la etiqueta no cabe en una línea (en fr/pt-BR menos aún):
-            // se parte en dos en vez de cortarse con «…».
-            labelMaxLines: 2,
-            isLoading: _busy,
-            onPressed: _busy ? null : _generate,
-          ),
-        ],
+        ),
       ),
     );
   }

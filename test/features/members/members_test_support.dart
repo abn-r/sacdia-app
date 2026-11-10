@@ -49,6 +49,7 @@ Future<void> pumpMembersApp(
   List<Override> overrides = const [],
   Size size = const Size(800, 2400),
   double textScale = 0.5,
+  ThemeData? theme,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -64,7 +65,7 @@ Future<void> pumpMembersApp(
         startLocale: const Locale('es'),
         child: Builder(
           builder: (context) => MaterialApp(
-            theme: AppTheme.lightTheme,
+            theme: theme ?? AppTheme.lightTheme,
             locale: context.locale,
             localizationsDelegates: context.localizationDelegates,
             supportedLocales: context.supportedLocales,
@@ -197,6 +198,7 @@ class FakeMembersRepository implements MembersRepository {
   final createMinorInputs = <CreateMinorInput>[];
   final claimCodeCalls = <({int clubSectionId, String dependentUserId})>[];
   final approveCalls = <String>[];
+  final rejectCalls = <String>[];
   final assignRoleCalls = <({String userId, String role})>[];
   final uploadCalls = <({String assignmentId, String fileName})>[];
   final evidenceReads = <String>[];
@@ -281,13 +283,16 @@ class FakeMembersRepository implements MembersRepository {
   // ── No usados por estos tests ─────────────────────────────────────────────
 
   @override
-  Future<Either<Failure, ClubMember>> getMemberDetail(String userId,
-          {RequestCancelToken? cancelToken}) async =>
-      throw UnimplementedError();
+  Future<Either<Failure, JoinRequest>> rejectJoinRequest(
+    String assignmentId,
+  ) async {
+    rejectCalls.add(assignmentId);
+    return Right(requests.first);
+  }
 
   @override
-  Future<Either<Failure, JoinRequest>> rejectJoinRequest(
-          String assignmentId) async =>
+  Future<Either<Failure, ClubMember>> getMemberDetail(String userId,
+          {RequestCancelToken? cancelToken}) async =>
       throw UnimplementedError();
 
   @override

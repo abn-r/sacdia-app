@@ -56,10 +56,14 @@ void main() {
     WidgetTester tester, {
     JoinRequest? request,
     ConsentEvidencePicker? picker,
+    Size? size,
+    double? textScale,
   }) async {
     final target = request ?? minorRequest(evidence: true);
     await pumpMembersApp(
       tester,
+      size: size ?? const Size(800, 2400),
+      textScale: textScale ?? 0.5,
       overrides: [membersRepositoryProvider.overrideWithValue(repo)],
       home: Builder(
         builder: (context) => Scaffold(
@@ -96,7 +100,7 @@ void main() {
   }
 
   Future<void> confirm(WidgetTester tester) async {
-    await tester.tap(find.text('Confirmar y aprobar'));
+    await tester.tap(find.widgetWithText(SacButton, 'Confirmar y aprobar'));
     await tester.pumpAndSettle();
   }
 
@@ -106,14 +110,10 @@ void main() {
       await open(tester, request: minorRequest());
 
       expect(find.text('Ana Pérez'), findsOneWidget);
-      expect(find.text('Menor · consentimiento pendiente'), findsOneWidget);
-      expect(find.text('María Pérez · Madre · Principal'), findsOneWidget);
-      expect(
-        find.text(
-          'Aún no hay una ficha subida. Toma una foto o sube el PDF de la ficha firmada.',
-        ),
-        findsOneWidget,
-      );
+      expect(find.text('Por verificar'), findsOneWidget);
+      expect(find.text('Tutor principal'), findsOneWidget);
+      expect(find.text('María Pérez (Madre)'), findsOneWidget);
+      expect(find.text('Aún no hay ficha subida'), findsOneWidget);
       expect(repo.evidenceReads, isEmpty,
           reason: 'no evidence yet, nothing to fetch');
     });
@@ -124,14 +124,14 @@ void main() {
 
       expect(repo.evidenceReads, [_assignment]);
       expect(find.textContaining('Subida por Laura Díaz'), findsOneWidget);
-      expect(find.text('Ver ficha'), findsOneWidget);
+      expect(find.text('Ver'), findsOneWidget);
     });
 
     testWidgets('viewing the form opens the image viewer (no share, no cache)',
         (tester) async {
       await open(tester);
 
-      await tester.tap(find.text('Ver ficha'));
+      await tester.tap(find.text('Ver'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
 
@@ -166,7 +166,7 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.text('Ver ficha'), findsNothing);
+      expect(find.text('Ver'), findsNothing);
     });
 
     testWidgets('other evidence errors offer a retry', (tester) async {
@@ -178,13 +178,126 @@ void main() {
     });
   });
 
-  group('confirm gating', () {
-    testWidgets('without a form Confirm is disabled even if the box is ticked',
+  group('redesigned layout', () {
+    JoinRequest nameless() => JoinRequest(
+          assignmentId: _assignment,
+          userId: 'ana-1',
+          name: '',
+          paternalSurname: '',
+          status: JoinRequestStatus.pending,
+          requestedAt: DateTime(2026, 10, 12),
+          consent: const JoinRequestConsent(
+            guardianshipId: 'gs-1',
+            status: JoinRequestConsentStatus.pending,
+          ),
+        );
+
+    testWidgets('an empty name shows the fallback and no sentence starts blank',
+        (tester) async {
+      await open(tester, request: nameless());
+
+      expect(find.text('Solicitante sin nombre'), findsOneWidget);
+      expect(
+        find.textContaining('Menor sin cuenta · solicitó el'),
+        findsOneWidget,
+      );
+      final texts = tester
+          .widgetList<Text>(find.byType(Text))
+          .map((t) => t.data ?? t.textSpan?.toPlainText() ?? '')
+          .toList();
+      expect(texts.where((t) => t.isNotEmpty && t != t.trimLeft()), isEmpty,
+          reason: 'no text may start with a blank (the old empty-name bug)');
+      expect(texts.where((t) => t.contains('es menor de edad')), isEmpty);
+    });
+
+    testWidgets('the hint under the header changes for verify-only',
+        (tester) async {
+      await open(tester);
+      expect(
+        find.text(
+          'Revisa la ficha firmada por su tutor y confírmala para aprobar la solicitud.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the checklist follows the state: missing, uploaded, reviewed',
         (tester) async {
       await open(tester, request: minorRequest());
 
-      await tickReviewed(tester);
+      expect(find.text('Falta subirla'), findsOneWidget);
+      expect(find.text('Márcalo cuando la hayas revisado'), findsOneWidget);
 
+      await tester.tap(find.text('Subir ficha firmada'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Elegir un PDF'));
+      await tester.pumpAndSettle();
+      // Chosen but not uploaded yet: step 1 stays pending.
+      expect(find.text('Falta subirla'), findsOneWidget);
+      await tester.tap(find.text('Subir'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Falta subirla'), findsNothing);
+      expect(find.textContaining('Subida'), findsWidgets);
+
+      await tester.tap(find.text('Revisar la ficha'));
+      await tester.pumpAndSettle();
+      expect(find.text('Márcalo cuando la hayas revisado'), findsNothing);
+    });
+
+    testWidgets('tapping the review row toggles it and enables the button',
+        (tester) async {
+      await open(tester);
+      expect(confirmButton(tester).onPressed, isNull);
+
+      await tester.tap(find.text('Revisar la ficha'));
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
+      expect(confirmButton(tester).onPressed, isNotNull);
+
+      await tester.tap(find.text('Revisar la ficha'));
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isFalse);
+      expect(confirmButton(tester).onPressed, isNull);
+    });
+
+    testWidgets('without a form the bar says to upload it first',
+        (tester) async {
+      await open(tester, request: minorRequest());
+      expect(find.text('Sube la ficha firmada para poder confirmar.'),
+          findsOneWidget);
+    });
+
+    testWidgets('the confirm button is on screen without scrolling at 402x874',
+        (tester) async {
+      await open(
+        tester,
+        request: minorRequest(evidence: true, name: 'Ana'),
+        size: const Size(402, 874),
+        textScale: 1.0,
+      );
+
+      final button = find.widgetWithText(SacButton, 'Confirmar y aprobar');
+      expect(button.hitTestable(), findsOneWidget);
+      final rect = tester.getRect(button);
+      expect(rect.bottom, lessThanOrEqualTo(874));
+      expect(rect.height, greaterThanOrEqualTo(44));
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('confirm gating', () {
+    testWidgets('without a form the review row is locked and Confirm disabled',
+        (tester) async {
+      await open(tester, request: minorRequest());
+
+      expect(tester.widget<Checkbox>(find.byType(Checkbox)).onChanged, isNull);
+      await tester.tap(find.text('Revisar la ficha'));
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isFalse);
       expect(confirmButton(tester).onPressed, isNull);
     });
 
@@ -286,7 +399,7 @@ void main() {
       expect(repo.verifyCalls, isEmpty);
       // La ficha vigente se vuelve a pedir y se puede ver.
       expect(repo.evidenceReads, [_assignment]);
-      expect(find.text('Ver ficha'), findsOneWidget);
+      expect(find.text('Ver'), findsOneWidget);
       // Ya no hay archivo pendiente: se puede confirmar.
       await tickReviewed(tester);
       expect(confirmButton(tester).onPressed, isNotNull);
@@ -341,7 +454,7 @@ void main() {
       await open(tester);
       await tickReviewed(tester);
 
-      await tester.tap(find.text('Confirmar y aprobar'));
+      await tester.tap(find.widgetWithText(SacButton, 'Confirmar y aprobar'));
       await tester.pump();
       // Antes de que el snackbar caduque (pumpAndSettle lo esperaría).
       await tester.pump(const Duration(milliseconds: 600));
@@ -375,7 +488,7 @@ void main() {
       await confirm(tester);
 
       expect(popped, isNull, reason: 'still on the screen');
-      expect(find.text('Menor · consentimiento verificado'), findsOneWidget);
+      expect(find.text('Verificado'), findsOneWidget);
       expect(
         find.textContaining(
           'La solicitud ya no existe o no pertenece a esta sección.',
@@ -492,12 +605,7 @@ void main() {
             'Sube la ficha de consentimiento firmada antes de verificar.'),
         findsOneWidget,
       );
-      expect(
-        find.text(
-          'Aún no hay una ficha subida. Toma una foto o sube el PDF de la ficha firmada.',
-        ),
-        findsOneWidget,
-      );
+      expect(find.text('Aún no hay ficha subida'), findsOneWidget);
       expect(confirmButton(tester).onPressed, isNull);
     });
 
