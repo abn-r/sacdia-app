@@ -23,10 +23,6 @@ bool isDesignTokenExempt(String path) {
       name.contains('sprites') ||
       name.endsWith('.g.dart') ||
       name.endsWith('.freezed.dart') ||
-      path ==
-          'lib/features/auth/presentation/widgets/welcome_carousel_visuals.dart' ||
-      path ==
-          'lib/features/auth/presentation/widgets/welcome_carousel_world.dart' ||
       path.startsWith(
           'lib/features/virtual_card/presentation/widgets/credencial/');
 }

@@ -1251,6 +1251,17 @@ Bottom sheet radius is always `top: Radius.circular(20)` (from `BottomSheetTheme
 - Rate limiting: 3 failed attempts → 30s cooldown with countdown display
 - Capsule CTA using `AppColors.loginBrandBlue` (logo blue, which is also the default accent `SacAccent.logoBlue`)
 - Entrance: `StaggeredColumn` with `SacMotion` tokens; splash uses fade+scale from `SacMotion.enterScale` (0.96)
+- Sky wash: `AuthSkyWash(strength: AuthSkyStrength.regular)` on login, register and forgot password. The alpha comes from `AuthTokens.skyAlpha` and follows the theme (light 0.5, dark 0.26), so dark mode never shows a solid blue slab
+- Text links (forgot password, register, sign in): `context.sac.link` (light `loginBrandBlueDark`, dark `loginBrandBlueOnDark`). Never hardcode the link blue
+- The club emblem constellation (`LoginClubConstellation`) is part of the brand block; keep its emblems, sizes and positions
+- Error and cooldown cards are live regions (`Semantics(liveRegion: true)`) so screen readers announce them
+
+**Welcome carousel (first run, pre-login):**
+- `lib/features/auth/presentation/views/welcome_carousel_view.dart` plus one widget per scene in `lib/features/auth/presentation/widgets/welcome/`
+- Reads as a prologue of the login: same sky (`AuthSkyStrength.hero` on the first and last scene, `.soft` in between), brand mark, type scale and capsule CTA
+- Six scenes, each driven by its own `Ticker` that only runs while the page is visible. Under reduced motion every scene renders its final composition
+- The last scene's brand mark shares `AuthTokens.brandMarkHeroTag` with the login brand mark, so the logo flies into the login
+- "Crear cuenta" opens register on top of login (`go(login)` then `push(register)`): register pops back to login
 
 ### 12.6 Onboarding / Post-Registration
 

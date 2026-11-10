@@ -48,7 +48,6 @@ const _formattingOwners = {
 
 // BASELINE:lightOnlyColor
 const Map<String, int> _lightOnlyColorBaseline = {
-  'lib/features/auth/presentation/widgets/welcome_carousel_visuals.dart': 4,
   'lib/features/units/presentation/views/units_list_view.dart': 1,
 };
 
