@@ -50,6 +50,10 @@ class SacColors {
   Color get textTertiary =>
       _isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary;
 
+  /// Color de enlaces de texto en auth (azul profundo en light, claro en dark).
+  Color get link =>
+      _isDark ? AppColors.loginBrandBlueOnDark : AppColors.loginBrandBlueDark;
+
   // ── Escala neutra "ink" (resuelta por tema) ───────────────────
   // Reemplazo directo de `AppColors.inkNNN` / `paper` / `canvas`, que son
   // light-only. La semántica es "fuerza de tinta": ink900 = texto principal,
