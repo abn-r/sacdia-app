@@ -37,6 +37,7 @@ import '../../../activities/presentation/views/activity_detail_view.dart';
 import '../widgets/upcoming_activities_card.dart';
 import '../widgets/membership_status_banner.dart';
 import '../widgets/birthday_celebration.dart';
+import '../home_spacing.dart';
 import '../widgets/welcome_header.dart';
 import '../../../enrollment/presentation/widgets/enrollment_status_card.dart';
 import '../../../coordinator/presentation/views/coordinator_hub_view.dart';
@@ -175,31 +176,39 @@ void _openActivity(BuildContext context, UpcomingActivity activity) {
   );
 }
 
-/// Banners shared by both home compositions, followed by an 8 gap.
+/// Banners shared by both home compositions.
 ///
-/// The gap is short because it is also the space between the club line and
-/// the first card when no banner shows (the club line already keeps a 44 pt
-/// tap target). Each banner brings its own bottom spacing.
-const List<Widget> _statusBanners = [
-  // Membership status banner (pending/rejected/expired)
-  MembershipStatusBanner(),
+/// Spacing rule for the home: see [HomeSpacing]. A header gap under the club
+/// line, then every card or banner keeps [HomeSpacing.card] below itself.
+/// Self-hiding widgets bring their own gap, so a hidden one leaves none.
+///
+/// On the staff home the annual enrollment task is a row of «Pendientes»
+/// ([showEnrollmentTask] false); the banner only keeps its informative states.
+List<Widget> _statusBanners({required bool showEnrollmentTask}) => [
+      const SizedBox(height: HomeSpacing.header),
 
-  // Enrollment status banner
-  EnrollmentStatusCard(),
+      // Membership status banner (pending/rejected/expired)
+      const MembershipStatusBanner(),
 
-  // Birthday celebration entry point
-  BirthdayCelebrationGate(),
-  SizedBox(height: 8),
-];
+      // Enrollment status banner
+      EnrollmentStatusCard(
+        showTask: showEnrollmentTask,
+        bottomSpacing: HomeSpacing.card,
+      ),
+
+      // Birthday celebration entry point
+      const BirthdayCelebrationGate(),
+    ];
 
 /// Staff home: pending tasks (only when there are any), current class, the
 /// full quick-access launcher and the upcoming activities list.
 List<Widget> _staffChildren(BuildContext context, DashboardSummary dashboard) {
   return [
-    ..._statusBanners,
+    ..._statusBanners(showEnrollmentTask: false),
 
-    // Pending tasks: hides itself (and its 16 gap) when empty or failing.
-    const PendingTasksCard(),
+    // Pending tasks (with the annual enrollment as a row): hides itself (and
+    // its gap) when there is nothing to attend.
+    const PendingTasksCard(bottomSpacing: HomeSpacing.card),
 
     // Current class with progress ring. Uses classWithProgressProvider for
     // accurate % (same source as "Mis Clases"), falling back to the dashboard
@@ -210,11 +219,11 @@ List<Widget> _staffChildren(BuildContext context, DashboardSummary dashboard) {
       initialIsExpired: dashboard.isCurrentClassExpired,
       fallbackProgress: dashboard.classProgress,
     ),
-    const SizedBox(height: 16),
+    const SizedBox(height: HomeSpacing.section),
 
     // Acceso rápido — launcher de módulos
     const QuickAccessGrid(),
-    const SizedBox(height: 16),
+    const SizedBox(height: HomeSpacing.section),
 
     // Upcoming activities
     UpcomingActivitiesCard(
@@ -239,7 +248,7 @@ List<Widget> _memberChildren(
       .any((item) => !_memberQuickAccessExcludedRoutes.contains(item.route));
 
   return [
-    ..._statusBanners,
+    ..._statusBanners(showEnrollmentTask: true),
 
     // Class hero, or the compact card when the user has no class.
     if (hasClass)
@@ -256,7 +265,7 @@ List<Widget> _memberChildren(
         initialIsExpired: dashboard.isCurrentClassExpired,
         fallbackProgress: dashboard.classProgress,
       ),
-    const SizedBox(height: 16),
+    const SizedBox(height: HomeSpacing.card),
 
     NextActivityCard(
       activity: nextUpcomingActivity(dashboard.upcomingActivities),

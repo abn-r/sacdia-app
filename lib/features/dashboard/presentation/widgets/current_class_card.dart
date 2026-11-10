@@ -15,6 +15,9 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 import '../utils/open_class_detail.dart';
 import 'class_logo_box.dart';
 
+/// Side of the icon well, shared with the «Pendientes» card.
+const double _iconWell = 36;
+
 /// Card de clase actual con SacProgressRing - Estilo "Scout Vibrante"
 ///
 /// Fixed compact header row showing the school icon, localized status label,
@@ -89,13 +92,23 @@ class CurrentClassCard extends ConsumerWidget {
               child: ClassLogoBox(
                 className: resolvedName,
                 imageUrl: imageUrl,
+                size: _iconWell,
               ),
             ),
           )
-        : HugeIcon(
-            icon: HugeIcons.strokeRoundedSchool,
-            size: 20,
-            color: SacAccent.of(context).color,
+        : Container(
+            width: _iconWell,
+            height: _iconWell,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: SacAccent.of(context).color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS + 2),
+            ),
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedSchool,
+              size: 20,
+              color: SacAccent.of(context).color,
+            ),
           );
 
     // Same rule as ClassHeroCard: the ring and the percentage speak the class
@@ -110,16 +123,20 @@ class CurrentClassCard extends ConsumerWidget {
     final bool isExpired =
         initialIsExpired || (classState?.value?.isExpired ?? false);
 
+    // Same frame as the «Pendientes» card: 16 side padding, 14 top and bottom,
+    // a 36 icon well and 12 before the text, so both cards share height and
+    // text start.
     return SacCard(
       onTap: currentClassId == null
           ? null
           : () => openClassDetail(context, ref, currentClassId!),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Class logo (network → asset → icon fallback)
           logoWidget,
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
 
           // Label + class name stacked
           Expanded(
@@ -137,7 +154,6 @@ class CurrentClassCard extends ConsumerWidget {
                         letterSpacing: 0.3,
                       ),
                 ),
-                const SizedBox(height: 2),
                 Text(
                   currentClassName ?? tr('dashboard.class_card.no_class'),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -166,8 +182,9 @@ class CurrentClassCard extends ConsumerWidget {
           else
             SacProgressRing(
               progress: progress,
-              size: 44,
-              strokeWidth: 5,
+              // 40 keeps the card as tall as «Pendientes».
+              size: 40,
+              strokeWidth: 4.5,
               animate: false,
               color: classColor,
               trackColor: tone?.container,

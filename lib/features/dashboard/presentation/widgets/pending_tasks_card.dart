@@ -12,6 +12,7 @@ import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 
+import '../../../enrollment/presentation/widgets/enrollment_status_card.dart';
 import '../../domain/entities/dashboard_pending.dart';
 import '../providers/dashboard_pending_provider.dart';
 
@@ -26,28 +27,67 @@ String pendingRouteFor(PendingItemType type) => switch (type) {
 
 /// Tarjeta «Pendientes» del inicio en modo gestión.
 ///
-/// Lee [dashboardPendingProvider]. Es auxiliar: mientras carga por primera vez,
-/// si el endpoint falla o si no hay nada que atender no pinta nada (ni espacio
-/// ni error). Cuando se muestra reserva [bottomSpacing] debajo.
+/// Lee [dashboardPendingProvider] y suma, al principio, la inscripción anual
+/// del club cuando le toca a este usuario ([annualEnrollmentTaskProvider]).
+/// Es auxiliar: mientras carga por primera vez, si el endpoint falla y no hay
+/// inscripción pendiente, o si no hay nada que atender, no pinta nada (ni
+/// espacio ni error). Cuando se muestra reserva [bottomSpacing] debajo.
 class PendingTasksCard extends ConsumerWidget {
   const PendingTasksCard({super.key, this.bottomSpacing = 16});
 
   final double bottomSpacing;
 
+  static const _empty = DashboardPending(total: 0, urgent: 0, items: []);
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pending = ref.watch(dashboardPendingProvider).value;
-    if (pending == null || pending.isEmpty) return const SizedBox.shrink();
+    final pending = ref.watch(dashboardPendingProvider).value ?? _empty;
+    final enrollmentTask = ref.watch(annualEnrollmentTaskProvider);
+    final localRows = [
+      if (enrollmentTask != null)
+        PendingLocalRow(
+          icon: HugeIcons.strokeRoundedAlert02,
+          label: tr('enrollment.status.title_pending'),
+          subtitle: tr(enrollmentTask.isResubmit
+              ? 'enrollment.status.subtitle_inactive_action'
+              : 'enrollment.status.subtitle_pending_action'),
+          // Without the annual enrollment the club can't operate this year:
+          // urgent, same as a rejected folder or report.
+          severity: PendingSeverity.urgent,
+          onTap: () => openAnnualEnrollmentForm(context, ref, enrollmentTask),
+        ),
+    ];
+    if (pending.isEmpty && localRows.isEmpty) return const SizedBox.shrink();
 
     return Padding(
       padding: EdgeInsets.only(bottom: bottomSpacing),
       child: PendingTasksPanel(
           pending: pending,
+          localRows: localRows,
           onItemTap: (item) {
             context.push(pendingRouteFor(item.type));
           }),
     );
   }
+}
+
+/// Fila de «Pendientes» que no viene de `GET /dashboard/pending` sino de otro
+/// estado de la app (p. ej. la inscripción anual). Se pinta igual que las
+/// demás, antes que ellas, y cuenta en «N por atender».
+class PendingLocalRow {
+  const PendingLocalRow({
+    required this.icon,
+    required this.label,
+    required this.severity,
+    required this.onTap,
+    this.subtitle,
+  });
+
+  final HugeIconData icon;
+  final String label;
+  final String? subtitle;
+  final PendingSeverity severity;
+  final VoidCallback onTap;
 }
 
 /// Contenido de la tarjeta, sin dependencia de providers.
@@ -58,10 +98,14 @@ class PendingTasksPanel extends StatefulWidget {
     super.key,
     required this.pending,
     required this.onItemTap,
+    this.localRows = const [],
   });
 
   final DashboardPending pending;
   final ValueChanged<PendingItem> onItemTap;
+
+  /// Filas propias de la app, antes de las del servidor.
+  final List<PendingLocalRow> localRows;
 
   @override
   State<PendingTasksPanel> createState() => _PendingTasksPanelState();
@@ -75,9 +119,19 @@ class _PendingTasksPanelState extends State<PendingTasksPanel> {
     final c = context.sac;
     final pending = widget.pending;
     final reduceMotion = SacMotion.reduceMotionOf(context);
-    final toAttend = 'dashboard.pending.to_attend'.plural(pending.total);
-    final urgentLabel = pending.urgent > 0
-        ? 'dashboard.pending.urgent_count'.plural(pending.urgent)
+    final rows = <Widget>[
+      for (final local in widget.localRows) _LocalPendingRow(row: local),
+      for (final item in pending.items)
+        _PendingRow(item: item, onTap: () => widget.onItemTap(item)),
+    ];
+    final toAttend = 'dashboard.pending.to_attend'
+        .plural(pending.total + widget.localRows.length);
+    final urgentCount = pending.urgent +
+        widget.localRows
+            .where((row) => row.severity == PendingSeverity.urgent)
+            .length;
+    final urgentLabel = urgentCount > 0
+        ? 'dashboard.pending.urgent_count'.plural(urgentCount)
         : null;
 
     return SacCard(
@@ -160,7 +214,7 @@ class _PendingTasksPanelState extends State<PendingTasksPanel> {
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      for (var i = 0; i < pending.items.length; i++) ...[
+                      for (var i = 0; i < rows.length; i++) ...[
                         if (i > 0)
                           Divider(
                             height: 1,
@@ -168,10 +222,7 @@ class _PendingTasksPanelState extends State<PendingTasksPanel> {
                             indent: 48,
                             color: c.borderLight,
                           ),
-                        _PendingRow(
-                          item: pending.items[i],
-                          onTap: () => widget.onItemTap(pending.items[i]),
-                        ),
+                        rows[i],
                       ],
                       const SizedBox(height: 4),
                     ],
@@ -255,23 +306,78 @@ class _PendingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    final (background, foreground) = switch (item.severity) {
-      PendingSeverity.urgent => (c.errorContainer, c.onErrorContainer),
-      PendingSeverity.warning => (c.warningContainer, c.onWarningContainer),
-      PendingSeverity.info => (c.infoContainer, c.onInfoContainer),
-    };
     final badgeText = _badgeText;
     final badge = switch (item.severity) {
       PendingSeverity.urgent => SacBadge.error(label: badgeText),
       PendingSeverity.warning => SacBadge.warning(label: badgeText),
       PendingSeverity.info => SacBadge.info(label: badgeText),
     };
-    final subtitle = _subtitle;
+    return _PendingRowLayout(
+      icon: _icon,
+      label: _label,
+      subtitle: _subtitle,
+      severity: item.severity,
+      badge: badge,
+      badgeText: badgeText,
+      onTap: onTap,
+    );
+  }
+}
+
+class _LocalPendingRow extends StatelessWidget {
+  const _LocalPendingRow({required this.row});
+
+  final PendingLocalRow row;
+
+  @override
+  Widget build(BuildContext context) {
+    return _PendingRowLayout(
+      icon: row.icon,
+      label: row.label,
+      subtitle: row.subtitle,
+      severity: row.severity,
+      onTap: row.onTap,
+    );
+  }
+}
+
+/// Una fila de «Pendientes»: ícono por gravedad, título, subtítulo opcional,
+/// insignia opcional y flecha.
+class _PendingRowLayout extends StatelessWidget {
+  const _PendingRowLayout({
+    required this.icon,
+    required this.label,
+    required this.severity,
+    required this.onTap,
+    this.subtitle,
+    this.badge,
+    this.badgeText,
+  });
+
+  final HugeIconData icon;
+  final String label;
+  final String? subtitle;
+  final PendingSeverity severity;
+  final Widget? badge;
+  final String? badgeText;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final (background, foreground) = switch (severity) {
+      PendingSeverity.urgent => (c.errorContainer, c.onErrorContainer),
+      PendingSeverity.warning => (c.warningContainer, c.onWarningContainer),
+      PendingSeverity.info => (c.infoContainer, c.onInfoContainer),
+    };
 
     return Semantics(
       button: true,
-      label: [_label, if (subtitle != null) subtitle, badgeText].join(', '),
+      label: [
+        label,
+        if (subtitle != null) subtitle!,
+        if (badgeText != null) badgeText!,
+      ].join(', '),
       onTap: onTap,
       excludeSemantics: true,
       child: GestureDetector(
@@ -284,7 +390,7 @@ class _PendingRow extends StatelessWidget {
             child: Row(
               children: [
                 _IconWell(
-                  icon: _icon,
+                  icon: icon,
                   background: background,
                   foreground: foreground,
                 ),
@@ -294,7 +400,7 @@ class _PendingRow extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _label,
+                        label,
                         style: TextStyle(
                           fontSize: SacFontSize.titleSmall,
                           fontWeight: FontWeight.w500,
@@ -305,7 +411,7 @@ class _PendingRow extends StatelessWidget {
                       ),
                       if (subtitle != null)
                         Text(
-                          subtitle,
+                          subtitle!,
                           style: TextStyle(
                             fontSize: SacFontSize.bodySmall,
                             color: c.textSecondary,
@@ -316,8 +422,10 @@ class _PendingRow extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                badge,
+                if (badge != null) ...[
+                  const SizedBox(width: 8),
+                  badge!,
+                ],
                 const SizedBox(width: 4),
                 HugeIcon(
                   icon: HugeIcons.strokeRoundedArrowRight01,

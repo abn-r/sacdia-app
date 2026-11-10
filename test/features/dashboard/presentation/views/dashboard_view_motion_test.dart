@@ -205,12 +205,12 @@ void main() {
           final withGrid = permissionCase.permissions.contains('reports:read');
           final children = _loadedSectionsColumn(tester).children;
           expect(children, hasLength(withGrid ? 12 : 10));
-          expect(children[0], isA<MembershipStatusBanner>());
-          expect(children[1], isA<EnrollmentStatusCard>());
-          expect(children[2], isA<BirthdayCelebrationGate>());
-          expect((children[3] as SizedBox).height, 8);
+          expect((children[0] as SizedBox).height, 16);
+          expect(children[1], isA<MembershipStatusBanner>());
+          expect((children[2] as EnrollmentStatusCard).showTask, isTrue);
+          expect(children[3], isA<BirthdayCelebrationGate>());
           expect(children[4], isA<ClassHeroCard>());
-          expect((children[5] as SizedBox).height, 16);
+          expect((children[5] as SizedBox).height, 20);
           expect(children[6], isA<NextActivityCard>());
           expect((children[7] as SizedBox).height, 24);
           expect(children[8], isA<ForYouSection>());
@@ -282,10 +282,11 @@ void main() {
 
           final children = _loadedSectionsColumn(tester).children;
           expect(children, hasLength(11));
-          expect(children[0], isA<MembershipStatusBanner>());
-          expect(children[1], isA<EnrollmentStatusCard>());
-          expect(children[2], isA<BirthdayCelebrationGate>());
-          expect((children[3] as SizedBox).height, 8);
+          expect((children[0] as SizedBox).height, 16);
+          expect(children[1], isA<MembershipStatusBanner>());
+          // Staff: the enrollment task lives in «Pendientes».
+          expect((children[2] as EnrollmentStatusCard).showTask, isFalse);
+          expect(children[3], isA<BirthdayCelebrationGate>());
           expect(children[4], isA<PendingTasksCard>());
           expect(children[5], isA<CurrentClassCard>());
           expect((children[6] as SizedBox).height, 16);
