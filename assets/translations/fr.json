@@ -590,7 +590,21 @@
     "validation_honor_already_pending": "Cette spécialité est déjà en révision.",
     "validation_honor_already_validated": "Cette spécialité a déjà été validée.",
     "validation_honor_invalid_status": "Cette spécialité ne peut pas être envoyée dans son état actuel.",
-    "validation_honor_completion_mode_required": "Choisis d'abord comment compléter cette spécialité."
+    "validation_honor_completion_mode_required": "Choisis d'abord comment compléter cette spécialité.",
+    "club_role_slot_limit_reached": "Ce poste n'a plus de place. Nous avons actualisé la liste.",
+    "club_role_exclusive_conflict": "Ce poste n'est pas compatible avec un autre poste déjà occupé dans la section.",
+    "club_role_gm_membership_required": "Cette personne doit être inscrite chez les Guides Majeurs cette année pour recevoir le poste.",
+    "club_role_already_held": "Cette personne a déjà un poste dans cette section.",
+    "club_role_self_assignment": "Vous ne pouvez pas vous attribuer un poste.",
+    "club_role_requirement_missing": "Ce poste exige une attestation de conseil approuvée. Nous avons actualisé la liste.",
+    "service_credential_not_found": "Nous n'avons pas trouvé cette attestation. Nous avons actualisé la liste.",
+    "service_credential_not_pending": "Quelqu'un d'autre a déjà examiné cette attestation. Nous avons actualisé la liste.",
+    "service_credential_self_review": "Vous ne pouvez pas examiner votre propre attestation.",
+    "service_credential_pending_exists": "Vous avez déjà une attestation en cours d'examen. Attendez le résultat ou retirez-la pour en envoyer une autre.",
+    "service_credential_file_invalid": "Le fichier n'est pas valide. Envoyez un PDF, JPG ou PNG de 10 Mo maximum.",
+    "service_credential_upload_missing": "Le fichier n'a pas été reçu. Essayez d'envoyer l'attestation à nouveau.",
+    "service_credential_date_invalid": "La date d'achèvement n'est pas valide.",
+    "service_credential_approved_locked": "Une attestation approuvée ne peut plus être retirée."
   },
   "honors": {
     "errors": {
@@ -3033,6 +3047,110 @@
       "copied": "Code copié",
       "share": "Partager",
       "share_message": "Je vous invite à prendre en charge {name} sur SACDIA. Code : {code}. Expire le {when}. Saisissez-le dans Ma famille > J'ai un code de liaison."
+    },
+    "role_candidates": {
+      "entry": "Ajouter un membre de la direction",
+      "title": "Ajouter un membre de la direction",
+      "subtitle": "Guides Majeurs pour un poste en {section}",
+      "search_hint": "Rechercher par nom",
+      "loading": "Chargement des Guides Majeurs",
+      "filter_available": "Sans poste",
+      "filter_with_role": "Avec poste",
+      "filter_not_enrolled": "Non inscrit",
+      "filter_all": "Tous",
+      "group_available": "Sans poste cette année",
+      "group_with_role": "Déjà avec un poste",
+      "group_not_enrolled": "Non inscrit {year}",
+      "group_not_enrolled_no_year": "Non inscrit",
+      "slot_counter": "{role} {occupied}/{max}",
+      "slot_count": "{role} {count}",
+      "plural": {
+        "counselor": "Moniteurs"
+      },
+      "slot_state": "{occupied} sur {max} occupés",
+      "slot_state_unbounded": {
+        "one": "{} attribué",
+        "other": "{} attribués"
+      },
+      "service_years": {
+        "one": "{} an de service",
+        "other": "{} ans de service"
+      },
+      "age_years": "{count} ans",
+      "role_in_club": "{role} · {club}",
+      "role_in_this_section": "{role} (cette section)",
+      "needs_enrollment": "Doit d'abord s'inscrire chez les Guides Majeurs",
+      "consent_missing": "Consentement manquant",
+      "blocked_self": "Vous ne pouvez pas vous attribuer un poste",
+      "no_roles_available": "Aucun poste disponible dans cette section",
+      "basis_invested_year": "Investi {year}",
+      "basis_invested": "Investi",
+      "basis_approved": "GM approuvé, non investi",
+      "basis_active_enrollment": "GM en cours",
+      "tag_advanced": "Avancé",
+      "tag_instructor": "Instructeur",
+      "error_title": "Impossible de charger la liste",
+      "detail_error": "Impossible de charger le détail",
+      "empty_title": "Personne ici",
+      "empty_available": "Aucun Guide Majeur n'est sans poste cette année.",
+      "empty_with_role": "Aucun Guide Majeur n'a encore de poste.",
+      "empty_not_enrolled": "Tous les Guides Majeurs sont inscrits cette année.",
+      "no_results_title": "Aucun résultat",
+      "no_results_body": "Essayez un autre nom ou un autre filtre.",
+      "no_gm_section_title": "Ce club n'a pas de section Guides Majeurs",
+      "no_gm_section_body": "Les postes de direction sont occupés par des Guides Majeurs. Créez cette section pour pouvoir les attribuer.",
+      "load_more_error": "Impossible de charger plus de personnes",
+      "roles_title": "Choisir le poste",
+      "choose_role": "Choisissez le poste",
+      "view_detail": "Voir le détail",
+      "reason_occupied_by": "Occupé par {names}",
+      "reason_full": "Aucune place disponible",
+      "reason_incompatible": "Incompatible avec {role}",
+      "reason_unavailable": "Non disponible pour cette personne",
+      "confirm_title": "Confirmer le poste",
+      "confirm_summary": "Attribuer à {name} le poste de {role} en {section}.",
+      "confirm_summary_no_section": "Attribuer à {name} le poste de {role}.",
+      "confirm_action": "Attribuer le poste",
+      "back_to_list": "Retour à la liste",
+      "also_holds_role": "Occupe aussi le poste de {role} en {club}",
+      "other_section": "une autre section",
+      "detail_title": "Détail",
+      "detail_history": "Historique des postes",
+      "detail_history_empty": "Aucun poste antérieur",
+      "detail_certifications": "Formations",
+      "detail_cert_note": "Formation : non obligatoire pour le moment",
+      "detail_certifications_empty": "Aucune formation enregistrée",
+      "detail_insurance": "Assurance",
+      "insurance_active": "Valide",
+      "insurance_active_until": "Valide jusqu'au {date}",
+      "insurance_inactive": "Aucune assurance valide",
+      "insurance_unknown": "Aucune information d'assurance",
+      "honors_none": "Aucune spécialité approuvée",
+      "detail_honors": "Spécialités",
+      "honors_count": {
+        "one": "{} spécialité",
+        "other": "{} spécialités"
+      },
+      "cert_status": {
+        "approved": "Approuvée",
+        "certified": "Certifiée",
+        "pending": "En attente",
+        "in_progress": "En cours",
+        "expired": "Expirée",
+        "rejected": "Rejetée"
+      },
+      "credential": {
+        "title": "Attestation de conseil",
+        "status_approved": "Approuvée",
+        "status_pending_review": "En cours de révision",
+        "status_none": "Sans attestation",
+        "note_info": "Non obligatoire pour le moment",
+        "note_warn": "Recommandée pour ce poste",
+        "note_block": "Obligatoire pour attribuer le poste",
+        "chip_missing": "Sans attestation",
+        "notice_missing": "Cette personne n'a pas encore d'attestation de conseil approuvée",
+        "reason_missing": "Attestation de conseil manquante"
+      }
     }
   },
   "certifications": {
@@ -6411,6 +6529,118 @@
       "title": "Ton inscription n'est pas terminée",
       "body": "Demande à ton tuteur de terminer ton profil depuis son téléphone.",
       "refresh": "Il a terminé"
+    }
+  },
+  "service_credentials": {
+    "loading": "Chargement des attestations",
+    "title": "Cours de conseil (10 heures)",
+    "entry": {
+      "section": "Attestations",
+      "mine_title": "Mes attestations",
+      "mine_subtitle": "Attestation de votre cours de conseil",
+      "review_title": "Attestations à examiner",
+      "review_subtitle": "Approuvez ou rejetez les attestations de votre zone",
+      "pending_count_one": "1 attestation à examiner",
+      "pending_count_other": "{count} attestations à examiner"
+    },
+    "mine": {
+      "title": "Mes attestations",
+      "intro": "Enregistrez ici l'attestation de votre cours de conseil (10 heures). Pour l'instant, elle est facultative.",
+      "upload": "Envoyer une attestation",
+      "pending_note": "Vous avez une attestation en cours d'examen. Quand elle aura un résultat, vous pourrez en envoyer une autre.",
+      "empty_title": "Vous n'avez encore envoyé aucune attestation",
+      "empty_body": "Envoyez l'attestation de votre cours de conseil (10 heures) pour qu'elle soit examinée.",
+      "error_title": "Nous n'avons pas pu charger vos attestations"
+    },
+    "status": {
+      "pending": "En cours d'examen",
+      "approved": "Approuvée",
+      "rejected": "Rejetée"
+    },
+    "group": {
+      "pending": "En cours d'examen",
+      "approved": "Approuvées",
+      "rejected": "Rejetées"
+    },
+    "row": {
+      "completed_on": "Terminée le {date}",
+      "rejected_reason": "Motif : {reason}",
+      "valid_until": "Valable jusqu'au {date}",
+      "resubmit": "Envoyer à nouveau",
+      "withdraw": "Retirer"
+    },
+    "withdraw": {
+      "title": "Retirer cette attestation ?",
+      "body": "Elle sera retirée de l'examen et vous pourrez en envoyer une autre.",
+      "confirm": "Retirer",
+      "done": "Attestation retirée."
+    },
+    "upload": {
+      "title": "Envoyer une attestation",
+      "intro": "Envoyez l'attestation de votre cours de conseil (10 heures). Quelqu'un l'examinera.",
+      "date_label": "Date d'achèvement",
+      "date_required": "Choisissez la date d'achèvement.",
+      "date_future": "La date ne peut pas être dans le futur.",
+      "file_label": "Document",
+      "change_file": "Changer",
+      "file_required": "Choisissez le document de votre attestation.",
+      "pick_failed": "Impossible d'ouvrir le fichier. Vérifiez les autorisations et réessayez.",
+      "source_title": "Ajouter un document",
+      "source_camera": "Prendre une photo",
+      "source_gallery": "Choisir dans la galerie",
+      "source_pdf": "Choisir un PDF",
+      "problems": {
+        "unsupported_type": "Seuls les fichiers PDF, JPG ou PNG sont acceptés.",
+        "too_large": "Le fichier dépasse 10 Mo. Choisissez-en un plus petit.",
+        "empty": "Le fichier est vide."
+      },
+      "submit": "Envoyer pour examen",
+      "retry": "Réessayer",
+      "success": "Attestation envoyée pour examen.",
+      "phase_registering": "Enregistrement de l'attestation…",
+      "phase_uploading": "Envoi du document…",
+      "phase_confirming": "Confirmation…",
+      "date_hint": "Choisissez la date",
+      "add_document": "Ajouter un document",
+      "add_document_helper": "PDF, JPG ou PNG · jusqu'à 10 Mo"
+    },
+    "review": {
+      "title": "Attestations à examiner",
+      "detail_title": "Attestation",
+      "search_hint": "Rechercher une personne ou un club",
+      "unknown_person": "Personne sans nom",
+      "error_title": "Nous n'avons pas pu charger les attestations",
+      "detail_error_title": "Nous n'avons pas pu charger cette attestation",
+      "empty_title": "Aucune attestation",
+      "empty_pending": "Aucune attestation n'attend d'examen.",
+      "empty_approved": "Vous n'avez encore approuvé aucune attestation.",
+      "empty_rejected": "Vous n'avez encore rejeté aucune attestation.",
+      "no_results_title": "Aucun résultat",
+      "no_results_body": "Essayez un autre nom ou un autre club.",
+      "load_more_error": "Impossible de charger plus d'attestations.",
+      "sent_on": "Envoyée le {date}",
+      "reviewed_on": "Examinée le {date}",
+      "fact_credential": "Attestation",
+      "fact_completed": "Terminée le",
+      "fact_sent": "Envoyée le",
+      "open_file": "Ouvrir le document",
+      "no_file": "Cette attestation n'a pas de document disponible.",
+      "approve": "Approuver",
+      "reject": "Rejeter",
+      "approve_title": "Approuver l'attestation",
+      "approve_body": "Une fois approuvée, l'attestation est enregistrée pour la personne.",
+      "expiry_label": "Valable jusqu'au (facultatif)",
+      "expiry_helper": "Sans date, l'attestation n'expire pas.",
+      "reject_title": "Rejeter l'attestation",
+      "reject_body": "Expliquez le motif. La personne le verra et pourra envoyer une autre attestation.",
+      "reason_label": "Motif du rejet",
+      "reason_required": "Écrivez un motif d'au moins 5 caractères.",
+      "approved_done": "Attestation approuvée.",
+      "rejected_done": "Attestation rejetée."
+    },
+    "file_kind": {
+      "pdf": "PDF",
+      "photo": "Photo"
     }
   }
 }

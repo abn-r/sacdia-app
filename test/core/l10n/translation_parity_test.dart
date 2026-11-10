@@ -54,6 +54,31 @@ const _phase2ErrorCodes = [
   'MR_CONSENT_NOT_VERIFIED',
 ];
 
+/// Códigos del `POST .../roles` al agregar un directivo de Guías Mayores a una
+/// sección de Aventureros o Conquistadores (la app los traduce por `code`).
+const _gmRoleErrorCodes = [
+  'CLUB_ROLE_SLOT_LIMIT_REACHED',
+  'CLUB_ROLE_EXCLUSIVE_CONFLICT',
+  'CLUB_ROLE_GM_MEMBERSHIP_REQUIRED',
+  'CLUB_ROLE_ALREADY_HELD',
+  'CLUB_ROLE_SELF_ASSIGNMENT',
+  'CLUB_ROLE_REQUIREMENT_MISSING',
+  'MR_CONSENT_NOT_VERIFIED',
+];
+
+/// Códigos de las constancias de servicio (`/users/me/service-credentials` y
+/// `/service-credentials/review`); la app los traduce por `code`.
+const _serviceCredentialErrorCodes = [
+  'SERVICE_CREDENTIAL_NOT_FOUND',
+  'SERVICE_CREDENTIAL_NOT_PENDING',
+  'SERVICE_CREDENTIAL_SELF_REVIEW',
+  'SERVICE_CREDENTIAL_PENDING_EXISTS',
+  'SERVICE_CREDENTIAL_FILE_INVALID',
+  'SERVICE_CREDENTIAL_UPLOAD_MISSING',
+  'SERVICE_CREDENTIAL_DATE_INVALID',
+  'SERVICE_CREDENTIAL_APPROVED_LOCKED',
+];
+
 /// Códigos nuevos de Phase 2c (verificación del consentimiento) que la app
 /// debe traducir (FP-68), más los que puede mostrar el director al subir y
 /// verificar.
@@ -157,6 +182,32 @@ void main() {
   test('every Phase 2 error code has an errors.* translation in all locales',
       () {
     for (final code in _phase2ErrorCodes) {
+      final key = 'errors.${code.toLowerCase()}';
+      for (final locale in _locales) {
+        expect(
+          translations[locale]!.containsKey(key),
+          isTrue,
+          reason: '$key missing in $locale',
+        );
+      }
+    }
+  });
+
+  test('every board-member (GM candidate) error code has an errors.* key', () {
+    for (final code in _gmRoleErrorCodes) {
+      final key = 'errors.${code.toLowerCase()}';
+      for (final locale in _locales) {
+        expect(
+          translations[locale]!.containsKey(key),
+          isTrue,
+          reason: '$key missing in $locale',
+        );
+      }
+    }
+  });
+
+  test('every service-credential error code has an errors.* key', () {
+    for (final code in _serviceCredentialErrorCodes) {
       final key = 'errors.${code.toLowerCase()}';
       for (final locale in _locales) {
         expect(

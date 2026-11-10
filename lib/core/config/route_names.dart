@@ -361,6 +361,20 @@ class RouteNames {
   static String memberBreakdownPath(int enrollmentId, int yearId) =>
       '/rankings/breakdown/$enrollmentId?year_id=$yearId';
 
+  // Constancias de servicio (consejería). «Mis constancias» es de la propia
+  // persona en su cuenta de adulto; la cola de revisión pide la capacidad
+  // `service_credentials.review`. Ocultas al actuar por un menor y vetadas al
+  // adolescente supervisado (`/service-credentials` en las listas de rutas); el
+  // teléfono vinculado y los modos restringidos ya las rebotan por lista blanca.
+  static const String serviceCredentials = '/service-credentials';
+  static const String serviceCredentialsNew = '/service-credentials/new';
+  static const String serviceCredentialsReview = '/service-credentials/review';
+  static const String serviceCredentialsReviewDetail =
+      '/service-credentials/review/:credentialId';
+
+  static String serviceCredentialsReviewDetailPath(String credentialId) =>
+      '/service-credentials/review/$credentialId';
+
   // Mi familia: menores a cargo del tutor. Se gestionan desde el perfil propio
   // del tutor; mientras se actúa por un menor estas rutas redirigen al inicio.
   static const String family = '/family';

@@ -17,6 +17,8 @@ const _allowlist = <String>{
   'lib/features/honors/presentation/widgets/instructor_proposal_card.dart',
   'lib/features/honors/data/models/instructor_proposal_model.dart',
   'lib/features/honors/data/models/user_honor_model.dart',
+  // JSON key `gm['instructor']` (flag of the guide_major object, not a role).
+  'lib/features/members/data/models/role_candidate_model.dart',
   // JSON key `json['member']` (a nested object, not a role value).
   'lib/features/qr/data/models/qr_scan_result_model.dart',
   'lib/features/rankings/data/models/member_ranking_dto.dart',

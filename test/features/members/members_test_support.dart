@@ -17,6 +17,7 @@ import 'package:sacdia_app/features/members/domain/entities/club_member.dart';
 import 'package:sacdia_app/features/members/domain/entities/consent_verification_result.dart';
 import 'package:sacdia_app/features/members/domain/entities/create_minor.dart';
 import 'package:sacdia_app/features/members/domain/entities/join_request.dart';
+import 'package:sacdia_app/features/members/domain/entities/role_candidate.dart';
 import 'package:sacdia_app/features/members/domain/repositories/members_repository.dart';
 import 'package:sacdia_app/core/usecases/cancellation_token.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -346,5 +347,62 @@ class FakeMembersRepository implements MembersRepository {
     claimCodeCalls
         .add((clubSectionId: clubSectionId, dependentUserId: dependentUserId));
     return claimCodeResult;
+  }
+
+  // ── Candidatos a un cargo de directiva (Guías Mayores) ────────────────────
+
+  /// Una respuesta por llamada, en orden; la última se repite.
+  List<Either<Failure, RoleCandidatesPage>> roleCandidatesResults = [
+    const Right(RoleCandidatesPage()),
+  ];
+  Either<Failure, RoleCandidateDetail>? roleCandidateDetailResult;
+
+  /// Mientras exista, `getRoleCandidates` espera a que se complete.
+  Completer<void>? roleCandidatesGate;
+
+  final roleCandidateCalls = <({
+    int clubId,
+    int sectionId,
+    String search,
+    RoleCandidatesFilter filter,
+    int page,
+  })>[];
+  final roleCandidateDetailCalls = <String>[];
+
+  @override
+  Future<Either<Failure, RoleCandidatesPage>> getRoleCandidates({
+    required int clubId,
+    required int sectionId,
+    String search = '',
+    RoleCandidatesFilter filter = RoleCandidatesFilter.available,
+    int page = 1,
+    int limit = 20,
+    RequestCancelToken? cancelToken,
+  }) async {
+    roleCandidateCalls.add((
+      clubId: clubId,
+      sectionId: sectionId,
+      search: search,
+      filter: filter,
+      page: page,
+    ));
+    final index = roleCandidateCalls.length - 1;
+    final gate = roleCandidatesGate;
+    if (gate != null) await gate.future;
+    return roleCandidatesResults[index < roleCandidatesResults.length
+        ? index
+        : roleCandidatesResults.length - 1];
+  }
+
+  @override
+  Future<Either<Failure, RoleCandidateDetail>> getRoleCandidateDetail({
+    required int clubId,
+    required int sectionId,
+    required String userId,
+    RequestCancelToken? cancelToken,
+  }) async {
+    roleCandidateDetailCalls.add(userId);
+    return roleCandidateDetailResult ??
+        const Left(ServerFailure(message: 'detail unavailable'));
   }
 }

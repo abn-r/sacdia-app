@@ -590,7 +590,21 @@
     "validation_honor_already_pending": "This honor is already under review.",
     "validation_honor_already_validated": "This honor was already validated.",
     "validation_honor_invalid_status": "This honor cannot be sent in its current state.",
-    "validation_honor_completion_mode_required": "First choose how to complete this honor."
+    "validation_honor_completion_mode_required": "First choose how to complete this honor.",
+    "club_role_slot_limit_reached": "That role has no free slots anymore. We refreshed the list.",
+    "club_role_exclusive_conflict": "That role is not compatible with another role already held in the section.",
+    "club_role_gm_membership_required": "This person must be enrolled in Master Guides this year to receive the role.",
+    "club_role_already_held": "This person already holds a role in this section.",
+    "club_role_self_assignment": "You cannot assign yourself a role.",
+    "club_role_requirement_missing": "This role requires an approved counseling certificate. We refreshed the list.",
+    "service_credential_not_found": "We could not find this certificate. We refreshed the list.",
+    "service_credential_not_pending": "Someone else already reviewed this certificate. We refreshed the list.",
+    "service_credential_self_review": "You cannot review your own certificate.",
+    "service_credential_pending_exists": "You already have a certificate under review. Wait for the result or withdraw it to upload another.",
+    "service_credential_file_invalid": "The file is not valid. Upload a PDF, JPG or PNG up to 10 MB.",
+    "service_credential_upload_missing": "The file was not received. Try uploading the certificate again.",
+    "service_credential_date_invalid": "The completion date is not valid.",
+    "service_credential_approved_locked": "An approved certificate can no longer be withdrawn."
   },
   "honors": {
     "errors": {
@@ -3034,6 +3048,110 @@
       "copied": "Code copied",
       "share": "Share",
       "share_message": "I invite you to take over {name} on SACDIA. Code: {code}. Expires {when}. Enter it in My family > I have a link code."
+    },
+    "role_candidates": {
+      "entry": "Add board member",
+      "title": "Add board member",
+      "subtitle": "Master Guides for a role in {section}",
+      "search_hint": "Search by name",
+      "loading": "Loading Master Guides",
+      "filter_available": "No role",
+      "filter_with_role": "With role",
+      "filter_not_enrolled": "Not enrolled",
+      "filter_all": "All",
+      "group_available": "No role this year",
+      "group_with_role": "Already with a role",
+      "group_not_enrolled": "Not enrolled {year}",
+      "group_not_enrolled_no_year": "Not enrolled",
+      "slot_counter": "{role} {occupied}/{max}",
+      "slot_count": "{role} {count}",
+      "plural": {
+        "counselor": "Counselors"
+      },
+      "slot_state": "{occupied} of {max} filled",
+      "slot_state_unbounded": {
+        "one": "{} assigned",
+        "other": "{} assigned"
+      },
+      "service_years": {
+        "one": "{} year of service",
+        "other": "{} years of service"
+      },
+      "age_years": "{count} years old",
+      "role_in_club": "{role} · {club}",
+      "role_in_this_section": "{role} (this section)",
+      "needs_enrollment": "Must enroll in Master Guides first",
+      "consent_missing": "Consent missing",
+      "blocked_self": "You cannot assign yourself a role",
+      "no_roles_available": "No roles available in this section",
+      "basis_invested_year": "Invested {year}",
+      "basis_invested": "Invested",
+      "basis_approved": "MG approved, not invested",
+      "basis_active_enrollment": "MG in progress",
+      "tag_advanced": "Advanced",
+      "tag_instructor": "Instructor",
+      "error_title": "Could not load the list",
+      "detail_error": "Could not load the details",
+      "empty_title": "Nobody here",
+      "empty_available": "Nobody in Master Guides is without a role this year.",
+      "empty_with_role": "Nobody in Master Guides has a role yet.",
+      "empty_not_enrolled": "All Master Guides are enrolled this year.",
+      "no_results_title": "No matches",
+      "no_results_body": "Try another name or another filter.",
+      "no_gm_section_title": "This club has no Master Guides section",
+      "no_gm_section_body": "Board roles are held by people from Master Guides. Create that section to be able to assign them.",
+      "load_more_error": "Could not load more people",
+      "roles_title": "Choose role",
+      "choose_role": "Choose the role",
+      "view_detail": "View details",
+      "reason_occupied_by": "Held by {names}",
+      "reason_full": "No slots available",
+      "reason_incompatible": "Not compatible with {role}",
+      "reason_unavailable": "Not available for this person",
+      "confirm_title": "Confirm role",
+      "confirm_summary": "Assign {name} as {role} in {section}.",
+      "confirm_summary_no_section": "Assign {name} as {role}.",
+      "confirm_action": "Assign role",
+      "back_to_list": "Back to the list",
+      "also_holds_role": "Also holds the role of {role} in {club}",
+      "other_section": "another section",
+      "detail_title": "Details",
+      "detail_history": "Role history",
+      "detail_history_empty": "No previous roles",
+      "detail_certifications": "Training",
+      "detail_cert_note": "Training: not required for now",
+      "detail_certifications_empty": "No training recorded",
+      "detail_insurance": "Insurance",
+      "insurance_active": "Active",
+      "insurance_active_until": "Active until {date}",
+      "insurance_inactive": "No active insurance",
+      "insurance_unknown": "No insurance information",
+      "honors_none": "No approved honors",
+      "detail_honors": "Honors",
+      "honors_count": {
+        "one": "{} honor",
+        "other": "{} honors"
+      },
+      "cert_status": {
+        "approved": "Approved",
+        "certified": "Certified",
+        "pending": "Pending",
+        "in_progress": "In progress",
+        "expired": "Expired",
+        "rejected": "Rejected"
+      },
+      "credential": {
+        "title": "Counseling certificate",
+        "status_approved": "Approved",
+        "status_pending_review": "Under review",
+        "status_none": "No certificate",
+        "note_info": "Not required for now",
+        "note_warn": "Recommended for this role",
+        "note_block": "Required to assign the role",
+        "chip_missing": "No certificate",
+        "notice_missing": "They do not have an approved counseling certificate yet",
+        "reason_missing": "Counseling certificate missing"
+      }
     }
   },
   "certifications": {
@@ -6413,6 +6531,118 @@
       "title": "Your registration is not finished",
       "body": "Ask your guardian to finish completing your profile on their phone.",
       "refresh": "They finished it"
+    }
+  },
+  "service_credentials": {
+    "loading": "Loading certificates",
+    "title": "Counseling course (10 hours)",
+    "entry": {
+      "section": "Certificates",
+      "mine_title": "My certificates",
+      "mine_subtitle": "Certificate for your counseling course",
+      "review_title": "Certificates to review",
+      "review_subtitle": "Approve or reject the certificates in your area",
+      "pending_count_one": "1 certificate to review",
+      "pending_count_other": "{count} certificates to review"
+    },
+    "mine": {
+      "title": "My certificates",
+      "intro": "Register your counseling course certificate (10 hours) here. For now it is optional.",
+      "upload": "Upload certificate",
+      "pending_note": "You have a certificate under review. Once it has a result you can upload another.",
+      "empty_title": "You have not uploaded a certificate yet",
+      "empty_body": "Upload the certificate for your counseling course (10 hours) so it can be reviewed.",
+      "error_title": "We could not load your certificates"
+    },
+    "status": {
+      "pending": "In review",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "group": {
+      "pending": "In review",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "row": {
+      "completed_on": "Completed on {date}",
+      "rejected_reason": "Reason: {reason}",
+      "valid_until": "Valid until {date}",
+      "resubmit": "Upload again",
+      "withdraw": "Withdraw"
+    },
+    "withdraw": {
+      "title": "Withdraw this certificate?",
+      "body": "It will be removed from review and you can upload another.",
+      "confirm": "Withdraw",
+      "done": "Certificate withdrawn."
+    },
+    "upload": {
+      "title": "Upload certificate",
+      "intro": "Upload the certificate for your counseling course (10 hours). Someone will review it.",
+      "date_label": "Completion date",
+      "date_required": "Choose the date you completed it.",
+      "date_future": "The date cannot be in the future.",
+      "file_label": "Document",
+      "change_file": "Change",
+      "file_required": "Choose the document of your certificate.",
+      "pick_failed": "Could not open the file. Check the permissions and try again.",
+      "source_title": "Add document",
+      "source_camera": "Take a photo",
+      "source_gallery": "Choose from gallery",
+      "source_pdf": "Choose a PDF",
+      "problems": {
+        "unsupported_type": "Only PDF, JPG or PNG files are accepted.",
+        "too_large": "The file is over 10 MB. Choose a smaller one.",
+        "empty": "The file is empty."
+      },
+      "submit": "Send for review",
+      "retry": "Retry",
+      "success": "Certificate sent for review.",
+      "phase_registering": "Registering the certificate…",
+      "phase_uploading": "Uploading the document…",
+      "phase_confirming": "Confirming…",
+      "date_hint": "Choose the date",
+      "add_document": "Add document",
+      "add_document_helper": "PDF, JPG or PNG · up to 10 MB"
+    },
+    "review": {
+      "title": "Certificates to review",
+      "detail_title": "Certificate",
+      "search_hint": "Search person or club",
+      "unknown_person": "Unnamed person",
+      "error_title": "We could not load the certificates",
+      "detail_error_title": "We could not load this certificate",
+      "empty_title": "No certificates",
+      "empty_pending": "No certificates are waiting for review.",
+      "empty_approved": "You have not approved any certificates yet.",
+      "empty_rejected": "You have not rejected any certificates yet.",
+      "no_results_title": "No results",
+      "no_results_body": "Try another name or club.",
+      "load_more_error": "Could not load more certificates.",
+      "sent_on": "Sent on {date}",
+      "reviewed_on": "Reviewed on {date}",
+      "fact_credential": "Certificate",
+      "fact_completed": "Completed on",
+      "fact_sent": "Sent on",
+      "open_file": "Open document",
+      "no_file": "This certificate has no document available.",
+      "approve": "Approve",
+      "reject": "Reject",
+      "approve_title": "Approve certificate",
+      "approve_body": "Once approved, the certificate is registered for the person.",
+      "expiry_label": "Valid until (optional)",
+      "expiry_helper": "Without a date, the certificate does not expire.",
+      "reject_title": "Reject certificate",
+      "reject_body": "Explain the reason. The person will see it and can upload another certificate.",
+      "reason_label": "Reason for rejection",
+      "reason_required": "Write a reason of at least 5 characters.",
+      "approved_done": "Certificate approved.",
+      "rejected_done": "Certificate rejected."
+    },
+    "file_kind": {
+      "pdf": "PDF",
+      "photo": "Photo"
     }
   }
 }

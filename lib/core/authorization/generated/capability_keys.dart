@@ -42,6 +42,7 @@ const Set<String> kCapabilityKeys = {
   'reports.view_local_field',
   'reports.view_union',
   'scoring_categories.manage',
+  'service_credentials.review',
   'system.config.read',
   'system.jobs.run',
   'units.manage',

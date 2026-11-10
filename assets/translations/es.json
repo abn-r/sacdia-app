@@ -590,7 +590,21 @@
     "validation_honor_already_pending": "Esta especialidad ya está en revisión.",
     "validation_honor_already_validated": "Esta especialidad ya fue validada.",
     "validation_honor_invalid_status": "Esta especialidad no se puede enviar en su estado actual.",
-    "validation_honor_completion_mode_required": "Primero elige cómo completar esta especialidad."
+    "validation_honor_completion_mode_required": "Primero elige cómo completar esta especialidad.",
+    "club_role_slot_limit_reached": "Ese cargo ya no tiene cupo. Actualizamos la lista.",
+    "club_role_exclusive_conflict": "Ese cargo no es compatible con otro cargo ya ocupado en la sección.",
+    "club_role_gm_membership_required": "Esta persona debe estar inscrita en Guías Mayores este año para recibir el cargo.",
+    "club_role_already_held": "Esta persona ya tiene un cargo en esta sección.",
+    "club_role_self_assignment": "No puedes asignarte un cargo a ti mismo.",
+    "club_role_requirement_missing": "Este cargo requiere una constancia de consejería aprobada. Actualizamos la lista.",
+    "service_credential_not_found": "No encontramos esta constancia. Actualizamos la lista.",
+    "service_credential_not_pending": "Esta constancia ya fue revisada por otra persona. Actualizamos la lista.",
+    "service_credential_self_review": "No puedes revisar tu propia constancia.",
+    "service_credential_pending_exists": "Ya tienes una constancia en revisión. Espera su resultado o retírala para subir otra.",
+    "service_credential_file_invalid": "El archivo no es válido. Sube un PDF, JPG o PNG de hasta 10 MB.",
+    "service_credential_upload_missing": "No se recibió el archivo. Intenta subir la constancia de nuevo.",
+    "service_credential_date_invalid": "La fecha de conclusión no es válida.",
+    "service_credential_approved_locked": "Una constancia aprobada ya no se puede retirar."
   },
   "honors": {
     "errors": {
@@ -3034,6 +3048,110 @@
       "copied": "Código copiado",
       "share": "Compartir",
       "share_message": "Te invito a hacerte cargo de {name} en SACDIA. Código: {code}. Vence {when}. Ingrésalo en Mi familia > Tengo un código de vinculación."
+    },
+    "role_candidates": {
+      "entry": "Agregar directivo",
+      "title": "Agregar directivo",
+      "subtitle": "Guías Mayores para un cargo en {section}",
+      "search_hint": "Buscar por nombre",
+      "loading": "Cargando Guías Mayores",
+      "filter_available": "Sin cargo",
+      "filter_with_role": "Con cargo",
+      "filter_not_enrolled": "Sin inscripción",
+      "filter_all": "Todos",
+      "group_available": "Sin cargo este año",
+      "group_with_role": "Ya con cargo",
+      "group_not_enrolled": "Sin inscripción {year}",
+      "group_not_enrolled_no_year": "Sin inscripción",
+      "slot_counter": "{role} {occupied}/{max}",
+      "slot_count": "{role} {count}",
+      "plural": {
+        "counselor": "Consejeros"
+      },
+      "slot_state": "{occupied} de {max} ocupados",
+      "slot_state_unbounded": {
+        "one": "{} asignado",
+        "other": "{} asignados"
+      },
+      "service_years": {
+        "one": "{} año de servicio",
+        "other": "{} años de servicio"
+      },
+      "age_years": "{count} años",
+      "role_in_club": "{role} · {club}",
+      "role_in_this_section": "{role} (esta sección)",
+      "needs_enrollment": "Debe inscribirse primero en Guías Mayores",
+      "consent_missing": "Falta consentimiento",
+      "blocked_self": "No puedes asignarte un cargo a ti mismo",
+      "no_roles_available": "Sin cargos disponibles en esta sección",
+      "basis_invested_year": "Investido {year}",
+      "basis_invested": "Investido",
+      "basis_approved": "GM aprobado, sin investir",
+      "basis_active_enrollment": "GM en curso",
+      "tag_advanced": "Avanzado",
+      "tag_instructor": "Instructor",
+      "error_title": "No se pudo cargar la lista",
+      "detail_error": "No se pudo cargar el detalle",
+      "empty_title": "Nadie por aquí",
+      "empty_available": "Nadie de Guías Mayores está sin cargo este año.",
+      "empty_with_role": "Nadie de Guías Mayores tiene cargo todavía.",
+      "empty_not_enrolled": "Todos los Guías Mayores están inscritos este año.",
+      "no_results_title": "Sin coincidencias",
+      "no_results_body": "Prueba con otro nombre o con otro filtro.",
+      "no_gm_section_title": "Este club no tiene sección de Guías Mayores",
+      "no_gm_section_body": "Los cargos de directiva los ocupan personas de Guías Mayores. Crea esa sección para poder asignarlos.",
+      "load_more_error": "No se pudieron cargar más personas",
+      "roles_title": "Elegir cargo",
+      "choose_role": "Elige el cargo",
+      "view_detail": "Ver detalle",
+      "reason_occupied_by": "Ocupado por {names}",
+      "reason_full": "Sin cupo disponible",
+      "reason_incompatible": "No compatible con {role}",
+      "reason_unavailable": "No disponible para esta persona",
+      "confirm_title": "Confirmar cargo",
+      "confirm_summary": "Asignar a {name} como {role} en {section}.",
+      "confirm_summary_no_section": "Asignar a {name} como {role}.",
+      "confirm_action": "Asignar cargo",
+      "back_to_list": "Volver a la lista",
+      "also_holds_role": "También tiene el cargo de {role} en {club}",
+      "other_section": "otra sección",
+      "detail_title": "Detalle",
+      "detail_history": "Historial de cargos",
+      "detail_history_empty": "Sin cargos anteriores",
+      "detail_certifications": "Capacitaciones",
+      "detail_cert_note": "Capacitación: no es obligatoria por ahora",
+      "detail_certifications_empty": "Sin capacitaciones registradas",
+      "detail_insurance": "Seguro",
+      "insurance_active": "Vigente",
+      "insurance_active_until": "Vigente hasta {date}",
+      "insurance_inactive": "Sin seguro vigente",
+      "insurance_unknown": "Sin información de seguro",
+      "honors_none": "Sin especialidades aprobadas",
+      "detail_honors": "Especialidades",
+      "honors_count": {
+        "one": "{} especialidad",
+        "other": "{} especialidades"
+      },
+      "cert_status": {
+        "approved": "Aprobada",
+        "certified": "Certificada",
+        "pending": "Pendiente",
+        "in_progress": "En curso",
+        "expired": "Vencida",
+        "rejected": "Rechazada"
+      },
+      "credential": {
+        "title": "Constancia de consejería",
+        "status_approved": "Aprobada",
+        "status_pending_review": "En revisión",
+        "status_none": "Sin constancia",
+        "note_info": "No es obligatoria por ahora",
+        "note_warn": "Se recomienda para este cargo",
+        "note_block": "Obligatoria para asignar el cargo",
+        "chip_missing": "Sin constancia",
+        "notice_missing": "Aún no tiene constancia de consejería aprobada",
+        "reason_missing": "Falta constancia de consejería"
+      }
     }
   },
   "certifications": {
@@ -6413,6 +6531,118 @@
       "title": "Falta terminar tu registro",
       "body": "Pide a tu tutor que termine de completar tu perfil desde su teléfono.",
       "refresh": "Ya lo completó"
+    }
+  },
+  "service_credentials": {
+    "loading": "Cargando constancias",
+    "title": "Curso de consejería (10 horas)",
+    "entry": {
+      "section": "Constancias",
+      "mine_title": "Mis constancias",
+      "mine_subtitle": "Constancia de tu curso de consejería",
+      "review_title": "Constancias por revisar",
+      "review_subtitle": "Aprueba o rechaza las constancias de tu zona",
+      "pending_count_one": "1 constancia por revisar",
+      "pending_count_other": "{count} constancias por revisar"
+    },
+    "mine": {
+      "title": "Mis constancias",
+      "intro": "Registra aquí la constancia de tu curso de consejería (10 horas). Por ahora es opcional.",
+      "upload": "Subir constancia",
+      "pending_note": "Tienes una constancia en revisión. Cuando tenga resultado podrás subir otra.",
+      "empty_title": "Aún no subes ninguna constancia",
+      "empty_body": "Sube la constancia de tu curso de consejería (10 horas) para que la revisen.",
+      "error_title": "No pudimos cargar tus constancias"
+    },
+    "status": {
+      "pending": "En revisión",
+      "approved": "Aprobada",
+      "rejected": "Rechazada"
+    },
+    "group": {
+      "pending": "En revisión",
+      "approved": "Aprobadas",
+      "rejected": "Rechazadas"
+    },
+    "row": {
+      "completed_on": "Concluida el {date}",
+      "rejected_reason": "Motivo: {reason}",
+      "valid_until": "Vigente hasta {date}",
+      "resubmit": "Subir de nuevo",
+      "withdraw": "Retirar"
+    },
+    "withdraw": {
+      "title": "¿Retirar esta constancia?",
+      "body": "Se quitará de la revisión y podrás subir otra.",
+      "confirm": "Retirar",
+      "done": "Constancia retirada."
+    },
+    "upload": {
+      "title": "Subir constancia",
+      "intro": "Sube la constancia de tu curso de consejería (10 horas). Una persona la revisará.",
+      "date_label": "Fecha de conclusión",
+      "date_required": "Elige la fecha en que concluiste.",
+      "date_future": "La fecha no puede ser futura.",
+      "file_label": "Documento",
+      "change_file": "Cambiar",
+      "file_required": "Elige el documento de tu constancia.",
+      "pick_failed": "No se pudo abrir el archivo. Revisa los permisos e intenta de nuevo.",
+      "source_title": "Agregar documento",
+      "source_camera": "Tomar foto",
+      "source_gallery": "Elegir de la galería",
+      "source_pdf": "Elegir un PDF",
+      "problems": {
+        "unsupported_type": "Solo se aceptan archivos PDF, JPG o PNG.",
+        "too_large": "El archivo supera los 10 MB. Elige uno más pequeño.",
+        "empty": "El archivo está vacío."
+      },
+      "submit": "Enviar a revisión",
+      "retry": "Reintentar",
+      "success": "Constancia enviada a revisión.",
+      "phase_registering": "Registrando la constancia…",
+      "phase_uploading": "Subiendo el documento…",
+      "phase_confirming": "Confirmando…",
+      "date_hint": "Elige la fecha",
+      "add_document": "Agregar documento",
+      "add_document_helper": "PDF, JPG o PNG · hasta 10 MB"
+    },
+    "review": {
+      "title": "Constancias por revisar",
+      "detail_title": "Constancia",
+      "search_hint": "Buscar persona o club",
+      "unknown_person": "Persona sin nombre",
+      "error_title": "No pudimos cargar las constancias",
+      "detail_error_title": "No pudimos cargar esta constancia",
+      "empty_title": "No hay constancias",
+      "empty_pending": "No hay constancias esperando revisión.",
+      "empty_approved": "Aún no has aprobado constancias.",
+      "empty_rejected": "Aún no has rechazado constancias.",
+      "no_results_title": "Sin resultados",
+      "no_results_body": "Prueba con otro nombre o club.",
+      "load_more_error": "No se pudieron cargar más constancias.",
+      "sent_on": "Enviada el {date}",
+      "reviewed_on": "Revisada el {date}",
+      "fact_credential": "Constancia",
+      "fact_completed": "Concluida el",
+      "fact_sent": "Enviada el",
+      "open_file": "Abrir documento",
+      "no_file": "Esta constancia no tiene documento disponible.",
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "approve_title": "Aprobar constancia",
+      "approve_body": "Al aprobarla, la constancia queda registrada para la persona.",
+      "expiry_label": "Vigente hasta (opcional)",
+      "expiry_helper": "Sin fecha, la constancia no vence.",
+      "reject_title": "Rechazar constancia",
+      "reject_body": "Explica el motivo. La persona lo verá y podrá subir otra constancia.",
+      "reason_label": "Motivo del rechazo",
+      "reason_required": "Escribe un motivo de al menos 5 caracteres.",
+      "approved_done": "Constancia aprobada.",
+      "rejected_done": "Constancia rechazada."
+    },
+    "file_kind": {
+      "pdf": "PDF",
+      "photo": "Foto"
     }
   }
 }

@@ -35,6 +35,8 @@ import '../widgets/members_list_skeleton.dart';
 import '../widgets/members_mode_switcher.dart';
 import '../utils/consent_access.dart';
 import '../utils/create_minor_access.dart';
+import '../utils/role_candidates_access.dart';
+import '../widgets/role_candidates_sheet.dart';
 import 'annual_continuations_view.dart';
 import 'create_minor_view.dart';
 import 'consent_verification_view.dart';
@@ -132,6 +134,12 @@ class _MembersViewState extends ConsumerState<MembersView> {
         canRegisterMinor(ref.watch(authNotifierProvider).value)
             ? clubCtxAsync.value?.sectionId
             : null;
+    // «Agregar directivo»: capacidad de asignar cargos de sección y sección
+    // de Aventureros o Conquistadores (no Guías Mayores).
+    final canAddBoard = canAddBoardMember(
+      ref.watch(authNotifierProvider).value,
+      clubCtxAsync.value,
+    );
     final onContinuations = canContinue && mode == 2;
     final fadeDuration = SacMotion.reducedFade;
     final refreshing = onContinuations
@@ -215,6 +223,7 @@ class _MembersViewState extends ConsumerState<MembersView> {
                         _MembersTab(
                           clubContext: ctx,
                           isDirector: isDirector,
+                          canAddBoard: canAddBoard,
                           membersAsync: membersAsync,
                         ),
                         if (canRequests)
@@ -264,11 +273,15 @@ class _MembersViewState extends ConsumerState<MembersView> {
 class _MembersTab extends ConsumerWidget {
   final ClubContext clubContext;
   final bool isDirector;
+
+  /// Muestra «Agregar directivo» (ver [canAddBoardMember]).
+  final bool canAddBoard;
   final AsyncValue<MembersData> membersAsync;
 
   const _MembersTab({
     required this.clubContext,
     required this.isDirector,
+    required this.canAddBoard,
     required this.membersAsync,
   });
 
@@ -288,6 +301,26 @@ class _MembersTab extends ConsumerWidget {
             child: const MembersFilterBar(),
           ),
         ),
+        if (canAddBoard)
+          ColoredBox(
+            color: c.background,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: SacButton(
+                  text: 'members.role_candidates.entry'.tr(),
+                  icon: HugeIcons.strokeRoundedUserAdd01,
+                  variant: SacButtonVariant.outline,
+                  size: SacButtonSize.small,
+                  onPressed: () => showRoleCandidatesSheet(
+                    context,
+                    clubContext: clubContext,
+                  ),
+                ),
+              ),
+            ),
+          ),
         Expanded(
           child: ClipRect(
             child: membersAsync.when(

@@ -27,6 +27,7 @@ import 'package:sacdia_app/features/post_registration/presentation/providers/pos
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../family/presentation/widgets/family_profile_entry.dart';
+import '../../../service_credentials/presentation/widgets/service_credentials_entries.dart';
 import '../widgets/email_verification_prompt.dart';
 import '../../../teen/presentation/widgets/supervision_info_card.dart';
 import '../../../certifications/presentation/providers/certifications_providers.dart';
@@ -445,6 +446,10 @@ class _ProfileScrollBody extends StatelessWidget {
             // ── 2b. Mi familia / Cambiar de perfil (oculto al actuar por un
             // menor: se gestiona desde el perfil propio del tutor) ──────────
             FamilyProfileEntry(horizontalPadding: hPad),
+
+            // ── 2b'. Constancias de servicio: mías y por revisar (con la
+            // capacidad) — ocultas al actuar por un menor ───────────────────
+            ServiceCredentialsProfileEntry(horizontalPadding: hPad),
 
             // ── 2c. Adolescente con tutor: qué ve su tutor y qué no ────────
             SupervisionInfoSlot(horizontalPadding: hPad),

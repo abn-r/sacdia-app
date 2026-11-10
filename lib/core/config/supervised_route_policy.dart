@@ -55,6 +55,7 @@ const Set<String> _restrictedAllowedExact = {
 /// Prefijos vetados para un adolescente supervisado (sesión activa del tutor).
 const List<String> kSupervisedBlockedPrefixes = [
   RouteNames.family,
+  RouteNames.serviceCredentials,
   '/security',
   '/sessions',
   '/mfa',

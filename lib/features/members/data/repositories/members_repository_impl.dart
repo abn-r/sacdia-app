@@ -14,6 +14,7 @@ import '../../domain/entities/club_member.dart';
 import '../../domain/entities/consent_verification_result.dart';
 import '../../domain/entities/create_minor.dart';
 import '../../domain/entities/join_request.dart';
+import '../../domain/entities/role_candidate.dart';
 import '../../domain/repositories/members_repository.dart';
 import '../datasources/members_remote_data_source.dart';
 
@@ -304,6 +305,46 @@ class MembersRepositoryImpl implements MembersRepository {
         () => remoteDataSource.issueClaimCode(
           clubSectionId: clubSectionId,
           dependentUserId: dependentUserId,
+        ),
+      );
+
+  // ── Candidatos a un cargo de directiva (Guías Mayores) ────────────────────
+
+  @override
+  Future<Either<Failure, RoleCandidatesPage>> getRoleCandidates({
+    required int clubId,
+    required int sectionId,
+    String search = '',
+    RoleCandidatesFilter filter = RoleCandidatesFilter.available,
+    int page = 1,
+    int limit = 20,
+    RequestCancelToken? cancelToken,
+  }) =>
+      _guardKeepingCode(
+        () => remoteDataSource.getRoleCandidates(
+          clubId: clubId,
+          sectionId: sectionId,
+          search: search,
+          filter: filter,
+          page: page,
+          limit: limit,
+          cancelToken: cancelToken.asDioCancelToken(),
+        ),
+      );
+
+  @override
+  Future<Either<Failure, RoleCandidateDetail>> getRoleCandidateDetail({
+    required int clubId,
+    required int sectionId,
+    required String userId,
+    RequestCancelToken? cancelToken,
+  }) =>
+      _guardKeepingCode(
+        () => remoteDataSource.getRoleCandidateDetail(
+          clubId: clubId,
+          sectionId: sectionId,
+          userId: userId,
+          cancelToken: cancelToken.asDioCancelToken(),
         ),
       );
 }
