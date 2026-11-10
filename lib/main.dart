@@ -31,6 +31,7 @@ import 'core/theme/accent_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/utils/app_logger.dart';
+import 'core/widgets/dismiss_keyboard_on_tap_outside.dart';
 import 'features/accessibility/presentation/providers/accessibility_provider.dart';
 import 'features/auth/presentation/providers/auth_providers.dart';
 import 'features/auth/presentation/widgets/acting_notice_listener.dart';
@@ -464,15 +465,21 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
             // de AppLock se renderee por encima de TODAS las rutas cuando
             // biometría está habilitada y la sesión no ha sido desbloqueada
             // en este cold start. Si está deshabilitada, es un passthrough.
-            builder: (context, child) => SacOnboardingScope(
-              child: ActingNoticeListener(
-                // Banner "Viendo como {nombre}" sobre TODO el navegador.
-                child: FamilyPromptHost(
-                  // Nota de transparencia del adolescente con tutor (una vez).
-                  child: SupervisionInfoNoticeHost(
-                    child: ActingForBannerHost(
-                      child: BiometricGate(
-                        child: child ?? const SizedBox.shrink(),
+            //
+            // DismissKeyboardOnTapOutside va por fuera de todo: tocar fuera
+            // del campo enfocado cierra el teclado en cualquier ruta, hoja o
+            // diálogo.
+            builder: (context, child) => DismissKeyboardOnTapOutside(
+              child: SacOnboardingScope(
+                child: ActingNoticeListener(
+                  // Banner "Viendo como {nombre}" sobre TODO el navegador.
+                  child: FamilyPromptHost(
+                    // Nota de transparencia del adolescente con tutor (una vez).
+                    child: SupervisionInfoNoticeHost(
+                      child: ActingForBannerHost(
+                        child: BiometricGate(
+                          child: child ?? const SizedBox.shrink(),
+                        ),
                       ),
                     ),
                   ),
