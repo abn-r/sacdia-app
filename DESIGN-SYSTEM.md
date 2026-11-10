@@ -664,6 +664,26 @@ SacTextField(
 )
 ```
 
+**Tap outside closes the keyboard (app-wide).** `DismissKeyboardOnTapOutside`
+(`lib/core/widgets/dismiss_keyboard_on_tap_outside.dart`) is mounted once in
+`MaterialApp.builder` (`main.dart`). Every text field — `SacTextField`, plain
+`TextField`, fields in sheets and dialogs — loses focus when the user taps
+anywhere outside it. It acts on pointer up and only for a tap (movement within
+`kTouchSlop`), so scrolling a form or a search result list keeps the keyboard
+open. Do not add per-screen `GestureDetector(onTap: unfocus)` wrappers.
+
+- To keep the keyboard open while tapping something outside the field (an
+  accessory bar above the keyboard, a send button), wrap it in
+  `TextFieldTapRegion` — as `_LoginKeyboardBar` in `login_view.dart` does.
+- A field that passes its own `onTapOutside` (login fields, the amount field
+  in `add_transaction_sheet.dart`) runs it on pointer down, before the global
+  tap-up rule.
+- Sheets (`showSacSheet`) and dialogs close on a barrier tap by default. Only
+  pass `isDismissible: false` / `barrierDismissible: false` when closing would
+  lose work in flight or skip a required acknowledgement: upload progress,
+  camporee registration with payment, delete account, change password, the
+  report-problem success dialog.
+
 ### 6.5 SacDialog
 
 **File:** `lib/core/widgets/sac_dialog.dart`
