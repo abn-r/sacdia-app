@@ -39,6 +39,7 @@ import '../widgets/membership_status_banner.dart';
 import '../widgets/birthday_celebration.dart';
 import '../home_spacing.dart';
 import '../widgets/welcome_header.dart';
+import '../../../enrollment/presentation/providers/enrollment_providers.dart';
 import '../../../enrollment/presentation/widgets/enrollment_status_card.dart';
 import '../../../coordinator/presentation/views/coordinator_hub_view.dart';
 import '../../../investiture_requests/presentation/views/authorizer_requests_view.dart';
@@ -118,6 +119,8 @@ class DashboardView extends ConsumerWidget {
                 await ref.read(dashboardNotifierProvider.notifier).refresh();
                 // Auxiliary staff card: refetch with the summary.
                 ref.invalidate(dashboardPendingProvider);
+                // The annual enrollment may have been reviewed meanwhile.
+                ref.invalidate(currentEnrollmentProvider);
               },
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),

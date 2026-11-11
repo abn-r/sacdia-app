@@ -47,10 +47,14 @@ class PendingTasksCard extends ConsumerWidget {
       if (enrollmentTask != null)
         PendingLocalRow(
           icon: HugeIcons.strokeRoundedAlert02,
-          label: tr('enrollment.status.title_pending'),
-          subtitle: tr(enrollmentTask.isResubmit
-              ? 'enrollment.status.subtitle_inactive_action'
-              : 'enrollment.status.subtitle_pending_action'),
+          label: tr(enrollmentTask.isRejected
+              ? 'enrollment.status.task_rejected'
+              : 'enrollment.status.title_pending'),
+          subtitle: enrollmentTask.isRejected
+              ? _rejectionSubtitle(enrollmentTask.rejectionReason)
+              : tr(enrollmentTask.isResubmit
+                  ? 'enrollment.status.subtitle_inactive_action'
+                  : 'enrollment.status.subtitle_pending_action'),
           // Without the annual enrollment the club can't operate this year:
           // urgent, same as a rejected folder or report.
           severity: PendingSeverity.urgent,
@@ -69,6 +73,14 @@ class PendingTasksCard extends ConsumerWidget {
           }),
     );
   }
+}
+
+/// Motivo del rechazo como subtítulo de la fila, o `null` si no hay.
+String? _rejectionSubtitle(String? reason) {
+  final trimmed = reason?.trim();
+  if (trimmed == null || trimmed.isEmpty) return null;
+  return tr('enrollment.status.rejection_reason',
+      namedArgs: {'reason': trimmed});
 }
 
 /// Fila de «Pendientes» que no viene de `GET /dashboard/pending` sino de otro

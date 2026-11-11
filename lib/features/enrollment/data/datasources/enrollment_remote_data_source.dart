@@ -19,11 +19,6 @@ abstract class EnrollmentRemoteDataSource {
     int? soulsTarget,
     bool? fee,
     double? feeAmount,
-    String? directorId,
-    List<String> deputyDirectorIds,
-    String? secretaryId,
-    String? treasurerId,
-    String? secretaryTreasurerId,
   });
 
   Future<EnrollmentModel?> getCurrentEnrollment({
@@ -43,11 +38,6 @@ abstract class EnrollmentRemoteDataSource {
     int? soulsTarget,
     bool? fee,
     double? feeAmount,
-    String? directorId,
-    List<String>? deputyDirectorIds,
-    String? secretaryId,
-    String? treasurerId,
-    String? secretaryTreasurerId,
   });
 }
 
@@ -89,11 +79,6 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
     int? soulsTarget,
     bool? fee,
     double? feeAmount,
-    String? directorId,
-    List<String>? deputyDirectorIds,
-    String? secretaryId,
-    String? treasurerId,
-    String? secretaryTreasurerId,
   }) {
     final daysList = meetingSchedule.map((s) => s.day).toList();
     final scheduleJson = meetingSchedule.map((s) => s.toJson()).toList();
@@ -108,13 +93,6 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
       if (soulsTarget != null) 'souls_target': soulsTarget,
       if (fee != null) 'fee': fee,
       if (feeAmount != null) 'fee_amount': feeAmount,
-      if (directorId != null) 'director_id': directorId,
-      if (deputyDirectorIds != null && deputyDirectorIds.isNotEmpty)
-        'deputy_director_ids': deputyDirectorIds,
-      if (secretaryId != null) 'secretary_id': secretaryId,
-      if (treasurerId != null) 'treasurer_id': treasurerId,
-      if (secretaryTreasurerId != null)
-        'secretary_treasurer_id': secretaryTreasurerId,
     };
   }
 
@@ -129,11 +107,6 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
     int? soulsTarget,
     bool? fee,
     double? feeAmount,
-    String? directorId,
-    List<String> deputyDirectorIds = const [],
-    String? secretaryId,
-    String? treasurerId,
-    String? secretaryTreasurerId,
   }) async {
     try {
       AppLogger.i('Creando inscripción en sección $sectionId', tag: _tag);
@@ -148,11 +121,6 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
           soulsTarget: soulsTarget,
           fee: fee,
           feeAmount: feeAmount,
-          directorId: directorId,
-          deputyDirectorIds: deputyDirectorIds,
-          secretaryId: secretaryId,
-          treasurerId: treasurerId,
-          secretaryTreasurerId: secretaryTreasurerId,
         ),
       );
 
@@ -166,13 +134,13 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
       );
     } on DioException catch (e) {
       AppLogger.e('DioException en createEnrollment', tag: _tag, error: e);
-      final msg = e.response?.data is Map
-          ? (e.response!.data['message'] ??
-              e.message ??
-              tr('common.error_network'))
-          : (e.message ?? tr('common.error_network'));
+      final msg = _dioErrorMessage(e, 'enrollment.errors.create');
+      final body = e.response?.data;
       throw ServerException(
-          message: msg.toString(), code: e.response?.statusCode);
+        message: msg.toString(),
+        code: e.response?.statusCode,
+        errorCode: body is Map ? body['code']?.toString() : null,
+      );
     } catch (e) {
       if (e is AuthException || e is ServerException) rethrow;
       AppLogger.e('Error inesperado en createEnrollment', tag: _tag, error: e);
@@ -249,11 +217,6 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
     int? soulsTarget,
     bool? fee,
     double? feeAmount,
-    String? directorId,
-    List<String>? deputyDirectorIds,
-    String? secretaryId,
-    String? treasurerId,
-    String? secretaryTreasurerId,
   }) async {
     try {
       AppLogger.i('Actualizando inscripción $enrollmentId', tag: _tag);
@@ -272,15 +235,6 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
       if (soulsTarget != null) data['souls_target'] = soulsTarget;
       if (fee != null) data['fee'] = fee;
       if (feeAmount != null) data['fee_amount'] = feeAmount;
-      if (directorId != null) data['director_id'] = directorId;
-      if (deputyDirectorIds != null) {
-        data['deputy_director_ids'] = deputyDirectorIds;
-      }
-      if (secretaryId != null) data['secretary_id'] = secretaryId;
-      if (treasurerId != null) data['treasurer_id'] = treasurerId;
-      if (secretaryTreasurerId != null) {
-        data['secretary_treasurer_id'] = secretaryTreasurerId;
-      }
 
       final response = await _dio.patch(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/enrollments/$enrollmentId',
@@ -297,17 +251,31 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
       );
     } on DioException catch (e) {
       AppLogger.e('DioException en updateEnrollment', tag: _tag, error: e);
-      final msg = e.response?.data is Map
-          ? (e.response!.data['message'] ??
-              e.message ??
-              tr('common.error_network'))
-          : (e.message ?? tr('common.error_network'));
+      final msg = _dioErrorMessage(e, 'enrollment.errors.update');
+      final body = e.response?.data;
       throw ServerException(
-          message: msg.toString(), code: e.response?.statusCode);
+        message: msg.toString(),
+        code: e.response?.statusCode,
+        errorCode: body is Map ? body['code']?.toString() : null,
+      );
     } catch (e) {
       if (e is AuthException || e is ServerException) rethrow;
       AppLogger.e('Error inesperado en updateEnrollment', tag: _tag, error: e);
       throw ServerException(message: e.toString());
     }
   }
+}
+
+/// Message for a failed request: the server's text when it sent one, a
+/// "could not save" fallback when it answered without one, and the network
+/// message only when there was no response at all.
+String _dioErrorMessage(DioException e, String fallbackKey) {
+  final data = e.response?.data;
+  if (data is Map) {
+    final message = data['message'];
+    if (message is String && message.trim().isNotEmpty) return message;
+    if (message is List && message.isNotEmpty) return message.join('\n');
+  }
+  if (e.response != null) return tr(fallbackKey);
+  return e.message ?? tr('common.error_network');
 }

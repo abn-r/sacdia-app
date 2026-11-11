@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -13,36 +13,28 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/widgets/sac_button.dart';
-import '../../../../core/widgets/sac_member_avatar.dart';
-import '../../../../core/widgets/fixed_input_icon_slot.dart';
+import '../../../../core/widgets/sac_notice.dart';
 import '../../../../core/widgets/sac_text_field.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../activities/presentation/views/location_picker_view.dart';
 import '../../../activities/presentation/widgets/activity_form_widgets.dart';
-import '../../../members/domain/entities/club_member.dart';
-import '../../../auth/domain/utils/authorization_utils.dart';
-import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/enrollment.dart';
 import '../providers/enrollment_providers.dart';
-import '../utils/board_role_matchers.dart';
+import '../widgets/enrollment_board_summary.dart';
 import '../../../../core/animations/page_transitions.dart';
+import '../../../../core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Pantalla para crear o actualizar la inscripción anual al club.
+// Pantalla para crear o actualizar el registro anual del club.
 //
 // Campos:
 //   - Dirección del lugar de reunión (con selector de mapa)
 //   - Días de reunión con horario por día
 //   - Almas (objetivo de nuevos miembros)
 //   - Cuota (toggle si el club cobra cuota)
-//   - Director (read-only, el usuario actual con rol director)
-//   - Subdirector (multi-select, hasta 2)
-//   - Secretario (single-select)
-//   - Tesorero (single-select)
-//   - Secretario-Tesorero (condicional: solo si el club tiene ese rol;
-//     mutuamente exclusivo con Secretario y Tesorero por separado)
+//   - Directivos (solo lectura: se toman de los cargos de Miembros)
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Días de la semana disponibles (valores canónicos para el backend).
@@ -77,7 +69,7 @@ String _dayLabel(String day) {
   }
 }
 
-/// Pantalla para crear o actualizar la inscripción anual al club.
+/// Pantalla para crear o actualizar el registro anual del club.
 class EnrollmentFormView extends ConsumerStatefulWidget {
   final String clubId;
   final int sectionId;
@@ -91,15 +83,9 @@ class EnrollmentFormView extends ConsumerStatefulWidget {
   final int? initialSoulsTarget;
   final bool? initialFee;
   final double? initialFeeAmount;
-  final String? initialDirectorId;
-  final List<String>? initialDeputyDirectorIds;
-  final String? initialSecretaryId;
-  final String? initialTreasurerId;
-  final String? initialSecretaryTreasurerId;
 
-  /// Si `true`, el club permite el rol secretario-tesorero (mutuamente
-  /// exclusivo con secretario + tesorero individuales).
-  final bool hasSecretaryTreasurerRole;
+  /// Reviewer's reason when fixing a rejected enrollment; shown at the top.
+  final String? rejectionReason;
 
   const EnrollmentFormView({
     super.key,
@@ -113,12 +99,7 @@ class EnrollmentFormView extends ConsumerStatefulWidget {
     this.initialSoulsTarget,
     this.initialFee,
     this.initialFeeAmount,
-    this.initialDirectorId,
-    this.initialDeputyDirectorIds,
-    this.initialSecretaryId,
-    this.initialTreasurerId,
-    this.initialSecretaryTreasurerId,
-    this.hasSecretaryTreasurerRole = false,
+    this.rejectionReason,
   });
 
   @override
@@ -134,25 +115,14 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
   LocationPickerResult? _selectedLocation;
   bool _locationTouched = false;
 
-  // Whether auto-population of roles from members has been done
-  bool _rolesAutoPopulated = false;
-
   // Días + horarios de reunión
   // Mapa: día -> tiempo (String HH:mm)
   final Map<String, String> _meetingSchedule = {};
 
   // Campos nuevos
   bool _fee = false;
-  List<String> _deputyDirectorIds = [];
-  String? _secretaryId;
-  String? _treasurerId;
-  String? _secretaryTreasurerId;
 
   bool get _isEdit => widget.enrollmentId != null;
-
-  // Indica si se usa el campo combinado secretario-tesorero
-  bool get _useSecretaryTreasurer =>
-      widget.hasSecretaryTreasurerRole && _secretaryTreasurerId != null;
 
   @override
   void initState() {
@@ -182,100 +152,6 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
     if (widget.initialFeeAmount != null) {
       _feeAmountCtrl.text = widget.initialFeeAmount!.toStringAsFixed(2);
     }
-    _deputyDirectorIds = List.from(widget.initialDeputyDirectorIds ?? []);
-    _secretaryId = widget.initialSecretaryId;
-    _treasurerId = widget.initialTreasurerId;
-    _secretaryTreasurerId = widget.initialSecretaryTreasurerId;
-
-    // Auto-populate roles: if members are already loaded, do it immediately;
-    // otherwise schedule a post-frame check. Only applies to new enrollments
-    // where no initial role IDs were provided.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _tryAutoPopulateRoles();
-    });
-  }
-
-  /// Attempts to auto-populate leadership roles from the current member list.
-  /// Only runs once and only when no initial role values were provided (new
-  /// enrollment or enrollment without pre-assigned roles).
-  void _tryAutoPopulateRoles() {
-    if (_rolesAutoPopulated) return;
-
-    final membersData = ref.read(membersNotifierProvider).value;
-    if (membersData == null) {
-      // Data not ready yet — listen and retry via didChangeDependencies
-      return;
-    }
-
-    _rolesAutoPopulated = true;
-    _autoPopulateRoles(membersData.members);
-  }
-
-  void _autoPopulateRoles(List<ClubMember> members) {
-    if (members.isEmpty) return;
-
-    String? newSecretaryId = _secretaryId;
-    String? newTreasurerId = _treasurerId;
-    String? newSecretaryTreasurerId = _secretaryTreasurerId;
-    List<String> newDeputyIds = List.from(_deputyDirectorIds);
-
-    for (final member in members) {
-      final role = member.clubRole;
-
-      // Deputy directors (up to 2). Canonical backend value plus defensive
-      // fallbacks; see board_role_matchers.dart.
-      if (isDeputyDirectorRole(role) &&
-          newDeputyIds.length < 2 &&
-          !newDeputyIds.contains(member.userId)) {
-        newDeputyIds.add(member.userId);
-      }
-
-      // Secretary
-      if (isSecretaryRole(role) && newSecretaryId == null) {
-        newSecretaryId = member.userId;
-      }
-
-      // Treasurer
-      if (isTreasurerRole(role) && newTreasurerId == null) {
-        newTreasurerId = member.userId;
-      }
-
-      // Secretary-Treasurer (combined role)
-      if (isSecretaryTreasurerRole(role) &&
-          newSecretaryTreasurerId == null &&
-          widget.hasSecretaryTreasurerRole) {
-        newSecretaryTreasurerId = member.userId;
-      }
-    }
-
-    final deputyChanged = !_listsEqual(newDeputyIds, _deputyDirectorIds);
-    final changed = deputyChanged ||
-        newSecretaryId != _secretaryId ||
-        newTreasurerId != _treasurerId ||
-        newSecretaryTreasurerId != _secretaryTreasurerId;
-
-    if (changed && mounted) {
-      setState(() {
-        _deputyDirectorIds = newDeputyIds;
-        _secretaryId = newSecretaryId;
-        _treasurerId = newTreasurerId;
-        if (widget.hasSecretaryTreasurerRole &&
-            newSecretaryTreasurerId != null) {
-          // Activating secretary-treasurer clears individual roles
-          _secretaryTreasurerId = newSecretaryTreasurerId;
-          _secretaryId = null;
-          _treasurerId = null;
-        }
-      });
-    }
-  }
-
-  bool _listsEqual(List<String> a, List<String> b) {
-    if (a.length != b.length) return false;
-    for (var i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
-    }
-    return true;
   }
 
   @override
@@ -283,15 +159,6 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
     _soulsCtrl.dispose();
     _feeAmountCtrl.dispose();
     super.dispose();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Retry role auto-population when provider data becomes available
-    if (!_rolesAutoPopulated) {
-      _tryAutoPopulateRoles();
-    }
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -389,12 +256,6 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
         soulsTarget: soulsTarget,
         feeAmount: feeAmount,
         fee: _fee,
-        directorId: null, // director se resuelve del contexto, no se edita aqui
-        deputyDirectorIds: _deputyDirectorIds,
-        secretaryId: _useSecretaryTreasurer ? null : _secretaryId,
-        treasurerId: _useSecretaryTreasurer ? null : _treasurerId,
-        secretaryTreasurerId:
-            widget.hasSecretaryTreasurerRole ? _secretaryTreasurerId : null,
       );
     } else {
       success = await notifier.create(
@@ -407,12 +268,6 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
         soulsTarget: soulsTarget,
         fee: _fee,
         feeAmount: feeAmount,
-        directorId: null,
-        deputyDirectorIds: _deputyDirectorIds,
-        secretaryId: _useSecretaryTreasurer ? null : _secretaryId,
-        treasurerId: _useSecretaryTreasurer ? null : _treasurerId,
-        secretaryTreasurerId:
-            widget.hasSecretaryTreasurerRole ? _secretaryTreasurerId : null,
       );
     }
 
@@ -437,25 +292,7 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
     final membersAsync = ref.watch(membersNotifierProvider);
     final c = context.sac;
 
-    // When members finish loading, auto-populate roles (runs once per session)
-    ref.listen<AsyncValue<MembersData>>(membersNotifierProvider, (_, next) {
-      if (!_rolesAutoPopulated) {
-        final data = next.value;
-        if (data != null) {
-          _rolesAutoPopulated = true;
-          _autoPopulateRoles(data.members);
-        }
-      }
-    });
-
     final members = membersAsync.value?.members ?? [];
-    final currentUser = ref.watch(authNotifierProvider.select((v) => v.value));
-
-    // El director es el usuario actual cuando es el director activo
-    // (`club.active_director`; display-only)
-    final directorMember = hasCapability(currentUser, 'club.active_director')
-        ? members.where((m) => isDirectorRole(m.clubRole)).firstOrNull
-        : null;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -474,6 +311,16 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
               padding:
                   SacTopBar.paddingBelowBar(context, const EdgeInsets.all(20)),
               children: [
+                if (widget.rejectionReason != null) ...[
+                  SacNotice(
+                    tone: SacNoticeTone.error,
+                    text: tr(
+                      'enrollment.status.rejection_reason',
+                      namedArgs: {'reason': widget.rejectionReason!},
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
                 // ── Sección: Lugar de reunión ────────────────────────────────
                 _SectionHeader(
                   icon: HugeIcons.strokeRoundedLocation03,
@@ -594,119 +441,21 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
 
                 const SizedBox(height: 24),
 
-                // ── Sección: Directivos ──────────────────────────────────────
+                // ── Sección: Directivos (solo lectura) ───────────────────────
                 _SectionHeader(
                   icon: HugeIcons.strokeRoundedUserGroup,
                   label: 'enrollment.form.section_leadership'.tr(),
                 ),
                 const SizedBox(height: 12),
-
-                // Director (solo lectura — viene del contexto)
-                _FieldLabel(label: 'enrollment.form.label_director'.tr()),
-                const SizedBox(height: 8),
-                _ReadOnlyMemberField(
-                  member: directorMember,
-                  placeholder: 'enrollment.form.placeholder_director'.tr(),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Subdirector (multi, hasta 2)
-                _FieldLabel(
-                  label: 'enrollment.form.label_deputy_directors'.tr(),
-                  badge: '${_deputyDirectorIds.length}/2',
-                ),
-                const SizedBox(height: 8),
-                _MultiMemberSelector(
-                  selectedIds: _deputyDirectorIds,
+                EnrollmentBoardSummary(
                   members: members,
-                  maxCount: 2,
-                  placeholder:
-                      'enrollment.form.placeholder_deputy_directors'.tr(),
-                  emptyMessage: 'enrollment.form.empty_members'.tr(),
-                  enabled: !formState.isLoading && members.isNotEmpty,
-                  onChanged: (ids) => setState(() => _deputyDirectorIds = ids),
+                  isLoading: membersAsync.isLoading && !membersAsync.hasValue,
+                  onOpenMembers: formState.isLoading
+                      ? null
+                      : () => context.push(RouteNames.homeMembers),
                 ),
 
-                const SizedBox(height: 20),
-
-                // Secretario-Tesorero (condicional: si el club tiene ese rol)
-                // Mutuamente exclusivo con Secretario + Tesorero individuales
-                if (widget.hasSecretaryTreasurerRole) ...[
-                  // Toggle para elegir el modo
-                  _ToggleRow(
-                    icon: HugeIcons.strokeRoundedUserShield01,
-                    label: 'enrollment.form.label_use_secretary_treasurer'.tr(),
-                    subtitle:
-                        'enrollment.form.subtitle_use_secretary_treasurer'.tr(),
-                    value: _secretaryTreasurerId != null,
-                    enabled: !formState.isLoading,
-                    onChanged: (v) => setState(() {
-                      if (v) {
-                        // Al activar: limpiar secretario y tesorero
-                        _secretaryId = null;
-                        _treasurerId = null;
-                        // Mantener el ID si ya había uno
-                        _secretaryTreasurerId ??= '';
-                      } else {
-                        _secretaryTreasurerId = null;
-                      }
-                    }),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-
-                // Secretario y Tesorero: solo se muestran si NO se usa el cargo combinado
-                if (!widget.hasSecretaryTreasurerRole ||
-                    _secretaryTreasurerId == null) ...[
-                  _FieldLabel(label: 'enrollment.form.label_secretary'.tr()),
-                  const SizedBox(height: 8),
-                  _SingleMemberSelector(
-                    selectedId: _secretaryId,
-                    members: members,
-                    placeholder: 'enrollment.form.placeholder_secretary'.tr(),
-                    emptyMessage: 'enrollment.form.empty_members'.tr(),
-                    enabled: !formState.isLoading && members.isNotEmpty,
-                    onChanged: (id) => setState(() => _secretaryId = id),
-                    onClear: () => setState(() => _secretaryId = null),
-                  ),
-                  const SizedBox(height: 20),
-                  _FieldLabel(label: 'enrollment.form.label_treasurer'.tr()),
-                  const SizedBox(height: 8),
-                  _SingleMemberSelector(
-                    selectedId: _treasurerId,
-                    members: members,
-                    placeholder: 'enrollment.form.placeholder_treasurer'.tr(),
-                    emptyMessage: 'enrollment.form.empty_members'.tr(),
-                    enabled: !formState.isLoading && members.isNotEmpty,
-                    onChanged: (id) => setState(() => _treasurerId = id),
-                    onClear: () => setState(() => _treasurerId = null),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-
-                // Selector de Secretario-Tesorero (visible solo cuando está activo el toggle)
-                if (widget.hasSecretaryTreasurerRole &&
-                    _secretaryTreasurerId != null) ...[
-                  _FieldLabel(
-                    label: 'enrollment.form.label_secretary_treasurer'.tr(),
-                  ),
-                  const SizedBox(height: 8),
-                  _SingleMemberSelector(
-                    selectedId: _secretaryTreasurerId!.isEmpty
-                        ? null
-                        : _secretaryTreasurerId,
-                    members: members,
-                    placeholder:
-                        'enrollment.form.placeholder_secretary_treasurer'.tr(),
-                    emptyMessage: 'enrollment.form.empty_members'.tr(),
-                    enabled: !formState.isLoading && members.isNotEmpty,
-                    onChanged: (id) =>
-                        setState(() => _secretaryTreasurerId = id),
-                    onClear: () => setState(() => _secretaryTreasurerId = ''),
-                  ),
-                  const SizedBox(height: 20),
-                ],
+                const SizedBox(height: 24),
 
                 // ── Error ────────────────────────────────────────────────────
                 if (formState.errorMessage != null) ...[
@@ -741,9 +490,11 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
 
                 // ── Submit ───────────────────────────────────────────────────
                 SacButton.primary(
-                  text: _isEdit
-                      ? 'enrollment.form.button_save_changes'.tr()
-                      : 'enrollment.form.button_enroll'.tr(),
+                  text: widget.rejectionReason != null
+                      ? 'enrollment.form.button_resubmit'.tr()
+                      : _isEdit
+                          ? 'enrollment.form.button_save_changes'.tr()
+                          : 'enrollment.form.button_enroll'.tr(),
                   icon: _isEdit
                       ? HugeIcons.strokeRoundedCheckmarkCircle02
                       : HugeIcons.strokeRoundedUserAdd01,
@@ -793,45 +544,22 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-/// Etiqueta de campo con badge opcional.
+/// Etiqueta de campo.
 class _FieldLabel extends StatelessWidget {
   final String label;
-  final String? badge;
 
-  const _FieldLabel({required this.label, this.badge});
+  const _FieldLabel({required this.label});
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    return Row(
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: SacFontSize.bodyMedium,
-            fontWeight: FontWeight.w600,
-            color: c.textSecondary,
-          ),
-        ),
-        if (badge != null) ...[
-          const SizedBox(width: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-            decoration: BoxDecoration(
-              color: SacAccent.of(context).color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-            ),
-            child: Text(
-              badge!,
-              style: TextStyle(
-                fontSize: SacFontSize.caption,
-                fontWeight: FontWeight.w700,
-                color: SacAccent.of(context).color,
-              ),
-            ),
-          ),
-        ],
-      ],
+    return Text(
+      label,
+      style: TextStyle(
+        fontSize: SacFontSize.bodyMedium,
+        fontWeight: FontWeight.w600,
+        color: c.textSecondary,
+      ),
     );
   }
 }
@@ -1122,592 +850,6 @@ class _ToggleRow extends StatelessWidget {
                   SacAccent.of(context).color.withValues(alpha: 0.5),
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Campo de solo lectura mostrando el nombre del director.
-class _ReadOnlyMemberField extends StatelessWidget {
-  final ClubMember? member;
-  final String placeholder;
-
-  const _ReadOnlyMemberField({this.member, required this.placeholder});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: c.surface.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-        border: Border.all(color: c.border),
-      ),
-      child: Row(
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedUser,
-            color: c.textTertiary,
-            size: 20,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: member != null
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        member!.fullName,
-                        style: TextStyle(
-                          fontSize: SacFontSize.titleSmall,
-                          fontWeight: FontWeight.w500,
-                          color: c.text,
-                        ),
-                      ),
-                      Text(
-                        member!.clubRole ??
-                            'enrollment.form.role_director'.tr(),
-                        style: TextStyle(
-                            fontSize: SacFontSize.bodySmall,
-                            color: c.textSecondary),
-                      ),
-                    ],
-                  )
-                : Text(
-                    placeholder,
-                    style: TextStyle(
-                        fontSize: SacFontSize.titleSmall,
-                        color: c.textTertiary),
-                  ),
-          ),
-          if (member != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: SacAccent.of(context).color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-              ),
-              child: Text(
-                'enrollment.form.badge_automatic'.tr(),
-                style: TextStyle(
-                  fontSize: SacFontSize.caption,
-                  fontWeight: FontWeight.w600,
-                  color: SacAccent.of(context).color,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Selector de un único miembro con bottom sheet.
-class _SingleMemberSelector extends StatelessWidget {
-  final String? selectedId;
-  final List<ClubMember> members;
-  final String placeholder;
-  final String emptyMessage;
-  final bool enabled;
-  final ValueChanged<String?> onChanged;
-  final VoidCallback? onClear;
-
-  const _SingleMemberSelector({
-    this.selectedId,
-    required this.members,
-    required this.placeholder,
-    required this.emptyMessage,
-    required this.enabled,
-    required this.onChanged,
-    this.onClear,
-  });
-
-  ClubMember? get _selected => selectedId != null
-      ? members.where((m) => m.userId == selectedId).firstOrNull
-      : null;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final selected = _selected;
-
-    return GestureDetector(
-      onTap: enabled && members.isNotEmpty
-          ? () => _showMemberSheet(context)
-          : null,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: c.surface,
-          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-          border: Border.all(
-            color: selected != null ? SacAccent.of(context).color : c.border,
-            width: selected != null ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            HugeIcon(
-              icon: selected != null
-                  ? HugeIcons.strokeRoundedUserCheck01
-                  : HugeIcons.strokeRoundedUserAdd01,
-              color: selected != null
-                  ? SacAccent.of(context).color
-                  : c.textTertiary,
-              size: 20,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: selected != null
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          selected.fullName,
-                          style: TextStyle(
-                            fontSize: SacFontSize.titleSmall,
-                            fontWeight: FontWeight.w500,
-                            color: c.text,
-                          ),
-                        ),
-                        if (selected.clubRole != null)
-                          Text(
-                            selected.clubRole!,
-                            style: TextStyle(
-                              fontSize: SacFontSize.bodySmall,
-                              color: c.textSecondary,
-                            ),
-                          ),
-                      ],
-                    )
-                  : Text(
-                      members.isEmpty ? emptyMessage : placeholder,
-                      style: TextStyle(
-                          fontSize: SacFontSize.titleSmall,
-                          color: c.textTertiary),
-                    ),
-            ),
-            if (selected != null && onClear != null)
-              GestureDetector(
-                onTap: enabled ? onClear : null,
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedCancelCircle,
-                  color: c.textTertiary,
-                  size: 18,
-                ),
-              )
-            else if (members.isNotEmpty)
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowRight01,
-                color: c.textTertiary,
-                size: 18,
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showMemberSheet(BuildContext context) {
-    showSacSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _MemberPickerSheet(
-        members: members,
-        selectedId: selectedId,
-        multiSelect: false,
-        onConfirm: (ids) {
-          onChanged(ids.isNotEmpty ? ids.first : null);
-        },
-      ),
-    );
-  }
-}
-
-/// Selector de múltiples miembros con bottom sheet y límite.
-class _MultiMemberSelector extends StatelessWidget {
-  final List<String> selectedIds;
-  final List<ClubMember> members;
-  final int maxCount;
-  final String placeholder;
-  final String emptyMessage;
-  final bool enabled;
-  final ValueChanged<List<String>> onChanged;
-
-  const _MultiMemberSelector({
-    required this.selectedIds,
-    required this.members,
-    required this.maxCount,
-    required this.placeholder,
-    required this.emptyMessage,
-    required this.enabled,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final selectedMembers =
-        members.where((m) => selectedIds.contains(m.userId)).toList();
-
-    return GestureDetector(
-      onTap: enabled && members.isNotEmpty
-          ? () => _showMemberSheet(context)
-          : null,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: c.surface,
-          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-          border: Border.all(
-            color: selectedMembers.isNotEmpty
-                ? SacAccent.of(context).color
-                : c.border,
-            width: selectedMembers.isNotEmpty ? 1.5 : 1,
-          ),
-        ),
-        child: selectedMembers.isEmpty
-            ? Row(
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedUserAdd01,
-                    color: c.textTertiary,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    members.isEmpty ? emptyMessage : placeholder,
-                    style: TextStyle(
-                        fontSize: SacFontSize.titleSmall,
-                        color: c.textTertiary),
-                  ),
-                  const Spacer(),
-                  if (members.isNotEmpty)
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedArrowRight01,
-                      color: c.textTertiary,
-                      size: 18,
-                    ),
-                ],
-              )
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ...selectedMembers.map(
-                    (m) => Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: Row(
-                        children: [
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                            color: SacAccent.of(context).color,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              m.fullName,
-                              style: TextStyle(
-                                fontSize: SacFontSize.titleSmall,
-                                fontWeight: FontWeight.w500,
-                                color: c.text,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'enrollment.form.tap_to_edit'.tr(),
-                    style: TextStyle(
-                      fontSize: SacFontSize.bodySmall,
-                      color: SacAccent.of(context).color,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-      ),
-    );
-  }
-
-  void _showMemberSheet(BuildContext context) {
-    showSacSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _MemberPickerSheet(
-        members: members,
-        selectedId: selectedIds.isNotEmpty ? selectedIds.first : null,
-        selectedIds: selectedIds,
-        multiSelect: true,
-        maxSelect: maxCount,
-        onConfirm: (ids) => onChanged(ids),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Bottom sheet de selección de miembros
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _MemberPickerSheet extends StatefulWidget {
-  final List<ClubMember> members;
-  final String? selectedId;
-  final List<String> selectedIds;
-  final bool multiSelect;
-  final int maxSelect;
-  final ValueChanged<List<String>> onConfirm;
-
-  const _MemberPickerSheet({
-    required this.members,
-    this.selectedId,
-    this.selectedIds = const [],
-    required this.multiSelect,
-    this.maxSelect = 1,
-    required this.onConfirm,
-  });
-
-  @override
-  State<_MemberPickerSheet> createState() => _MemberPickerSheetState();
-}
-
-class _MemberPickerSheetState extends State<_MemberPickerSheet> {
-  late Set<String> _selected;
-  String _searchQuery = '';
-  late final TextEditingController _searchCtrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _searchCtrl = TextEditingController();
-    if (widget.multiSelect) {
-      _selected = Set.from(widget.selectedIds);
-    } else {
-      _selected = widget.selectedId != null ? {widget.selectedId!} : {};
-    }
-  }
-
-  @override
-  void dispose() {
-    _searchCtrl.dispose();
-    super.dispose();
-  }
-
-  List<ClubMember> get _filteredMembers {
-    if (_searchQuery.isEmpty) return widget.members;
-    final q = _searchQuery.toLowerCase();
-    return widget.members
-        .where((m) => m.fullName.toLowerCase().contains(q))
-        .toList();
-  }
-
-  void _confirm() {
-    Navigator.of(context).pop();
-    widget.onConfirm(_selected.toList());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final filtered = _filteredMembers;
-
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.75,
-      ),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(AppTheme.radiusLG)),
-      ),
-      child: Column(
-        children: [
-          // Handle
-          Padding(
-            padding: const EdgeInsets.only(top: 12, bottom: 4),
-            child: Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: c.border,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                ),
-              ),
-            ),
-          ),
-
-          // Header
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.multiSelect
-                          ? 'enrollment.picker.title_members'.tr()
-                          : 'enrollment.picker.title_member'.tr(),
-                      style: TextStyle(
-                        fontSize: SacFontSize.titleMedium,
-                        fontWeight: FontWeight.w700,
-                        color: c.text,
-                      ),
-                    ),
-                    if (widget.multiSelect)
-                      Text(
-                        'enrollment.picker.selected_count'.tr(
-                          namedArgs: {
-                            'current': '${_selected.length}',
-                            'max': '${widget.maxSelect}',
-                          },
-                        ),
-                        style: TextStyle(
-                            fontSize: SacFontSize.bodySmall,
-                            color: c.textSecondary),
-                      ),
-                  ],
-                ),
-                SacButton.text(
-                  text: 'enrollment.picker.done'.tr(),
-                  onPressed: _confirm,
-                ),
-              ],
-            ),
-          ),
-
-          // Buscador
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: TextField(
-              controller: _searchCtrl,
-              onChanged: (v) => setState(() => _searchQuery = v),
-              decoration: InputDecoration(
-                hintText: 'enrollment.picker.search_hint'.tr(),
-                prefixIconConstraints: FixedInputIconSlot.constraints,
-                prefixIcon: FixedInputIconSlot(
-                  icon: HugeIcons.strokeRoundedSearch01,
-                  color: c.textTertiary,
-                  iconSize: 18,
-                ),
-                filled: true,
-                fillColor: c.background,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-                  borderSide: BorderSide(color: c.border),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-                  borderSide: BorderSide(color: c.border),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-                  borderSide: BorderSide(
-                    color: SacAccent.of(context).color,
-                    width: 1.5,
-                  ),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // Lista
-          Expanded(
-            child: filtered.isEmpty
-                ? Center(
-                    child: Text(
-                      'enrollment.picker.no_results'.tr(),
-                      style: TextStyle(color: c.textSecondary),
-                    ),
-                  )
-                : ListView.builder(
-                    padding: SacTopBar.paddingBelowBar(
-                        context, const EdgeInsets.symmetric(horizontal: 8)),
-                    itemCount: filtered.length,
-                    itemBuilder: (_, i) {
-                      final member = filtered[i];
-                      final isSelected = _selected.contains(member.userId);
-                      final canSelect = isSelected ||
-                          !widget.multiSelect ||
-                          _selected.length < widget.maxSelect;
-
-                      return SacPressable(
-                        listenOnly: true,
-                        child: Material(
-                            type: MaterialType.transparency,
-                            child: ListTile(
-                              enableFeedback: false,
-                              leading: SacMemberAvatar(
-                                imageUrl: member.avatar,
-                                name: member.fullName,
-                                size: 36,
-                              ),
-                              title: Text(
-                                member.fullName,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  color: c.text,
-                                ),
-                              ),
-                              subtitle: member.clubRole != null
-                                  ? Text(
-                                      member.clubRole!,
-                                      style: TextStyle(
-                                        fontSize: SacFontSize.bodySmall,
-                                        color: c.textSecondary,
-                                      ),
-                                    )
-                                  : null,
-                              trailing: isSelected
-                                  ? HugeIcon(
-                                      icon: HugeIcons
-                                          .strokeRoundedCheckmarkCircle02,
-                                      color: SacAccent.of(context).color,
-                                      size: 22,
-                                    )
-                                  : null,
-                              enabled: canSelect,
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(AppTheme.radiusXS),
-                              ),
-                              onTap: () {
-                                setState(() {
-                                  if (widget.multiSelect) {
-                                    if (isSelected) {
-                                      _selected.remove(member.userId);
-                                    } else if (canSelect) {
-                                      _selected.add(member.userId);
-                                    }
-                                  } else {
-                                    _selected = {member.userId};
-                                    // Para single select, confirmar de inmediato
-                                    Future.microtask(_confirm);
-                                  }
-                                });
-                              },
-                            )),
-                      );
-                    },
-                  ),
-          ),
-          const SizedBox(height: 8),
         ],
       ),
     );

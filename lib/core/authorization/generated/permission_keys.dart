@@ -64,6 +64,7 @@ const Set<String> kPermissionKeys = {
   'churches:update',
   'classes:read',
   'classes:submit_progress',
+  'club_enrollments:validate',
   'club_instances:create',
   'club_instances:read',
   'club_instances:update',
@@ -294,6 +295,7 @@ abstract final class Permissions {
   static const String churchesUpdate = 'churches:update';
   static const String classesRead = 'classes:read';
   static const String classesSubmitProgress = 'classes:submit_progress';
+  static const String clubEnrollmentsValidate = 'club_enrollments:validate';
   static const String clubInstancesCreate = 'club_instances:create';
   static const String clubInstancesRead = 'club_instances:read';
   static const String clubInstancesUpdate = 'club_instances:update';

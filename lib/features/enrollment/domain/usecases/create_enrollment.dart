@@ -16,11 +16,6 @@ class CreateEnrollmentParams extends Equatable {
   final int? soulsTarget;
   final bool? fee;
   final double? feeAmount;
-  final String? directorId;
-  final List<String> deputyDirectorIds;
-  final String? secretaryId;
-  final String? treasurerId;
-  final String? secretaryTreasurerId;
 
   const CreateEnrollmentParams({
     required this.clubId,
@@ -32,11 +27,6 @@ class CreateEnrollmentParams extends Equatable {
     this.soulsTarget,
     this.fee,
     this.feeAmount,
-    this.directorId,
-    this.deputyDirectorIds = const [],
-    this.secretaryId,
-    this.treasurerId,
-    this.secretaryTreasurerId,
   });
 
   @override
@@ -50,11 +40,6 @@ class CreateEnrollmentParams extends Equatable {
         soulsTarget,
         fee,
         feeAmount,
-        directorId,
-        deputyDirectorIds,
-        secretaryId,
-        treasurerId,
-        secretaryTreasurerId,
       ];
 }
 
@@ -76,11 +61,6 @@ class CreateEnrollment implements UseCase<Enrollment, CreateEnrollmentParams> {
       soulsTarget: params.soulsTarget,
       fee: params.fee,
       feeAmount: params.feeAmount,
-      directorId: params.directorId,
-      deputyDirectorIds: params.deputyDirectorIds,
-      secretaryId: params.secretaryId,
-      treasurerId: params.treasurerId,
-      secretaryTreasurerId: params.secretaryTreasurerId,
     );
   }
 }

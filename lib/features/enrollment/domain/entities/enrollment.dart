@@ -1,7 +1,14 @@
 import 'package:equatable/equatable.dart';
 
 /// Estado de una inscripción anual.
-enum EnrollmentStatus { active, inactive, pending, pendingValidation, rejected }
+enum EnrollmentStatus {
+  active,
+  inactive,
+  pending,
+  pendingValidation,
+  rejected,
+  closed,
+}
 
 /// Par de día + hora de reunión.
 class MeetingSchedule extends Equatable {
@@ -43,6 +50,16 @@ class Enrollment extends Equatable {
   final EnrollmentStatus status;
   final DateTime? createdAt;
 
+  /// Motivo con el que el revisor rechazó la inscripción (`rejected`); `null`
+  /// si no hay revisión o no se dio motivo.
+  final String? decisionReason;
+
+  /// Cuándo la revisó el campo local, la unión o la división.
+  final DateTime? reviewedAt;
+
+  /// Cuándo se envió a revisión (`submitted_at`). Aún no se muestra.
+  final DateTime? submittedAt;
+
   // Nuevos campos (backend pendiente)
   final int? soulsTarget;
   final bool? fee;
@@ -66,6 +83,9 @@ class Enrollment extends Equatable {
     this.meetingSchedule = const [],
     required this.status,
     this.createdAt,
+    this.decisionReason,
+    this.reviewedAt,
+    this.submittedAt,
     this.soulsTarget,
     this.fee,
     this.feeAmount,
@@ -92,6 +112,9 @@ class Enrollment extends Equatable {
         meetingSchedule,
         status,
         createdAt,
+        decisionReason,
+        reviewedAt,
+        submittedAt,
         soulsTarget,
         fee,
         feeAmount,
