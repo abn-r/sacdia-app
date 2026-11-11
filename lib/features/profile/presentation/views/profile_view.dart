@@ -447,10 +447,6 @@ class _ProfileScrollBody extends StatelessWidget {
             // menor: se gestiona desde el perfil propio del tutor) ──────────
             FamilyProfileEntry(horizontalPadding: hPad),
 
-            // ── 2b'. Constancias de servicio: mías y por revisar (con la
-            // capacidad) — ocultas al actuar por un menor ───────────────────
-            ServiceCredentialsProfileEntry(horizontalPadding: hPad),
-
             // ── 2c. Adolescente con tutor: qué ve su tutor y qué no ────────
             SupervisionInfoSlot(horizontalPadding: hPad),
 
@@ -557,6 +553,11 @@ class _ProfileScrollBody extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: hPad),
               child: const AchievementProfileSummary(),
             ),
+
+            // ── 7b. Constancias de servicio: mías y por revisar (con la
+            // capacidad) — ocultas al actuar por un menor. Trae su propio
+            // espacio superior (20) ─────────────────────────────────────────
+            ServiceCredentialsProfileEntry(horizontalPadding: hPad),
 
             const SizedBox(height: 20),
 
