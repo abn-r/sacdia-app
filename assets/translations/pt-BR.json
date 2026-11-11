@@ -2668,7 +2668,9 @@
       "delete": "Erro ao excluir o movimento",
       "fetch_categories": "Erro ao obter categorias",
       "fetch_paginated": "Erro ao obter transações",
-      "upload_evidence": "Não foi possível enviar a evidência"
+      "fetch_by_category": "Erro ao obter os totais por categoria",
+      "upload_evidence": "Não foi possível enviar a evidência",
+      "export": "Erro ao exportar as finanças"
     },
     "view": {
       "title": "Finanças",
@@ -2676,7 +2678,21 @@
       "empty_subtitle": "Adicione o primeiro movimento.",
       "error_title": "Erro ao carregar finanças",
       "recent_transactions": "Transações Recentes",
-      "view_all": "Ver tudo →"
+      "view_all": "Ver tudo →",
+      "go_current_month": "Ir para o mês atual",
+      "more_options": "Mais opções"
+    },
+    "by_category": {
+      "title": "Por categoria",
+      "income": "Receitas",
+      "expenses": "Despesas",
+      "empty": "Não há movimentos por categoria neste mês",
+      "error_title": "Erro ao carregar os totais por categoria",
+      "share": "{percent} % do total",
+      "count": {
+        "one": "{} movimento",
+        "other": "{} movimentos"
+      }
     },
     "add_transaction": {
       "edit_title": "Editar Movimento",
@@ -2737,7 +2753,8 @@
       "prev_month": "Mês anterior",
       "next_month": "Próximo mês",
       "chart_a11y": "Gráfico de receitas e despesas do período",
-      "balance_total": "SALDO TOTAL",
+      "chart_a11y_summary": "Gráfico de receitas e despesas do período. Receitas: {income}. Despesas: {expense}.",
+      "balance_total": "SALDO ACUMULADO",
       "month_summary_prefix": "Este mês: ",
       "month_summary_connector": " receitas e ",
       "month_summary_suffix": " despesas",
@@ -2772,6 +2789,16 @@
     },
     "providers": {
       "club_unavailable": "Clube não disponível"
+    },
+    "menu": {
+      "title": "Opções do mês",
+      "export_excel": "Exportar para Excel",
+      "export_pdf": "Exportar para PDF",
+      "view_report": "Ver relatório do mês"
+    },
+    "export": {
+      "error": "Não foi possível exportar",
+      "forbidden": "Você não tem permissão para exportar as finanças"
     }
   },
   "members": {

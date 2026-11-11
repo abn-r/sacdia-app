@@ -128,7 +128,10 @@ class ProfileHonorsSection extends ConsumerWidget {
               key: const ValueKey('honors-data'),
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
+                // Full width so the empty state centres like «Mis clases»
+                // (the outer column is start-aligned for the master honors).
+                Container(
+                  width: double.infinity,
                   padding:
                       const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
                   child: Column(

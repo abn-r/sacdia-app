@@ -6,6 +6,11 @@ class FinanceSummaryModel extends FinanceSummary {
     required super.totalIncome,
     required super.totalExpense,
     required super.monthlyBars,
+    super.net,
+    super.yearIncome,
+    super.yearExpense,
+    super.movementCount,
+    super.periodClosed,
   });
 
   factory FinanceSummaryModel.fromJson(Map<String, dynamic> json) {
@@ -17,14 +22,33 @@ class FinanceSummaryModel extends FinanceSummary {
     final bars =
         rawBars.map((e) => _barFromJson(e as Map<String, dynamic>)).toList();
 
+    final totalIncome =
+        _parseDouble(json['total_income'] ?? json['totalIncome'] ?? 0);
+    final totalExpense =
+        _parseDouble(json['total_expense'] ?? json['totalExpense'] ?? 0);
+    final rawClosed = json['period_closed'] ?? json['periodClosed'];
+
     return FinanceSummaryModel(
       totalBalance: _parseDouble(
         json['balance'] ?? json['total_balance'] ?? json['totalBalance'] ?? 0,
       ),
-      totalIncome:
-          _parseDouble(json['total_income'] ?? json['totalIncome'] ?? 0),
-      totalExpense:
-          _parseDouble(json['total_expense'] ?? json['totalExpense'] ?? 0),
+      totalIncome: totalIncome,
+      totalExpense: totalExpense,
+      net: json['net'] == null
+          ? totalIncome - totalExpense
+          : _parseDouble(json['net']),
+      yearIncome: _parseDouble(
+        json['year_income'] ?? json['yearIncome'] ?? totalIncome,
+      ),
+      yearExpense: _parseDouble(
+        json['year_expenses'] ??
+            json['year_expense'] ??
+            json['yearExpenses'] ??
+            totalExpense,
+      ),
+      movementCount:
+          _parseInt(json['movement_count'] ?? json['movementCount'] ?? 0),
+      periodClosed: rawClosed is bool ? rawClosed : null,
       monthlyBars: bars,
     );
   }
@@ -57,5 +81,10 @@ class FinanceSummaryModel extends FinanceSummary {
         totalIncome: totalIncome,
         totalExpense: totalExpense,
         monthlyBars: monthlyBars,
+        net: net,
+        yearIncome: yearIncome,
+        yearExpense: yearExpense,
+        movementCount: movementCount,
+        periodClosed: periodClosed,
       );
 }

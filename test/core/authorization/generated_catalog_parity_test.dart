@@ -19,6 +19,8 @@ const _nonPermissionTokens = <String>{
   'investiture:foreground',
   'units:member_of_month',
   'monthly_reports:reminder',
+  // FCM / inbox source of the monthly finances reminder (finances_reminder_push_route.dart).
+  'finances:reminder',
   // FCM family push types (family_push_route.dart).
   'family:security',
   'family:evidence_uploaded',
@@ -55,8 +57,8 @@ void main() {
     expect(used.difference(known), isEmpty);
   });
 
-  test('kCapabilityKeys is the generated catalog of 49 sorted keys', () {
-    expect(kCapabilityKeys, hasLength(49));
+  test('kCapabilityKeys is the generated catalog of 50 sorted keys', () {
+    expect(kCapabilityKeys, hasLength(50));
     final sorted = kCapabilityKeys.toList()..sort();
     expect(kCapabilityKeys.toList(), sorted);
     // Una capacidad tiene forma `a.b`, nunca `a:b` (eso es un permiso).

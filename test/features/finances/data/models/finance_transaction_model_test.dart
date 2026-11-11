@@ -122,5 +122,36 @@ void main() {
       expect(
           transaction.evidences.first.url, 'https://example.com/evidence.jpg');
     });
+
+    test('parses period_closed and defaults to open when it is absent', () {
+      const base = {
+        'finance_id': 20,
+        'amount': 10,
+        'description': 'Cuota',
+        'finance_date': '2026-04-10',
+        'year': 2026,
+        'month': 4,
+        'finances_categories': {
+          'finance_category_id': 1,
+          'name': 'X',
+          'type': 0
+        },
+      };
+
+      final closed = FinanceTransactionModel.fromJson({
+        ...base,
+        'period_closed': true,
+      });
+      final open = FinanceTransactionModel.fromJson({
+        ...base,
+        'period_closed': false,
+      });
+      final legacy = FinanceTransactionModel.fromJson(base);
+
+      expect(closed.periodClosed, isTrue);
+      expect(closed.toEntity().periodClosed, isTrue);
+      expect(open.periodClosed, isFalse);
+      expect(legacy.periodClosed, isFalse);
+    });
   });
 }

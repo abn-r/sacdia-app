@@ -10,19 +10,19 @@ import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_image_viewer.dart';
 import '../../domain/entities/transaction.dart';
 import '../providers/finances_providers.dart';
+import '../theme/finance_tokens.dart';
 import 'add_transaction_sheet.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Vista de detalle de un movimiento financiero.
 ///
 /// Muestra todos los campos del movimiento y ofrece el botón de edición
-/// cuando el mes está abierto y el usuario tiene permisos.
+/// cuando el mes del movimiento está abierto y el usuario tiene permisos.
 class TransactionDetailView extends ConsumerWidget {
   final FinanceTransaction transaction;
 
@@ -39,11 +39,15 @@ class TransactionDetailView extends ConsumerWidget {
         ref.watch(transactionDetailProvider(transaction.id)).value ??
             transaction;
     final isIncome = current.type.isIncome;
-    final color = isIncome ? AppColors.secondary : AppColors.error;
+    final color = isIncome
+        ? FinanceTokens.incomeText(context)
+        : FinanceTokens.expenseText(context);
     final canManageAsync = ref.watch(canManageFinancesProvider);
-    final financeMonthAsync = ref.watch(financeMonthProvider);
-    final isOpen = financeMonthAsync.value?.isOpen ?? true;
-    final canEdit = (canManageAsync.value ?? false) && isOpen;
+    // `period_closed` of the movement itself: it is exact even when the
+    // detail is opened from another month (All transactions). Closed months
+    // are read-only in the app: only an admin may write there, and with a
+    // mandatory note.
+    final canEdit = (canManageAsync.value ?? false) && !current.periodClosed;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -62,7 +66,7 @@ class TransactionDetailView extends ConsumerWidget {
                   icon: HugeIcon(
                     icon: HugeIcons.strokeRoundedDelete02,
                     size: 20,
-                    color: AppColors.error,
+                    color: context.sac.error,
                   ),
                 ),
               ),

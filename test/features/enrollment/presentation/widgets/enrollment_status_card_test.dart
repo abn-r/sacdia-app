@@ -25,6 +25,14 @@ class _FakeAuthNotifier extends AuthNotifier {
   Future<UserEntity?> build() async => _user;
 }
 
+const _boardRoles = {
+  'director',
+  'deputy-director',
+  'secretary',
+  'treasurer',
+  'secretary-treasurer',
+};
+
 UserEntity _user({
   required String roleName,
   required List<String> permissions,
@@ -38,6 +46,10 @@ UserEntity _user({
     principal: principal,
     authorization: AuthorizationSnapshot(
       effectivePermissions: permissions,
+      // The server grants the club board capability to these roles only.
+      capabilities: _boardRoles.contains(roleName)
+          ? const ['club.administrative_staff']
+          : const [],
       activeAssignmentId: activeAssignmentId,
       clubAssignments: [
         AuthorizationGrant(
@@ -150,6 +162,20 @@ void main() {
       expect(find.text('enrollment.status.title_pending'), findsNothing);
     });
 
+    for (final role in ['member', 'counselor', 'instructor']) {
+      testWidgets('stays hidden for a club $role (not the board)',
+          (tester) async {
+        await _pumpCard(
+          tester,
+          _user(roleName: role, permissions: const ['club_instances:read']),
+          enrollment: _pendingValidationEnrollment,
+        );
+
+        expect(find.text('enrollment.status.title_submitted'), findsNothing);
+        expect(find.byType(SacCard), findsNothing);
+      });
+    }
+
     testWidgets(
       'shows enrollment action for canonical club instance creators',
       (tester) async {
@@ -210,12 +236,12 @@ void main() {
     );
 
     testWidgets(
-      'keeps the enrollment action hidden for members without create permission',
+      'keeps the enrollment action hidden for board members without create permission',
       (tester) async {
         await _pumpCard(
           tester,
           _user(
-            roleName: 'member',
+            roleName: 'treasurer',
             permissions: const ['club_instances:read'],
           ),
         );
@@ -358,7 +384,7 @@ void main() {
         await _pumpCard(
           tester,
           _user(
-            roleName: 'member',
+            roleName: 'treasurer',
             permissions: const ['club_instances:read'],
           ),
           enrollment: _rejectedEnrollment,

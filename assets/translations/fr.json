@@ -2668,7 +2668,9 @@
       "delete": "Erreur lors de la suppression du mouvement",
       "fetch_categories": "Erreur lors de la récupération des catégories",
       "fetch_paginated": "Erreur lors de la récupération des transactions",
-      "upload_evidence": "Impossible de téléverser la preuve"
+      "fetch_by_category": "Erreur lors de la récupération des totaux par catégorie",
+      "upload_evidence": "Impossible de téléverser la preuve",
+      "export": "Erreur lors de l'exportation des finances"
     },
     "view": {
       "title": "Finances",
@@ -2676,7 +2678,21 @@
       "empty_subtitle": "Ajoutez le premier mouvement.",
       "error_title": "Erreur lors du chargement des finances",
       "recent_transactions": "Transactions récentes",
-      "view_all": "Voir tout →"
+      "view_all": "Voir tout →",
+      "go_current_month": "Aller au mois en cours",
+      "more_options": "Plus d'options"
+    },
+    "by_category": {
+      "title": "Par catégorie",
+      "income": "Revenus",
+      "expenses": "Dépenses",
+      "empty": "Aucun mouvement par catégorie ce mois-ci",
+      "error_title": "Erreur lors du chargement des totaux par catégorie",
+      "share": "{percent} % du total",
+      "count": {
+        "one": "{} mouvement",
+        "other": "{} mouvements"
+      }
     },
     "add_transaction": {
       "edit_title": "Modifier le mouvement",
@@ -2737,7 +2753,8 @@
       "prev_month": "Mois précédent",
       "next_month": "Mois suivant",
       "chart_a11y": "Graphique des revenus et dépenses de la période",
-      "balance_total": "SOLDE TOTAL",
+      "chart_a11y_summary": "Graphique des revenus et dépenses de la période. Revenus : {income}. Dépenses : {expense}.",
+      "balance_total": "SOLDE CUMULÉ",
       "month_summary_prefix": "Ce mois-ci : ",
       "month_summary_connector": " de revenus et ",
       "month_summary_suffix": " de dépenses",
@@ -2772,6 +2789,16 @@
     },
     "providers": {
       "club_unavailable": "Club non disponible"
+    },
+    "menu": {
+      "title": "Options du mois",
+      "export_excel": "Exporter vers Excel",
+      "export_pdf": "Exporter en PDF",
+      "view_report": "Voir le rapport du mois"
+    },
+    "export": {
+      "error": "Impossible d'exporter",
+      "forbidden": "Vous n'avez pas l'autorisation d'exporter les finances"
     }
   },
   "members": {

@@ -76,8 +76,9 @@ Future<void> _pump(
     testProviderScope(
       overrides: [
         selectedPeriodProvider.overrideWith((ref) => period),
-        financeMonthProvider.overrideWith((ref) async => month),
-        financeSummaryProvider.overrideWith((ref) async => summary),
+        currentClubIdProvider.overrideWith((ref) async => 1),
+        financeMonthByKeyProvider.overrideWith((ref, key) async => month),
+        financeSummaryByKeyProvider.overrideWith((ref, key) async => summary),
       ],
       child: localized(
         (context) => localizedApp(
@@ -127,6 +128,21 @@ void main() {
       expect(expenseByDay[3], 0);
       expect(incomeByDay.values.reduce((a, b) => a + b), 400);
       expect(expenseByDay.values.reduce((a, b) => a + b), 80);
+    });
+
+    testWidgets('gives the plot a text alternative with the period totals',
+        (tester) async {
+      final handle = tester.ensureSemantics();
+      await _pump(tester, month: _month);
+
+      expect(
+        find.bySemanticsLabel(
+          r'Gráfico de ingresos y egresos del periodo. '
+          r'Ingresos: $400.00. Egresos: $80.00.',
+        ),
+        findsOneWidget,
+      );
+      handle.dispose();
     });
 
     testWidgets('keeps the visual configuration (axis, grid, lines, area)',

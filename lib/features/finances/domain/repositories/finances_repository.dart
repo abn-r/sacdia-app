@@ -2,8 +2,10 @@ import 'package:dartz/dartz.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/cancellation_token.dart';
+import '../entities/category_breakdown.dart';
 import '../entities/paginated_transactions_response.dart';
 import '../entities/finance_category.dart';
+import '../entities/finance_export.dart';
 import '../entities/finance_month.dart';
 import '../entities/finance_summary.dart';
 import '../entities/transaction.dart';
@@ -28,6 +30,24 @@ abstract class FinancesRepository {
     required int clubId,
     int? year,
     int? month,
+    RequestCancelToken? cancelToken,
+  });
+
+  /// Devuelve los totales por categoría de un mes (o del año si [month] es
+  /// null).
+  Future<Either<Failure, CategoryBreakdown>> getByCategory({
+    required int clubId,
+    required int year,
+    int? month,
+    RequestCancelToken? cancelToken,
+  });
+
+  /// Descarga el mes de finanzas como archivo ([format]: Excel o PDF).
+  Future<Either<Failure, FinanceExportFile>> exportFinances({
+    required int clubId,
+    required int year,
+    required int month,
+    required FinanceExportFormat format,
     RequestCancelToken? cancelToken,
   });
 

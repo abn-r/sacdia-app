@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
@@ -11,16 +9,17 @@ import 'package:mime/mime.dart';
 
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/evidence_staging/image_source_dialog.dart';
 import '../../domain/entities/finance_category.dart';
 import '../../domain/entities/transaction.dart';
 import '../providers/finances_providers.dart';
+import '../widgets/transaction_category_picker.dart';
+import '../widgets/transaction_evidence_picker.dart';
+import '../theme/finance_tokens.dart';
 import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -234,12 +233,13 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                               ? 'finances.add_transaction.category_required'
                                   .tr()
                               : null,
-                          builder: (field) => _CategoryPickerField(
+                          builder: (field) => TransactionCategoryPickerField(
                             value: field.value,
                             hint: 'finances.add_transaction.category_hint'.tr(),
                             errorText: field.errorText,
                             onTap: () async {
-                              final picked = await _showCategoryPicker(
+                              final picked =
+                                  await showTransactionCategoryPicker(
                                 context,
                                 categories: filtered,
                                 selected: field.value,
@@ -298,7 +298,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       'finances.add_transaction.evidence_label'.tr(),
                     ),
                     const SizedBox(height: 6),
-                    _EvidencePicker(
+                    TransactionEvidencePicker(
                       existingEvidences: widget.existing?.evidences ?? const [],
                       newFiles: _newEvidenceFiles,
                       errorText: _evidenceError,
@@ -317,7 +317,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                         padding: const EdgeInsets.only(bottom: 12),
                         child: Text(
                           formState.errorMessage!,
-                          style: const TextStyle(color: AppColors.error),
+                          style: TextStyle(color: context.sac.error),
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -473,467 +473,6 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
   }
 }
 
-// ── Evidence picker ────────────────────────────────────────────────────────────
-
-class _EvidencePicker extends StatelessWidget {
-  final List<FinanceEvidence> existingEvidences;
-  final List<XFile> newFiles;
-  final String? errorText;
-  final VoidCallback onAdd;
-  final ValueChanged<XFile> onRemoveNew;
-
-  const _EvidencePicker({
-    required this.existingEvidences,
-    required this.newFiles,
-    required this.onAdd,
-    required this.onRemoveNew,
-    this.errorText,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final total = existingEvidences.length + newFiles.length;
-    final canAdd = total < 3;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'finances.add_transaction.evidence_hint'.tr(),
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(color: context.sac.textSecondary),
-        ),
-        const SizedBox(height: 10),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            ...existingEvidences.map(
-              (evidence) => _EvidenceTile.network(evidence.url),
-            ),
-            ...newFiles.map(
-              (file) =>
-                  _EvidenceTile.file(file, onRemove: () => onRemoveNew(file)),
-            ),
-            if (canAdd) _EvidenceAddTile(onTap: onAdd),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'finances.add_transaction.evidence_count'.tr(
-            namedArgs: {'count': total.toString()},
-          ),
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(color: context.sac.textTertiary),
-        ),
-        if (errorText != null) ...[
-          const SizedBox(height: 6),
-          Text(
-            errorText!,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: AppColors.error),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class _EvidenceAddTile extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _EvidenceAddTile({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: SacInkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        child: Ink(
-          width: 92,
-          height: 92,
-          decoration: BoxDecoration(
-            color: Theme.of(
-              context,
-            ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-            border: Border.all(
-              color: SacAccent.of(context).color.withValues(alpha: 0.35),
-            ),
-          ),
-          child: Center(
-            child: HugeIcon(
-              icon: HugeIcons.strokeRoundedAdd01,
-              size: 28,
-              color: SacAccent.of(context).color,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _EvidenceTile extends StatelessWidget {
-  final String? url;
-  final XFile? file;
-  final VoidCallback? onRemove;
-
-  const _EvidenceTile.network(this.url)
-      : file = null,
-        onRemove = null;
-
-  const _EvidenceTile.file(this.file, {required this.onRemove}) : url = null;
-
-  @override
-  Widget build(BuildContext context) {
-    final image = file != null
-        ? Image.file(
-            File(file!.path),
-            fit: BoxFit.cover,
-            cacheWidth: 276,
-            cacheHeight: 276,
-          )
-        : Image.network(
-            url!,
-            fit: BoxFit.cover,
-            cacheWidth: 276,
-            cacheHeight: 276,
-          );
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-      child: Stack(
-        children: [
-          SizedBox(width: 92, height: 92, child: image),
-          if (onRemove != null)
-            Positioned(
-              top: 6,
-              right: 6,
-              child: GestureDetector(
-                onTap: onRemove,
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.55),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedCancel01,
-                      size: 14,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Category picker field ─────────────────────────────────────────────────────
-
-class _CategoryPickerField extends StatelessWidget {
-  final FinanceCategory? value;
-  final String hint;
-  final String? errorText;
-  final VoidCallback onTap;
-
-  const _CategoryPickerField({
-    required this.value,
-    required this.hint,
-    required this.onTap,
-    this.errorText,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final hasValue = value != null;
-    final borderColor = errorText != null
-        ? AppColors.error
-        : Theme.of(context).dividerColor.withValues(alpha: 0.4);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Semantics(
-          button: true,
-          label: hasValue ? value!.name : hint,
-          child: Material(
-            color: Colors.transparent,
-            child: SacInkWell(
-              onTap: onTap,
-              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-              child: Ink(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-                  border: Border.all(
-                    color: borderColor,
-                    width: errorText != null ? 1.4 : 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: SacAccent.of(context).surface,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                      ),
-                      child: HugeIcon(
-                        icon: HugeIcons.strokeRoundedTag01,
-                        size: 20,
-                        color: SacAccent.of(context).color,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        hasValue ? value!.name : hint,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight:
-                                  hasValue ? FontWeight.w600 : FontWeight.w500,
-                              color: hasValue
-                                  ? context.sac.text
-                                  : context.sac.textTertiary,
-                            ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedArrowDown01,
-                      size: 20,
-                      color: context.sac.textSecondary,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-        if (errorText != null) ...[
-          const SizedBox(height: 6),
-          Padding(
-            padding: const EdgeInsets.only(left: 12),
-            child: Text(
-              errorText!,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: AppColors.error),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-Future<FinanceCategory?> _showCategoryPicker(
-  BuildContext context, {
-  required List<FinanceCategory> categories,
-  FinanceCategory? selected,
-}) {
-  return showSacSheet<FinanceCategory>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    backgroundColor: Colors.transparent,
-    builder: (_) =>
-        _CategoryPickerSheet(categories: categories, selected: selected),
-  );
-}
-
-class _CategoryPickerSheet extends StatelessWidget {
-  final List<FinanceCategory> categories;
-  final FinanceCategory? selected;
-
-  const _CategoryPickerSheet({required this.categories, this.selected});
-
-  @override
-  Widget build(BuildContext context) {
-    final maxHeight = MediaQuery.of(context).size.height * 0.64;
-
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: maxHeight),
-      child: Container(
-        decoration: BoxDecoration(
-          color: context.sac.surface,
-          borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(AppTheme.radiusXL)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: context.sac.border,
-                borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: SacAccent.of(context).surface,
-                      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-                    ),
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedTag01,
-                      size: 22,
-                      color: SacAccent.of(context).color,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'finances.add_transaction.category_label'.tr(),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Flexible(
-              child: ListView.separated(
-                padding: EdgeInsets.fromLTRB(
-                  12,
-                  4,
-                  12,
-                  MediaQuery.of(context).padding.bottom + 12,
-                ),
-                itemCount: categories.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 4),
-                itemBuilder: (_, index) {
-                  final category = categories[index];
-                  final isSelected = category.id == selected?.id;
-
-                  return _CategoryPickerOption(
-                    category: category,
-                    isSelected: isSelected,
-                    onTap: () => Navigator.of(context).pop(category),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CategoryPickerOption extends StatelessWidget {
-  final FinanceCategory category;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _CategoryPickerOption({
-    required this.category,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final foreground =
-        isSelected ? SacAccent.of(context).color : context.sac.text;
-    final background = isSelected
-        ? SacAccent.of(context).color.withValues(alpha: 0.08)
-        : Colors.transparent;
-
-    return Semantics(
-      button: true,
-      selected: isSelected,
-      label: category.name,
-      child: Material(
-        color: Colors.transparent,
-        child: SacInkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-          child: Ink(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: background,
-              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-              border: Border.all(
-                color: isSelected
-                    ? SacAccent.of(context).color.withValues(alpha: 0.24)
-                    : context.sac.borderLight,
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? SacAccent.of(context).surface
-                        : context.sac.surfaceVariant,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-                  ),
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedTag01,
-                    size: 20,
-                    color: isSelected
-                        ? SacAccent.of(context).color
-                        : context.sac.textSecondary,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    category.name,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: foreground,
-                          fontWeight:
-                              isSelected ? FontWeight.w700 : FontWeight.w500,
-                        ),
-                  ),
-                ),
-                if (isSelected)
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedTick02,
-                    size: 20,
-                    color: SacAccent.of(context).color,
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 // ── Type toggle ────────────────────────────────────────────────────────────────
 
 class _TypeToggle extends StatelessWidget {
@@ -950,7 +489,7 @@ class _TypeToggle extends StatelessWidget {
           child: _TypeChip(
             label: 'finances.add_transaction.income'.tr(),
             icon: HugeIcons.strokeRoundedArrowDown01,
-            color: AppColors.secondary,
+            color: FinanceTokens.incomeFill(context),
             isSelected: selected == TransactionType.income,
             onTap: () => onChanged(TransactionType.income),
           ),
@@ -960,7 +499,7 @@ class _TypeToggle extends StatelessWidget {
           child: _TypeChip(
             label: 'finances.add_transaction.expense'.tr(),
             icon: HugeIcons.strokeRoundedArrowUp01,
-            color: AppColors.error,
+            color: FinanceTokens.expenseFill(context),
             isSelected: selected == TransactionType.expense,
             onTap: () => onChanged(TransactionType.expense),
           ),

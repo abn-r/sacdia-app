@@ -2,44 +2,20 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
+import '../../../../core/widgets/sac_notice.dart';
 
-/// Banner que aparece cuando el período está cerrado.
+/// Aviso que aparece cuando el período está cerrado.
 class ClosedPeriodBanner extends StatelessWidget {
   const ClosedPeriodBanner({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: c.warningContainer,
-        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-        border: Border.all(color: c.warning.withValues(alpha: 0.4)),
-      ),
-      child: Row(
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedLocked,
-            size: 18,
-            color: c.onWarningContainer,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'finances.widgets.closed_period_banner'.tr(),
-              style: TextStyle(
-                fontSize: SacFontSize.bodySmall,
-                fontWeight: FontWeight.w500,
-                color: c.onWarningContainer,
-                height: 1.4,
-              ),
-            ),
-          ),
-        ],
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: SacNotice(
+        tone: SacNoticeTone.warning,
+        icon: HugeIcons.strokeRoundedLocked,
+        text: 'finances.widgets.closed_period_banner'.tr(),
       ),
     );
   }
