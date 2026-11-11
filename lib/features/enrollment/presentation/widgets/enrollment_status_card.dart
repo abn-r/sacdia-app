@@ -130,9 +130,14 @@ class EnrollmentStatusCard extends ConsumerWidget {
     final enrollmentAsync = ref.watch(currentEnrollmentProvider);
     final user = ref.watch(authNotifierProvider.select((v) => v.value));
     final acting = ref.watch(actingDependentProvider) != null;
-    // The club's yearly enrollment is staff business: a supervised teen or a
-    // guardian viewing as a minor can't act on it, so the banner is noise.
-    if (user == null || user.isLimitedAccount || acting) {
+    // The club's yearly enrollment is board business: only the club board
+    // of the active section (director, deputy director, secretary, treasurer,
+    // secretary-treasurer) sees it. Members, counselors, instructors, a
+    // supervised teen or a guardian viewing as a minor don't.
+    if (user == null ||
+        user.isLimitedAccount ||
+        acting ||
+        !hasCapability(user, 'club.administrative_staff')) {
       return const SizedBox.shrink();
     }
     final task = ref.watch(annualEnrollmentTaskProvider);
