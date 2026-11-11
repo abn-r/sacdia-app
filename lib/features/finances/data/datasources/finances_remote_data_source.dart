@@ -1,13 +1,18 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../models/category_breakdown_model.dart';
 import '../models/finance_category_model.dart';
+import '../models/finance_export_file_model.dart';
 import '../models/finance_month_model.dart';
 import '../models/finance_summary_model.dart';
 import '../models/paginated_transactions_response.dart';
+import '../../domain/entities/finance_export.dart';
 import '../../domain/entities/paginated_transactions_response.dart';
 import '../models/transaction_model.dart';
 
@@ -23,6 +28,25 @@ abstract class FinancesRemoteDataSource {
     required int clubId,
     int? year,
     int? month,
+    CancelToken? cancelToken,
+  });
+
+  /// Totales por categoría de un mes (o del año completo si [month] es null).
+  Future<CategoryBreakdownModel> getByCategory({
+    required int clubId,
+    required int year,
+    int? month,
+    CancelToken? cancelToken,
+  });
+
+  /// Descarga el mes en [format] (`GET /clubs/:clubId/finances/export`).
+  ///
+  /// El alcance por sección lo resuelve el servidor, igual que en el listado.
+  Future<FinanceExportFileModel> exportFinances({
+    required int clubId,
+    required int year,
+    required int month,
+    required FinanceExportFormat format,
     CancelToken? cancelToken,
   });
 
@@ -158,6 +182,88 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
       );
     } catch (e) {
       AppLogger.e('Error en getSummary', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /clubs/:clubId/finances/by-category ───────────────────────────────
+
+  @override
+  Future<CategoryBreakdownModel> getByCategory({
+    required int clubId,
+    required int year,
+    int? month,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/finances/by-category',
+        queryParameters: {
+          'year': year,
+          if (month != null) 'month': month,
+        },
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = response.data as Map<String, dynamic>;
+        final json = body.containsKey('data')
+            ? body['data'] as Map<String, dynamic>
+            : body;
+        return CategoryBreakdownModel.fromJson(json);
+      }
+
+      throw ServerException(
+        message: tr('finances.errors.fetch_by_category'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getByCategory', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /clubs/:clubId/finances/export?format= ────────────────────────────
+
+  @override
+  Future<FinanceExportFileModel> exportFinances({
+    required int clubId,
+    required int year,
+    required int month,
+    required FinanceExportFormat format,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.get<List<int>>(
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/finances/export',
+        queryParameters: {
+          'year': year,
+          'month': month,
+          'format': format.apiValue,
+        },
+        options: Options(responseType: ResponseType.bytes),
+        cancelToken: cancelToken,
+      );
+
+      final data = response.data;
+      if (response.statusCode == 200 && data != null && data.isNotEmpty) {
+        return FinanceExportFileModel(
+          bytes: Uint8List.fromList(data),
+          fileName: FinanceExportFileModel.resolveFileName(
+            response.headers.value('content-disposition'),
+            year: year,
+            month: month,
+            format: format,
+          ),
+        );
+      }
+
+      throw ServerException(
+        message: tr('finances.errors.export'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en exportFinances', tag: _tag, error: e);
       _rethrow(e);
     }
   }

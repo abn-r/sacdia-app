@@ -25,6 +25,7 @@ import '../utils/app_logger.dart';
 import 'dependent_push_tap_handler.dart';
 import 'device_push_route.dart';
 import 'enrollment_review_push_route.dart';
+import 'finances_reminder_push_route.dart';
 import 'family_push_route.dart';
 import 'push_banner_tokens.dart';
 import 'fcm_registrar.dart';
@@ -36,6 +37,7 @@ import '../../features/teen/presentation/providers/teen_providers.dart';
 import '../../features/investiture_requests/presentation/utils/investiture_notification_routes.dart';
 import '../../features/dashboard/presentation/providers/dashboard_providers.dart';
 import '../../features/enrollment/presentation/providers/enrollment_providers.dart';
+import '../../features/finances/presentation/providers/finances_providers.dart';
 import '../../features/members/presentation/utils/member_requests_notification_route.dart';
 import '../../features/master_honors/presentation/providers/master_honor_modal_queue_provider.dart';
 import '../../features/master_honors/presentation/providers/master_honors_providers.dart';
@@ -937,6 +939,7 @@ class PushNotificationService {
       'monthly_report' ||
       'monthly_report_reminder' =>
         'monthly_reports:reminder',
+      financesReminderPushType => financesReminderSource,
       _ => type,
     };
   }
@@ -1130,7 +1133,8 @@ class PushNotificationService {
     final needsSession = familyPushKindOf(data) != null ||
         DependentPushTapHandler.dependentIdOf(data) != null ||
         isMembershipRequestPushType(data['type']?.toString()) ||
-        isClubEnrollmentReviewedPushType(data['type']?.toString());
+        isClubEnrollmentReviewedPushType(data['type']?.toString()) ||
+        isFinancesReminderPushType(data['type']?.toString());
     if (!needsSession) {
       _dispatchTap(data, null);
       return;
@@ -1168,6 +1172,20 @@ class PushNotificationService {
       if (route == null) return;
       // Si ya está en el inicio no se reconstruye sola: se relee el estado.
       _ref.invalidate(currentEnrollmentProvider);
+      _pushRoute(route, skipIfCurrent: true);
+      return;
+    }
+
+    // Recordatorio de finanzas: asunto del personal del club, igual que la
+    // inscripción (no se abre actuando por un menor ni con cuenta limitada).
+    if (isFinancesReminderPushType(data['type']?.toString())) {
+      final route = financesReminderRouteFor(
+        user,
+        acting: _ref.read(actingForSessionProvider).isActing,
+      );
+      if (route == null) return;
+      // Si ya está en Finanzas no se reconstruye sola: se relee lo que muestra.
+      invalidateFinanceData(_ref.invalidate);
       _pushRoute(route, skipIfCurrent: true);
       return;
     }

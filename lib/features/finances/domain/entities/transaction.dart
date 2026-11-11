@@ -69,6 +69,11 @@ class FinanceTransaction extends Equatable {
   final DateTime? modifiedAt;
   final List<FinanceEvidence> evidences;
 
+  /// `true` cuando el mes del movimiento está cerrado (el backend marca así
+  /// también los movimientos heredados sin sección). Solo un administrador
+  /// puede escribir en un mes cerrado, y con nota obligatoria.
+  final bool periodClosed;
+
   const FinanceTransaction({
     required this.id,
     required this.type,
@@ -85,6 +90,7 @@ class FinanceTransaction extends Equatable {
     this.modifiedByName,
     this.modifiedAt,
     this.evidences = const [],
+    this.periodClosed = false,
   });
 
   @override
@@ -104,5 +110,6 @@ class FinanceTransaction extends Equatable {
         modifiedByName,
         modifiedAt,
         evidences,
+        periodClosed,
       ];
 }

@@ -35,7 +35,11 @@ class FinanceMonthModel extends FinanceMonth {
     final expense = _parseDouble(json['total_expense'] ?? json['totalExpense']);
     final balance = _parseDouble(
         json['total_balance'] ?? json['totalBalance'] ?? json['balance']);
-    final isOpen = json['is_open'] as bool? ?? json['isOpen'] as bool? ?? true;
+    // El listado no trae `is_open`; el cierre viaja en cada movimiento
+    // (`period_closed`). Todos son del mismo mes, así que basta el primero.
+    final isOpen = json['is_open'] as bool? ??
+        json['isOpen'] as bool? ??
+        (transactions.isEmpty ? true : !transactions.first.periodClosed);
 
     // Si el servidor no proporciona totales, calcularlos.
     final computedIncome = income > 0

@@ -68,6 +68,7 @@ class FinanceTransactionModel extends FinanceTransaction {
     super.modifiedByName,
     super.modifiedAt,
     super.evidences,
+    super.periodClosed,
   });
 
   factory FinanceTransactionModel.fromJson(Map<String, dynamic> json) {
@@ -127,6 +128,7 @@ class FinanceTransactionModel extends FinanceTransaction {
           ? _parseDateTime(json['modified_at'])
           : null,
       evidences: evidences,
+      periodClosed: (json['period_closed'] ?? json['periodClosed']) == true,
     );
   }
 
@@ -205,5 +207,6 @@ class FinanceTransactionModel extends FinanceTransaction {
         modifiedByName: modifiedByName,
         modifiedAt: modifiedAt,
         evidences: evidences,
+        periodClosed: periodClosed,
       );
 }

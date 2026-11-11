@@ -5,7 +5,9 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/network/cancel_token_adapter.dart';
+import '../../domain/entities/category_breakdown.dart';
 import '../../domain/entities/finance_category.dart';
+import '../../domain/entities/finance_export.dart';
 import '../../domain/entities/finance_month.dart';
 import '../../domain/entities/finance_summary.dart';
 import '../../domain/entities/transaction.dart';
@@ -58,6 +60,56 @@ class FinancesRepositoryImpl implements FinancesRepository {
         clubId: clubId,
         year: year,
         month: month,
+        cancelToken: cancelToken.asDioCancelToken(),
+      );
+      return Right(model.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, CategoryBreakdown>> getByCategory({
+    required int clubId,
+    required int year,
+    int? month,
+    RequestCancelToken? cancelToken,
+  }) async {
+    try {
+      final model = await remoteDataSource.getByCategory(
+        clubId: clubId,
+        year: year,
+        month: month,
+        cancelToken: cancelToken.asDioCancelToken(),
+      );
+      return Right(model.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, FinanceExportFile>> exportFinances({
+    required int clubId,
+    required int year,
+    required int month,
+    required FinanceExportFormat format,
+    RequestCancelToken? cancelToken,
+  }) async {
+    try {
+      final model = await remoteDataSource.exportFinances(
+        clubId: clubId,
+        year: year,
+        month: month,
+        format: format,
         cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(model.toEntity());

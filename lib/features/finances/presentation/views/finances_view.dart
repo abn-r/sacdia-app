@@ -1,51 +1,79 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import '../../../../core/animations/page_transitions.dart';
-import '../../../../core/animations/staggered_list_animation.dart';
-import '../../../../core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
-import '../../../../core/widgets/secure_screen.dart';
-import '../../../../core/theme/sac_colors.dart';
-import '../../domain/entities/finance_month.dart';
-import '../../domain/entities/transaction.dart';
-import '../providers/finances_providers.dart';
-import '../widgets/balance_header_card.dart';
-import '../widgets/closed_period_banner.dart';
-import '../widgets/date_group_header.dart';
-import '../widgets/finance_line_chart.dart';
-import '../widgets/finances_loading_skeleton.dart';
-import '../widgets/transaction_tile.dart';
-import 'add_transaction_sheet.dart';
-import 'all_transactions_view.dart';
-import 'transaction_detail_view.dart';
-import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+
+import '../../../../core/config/route_names.dart';
+import '../../../../core/errors/user_error_message.dart';
+import '../../../../core/widgets/secure_screen.dart';
+import '../../../auth/presentation/providers/acting_providers.dart';
+import '../../domain/entities/finance_month.dart';
+import '../../domain/entities/finance_summary.dart';
+import '../providers/finances_providers.dart';
+import '../widgets/balance_header_card.dart';
+import '../widgets/finance_menu_sheet.dart';
+import '../widgets/finance_month_transition.dart';
+import '../widgets/finances_content.dart';
+import '../widgets/finances_loading_skeleton.dart';
+import 'add_transaction_sheet.dart';
 
 /// Pantalla principal del módulo de Finanzas.
 ///
 /// Muestra el saldo acumulado, el resumen del mes seleccionado,
 /// un gráfico de líneas con selector de período y la lista agrupada
 /// de transacciones por fecha.
-class FinancesView extends ConsumerWidget {
+///
+/// Al cambiar de mes el encabezado (saldo, mes y flechas) nunca desaparece: el
+/// contenido del mes anterior se atenúa mientras carga y el del mes nuevo entra
+/// deslizándose hacia el lado en que se viaja. Solo la primera carga muestra el
+/// esqueleto completo.
+class FinancesView extends ConsumerStatefulWidget {
   const FinancesView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final financeMonthAsync = ref.watch(financeMonthProvider);
-    final summaryAsync = ref.watch(financeSummaryProvider);
-    final canManageAsync = ref.watch(canManageFinancesProvider);
+  ConsumerState<FinancesView> createState() => _FinancesViewState();
+}
 
-    final isOpen = financeMonthAsync.value?.isOpen ?? true;
-    final canManage = canManageAsync.value ?? false;
-    final showAddButton = canManage && isOpen;
+class _FinancesViewState extends ConsumerState<FinancesView> {
+  /// Mes cuyos datos muestra el contenido (el último que terminó de cargar).
+  SelectedMonth? _shownMonth;
+
+  /// Sentido del último viaje entre meses: 1 hacia uno posterior, -1 anterior.
+  int _direction = 1;
+
+  void _refresh() => invalidateFinanceData(ref.invalidate);
+
+  @override
+  Widget build(BuildContext context) {
+    // Precarga el mes anterior en cuanto el seleccionado terminó de cargar.
+    ref.watch(financePrefetchProvider);
+
+    final selected = ref.watch(selectedMonthProvider);
+    final month = ref.watch(financeMonthProvider);
+    final summary = ref.watch(financeSummaryProvider);
+    final byCategory = ref.watch(financeByCategoryProvider);
+    final canManage = ref.watch(canManageFinancesProvider).value ?? false;
+    // `period_closed` of the summary (falls back to the month's movements).
+    final isClosed = ref.watch(financePeriodClosedProvider);
+    final isActing = ref.watch(actingDependentProvider) != null;
+
+    final isLoading =
+        month.isLoading || summary.isLoading || byCategory.isLoading;
+    final isStale = isLoading || month.hasError;
+
+    if (!isStale && _shownMonth != selected) {
+      final shown = _shownMonth;
+      if (shown != null) _direction = selected.compareTo(shown) >= 0 ? 1 : -1;
+      _shownMonth = selected;
+    }
 
     return SecureScreen(
       child: Scaffold(
@@ -55,40 +83,55 @@ class FinancesView extends ConsumerWidget {
           title: 'finances.view.title'.tr(),
           frosted: true,
           actions: [
-            if (showAddButton)
-              SacPressable(
-                listenOnly: true,
-                child: IconButton(
-                  enableFeedback: false,
-                  tooltip: 'finances.add_transaction.new_title'.tr(),
-                  onPressed: () => _openAddSheet(context, ref),
-                  icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedAdd01,
-                    size: 22,
-                    color: SacAccent.of(context).color,
-                  ),
+            if (canManage && !isClosed)
+              _TopBarAction(
+                tooltip: 'finances.add_transaction.new_title'.tr(),
+                onPressed: () => _openAddSheet(context),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedAdd01,
+                  size: 22,
+                  color: SacAccent.of(context).color,
                 ),
               ),
-            SacPressable(
-              listenOnly: true,
-              child: IconButton(
-                enableFeedback: false,
-                tooltip: 'common.refresh'.tr(),
-                onPressed: financeMonthAsync.isLoading
-                    ? null
-                    : () {
-                        ref.invalidate(financeMonthProvider);
-                        ref.invalidate(financeSummaryProvider);
-                      },
-                icon: financeMonthAsync.isLoading
-                    ? const SacLoadingSmall()
-                    : HugeIcon(
-                        icon: HugeIcons.strokeRoundedRefresh,
-                        size: 20,
-                        color: context.sac.textSecondary,
-                      ),
+            if (!selected.isCurrentMonth)
+              _TopBarAction(
+                tooltip: 'finances.view.go_current_month'.tr(),
+                onPressed: () =>
+                    ref.read(selectedMonthProvider.notifier).goToCurrent(),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedCalendar03,
+                  size: 20,
+                  color: context.sac.textSecondary,
+                ),
               ),
+            _TopBarAction(
+              tooltip: 'common.refresh'.tr(),
+              onPressed: isLoading ? null : _refresh,
+              icon: isLoading
+                  ? const SacLoadingSmall()
+                  : HugeIcon(
+                      icon: HugeIcons.strokeRoundedRefresh,
+                      size: 20,
+                      color: context.sac.textSecondary,
+                    ),
             ),
+            // Exportar y el informe son del club propio: no se ofrecen
+            // mientras se actúa por un menor.
+            if (!isActing)
+              _TopBarAction(
+                tooltip: 'finances.view.more_options'.tr(),
+                onPressed: () => showFinanceMenuSheet(
+                  context,
+                  onOpenReport: (enrollmentId) => context.push(
+                    RouteNames.monthlyReportsPath(enrollmentId),
+                  ),
+                ),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedMoreVertical,
+                  size: 20,
+                  color: context.sac.textSecondary,
+                ),
+              ),
           ],
         ),
         body: SacFrostedVeil(
@@ -98,10 +141,7 @@ class FinancesView extends ConsumerWidget {
               child: RefreshIndicator(
                 color: SacAccent.of(context).color,
                 edgeOffset: SacTopBar.frostedInset(context),
-                onRefresh: () async {
-                  ref.invalidate(financeMonthProvider);
-                  ref.invalidate(financeSummaryProvider);
-                },
+                onRefresh: () async => _refresh(),
                 child: CustomScrollView(
                   physics: const BouncingScrollPhysics(
                     parent: AlwaysScrollableScrollPhysics(),
@@ -111,20 +151,11 @@ class FinancesView extends ConsumerWidget {
                       child: SizedBox(height: SacTopBar.frostedInset(context)),
                     ),
                     SliverToBoxAdapter(
-                      child: financeMonthAsync.when(
-                        loading: () => const FinancesLoadingSkeleton(),
-                        error: (e, _) => SacErrorState(
-                          title: 'finances.view.error_title'.tr(),
-                          message: userErrorMessage(e),
-                          onRetry: () {
-                            ref.invalidate(financeMonthProvider);
-                            ref.invalidate(financeSummaryProvider);
-                          },
-                        ),
-                        data: (financeMonth) => _FinanceBody(
-                          financeMonth: financeMonth,
-                          summaryAsync: summaryAsync,
-                        ),
+                      child: _buildBody(
+                        selected: selected,
+                        month: month,
+                        summary: summary,
+                        isStale: isStale,
                       ),
                     ),
                   ],
@@ -137,7 +168,62 @@ class FinancesView extends ConsumerWidget {
     );
   }
 
-  void _openAddSheet(BuildContext context, WidgetRef ref) {
+  Widget _buildBody({
+    required SelectedMonth selected,
+    required FinanceSlice<FinanceMonth> month,
+    required FinanceSlice<FinanceSummary> summary,
+    required bool isStale,
+  }) {
+    // Primera carga: todavía no hay nada que mostrar.
+    if (month.value == null && month.isLoading && !month.hasError) {
+      return const FinancesLoadingSkeleton();
+    }
+
+    final error = month.error;
+    // Primer intento fallido: sin encabezado que conservar.
+    if (error != null && month.value == null) {
+      return SacErrorState(
+        title: 'finances.view.error_title'.tr(),
+        message: userErrorMessage(error),
+        onRetry: _refresh,
+      );
+    }
+
+    final financeMonth = month.value;
+    // Si el resumen del mes falló, `summary.value` es el del mes anterior.
+    final monthSummary = summary.hasError ? null : summary.value;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Saldo acumulado (toda la historia) y totales SOLO del mes, del
+        // resumen. Siempre montado: cambiar de mes nunca lo reemplaza.
+        BalanceHeaderCard(
+          financeMonth: financeMonth,
+          totalBalance:
+              monthSummary?.totalBalance ?? financeMonth?.totalBalance ?? 0.0,
+          periodIncome: monthSummary?.totalIncome,
+          periodExpense: monthSummary?.totalExpense,
+          isStale: isStale,
+        ),
+        if (error != null)
+          SacErrorState(
+            title: 'finances.view.error_title'.tr(),
+            message: userErrorMessage(error),
+            onRetry: _refresh,
+          )
+        else
+          FinanceMonthTransition(
+            monthKey: _shownMonth ?? selected,
+            direction: _direction,
+            isStale: isStale,
+            child: FinancesContent(financeMonth: financeMonth),
+          ),
+      ],
+    );
+  }
+
+  void _openAddSheet(BuildContext context) {
     showSacSheet(
       context: context,
       isScrollControlled: true,
@@ -148,210 +234,27 @@ class FinancesView extends ConsumerWidget {
   }
 }
 
-// ── Body principal ─────────────────────────────────────────────────────────────
-
-class _FinanceBody extends ConsumerWidget {
-  final FinanceMonth? financeMonth;
-  final AsyncValue summaryAsync;
-
-  const _FinanceBody({
-    required this.financeMonth,
-    required this.summaryAsync,
+/// Botón de la barra superior con el feedback de pulsación de la app.
+class _TopBarAction extends StatelessWidget {
+  const _TopBarAction({
+    required this.tooltip,
+    required this.onPressed,
+    required this.icon,
   });
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isOpen = financeMonth?.isOpen ?? true;
-    final totalBalance =
-        summaryAsync.value?.totalBalance ?? financeMonth?.totalBalance ?? 0.0;
-    final transactions = financeMonth?.transactions ?? [];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Balance header — centered layout
-        BalanceHeaderCard(
-          financeMonth: financeMonth,
-          totalBalance: totalBalance,
-        ),
-
-        // Closed period banner
-        if (!isOpen) const ClosedPeriodBanner(),
-
-        // Separator
-        const _DashedSeparator(),
-
-        // Area line chart with period selector
-        const FinanceLineChart(),
-
-        // Separator
-        const _DashedSeparator(),
-
-        // Transactions section header
-        _TransactionsSectionHeader(
-          onViewAll: () => _openFullTransactionList(context),
-        ),
-
-        // Transactions or empty state
-        if (transactions.isEmpty)
-          SacEmptyState(
-            icon: HugeIcons.strokeRoundedMoneyReceive01,
-            title: 'finances.view.empty_title'.tr(),
-            body: 'finances.view.empty_subtitle'.tr(),
-          )
-        else
-          ..._buildGroupedTransactions(context, transactions),
-
-        // Bottom navigation clearance
-        const SizedBox(height: 40),
-      ],
-    );
-  }
-
-  // ── Grouped transactions builder ──────────────────────────────────────────
-
-  List<Widget> _buildGroupedTransactions(
-    BuildContext context,
-    List<FinanceTransaction> transactions,
-  ) {
-    final grouped = <DateTime, List<FinanceTransaction>>{};
-    for (final tx in transactions) {
-      final dateKey = DateTime(tx.date.year, tx.date.month, tx.date.day);
-      grouped.putIfAbsent(dateKey, () => []).add(tx);
-    }
-
-    final sortedDates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
-    final widgets = <Widget>[];
-    var globalIndex = 0;
-
-    for (final date in sortedDates) {
-      final dayTransactions = grouped[date]!;
-      final dailyTotal = dayTransactions.fold<double>(
-        0,
-        (sum, tx) =>
-            sum + (tx.type == TransactionType.income ? tx.amount : -tx.amount),
-      );
-
-      widgets.add(DateGroupHeader(date: date, dailyTotal: dailyTotal));
-
-      for (final tx in dayTransactions) {
-        widgets.add(
-          StaggeredListItem(
-            index: globalIndex++,
-            child: TransactionTile(
-              transaction: tx,
-              onTap: () => _openTransactionDetail(context, tx),
-            ),
-          ),
-        );
-      }
-    }
-
-    return widgets;
-  }
-
-  // ── Navigation helpers ─────────────────────────────────────────────────────
-
-  void _openTransactionDetail(BuildContext context, FinanceTransaction t) {
-    Navigator.push(
-      context,
-      SacSharedAxisRoute(builder: (_) => TransactionDetailView(transaction: t)),
-    );
-  }
-
-  void _openFullTransactionList(BuildContext context) {
-    // Pass the currently selected month so AllTransactionsView seeds its
-    // date range filter to that month on first open.
-    final selected = ProviderScope.containerOf(
-      context,
-    ).read(selectedMonthProvider);
-    Navigator.of(context).push(
-      SacSharedAxisRoute(
-        builder: (_) => AllTransactionsView(initialMonth: selected),
-      ),
-    );
-  }
-}
-
-// ── Dashed separator ───────────────────────────────────────────────────────────
-
-class _DashedSeparator extends StatelessWidget {
-  const _DashedSeparator();
+  final String tooltip;
+  final VoidCallback? onPressed;
+  final Widget icon;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-      child: RepaintBoundary(
-        child: CustomPaint(
-          size: const Size(double.infinity, 1.5),
-          painter: _DashedLinePainter(color: context.sac.border),
-        ),
-      ),
-    );
-  }
-}
-
-class _DashedLinePainter extends CustomPainter {
-  final Color color;
-
-  _DashedLinePainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1.5
-      ..style = PaintingStyle.stroke;
-
-    const dashWidth = 5.0;
-    const dashGap = 4.0;
-    var startX = 0.0;
-
-    while (startX < size.width) {
-      canvas.drawLine(
-        Offset(startX, size.height / 2),
-        Offset(startX + dashWidth, size.height / 2),
-        paint,
-      );
-      startX += dashWidth + dashGap;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DashedLinePainter oldDelegate) =>
-      color != oldDelegate.color;
-}
-
-// ── Transactions section header ────────────────────────────────────────────────
-
-class _TransactionsSectionHeader extends StatelessWidget {
-  final VoidCallback onViewAll;
-
-  const _TransactionsSectionHeader({required this.onViewAll});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'finances.view.recent_transactions'.tr(),
-            style: TextStyle(
-              fontSize: SacFontSize.titleMedium,
-              fontWeight: FontWeight.w700,
-              color: c.text,
-            ),
-          ),
-          SacButton.text(
-            text: 'finances.view.view_all'.tr(),
-            onPressed: onViewAll,
-            color: c.textSecondary,
-          ),
-        ],
+    return SacPressable(
+      listenOnly: true,
+      child: IconButton(
+        enableFeedback: false,
+        tooltip: tooltip,
+        onPressed: onPressed,
+        icon: icon,
       ),
     );
   }

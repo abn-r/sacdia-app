@@ -12,6 +12,7 @@ import '../../../../core/widgets/sac_loading.dart';
 import '../../domain/entities/finance_month.dart';
 import '../../domain/entities/finance_summary.dart';
 import '../providers/finances_providers.dart';
+import '../theme/finance_tokens.dart';
 import 'period_selector.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -27,13 +28,11 @@ class FinanceLineChart extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final period = ref.watch(selectedPeriodProvider);
-    final incomeColor = context.sac.success;
-    final expenseColor = context.sac.error;
+    final incomeColor = FinanceTokens.incomeFill(context);
+    final expenseColor = FinanceTokens.expenseFill(context);
 
     final chartSurface = context.sac.canvas;
-    final gridColor = isDark
-        ? Colors.white.withValues(alpha: 0.05)
-        : Colors.black.withValues(alpha: 0.06);
+    final gridColor = FinanceTokens.chartGrid(context);
     final tooltipBg = context.sac.paper;
 
     return Container(
@@ -125,7 +124,7 @@ class _MonthlyChart extends ConsumerWidget {
       ),
       error: (e, _) => _ChartError(
         message: userErrorMessage(e),
-        onRetry: () => ref.invalidate(financeMonthProvider),
+        onRetry: () => invalidateFinanceData(ref.invalidate),
       ),
       data: (month) {
         if (month == null || month.transactions.isEmpty) {
@@ -203,7 +202,7 @@ class _SummaryChart extends ConsumerWidget {
       ),
       error: (e, _) => _ChartError(
         message: userErrorMessage(e),
-        onRetry: () => ref.invalidate(financeSummaryProvider),
+        onRetry: () => invalidateFinanceData(ref.invalidate),
       ),
       data: (summary) {
         if (summary == null || summary.monthlyBars.isEmpty) {
@@ -284,11 +283,10 @@ class _ChartView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    final incomeColor = c.success;
-    final expenseColor = c.error;
-    final incomeTextColor = c.onSuccessContainer;
-    final expenseTextColor = c.onErrorContainer;
+    final incomeColor = FinanceTokens.incomeFill(context);
+    final expenseColor = FinanceTokens.expenseFill(context);
+    final incomeTextColor = FinanceTokens.incomeText(context);
+    final expenseTextColor = FinanceTokens.expenseText(context);
     final allValues = [
       ...incomeSpots.map((s) => s.y),
       ...expenseSpots.map((s) => s.y),
@@ -296,92 +294,104 @@ class _ChartView extends StatelessWidget {
     final maxValue =
         allValues.isEmpty ? 1.0 : allValues.reduce((a, b) => a > b ? a : b);
     final chartMaxY = maxValue <= 0 ? 1.0 : maxValue * 1.15;
+    final locale = context.locale.toString();
+    final totalIncome = incomeSpots.fold<double>(0, (sum, s) => sum + s.y);
+    final totalExpense = expenseSpots.fold<double>(0, (sum, s) => sum + s.y);
 
+    // Text alternative of the plot: the lines are not readable by a screen
+    // reader, so the totals of the shown period are announced instead.
     return Semantics(
       container: true,
-      label: 'finances.widgets.chart_a11y'.tr(),
-      child: RepaintBoundary(
-        child: SizedBox(
-          height: 180,
-          child: LineChart(
-            LineChartData(
-              minY: 0,
-              maxY: chartMaxY,
-              clipData: const FlClipData.all(),
+      label: 'finances.widgets.chart_a11y_summary'.tr(
+        namedArgs: {
+          'income': SacMoney.format(totalIncome),
+          'expense': SacMoney.format(totalExpense),
+        },
+      ),
+      child: ExcludeSemantics(
+        child: RepaintBoundary(
+          child: SizedBox(
+            height: 180,
+            child: LineChart(
+              LineChartData(
+                minY: 0,
+                maxY: chartMaxY,
+                clipData: const FlClipData.all(),
 
-              // ── Grid ──────────────────────────────────────────────────────────
-              gridData: FlGridData(
-                show: true,
-                drawVerticalLine: false,
-                horizontalInterval: chartMaxY / 4,
-                getDrawingHorizontalLine: (_) => FlLine(
-                  color: gridColor,
-                  strokeWidth: 1,
-                ),
-              ),
-
-              // ── Borders ───────────────────────────────────────────────────────
-              borderData: FlBorderData(show: false),
-
-              // ── Axes ──────────────────────────────────────────────────────────
-              titlesData: FlTitlesData(
-                topTitles:
-                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles:
-                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 40,
-                    interval: chartMaxY / 4,
-                    getTitlesWidget: (value, meta) =>
-                        _yLabel(value, context, isDark),
+                // ── Grid ──────────────────────────────────────────────────────────
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: chartMaxY / 4,
+                  getDrawingHorizontalLine: (_) => FlLine(
+                    color: gridColor,
+                    strokeWidth: 1,
                   ),
                 ),
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 22,
-                    interval: _xInterval,
-                    getTitlesWidget: (value, meta) =>
-                        _xLabel(value, context, isDark),
+
+                // ── Borders ───────────────────────────────────────────────────────
+                borderData: FlBorderData(show: false),
+
+                // ── Axes ──────────────────────────────────────────────────────────
+                titlesData: FlTitlesData(
+                  topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 40,
+                      interval: chartMaxY / 4,
+                      getTitlesWidget: (value, meta) =>
+                          _yLabel(value, context, isDark),
+                    ),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 22,
+                      interval: _xInterval,
+                      getTitlesWidget: (value, meta) =>
+                          _xLabel(value, context, isDark, locale),
+                    ),
                   ),
                 ),
-              ),
 
-              // ── Touch ─────────────────────────────────────────────────────────
-              lineTouchData: LineTouchData(
-                touchTooltipData: LineTouchTooltipData(
-                  getTooltipColor: (_) => tooltipBg,
-                  getTooltipItems: (spots) => spots.map((spot) {
-                    final isIncome = spot.barIndex == 0;
-                    return LineTooltipItem(
-                      SacMoney.compact(spot.y),
-                      TextStyle(
-                        color: isIncome ? incomeTextColor : expenseTextColor,
-                        fontSize: SacFontSize.labelSmall,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    );
-                  }).toList(),
+                // ── Touch ─────────────────────────────────────────────────────────
+                lineTouchData: LineTouchData(
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipColor: (_) => tooltipBg,
+                    getTooltipItems: (spots) => spots.map((spot) {
+                      final isIncome = spot.barIndex == 0;
+                      return LineTooltipItem(
+                        SacMoney.compact(spot.y),
+                        TextStyle(
+                          color: isIncome ? incomeTextColor : expenseTextColor,
+                          fontSize: SacFontSize.labelSmall,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  handleBuiltInTouches: true,
                 ),
-                handleBuiltInTouches: true,
-              ),
 
-              // ── Lines ─────────────────────────────────────────────────────────
-              lineBarsData: [
-                _buildLine(
-                  spots: incomeSpots,
-                  color: incomeColor,
-                  fillOpacity: 0.30,
-                ),
-                _buildLine(
-                  spots: expenseSpots,
-                  color: expenseColor,
-                  fillOpacity: 0.25,
-                  dashed: true,
-                ),
-              ],
+                // ── Lines ─────────────────────────────────────────────────────────
+                lineBarsData: [
+                  _buildLine(
+                    spots: incomeSpots,
+                    color: incomeColor,
+                    fillOpacity: 0.30,
+                  ),
+                  _buildLine(
+                    spots: expenseSpots,
+                    color: expenseColor,
+                    fillOpacity: 0.25,
+                    dashed: true,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -459,10 +469,15 @@ class _ChartView extends StatelessWidget {
     }
   }
 
-  Widget _xLabel(double value, BuildContext context, bool isDark) {
+  Widget _xLabel(
+    double value,
+    BuildContext context,
+    bool isDark,
+    String locale,
+  ) {
     final labelColor = context.sac.textSecondary;
 
-    final label = _buildXLabel(value);
+    final label = _buildXLabel(value, locale);
     if (label.isEmpty) return const SizedBox.shrink();
 
     return Padding(
@@ -478,22 +493,13 @@ class _ChartView extends StatelessWidget {
     );
   }
 
-  String _buildXLabel(double value) {
-    const monthNames = [
-      'Ene',
-      'Feb',
-      'Mar',
-      'Abr',
-      'May',
-      'Jun',
-      'Jul',
-      'Ago',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dic',
-    ];
+  /// Short month name in the app language ("Ene", "Jan", "Janv."...).
+  String _monthName(int month, String locale) {
+    final name = DateFormat.MMM(locale).format(DateTime(2000, month));
+    return name[0].toUpperCase() + name.substring(1);
+  }
 
+  String _buildXLabel(double value, String locale) {
     switch (period) {
       case '1M':
         // x = day number. Show labels at 1, 7, 14, 21, 28.
@@ -508,13 +514,13 @@ class _ChartView extends StatelessWidget {
         final idx = value.round();
         if (idx < 0 || idx >= monthlyBars.length) return '';
         final bar = monthlyBars[idx];
-        return monthNames[bar.month - 1];
+        return _monthName(bar.month, locale);
 
       case '6M':
         final idx = value.round();
         if (idx < 0 || idx >= monthlyBars.length) return '';
         final bar = monthlyBars[idx];
-        return monthNames[bar.month - 1];
+        return _monthName(bar.month, locale);
 
       case '1A':
         final idx = value.round();
@@ -522,7 +528,7 @@ class _ChartView extends StatelessWidget {
         // Only show every other label to avoid crowding.
         if (idx % 2 != 0) return '';
         final bar = monthlyBars[idx];
-        return monthNames[bar.month - 1];
+        return _monthName(bar.month, locale);
 
       case 'Todo':
       default:
@@ -531,7 +537,7 @@ class _ChartView extends StatelessWidget {
         final bar = monthlyBars[idx];
         // Show month + last two digits of year.
         final yr = bar.year % 100;
-        return '${monthNames[bar.month - 1]} ${yr.toString().padLeft(2, '0')}';
+        return '${_monthName(bar.month, locale)} ${yr.toString().padLeft(2, '0')}';
     }
   }
 }

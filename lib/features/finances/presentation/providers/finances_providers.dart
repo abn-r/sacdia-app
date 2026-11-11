@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
@@ -5,12 +7,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../core/providers/keep_alive_during.dart';
+import '../../../../core/providers/riverpod_aliases.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../../data/datasources/finances_remote_data_source.dart';
 import '../../data/repositories/finances_repository_impl.dart';
+import '../../domain/entities/category_breakdown.dart';
 import '../../domain/entities/finance_category.dart';
 import '../../domain/entities/finance_month.dart';
 import '../../domain/entities/finance_summary.dart';
@@ -19,7 +23,9 @@ import '../../domain/entities/transaction_filter.dart';
 import '../../domain/repositories/finances_repository.dart';
 import '../../domain/usecases/create_transaction.dart';
 import '../../domain/usecases/delete_transaction.dart';
+import '../../domain/usecases/export_finances.dart';
 import '../../domain/usecases/get_categories.dart';
+import '../../domain/usecases/get_category_breakdown.dart';
 import '../../domain/usecases/get_finance_summary.dart';
 import '../../domain/usecases/get_finances.dart';
 import '../../domain/usecases/update_transaction.dart';
@@ -50,6 +56,15 @@ final getFinancesUseCaseProvider = Provider<GetFinances>((ref) {
 
 final getFinanceSummaryUseCaseProvider = Provider<GetFinanceSummary>((ref) {
   return GetFinanceSummary(ref.read(financesRepositoryProvider));
+});
+
+final getCategoryBreakdownUseCaseProvider =
+    Provider<GetCategoryBreakdown>((ref) {
+  return GetCategoryBreakdown(ref.read(financesRepositoryProvider));
+});
+
+final exportFinancesUseCaseProvider = Provider<ExportFinances>((ref) {
+  return ExportFinances(ref.read(financesRepositoryProvider));
 });
 
 final getFinanceCategoriesUseCaseProvider =
@@ -92,6 +107,10 @@ class SelectedMonth extends Equatable {
     return SelectedMonth(year: d.year, month: d.month);
   }
 
+  /// Negativo si [other] es posterior, positivo si es anterior, 0 si igual.
+  int compareTo(SelectedMonth other) =>
+      (year * 12 + month) - (other.year * 12 + other.month);
+
   bool get isCurrentMonth {
     final now = DateTime.now();
     return year == now.year && month == now.month;
@@ -116,6 +135,12 @@ class SelectedMonthNotifier extends Notifier<SelectedMonth> {
     }
   }
 
+  /// Vuelve al mes en curso.
+  void goToCurrent() {
+    final now = DateTime.now();
+    state = SelectedMonth(year: now.year, month: now.month);
+  }
+
   void jumpTo(int year, int month) =>
       state = SelectedMonth(year: year, month: month);
 }
@@ -136,61 +161,314 @@ final currentClubIdProvider = FutureProvider.autoDispose<int?>((ref) async {
   return context?.clubId;
 });
 
-// ── Finance month data provider ────────────────────────────────────────────────
+// ── Per-month cache ────────────────────────────────────────────────────────────
 
-/// Carga los movimientos del mes seleccionado.
-final financeMonthProvider =
-    FutureProvider.autoDispose<FinanceMonth?>((ref) async {
-  final clubIdAsync = await ref.watch(currentClubIdProvider.future);
-  if (clubIdAsync == null) return null;
+/// Cuánto se conservan los datos de un mes ya visitado cuando nadie lo mira.
+const Duration kFinanceCacheTtl = Duration(minutes: 5);
 
-  final selected = ref.watch(selectedMonthProvider);
+/// Mes de un club: llave de la caché de Finanzas.
+class FinanceMonthKey extends Equatable {
+  final int clubId;
+  final int year;
+  final int month;
+
+  const FinanceMonthKey({
+    required this.clubId,
+    required this.year,
+    required this.month,
+  });
+
+  FinanceMonthKey get previous {
+    final d = DateTime(year, month - 1);
+    return FinanceMonthKey(clubId: clubId, year: d.year, month: d.month);
+  }
+
+  @override
+  List<Object?> get props => [clubId, year, month];
+}
+
+/// Suelta el `keepAlive` de [link] [kFinanceCacheTtl] después de que el último
+/// oyente se va. El temporizador también corre desde la creación: un mes que se
+/// precarga sin oyente nunca dispara `onCancel`.
+void _releaseAfterTtl(Ref ref, KeepAliveLink link) {
+  Timer? timer;
+  void start() {
+    timer?.cancel();
+    timer = Timer(kFinanceCacheTtl, link.close);
+  }
+
+  start();
+  ref.onCancel(start);
+  ref.onResume(() => timer?.cancel());
+  ref.onDispose(() => timer?.cancel());
+}
+
+/// Carga [load] con un token que se cancela al descartar la entrada. Un fallo
+/// no se cachea: suelta el `keepAlive` para que la siguiente lectura reintente.
+Future<T> _loadCachedEntry<T>(
+  Ref ref,
+  KeepAliveLink link,
+  Future<T> Function(CancelToken cancelToken) load,
+) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(cancelToken.cancel);
+  try {
+    return await load(cancelToken);
+  } catch (_) {
+    link.close();
+    rethrow;
+  }
+}
+
+/// Movimientos de un mes. Se conserva [kFinanceCacheTtl] tras dejar de
+/// mirarse, así volver a un mes ya visitado es instantáneo.
+///
+/// La vista no lo lee directo: usa [financeMonthProvider] (mes seleccionado).
+final financeMonthByKeyProvider = FutureProvider.autoDispose
+    .family<FinanceMonth?, FinanceMonthKey>((ref, key) async {
+  final link = ref.keepAlive();
+  _releaseAfterTtl(ref, link);
   final useCase = ref.read(getFinancesUseCaseProvider);
 
-  final cancelToken = CancelToken();
-  ref.onDispose(() => cancelToken.cancel());
-
-  final result = await useCase(
-    GetFinancesParams(
-      clubId: clubIdAsync,
-      year: selected.year,
-      month: selected.month,
-    ),
-    cancelToken: cancelToken,
-  );
-
-  return result.fold(
-    (failure) => throw Exception(failure.message),
-    (month) => month,
-  );
+  return _loadCachedEntry(ref, link, (cancelToken) async {
+    final result = await useCase(
+      GetFinancesParams(
+        clubId: key.clubId,
+        year: key.year,
+        month: key.month,
+      ),
+      cancelToken: cancelToken,
+    );
+    return result.fold(
+      (failure) => throw Exception(failure.message),
+      (month) => month,
+    );
+  });
 });
 
-// ── Finance summary provider ───────────────────────────────────────────────────
-
-final financeSummaryProvider =
-    FutureProvider.autoDispose<FinanceSummary?>((ref) async {
-  final clubId = await ref.watch(currentClubIdProvider.future);
-  if (clubId == null) return null;
-
-  final selected = ref.watch(selectedMonthProvider);
+/// Resumen (saldo acumulado y totales) de un mes. Ver [financeMonthByKeyProvider].
+final financeSummaryByKeyProvider = FutureProvider.autoDispose
+    .family<FinanceSummary?, FinanceMonthKey>((ref, key) async {
+  final link = ref.keepAlive();
+  _releaseAfterTtl(ref, link);
   final useCase = ref.read(getFinanceSummaryUseCaseProvider);
 
-  final cancelToken = CancelToken();
-  ref.onDispose(() => cancelToken.cancel());
+  return _loadCachedEntry(ref, link, (cancelToken) async {
+    final result = await useCase(
+      GetFinanceSummaryParams(
+        clubId: key.clubId,
+        year: key.year,
+        month: key.month,
+      ),
+      cancelToken: cancelToken,
+    );
+    return result.fold(
+      (failure) => throw Exception(failure.message),
+      (summary) => summary,
+    );
+  });
+});
 
-  final result = await useCase(
-    GetFinanceSummaryParams(
-      clubId: clubId,
-      year: selected.year,
-      month: selected.month,
-    ),
-    cancelToken: cancelToken,
-  );
+/// Totales por categoría de un mes. Ver [financeMonthByKeyProvider].
+final financeByCategoryByKeyProvider = FutureProvider.autoDispose
+    .family<CategoryBreakdown?, FinanceMonthKey>((ref, key) async {
+  final link = ref.keepAlive();
+  _releaseAfterTtl(ref, link);
+  final useCase = ref.read(getCategoryBreakdownUseCaseProvider);
 
-  return result.fold(
-    (failure) => throw Exception(failure.message),
-    (summary) => summary,
-  );
+  return _loadCachedEntry(ref, link, (cancelToken) async {
+    final result = await useCase(
+      GetCategoryBreakdownParams(
+        clubId: key.clubId,
+        year: key.year,
+        month: key.month,
+      ),
+      cancelToken: cancelToken,
+    );
+    return result.fold(
+      (failure) => throw Exception(failure.message),
+      (breakdown) => breakdown,
+    );
+  });
+});
+
+/// Descarta TODA la caché de Finanzas (todos los meses).
+///
+/// Cualquier cambio (movimiento creado, editado, borrado, evidencia) o un
+/// recordatorio del servidor la vacía entera: el saldo acumulado de los meses
+/// posteriores también cambia, así que no basta con el mes tocado. Los
+/// invocadores pasan su `ref.invalidate`.
+void invalidateFinanceData(
+  void Function(ProviderOrFamily provider) invalidate,
+) {
+  invalidate(financeMonthByKeyProvider);
+  invalidate(financeSummaryByKeyProvider);
+  invalidate(financeByCategoryByKeyProvider);
+}
+
+// ── Selected month views (stale-while-loading) ─────────────────────────────────
+
+/// Un dato de Finanzas del mes seleccionado.
+///
+/// A diferencia de un `AsyncValue`, [value] conserva el del mes anterior
+/// mientras el nuevo carga ([isLoading]): la pantalla no se vacía al cambiar
+/// de mes, solo se atenúa.
+class FinanceSlice<T extends Object> extends Equatable {
+  /// Dato actual o, si [isLoading] o [hasError], el último que hubo.
+  final T? value;
+
+  /// El mes seleccionado aún no llega (o se está refrescando).
+  final bool isLoading;
+
+  final Object? error;
+  final StackTrace? stackTrace;
+
+  const FinanceSlice({
+    this.value,
+    this.isLoading = false,
+    this.error,
+    this.stackTrace,
+  });
+
+  bool get hasError => error != null;
+
+  /// [value] pertenece a otro mes (o hay error): no mostrarlo sin atenuar.
+  bool get isStale => isLoading || hasError;
+
+  /// Mismo contrato que `AsyncValue.when`, sin pantalla de carga si ya hubo
+  /// un dato que mostrar.
+  R when<R>({
+    required R Function() loading,
+    required R Function(Object error, StackTrace stackTrace) error,
+    required R Function(T? data) data,
+  }) {
+    if (hasError) return error(this.error!, stackTrace ?? StackTrace.empty);
+    if (isLoading && value == null) return loading();
+    return data(value);
+  }
+
+  @override
+  List<Object?> get props => [value, isLoading, error];
+}
+
+/// Lee un dato por mes de la caché y lo expone para el mes seleccionado,
+/// recordando el último dato bueno entre cambios de mes.
+abstract class _SelectedFinanceNotifier<T extends Object>
+    extends Notifier<FinanceSlice<T>> {
+  T? _lastGood;
+
+  AsyncValue<T?> watchEntry(FinanceMonthKey key);
+
+  @override
+  FinanceSlice<T> build() {
+    final clubAsync = ref.watch(currentClubIdProvider);
+    if (!clubAsync.hasValue) {
+      if (clubAsync.hasError) {
+        return FinanceSlice<T>(
+          value: _lastGood,
+          error: clubAsync.error,
+          stackTrace: clubAsync.stackTrace,
+        );
+      }
+      return FinanceSlice<T>(value: _lastGood, isLoading: true);
+    }
+    final clubId = clubAsync.value;
+    if (clubId == null) return const FinanceSlice();
+
+    final selected = ref.watch(selectedMonthProvider);
+    final entry = watchEntry(
+      FinanceMonthKey(
+        clubId: clubId,
+        year: selected.year,
+        month: selected.month,
+      ),
+    );
+
+    if (entry.hasError) {
+      return FinanceSlice<T>(
+        value: _lastGood,
+        error: entry.error,
+        stackTrace: entry.stackTrace,
+      );
+    }
+    if (entry.isLoading) {
+      return FinanceSlice<T>(value: entry.value ?? _lastGood, isLoading: true);
+    }
+    final value = entry.value;
+    if (value != null) _lastGood = value;
+    return FinanceSlice<T>(value: value);
+  }
+}
+
+class SelectedFinanceMonthNotifier
+    extends _SelectedFinanceNotifier<FinanceMonth> {
+  @override
+  AsyncValue<FinanceMonth?> watchEntry(FinanceMonthKey key) =>
+      ref.watch(financeMonthByKeyProvider(key));
+}
+
+class SelectedFinanceSummaryNotifier
+    extends _SelectedFinanceNotifier<FinanceSummary> {
+  @override
+  AsyncValue<FinanceSummary?> watchEntry(FinanceMonthKey key) =>
+      ref.watch(financeSummaryByKeyProvider(key));
+}
+
+class SelectedFinanceByCategoryNotifier
+    extends _SelectedFinanceNotifier<CategoryBreakdown> {
+  @override
+  AsyncValue<CategoryBreakdown?> watchEntry(FinanceMonthKey key) =>
+      ref.watch(financeByCategoryByKeyProvider(key));
+}
+
+/// Movimientos del mes seleccionado.
+final financeMonthProvider = NotifierProvider.autoDispose<
+    SelectedFinanceMonthNotifier, FinanceSlice<FinanceMonth>>(
+  SelectedFinanceMonthNotifier.new,
+);
+
+/// Resumen del mes seleccionado.
+final financeSummaryProvider = NotifierProvider.autoDispose<
+    SelectedFinanceSummaryNotifier, FinanceSlice<FinanceSummary>>(
+  SelectedFinanceSummaryNotifier.new,
+);
+
+/// Totales por categoría del mes seleccionado.
+final financeByCategoryProvider = NotifierProvider.autoDispose<
+    SelectedFinanceByCategoryNotifier, FinanceSlice<CategoryBreakdown>>(
+  SelectedFinanceByCategoryNotifier.new,
+);
+
+/// Precarga el mes anterior cuando el seleccionado ya cargó, para que «atrás»
+/// sea instantáneo. La vista lo observa; no expone nada.
+final financePrefetchProvider = Provider.autoDispose<void>((ref) {
+  final clubId = ref.watch(currentClubIdProvider).value;
+  final selected = ref.watch(selectedMonthProvider);
+  final month = ref.watch(financeMonthProvider);
+  final summary = ref.watch(financeSummaryProvider);
+  if (clubId == null || month.isStale || summary.isStale) return;
+
+  final previous = FinanceMonthKey(
+    clubId: clubId,
+    year: selected.year,
+    month: selected.month,
+  ).previous;
+  ref.read(financeMonthByKeyProvider(previous).future).ignore();
+  ref.read(financeSummaryByKeyProvider(previous).future).ignore();
+  ref.read(financeByCategoryByKeyProvider(previous).future).ignore();
+});
+
+// ── Closed period ──────────────────────────────────────────────────────────────
+
+/// ¿El mes seleccionado está cerrado?
+///
+/// El resumen manda `period_closed` y es la fuente principal; mientras no
+/// llega (o si falla) se usa la marca de los movimientos del mes.
+final financePeriodClosedProvider = Provider.autoDispose<bool>((ref) {
+  final summaryClosed = ref.watch(financeSummaryProvider).value?.periodClosed;
+  if (summaryClosed != null) return summaryClosed;
+  final isOpen = ref.watch(financeMonthProvider).value?.isOpen ?? true;
+  return !isOpen;
 });
 
 // ── Finance categories provider ────────────────────────────────────────────────
@@ -323,8 +601,7 @@ class TransactionFormNotifier extends Notifier<TransactionFormState> {
                 success: true,
                 savedTransaction: transaction,
               );
-              ref.invalidate(financeMonthProvider);
-              ref.invalidate(financeSummaryProvider);
+              invalidateFinanceData(ref.invalidate);
               ref.invalidate(transactionDetailProvider(existingId));
               return true;
             },
@@ -361,8 +638,7 @@ class TransactionFormNotifier extends Notifier<TransactionFormState> {
                 success: true,
                 savedTransaction: transaction,
               );
-              ref.invalidate(financeMonthProvider);
-              ref.invalidate(financeSummaryProvider);
+              invalidateFinanceData(ref.invalidate);
               return true;
             },
           );
@@ -390,8 +666,7 @@ class TransactionFormNotifier extends Notifier<TransactionFormState> {
           },
           (_) {
             state = state.copyWith(isLoading: false, success: true);
-            ref.invalidate(financeMonthProvider);
-            ref.invalidate(financeSummaryProvider);
+            invalidateFinanceData(ref.invalidate);
             ref.invalidate(transactionDetailProvider(financeId));
             return true;
           },
@@ -431,8 +706,7 @@ class TransactionFormNotifier extends Notifier<TransactionFormState> {
           },
           (_) {
             state = state.copyWith(isLoading: false, success: true);
-            ref.invalidate(financeMonthProvider);
-            ref.invalidate(financeSummaryProvider);
+            invalidateFinanceData(ref.invalidate);
             ref.invalidate(transactionDetailProvider(financeId));
             return true;
           },

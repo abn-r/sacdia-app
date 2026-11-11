@@ -2669,7 +2669,9 @@
       "delete": "Error deleting transaction",
       "fetch_categories": "Error fetching categories",
       "fetch_paginated": "Error fetching transactions",
-      "upload_evidence": "Could not upload the evidence"
+      "fetch_by_category": "Error fetching totals by category",
+      "upload_evidence": "Could not upload the evidence",
+      "export": "Error exporting finances"
     },
     "view": {
       "title": "Finances",
@@ -2677,7 +2679,21 @@
       "empty_subtitle": "Add the first record.",
       "error_title": "Error loading finances",
       "recent_transactions": "Recent Transactions",
-      "view_all": "View all →"
+      "view_all": "View all →",
+      "go_current_month": "Go to current month",
+      "more_options": "More options"
+    },
+    "by_category": {
+      "title": "By category",
+      "income": "Income",
+      "expenses": "Expenses",
+      "empty": "No movements by category this month",
+      "error_title": "Error loading totals by category",
+      "share": "{percent}% of total",
+      "count": {
+        "one": "{} movement",
+        "other": "{} movements"
+      }
     },
     "add_transaction": {
       "edit_title": "Edit Movement",
@@ -2738,7 +2754,8 @@
       "prev_month": "Previous month",
       "next_month": "Next month",
       "chart_a11y": "Income and expense chart for the period",
-      "balance_total": "TOTAL BALANCE",
+      "chart_a11y_summary": "Income and expense chart for the period. Income: {income}. Expenses: {expense}.",
+      "balance_total": "ACCUMULATED BALANCE",
       "month_summary_prefix": "This month: ",
       "month_summary_connector": " income and ",
       "month_summary_suffix": " expenses",
@@ -2773,6 +2790,16 @@
     },
     "providers": {
       "club_unavailable": "Club not available"
+    },
+    "menu": {
+      "title": "Month options",
+      "export_excel": "Export to Excel",
+      "export_pdf": "Export to PDF",
+      "view_report": "View month report"
+    },
+    "export": {
+      "error": "Could not export",
+      "forbidden": "You do not have permission to export finances"
     }
   },
   "members": {

@@ -8,6 +8,7 @@ import '../../features/club/presentation/providers/club_providers.dart';
 import '../../features/dashboard/presentation/providers/dashboard_providers.dart';
 import '../../features/enrollment/presentation/providers/enrollment_providers.dart';
 import '../../features/evidence_folder/presentation/providers/evidence_folder_providers.dart';
+import '../../features/finances/presentation/providers/finances_providers.dart';
 import '../../features/honors/presentation/providers/honors_providers.dart';
 import '../../features/master_honors/presentation/providers/master_honor_modal_queue_provider.dart';
 import '../../features/master_honors/presentation/providers/master_honors_providers.dart';
@@ -70,6 +71,10 @@ final Map<String, ProviderOrFamily> profileScopedKeepAliveEntries = {
   'userHonorProgressProvider': userHonorProgressProvider,
   'userMasterHonorsProvider': userMasterHonorsProvider,
   'userMasterHonorRoadmapProvider': userMasterHonorRoadmapProvider,
+  // Finanzas: caché por mes (club, año, mes) de ~5 min; son los datos de UN club
+  'financeMonthByKeyProvider': financeMonthByKeyProvider,
+  'financeSummaryByKeyProvider': financeSummaryByKeyProvider,
+  'financeByCategoryByKeyProvider': financeByCategoryByKeyProvider,
   // Informes mensuales
   'monthlyReportPdfProvider': monthlyReportPdfProvider,
   // Post-registro (el keepAlive se llama dentro del notifier)

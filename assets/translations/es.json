@@ -2669,7 +2669,9 @@
       "delete": "Error al eliminar el movimiento",
       "fetch_categories": "Error al obtener categorías",
       "fetch_paginated": "Error al obtener transacciones",
-      "upload_evidence": "Error al subir la evidencia"
+      "fetch_by_category": "Error al obtener los totales por categoría",
+      "upload_evidence": "Error al subir la evidencia",
+      "export": "Error al exportar las finanzas"
     },
     "view": {
       "title": "Finanzas",
@@ -2677,7 +2679,21 @@
       "empty_subtitle": "Agrega el primer movimiento.",
       "error_title": "Error al cargar finanzas",
       "recent_transactions": "Transacciones Recientes",
-      "view_all": "Ver todo →"
+      "view_all": "Ver todo →",
+      "go_current_month": "Ir al mes actual",
+      "more_options": "Más opciones"
+    },
+    "by_category": {
+      "title": "Por categoría",
+      "income": "Ingresos",
+      "expenses": "Egresos",
+      "empty": "No hay movimientos por categoría este mes",
+      "error_title": "Error al cargar los totales por categoría",
+      "share": "{percent} % del total",
+      "count": {
+        "one": "{} movimiento",
+        "other": "{} movimientos"
+      }
     },
     "add_transaction": {
       "edit_title": "Editar Movimiento",
@@ -2738,7 +2754,8 @@
       "prev_month": "Mes anterior",
       "next_month": "Mes siguiente",
       "chart_a11y": "Gráfico de ingresos y egresos del periodo",
-      "balance_total": "SALDO TOTAL",
+      "chart_a11y_summary": "Gráfico de ingresos y egresos del periodo. Ingresos: {income}. Egresos: {expense}.",
+      "balance_total": "SALDO ACUMULADO",
       "month_summary_prefix": "Este mes: ",
       "month_summary_connector": " ingresos y ",
       "month_summary_suffix": " egresos",
@@ -2773,6 +2790,16 @@
     },
     "providers": {
       "club_unavailable": "Club no disponible"
+    },
+    "menu": {
+      "title": "Opciones del mes",
+      "export_excel": "Exportar a Excel",
+      "export_pdf": "Exportar a PDF",
+      "view_report": "Ver informe del mes"
+    },
+    "export": {
+      "error": "No se pudo exportar",
+      "forbidden": "No tienes permiso para exportar las finanzas"
     }
   },
   "members": {

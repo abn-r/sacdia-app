@@ -5,24 +5,42 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 
+import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/finance_month.dart';
 import '../providers/finances_providers.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
+/// Opacidad de las cifras (y del contenido) mientras muestran otro mes.
+const double kFinanceStaleOpacity = 0.5;
+
 /// Header de saldo sin contenedor — layout centrado directamente
 /// sobre el fondo de la pantalla.
 ///
-/// Muestra: etiqueta SALDO TOTAL → monto → navegación de mes →
-/// resumen de ingresos/egresos del período.
+/// Muestra: etiqueta SALDO ACUMULADO → monto → navegación de mes →
+/// resumen de ingresos/egresos del mes.
+///
+/// [totalBalance] es el saldo acumulado de toda la historia del club. Los
+/// ingresos y egresos son SOLO los del mes seleccionado: [periodIncome] y
+/// [periodExpense] vienen del resumen del servidor; si faltan se usan los del
+/// listado del mes.
+///
+/// Con [isStale] las cifras son de otro mes (o un fallo dejó las anteriores) y
+/// se atenúan; la etiqueta y la navegación de mes nunca se atenúan.
 class BalanceHeaderCard extends ConsumerWidget {
   final FinanceMonth? financeMonth;
   final double? totalBalance;
+  final double? periodIncome;
+  final double? periodExpense;
+  final bool isStale;
 
   const BalanceHeaderCard({
     super.key,
     required this.financeMonth,
     this.totalBalance,
+    this.periodIncome,
+    this.periodExpense,
+    this.isStale = false,
   });
 
   @override
@@ -33,17 +51,21 @@ class BalanceHeaderCard extends ConsumerWidget {
     final canGoNext = !selected.isCurrentMonth;
 
     final balance = totalBalance ?? financeMonth?.totalBalance ?? 0;
-    final income = financeMonth?.totalIncome ?? 0;
-    final expense = financeMonth?.totalExpense ?? 0;
+    final income = periodIncome ?? financeMonth?.totalIncome ?? 0;
+    final expense = periodExpense ?? financeMonth?.totalExpense ?? 0;
 
     final monthLabel = _monthLabel(selected.year, selected.month);
+    final dimDuration = SacMotion.reduceMotionOf(context)
+        ? SacMotion.reducedFade
+        : SacMotion.standard;
+    final figureOpacity = isStale ? kFinanceStaleOpacity : 1.0;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // 1 — "SALDO TOTAL" label
+          // 1 — "SALDO ACUMULADO" label
           Text(
             'finances.widgets.balance_total'.tr(),
             style: TextStyle(
@@ -57,14 +79,18 @@ class BalanceHeaderCard extends ConsumerWidget {
           const SizedBox(height: 6),
 
           // 2 — Balance amount
-          Text(
-            SacMoney.format(balance),
-            style: TextStyle(
-              fontSize: SacFontSize.metricSmall,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -1.0,
-              color: c.text,
-              fontFeatures: SacMoney.tabularFigures,
+          AnimatedOpacity(
+            opacity: figureOpacity,
+            duration: dimDuration,
+            child: Text(
+              SacMoney.format(balance),
+              style: TextStyle(
+                fontSize: SacFontSize.metricSmall,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -1.0,
+                color: c.text,
+                fontFeatures: SacMoney.tabularFigures,
+              ),
             ),
           ),
 
@@ -106,11 +132,15 @@ class BalanceHeaderCard extends ConsumerWidget {
           const SizedBox(height: 14),
 
           // 4 — Activity summary
-          _ActivitySummary(
-            income: income,
-            expense: expense,
-            isDark: isDark,
-            textColor: c.textSecondary,
+          AnimatedOpacity(
+            opacity: figureOpacity,
+            duration: dimDuration,
+            child: _ActivitySummary(
+              income: income,
+              expense: expense,
+              isDark: isDark,
+              textColor: c.textSecondary,
+            ),
           ),
         ],
       ),

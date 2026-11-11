@@ -98,6 +98,7 @@ NotificationVisualConfig notificationVisualConfig({
   }
 
   if (normalizedSource.startsWith('monthly_reports:') ||
+      normalizedSource.startsWith('finances:') ||
       normalizedSource.startsWith('camporees:')) {
     return toned('notifications.types.important_date',
         HugeIcons.strokeRoundedClock04, AppColors.primary);

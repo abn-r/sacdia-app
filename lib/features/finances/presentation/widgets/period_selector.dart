@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -55,7 +54,7 @@ class _PeriodChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = isDark ? AppColors.darkBorder : context.sac.ink900;
+    final activeColor = isDark ? context.sac.border : context.sac.ink900;
 
     return Semantics(
       button: true,
@@ -81,7 +80,9 @@ class _PeriodChip extends StatelessWidget {
                 style: TextStyle(
                   fontSize: SacFontSize.caption,
                   fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                  color: isActive ? Colors.white : context.sac.textSecondary,
+                  color: isActive
+                      ? context.sac.onPrimary
+                      : context.sac.textSecondary,
                 ),
               ),
             ),
