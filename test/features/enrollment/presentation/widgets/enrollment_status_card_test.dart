@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/theme/sac_font_size.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_notice.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
@@ -101,6 +103,34 @@ const _pendingValidationEnrollment = Enrollment(
   meetingDays: ['Sábado'],
   status: EnrollmentStatus.pendingValidation,
 );
+
+const _rejectedEnrollment = Enrollment(
+  id: 102,
+  enrollmentUuid: '33333333-3333-4333-8333-333333333333',
+  userId: 'user-1',
+  clubSectionId: 2,
+  year: 2026,
+  address: 'Templo Central',
+  meetingDays: ['Sábado'],
+  status: EnrollmentStatus.rejected,
+  decisionReason: 'Falta la dirección completa',
+);
+
+const _inactiveEnrollment = Enrollment(
+  id: 103,
+  enrollmentUuid: '44444444-4444-4444-8444-444444444444',
+  userId: 'user-1',
+  clubSectionId: 2,
+  year: 2026,
+  address: 'Templo Central',
+  meetingDays: ['Sábado'],
+  status: EnrollmentStatus.inactive,
+);
+
+UserEntity _director() => _user(
+      roleName: 'director',
+      permissions: const ['club_instances:create'],
+    );
 
 void main() {
   group('EnrollmentStatusCard', () {
@@ -273,5 +303,160 @@ void main() {
         expect(find.text('enrollment.status.button_enroll'), findsNothing);
       },
     );
+
+    testWidgets(
+      'rejected: shows the reason in an error notice and the resubmit action',
+      (tester) async {
+        await _pumpCard(tester, _director(), enrollment: _rejectedEnrollment);
+
+        expect(find.text('enrollment.status.title_rejected'), findsOneWidget);
+        expect(find.text('enrollment.status.title_pending'), findsNothing);
+        final notice = tester.widget<SacNotice>(find.byType(SacNotice));
+        expect(notice.tone, SacNoticeTone.error);
+        expect(notice.text, 'enrollment.status.rejection_reason');
+        expect(tester.widget<SacCard>(find.byType(SacCard)).onTap, isNotNull);
+        expect(
+          find.bySemanticsLabel(RegExp('enrollment.status.button_resubmit')),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets('rejected without a reason shows no notice', (tester) async {
+      await _pumpCard(
+        tester,
+        _director(),
+        enrollment: const Enrollment(
+          id: 104,
+          userId: 'user-1',
+          clubSectionId: 2,
+          year: 2026,
+          meetingDays: ['Sábado'],
+          status: EnrollmentStatus.rejected,
+        ),
+      );
+
+      expect(find.text('enrollment.status.title_rejected'), findsOneWidget);
+      expect(find.byType(SacNotice), findsNothing);
+    });
+
+    testWidgets('rejected is left to «Pendientes» when showTask is false',
+        (tester) async {
+      await _pumpCard(
+        tester,
+        _director(),
+        enrollment: _rejectedEnrollment,
+        showTask: false,
+      );
+
+      expect(find.byType(SacCard), findsNothing);
+    });
+
+    testWidgets(
+      'rejected for a viewer is read-only: no action and no reason',
+      (tester) async {
+        await _pumpCard(
+          tester,
+          _user(
+            roleName: 'member',
+            permissions: const ['club_instances:read'],
+          ),
+          enrollment: _rejectedEnrollment,
+        );
+
+        expect(find.text('enrollment.status.title_rejected'), findsOneWidget);
+        expect(
+          find.text('enrollment.status.subtitle_rejected_viewer'),
+          findsOneWidget,
+        );
+        expect(find.byType(SacNotice), findsNothing);
+        expect(tester.widget<SacCard>(find.byType(SacCard)).onTap, isNull);
+      },
+    );
+
+    testWidgets('inactive keeps the «requires attention» card', (tester) async {
+      await _pumpCard(tester, _director(), enrollment: _inactiveEnrollment);
+
+      expect(find.text('enrollment.status.title_pending'), findsOneWidget);
+      expect(
+        find.text('enrollment.status.subtitle_inactive_action'),
+        findsOneWidget,
+      );
+      expect(find.text('enrollment.status.title_rejected'), findsNothing);
+      expect(find.byType(SacNotice), findsNothing);
+    });
+
+    testWidgets('closed shows nothing', (tester) async {
+      await _pumpCard(
+        tester,
+        _director(),
+        enrollment: const Enrollment(
+          id: 105,
+          userId: 'user-1',
+          clubSectionId: 2,
+          year: 2025,
+          meetingDays: ['Sábado'],
+          status: EnrollmentStatus.closed,
+        ),
+      );
+
+      expect(find.byType(SacCard), findsNothing);
+    });
+  });
+
+  group('annualEnrollmentTaskProvider', () {
+    Future<AnnualEnrollmentTask?> taskFor(
+      WidgetTester tester,
+      Enrollment? enrollment,
+    ) async {
+      late ProviderContainer container;
+      await tester.pumpWidget(
+        testProviderScope(
+          overrides: [
+            authNotifierProvider
+                .overrideWith(() => _FakeAuthNotifier(_director())),
+            currentEnrollmentProvider.overrideWith((ref) async => enrollment),
+          ],
+          child: Consumer(builder: (context, ref, _) {
+            container = ProviderScope.containerOf(context);
+            ref.watch(annualEnrollmentTaskProvider);
+            return const SizedBox.shrink();
+          }),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return container.read(annualEnrollmentTaskProvider);
+    }
+
+    testWidgets('rejected is a resubmit task carrying the reason',
+        (tester) async {
+      final task = await taskFor(tester, _rejectedEnrollment);
+
+      expect(task, isNotNull);
+      expect(task!.isRejected, isTrue);
+      expect(task.isResubmit, isTrue);
+      expect(task.enrollmentId, _rejectedEnrollment.endpointId);
+      expect(task.rejectionReason, 'Falta la dirección completa');
+    });
+
+    testWidgets('inactive is a resubmit task that is not a rejection',
+        (tester) async {
+      final task = await taskFor(tester, _inactiveEnrollment);
+
+      expect(task!.isResubmit, isTrue);
+      expect(task.isRejected, isFalse);
+    });
+
+    testWidgets('pending validation and approved are no task', (tester) async {
+      expect(await taskFor(tester, _pendingValidationEnrollment), isNull);
+      expect(await taskFor(tester, _activeEnrollment), isNull);
+    });
+
+    testWidgets('no enrollment is a create task', (tester) async {
+      final task = await taskFor(tester, null);
+
+      expect(task!.isResubmit, isFalse);
+      expect(task.isRejected, isFalse);
+    });
   });
 }

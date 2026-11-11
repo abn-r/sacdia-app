@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/errors/failures.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -77,6 +79,18 @@ final currentEnrollmentProvider = FutureProvider<Enrollment?>((ref) async {
 
 // ── Form state ────────────────────────────────────────────────────────────────
 
+/// Mensaje de un fallo al guardar la inscripción: si trae un `code` de negocio
+/// con traducción (`errors.<code>`) se usa esa; si no, el texto del servidor.
+String _enrollmentErrorMessage(Failure failure) {
+  final code = failure.errorCode;
+  if (code != null && code.isNotEmpty) {
+    final key = 'errors.${code.toLowerCase()}';
+    final translated = key.tr();
+    if (translated != key) return translated;
+  }
+  return failure.message;
+}
+
 class EnrollmentFormState {
   final bool isLoading;
   final Enrollment? result;
@@ -118,11 +132,6 @@ class EnrollmentFormNotifier extends Notifier<EnrollmentFormState> {
     int? soulsTarget,
     bool? fee,
     double? feeAmount,
-    String? directorId,
-    List<String> deputyDirectorIds = const [],
-    String? secretaryId,
-    String? treasurerId,
-    String? secretaryTreasurerId,
   }) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
@@ -138,17 +147,15 @@ class EnrollmentFormNotifier extends Notifier<EnrollmentFormState> {
         soulsTarget: soulsTarget,
         fee: fee,
         feeAmount: feeAmount,
-        directorId: directorId,
-        deputyDirectorIds: deputyDirectorIds,
-        secretaryId: secretaryId,
-        treasurerId: treasurerId,
-        secretaryTreasurerId: secretaryTreasurerId,
       ),
     );
 
     return result.fold(
       (failure) {
-        state = state.copyWith(isLoading: false, errorMessage: failure.message);
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: _enrollmentErrorMessage(failure),
+        );
         return false;
       },
       (enrollment) {
@@ -170,11 +177,6 @@ class EnrollmentFormNotifier extends Notifier<EnrollmentFormState> {
     int? soulsTarget,
     bool? fee,
     double? feeAmount,
-    String? directorId,
-    List<String>? deputyDirectorIds,
-    String? secretaryId,
-    String? treasurerId,
-    String? secretaryTreasurerId,
   }) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
@@ -190,16 +192,14 @@ class EnrollmentFormNotifier extends Notifier<EnrollmentFormState> {
       soulsTarget: soulsTarget,
       fee: fee,
       feeAmount: feeAmount,
-      directorId: directorId,
-      deputyDirectorIds: deputyDirectorIds,
-      secretaryId: secretaryId,
-      treasurerId: treasurerId,
-      secretaryTreasurerId: secretaryTreasurerId,
     );
 
     return result.fold(
       (failure) {
-        state = state.copyWith(isLoading: false, errorMessage: failure.message);
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: _enrollmentErrorMessage(failure),
+        );
         return false;
       },
       (enrollment) {

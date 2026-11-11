@@ -27,11 +27,6 @@ class EnrollmentRepositoryImpl implements EnrollmentRepository {
     int? soulsTarget,
     bool? fee,
     double? feeAmount,
-    String? directorId,
-    List<String> deputyDirectorIds = const [],
-    String? secretaryId,
-    String? treasurerId,
-    String? secretaryTreasurerId,
   }) async {
     try {
       final model = await _remoteDataSource.createEnrollment(
@@ -44,17 +39,16 @@ class EnrollmentRepositoryImpl implements EnrollmentRepository {
         soulsTarget: soulsTarget,
         fee: fee,
         feeAmount: feeAmount,
-        directorId: directorId,
-        deputyDirectorIds: deputyDirectorIds,
-        secretaryId: secretaryId,
-        treasurerId: treasurerId,
-        secretaryTreasurerId: secretaryTreasurerId,
       );
       return Right(model);
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message));
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, code: e.code));
+      return Left(ServerFailure(
+        message: e.message,
+        code: e.code,
+        errorCode: e.errorCode,
+      ));
     } catch (e) {
       return Left(UnexpectedFailure(message: e.toString()));
     }
@@ -79,7 +73,11 @@ class EnrollmentRepositoryImpl implements EnrollmentRepository {
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message));
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, code: e.code));
+      return Left(ServerFailure(
+        message: e.message,
+        code: e.code,
+        errorCode: e.errorCode,
+      ));
     } catch (e) {
       return Left(UnexpectedFailure(message: e.toString()));
     }
@@ -97,11 +95,6 @@ class EnrollmentRepositoryImpl implements EnrollmentRepository {
     int? soulsTarget,
     bool? fee,
     double? feeAmount,
-    String? directorId,
-    List<String>? deputyDirectorIds,
-    String? secretaryId,
-    String? treasurerId,
-    String? secretaryTreasurerId,
   }) async {
     try {
       final model = await _remoteDataSource.updateEnrollment(
@@ -115,17 +108,16 @@ class EnrollmentRepositoryImpl implements EnrollmentRepository {
         soulsTarget: soulsTarget,
         fee: fee,
         feeAmount: feeAmount,
-        directorId: directorId,
-        deputyDirectorIds: deputyDirectorIds,
-        secretaryId: secretaryId,
-        treasurerId: treasurerId,
-        secretaryTreasurerId: secretaryTreasurerId,
       );
       return Right(model);
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message));
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, code: e.code));
+      return Left(ServerFailure(
+        message: e.message,
+        code: e.code,
+        errorCode: e.errorCode,
+      ));
     } catch (e) {
       return Left(UnexpectedFailure(message: e.toString()));
     }

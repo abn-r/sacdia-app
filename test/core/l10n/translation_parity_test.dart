@@ -66,6 +66,14 @@ const _gmRoleErrorCodes = [
   'MR_CONSENT_NOT_VERIFIED',
 ];
 
+/// Códigos de la inscripción anual de la sección que la app muestra al guardar
+/// (o que otros clientes revisores comparten); se traducen por `code`.
+const _enrollmentErrorCodes = [
+  'CE_SECRETARY_TREASURER_EXCLUSIVE',
+  'CE_SELF_REVIEW',
+  'CE_ENROLLMENT_NOT_PENDING',
+];
+
 /// Códigos de las constancias de servicio (`/users/me/service-credentials` y
 /// `/service-credentials/review`); la app los traduce por `code`.
 const _serviceCredentialErrorCodes = [
@@ -182,6 +190,19 @@ void main() {
   test('every Phase 2 error code has an errors.* translation in all locales',
       () {
     for (final code in _phase2ErrorCodes) {
+      final key = 'errors.${code.toLowerCase()}';
+      for (final locale in _locales) {
+        expect(
+          translations[locale]!.containsKey(key),
+          isTrue,
+          reason: '$key missing in $locale',
+        );
+      }
+    }
+  });
+
+  test('every annual enrollment error code has an errors.* key', () {
+    for (final code in _enrollmentErrorCodes) {
       final key = 'errors.${code.toLowerCase()}';
       for (final locale in _locales) {
         expect(

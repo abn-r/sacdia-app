@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_card.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/widgets/sac_notice.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/acting_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -22,10 +23,18 @@ const _enrollmentCreatePermissions = {'club_instances:create'};
 /// The club's annual enrollment as a task for the current user: there is no
 /// enrollment yet, or it came back for correction, and the user can create
 /// it. [enrollmentId] is set when the existing enrollment must be resubmitted.
+/// [isRejected] marks a review rejection (with its [rejectionReason], if the
+/// reviewer gave one), as opposed to an inactive enrollment.
 class AnnualEnrollmentTask {
-  const AnnualEnrollmentTask({this.enrollmentId});
+  const AnnualEnrollmentTask({
+    this.enrollmentId,
+    this.isRejected = false,
+    this.rejectionReason,
+  });
 
   final String? enrollmentId;
+  final bool isRejected;
+  final String? rejectionReason;
 
   bool get isResubmit => enrollmentId != null;
 }
@@ -44,15 +53,22 @@ final annualEnrollmentTaskProvider =
   if (!enrollment.hasValue) return null;
   final value = enrollment.value;
   if (value == null) return const AnnualEnrollmentTask();
-  if (_isSubmitted(value) || value.status == EnrollmentStatus.active) {
-    return null;
-  }
-  return AnnualEnrollmentTask(enrollmentId: value.endpointId);
+  if (_isSubmitted(value) || _isSettled(value)) return null;
+  return AnnualEnrollmentTask(
+    enrollmentId: value.endpointId,
+    isRejected: value.status == EnrollmentStatus.rejected,
+    rejectionReason: value.decisionReason,
+  );
 });
 
 bool _isSubmitted(Enrollment enrollment) =>
     enrollment.status == EnrollmentStatus.pendingValidation ||
     enrollment.status == EnrollmentStatus.pending;
+
+/// Approved or closed for the year: nothing left to do or to say.
+bool _isSettled(Enrollment enrollment) =>
+    enrollment.status == EnrollmentStatus.active ||
+    enrollment.status == EnrollmentStatus.closed;
 
 /// Opens the annual enrollment form for [task] in the active club section.
 void openAnnualEnrollmentForm(
@@ -62,12 +78,24 @@ void openAnnualEnrollmentForm(
 ) {
   final ctx = ref.read(clubContextProvider).value;
   if (ctx == null) return;
+  // Editing (rejected or inactive): start from what was sent, not blank.
+  final current = task.enrollmentId == null
+      ? null
+      : ref.read(currentEnrollmentProvider).value;
   Navigator.of(context).push(
     SacSharedAxisRoute(
       builder: (_) => EnrollmentFormView(
         clubId: ctx.clubId.toString(),
         sectionId: ctx.sectionId,
         enrollmentId: task.enrollmentId,
+        initialAddress: current?.address,
+        initialLat: current?.lat,
+        initialLong: current?.long,
+        initialMeetingSchedule: current?.meetingSchedule,
+        initialSoulsTarget: current?.soulsTarget,
+        initialFee: current?.fee,
+        initialFeeAmount: current?.feeAmount,
+        rejectionReason: task.isRejected ? task.rejectionReason : null,
       ),
     ),
   );
@@ -77,9 +105,12 @@ void openAnnualEnrollmentForm(
 ///
 /// - Sin inscripción (`null`): muestra aviso con acción para completar.
 /// - Con inscripción `pending_validation`/`pending`: muestra estado enviado
-///   y en validación por Campo Local.
-/// - Con inscripción `active`: no muestra alerta, porque el club ya está
-///   aprobado para el año.
+///   y en revisión.
+/// - Con inscripción `rejected`: título «Inscripción rechazada», el motivo del
+///   revisor y la acción «Corregir y reenviar» (solo quien puede inscribir;
+///   el resto ve un texto de solo lectura).
+/// - Con inscripción `active`/`closed`: no muestra alerta, porque el club ya
+///   está aprobado (o el año cerrado).
 ///
 /// With [showTask] false the actionable state is left out: the staff home
 /// shows it as a row of «Pendientes» instead (see [annualEnrollmentTaskProvider]).
@@ -125,9 +156,28 @@ class EnrollmentStatusCard extends ConsumerWidget {
         }
 
         // ── Inscripción aprobada: no hay alerta pendiente ───────────────────
-        if (enrollment != null &&
-            enrollment.status == EnrollmentStatus.active) {
+        if (enrollment != null && _isSettled(enrollment)) {
           return const SizedBox.shrink();
+        }
+
+        // ── Rechazada: motivo y acción de corregir y reenviar ───────────────
+        if (enrollment != null &&
+            enrollment.status == EnrollmentStatus.rejected) {
+          if (task != null) {
+            if (!showTask) return const SizedBox.shrink();
+            return spaced(
+              _RejectedCard(
+                subtitle: 'enrollment.status.subtitle_rejected_action'.tr(),
+                reason: task.rejectionReason,
+                onTap: () => openAnnualEnrollmentForm(context, ref, task),
+              ),
+            );
+          }
+          return spaced(
+            _RejectedCard(
+              subtitle: 'enrollment.status.subtitle_rejected_viewer'.tr(),
+            ),
+          );
         }
 
         // ── Falta o requiere corrección: tarea de quien puede inscribir ─────
@@ -200,6 +250,36 @@ class _PendingCard extends StatelessWidget {
   }
 }
 
+// ── Rejected card ────────────────────────────────────────────────────────────
+
+class _RejectedCard extends StatelessWidget {
+  const _RejectedCard({required this.subtitle, this.reason, this.onTap});
+
+  final String subtitle;
+
+  /// Reviewer's reason; shown only to who can fix and resubmit.
+  final String? reason;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasReason = reason != null && reason!.trim().isNotEmpty;
+    return _EnrollmentStatusRow(
+      icon: HugeIcons.strokeRoundedAlertCircle,
+      isError: true,
+      title: 'enrollment.status.title_rejected'.tr(),
+      subtitle: subtitle,
+      notice: hasReason
+          ? 'enrollment.status.rejection_reason'
+              .tr(namedArgs: {'reason': reason!.trim()})
+          : null,
+      actionLabel:
+          onTap != null ? 'enrollment.status.button_resubmit'.tr() : null,
+      onTap: onTap,
+    );
+  }
+}
+
 /// Same look as the dashboard «Pendientes» card: white card, amber icon
 /// well, title and subtitle. When there is an action the whole card is
 /// tappable and shows a chevron.
@@ -208,6 +288,8 @@ class _EnrollmentStatusRow extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.isError = false,
+    this.notice,
     this.actionLabel,
     this.onTap,
   });
@@ -215,6 +297,12 @@ class _EnrollmentStatusRow extends StatelessWidget {
   final HugeIconData icon;
   final String title;
   final String subtitle;
+
+  /// Paints the icon well with the error tokens instead of the warning ones.
+  final bool isError;
+
+  /// Inline error notice under the subtitle (e.g. the rejection reason).
+  final String? notice;
   final String? actionLabel;
   final VoidCallback? onTap;
 
@@ -225,8 +313,12 @@ class _EnrollmentStatusRow extends StatelessWidget {
 
     return Semantics(
       button: hasAction,
-      label:
-          [title, subtitle, if (actionLabel != null) actionLabel!].join(', '),
+      label: [
+        title,
+        subtitle,
+        if (notice != null) notice!,
+        if (actionLabel != null) actionLabel!,
+      ].join(', '),
       excludeSemantics: true,
       child: SacCard(
         onTap: onTap,
@@ -238,13 +330,13 @@ class _EnrollmentStatusRow extends StatelessWidget {
               height: 36,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: c.warningContainer,
+                color: isError ? c.errorContainer : c.warningContainer,
                 borderRadius: BorderRadius.circular(AppTheme.radiusXS + 2),
               ),
               child: HugeIcon(
                 icon: icon,
                 size: 20,
-                color: c.onWarningContainer,
+                color: isError ? c.onErrorContainer : c.onWarningContainer,
               ),
             ),
             const SizedBox(width: 12),
@@ -267,6 +359,10 @@ class _EnrollmentStatusRow extends StatelessWidget {
                       color: c.textSecondary,
                     ),
                   ),
+                  if (notice != null) ...[
+                    const SizedBox(height: 8),
+                    SacNotice(text: notice!, tone: SacNoticeTone.error),
+                  ],
                 ],
               ),
             ),

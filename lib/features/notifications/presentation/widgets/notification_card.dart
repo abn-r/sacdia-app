@@ -9,11 +9,14 @@ import 'package:hugeicons/hugeicons.dart';
 
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/config/dashboard_drill_in.dart';
+import '../../../../core/notifications/enrollment_review_push_route.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../investiture_requests/presentation/utils/investiture_notification_routes.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
+import '../../../auth/presentation/providers/acting_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../enrollment/presentation/providers/enrollment_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../members/presentation/utils/member_requests_notification_route.dart';
 import '../../domain/entities/notification_item.dart';
@@ -260,6 +263,21 @@ class NotificationCard extends ConsumerWidget {
         context.push(route);
       }
       return;
+    }
+
+    // Resultado de la inscripción anual: el estado y el formulario para
+    // corregirla viven en el inicio.
+    if (isClubEnrollmentReviewedSource(notification.source)) {
+      final route = enrollmentReviewedRouteFor(
+        await ref.read(authNotifierProvider.future),
+        acting: ref.read(actingDependentProvider) != null,
+      );
+      if (!context.mounted) return;
+      if (route != null) {
+        ref.invalidate(currentEnrollmentProvider);
+        GoRouter.of(context).go(route);
+        return;
+      }
     }
 
     // Solicitud de ingreso (incluye la de un menor con consentimiento

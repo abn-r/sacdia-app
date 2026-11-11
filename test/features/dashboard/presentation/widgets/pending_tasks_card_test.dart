@@ -238,6 +238,29 @@ void main() {
       );
     });
 
+    testWidgets('a rejected enrollment shows its title and reason',
+        (tester) async {
+      await _pumpCard(
+        tester,
+        Right(_pending(const [])),
+        enrollmentTask: const AnnualEnrollmentTask(
+          enrollmentId: 'abc',
+          isRejected: true,
+          rejectionReason: 'Falta la dirección',
+        ),
+      );
+
+      await tester.tap(find.text('Pendientes'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Registro anual rechazado'),
+        findsOneWidget,
+      );
+      expect(find.text('Motivo: Falta la dirección'), findsOneWidget);
+      expect(find.text('Registro anual pendiente'), findsNothing);
+    });
+
     testWidgets('adds the annual enrollment as the first row and counts it',
         (tester) async {
       await _pumpCard(
@@ -251,7 +274,7 @@ void main() {
       await tester.tap(find.text('Pendientes'));
       await tester.pumpAndSettle();
 
-      final enrollment = find.text('Inscripción anual pendiente');
+      final enrollment = find.text('Registro anual pendiente');
       final requests = find.text('Solicitudes de membresía');
       expect(enrollment, findsOneWidget);
       expect(

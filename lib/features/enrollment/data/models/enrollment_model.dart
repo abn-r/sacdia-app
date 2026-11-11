@@ -21,6 +21,9 @@ class EnrollmentModel extends Enrollment {
     super.meetingSchedule = const [],
     required super.status,
     super.createdAt,
+    super.decisionReason,
+    super.reviewedAt,
+    super.submittedAt,
     super.soulsTarget,
     super.fee,
     super.feeAmount,
@@ -97,18 +100,22 @@ class EnrollmentModel extends Enrollment {
           .toList();
     }
 
-    EnrollmentStatus status = EnrollmentStatus.active;
-    final rawStatus = (json['status'] as String?)?.toLowerCase();
-    if (rawStatus == 'inactive') status = EnrollmentStatus.inactive;
-    if (rawStatus == 'pending') status = EnrollmentStatus.pending;
-    if (rawStatus == 'pending_validation') {
-      status = EnrollmentStatus.pendingValidation;
-    }
-    if (rawStatus == 'rejected') status = EnrollmentStatus.rejected;
+    final status = _parseStatus(json['status']);
 
     DateTime? createdAt;
     final rawCreated = json['created_at'];
     if (rawCreated is String) createdAt = DateTime.tryParse(rawCreated);
+
+    final rawReason = json['decision_reason'];
+    final decisionReason = rawReason is String && rawReason.trim().isNotEmpty
+        ? rawReason.trim()
+        : null;
+    final rawReviewed = json['reviewed_at'];
+    final reviewedAt =
+        rawReviewed is String ? DateTime.tryParse(rawReviewed) : null;
+    final rawSubmitted = json['submitted_at'];
+    final submittedAt =
+        rawSubmitted is String ? DateTime.tryParse(rawSubmitted) : null;
 
     // Nuevos campos opcionales
     final rawSouls = json['souls_target'];
@@ -121,7 +128,12 @@ class EnrollmentModel extends Enrollment {
     if (rawFee is int) fee = rawFee != 0;
 
     final rawFeeAmount = json['fee_amount'];
-    final feeAmount = rawFeeAmount is num ? rawFeeAmount.toDouble() : null;
+    // Prisma serializes Decimal columns as strings ("25.5").
+    final feeAmount = rawFeeAmount is num
+        ? rawFeeAmount.toDouble()
+        : rawFeeAmount is String
+            ? double.tryParse(rawFeeAmount)
+            : null;
 
     // Deputy directors: puede ser lista de IDs
     List<String> deputyIds = [];
@@ -143,6 +155,9 @@ class EnrollmentModel extends Enrollment {
       meetingSchedule: schedule,
       status: status,
       createdAt: createdAt,
+      decisionReason: decisionReason,
+      reviewedAt: reviewedAt,
+      submittedAt: submittedAt,
       soulsTarget: soulsTarget,
       fee: fee,
       feeAmount: feeAmount,
@@ -152,6 +167,21 @@ class EnrollmentModel extends Enrollment {
       treasurerId: json['treasurer_id'] as String?,
       secretaryTreasurerId: json['secretary_treasurer_id'] as String?,
     );
+  }
+
+  /// Un estado ausente es una inscripción vigente (respuestas antiguas); uno
+  /// desconocido NO se toma por aprobado: cae en `inactive`, que la app trata
+  /// como «requiere atención».
+  static EnrollmentStatus _parseStatus(Object? raw) {
+    if (raw is! String || raw.trim().isEmpty) return EnrollmentStatus.active;
+    return switch (raw.trim().toLowerCase()) {
+      'active' => EnrollmentStatus.active,
+      'pending' => EnrollmentStatus.pending,
+      'pending_validation' => EnrollmentStatus.pendingValidation,
+      'rejected' => EnrollmentStatus.rejected,
+      'closed' => EnrollmentStatus.closed,
+      _ => EnrollmentStatus.inactive,
+    };
   }
 
   Map<String, dynamic> toJson() {

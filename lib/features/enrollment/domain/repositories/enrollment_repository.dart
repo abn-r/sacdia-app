@@ -17,11 +17,6 @@ abstract class EnrollmentRepository {
     int? soulsTarget,
     bool? fee,
     double? feeAmount,
-    String? directorId,
-    List<String> deputyDirectorIds,
-    String? secretaryId,
-    String? treasurerId,
-    String? secretaryTreasurerId,
   });
 
   /// Obtiene la inscripción activa del usuario en la sección.
@@ -43,10 +38,5 @@ abstract class EnrollmentRepository {
     int? soulsTarget,
     bool? fee,
     double? feeAmount,
-    String? directorId,
-    List<String>? deputyDirectorIds,
-    String? secretaryId,
-    String? treasurerId,
-    String? secretaryTreasurerId,
   });
 }
