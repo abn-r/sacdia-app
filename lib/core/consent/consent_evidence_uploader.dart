@@ -256,6 +256,7 @@ class _ConsentEvidenceUploaderState extends State<ConsentEvidenceUploader> {
                 ? 'core.consent.replace'.tr()
                 : 'core.consent.upload'.tr(),
             icon: HugeIcons.strokeRoundedUpload01,
+            borderRadius: AppTheme.radiusFull,
             onPressed: enabled ? _choose : null,
           ),
           if (_pickFailed)
@@ -280,6 +281,7 @@ class _ConsentEvidenceUploaderState extends State<ConsentEvidenceUploader> {
             Expanded(
               child: SacButton.outline(
                 text: 'core.consent.change'.tr(),
+                borderRadius: AppTheme.radiusFull,
                 onPressed: enabled ? _choose : null,
               ),
             ),
@@ -290,6 +292,7 @@ class _ConsentEvidenceUploaderState extends State<ConsentEvidenceUploader> {
                     ? 'core.consent.retry'.tr()
                     : 'core.consent.upload_action'.tr(),
                 icon: HugeIcons.strokeRoundedUpload01,
+                borderRadius: AppTheme.radiusFull,
                 isLoading: _uploading,
                 onPressed: enabled && problem == null ? _upload : null,
               ),

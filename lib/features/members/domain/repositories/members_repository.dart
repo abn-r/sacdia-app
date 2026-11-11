@@ -10,6 +10,7 @@ import '../entities/club_member.dart';
 import '../entities/consent_verification_result.dart';
 import '../entities/create_minor.dart';
 import '../entities/join_request.dart';
+import '../entities/role_candidate.dart';
 
 /// Interfaz del repositorio de miembros
 abstract class MembersRepository {
@@ -89,5 +90,24 @@ abstract class MembersRepository {
   Future<Either<Failure, IssuedClaimCode>> issueClaimCode({
     required int clubSectionId,
     required String dependentUserId,
+  });
+
+  /// Guías Mayores del club con cupos y elegibilidad para un cargo en la sección.
+  Future<Either<Failure, RoleCandidatesPage>> getRoleCandidates({
+    required int clubId,
+    required int sectionId,
+    String search = '',
+    RoleCandidatesFilter filter = RoleCandidatesFilter.available,
+    int page = 1,
+    int limit = 20,
+    RequestCancelToken? cancelToken,
+  });
+
+  /// Detalle de un candidato a un cargo.
+  Future<Either<Failure, RoleCandidateDetail>> getRoleCandidateDetail({
+    required int clubId,
+    required int sectionId,
+    required String userId,
+    RequestCancelToken? cancelToken,
   });
 }

@@ -184,6 +184,7 @@ const Set<String> kPermissionKeys = {
   'resources:delete',
   'resources:read',
   'resources:update',
+  'role_requirements:manage',
   'roles:read',
   'scoring_categories:manage',
   'scoring_categories:read',
@@ -192,6 +193,7 @@ const Set<String> kPermissionKeys = {
   'section_rankings:read_global',
   'section_rankings:read_lf',
   'section_rankings:read_union',
+  'service_credentials:review',
   'unions:create',
   'unions:delete',
   'unions:read',
@@ -417,6 +419,7 @@ abstract final class Permissions {
   static const String resourcesDelete = 'resources:delete';
   static const String resourcesRead = 'resources:read';
   static const String resourcesUpdate = 'resources:update';
+  static const String roleRequirementsManage = 'role_requirements:manage';
   static const String rolesRead = 'roles:read';
   static const String scoringCategoriesManage = 'scoring_categories:manage';
   static const String scoringCategoriesRead = 'scoring_categories:read';
@@ -427,6 +430,7 @@ abstract final class Permissions {
       'section_rankings:read_global';
   static const String sectionRankingsReadLf = 'section_rankings:read_lf';
   static const String sectionRankingsReadUnion = 'section_rankings:read_union';
+  static const String serviceCredentialsReview = 'service_credentials:review';
   static const String unionsCreate = 'unions:create';
   static const String unionsDelete = 'unions:delete';
   static const String unionsRead = 'unions:read';

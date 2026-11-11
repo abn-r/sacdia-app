@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/theme/sac_font_size.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
@@ -52,6 +54,7 @@ Future<void> _pumpCard(
   WidgetTester tester,
   UserEntity user, {
   Enrollment? enrollment,
+  bool showTask = true,
 }) async {
   await tester.pumpWidget(
     testProviderScope(
@@ -66,9 +69,9 @@ Future<void> _pumpCard(
         ),
         currentEnrollmentProvider.overrideWith((ref) async => enrollment),
       ],
-      child: const MaterialApp(
+      child: MaterialApp(
         home: Scaffold(
-          body: EnrollmentStatusCard(),
+          body: EnrollmentStatusCard(showTask: showTask),
         ),
       ),
     ),
@@ -129,11 +132,50 @@ void main() {
         );
 
         expect(find.text('enrollment.status.title_pending'), findsOneWidget);
-        expect(find.text('enrollment.status.button_enroll'), findsOneWidget);
         expect(
           find.text('enrollment.status.subtitle_pending_action'),
           findsOneWidget,
         );
+        // The whole card is the action, announced with the enroll label.
+        expect(tester.widget<SacCard>(find.byType(SacCard)).onTap, isNotNull);
+        expect(
+          find.bySemanticsLabel(RegExp('enrollment.status.button_enroll')),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'leaves the enrollment task to «Pendientes» when showTask is false',
+      (tester) async {
+        await _pumpCard(
+          tester,
+          _user(
+            roleName: 'director',
+            permissions: const ['club_instances:create'],
+          ),
+          showTask: false,
+        );
+
+        expect(find.byType(SacCard), findsNothing);
+        expect(find.text('enrollment.status.title_pending'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'keeps the submitted state visible when showTask is false',
+      (tester) async {
+        await _pumpCard(
+          tester,
+          _user(
+            roleName: 'director',
+            permissions: const ['club_instances:create'],
+          ),
+          enrollment: _pendingValidationEnrollment,
+          showTask: false,
+        );
+
+        expect(find.text('enrollment.status.title_submitted'), findsOneWidget);
       },
     );
 
@@ -149,7 +191,7 @@ void main() {
         );
 
         expect(find.text('enrollment.status.title_pending'), findsOneWidget);
-        expect(find.text('enrollment.status.button_enroll'), findsNothing);
+        expect(tester.widget<SacCard>(find.byType(SacCard)).onTap, isNull);
         expect(
           find.text('enrollment.status.subtitle_pending_viewer'),
           findsOneWidget,
@@ -174,12 +216,12 @@ void main() {
           find.text('enrollment.status.subtitle_submitted'),
           findsOneWidget,
         );
-        expect(find.text('enrollment.status.button_enroll'), findsNothing);
+        expect(tester.widget<SacCard>(find.byType(SacCard)).onTap, isNull);
       },
     );
 
     testWidgets(
-      'renders submitted validation state as a yellow banner at standard sizes',
+      'renders submitted validation state like the dashboard pending card',
       (tester) async {
         await _pumpCard(
           tester,
@@ -190,37 +232,28 @@ void main() {
           enrollment: _pendingValidationEnrollment,
         );
 
-        final submittedBanner = tester.widgetList<Container>(
+        // Neutral card, not a yellow banner.
+        expect(find.byType(SacCard), findsOneWidget);
+
+        final iconWell = tester.widgetList<Container>(
           find.byWidgetPredicate((widget) {
             if (widget is! Container) return false;
             final decoration = widget.decoration;
             return decoration is BoxDecoration &&
                 decoration.color ==
                     const SacColors(Brightness.light).warningContainer &&
-                widget.padding == const EdgeInsets.all(16);
+                widget.constraints?.maxWidth == 36 &&
+                widget.constraints?.maxHeight == 36;
           }),
         );
-
-        expect(submittedBanner, isNotEmpty);
-
-        final submittedIconBox = tester.widgetList<Container>(
-          find.byWidgetPredicate((widget) {
-            if (widget is! Container) return false;
-            final decoration = widget.decoration;
-            return decoration is BoxDecoration &&
-                decoration.color == AppColors.accent.withValues(alpha: 0.2) &&
-                widget.constraints?.maxWidth == 40 &&
-                widget.constraints?.maxHeight == 40;
-          }),
-        );
-
-        expect(submittedIconBox, isNotEmpty);
+        expect(iconWell, isNotEmpty);
 
         final title = tester.widget<Text>(
           find.text('enrollment.status.title_submitted'),
         );
         expect(title.style?.color, AppColors.lightText);
-        expect(title.style?.fontSize, 14);
+        expect(title.style?.fontSize, SacFontSize.titleMedium);
+        expect(title.style?.fontWeight, FontWeight.w600);
       },
     );
 

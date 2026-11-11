@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/consent/consent_evidence_uploader.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/features/members/domain/entities/consent_verification_result.dart';
@@ -71,7 +72,7 @@ void main() {
       expect(find.byType(ConsentEvidenceUploader), findsNothing);
       expect(find.text(_uploadNote), findsOneWidget);
       // The form can still be reviewed.
-      expect(find.text('Ver ficha'), findsOneWidget);
+      expect(find.text('Ver'), findsOneWidget);
       expect(find.text('Confirmar verificación'), findsOneWidget);
     });
 
@@ -111,7 +112,7 @@ void main() {
 
       await tester.tap(find.byType(Checkbox));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Confirmar y aprobar'));
+      await tester.tap(find.widgetWithText(SacButton, 'Confirmar y aprobar'));
       await tester.pumpAndSettle();
 
       expect(find.byType(ConsentEvidenceUploader), findsNothing);
@@ -179,7 +180,7 @@ void main() {
 
       await tester.tap(find.byType(Checkbox));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Confirmar y aprobar'));
+      await tester.tap(find.widgetWithText(SacButton, 'Confirmar y aprobar'));
       await tester.pumpAndSettle();
 
       expect(find.byType(ConsentVerificationView), findsOneWidget);

@@ -852,6 +852,24 @@ class AnnualContinuationsNotifier
     state = AsyncValue.data(current.copyWith(selectedIds: selected));
   }
 
+  /// Marca a todos los elegibles (los bloqueados nunca se seleccionan).
+  void selectAll() {
+    final current = state.value;
+    if (current == null) return;
+    state = AsyncValue.data(
+      current.copyWith(
+        selectedIds: current.enrollableItems.map((m) => m.userId).toSet(),
+      ),
+    );
+  }
+
+  /// Desmarca a todos.
+  void clearAll() {
+    final current = state.value;
+    if (current == null) return;
+    state = AsyncValue.data(current.copyWith(selectedIds: const {}));
+  }
+
   /// Inscribe los IDs seleccionados elegibles.
   /// Recarga auth y purga datos operativos de la sección.
   Future<ContinuationBatchResult?> submit() async {

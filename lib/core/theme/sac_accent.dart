@@ -54,7 +54,8 @@ class SacAccent extends ThemeExtension<SacAccent> {
     family: AccentFamily.brand,
     color: AppColors.primary,
     light: AppColors.primaryLight,
-    dark: AppColors.primaryDark,
+    // primaryDark reads 3.6:1 on primaryLight; this one reaches 4.7:1.
+    dark: Color(0xFFC13425),
     surface: AppColors.primarySurface,
     onColor: Colors.white,
   );
@@ -74,7 +75,8 @@ class SacAccent extends ThemeExtension<SacAccent> {
     club: AccentClub.conquistadores,
     color: AppColors.primary,
     light: AppColors.primaryLight,
-    dark: AppColors.primaryDark,
+    // primaryDark reads 3.6:1 on primaryLight; this one reaches 4.7:1.
+    dark: Color(0xFFC13425),
     surface: AppColors.primarySurface,
     onColor: Colors.white,
   );
@@ -86,7 +88,8 @@ class SacAccent extends ThemeExtension<SacAccent> {
     club: AccentClub.guiasMayores,
     color: AppColors.secondary,
     light: AppColors.secondaryLight,
-    dark: AppColors.secondaryDark,
+    // secondaryDark reads 3.7:1 on secondaryLight; this one reaches 4.7:1.
+    dark: Color(0xFF277760),
     surface: Color(0xFFF3FBF8),
     onColor: Color(0xFF13211C),
   );
@@ -154,7 +157,7 @@ class SacAccent extends ThemeExtension<SacAccent> {
       club: club,
       color: color,
       light: _tint(color, 0.16),
-      dark: _shade(color),
+      dark: _shade(color, _tint(color, 0.16)),
       surface: _tint(color, 0.08),
       onColor: _onColor(color),
     );
@@ -168,7 +171,7 @@ class SacAccent extends ThemeExtension<SacAccent> {
       club: club,
       color: next,
       light: _tint(next, 0.18),
-      dark: _shade(next),
+      dark: _shade(next, _tint(next, 0.18)),
       surface: _tint(next, 0.1),
       onColor: _onColor(next),
     );
@@ -269,9 +272,19 @@ Color _tint(Color color, double amount) {
   return Color.alphaBlend(color.withValues(alpha: amount), Colors.white);
 }
 
-Color _shade(Color color) {
+/// Darker version of [color] for text on the accent's [tint]. It starts 12
+/// points darker and keeps darkening until it reads on the tint (4.5:1), so
+/// light accents (yellow, light blue, gold) still give legible counters,
+/// badges and chips.
+Color _shade(Color color, Color tint) {
   final hsl = HSLColor.fromColor(color);
-  return hsl.withLightness((hsl.lightness - 0.12).clamp(0.15, 0.82)).toColor();
+  var lightness = (hsl.lightness - 0.12).clamp(0.15, 0.82);
+  var shade = hsl.withLightness(lightness).toColor();
+  while (_contrast(shade, tint) < 4.5 && lightness > 0.15) {
+    lightness = (lightness - 0.02).clamp(0.15, 0.82);
+    shade = hsl.withLightness(lightness).toColor();
+  }
+  return shade;
 }
 
 Color _onColor(Color color) {

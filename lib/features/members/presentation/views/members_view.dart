@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
@@ -22,13 +23,20 @@ import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.d
 import '../../domain/entities/club_member.dart';
 import '../../domain/entities/join_request.dart';
 import '../providers/members_providers.dart';
-import '../widgets/join_request_card.dart';
+import '../utils/join_request_groups.dart';
+import '../utils/join_request_labels.dart';
+import '../widgets/join_request_detail_sheet.dart';
+import '../widgets/join_request_group.dart';
+import '../widgets/join_request_row.dart';
 import '../widgets/member_card.dart';
 import '../widgets/member_class_group_header.dart';
 import '../widgets/members_filter_bar.dart';
+import '../widgets/members_list_skeleton.dart';
 import '../widgets/members_mode_switcher.dart';
 import '../utils/consent_access.dart';
 import '../utils/create_minor_access.dart';
+import '../utils/role_candidates_access.dart';
+import '../widgets/role_candidates_sheet.dart';
 import 'annual_continuations_view.dart';
 import 'create_minor_view.dart';
 import 'consent_verification_view.dart';
@@ -126,6 +134,12 @@ class _MembersViewState extends ConsumerState<MembersView> {
         canRegisterMinor(ref.watch(authNotifierProvider).value)
             ? clubCtxAsync.value?.sectionId
             : null;
+    // «Agregar directivo»: capacidad de asignar cargos de sección y sección
+    // de Aventureros o Conquistadores (no Guías Mayores).
+    final canAddBoard = canAddBoardMember(
+      ref.watch(authNotifierProvider).value,
+      clubCtxAsync.value,
+    );
     final onContinuations = canContinue && mode == 2;
     final fadeDuration = SacMotion.reducedFade;
     final refreshing = onContinuations
@@ -209,6 +223,7 @@ class _MembersViewState extends ConsumerState<MembersView> {
                         _MembersTab(
                           clubContext: ctx,
                           isDirector: isDirector,
+                          canAddBoard: canAddBoard,
                           membersAsync: membersAsync,
                         ),
                         if (canRequests)
@@ -258,17 +273,22 @@ class _MembersViewState extends ConsumerState<MembersView> {
 class _MembersTab extends ConsumerWidget {
   final ClubContext clubContext;
   final bool isDirector;
+
+  /// Muestra «Agregar directivo» (ver [canAddBoardMember]).
+  final bool canAddBoard;
   final AsyncValue<MembersData> membersAsync;
 
   const _MembersTab({
     required this.clubContext,
     required this.isDirector,
+    required this.canAddBoard,
     required this.membersAsync,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final membersByClass = ref.watch(membersByClassProvider);
+    final hasActiveFilters = ref.watch(memberFiltersProvider).hasActiveFilters;
     final hPad = Responsive.horizontalPadding(context);
     final c = context.sac;
 
@@ -281,10 +301,30 @@ class _MembersTab extends ConsumerWidget {
             child: const MembersFilterBar(),
           ),
         ),
+        if (canAddBoard)
+          ColoredBox(
+            color: c.background,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: SacButton(
+                  text: 'members.role_candidates.entry'.tr(),
+                  icon: HugeIcons.strokeRoundedUserAdd01,
+                  variant: SacButtonVariant.outline,
+                  size: SacButtonSize.small,
+                  onPressed: () => showRoleCandidatesSheet(
+                    context,
+                    clubContext: clubContext,
+                  ),
+                ),
+              ),
+            ),
+          ),
         Expanded(
           child: ClipRect(
             child: membersAsync.when(
-              loading: () => const Center(child: SacLoading()),
+              loading: () => const MembersListSkeleton(),
               error: (error, _) => SacErrorState(
                 title: 'members.view.load_error'.tr(),
                 message: userErrorMessage(error),
@@ -292,10 +332,29 @@ class _MembersTab extends ConsumerWidget {
                     ref.read(membersNotifierProvider.notifier).refresh(),
               ),
               data: (_) => membersByClass.isEmpty
-                  ? SacEmptyState(
-                      icon: HugeIcons.strokeRoundedUserGroup,
-                      title: 'members.view.no_members_title'.tr(),
-                      body: 'members.view.no_members_subtitle'.tr(),
+                  ? RefreshIndicator(
+                      color: SacAccent.of(context).color,
+                      onRefresh: () =>
+                          ref.read(membersNotifierProvider.notifier).refresh(),
+                      child: hasActiveFilters
+                          ? SacEmptyState(
+                              scrollable: true,
+                              icon: HugeIcons.strokeRoundedSearch01,
+                              title: 'members.view.no_results_title'.tr(),
+                              body: 'members.view.no_results_subtitle'.tr(),
+                              actionLabel: 'members.view.clear_filters'.tr(),
+                              actionIcon: HugeIcons.strokeRoundedFilterRemove,
+                              actionVariant: SacButtonVariant.outline,
+                              onAction: () => ref
+                                  .read(memberFiltersProvider.notifier)
+                                  .state = const MemberFilters(),
+                            )
+                          : SacEmptyState(
+                              scrollable: true,
+                              icon: HugeIcons.strokeRoundedUserGroup,
+                              title: 'members.view.no_members_title'.tr(),
+                              body: 'members.view.no_members_subtitle'.tr(),
+                            ),
                     )
                   : RefreshIndicator(
                       color: SacAccent.of(context).color,
@@ -532,52 +591,129 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
                           onRefresh: () => ref
                               .read(membersNotifierProvider.notifier)
                               .refresh(),
-                          child: ListView.separated(
+                          child: ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
                             padding: EdgeInsets.fromLTRB(hPad, 4, hPad, 24),
-                            itemCount: filteredRequests.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(height: 6),
-                            itemBuilder: (context, index) {
-                              final request = filteredRequests[index];
-                              final isProcessing =
-                                  _processingIds.contains(request.assignmentId);
-                              if (widget.verifyOnly) {
-                                // Solo se verifica la ficha: ni aprobar ni rechazar,
-                                // y la fila abre la verificación (no el perfil, que
-                                // este permiso no necesariamente puede leer).
-                                final verify = request.consentPending
-                                    ? () => _openConsentVerification(
-                                          context,
-                                          request,
-                                        )
-                                    : null;
-                                return JoinRequestCard(
-                                  request: request,
-                                  onTap: verify,
-                                  onVerify: verify,
-                                );
-                              }
-                              final canAct = widget.canApprove &&
-                                  request.status == JoinRequestStatus.pending &&
-                                  !isProcessing;
-                              return JoinRequestCard(
-                                request: request,
-                                onTap: () =>
-                                    _openRequestProfile(context, request),
-                                onApprove: canAct
-                                    ? () => _approveRequest(context, request)
-                                    : null,
-                                onReject: canAct
-                                    ? () => _rejectRequest(context, request)
-                                    : null,
-                              );
-                            },
+                            children: _buildGroups(context, filteredRequests),
                           ),
                         ),
             ),
           ),
         ),
       ],
+    );
+  }
+
+  /// Requests grouped by the next step; empty groups are hidden.
+  List<Widget> _buildGroups(BuildContext context, List<JoinRequest> requests) {
+    final c = context.sac;
+    final groups = groupJoinRequests(requests);
+    final sections = <({
+      JoinRequestGroup group,
+      String titleKey,
+      Color dot,
+      List<JoinRequest> items,
+    })>[
+      (
+        group: JoinRequestGroup.ready,
+        titleKey: 'members.requests.group_ready',
+        dot: c.success,
+        items: groups.ready,
+      ),
+      (
+        group: JoinRequestGroup.review,
+        titleKey: 'members.requests.group_review',
+        dot: SacAccent.of(context).color,
+        items: groups.review,
+      ),
+      (
+        group: JoinRequestGroup.waiting,
+        titleKey: 'members.requests.group_waiting',
+        dot: c.textTertiary,
+        items: groups.waiting,
+      ),
+    ];
+    final widgets = <Widget>[];
+    for (final section in sections) {
+      if (section.items.isEmpty) continue;
+      if (widgets.isNotEmpty) widgets.add(const SizedBox(height: 20));
+      widgets.add(
+        JoinRequestGroupSection(
+          title: section.titleKey.tr(),
+          count: section.items.length,
+          dotColor: section.dot,
+          children: [
+            for (final request in section.items)
+              _buildRow(context, request, section.group),
+          ],
+        ),
+      );
+    }
+    return widgets;
+  }
+
+  Widget _buildRow(
+    BuildContext context,
+    JoinRequest request,
+    JoinRequestGroup group,
+  ) {
+    final key = ValueKey(request.assignmentId);
+    if (widget.verifyOnly) {
+      // Solo se verifica la ficha: ni aprobar ni rechazar, y la fila abre la
+      // verificación (no el perfil, que este permiso no necesariamente puede
+      // leer).
+      final verify = request.consentPending
+          ? () => _openConsentVerification(context, request)
+          : null;
+      return JoinRequestRow(
+        key: key,
+        request: request,
+        group: group,
+        onTap: verify,
+        onAction: group == JoinRequestGroup.review ? verify : null,
+      );
+    }
+    final isProcessing = _processingIds.contains(request.assignmentId);
+    final canAct = _canAct(request);
+    return JoinRequestRow(
+      key: key,
+      request: request,
+      group: group,
+      isProcessing: isProcessing,
+      onTap: () => _openRequestDetail(context, request, group),
+      onAction: canAct && group != JoinRequestGroup.waiting
+          ? () => group == JoinRequestGroup.ready
+              ? _approveRequest(context, request)
+              : _openConsentVerification(context, request)
+          : null,
+      onReject: canAct ? () => _rejectRequest(context, request) : null,
+    );
+  }
+
+  bool _canAct(JoinRequest request) =>
+      widget.canApprove &&
+      request.status == JoinRequestStatus.pending &&
+      !_processingIds.contains(request.assignmentId);
+
+  void _openRequestDetail(
+    BuildContext context,
+    JoinRequest request,
+    JoinRequestGroup group,
+  ) {
+    final canAct = _canAct(request);
+    showJoinRequestDetailSheet(
+      context,
+      request: request,
+      actions: JoinRequestSheetActions(
+        onViewProfile: () => _openRequestProfile(context, request),
+        onApprove: canAct && group == JoinRequestGroup.ready
+            ? () => _approveRequest(context, request)
+            : null,
+        onReview: canAct && group != JoinRequestGroup.ready
+            ? () => _openConsentVerification(context, request)
+            : null,
+        onReject: canAct ? () => _rejectRequest(context, request) : null,
+      ),
     );
   }
 
@@ -649,7 +785,7 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
         SacSnackBar.show(
           context,
           tr('members.view.request_approved',
-              namedArgs: {'name': request.fullName}),
+              namedArgs: {'name': joinRequestDisplayName(request)}),
         );
         return;
       }
@@ -687,7 +823,7 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
       context,
       title: 'members.view.reject_confirm_title'.tr(),
       content: tr('members.view.reject_confirm_body',
-          namedArgs: {'name': request.fullName}),
+          namedArgs: {'name': joinRequestDisplayName(request)}),
       confirmLabel: 'members.view.reject_confirm_action'.tr(),
       confirmIsDestructive: true,
     );
@@ -704,7 +840,7 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
           context,
           success
               ? tr('members.view.request_rejected',
-                  namedArgs: {'name': request.fullName})
+                  namedArgs: {'name': joinRequestDisplayName(request)})
               : 'members.view.reject_error'.tr(),
           isError: !success,
         );

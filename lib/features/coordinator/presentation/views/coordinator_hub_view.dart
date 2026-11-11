@@ -28,6 +28,8 @@ import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/members/presentation/utils/consent_access.dart';
 import 'package:sacdia_app/features/notifications/presentation/providers/unread_notifications_count_provider.dart';
+import 'package:sacdia_app/features/service_credentials/presentation/utils/service_credentials_access.dart';
+import 'package:sacdia_app/features/service_credentials/presentation/widgets/service_credentials_entries.dart';
 import 'package:sacdia_app/features/coordinator/presentation/providers/consent_review_providers.dart';
 import 'package:sacdia_app/features/coordinator/presentation/providers/coordinator_providers.dart';
 import 'package:sacdia_app/features/coordinator/presentation/providers/coordinator_reports_providers.dart';
@@ -183,6 +185,13 @@ class CoordinatorHubView extends ConsumerWidget {
                   if (coordinatorRoleCanVerify(user)) ...const [
                     SizedBox(height: 24),
                     _ConsentSection(),
+                  ],
+                  // Constancias de servicio por revisar: solo con la capacidad
+                  // `service_credentials.review` (la propia tarjeta lo decide).
+                  if (canReviewServiceCredentials(user,
+                      isActing: false)) ...const [
+                    SizedBox(height: 24),
+                    ServiceCredentialsReviewCard(),
                   ],
                   const SizedBox(height: 24),
                   const _ResponseTimeSection(),

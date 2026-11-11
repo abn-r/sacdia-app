@@ -67,14 +67,18 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  const action = 'Generar código para los padres';
+  const action = 'Entregar a la familia';
+  const hint = 'Código de un solo uso, vale 7 días';
 
   testWidgets('a custodial minor offers "generate parent code"',
       (tester) async {
     await open(tester, request: _request(custody: true));
 
-    expect(find.text('Entregar a la familia'), findsOneWidget);
+    // One row inside the «Tutores» group, not a card with a big button.
     expect(find.text(action), findsOneWidget);
+    expect(find.text(hint), findsOneWidget);
+    expect(find.text('Custodia del club'), findsOneWidget);
+    expect(find.text('Generar código para los padres'), findsNothing);
   });
 
   testWidgets('a minor with a linked guardian does not', (tester) async {
@@ -134,6 +138,41 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  for (final errorCase in <({String code, int status, String text})>[
+    (
+      code: 'GUARDIANSHIP_NOT_FOUND',
+      status: 404,
+      text: 'Este menor ya no tiene perfil en SACDIA porque su tutor lo '
+          'eliminó. Rechaza la solicitud.',
+    ),
+    (
+      code: 'GUARDIANSHIP_ALREADY_GUARDIAN',
+      status: 409,
+      text: 'Este menor ya tiene una familia vinculada. No hace falta '
+          'entregarlo.',
+    ),
+  ]) {
+    testWidgets('${errorCase.code} explains what happened to the director',
+        (tester) async {
+      repo.claimCodeResult = Left(
+        ServerFailure(
+          message: 'raw server text',
+          code: errorCase.status,
+          errorCode: errorCase.code,
+        ),
+      );
+      await open(tester, request: _request(custody: true));
+
+      await tester.ensureVisible(find.text(action));
+      await tester.tap(find.text(action));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(find.text(errorCase.text), findsOneWidget);
+      await tester.pumpAndSettle();
+    });
+  }
+
   testWidgets('a code-less 429 says too many attempts', (tester) async {
     repo.claimCodeResult = const Left(ServerFailure(message: 'x', code: 429));
     await open(tester, request: _request(custody: true));
@@ -149,8 +188,9 @@ void main() {
   });
 
   testWidgets(
-      'at phone width (402x874, real text size) the action label is complete: '
-      'no ellipsis, no overflow, full accessibility label', (tester) async {
+      'at phone width (402x874, real text size) the row text is complete: '
+      'no ellipsis, no overflow, tap target of 44pt or more, full accessibility '
+      'label', (tester) async {
     final semantics = tester.ensureSemantics();
     await pumpMembersApp(
       tester,
@@ -170,9 +210,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final label = tester.renderObject<RenderParagraph>(find.text(action));
-    expect(label.didExceedMaxLines, isFalse,
-        reason: 'the label must wrap, not be cut with an ellipsis');
+    for (final text in [action, hint]) {
+      final label = tester.renderObject<RenderParagraph>(find.text(text));
+      expect(label.didExceedMaxLines, isFalse,
+          reason: 'the text must wrap, not be cut with an ellipsis');
+    }
+    expect(tester.getSize(find.byType(ClaimCodeSection)).height,
+        greaterThanOrEqualTo(44));
     expect(tester.takeException(), isNull);
     expect(
       tester.getSemantics(find.text(action)).label,

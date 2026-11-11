@@ -70,26 +70,28 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('a pending minor shows the badge and the verify action',
+  testWidgets('a pending minor with a form is grouped for review',
       (tester) async {
-    repo.requests = [minorRequest(), adultRequest()];
+    repo.requests = [minorRequest(evidence: true), adultRequest()];
 
     await openRequests(tester);
 
     expect(find.text('Ana Pérez'), findsOneWidget);
-    expect(find.text('Menor · consentimiento pendiente'), findsOneWidget);
-    expect(find.bySemanticsLabel('Verificar consentimiento'), findsOneWidget);
+    expect(find.text('Revisa la ficha del tutor · 1'), findsOneWidget);
+    expect(find.text('Ficha subida por María Pérez'), findsOneWidget);
+    expect(find.bySemanticsLabel('Revisar'), findsOneWidget);
     // El adulto sigue con la aprobación normal.
+    expect(find.text('Listas para aprobar · 1'), findsOneWidget);
     expect(find.bySemanticsLabel('Aprobar'), findsOneWidget);
   });
 
   testWidgets(
-      'tapping verify on a pending minor opens the verification and never '
+      'tapping review on a pending minor opens the verification and never '
       'calls approve', (tester) async {
     repo.requests = [minorRequest(evidence: true)];
     await openRequests(tester);
 
-    await tester.tap(find.bySemanticsLabel('Verificar consentimiento'));
+    await tester.tap(find.bySemanticsLabel('Revisar'));
     await tester.pumpAndSettle();
 
     expect(find.byType(ConsentVerificationView), findsOneWidget);

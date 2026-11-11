@@ -24,6 +24,10 @@ import 'package:sacdia_app/features/investiture_requests/presentation/views/auth
 import 'package:sacdia_app/features/investiture_requests/presentation/views/own_investiture_view.dart';
 import 'package:sacdia_app/features/investiture_requests/presentation/views/section_investiture_history_view.dart';
 import 'package:sacdia_app/features/investiture_requests/presentation/views/section_investiture_view.dart';
+import 'package:sacdia_app/features/service_credentials/presentation/views/my_service_credentials_view.dart';
+import 'package:sacdia_app/features/service_credentials/presentation/views/service_credential_review_detail_view.dart';
+import 'package:sacdia_app/features/service_credentials/presentation/views/service_credential_review_queue_view.dart';
+import 'package:sacdia_app/features/service_credentials/presentation/views/service_credential_upload_view.dart';
 import 'package:sacdia_app/features/evidence_folder/presentation/views/evidence_folder_view.dart';
 import 'package:sacdia_app/features/club/presentation/providers/club_providers.dart';
 import 'package:sacdia_app/features/club/presentation/views/club_detail_view.dart';
@@ -1122,6 +1126,36 @@ final routerProvider = Provider<GoRouter>((ref) {
             AuthorizerRequestDetailView(requestId: requestId),
           );
         },
+      ),
+
+      // Constancias de servicio (consejería). Las estáticas van antes de la
+      // paramétrica. «Mis constancias» y la subida son de la propia cuenta de
+      // adulto; la cola de revisión pide `service_credentials.review` (la
+      // vista lo comprueba y el servidor filtra por alcance).
+      GoRoute(
+        path: RouteNames.serviceCredentials,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const MyServiceCredentialsView()),
+      ),
+      GoRoute(
+        path: RouteNames.serviceCredentialsNew,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+            context, state, const ServiceCredentialUploadView()),
+      ),
+      GoRoute(
+        path: RouteNames.serviceCredentialsReview,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+            context, state, const ServiceCredentialReviewQueueView()),
+      ),
+      GoRoute(
+        path: RouteNames.serviceCredentialsReviewDetail,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          ServiceCredentialReviewDetailView(
+            id: state.pathParameters['credentialId']!,
+          ),
+        ),
       ),
 
       // Carga masiva por certificado OCR (member flow).

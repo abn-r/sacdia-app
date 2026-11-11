@@ -11,9 +11,11 @@ import '../../domain/entities/assignable_role.dart';
 import '../../domain/entities/claim_code.dart';
 import '../../domain/entities/consent_verification_result.dart';
 import '../../domain/entities/create_minor.dart';
+import '../../domain/entities/role_candidate.dart';
 import '../models/annual_continuation_model.dart';
 import '../models/club_member_model.dart';
 import '../models/join_request_model.dart';
+import '../models/role_candidate_model.dart';
 
 /// Interfaz de la fuente de datos remota para miembros
 abstract class MembersRemoteDataSource {
@@ -91,6 +93,26 @@ abstract class MembersRemoteDataSource {
   Future<IssuedClaimCode> issueClaimCode({
     required int clubSectionId,
     required String dependentUserId,
+  });
+
+  /// Guías Mayores del club con cupos y elegibilidad para un cargo en
+  /// [sectionId] (una sección de Aventureros o Conquistadores).
+  Future<RoleCandidatesPage> getRoleCandidates({
+    required int clubId,
+    required int sectionId,
+    String search = '',
+    RoleCandidatesFilter filter = RoleCandidatesFilter.available,
+    int page = 1,
+    int limit = 20,
+    CancelToken? cancelToken,
+  });
+
+  /// Detalle de un candidato (historial, capacitaciones, seguro, especialidades).
+  Future<RoleCandidateDetail> getRoleCandidateDetail({
+    required int clubId,
+    required int sectionId,
+    required String userId,
+    CancelToken? cancelToken,
   });
 }
 
@@ -701,5 +723,76 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
           expiresAt: DateTime.tryParse(data['expires_at']?.toString() ?? '') ??
               DateTime.now().add(const Duration(days: 7)),
         ),
+      );
+
+  // ── Candidatos a un cargo de directiva (Guías Mayores) ────────────────────
+
+  String _candidatesPath(int clubId, int sectionId) =>
+      '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/'
+      'role-candidates';
+
+  /// Como [_consentCall] pero entrega el cuerpo completo (la paginación vive en
+  /// `meta`, fuera de `data`).
+  Future<T> _bodyCall<T>(
+    String label,
+    Future<Response<dynamic>> Function() request,
+    T Function(Map<String, dynamic> body) parse,
+  ) async {
+    try {
+      final response = await request();
+      final status = response.statusCode;
+      if (status == null || status < 200 || status >= 300) {
+        throw appExceptionFromResponse(status, response.data);
+      }
+      final body = response.data;
+      if (body is! Map) {
+        throw ServerException(message: tr('errors.server_error'));
+      }
+      return parse(Map<String, dynamic>.from(body));
+    } catch (e) {
+      AppLogger.e('Error en $label', tag: _tag, error: e);
+      rethrowApiError(e);
+    }
+  }
+
+  @override
+  Future<RoleCandidatesPage> getRoleCandidates({
+    required int clubId,
+    required int sectionId,
+    String search = '',
+    RoleCandidatesFilter filter = RoleCandidatesFilter.available,
+    int page = 1,
+    int limit = 20,
+    CancelToken? cancelToken,
+  }) =>
+      _bodyCall(
+        'getRoleCandidates',
+        () => _dio.get(
+          _candidatesPath(clubId, sectionId),
+          queryParameters: {
+            if (search.trim().isNotEmpty) 'search': search.trim(),
+            'filter': filter.apiValue,
+            'page': page,
+            'limit': limit,
+          },
+          cancelToken: cancelToken,
+        ),
+        RoleCandidatesPageModel.fromJson,
+      );
+
+  @override
+  Future<RoleCandidateDetail> getRoleCandidateDetail({
+    required int clubId,
+    required int sectionId,
+    required String userId,
+    CancelToken? cancelToken,
+  }) =>
+      _bodyCall(
+        'getRoleCandidateDetail',
+        () => _dio.get(
+          '${_candidatesPath(clubId, sectionId)}/$userId',
+          cancelToken: cancelToken,
+        ),
+        RoleCandidateDetailModel.fromJson,
       );
 }

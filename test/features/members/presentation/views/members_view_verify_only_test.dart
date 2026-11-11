@@ -175,7 +175,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.bySemanticsLabel('Aprobar'), findsOneWidget);
-      expect(find.bySemanticsLabel('Rechazar'), findsOneWidget);
+      // Reject lives in the detail sheet and the swipe action.
+      await tester.tap(find.text('Luis Soto'));
+      await tester.pumpAndSettle();
+      expect(find.text('Rechazar'), findsOneWidget);
     });
   });
 
@@ -187,7 +190,10 @@ void main() {
       await openRequests(tester, ['club_members:approve']);
 
       expect(find.bySemanticsLabel('Aprobar'), findsOneWidget);
-      expect(find.bySemanticsLabel('Rechazar'), findsOneWidget);
+      // Reject lives in the detail sheet and the swipe action.
+      await tester.tap(find.text('Luis Soto'));
+      await tester.pumpAndSettle();
+      expect(find.text('Rechazar'), findsOneWidget);
     });
   });
 
@@ -235,7 +241,7 @@ void main() {
       await openRequests(tester, perms);
 
       expect(find.text('Ana Pérez'), findsOneWidget);
-      expect(find.bySemanticsLabel('Verificar consentimiento'), findsOneWidget);
+      expect(find.bySemanticsLabel('Revisar'), findsOneWidget);
       expect(find.bySemanticsLabel('Aprobar'), findsNothing);
       expect(find.bySemanticsLabel('Rechazar'), findsNothing);
     });
@@ -246,7 +252,7 @@ void main() {
 
       expect(find.bySemanticsLabel('Aprobar'), findsNothing);
       expect(find.bySemanticsLabel('Rechazar'), findsNothing);
-      expect(find.bySemanticsLabel('Verificar consentimiento'), findsNothing);
+      expect(find.bySemanticsLabel('Revisar'), findsNothing);
     });
 
     testWidgets('a verified minor cannot be approved from here',
@@ -292,7 +298,7 @@ void main() {
       ];
       await openRequests(tester, perms);
 
-      await tester.tap(find.bySemanticsLabel('Verificar consentimiento'));
+      await tester.tap(find.bySemanticsLabel('Revisar'));
       await tester.pumpAndSettle();
 
       final view = tester.widget<ConsentVerificationView>(
@@ -325,7 +331,7 @@ void main() {
       await openRequests(tester, perms);
       expect(find.text('Ana Pérez'), findsOneWidget);
 
-      await tester.tap(find.bySemanticsLabel('Verificar consentimiento'));
+      await tester.tap(find.bySemanticsLabel('Revisar'));
       await tester.pumpAndSettle();
       await tester.tap(find.byType(Checkbox));
       await tester.pumpAndSettle();

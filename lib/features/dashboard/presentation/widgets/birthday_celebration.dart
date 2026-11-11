@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import '../home_spacing.dart';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -78,10 +79,9 @@ class _BirthdayCelebrationGateState
 
     if (!shouldShow) return const SizedBox.shrink();
 
-    // The home's banner gap is only 8, so the banner adds its own 8 to keep
-    // 16 between it and the class card.
+    // Keeps the home's gap below each card.
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: HomeSpacing.card),
       child: BirthdayCelebrationBanner(onTap: _openBirthdayDialog),
     );
   }

@@ -30,13 +30,18 @@ const Set<String> _coordinatorExactPaths = {
   RouteNames.coordinatorReports,
   RouteNames.coordinatorEvidenceReview,
   RouteNames.coordinatorConsentReview,
+  // Cola de constancias de servicio (el panel la ofrece con la capacidad
+  // `service_credentials.review`; el detalle cuelga del prefijo de abajo).
+  RouteNames.serviceCredentialsReview,
 };
 
 /// Subárboles completos: el detalle de evidencia
-/// (`/coordinator/evidence-review/:type/:id`) y Mi familia (`/family/...`).
+/// (`/coordinator/evidence-review/:type/:id`), Mi familia (`/family/...`) y el
+/// detalle de una constancia por revisar.
 const List<String> _coordinatorPrefixes = [
   RouteNames.coordinatorEvidenceReview,
   RouteNames.family,
+  RouteNames.serviceCredentialsReview,
 ];
 
 /// ¿Puede el coordinador sin club abrir [path]? (ruta ya resuelta, sin query).

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import '../home_spacing.dart';
 
 import '../../../../core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
@@ -226,8 +227,9 @@ class _BannerContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Keeps the home's gap below each card.
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.only(bottom: HomeSpacing.card),
       child: Container(
         decoration: BoxDecoration(
           color: backgroundColor,

@@ -33,6 +33,25 @@ void main() {
     );
   });
 
+  test('every derived accent has a dark shade that reads on its tint', () {
+    double contrast(Color a, Color b) {
+      final la = a.computeLuminance();
+      final lb = b.computeLuminance();
+      final hi = la > lb ? la : lb;
+      final lo = la > lb ? lb : la;
+      return (hi + 0.05) / (lo + 0.05);
+    }
+
+    // Counters and badges paint `dark` text on the `light` tint.
+    for (final accent in SacAccent.catalog) {
+      expect(
+        contrast(accent.dark, accent.light),
+        greaterThanOrEqualTo(4.5),
+        reason: '${accent.id} dark text on its light tint',
+      );
+    }
+  });
+
   test('light accents use dark ink on the button', () {
     final bees = SacAccent.byId('class.busy_bees');
     expect(bees.onColor, const Color(0xFF131316));

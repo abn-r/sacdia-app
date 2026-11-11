@@ -16,6 +16,7 @@ import 'package:sacdia_app/features/dashboard/domain/entities/dashboard_pending.
 import 'package:sacdia_app/features/dashboard/domain/repositories/dashboard_pending_repository.dart';
 import 'package:sacdia_app/features/dashboard/presentation/providers/dashboard_pending_provider.dart';
 import 'package:sacdia_app/features/dashboard/presentation/widgets/pending_tasks_card.dart';
+import 'package:sacdia_app/features/enrollment/presentation/widgets/enrollment_status_card.dart';
 import '../../../../support/l10n_test_support.dart';
 import '../../../../support/riverpod_test_support.dart';
 
@@ -88,8 +89,9 @@ DashboardPending _pending(List<PendingItem> items) => DashboardPending(
 
 Future<_FakePendingRepository> _pumpCard(
   WidgetTester tester,
-  Either<Failure, DashboardPending> result,
-) async {
+  Either<Failure, DashboardPending> result, {
+  AnnualEnrollmentTask? enrollmentTask,
+}) async {
   final repository = _FakePendingRepository(result);
   final router = GoRouter(
     routes: [
@@ -110,6 +112,7 @@ Future<_FakePendingRepository> _pumpCard(
       overrides: [
         authNotifierProvider.overrideWith(_FakeAuthNotifier.new),
         dashboardPendingRepositoryProvider.overrideWithValue(repository),
+        annualEnrollmentTaskProvider.overrideWith((ref) => enrollmentTask),
       ],
       child: MaterialApp.router(routerConfig: router),
     ),
@@ -233,6 +236,42 @@ void main() {
         pendingRouteFor(PendingItemType.investitureAuthorizations),
         RouteNames.investitureAuthorize,
       );
+    });
+
+    testWidgets('adds the annual enrollment as the first row and counts it',
+        (tester) async {
+      await _pumpCard(
+        tester,
+        Right(_pending(const [_requests])),
+        enrollmentTask: const AnnualEnrollmentTask(),
+      );
+
+      expect(find.text('4 por atender'), findsOneWidget);
+
+      await tester.tap(find.text('Pendientes'));
+      await tester.pumpAndSettle();
+
+      final enrollment = find.text('Inscripción anual pendiente');
+      final requests = find.text('Solicitudes de membresía');
+      expect(enrollment, findsOneWidget);
+      expect(
+        tester.getTopLeft(enrollment).dy,
+        lessThan(tester.getTopLeft(requests).dy),
+      );
+    });
+
+    testWidgets('shows the enrollment row alone when the server has nothing',
+        (tester) async {
+      await _pumpCard(
+        tester,
+        Right(_pending(const [])),
+        enrollmentTask: const AnnualEnrollmentTask(),
+      );
+
+      expect(find.text('Pendientes'), findsOneWidget);
+      expect(find.text('1 por atender'), findsOneWidget);
+      // The enrollment row is urgent and counts in the header.
+      expect(find.text('1 urgente'), findsOneWidget);
     });
 
     testWidgets('renders nothing when there is nothing to attend',
