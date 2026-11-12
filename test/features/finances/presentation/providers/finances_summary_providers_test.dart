@@ -61,7 +61,6 @@ const _summary = FinanceSummary(
   yearExpense: 400,
   movementCount: 5,
   periodClosed: true,
-  monthlyBars: [],
 );
 
 const _breakdown = CategoryBreakdown(
@@ -239,7 +238,6 @@ void main() {
         totalBalance: 0,
         totalIncome: 0,
         totalExpense: 0,
-        monthlyBars: [],
       );
       expect(
         await closedWith(summary: noFlag, financeMonth: month(isOpen: false)),
@@ -256,7 +254,6 @@ void main() {
         totalBalance: 0,
         totalIncome: 0,
         totalExpense: 0,
-        monthlyBars: [],
         periodClosed: false,
       );
       expect(

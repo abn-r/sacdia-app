@@ -6,6 +6,7 @@ import '../entities/category_breakdown.dart';
 import '../entities/paginated_transactions_response.dart';
 import '../entities/finance_category.dart';
 import '../entities/finance_export.dart';
+import '../entities/finance_monthly_series.dart';
 import '../entities/finance_month.dart';
 import '../entities/finance_summary.dart';
 import '../entities/transaction.dart';
@@ -39,6 +40,17 @@ abstract class FinancesRepository {
     required int clubId,
     required int year,
     int? month,
+    RequestCancelToken? cancelToken,
+  });
+
+  /// Serie mensual (ingresos, egresos y saldo por mes) hasta [toYear]/[toMonth].
+  /// Sin [fromYear]/[fromMonth] arranca en el primer movimiento del club.
+  Future<Either<Failure, FinanceMonthlySeries>> getMonthlySeries({
+    required int clubId,
+    int? fromYear,
+    int? fromMonth,
+    required int toYear,
+    required int toMonth,
     RequestCancelToken? cancelToken,
   });
 

@@ -10,9 +10,10 @@ import '../../../../core/widgets/sac_empty_state.dart';
 import '../../../../core/widgets/sac_error_state.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../domain/entities/finance_month.dart';
-import '../../domain/entities/finance_summary.dart';
+import '../../domain/entities/finance_monthly_series.dart';
 import '../providers/finances_providers.dart';
 import '../theme/finance_tokens.dart';
+import 'balance_header_card.dart' show kFinanceStaleOpacity;
 import 'period_selector.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -20,7 +21,8 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 ///
 /// Reads [selectedPeriodProvider] for the active time range and sources data
 /// from [financeMonthProvider] (1M — daily aggregation) or
-/// [financeSummaryProvider] (3M / 6M / 1A / Todo — monthly bars).
+/// [financeSeriesProvider] (3M / 6M / 1A / Todo — one point per month, ending
+/// at the selected month).
 class FinanceLineChart extends ConsumerWidget {
   const FinanceLineChart({super.key});
 
@@ -50,7 +52,7 @@ class FinanceLineChart extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'finances.widgets.chart_title'.tr(),
+                _titleKey(period).tr(),
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -79,7 +81,7 @@ class FinanceLineChart extends ConsumerWidget {
               tooltipBg: tooltipBg,
             )
           else
-            _SummaryChart(
+            _SeriesChart(
               period: period,
               isDark: isDark,
               gridColor: gridColor,
@@ -99,6 +101,15 @@ class FinanceLineChart extends ConsumerWidget {
     );
   }
 }
+
+/// Card title key for the selected period.
+String _titleKey(String period) => switch (period) {
+      '3M' => 'finances.widgets.chart_title_3m',
+      '6M' => 'finances.widgets.chart_title_6m',
+      '1A' => 'finances.widgets.chart_title_1y',
+      'Todo' => 'finances.widgets.chart_title_all',
+      _ => 'finances.widgets.chart_title',
+    };
 
 // ── 1M chart — aggregates transactions by day ──────────────────────────────
 
@@ -139,7 +150,7 @@ class _MonthlyChart extends ConsumerWidget {
           gridColor: gridColor,
           tooltipBg: tooltipBg,
           month: month,
-          monthlyBars: const [],
+          series: const [],
         );
       },
     );
@@ -176,15 +187,15 @@ class _MonthlyChart extends ConsumerWidget {
   }
 }
 
-// ── Multi-period chart — uses financeSummaryProvider ──────────────────────
+// ── Multi-period chart — uses financeSeriesProvider ───────────────────────
 
-class _SummaryChart extends ConsumerWidget {
+class _SeriesChart extends ConsumerWidget {
   final String period;
   final bool isDark;
   final Color gridColor;
   final Color tooltipBg;
 
-  const _SummaryChart({
+  const _SeriesChart({
     required this.period,
     required this.isDark,
     required this.gridColor,
@@ -193,9 +204,9 @@ class _SummaryChart extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final asyncSummary = ref.watch(financeSummaryProvider);
+    final slice = ref.watch(financeSeriesProvider);
 
-    return asyncSummary.when(
+    return slice.when(
       loading: () => const SizedBox(
         height: 180,
         child: Center(child: SacLoading()),
@@ -204,53 +215,34 @@ class _SummaryChart extends ConsumerWidget {
         message: userErrorMessage(e),
         onRetry: () => invalidateFinanceData(ref.invalidate),
       ),
-      data: (summary) {
-        if (summary == null || summary.monthlyBars.isEmpty) {
-          return const _ChartEmpty();
-        }
+      data: (series) {
+        if (series == null || series.isEmpty) return const _ChartEmpty();
 
-        final bars = _filterBars(summary.monthlyBars, period);
-        if (bars.isEmpty) return const _ChartEmpty();
-
+        final points = series.items;
         final incomeSpots = <FlSpot>[];
         final expenseSpots = <FlSpot>[];
-
-        for (int i = 0; i < bars.length; i++) {
-          incomeSpots.add(FlSpot(i.toDouble(), bars[i].income));
-          expenseSpots.add(FlSpot(i.toDouble(), bars[i].expense));
+        for (int i = 0; i < points.length; i++) {
+          incomeSpots.add(FlSpot(i.toDouble(), points[i].income));
+          expenseSpots.add(FlSpot(i.toDouble(), points[i].expenses));
         }
 
-        return _ChartView(
-          incomeSpots: incomeSpots,
-          expenseSpots: expenseSpots,
-          period: period,
-          isDark: isDark,
-          gridColor: gridColor,
-          tooltipBg: tooltipBg,
-          month: null,
-          monthlyBars: bars,
+        // The previous period/month stays visible, dimmed, while the new one
+        // loads (same pattern as the month header).
+        return Opacity(
+          opacity: slice.isStale ? kFinanceStaleOpacity : 1,
+          child: _ChartView(
+            incomeSpots: incomeSpots,
+            expenseSpots: expenseSpots,
+            period: period,
+            isDark: isDark,
+            gridColor: gridColor,
+            tooltipBg: tooltipBg,
+            month: null,
+            series: points,
+          ),
         );
       },
     );
-  }
-
-  List<MonthlyBar> _filterBars(List<MonthlyBar> bars, String period) {
-    final sorted = [...bars]..sort((a, b) {
-        final cmp = a.year.compareTo(b.year);
-        return cmp != 0 ? cmp : a.month.compareTo(b.month);
-      });
-
-    switch (period) {
-      case '3M':
-        return sorted.length > 3 ? sorted.sublist(sorted.length - 3) : sorted;
-      case '6M':
-        return sorted.length > 6 ? sorted.sublist(sorted.length - 6) : sorted;
-      case '1A':
-        return sorted.length > 12 ? sorted.sublist(sorted.length - 12) : sorted;
-      case 'Todo':
-      default:
-        return sorted;
-    }
   }
 }
 
@@ -267,8 +259,8 @@ class _ChartView extends StatelessWidget {
   /// Only non-null when period == '1M'.
   final FinanceMonth? month;
 
-  /// Used for x-axis labels in multi-period modes.
-  final List<MonthlyBar> monthlyBars;
+  /// One point per month in multi-period modes (x = index); empty for 1M.
+  final List<FinanceMonthlyPoint> series;
 
   const _ChartView({
     required this.incomeSpots,
@@ -278,7 +270,7 @@ class _ChartView extends StatelessWidget {
     required this.gridColor,
     required this.tooltipBg,
     required this.month,
-    required this.monthlyBars,
+    required this.series,
   });
 
   @override
@@ -302,12 +294,21 @@ class _ChartView extends StatelessWidget {
     // reader, so the totals of the shown period are announced instead.
     return Semantics(
       container: true,
-      label: 'finances.widgets.chart_a11y_summary'.tr(
-        namedArgs: {
-          'income': SacMoney.format(totalIncome),
-          'expense': SacMoney.format(totalExpense),
-        },
-      ),
+      label: series.isEmpty
+          ? 'finances.widgets.chart_a11y_summary'.tr(
+              namedArgs: {
+                'income': SacMoney.format(totalIncome),
+                'expense': SacMoney.format(totalExpense),
+              },
+            )
+          : 'finances.widgets.chart_a11y_series'.tr(
+              namedArgs: {
+                'from': _rangeLabel(series.first, locale),
+                'to': _rangeLabel(series.last, locale),
+                'income': SacMoney.format(totalIncome),
+                'expense': SacMoney.format(totalExpense),
+              },
+            ),
       child: ExcludeSemantics(
         child: RepaintBoundary(
           child: SizedBox(
@@ -316,7 +317,19 @@ class _ChartView extends StatelessWidget {
               LineChartData(
                 minY: 0,
                 maxY: chartMaxY,
-                clipData: const FlClipData.all(),
+                // One month alone would collapse the x range.
+                minX: series.isEmpty ? null : 0,
+                maxX: series.isEmpty
+                    ? null
+                    : (series.length > 1 ? series.length - 1.0 : 1.0),
+                // Not clipped at the bottom: a line at 0 sits on the edge and would be
+                // half cut. Top/sides stay clipped.
+                clipData: const FlClipData(
+                  top: true,
+                  bottom: false,
+                  left: true,
+                  right: true,
+                ),
 
                 // ── Grid ──────────────────────────────────────────────────────────
                 gridData: FlGridData(
@@ -399,6 +412,10 @@ class _ChartView extends StatelessWidget {
     );
   }
 
+  /// "nov 2026" in the app language.
+  String _rangeLabel(FinanceMonthlyPoint point, String locale) =>
+      DateFormat.yMMM(locale).format(DateTime(point.year, point.month));
+
   // ── Line bar builder ───────────────────────────────────────────────────────
 
   LineChartBarData _buildLine({
@@ -410,6 +427,8 @@ class _ChartView extends StatelessWidget {
     return LineChartBarData(
       spots: spots,
       isCurved: true,
+      // Never invent values between points (no bulge above the real max).
+      preventCurveOverShooting: true,
       curveSmoothness: 0.35,
       color: color,
       barWidth: 2.5,
@@ -464,7 +483,7 @@ class _ChartView extends StatelessWidget {
         return 2;
       case 'Todo':
       default:
-        final count = monthlyBars.length;
+        final count = series.length;
         return count <= 6 ? 1 : (count / 6).ceilToDouble();
     }
   }
@@ -512,29 +531,29 @@ class _ChartView extends StatelessWidget {
       case '3M':
         // x = index into bars (0-based). Show month abbreviation.
         final idx = value.round();
-        if (idx < 0 || idx >= monthlyBars.length) return '';
-        final bar = monthlyBars[idx];
+        if (idx < 0 || idx >= series.length) return '';
+        final bar = series[idx];
         return _monthName(bar.month, locale);
 
       case '6M':
         final idx = value.round();
-        if (idx < 0 || idx >= monthlyBars.length) return '';
-        final bar = monthlyBars[idx];
+        if (idx < 0 || idx >= series.length) return '';
+        final bar = series[idx];
         return _monthName(bar.month, locale);
 
       case '1A':
         final idx = value.round();
-        if (idx < 0 || idx >= monthlyBars.length) return '';
+        if (idx < 0 || idx >= series.length) return '';
         // Only show every other label to avoid crowding.
         if (idx % 2 != 0) return '';
-        final bar = monthlyBars[idx];
+        final bar = series[idx];
         return _monthName(bar.month, locale);
 
       case 'Todo':
       default:
         final idx = value.round();
-        if (idx < 0 || idx >= monthlyBars.length) return '';
-        final bar = monthlyBars[idx];
+        if (idx < 0 || idx >= series.length) return '';
+        final bar = series[idx];
         // Show month + last two digits of year.
         final yr = bar.year % 100;
         return '${_monthName(bar.month, locale)} ${yr.toString().padLeft(2, '0')}';

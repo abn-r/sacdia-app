@@ -17,6 +17,7 @@ import '../../data/repositories/finances_repository_impl.dart';
 import '../../domain/entities/category_breakdown.dart';
 import '../../domain/entities/finance_category.dart';
 import '../../domain/entities/finance_month.dart';
+import '../../domain/entities/finance_monthly_series.dart';
 import '../../domain/entities/finance_summary.dart';
 import '../../domain/entities/transaction.dart';
 import '../../domain/entities/transaction_filter.dart';
@@ -26,6 +27,7 @@ import '../../domain/usecases/delete_transaction.dart';
 import '../../domain/usecases/export_finances.dart';
 import '../../domain/usecases/get_categories.dart';
 import '../../domain/usecases/get_category_breakdown.dart';
+import '../../domain/usecases/get_finance_monthly_series.dart';
 import '../../domain/usecases/get_finance_summary.dart';
 import '../../domain/usecases/get_finances.dart';
 import '../../domain/usecases/update_transaction.dart';
@@ -61,6 +63,11 @@ final getFinanceSummaryUseCaseProvider = Provider<GetFinanceSummary>((ref) {
 final getCategoryBreakdownUseCaseProvider =
     Provider<GetCategoryBreakdown>((ref) {
   return GetCategoryBreakdown(ref.read(financesRepositoryProvider));
+});
+
+final getFinanceMonthlySeriesUseCaseProvider =
+    Provider<GetFinanceMonthlySeries>((ref) {
+  return GetFinanceMonthlySeries(ref.read(financesRepositoryProvider));
 });
 
 final exportFinancesUseCaseProvider = Provider<ExportFinances>((ref) {
@@ -292,6 +299,70 @@ final financeByCategoryByKeyProvider = FutureProvider.autoDispose
   });
 });
 
+/// Serie mensual de un club para un período del gráfico (3M, 6M, 1A o Todo)
+/// que termina en [year]/[month]: llave de [financeSeriesByKeyProvider].
+class FinanceSeriesKey extends Equatable {
+  final int clubId;
+
+  /// '3M', '6M', '1A' o 'Todo'.
+  final String period;
+  final int year;
+  final int month;
+
+  const FinanceSeriesKey({
+    required this.clubId,
+    required this.period,
+    required this.year,
+    required this.month,
+  });
+
+  /// Cuántos meses abarca el período; `null` = desde el primer movimiento.
+  int? get span => switch (period) {
+        '3M' => 3,
+        '6M' => 6,
+        '1A' => 12,
+        _ => null,
+      };
+
+  /// Primer mes de la serie (`null` = lo decide el servidor).
+  ({int year, int month})? get from {
+    final n = span;
+    if (n == null) return null;
+    final d = DateTime(year, month - (n - 1));
+    return (year: d.year, month: d.month);
+  }
+
+  @override
+  List<Object?> get props => [clubId, period, year, month];
+}
+
+/// Serie mensual de un período del gráfico. Se conserva [kFinanceCacheTtl] tras
+/// dejar de mirarse. La vista usa [financeSeriesProvider].
+final financeSeriesByKeyProvider = FutureProvider.autoDispose
+    .family<FinanceMonthlySeries?, FinanceSeriesKey>((ref, key) async {
+  final link = ref.keepAlive();
+  _releaseAfterTtl(ref, link);
+  final useCase = ref.read(getFinanceMonthlySeriesUseCaseProvider);
+
+  return _loadCachedEntry(ref, link, (cancelToken) async {
+    final from = key.from;
+    final result = await useCase(
+      GetFinanceMonthlySeriesParams(
+        clubId: key.clubId,
+        fromYear: from?.year,
+        fromMonth: from?.month,
+        toYear: key.year,
+        toMonth: key.month,
+      ),
+      cancelToken: cancelToken,
+    );
+    return result.fold(
+      (failure) => throw Exception(failure.message),
+      (series) => series,
+    );
+  });
+});
+
 /// Descarta TODA la caché de Finanzas (todos los meses).
 ///
 /// Cualquier cambio (movimiento creado, editado, borrado, evidencia) o un
@@ -304,6 +375,7 @@ void invalidateFinanceData(
   invalidate(financeMonthByKeyProvider);
   invalidate(financeSummaryByKeyProvider);
   invalidate(financeByCategoryByKeyProvider);
+  invalidate(financeSeriesByKeyProvider);
 }
 
 // ── Selected month views (stale-while-loading) ─────────────────────────────────
@@ -421,6 +493,27 @@ class SelectedFinanceByCategoryNotifier
       ref.watch(financeByCategoryByKeyProvider(key));
 }
 
+/// Serie mensual del período del gráfico (3M/6M/1A/Todo) que termina en el
+/// mes seleccionado. Con '1M' no pide nada: el gráfico usa los movimientos.
+class SelectedFinanceSeriesNotifier
+    extends _SelectedFinanceNotifier<FinanceMonthlySeries> {
+  @override
+  AsyncValue<FinanceMonthlySeries?> watchEntry(FinanceMonthKey key) {
+    final period = ref.watch(selectedPeriodProvider);
+    if (period == '1M') return const AsyncData(null);
+    return ref.watch(
+      financeSeriesByKeyProvider(
+        FinanceSeriesKey(
+          clubId: key.clubId,
+          period: period,
+          year: key.year,
+          month: key.month,
+        ),
+      ),
+    );
+  }
+}
+
 /// Movimientos del mes seleccionado.
 final financeMonthProvider = NotifierProvider.autoDispose<
     SelectedFinanceMonthNotifier, FinanceSlice<FinanceMonth>>(
@@ -437,6 +530,12 @@ final financeSummaryProvider = NotifierProvider.autoDispose<
 final financeByCategoryProvider = NotifierProvider.autoDispose<
     SelectedFinanceByCategoryNotifier, FinanceSlice<CategoryBreakdown>>(
   SelectedFinanceByCategoryNotifier.new,
+);
+
+/// Serie mensual del período seleccionado (ver [SelectedFinanceSeriesNotifier]).
+final financeSeriesProvider = NotifierProvider.autoDispose<
+    SelectedFinanceSeriesNotifier, FinanceSlice<FinanceMonthlySeries>>(
+  SelectedFinanceSeriesNotifier.new,
 );
 
 /// Precarga el mes anterior cuando el seleccionado ya cargó, para que «atrás»

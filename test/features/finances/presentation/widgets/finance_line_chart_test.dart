@@ -2,13 +2,15 @@
 /// library upgrades cannot silently change what is plotted.
 library;
 
+import 'dart:async';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/features/finances/domain/entities/finance_category.dart';
 import 'package:sacdia_app/features/finances/domain/entities/finance_month.dart';
-import 'package:sacdia_app/features/finances/domain/entities/finance_summary.dart';
+import 'package:sacdia_app/features/finances/domain/entities/finance_monthly_series.dart';
 import 'package:sacdia_app/features/finances/domain/entities/transaction.dart';
 import 'package:sacdia_app/features/finances/presentation/providers/finances_providers.dart';
 import 'package:sacdia_app/features/finances/presentation/widgets/finance_line_chart.dart';
@@ -53,15 +55,34 @@ final _month = FinanceMonth(
   ],
 );
 
-const _summary = FinanceSummary(
-  totalBalance: 0,
-  totalIncome: 600,
-  totalExpense: 300,
-  monthlyBars: [
-    // Deliberately unsorted: the chart sorts by year then month.
-    MonthlyBar(year: 2026, month: 2, income: 200, expense: 50),
-    MonthlyBar(year: 2025, month: 12, income: 100, expense: 40),
-    MonthlyBar(year: 2026, month: 1, income: 300, expense: 210),
+// Deliberately NOT the order the chart gets them in: the model sorts, the
+// chart plots the series as given (x = index).
+const _series = FinanceMonthlySeries(
+  items: [
+    FinanceMonthlyPoint(
+      year: 2025,
+      month: 12,
+      income: 100,
+      expenses: 40,
+      net: 60,
+      balance: 60,
+    ),
+    FinanceMonthlyPoint(
+      year: 2026,
+      month: 1,
+      income: 300,
+      expenses: 210,
+      net: 90,
+      balance: 150,
+    ),
+    FinanceMonthlyPoint(
+      year: 2026,
+      month: 2,
+      income: 200,
+      expenses: 50,
+      net: 150,
+      balance: 300,
+    ),
   ],
 );
 
@@ -69,7 +90,8 @@ Future<void> _pump(
   WidgetTester tester, {
   String period = '1M',
   FinanceMonth? month,
-  FinanceSummary? summary,
+  FinanceMonthlySeries? series,
+  FutureOr<FinanceMonthlySeries?> Function()? seriesLoader,
 }) async {
   useTallSurface(tester);
   await tester.pumpWidget(
@@ -78,7 +100,8 @@ Future<void> _pump(
         selectedPeriodProvider.overrideWith((ref) => period),
         currentClubIdProvider.overrideWith((ref) async => 1),
         financeMonthByKeyProvider.overrideWith((ref, key) async => month),
-        financeSummaryByKeyProvider.overrideWith((ref, key) async => summary),
+        financeSeriesByKeyProvider
+            .overrideWith((ref, key) async => seriesLoader?.call() ?? series),
       ],
       child: localized(
         (context) => localizedApp(
@@ -153,7 +176,9 @@ void main() {
       expect(data.minY, 0);
       // 15 % headroom above the highest value (250).
       expect(data.maxY, closeTo(250 * 1.15, 1e-9));
-      expect(data.clipData, const FlClipData.all());
+      expect(data.clipData.bottom, isFalse,
+          reason: 'a line at 0 must not be cut');
+      expect(data.clipData.top, isTrue);
       expect(data.borderData.show, isFalse);
       expect(data.gridData.drawVerticalLine, isFalse);
       expect(data.gridData.horizontalInterval, closeTo(data.maxY / 4, 1e-9));
@@ -172,6 +197,7 @@ void main() {
       expect(expense.color, expenseColor);
       for (final bar in data.lineBarsData) {
         expect(bar.isCurved, isTrue);
+        expect(bar.preventCurveOverShooting, isTrue);
         expect(bar.curveSmoothness, 0.35);
         expect(bar.barWidth, 2.5);
         expect(bar.dotData.show, isFalse);
@@ -226,32 +252,155 @@ void main() {
     });
   });
 
-  group('multi-period (monthly bars)', () {
-    testWidgets('3M plots one spot per month, sorted, index on x',
-        (tester) async {
-      await _pump(tester, period: '3M', summary: _summary);
+  group('card title follows the period', () {
+    for (final (period, title) in [
+      ('1M', 'Resumen del mes'),
+      ('3M', 'Últimos 3 meses'),
+      ('6M', 'Últimos 6 meses'),
+      ('1A', 'Últimos 12 meses'),
+      ('Todo', 'Todo el historial'),
+    ]) {
+      testWidgets('$period -> $title', (tester) async {
+        await _pump(tester, period: period, month: _month, series: _series);
+        expect(find.text(title), findsOneWidget);
+      });
+    }
+  });
+
+  group('multi-period (monthly series)', () {
+    testWidgets('3M plots one spot per month, index on x', (tester) async {
+      await _pump(tester, period: '3M', series: _series);
 
       final data = tester.widget<LineChart>(find.byType(LineChart)).data;
       expect(_xy(data.lineBarsData[0]), [(0, 100), (1, 300), (2, 200)]);
       expect(_xy(data.lineBarsData[1]), [(0, 40), (1, 210), (2, 50)]);
       expect(data.titlesData.bottomTitles.sideTitles.interval, 1);
       expect(data.maxY, closeTo(300 * 1.15, 1e-9));
+      expect(data.minX, 0);
+      expect(data.maxX, 2);
     });
 
-    testWidgets('6M keeps only the last bars and still renders',
-        (tester) async {
-      await _pump(tester, period: '6M', summary: _summary);
+    testWidgets('labels the months with the app locale', (tester) async {
+      await _pump(tester, period: '3M', series: _series);
 
-      final data = tester.widget<LineChart>(find.byType(LineChart)).data;
-      expect(data.lineBarsData[0].spots, hasLength(3));
       expect(find.text('Dic'), findsOneWidget);
+      expect(find.text('Ene'), findsOneWidget);
+      expect(find.text('Feb'), findsOneWidget);
     });
 
-    testWidgets('shows the empty state with no summary', (tester) async {
-      await _pump(tester, period: '3M', summary: null);
+    testWidgets('Todo labels month and two-digit year', (tester) async {
+      await _pump(tester, period: 'Todo', series: _series);
+
+      expect(find.text('Dic 25'), findsOneWidget);
+      expect(find.text('Feb 26'), findsOneWidget);
+    });
+
+    testWidgets('a text alternative announces the range and its totals',
+        (tester) async {
+      final handle = tester.ensureSemantics();
+      await _pump(tester, period: '6M', series: _series);
+
+      expect(
+        find.bySemanticsLabel(RegExp(
+          r'Gráfico de ingresos y egresos de .*dic.* 2025 a .*feb.* 2026\. '
+          r'Ingresos: \$600\.00\. Egresos: \$300\.00\.',
+        )),
+        findsOneWidget,
+      );
+      handle.dispose();
+    });
+
+    testWidgets('a single month still renders', (tester) async {
+      await _pump(
+        tester,
+        period: 'Todo',
+        series: const FinanceMonthlySeries(
+          items: [
+            FinanceMonthlyPoint(
+              year: 2026,
+              month: 2,
+              income: 10,
+              expenses: 0,
+              net: 10,
+              balance: 10,
+            ),
+          ],
+        ),
+      );
+
+      expect(find.byType(LineChart), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('shows the empty state with no series', (tester) async {
+      await _pump(tester, period: '3M', series: null);
 
       expect(find.byType(LineChart), findsNothing);
       expect(find.text('Sin datos para el período'), findsOneWidget);
+    });
+
+    testWidgets('shows the empty state when every month is zero',
+        (tester) async {
+      await _pump(
+        tester,
+        period: '1A',
+        series: const FinanceMonthlySeries(
+          items: [
+            FinanceMonthlyPoint(
+              year: 2026,
+              month: 1,
+              income: 0,
+              expenses: 0,
+              net: 0,
+              balance: 500,
+            ),
+          ],
+        ),
+      );
+
+      expect(find.byType(LineChart), findsNothing);
+      expect(find.text('Sin datos para el período'), findsOneWidget);
+    });
+
+    testWidgets('shows a loader while the series loads', (tester) async {
+      final gate = Completer<FinanceMonthlySeries?>();
+      useTallSurface(tester);
+      await tester.pumpWidget(
+        testProviderScope(
+          overrides: [
+            selectedPeriodProvider.overrideWith((ref) => '3M'),
+            currentClubIdProvider.overrideWith((ref) async => 1),
+            financeSeriesByKeyProvider.overrideWith((ref, key) => gate.future),
+          ],
+          child: localized(
+            (context) => localizedApp(
+              context,
+              const Scaffold(
+                body: SingleChildScrollView(child: FinanceLineChart()),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.byType(LineChart), findsNothing);
+      expect(find.text('Sin datos para el período'), findsNothing);
+      gate.complete(null);
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('shows an error with retry when the series fails',
+        (tester) async {
+      await _pump(
+        tester,
+        period: '3M',
+        seriesLoader: () => throw Exception('boom'),
+      );
+
+      expect(find.byType(LineChart), findsNothing);
+      expect(find.text('Reintentar'), findsOneWidget);
     });
   });
 }

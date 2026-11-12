@@ -10,6 +10,7 @@ import '../models/category_breakdown_model.dart';
 import '../models/finance_category_model.dart';
 import '../models/finance_export_file_model.dart';
 import '../models/finance_month_model.dart';
+import '../models/finance_monthly_series_model.dart';
 import '../models/finance_summary_model.dart';
 import '../models/paginated_transactions_response.dart';
 import '../../domain/entities/finance_export.dart';
@@ -36,6 +37,17 @@ abstract class FinancesRemoteDataSource {
     required int clubId,
     required int year,
     int? month,
+    CancelToken? cancelToken,
+  });
+
+  /// Serie mensual (`GET /clubs/:clubId/finances/monthly`). Sin [fromYear] y
+  /// [fromMonth] el servidor arranca en el primer movimiento del club.
+  Future<FinanceMonthlySeriesModel> getMonthlySeries({
+    required int clubId,
+    int? fromYear,
+    int? fromMonth,
+    required int toYear,
+    required int toMonth,
     CancelToken? cancelToken,
   });
 
@@ -185,6 +197,49 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
       _rethrow(e);
     }
   }
+
+  // ── GET /clubs/:clubId/finances/monthly ───────────────────────────────────
+
+  @override
+  Future<FinanceMonthlySeriesModel> getMonthlySeries({
+    required int clubId,
+    int? fromYear,
+    int? fromMonth,
+    required int toYear,
+    required int toMonth,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/finances/monthly',
+        queryParameters: {
+          if (fromYear != null && fromMonth != null)
+            'from': _yearMonth(fromYear, fromMonth),
+          'to': _yearMonth(toYear, toMonth),
+        },
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = response.data as Map<String, dynamic>;
+        final json = body.containsKey('data')
+            ? body['data'] as Map<String, dynamic>
+            : body;
+        return FinanceMonthlySeriesModel.fromJson(json);
+      }
+
+      throw ServerException(
+        message: tr('finances.errors.fetch_monthly_series'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getMonthlySeries', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  static String _yearMonth(int year, int month) =>
+      '${year.toString().padLeft(4, '0')}-${month.toString().padLeft(2, '0')}';
 
   // ── GET /clubs/:clubId/finances/by-category ───────────────────────────────
 
