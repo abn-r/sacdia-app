@@ -22,34 +22,27 @@ const int _kMaxPages = 10;
 /// Compliance page size (backend cap: 200 clubs).
 const int _kComplianceLimit = 200;
 
-const String _quarterlyAdmin = '/admin/quarterly-reports';
-const String _annualAdmin = '/admin/annual-reports';
 const String _compliance = '/reports/compliance';
 
-/// Read-only report endpoints a coordinator can call (reports:read +
+/// Read-only monthly report endpoints a coordinator can call (reports:read +
 /// reports:download, scoped by the backend to coordinator_assignments).
 abstract class CoordinatorReportsRemoteDataSource {
   /// GET /reports/compliance
   Future<ReportCompliance> getCompliance({
     int? year,
     int? month,
-    int? quarter,
     CancelToken? cancelToken,
   });
 
-  /// GET /monthly-reports/admin/list, /admin/quarterly-reports or
-  /// /admin/annual-reports, every page.
+  /// GET /monthly-reports/admin/list, every page.
   Future<List<CoordinatorReport>> listReports({
-    required CoordinatorReportKind kind,
     int? year,
     int? period,
-    int? ecclesiasticalYearId,
     CancelToken? cancelToken,
   });
 
   /// Downloads the report PDF to a temp file and returns its path.
   Future<String> downloadReportPdf({
-    required CoordinatorReportKind kind,
     required int reportId,
     CancelToken? cancelToken,
   });
@@ -72,7 +65,6 @@ class CoordinatorReportsRemoteDataSourceImpl
   Future<ReportCompliance> getCompliance({
     int? year,
     int? month,
-    int? quarter,
     CancelToken? cancelToken,
   }) async {
     try {
@@ -82,7 +74,6 @@ class CoordinatorReportsRemoteDataSourceImpl
           'limit': _kComplianceLimit,
           if (year != null) 'year': year,
           if (month != null) 'month': month,
-          if (quarter != null) 'quarter': quarter,
         },
         cancelToken: cancelToken,
       );
@@ -101,28 +92,15 @@ class CoordinatorReportsRemoteDataSourceImpl
 
   @override
   Future<List<CoordinatorReport>> listReports({
-    required CoordinatorReportKind kind,
     int? year,
     int? period,
-    int? ecclesiasticalYearId,
     CancelToken? cancelToken,
   }) async {
     try {
-      final path = switch (kind) {
-        CoordinatorReportKind.monthly =>
-          '${ApiEndpoints.monthlyReports}/admin/list',
-        CoordinatorReportKind.quarterly => _quarterlyAdmin,
-        CoordinatorReportKind.annual => _annualAdmin,
-      };
+      final path = '${ApiEndpoints.monthlyReports}/admin/list';
       final filters = <String, dynamic>{
-        if (kind != CoordinatorReportKind.annual && year != null) 'year': year,
-        if (kind == CoordinatorReportKind.monthly && period != null)
-          'month': period,
-        if (kind == CoordinatorReportKind.quarterly && period != null)
-          'quarter': period,
-        if (kind == CoordinatorReportKind.annual &&
-            ecclesiasticalYearId != null)
-          'ecclesiasticalYearId': ecclesiasticalYearId,
+        if (year != null) 'year': year,
+        if (period != null) 'month': period,
       };
 
       final reports = <CoordinatorReport>[];
@@ -142,8 +120,7 @@ class CoordinatorReportsRemoteDataSourceImpl
             code: response.statusCode,
           );
         }
-        final result =
-            CoordinatorReportPage.fromJson(kind, _unwrap(response.data));
+        final result = CoordinatorReportPage.fromJson(_unwrap(response.data));
         reports.addAll(result.items);
         if (result.items.length < kCoordinatorReportsPageSize ||
             reports.length >= result.total) {
@@ -152,32 +129,19 @@ class CoordinatorReportsRemoteDataSourceImpl
       }
       return reports;
     } catch (e) {
-      AppLogger.e('Error en listReports ($kind)', tag: _tag, error: e);
+      AppLogger.e('Error en listReports', tag: _tag, error: e);
       _rethrow(e);
     }
   }
 
   @override
   Future<String> downloadReportPdf({
-    required CoordinatorReportKind kind,
     required int reportId,
     CancelToken? cancelToken,
   }) async {
     try {
-      final (path, fallback) = switch (kind) {
-        CoordinatorReportKind.monthly => (
-            '${ApiEndpoints.monthlyReports}/$reportId/pdf',
-            'informe-mensual-$reportId.pdf',
-          ),
-        CoordinatorReportKind.quarterly => (
-            '$_quarterlyAdmin/$reportId/pdf',
-            'informe-trimestral-$reportId.pdf',
-          ),
-        CoordinatorReportKind.annual => (
-            '$_annualAdmin/$reportId/pdf',
-            'informe-anual-$reportId.pdf',
-          ),
-      };
+      final path = '${ApiEndpoints.monthlyReports}/$reportId/pdf';
+      final fallback = 'informe-mensual-$reportId.pdf';
       final dir = await getTemporaryDirectory();
       late final String filePath;
 
@@ -208,7 +172,7 @@ class CoordinatorReportsRemoteDataSourceImpl
       }
       return filePath;
     } catch (e) {
-      AppLogger.e('Error en downloadReportPdf ($kind)', tag: _tag, error: e);
+      AppLogger.e('Error en downloadReportPdf', tag: _tag, error: e);
       _rethrow(e);
     }
   }

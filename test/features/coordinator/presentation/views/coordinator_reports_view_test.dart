@@ -1,4 +1,4 @@
-/// Tests for CoordinatorReportsView (read-only club reports).
+/// Tests for CoordinatorReportsView (read-only monthly report compliance).
 library;
 
 import 'package:flutter_test/flutter_test.dart';
@@ -30,21 +30,11 @@ final _year = ReportCompliance(
   ecclesiasticalYearId: 7,
   clubCount: 2,
   monthly: const ReportCounts(expected: 6, submitted: 4, overdue: 2),
-  quarterly: const ReportCounts(expected: 2, submitted: 1, pending: 1),
-  annual: ReportCounts.zero,
   monthlyPeriods: [
     _month(8, const ReportCounts(expected: 3, submitted: 2, overdue: 1)),
     _month(9, const ReportCounts(expected: 3, submitted: 2, overdue: 1)),
     _month(10, ReportCounts.zero),
     _month(11, ReportCounts.zero),
-  ],
-  quarterlyPeriods: [
-    ReportCompliancePeriod(
-      year: 2026,
-      index: 3,
-      counts: const ReportCounts(expected: 2, submitted: 1, pending: 1),
-      dueAt: DateTime.utc(2026, 10, 5, 23),
-    ),
   ],
   clubs: const [
     ClubReportCompliance(clubId: 10, clubName: 'Club Alfa'),
@@ -52,27 +42,23 @@ final _year = ReportCompliance(
   ],
 );
 
-/// September monthly compliance (and Q3 for the quarterly kind).
+/// September monthly compliance.
 ReportCompliance _period(ComplianceQuery query) => ReportCompliance(
       asOf: DateTime.utc(2026, 10, 22),
       ecclesiasticalYearId: 7,
       clubCount: 2,
       monthly: const ReportCounts(expected: 3, submitted: 2, overdue: 1),
-      quarterly: const ReportCounts(expected: 2, submitted: 1, pending: 1),
-      annual: ReportCounts.zero,
       clubs: const [
         ClubReportCompliance(
           clubId: 10,
           clubName: 'Club Alfa',
           localFieldName: 'Campo Norte',
           monthly: ReportCounts(expected: 2, submitted: 2),
-          quarterly: ReportCounts(expected: 1, submitted: 1),
         ),
         ClubReportCompliance(
           clubId: 11,
           clubName: 'Club Beta',
           monthly: ReportCounts(expected: 1, overdue: 1),
-          quarterly: ReportCounts(expected: 1, pending: 1),
         ),
       ],
     );
@@ -80,7 +66,6 @@ ReportCompliance _period(ComplianceQuery query) => ReportCompliance(
 const _monthlyReports = [
   CoordinatorReport(
     id: 55,
-    kind: CoordinatorReportKind.monthly,
     status: 'submitted',
     clubName: 'Club Alfa',
     clubTypeId: 1,
@@ -88,7 +73,6 @@ const _monthlyReports = [
   ),
   CoordinatorReport(
     id: 56,
-    kind: CoordinatorReportKind.monthly,
     status: 'draft',
     clubName: 'Club Alfa',
     clubTypeId: 2,
@@ -96,20 +80,10 @@ const _monthlyReports = [
   ),
 ];
 
-const _quarterlyReports = [
-  CoordinatorReport(
-    id: 8,
-    kind: CoordinatorReportKind.quarterly,
-    status: 'finalized',
-    clubId: 10,
-    clubName: 'Club Alfa',
-  ),
-];
-
 class _Calls {
   final compliance = <ComplianceQuery>[];
   final lists = <ReportListQuery>[];
-  final pdfs = <ReportPdfKey>[];
+  final pdfs = <int>[];
 }
 
 Future<_Calls> _pump(
@@ -131,14 +105,10 @@ Future<_Calls> _pump(
         }),
         coordinatorReportListProvider.overrideWith((ref, query) async {
           calls.lists.add(query);
-          return switch (query.kind) {
-            CoordinatorReportKind.monthly => _monthlyReports,
-            CoordinatorReportKind.quarterly => _quarterlyReports,
-            CoordinatorReportKind.annual => const <CoordinatorReport>[],
-          };
+          return _monthlyReports;
         }),
-        coordinatorReportPdfProvider.overrideWith((ref, key) async {
-          calls.pdfs.add(key);
+        coordinatorReportPdfProvider.overrideWith((ref, id) async {
+          calls.pdfs.add(id);
           throw const CoordinatorLoadException('boom');
         }),
       ],
@@ -158,30 +128,20 @@ void main() {
       (tester) async {
     final calls = await _pump(tester);
 
-    expect(find.text('Informes'), findsOneWidget);
-    expect(find.widgetWithText(SacFilterChip, 'Mensual'), findsOneWidget);
-    expect(find.widgetWithText(SacFilterChip, 'Trimestral'), findsOneWidget);
-    expect(find.widgetWithText(SacFilterChip, 'Anual'), findsOneWidget);
+    expect(find.text('Cumplimiento de informes mensuales'), findsOneWidget);
+    // Coordinators only see monthly reports: no kind switcher.
+    expect(find.text('Trimestral'), findsNothing);
+    expect(find.text('Anual'), findsNothing);
 
     // Started months only (Oct, Sep, Aug); November is in the future.
-    final periodChips = tester
-        .widgetList<SacFilterChip>(find.byType(SacFilterChip))
-        .where((chip) => chip.variant == SacFilterChipVariant.quiet)
-        .toList();
+    final periodChips =
+        tester.widgetList<SacFilterChip>(find.byType(SacFilterChip)).toList();
     expect(periodChips, hasLength(3));
     // October has nothing expected yet, so September is selected.
     expect(periodChips.map((c) => c.selected), [false, true, false]);
 
-    expect(calls.compliance, contains((year: 2026, month: 9, quarter: null)));
-    expect(
-      calls.lists,
-      contains((
-        kind: CoordinatorReportKind.monthly,
-        year: 2026,
-        period: 9,
-        ecclesiasticalYearId: null,
-      )),
-    );
+    expect(calls.compliance, contains((year: 2026, month: 9)));
+    expect(calls.lists, contains((year: 2026, period: 9)));
   });
 
   testWidgets('shows the period totals and one status card per club',
@@ -213,43 +173,15 @@ void main() {
     }
   });
 
-  testWidgets('switching to quarterly reloads Q3 and shows its PDF',
+  testWidgets('picking another month reloads its compliance and list',
       (tester) async {
     final calls = await _pump(tester);
 
-    await tester.tap(find.widgetWithText(SacFilterChip, 'Trimestral'));
+    await tester.tap(find.widgetWithText(SacFilterChip, 'ago 2026'));
     await tester.pumpAndSettle();
 
-    expect(calls.compliance, contains((year: 2026, month: null, quarter: 3)));
-    expect(find.text('T3 2026'), findsOneWidget);
-    expect(find.widgetWithText(SacBadge, 'Pendiente'), findsOneWidget);
-    expect(find.text('Ver PDF'), findsOneWidget);
-  });
-
-  testWidgets('annual reports list by ecclesiastical year without periods',
-      (tester) async {
-    final calls = await _pump(tester);
-
-    await tester.tap(find.widgetWithText(SacFilterChip, 'Anual'));
-    await tester.pumpAndSettle();
-
-    expect(
-      calls.lists,
-      contains((
-        kind: CoordinatorReportKind.annual,
-        year: null,
-        period: null,
-        ecclesiasticalYearId: 7,
-      )),
-    );
-    expect(
-      tester
-          .widgetList<SacFilterChip>(find.byType(SacFilterChip))
-          .where((chip) => chip.variant == SacFilterChipVariant.quiet),
-      isEmpty,
-    );
-    // Nothing expected yet for the year.
-    expect(find.widgetWithText(SacBadge, 'En curso'), findsNWidgets(2));
+    expect(calls.compliance, contains((year: 2026, month: 8)));
+    expect(calls.lists, contains((year: 2026, period: 8)));
   });
 
   testWidgets('opening a PDF downloads that report and reports failures',
@@ -259,7 +191,7 @@ void main() {
     await tester.tap(find.text('Ver PDF · Conquistadores'));
     await tester.pumpAndSettle();
 
-    expect(calls.pdfs, [(kind: CoordinatorReportKind.monthly, id: 55)]);
+    expect(calls.pdfs, [55]);
     expect(
       find.text('No se pudo abrir el PDF. Inténtalo de nuevo.'),
       findsOneWidget,
@@ -286,8 +218,6 @@ void main() {
         ecclesiasticalYearId: 7,
         clubCount: 0,
         monthly: ReportCounts.zero,
-        quarterly: ReportCounts.zero,
-        annual: ReportCounts.zero,
       ),
     );
 

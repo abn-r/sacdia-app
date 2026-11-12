@@ -30,45 +30,37 @@ class CoordinatorReportsRepositoryImpl implements CoordinatorReportsRepository {
   Future<Either<Failure, ReportCompliance>> getCompliance({
     int? year,
     int? month,
-    int? quarter,
     RequestCancelToken? cancelToken,
   }) =>
       _guard(
         () => remoteDataSource.getCompliance(
           year: year,
           month: month,
-          quarter: quarter,
           cancelToken: cancelToken.asDioCancelToken(),
         ),
       );
 
   @override
   Future<Either<Failure, List<CoordinatorReport>>> listReports({
-    required CoordinatorReportKind kind,
     int? year,
     int? period,
-    int? ecclesiasticalYearId,
     RequestCancelToken? cancelToken,
   }) =>
       _guard(
         () => remoteDataSource.listReports(
-          kind: kind,
           year: year,
           period: period,
-          ecclesiasticalYearId: ecclesiasticalYearId,
           cancelToken: cancelToken.asDioCancelToken(),
         ),
       );
 
   @override
   Future<Either<Failure, String>> downloadReportPdf({
-    required CoordinatorReportKind kind,
     required int reportId,
     RequestCancelToken? cancelToken,
   }) =>
       _guard(
         () => remoteDataSource.downloadReportPdf(
-          kind: kind,
           reportId: reportId,
           cancelToken: cancelToken.asDioCancelToken(),
         ),

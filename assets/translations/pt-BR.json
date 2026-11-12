@@ -1863,8 +1863,8 @@
         "empty": "Ainda não há clubes no seu escopo de coordenação."
       },
       "reports": {
-        "title": "Relatórios",
-        "see_all": "Ver relatórios",
+        "title": "Relatórios mensais",
+        "see_all": "Ver cumprimento",
         "forbidden": "Sua função não tem acesso aos relatórios dos clubes."
       }
     },
@@ -1996,7 +1996,7 @@
       "error_message": "Verifique sua conexão e tente novamente."
     },
     "reports": {
-      "title": "Relatórios",
+      "title": "Cumprimento dos relatórios mensais",
       "error_title": "Não foi possível carregar os relatórios",
       "error_message": "Verifique sua conexão e tente novamente.",
       "empty_title": "Nenhum clube atribuído",
@@ -2011,12 +2011,6 @@
       "view_pdf_type": "Ver PDF · {type}",
       "pdf_error": "Não foi possível abrir o PDF. Tente novamente.",
       "list_error": "Não foi possível carregar os PDFs dos relatórios.",
-      "quarter_label": "T{quarter} {year}",
-      "kind": {
-        "monthly": "Mensal",
-        "quarterly": "Trimestral",
-        "annual": "Anual"
-      },
       "stat": {
         "submitted": "Enviados",
         "pending": "Pendentes",

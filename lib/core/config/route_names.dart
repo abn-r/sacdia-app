@@ -234,7 +234,7 @@ class RouteNames {
 
   // Coordinator tab routes (children of the `/coordinator` shell branch).
   static const String coordinatorClubs = '/coordinator/clubs';
-  // Read-only club reports (compliance + PDFs) of the coordinator.
+  // Read-only monthly report compliance (+ PDFs) of the coordinator.
   static const String coordinatorReports = '/coordinator/reports';
 
   // Helpers para coordinación

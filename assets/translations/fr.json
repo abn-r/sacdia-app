@@ -1863,8 +1863,8 @@
         "empty": "Aucun club ne fait encore partie de votre périmètre de coordination."
       },
       "reports": {
-        "title": "Rapports",
-        "see_all": "Voir les rapports",
+        "title": "Rapports mensuels",
+        "see_all": "Voir la conformité",
         "forbidden": "Votre rôle n'a pas accès aux rapports des clubs."
       }
     },
@@ -1996,7 +1996,7 @@
       "error_message": "Vérifiez votre connexion et réessayez."
     },
     "reports": {
-      "title": "Rapports",
+      "title": "Conformité des rapports mensuels",
       "error_title": "Impossible de charger les rapports",
       "error_message": "Vérifiez votre connexion et réessayez.",
       "empty_title": "Aucun club assigné",
@@ -2011,12 +2011,6 @@
       "view_pdf_type": "Voir le PDF · {type}",
       "pdf_error": "Impossible d'ouvrir le PDF. Réessayez.",
       "list_error": "Impossible de charger les PDF des rapports.",
-      "quarter_label": "T{quarter} {year}",
-      "kind": {
-        "monthly": "Mensuel",
-        "quarterly": "Trimestriel",
-        "annual": "Annuel"
-      },
       "stat": {
         "submitted": "Envoyés",
         "pending": "En attente",

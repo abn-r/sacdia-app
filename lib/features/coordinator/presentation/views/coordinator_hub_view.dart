@@ -1124,7 +1124,7 @@ class _ClubRow extends StatelessWidget {
   }
 }
 
-// ── "Reportes" ─────────────────────────────────────────────────────────────
+// ── "Informes mensuales" ─────────────────────────────────────────────────────────────
 
 class _ReportsSection extends ConsumerWidget {
   const _ReportsSection();
@@ -1167,7 +1167,7 @@ class _ReportsSection extends ConsumerWidget {
               onRetry: () => ref.invalidate(reportComplianceProvider),
             ),
             data: (compliance) => ComplianceStatTiles(
-              counts: compliance.overall,
+              counts: compliance.monthly,
               onTap: () => _openReports(context),
             ),
           ),

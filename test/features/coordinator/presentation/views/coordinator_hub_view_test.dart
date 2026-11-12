@@ -118,8 +118,6 @@ final _compliance = ReportCompliance(
   clubCount: 2,
   monthly:
       const ReportCounts(expected: 13, submitted: 10, pending: 1, overdue: 2),
-  quarterly: const ReportCounts(expected: 3, submitted: 2, overdue: 1),
-  annual: ReportCounts.zero,
 );
 
 Future<void> _pumpHub(
@@ -366,15 +364,15 @@ void main() {
         (tester) async {
       await _pumpHub(tester);
 
-      expect(find.text('Reportes'), findsOneWidget);
+      expect(find.text('Informes mensuales'), findsOneWidget);
       expect(find.text('Próximamente'), findsNothing);
       final tiles = tester
           .widgetList<SacStatTile>(find.byType(SacStatTile))
           .where((t) => t.label == 'Enviados' || t.label == 'Vencidos')
           .toList();
-      expect(tiles.map((t) => t.value), [12, 3]);
+      expect(tiles.map((t) => t.value), [10, 2]);
 
-      await tester.tap(find.text('Ver informes'));
+      await tester.tap(find.text('Ver cumplimiento'));
       await tester.pumpAndSettle();
       expect(find.text('page:reports'), findsOneWidget);
     });
@@ -391,7 +389,7 @@ void main() {
         find.text('Tu rol no tiene acceso a los informes de los clubes.'),
         findsOneWidget,
       );
-      expect(find.text('Ver informes'), findsNothing);
+      expect(find.text('Ver cumplimiento'), findsNothing);
     });
 
     testWidgets('shows the all-clear row instead of a preview when 0 pending',

@@ -57,8 +57,8 @@ void main() {
     expect(used.difference(known), isEmpty);
   });
 
-  test('kCapabilityKeys is the generated catalog of 50 sorted keys', () {
-    expect(kCapabilityKeys, hasLength(50));
+  test('kCapabilityKeys is the generated catalog of 52 sorted keys', () {
+    expect(kCapabilityKeys, hasLength(52));
     final sorted = kCapabilityKeys.toList()..sort();
     expect(kCapabilityKeys.toList(), sorted);
     // Una capacidad tiene forma `a.b`, nunca `a:b` (eso es un permiso).

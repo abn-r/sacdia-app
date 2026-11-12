@@ -28,12 +28,13 @@ import 'package:sacdia_app/features/coordinator/presentation/widgets/coordinator
 
 const Duration _kStagger = Duration(milliseconds: 60);
 
-/// Read-only club reports of the coordinator.
+/// Read-only monthly report compliance of the coordinator's clubs.
 ///
-/// Report kind and period chips, the period's compliance totals and one card
-/// per club with its status (submitted / pending / overdue) and the PDFs the
-/// backend serves. No finalize, regenerate or submit actions: coordinators
-/// review, they do not run the clubs' reports.
+/// Month chips, the month's compliance totals and one card per club with its
+/// status (submitted / pending / overdue) and the PDFs the backend serves.
+/// Quarterly and annual reports are not shown to coordinators. No finalize,
+/// regenerate or submit actions: coordinators review, they do not run the
+/// clubs' reports.
 class CoordinatorReportsView extends ConsumerWidget {
   const CoordinatorReportsView({super.key});
 
@@ -158,24 +159,8 @@ class _ReportsScroll extends StatelessWidget {
 
 // ── Labels ──────────────────────────────────────────────────────────────────
 
-String reportKindLabel(CoordinatorReportKind kind) => switch (kind) {
-      CoordinatorReportKind.monthly => 'coordinator.reports.kind.monthly'.tr(),
-      CoordinatorReportKind.quarterly =>
-        'coordinator.reports.kind.quarterly'.tr(),
-      CoordinatorReportKind.annual => 'coordinator.reports.kind.annual'.tr(),
-    };
-
-/// "oct 2026" (monthly, UI locale) or "T3 2026" (quarterly).
-String reportPeriodLabel(
-  BuildContext context,
-  CoordinatorReportKind kind,
-  ReportPeriodKey period,
-) {
-  if (kind == CoordinatorReportKind.quarterly) {
-    return 'coordinator.reports.quarter_label'.tr(
-      namedArgs: {'quarter': '${period.index}', 'year': '${period.year}'},
-    );
-  }
+/// "oct 2026" (UI locale).
+String reportPeriodLabel(BuildContext context, ReportPeriodKey period) {
   final locale = Localizations.maybeLocaleOf(context)?.toLanguageTag();
   return intl.DateFormat.yMMM(locale)
       .format(DateTime(period.year, period.index));
@@ -191,38 +176,26 @@ class _ReportsContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final kind = ref.watch(coordinatorReportKindProvider);
     final picked = ref.watch(coordinatorReportPeriodProvider);
-    final periods = year.startedPeriodsFor(kind);
-    final fallback = year.defaultPeriodFor(kind);
-    final ReportPeriodKey? period = kind.hasPeriods
-        ? (picked ??
-            (fallback == null
-                ? null
-                : (year: fallback.year, index: fallback.index)))
-        : null;
+    final periods = year.startedPeriods;
+    final fallback = year.defaultPeriod;
+    final ReportPeriodKey? period = picked ??
+        (fallback == null
+            ? null
+            : (year: fallback.year, index: fallback.index));
 
     final complianceAsync =
-        ref.watch(reportComplianceProvider(complianceQueryFor(kind, period)));
-    final listQuery = (
-      kind: kind,
-      year: period?.year,
-      period: period?.index,
-      ecclesiasticalYearId: kind == CoordinatorReportKind.annual
-          ? year.ecclesiasticalYearId
-          : null,
-    );
+        ref.watch(reportComplianceProvider(complianceQueryFor(period)));
+    final listQuery = (year: period?.year, period: period?.index);
     final reportsAsync = ref.watch(coordinatorReportListProvider(listQuery));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _KindChips(selected: kind),
-        if (kind.hasPeriods && periods.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          _PeriodChips(kind: kind, periods: periods, selected: period),
+        if (periods.isNotEmpty) ...[
+          _PeriodChips(periods: periods, selected: period),
+          const SizedBox(height: 16),
         ],
-        const SizedBox(height: 16),
         complianceAsync.when(
           skipLoadingOnReload: complianceAsync.hasValue,
           loading: () => const _PeriodSkeleton(),
@@ -234,9 +207,8 @@ class _ReportsContent extends ConsumerWidget {
                   onRetry: () => ref.invalidate(reportComplianceProvider),
                 ),
           data: (compliance) => _PeriodBody(
-            kind: kind,
             compliance: compliance,
-            dueAt: _dueAtFor(year, kind, period),
+            dueAt: _dueAtFor(year, period),
             reportsAsync: reportsAsync,
             onRetryReports: () =>
                 ref.invalidate(coordinatorReportListProvider(listQuery)),
@@ -246,57 +218,21 @@ class _ReportsContent extends ConsumerWidget {
     );
   }
 
-  static DateTime? _dueAtFor(
-    ReportCompliance year,
-    CoordinatorReportKind kind,
-    ReportPeriodKey? period,
-  ) {
+  static DateTime? _dueAtFor(ReportCompliance year, ReportPeriodKey? period) {
     if (period == null) return null;
-    for (final p in year.periodsFor(kind)) {
+    for (final p in year.monthlyPeriods) {
       if (p.year == period.year && p.index == period.index) return p.dueAt;
     }
     return null;
   }
 }
 
-class _KindChips extends ConsumerWidget {
-  const _KindChips({required this.selected});
-
-  final CoordinatorReportKind selected;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return SizedBox(
-      height: SacFilterChip.barHeight,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: CoordinatorReportKind.values.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final kind = CoordinatorReportKind.values[index];
-          return SacFilterChip(
-            label: reportKindLabel(kind),
-            selected: kind == selected,
-            onTap: () {
-              if (kind == selected) return;
-              ref.read(coordinatorReportKindProvider.notifier).state = kind;
-              ref.read(coordinatorReportPeriodProvider.notifier).state = null;
-            },
-          );
-        },
-      ),
-    );
-  }
-}
-
 class _PeriodChips extends ConsumerWidget {
   const _PeriodChips({
-    required this.kind,
     required this.periods,
     required this.selected,
   });
 
-  final CoordinatorReportKind kind;
   final List<ReportCompliancePeriod> periods;
   final ReportPeriodKey? selected;
 
@@ -313,7 +249,7 @@ class _PeriodChips extends ConsumerWidget {
           final key = (year: p.year, index: p.index);
           return SacFilterChip(
             variant: SacFilterChipVariant.quiet,
-            label: reportPeriodLabel(context, kind, key),
+            label: reportPeriodLabel(context, key),
             selected: key == selected,
             count: p.counts.overdue > 0 ? p.counts.overdue : null,
             onTap: () =>
@@ -327,14 +263,12 @@ class _PeriodChips extends ConsumerWidget {
 
 class _PeriodBody extends StatelessWidget {
   const _PeriodBody({
-    required this.kind,
     required this.compliance,
     required this.dueAt,
     required this.reportsAsync,
     required this.onRetryReports,
   });
 
-  final CoordinatorReportKind kind;
   final ReportCompliance compliance;
   final DateTime? dueAt;
   final AsyncValue<List<CoordinatorReport>> reportsAsync;
@@ -344,7 +278,7 @@ class _PeriodBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final textTheme = Theme.of(context).textTheme;
-    final counts = compliance.countsFor(kind);
+    final counts = compliance.monthly;
     final clubs = compliance.clubs;
     final reportsByClub = groupReportsByClub(
       clubs,
@@ -393,7 +327,6 @@ class _PeriodBody extends StatelessWidget {
           for (var i = 0; i < clubs.length; i++) ...[
             if (i > 0) const SizedBox(height: 10),
             ClubReportCard(
-              kind: kind,
               club: clubs[i],
               reports: reportsByClub[clubs[i].clubId] ?? const [],
               reportsLoading: reportsAsync.isLoading,
@@ -496,14 +429,12 @@ class ReportStatusBadge extends StatelessWidget {
 class ClubReportCard extends StatelessWidget {
   const ClubReportCard({
     super.key,
-    required this.kind,
     required this.club,
     required this.reports,
     required this.reportsLoading,
     this.delay = Duration.zero,
   });
 
-  final CoordinatorReportKind kind;
   final ClubReportCompliance club;
   final List<CoordinatorReport> reports;
   final bool reportsLoading;
@@ -513,7 +444,7 @@ class ClubReportCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final textTheme = Theme.of(context).textTheme;
-    final counts = club.countsFor(kind);
+    final counts = club.monthly;
     final pdfs = reports.where((r) => r.hasPdf).toList();
     final showProgress = counts.expected > 1;
 
@@ -603,9 +534,7 @@ class _PdfRowState extends ConsumerState<_PdfRow> {
 
   String get _label {
     final type = widget.report.clubTypeName?.trim();
-    if (widget.report.kind == CoordinatorReportKind.monthly &&
-        type != null &&
-        type.isNotEmpty) {
+    if (type != null && type.isNotEmpty) {
       return 'coordinator.reports.view_pdf_type'.tr(namedArgs: {'type': type});
     }
     return 'coordinator.reports.view_pdf'.tr();
@@ -614,9 +543,9 @@ class _PdfRowState extends ConsumerState<_PdfRow> {
   Future<void> _open() async {
     if (_opening) return;
     setState(() => _opening = true);
-    final key = (kind: widget.report.kind, id: widget.report.id);
     try {
-      final path = await ref.read(coordinatorReportPdfProvider(key).future);
+      final path =
+          await ref.read(coordinatorReportPdfProvider(widget.report.id).future);
       if (!mounted) return;
       SacPdfViewer.show(context, pdfSource: path, title: widget.clubName);
     } catch (e) {

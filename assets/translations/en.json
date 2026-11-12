@@ -1863,8 +1863,8 @@
         "empty": "There are no clubs within your coordination scope yet."
       },
       "reports": {
-        "title": "Reports",
-        "see_all": "See reports",
+        "title": "Monthly reports",
+        "see_all": "See compliance",
         "forbidden": "Your role has no access to club reports."
       }
     },
@@ -1996,7 +1996,7 @@
       "error_message": "Check your connection and try again."
     },
     "reports": {
-      "title": "Reports",
+      "title": "Monthly report compliance",
       "error_title": "Could not load the reports",
       "error_message": "Check your connection and try again.",
       "empty_title": "No assigned clubs",
@@ -2011,12 +2011,6 @@
       "view_pdf_type": "View PDF · {type}",
       "pdf_error": "Could not open the PDF. Try again.",
       "list_error": "Could not load the report PDFs.",
-      "quarter_label": "Q{quarter} {year}",
-      "kind": {
-        "monthly": "Monthly",
-        "quarterly": "Quarterly",
-        "annual": "Annual"
-      },
       "stat": {
         "submitted": "Submitted",
         "pending": "Pending",
