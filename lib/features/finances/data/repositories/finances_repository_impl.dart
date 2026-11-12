@@ -9,6 +9,7 @@ import '../../domain/entities/category_breakdown.dart';
 import '../../domain/entities/finance_category.dart';
 import '../../domain/entities/finance_export.dart';
 import '../../domain/entities/finance_month.dart';
+import '../../domain/entities/finance_monthly_series.dart';
 import '../../domain/entities/finance_summary.dart';
 import '../../domain/entities/transaction.dart';
 import '../../domain/repositories/finances_repository.dart';
@@ -84,6 +85,34 @@ class FinancesRepositoryImpl implements FinancesRepository {
         clubId: clubId,
         year: year,
         month: month,
+        cancelToken: cancelToken.asDioCancelToken(),
+      );
+      return Right(model.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, FinanceMonthlySeries>> getMonthlySeries({
+    required int clubId,
+    int? fromYear,
+    int? fromMonth,
+    required int toYear,
+    required int toMonth,
+    RequestCancelToken? cancelToken,
+  }) async {
+    try {
+      final model = await remoteDataSource.getMonthlySeries(
+        clubId: clubId,
+        fromYear: fromYear,
+        fromMonth: fromMonth,
+        toYear: toYear,
+        toMonth: toMonth,
         cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(model.toEntity());

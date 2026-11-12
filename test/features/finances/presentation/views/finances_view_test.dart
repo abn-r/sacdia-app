@@ -46,7 +46,6 @@ FinanceSummary _summary({bool? periodClosed}) => FinanceSummary(
       yearIncome: 900,
       yearExpense: 400,
       periodClosed: periodClosed,
-      monthlyBars: const [],
     );
 
 const _breakdown = CategoryBreakdown(

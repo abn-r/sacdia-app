@@ -75,6 +75,7 @@ final Map<String, ProviderOrFamily> profileScopedKeepAliveEntries = {
   'financeMonthByKeyProvider': financeMonthByKeyProvider,
   'financeSummaryByKeyProvider': financeSummaryByKeyProvider,
   'financeByCategoryByKeyProvider': financeByCategoryByKeyProvider,
+  'financeSeriesByKeyProvider': financeSeriesByKeyProvider,
   // Informes mensuales
   'monthlyReportPdfProvider': monthlyReportPdfProvider,
   // Post-registro (el keepAlive se llama dentro del notifier)

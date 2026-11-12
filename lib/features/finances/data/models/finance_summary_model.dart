@@ -5,7 +5,6 @@ class FinanceSummaryModel extends FinanceSummary {
     required super.totalBalance,
     required super.totalIncome,
     required super.totalExpense,
-    required super.monthlyBars,
     super.net,
     super.yearIncome,
     super.yearExpense,
@@ -14,14 +13,6 @@ class FinanceSummaryModel extends FinanceSummary {
   });
 
   factory FinanceSummaryModel.fromJson(Map<String, dynamic> json) {
-    final rawBars = json['monthly_summary'] as List<dynamic>? ??
-        json['monthlySummary'] as List<dynamic>? ??
-        json['monthly'] as List<dynamic>? ??
-        [];
-
-    final bars =
-        rawBars.map((e) => _barFromJson(e as Map<String, dynamic>)).toList();
-
     final totalIncome =
         _parseDouble(json['total_income'] ?? json['totalIncome'] ?? 0);
     final totalExpense =
@@ -49,16 +40,6 @@ class FinanceSummaryModel extends FinanceSummary {
       movementCount:
           _parseInt(json['movement_count'] ?? json['movementCount'] ?? 0),
       periodClosed: rawClosed is bool ? rawClosed : null,
-      monthlyBars: bars,
-    );
-  }
-
-  static MonthlyBar _barFromJson(Map<String, dynamic> json) {
-    return MonthlyBar(
-      year: _parseInt(json['year'] ?? DateTime.now().year),
-      month: _parseInt(json['month'] ?? 1),
-      income: _parseDouble(json['income'] ?? json['total_income'] ?? 0),
-      expense: _parseDouble(json['expense'] ?? json['total_expense'] ?? 0),
     );
   }
 
@@ -80,7 +61,6 @@ class FinanceSummaryModel extends FinanceSummary {
         totalBalance: totalBalance,
         totalIncome: totalIncome,
         totalExpense: totalExpense,
-        monthlyBars: monthlyBars,
         net: net,
         yearIncome: yearIncome,
         yearExpense: yearExpense,

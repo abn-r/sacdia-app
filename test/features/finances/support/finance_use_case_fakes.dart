@@ -9,9 +9,11 @@ import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/usecases/cancellation_token.dart';
 import 'package:sacdia_app/features/finances/domain/entities/category_breakdown.dart';
 import 'package:sacdia_app/features/finances/domain/entities/finance_month.dart';
+import 'package:sacdia_app/features/finances/domain/entities/finance_monthly_series.dart';
 import 'package:sacdia_app/features/finances/domain/entities/finance_summary.dart';
 import 'package:sacdia_app/features/finances/domain/repositories/finances_repository.dart';
 import 'package:sacdia_app/features/finances/domain/usecases/get_category_breakdown.dart';
+import 'package:sacdia_app/features/finances/domain/usecases/get_finance_monthly_series.dart';
 import 'package:sacdia_app/features/finances/domain/usecases/get_finance_summary.dart';
 import 'package:sacdia_app/features/finances/domain/usecases/get_finances.dart';
 
@@ -66,7 +68,6 @@ class FakeSummaryUseCase implements GetFinanceSummary {
         totalBalance: 1000.0 + (params.month ?? 0),
         totalIncome: 0,
         totalExpense: 0,
-        monthlyBars: const [],
       ),
     );
   }
@@ -93,6 +94,46 @@ class FakeBreakdownUseCase implements GetCategoryBreakdown {
         totalExpenses: 0,
       ),
     );
+  }
+}
+
+/// Series use case: records every request and returns one point per month of
+/// the requested range (income = month * 10), or fails when [fail] is set.
+class FakeSeriesUseCase implements GetFinanceMonthlySeries {
+  final calls = <GetFinanceMonthlySeriesParams>[];
+  bool fail = false;
+
+  @override
+  FinancesRepository get repository => throw UnimplementedError();
+
+  @override
+  Future<Either<Failure, FinanceMonthlySeries>> call(
+    GetFinanceMonthlySeriesParams params, {
+    RequestCancelToken? cancelToken,
+  }) async {
+    calls.add(params);
+    if (fail) return const Left(ServerFailure(message: 'boom', code: 500));
+    final points = <FinanceMonthlyPoint>[];
+    var year = params.fromYear ?? params.toYear;
+    var month = params.fromMonth ?? params.toMonth;
+    while (year * 12 + month <= params.toYear * 12 + params.toMonth) {
+      points.add(
+        FinanceMonthlyPoint(
+          year: year,
+          month: month,
+          income: month * 10.0,
+          expenses: 5,
+          net: month * 10.0 - 5,
+          balance: 100,
+        ),
+      );
+      month++;
+      if (month > 12) {
+        month = 1;
+        year++;
+      }
+    }
+    return Right(FinanceMonthlySeries(items: points));
   }
 }
 
