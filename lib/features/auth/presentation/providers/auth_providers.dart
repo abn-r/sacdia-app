@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:dartz/dartz.dart' show Right;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/auth/acting_for_session.dart';
+import '../../../../core/auth/preferred_section_store.dart';
 import '../../../../core/auth/session_mode.dart';
 import '../../../../core/auth/social_auth_provider.dart';
 import '../../../../core/auth/social_credential.dart';
@@ -212,6 +214,55 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       SessionModeStore(ref.read(secureStorageProvider));
 
   bool get _isActing => _session.isActing;
+
+  PreferredSectionStore get _preferredSection =>
+      PreferredSectionStore(ref.read(sharedPreferencesProvider));
+
+  /// Regla de producto: la app queda en la última sección que el usuario
+  /// eligió, nunca en una por defecto (un director puede liderar dos).
+  ///
+  /// El servidor guarda la activa (`users_pr.active_club_assignment_id`), pero
+  /// la elige con un respaldo (la primera operativa) cuando falta o ya no es
+  /// válida, y varios flujos la reinician. Aquí se reafirma la última elección
+  /// de ESTE dispositivo y usuario: si difiere de la que devolvió `/auth/me` y
+  /// sigue siendo seleccionable, se llama a `PATCH /auth/me/context` y se vuelve
+  /// a pedir `/auth/me`. Si ya no es válida se queda la del servidor y se guarda
+  /// esa. Si el cambio falla (sin red) se conserva la elección guardada para el
+  /// próximo intento. Nunca mientras se actúa por un dependiente.
+  Future<UserEntity> _restorePreferredSection(UserEntity user) async {
+    if (_isActing || user.isLinkedDevice) return user;
+    final authorization = user.authorization;
+    if (authorization == null) return user;
+
+    final store = _preferredSection;
+    final target = pickPreferredAssignmentId(
+      authorization: authorization,
+      stored: store.read(user.id),
+    );
+
+    var effective = user;
+    var failed = false;
+    if (target != null) {
+      AppLogger.i('Reafirmando la última sección elegida: $target', tag: _tag);
+      final switched = await ref.read(switchContextProvider)(
+        SwitchContextParams(assignmentId: target),
+      );
+      if (switched.isLeft()) {
+        failed = true;
+      } else {
+        final refreshed = await ref.read(getCurrentUserProvider)(NoParams());
+        final fresh = refreshed.fold<UserEntity?>((_) => null, (u) => u);
+        if (fresh != null && fresh.id == user.id) effective = fresh;
+      }
+    }
+
+    final active = effective.authorization?.activeGrant;
+    final activeId = active?.assignmentId;
+    if (!failed && activeId != null && active!.isActive) {
+      unawaited(store.write(effective.id, activeId));
+    }
+    return effective;
+  }
 
   /// Registra el token FCM del usuario actual. Nunca mientras se actúa por un
   /// dependiente: el dispositivo y sus notificaciones son del tutor (FP-49).
@@ -432,7 +483,19 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       }
     }
 
-    return result.fold(
+    // Reafirma la última sección elegida antes de publicar el usuario.
+    var restored = result;
+    final loadedUser = result.fold<UserEntity?>((_) => null, (u) => u);
+    if (loadedUser != null && !_isActing) {
+      final user = await _restorePreferredSection(loadedUser);
+      if (_session.generation != generationAtStart) {
+        AppLogger.i('Perfil cambiado durante la carga, recargando', tag: _tag);
+        return build();
+      }
+      restored = Right(user);
+    }
+
+    return restored.fold(
       (failure) {
         if (failure is NetworkFailure) {
           AppLogger.w('Sin conectividad, intentando caché', tag: _tag);
@@ -727,7 +790,9 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     final me = await ref.read(getCurrentUserProvider)(NoParams());
     final failure = me.fold<Failure?>((f) => f, (_) => null);
     final user = me.fold<UserEntity?>((_) => null, (u) => u);
-    if (failure == null && user != null) return (user: user, error: null);
+    if (failure == null && user != null) {
+      return (user: await _restorePreferredSection(user), error: null);
+    }
 
     AppLogger.w(
       'Login correcto pero /auth/me falló (${failure?.errorCode ?? failure?.code ?? 'sin usuario'}); se cierra la sesión',
@@ -1168,6 +1233,13 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         }
       },
     );
+
+    // Recuerda la elección para el próximo arranque y los próximos inicios de
+    // sesión de este usuario en este dispositivo.
+    final userId = state.value?.id;
+    if (userId != null && !_isActing) {
+      unawaited(_preferredSection.write(userId, assignmentId));
+    }
 
     return true;
   }

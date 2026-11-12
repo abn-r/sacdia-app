@@ -64,16 +64,22 @@ class ClubContextCard extends ConsumerWidget {
       accentColor = SacAccent.of(context).color;
     }
 
+    // Con una sola sección utilizable no hay nada que elegir: la tarjeta no
+    // se comporta como botón (sin ripple ni toque que no hace nada).
+    final hasMultiple = selectableClubAssignments(visible).length > 1;
+
     return SacCard(
-      onTap: () {
-        showSectionSwitcher(
-          context: context,
-          ref: ref,
-          assignments: visible,
-          activeAssignmentId: authorization?.activeAssignmentId,
-          userGender: userGender,
-        );
-      },
+      onTap: hasMultiple
+          ? () {
+              showSectionSwitcher(
+                context: context,
+                ref: ref,
+                assignments: visible,
+                activeAssignmentId: authorization?.activeAssignmentId,
+                userGender: userGender,
+              );
+            }
+          : null,
       child: Row(
         children: [
           Container(
@@ -129,7 +135,7 @@ class ClubContextCard extends ConsumerWidget {
               ],
             ),
           ),
-          if (assignments.length > 1)
+          if (hasMultiple)
             HugeIcon(
               icon: HugeIcons.strokeRoundedArrowUpDown,
               color: c.textTertiary,
