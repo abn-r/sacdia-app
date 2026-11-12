@@ -31,22 +31,14 @@ final coordinatorReportsRepositoryProvider =
 // ── Compliance ────────────────────────────────────────────────────────────────
 
 /// Compliance filter. All null = the whole active ecclesiastical year.
-typedef ComplianceQuery = ({int? year, int? month, int? quarter});
+typedef ComplianceQuery = ({int? year, int? month});
 
-const ComplianceQuery kWholeYearCompliance =
-    (year: null, month: null, quarter: null);
+const ComplianceQuery kWholeYearCompliance = (year: null, month: null);
 
-/// Compliance query for one period of [kind] (null period = whole year).
-ComplianceQuery complianceQueryFor(
-  CoordinatorReportKind kind,
-  ReportPeriodKey? period,
-) {
-  if (period == null || !kind.hasPeriods) return kWholeYearCompliance;
-  return (
-    year: period.year,
-    month: kind == CoordinatorReportKind.monthly ? period.index : null,
-    quarter: kind == CoordinatorReportKind.quarterly ? period.index : null,
-  );
+/// Compliance query for one month (null period = whole year).
+ComplianceQuery complianceQueryFor(ReportPeriodKey? period) {
+  if (period == null) return kWholeYearCompliance;
+  return (year: period.year, month: period.index);
 }
 
 /// GET /reports/compliance for [ComplianceQuery].
@@ -58,7 +50,6 @@ final reportComplianceProvider = FutureProvider.autoDispose
   final result = await repository.getCompliance(
     year: query.year,
     month: query.month,
-    quarter: query.quarter,
     cancelToken: cancelToken,
   );
   return result.fold(
@@ -69,40 +60,27 @@ final reportComplianceProvider = FutureProvider.autoDispose
 
 // ── Reports view filters ──────────────────────────────────────────────────────
 
-/// Report kind selected in the reports view.
-final coordinatorReportKindProvider =
-    StateProvider.autoDispose<CoordinatorReportKind>(
-  (ref) => CoordinatorReportKind.monthly,
-);
-
-/// A month or quarter of a given calendar year.
+/// A month of a given calendar year.
 typedef ReportPeriodKey = ({int year, int index});
 
-/// Period picked by the user; null = the default period of the kind
-/// ([ReportCompliance.defaultPeriodFor]).
+/// Month picked by the user; null = the default month
+/// ([ReportCompliance.defaultPeriod]).
 final coordinatorReportPeriodProvider =
     StateProvider.autoDispose<ReportPeriodKey?>((ref) => null);
 
 // ── Report lists ──────────────────────────────────────────────────────────────
 
-typedef ReportListQuery = ({
-  CoordinatorReportKind kind,
-  int? year,
-  int? period,
-  int? ecclesiasticalYearId,
-});
+typedef ReportListQuery = ({int? year, int? period});
 
-/// Every report of one kind and period visible to the coordinator.
+/// Every monthly report of one month visible to the coordinator.
 final coordinatorReportListProvider = FutureProvider.autoDispose
     .family<List<CoordinatorReport>, ReportListQuery>((ref, query) async {
   final repository = ref.read(coordinatorReportsRepositoryProvider);
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final result = await repository.listReports(
-    kind: query.kind,
     year: query.year,
     period: query.period,
-    ecclesiasticalYearId: query.ecclesiasticalYearId,
     cancelToken: cancelToken,
   );
   return result.fold(
@@ -113,17 +91,14 @@ final coordinatorReportListProvider = FutureProvider.autoDispose
 
 // ── PDF ───────────────────────────────────────────────────────────────────────
 
-typedef ReportPdfKey = ({CoordinatorReportKind kind, int id});
-
-/// Local path of a downloaded report PDF.
+/// Local path of a downloaded monthly report PDF.
 final coordinatorReportPdfProvider =
-    FutureProvider.autoDispose.family<String, ReportPdfKey>((ref, key) async {
+    FutureProvider.autoDispose.family<String, int>((ref, reportId) async {
   final repository = ref.read(coordinatorReportsRepositoryProvider);
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final result = await repository.downloadReportPdf(
-    kind: key.kind,
-    reportId: key.id,
+    reportId: reportId,
     cancelToken: cancelToken,
   );
   return result.fold(

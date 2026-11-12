@@ -12,17 +12,13 @@ class ReportComplianceModel {
     final totals = _map(json['totals']);
     final year = _map(json['ecclesiastical_year']);
     final monthly = _map(totals['monthly']);
-    final quarterly = _map(totals['quarterly']);
 
     return ReportCompliance(
       asOf: _date(json['as_of']) ?? DateTime.now().toUtc(),
       ecclesiasticalYearId: _int(year['year_id']) ?? 0,
       clubCount: _int(totals['clubs']) ?? _int(json['total']) ?? 0,
       monthly: countsFromJson(monthly),
-      quarterly: countsFromJson(quarterly),
-      annual: countsFromJson(_map(totals['annual'])),
       monthlyPeriods: _periods(monthly['by_period'], 'month'),
-      quarterlyPeriods: _periods(quarterly['by_period'], 'quarter'),
       clubs: [
         for (final item in _list(json['items'])) _club(item),
       ],
@@ -63,62 +59,41 @@ class ReportComplianceModel {
               ),
         ],
         monthly: countsFromJson(_map(json['monthly'])),
-        quarterly: countsFromJson(_map(json['quarterly'])),
-        annual: countsFromJson(_map(json['annual'])),
       );
 }
 
 class CoordinatorReportModel {
   const CoordinatorReportModel._();
 
-  /// One item of the monthly / quarterly / annual admin list.
-  static CoordinatorReport? fromJson(
-    CoordinatorReportKind kind,
-    Map<String, dynamic> json,
-  ) {
-    final id = _int(switch (kind) {
-      CoordinatorReportKind.monthly => json['monthly_report_id'],
-      CoordinatorReportKind.quarterly => json['quarterly_report_id'],
-      CoordinatorReportKind.annual => json['annual_report_id'],
-    });
+  /// One item of the monthly admin list.
+  static CoordinatorReport? fromJson(Map<String, dynamic> json) {
+    final id = _int(json['monthly_report_id']);
     if (id == null) return null;
 
     final club = _map(json['club']);
     return CoordinatorReport(
       id: id,
-      kind: kind,
       status: (json['status'] as String?) ?? 'draft',
       clubId: _int(json['club_id']) ?? _int(club['club_id']),
       clubName: (json['club_name'] as String?) ?? (club['name'] as String?),
       clubTypeId: _int(json['club_type_id']),
       clubTypeName: json['club_type'] as String?,
       year: _int(json['year']),
-      period: switch (kind) {
-        CoordinatorReportKind.monthly => _int(json['month']),
-        CoordinatorReportKind.quarterly => _int(json['quarter']),
-        CoordinatorReportKind.annual => null,
-      },
+      period: _int(json['month']),
       ecclesiasticalYearId: _int(json['ecclesiastical_year_id']),
-      submittedAt: _date(
-        kind == CoordinatorReportKind.monthly
-            ? json['submitted_at']
-            : json['finalized_at'],
-      ),
+      submittedAt: _date(json['submitted_at']),
     );
   }
 }
 
-/// `{ total, page, limit, items }` page of an admin list.
+/// `{ total, page, limit, items }` page of the admin list.
 class CoordinatorReportPage {
   const CoordinatorReportPage({required this.items, required this.total});
 
-  factory CoordinatorReportPage.fromJson(
-    CoordinatorReportKind kind,
-    Map<String, dynamic> json,
-  ) {
+  factory CoordinatorReportPage.fromJson(Map<String, dynamic> json) {
     final items = [
       for (final raw in _list(json['items']))
-        CoordinatorReportModel.fromJson(kind, raw),
+        CoordinatorReportModel.fromJson(raw),
     ].whereType<CoordinatorReport>().toList();
     return CoordinatorReportPage(
       items: items,

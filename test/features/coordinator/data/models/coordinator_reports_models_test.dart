@@ -59,24 +59,6 @@ Map<String, dynamic> complianceJson() => {
             },
           ],
         },
-        'quarterly': {
-          'expected': 6,
-          'submitted': 4,
-          'pending': 0,
-          'overdue': 2,
-          'by_period': [
-            {
-              'year': 2026,
-              'quarter': 3,
-              'due_at': '2026-10-05T23:00:00.000Z',
-              'expected': 2,
-              'submitted': 0,
-              'pending': 0,
-              'overdue': 2,
-            },
-          ],
-        },
-        'annual': {'expected': 0, 'submitted': 0, 'pending': 0, 'overdue': 0},
       },
       'total': 2,
       'page': 1,
@@ -100,13 +82,6 @@ Map<String, dynamic> complianceJson() => {
             'pending': 0,
             'overdue': 0,
           },
-          'quarterly': {
-            'expected': 3,
-            'submitted': 2,
-            'pending': 0,
-            'overdue': 1,
-          },
-          'annual': {'expected': 0, 'submitted': 0, 'pending': 0, 'overdue': 0},
         },
       ],
     };
@@ -123,19 +98,13 @@ void main() {
       expect(c.monthly.overdue, 2);
       expect(c.monthlyPeriods, hasLength(4));
       expect(c.monthlyPeriods.first.dueAt, DateTime.utc(2026, 9, 5, 23));
-      expect(c.quarterlyPeriods.single.index, 3);
-      expect(c.overall.expected, 24);
-      expect(c.overall.overdue, 4);
 
       final club = c.clubs.single;
       expect(club.clubId, 10);
       expect(club.clubName, 'Club Alfa');
       expect(club.localFieldName, 'Campo Norte');
       expect(club.sections.single.clubTypeName, 'Conquistadores');
-      expect(club.countsFor(CoordinatorReportKind.monthly).status,
-          ReportComplianceStatus.submitted);
-      expect(club.countsFor(CoordinatorReportKind.quarterly).status,
-          ReportComplianceStatus.overdue);
+      expect(club.monthly.status, ReportComplianceStatus.submitted);
     });
 
     test('degrades missing or mistyped fields to zero instead of throwing', () {
@@ -158,12 +127,11 @@ void main() {
         'one with something expected', () {
       final c = ReportComplianceModel.fromJson(complianceJson());
 
-      final started = c.startedPeriodsFor(CoordinatorReportKind.monthly);
+      final started = c.startedPeriods;
       // November has not started on 2026-10-22.
       expect(started.map((p) => p.index), [10, 9, 8]);
       // October started but nothing is expected yet → September.
-      expect(c.defaultPeriodFor(CoordinatorReportKind.monthly)!.index, 9);
-      expect(c.defaultPeriodFor(CoordinatorReportKind.annual), isNull);
+      expect(c.defaultPeriod!.index, 9);
     });
   });
 
@@ -181,7 +149,7 @@ void main() {
 
   group('CoordinatorReportModel', () {
     test('monthly admin list item', () {
-      final r = CoordinatorReportModel.fromJson(CoordinatorReportKind.monthly, {
+      final r = CoordinatorReportModel.fromJson({
         'monthly_report_id': 55,
         'club_enrollment_id': 3,
         'month': 9,
@@ -201,38 +169,8 @@ void main() {
       expect(r.isSubmitted, isTrue);
     });
 
-    test('quarterly and annual items read the nested club', () {
-      final q =
-          CoordinatorReportModel.fromJson(CoordinatorReportKind.quarterly, {
-        'quarterly_report_id': 8,
-        'club_id': 10,
-        'year': 2026,
-        'quarter': 3,
-        'status': 'draft',
-        'club': {'club_id': 10, 'name': 'Club Alfa'},
-      })!;
-      expect(q.clubId, 10);
-      expect(q.clubName, 'Club Alfa');
-      expect(q.period, 3);
-      // Drafts are not served as PDF to coordinators.
-      expect(q.hasPdf, isFalse);
-
-      final a = CoordinatorReportModel.fromJson(CoordinatorReportKind.annual, {
-        'annual_report_id': 2,
-        'ecclesiastical_year_id': 7,
-        'status': 'finalized',
-        'finalized_at': '2027-01-03T00:00:00.000Z',
-        'club': {'club_id': 11, 'name': 'Club Beta'},
-      })!;
-      expect(a.clubId, 11);
-      expect(a.period, isNull);
-      expect(a.hasPdf, isTrue);
-      expect(a.submittedAt, DateTime.utc(2027, 1, 3));
-    });
-
     test('items without an id are dropped from the page', () {
-      final page =
-          CoordinatorReportPage.fromJson(CoordinatorReportKind.monthly, {
+      final page = CoordinatorReportPage.fromJson({
         'total': 2,
         'items': [
           {'monthly_report_id': 1, 'status': 'generated'},
@@ -251,41 +189,24 @@ void main() {
       ClubReportCompliance(clubId: 12, clubName: 'Club Beta'),
     ];
 
-    test('matches by id, then by a unique name; ambiguous names never match',
-        () {
+    test('matches by a unique name; ambiguous names never match', () {
       const reports = [
         CoordinatorReport(
           id: 1,
-          kind: CoordinatorReportKind.monthly,
           status: 'submitted',
           clubName: 'club alfa ',
           clubTypeId: 2,
         ),
         CoordinatorReport(
           id: 2,
-          kind: CoordinatorReportKind.monthly,
           status: 'submitted',
           clubName: 'Club Alfa',
           clubTypeId: 1,
         ),
         CoordinatorReport(
           id: 3,
-          kind: CoordinatorReportKind.monthly,
           status: 'submitted',
           clubName: 'Club Beta',
-        ),
-        CoordinatorReport(
-          id: 4,
-          kind: CoordinatorReportKind.quarterly,
-          status: 'finalized',
-          clubId: 12,
-          clubName: 'Club Beta',
-        ),
-        CoordinatorReport(
-          id: 5,
-          kind: CoordinatorReportKind.quarterly,
-          status: 'finalized',
-          clubId: 99,
         ),
       ];
 
@@ -293,8 +214,7 @@ void main() {
 
       expect(grouped[10]!.map((r) => r.id), [2, 1]);
       expect(grouped[11], isNull);
-      expect(grouped[12]!.map((r) => r.id), [4]);
-      expect(grouped.containsKey(99), isFalse);
+      expect(grouped[12], isNull);
     });
   });
 }

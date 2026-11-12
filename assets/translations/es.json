@@ -1863,8 +1863,8 @@
         "empty": "Aún no hay clubes dentro de tu alcance de coordinación."
       },
       "reports": {
-        "title": "Reportes",
-        "see_all": "Ver informes",
+        "title": "Informes mensuales",
+        "see_all": "Ver cumplimiento",
         "forbidden": "Tu rol no tiene acceso a los informes de los clubes."
       }
     },
@@ -1996,7 +1996,7 @@
       "error_message": "Revisa tu conexión e inténtalo de nuevo."
     },
     "reports": {
-      "title": "Informes",
+      "title": "Cumplimiento de informes mensuales",
       "error_title": "No se pudieron cargar los informes",
       "error_message": "Revisa tu conexión e inténtalo de nuevo.",
       "empty_title": "Sin clubes asignados",
@@ -2011,12 +2011,6 @@
       "view_pdf_type": "Ver PDF · {type}",
       "pdf_error": "No se pudo abrir el PDF. Inténtalo de nuevo.",
       "list_error": "No se pudieron cargar los PDF de los informes.",
-      "quarter_label": "T{quarter} {year}",
-      "kind": {
-        "monthly": "Mensual",
-        "quarterly": "Trimestral",
-        "annual": "Anual"
-      },
       "stat": {
         "submitted": "Enviados",
         "pending": "Pendientes",
