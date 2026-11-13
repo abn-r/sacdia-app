@@ -609,7 +609,12 @@
     "service_credential_file_invalid": "O arquivo não é válido. Envie um PDF, JPG ou PNG de até 10 MB.",
     "service_credential_upload_missing": "O arquivo não foi recebido. Tente enviar a comprovação novamente.",
     "service_credential_date_invalid": "A data de conclusão não é válida.",
-    "service_credential_approved_locked": "Uma comprovação aprovada não pode mais ser retirada."
+    "service_credential_approved_locked": "Uma comprovação aprovada não pode mais ser retirada.",
+    "family_release_not_pending": "Esta etapa não está mais pendente. Atualizamos seu estado.",
+    "family_release_email_unavailable": "Não foi possível usar esse e-mail. Tente outro.",
+    "family_release_email_already_set": "Sua conta já tem um e-mail. Atualizamos seu estado.",
+    "family_adult_claim_email_unavailable": "Não foi possível usar esse e-mail. Tente outro.",
+    "family_adult_claim_not_released": "Esta pessoa não pode reivindicar a conta com um código."
   },
   "honors": {
     "errors": {
@@ -6408,6 +6413,17 @@
       "step1": "Você cadastra o menor com seus dados de responsável.",
       "step2": "Você completa o perfil e o une a um clube.",
       "step3": "Você troca para o perfil dele quando precisar."
+    },
+    "history": {
+      "entry_title": "Histórico",
+      "entry_subtitle": "Mostrar liberados",
+      "title": "Pessoas liberadas",
+      "intro": "Pessoas que atingiram a maioridade e não estão mais sob seus cuidados. Aqui você vê apenas o nome e a data.",
+      "empty_title": "Ninguém liberado",
+      "empty_body": "Quando alguém sob seus cuidados atingir a maioridade, aparecerá aqui.",
+      "released_person": "Pessoa liberada",
+      "released_on": "Liberado em {date}",
+      "generate_code": "Gerar código de acesso"
     }
   },
   "restricted_account": {
@@ -6664,6 +6680,71 @@
     "file_kind": {
       "pdf": "PDF",
       "photo": "Foto"
+    }
+  },
+  "release": {
+    "title": "Você é maior de idade e ainda não reivindicou sua conta",
+    "body": "Agora que você atingiu a maioridade, sua conta é só sua. Seus responsáveis não têm mais acesso. Conclua estas etapas para continuar usando o SACDIA.",
+    "step": "Etapa {number}: {title}",
+    "back": "Voltar",
+    "deadline": "Conclua estas etapas nos próximos {days} dias. Se não o fizer, sua conta ficará em pausa: seus dados são mantidos e você pode voltar quando quiser.",
+    "deadline_today": "Conclua estas etapas hoje. Se não o fizer, sua conta ficará em pausa: seus dados são mantidos e você pode voltar quando quiser.",
+    "frozen_notice": "Sua conta está em pausa. Seus dados continuam guardados e ocultos. Conclua estas etapas para voltar.",
+    "email": {
+      "title": "Adicione seu e-mail",
+      "body": "Será seu e-mail de acesso e a forma de recuperar sua conta. Você não precisa confirmá-lo agora.",
+      "label": "E-mail",
+      "submit": "Salvar e-mail",
+      "added_hint": "Salvamos seu e-mail. Enviamos uma mensagem para confirmá-lo; você pode fazer isso depois."
+    },
+    "terms": {
+      "title": "Aceite os Termos e a Privacidade",
+      "body": "Leia e aceite os documentos vigentes por conta própria, agora que você é maior de idade.",
+      "accept": "Aceitar e continuar"
+    },
+    "actions": {
+      "export": "Baixar meus dados",
+      "delete": "Excluir minha conta"
+    },
+    "frozen": {
+      "title": "Sua conta está em pausa",
+      "body": "Você não concluiu a etapa a tempo. Seus dados continuam guardados e ocultos, e ninguém os usa. Você pode voltar quando quiser: aceite os termos e adicione seu e-mail, se faltar.",
+      "since": "Em pausa desde {date}",
+      "claim": "Reivindicar minha conta"
+    },
+    "notice": {
+      "title": "Você atinge a maioridade em {date}",
+      "body": "Nesse dia seus responsáveis perderão o acesso à sua conta. Você precisará aceitar os termos e adicionar um e-mail para continuar usando.",
+      "dismiss": "Dispensar aviso"
+    }
+  },
+  "adult_claim": {
+    "title": "Reivindique sua conta",
+    "body": "Se você foi liberado ao atingir a maioridade e ainda não tem e-mail nem senha, peça um código de acesso ao seu antigo responsável ou ao diretor do seu clube.",
+    "code_label": "Código de acesso",
+    "code_help": "Seu antigo responsável ou o diretor do clube lhe entrega. Vale uma única vez.",
+    "code_required": "Digite o código de acesso",
+    "email_label": "E-mail",
+    "password_label": "Senha",
+    "password_help": "Mínimo de 12 caracteres, com maiúscula, minúscula, número e um símbolo (@$!%*?&).",
+    "confirm_label": "Confirmar senha",
+    "submit": "Reivindicar conta",
+    "success": "Conta reivindicada. Entre com seu e-mail e sua senha.",
+    "login_entry": "Reivindique sua conta",
+    "share_message": "Código de acesso de {name}: {code}. Vale uma vez e expira em {when}. Digite no SACDIA > Reivindique sua conta.",
+    "code_sheet": {
+      "title": "Código de acesso",
+      "body": "Entregue a {name}. Com ele a pessoa poderá reivindicar a conta.",
+      "expires": "Expira em {when}",
+      "once": "Só é mostrado agora. Se o perder, gere um novo.",
+      "copy": "Copiar código",
+      "copied": "Código copiado",
+      "share": "Compartilhar"
+    },
+    "director": {
+      "title": "Pessoa liberada sem acesso",
+      "hint": "Atingiu a maioridade e ainda não tem credenciais. Gere um código para que reivindique a conta.",
+      "generate": "Gerar código de acesso"
     }
   }
 }

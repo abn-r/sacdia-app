@@ -136,7 +136,7 @@ void main() {
         canReadSensitiveUserFamilyForUser(
           legacy,
           targetUserId: 'target',
-          family: SensitiveUserFamily.legalRepresentative,
+          family: SensitiveUserFamily.guardianship,
         ),
         isTrue,
       );
@@ -153,7 +153,7 @@ void main() {
       );
       final fineGrained = buildUser(
         id: 'actor',
-        permissions: const ['legal_representative:update'],
+        permissions: const ['guardianship:update'],
       );
 
       expect(
@@ -176,7 +176,7 @@ void main() {
         canUpdateSensitiveUserFamilyForUser(
           fineGrained,
           targetUserId: 'target',
-          family: SensitiveUserFamily.legalRepresentative,
+          family: SensitiveUserFamily.guardianship,
         ),
         isTrue,
       );

@@ -208,6 +208,7 @@ void main() {
         PrincipalKind.supervisedUser,
         PrincipalKind.linkedDevice,
         PrincipalKind.ageUnknownUser,
+        PrincipalKind.releasedUser,
         PrincipalKind.unknown,
       ]) {
         expect(mayConfirmProfileSwitch(_user(kind)), isFalse, reason: '$kind');

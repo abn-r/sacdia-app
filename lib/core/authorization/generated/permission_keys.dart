@@ -111,6 +111,8 @@ const Set<String> kPermissionKeys = {
   'finances:delete',
   'finances:read',
   'finances:update',
+  'guardianship:read',
+  'guardianship:update',
   'health:read',
   'health:update',
   'honor_categories:create',
@@ -131,8 +133,6 @@ const Set<String> kPermissionKeys = {
   'inventory:read',
   'inventory:update',
   'investiture:read',
-  'legal_representative:read',
-  'legal_representative:update',
   'local_fields:create',
   'local_fields:delete',
   'local_fields:read',
@@ -344,6 +344,8 @@ abstract final class Permissions {
   static const String financesDelete = 'finances:delete';
   static const String financesRead = 'finances:read';
   static const String financesUpdate = 'finances:update';
+  static const String guardianshipRead = 'guardianship:read';
+  static const String guardianshipUpdate = 'guardianship:update';
   static const String healthRead = 'health:read';
   static const String healthUpdate = 'health:update';
   static const String honorCategoriesCreate = 'honor_categories:create';
@@ -364,8 +366,6 @@ abstract final class Permissions {
   static const String inventoryRead = 'inventory:read';
   static const String inventoryUpdate = 'inventory:update';
   static const String investitureRead = 'investiture:read';
-  static const String legalRepresentativeRead = 'legal_representative:read';
-  static const String legalRepresentativeUpdate = 'legal_representative:update';
   static const String localFieldsCreate = 'local_fields:create';
   static const String localFieldsDelete = 'local_fields:delete';
   static const String localFieldsRead = 'local_fields:read';

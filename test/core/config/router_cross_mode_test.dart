@@ -24,6 +24,7 @@ import 'package:sacdia_app/features/auth/presentation/providers/profile_scope_pu
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
 import 'package:sacdia_app/features/dashboard/domain/entities/dashboard_summary.dart';
 import 'package:sacdia_app/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:sacdia_app/features/legal/presentation/providers/legal_providers.dart';
 import 'package:sacdia_app/features/device_mode/presentation/providers/device_connectivity_provider.dart';
 import 'package:sacdia_app/features/notifications/presentation/providers/notifications_providers.dart';
 import 'package:sacdia_app/features/profile/domain/entities/user_detail.dart';
@@ -38,6 +39,8 @@ import '../../features/auth/presentation/providers/auth_notifier_test_support.da
     show FakeNotificationsRepository;
 import '../../features/device_mode/device_test_harness.dart';
 import '../../features/family/family_test_harness.dart';
+import '../../features/majority_release/majority_release_test_support.dart'
+    show legalStatusFixture, releasedUser;
 import '../../support/riverpod_test_support.dart';
 
 /// Lo que cada modo «cachea» en memoria: un centinela del registro de perfil.
@@ -168,6 +171,7 @@ void main() {
         clubActivitiesProvider
             .overrideWith((ref, params) async => [activity(1)]),
         activityDetailProvider.overrideWith((ref, id) async => activity(id)),
+        myLegalStatusProvider.overrideWith((ref) async => legalStatusFixture),
         qrMemberTokenProvider.overrideWith(_FakeQr.new),
         deviceOnlineProvider.overrideWith((ref) => Stream.value(true)),
         profileScopedProvidersProvider
@@ -255,5 +259,33 @@ void main() {
     expect(container.read(pendingNavigationProvider), isNull);
     expect(location(router), isNot(RouteNames.notificationsInbox),
         reason: 'a parked push is never delivered to the next person');
+    leaveTraces('teen-2');
+    await logout();
+    expectNoTraces('teen-2 -> logout');
+
+    // 6. Adulto liberado (Fase 4): su compuerta es propia y no hereda nada del
+    // adolescente anterior; al completar vuelve a ser adulto y tampoco deja
+    // rastros en la persona siguiente.
+    await login(releasedUser(needsEmail: true));
+    expect(location(router), RouteNames.release);
+    expect(container.read(_cache), isNull, reason: 'released starts empty');
+    leaveTraces('released');
+    await logout();
+    expectNoTraces('released -> logout');
+
+    await login(releasedUser(frozen: true));
+    expect(location(router), RouteNames.releaseFrozen);
+    expect(container.read(_cache), isNull, reason: 'frozen starts empty');
+    // Aceptar descongela: el servidor lo devuelve como adulto.
+    auth.emit(_adult());
+    await _settle(tester);
+    expect(location(router), RouteNames.homeDashboard);
+    leaveTraces('thawed');
+    await logout();
+    expectNoTraces('thawed -> logout');
+
+    await login(_adult());
+    expect(location(router), RouteNames.homeDashboard);
+    expect(container.read(_cache), isNull, reason: 'adult after released');
   });
 }

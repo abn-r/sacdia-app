@@ -97,6 +97,10 @@ void main() {
       '/users/me/notification-preferences',
       '/users/me/data-export',
       '/users/me/data-export/latest',
+      // Fase 4: el correo de una persona liberada es de ella misma.
+      '/users/me/release/email',
+      // Fase 4: emisión del código de acceso por el ex tutor (desde su perfil).
+      '/guardianships/me/released/d-1/adult-claim-code',
     ];
 
     for (final path in skipped) {

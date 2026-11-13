@@ -58,6 +58,7 @@ bool isPendingNavigationAllowed({
         mode: user.mode,
         path: path,
         needsPostRegistration: false,
+        releaseFrozen: user.isReleaseFrozen,
       ) ==
       null;
 }

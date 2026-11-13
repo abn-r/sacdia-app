@@ -137,6 +137,23 @@ void main() {
     expect(revokedCalls, 0);
     expect(expiredCalls, 0);
   });
+
+  test('a 401 on the public adult-claim redeem is not a session event',
+      () async {
+    await setUpWith(401, body('AUTH_SUPERVISED_ACCESS_REVOKED'));
+
+    try {
+      await dio.post(
+        '/auth/adult-claim/redeem',
+        data: {'code': 'x', 'email': 'a@b.co', 'password': 'y'},
+      );
+    } on DioException {
+      // esperado
+    }
+
+    expect(revokedCalls, 0);
+    expect(expiredCalls, 0);
+  });
 }
 
 class _CountingAdapter extends JsonAdapter {

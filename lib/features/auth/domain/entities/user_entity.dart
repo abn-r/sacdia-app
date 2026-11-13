@@ -131,6 +131,8 @@ class UserEntity extends Equatable {
       if (p.kind == PrincipalKind.ageUnknownUser) {
         return AccountMode.profileIncomplete;
       }
+      // Adulto liberado (Fase 4): el principal manda, igual que el teléfono.
+      if (p.kind == PrincipalKind.releasedUser) return AccountMode.released;
     }
     final explicit = serverMode;
     if (explicit != null) return explicit;
@@ -149,6 +151,19 @@ class UserEntity extends Equatable {
 
   /// Sesión de un teléfono vinculado de un menor (Fase 3b).
   bool get isLinkedDevice => mode == AccountMode.linkedDevice;
+
+  /// Adulto liberado que aún no reclamó su cuenta (Fase 4).
+  bool get isReleased => mode == AccountMode.released;
+
+  /// Bloque `principal.release` (solo un adulto liberado lo trae).
+  ReleaseInfo? get release => isReleased ? principal?.release : null;
+
+  /// Liberado y congelado. Un bloque ausente cuenta como pendiente: la
+  /// pantalla de aceptación sirve para los dos estados y el servidor decide.
+  bool get isReleaseFrozen => release?.isFrozen ?? false;
+
+  /// La liberación por mayoría de edad está activa en el servidor.
+  bool get majorityReleaseEnabled => familyFeatures?.majorityRelease ?? false;
 
   /// La cuenta tiene un correo que nunca se confirmó (`/auth/me.email_verified`
   /// = `false` explícito). Ausente o nulo (servidor anterior, perfil sin

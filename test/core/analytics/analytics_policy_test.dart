@@ -115,6 +115,41 @@ void main() {
       expect(gateway.identifies, isEmpty);
     });
 
+    test('a released adult is never identified until they complete (FP4-21)',
+        () async {
+      // Aunque el servidor dijera `analytics_anonymous: false`, mientras sea
+      // `released_user` no se identifica: la política exige `user` + adulto.
+      await policy.apply(const UserEntity(
+        id: 'released-1',
+        serverMode: AccountMode.released,
+        principal: PrincipalInfo(
+          kind: PrincipalKind.releasedUser,
+          release: ReleaseInfo(status: ReleaseStatus.pending),
+        ),
+        analyticsAnonymous: false,
+      ));
+      expect(gateway.identifies, isEmpty);
+      expect(gateway.events, isEmpty);
+    });
+
+    test(
+        'a released adult who was identified before is reset, then identified '
+        'again only once completed', () async {
+      await policy.apply(_adult('same-1'));
+      expect(gateway.events, ['identify:same-1']);
+
+      await policy.apply(const UserEntity(
+        id: 'same-1',
+        serverMode: AccountMode.released,
+        principal: PrincipalInfo(kind: PrincipalKind.releasedUser),
+        analyticsAnonymous: false,
+      ));
+      expect(gateway.events, ['identify:same-1', 'reset']);
+
+      await policy.apply(_adult('same-1'));
+      expect(gateway.events, ['identify:same-1', 'reset', 'identify:same-1']);
+    });
+
     test('a linked device is never identified', () async {
       await policy.apply(const UserEntity(
         id: 'kid-1',

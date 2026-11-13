@@ -1,5 +1,6 @@
 import '../../features/auth/domain/entities/principal_info.dart';
 import 'device_route_policy.dart';
+import 'release_route_policy.dart';
 import 'route_names.dart';
 
 /// Rutas de `go_router` que un adolescente supervisado puede abrir (FP3-31,
@@ -23,6 +24,8 @@ import 'route_names.dart';
 ///   decide cuándo se levanta la restricción.
 /// - **Principal desconocido** (`AccountMode.restricted`): falla cerrado. Solo
 ///   su pantalla informativa y la aceptación legal.
+///
+/// - **Liberado** (`AccountMode.released`, Fase 4): ver `release_route_policy.dart`.
 ///
 /// El servidor es la autoridad: esto solo evita pantallas que acabarían en 403.
 
@@ -107,8 +110,14 @@ bool isRestrictedOnlyRoute(String path) =>
 
 /// Destino «de inicio» de una cuenta según su [mode]: lo que sustituye al
 /// inicio de los adultos.
-String accountHomeFor(AccountMode mode, {required bool needsPostRegistration}) {
+String accountHomeFor(
+  AccountMode mode, {
+  required bool needsPostRegistration,
+  bool releaseFrozen = false,
+}) {
   switch (mode) {
+    case AccountMode.released:
+      return releaseHomeFor(frozen: releaseFrozen);
     case AccountMode.profileIncomplete:
       return RouteNames.postRegistration;
     case AccountMode.restricted:
@@ -140,13 +149,17 @@ String? supervisedRouteRedirect({
   required AccountMode mode,
   required String path,
   required bool needsPostRegistration,
+  bool releaseFrozen = false,
 }) {
   switch (mode) {
+    case AccountMode.released:
+      return releaseRouteRedirect(path: path, frozen: releaseFrozen);
     case AccountMode.adult:
       // Las pantallas de estado no existen para un adulto (p. ej. cumplió 18).
       return isTeenOnlyRoute(path) ||
               isRestrictedOnlyRoute(path) ||
-              isDeviceOnlyRoute(path)
+              isDeviceOnlyRoute(path) ||
+              isReleaseOnlyRoute(path)
           ? RouteNames.homeDashboard
           : null;
     case AccountMode.profileIncomplete:
@@ -172,6 +185,7 @@ String? supervisedRouteRedirect({
       if (isTeenOnlyRoute(path) ||
           isRestrictedOnlyRoute(path) ||
           isDeviceOnlyRoute(path) ||
+          isReleaseOnlyRoute(path) ||
           isBlockedForActiveTeen(path)) {
         return RouteNames.homeDashboard;
       }

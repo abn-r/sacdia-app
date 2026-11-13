@@ -1,3 +1,4 @@
+import '../../../majority_release/presentation/widgets/majority_notice_banner.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -178,6 +179,8 @@ class _TeenPendingHomeViewState extends ConsumerState<TeenPendingHomeView> {
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.fromLTRB(hPad, 24, hPad, 32),
             children: [
+              // Fase 4: aviso de mayoría de edad próxima.
+              const MajorityNoticeSlot(),
               Center(
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedUserLock01,
