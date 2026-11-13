@@ -23,6 +23,11 @@ enum PrincipalKind {
   /// la fecha. Sin supervisión ni familia. No es un adulto.
   ageUnknownUser,
 
+  /// Adulto liberado al cumplir la mayoría de edad que aún no reclamó su cuenta
+  /// (Fase 4): ve solo el flujo de liberación (`/release`). Una app anterior a
+  /// la Fase 4 lo lee como [unknown] y falla cerrado.
+  releasedUser,
+
   /// Valor no reconocido (servidor más nuevo que la app).
   unknown;
 
@@ -32,6 +37,7 @@ enum PrincipalKind {
         'supervised_user' => supervisedUser,
         'linked_device' => linkedDevice,
         'age_unknown_user' => ageUnknownUser,
+        'released_user' => releasedUser,
         _ => unknown,
       };
 }
@@ -92,13 +98,36 @@ class SupervisionInfo extends Equatable {
   /// [daysLeftAt].
   final int? serverDaysLeft;
 
+  /// Fecha (calendario, solo día) en que cumplirá la mayoría de edad. El
+  /// servidor solo la informa dentro de la ventana de aviso de 30 días y con la
+  /// liberación activa (Fase 4); nula en cualquier otro caso.
+  final DateTime? majorityDate;
+
+  /// El aviso de mayoría de edad ya se envió (`release_notice_sent`).
+  final bool majorityNoticeSent;
+
   const SupervisionInfo({
     required this.status,
     this.pendingSince,
     this.guardians = const [],
     this.summaryVisibleToGuardians = true,
     this.serverDaysLeft,
+    this.majorityDate,
+    this.majorityNoticeSent = false,
   });
+
+  /// Hay una mayoría de edad próxima que mostrar al adolescente.
+  bool get hasMajorityNotice => majorityNoticeSent && majorityDate != null;
+
+  /// Días que faltan para [majorityDate] (nunca negativo), o `null` sin fecha.
+  int? majorityDaysLeftAt(DateTime now) {
+    final date = majorityDate;
+    if (date == null) return null;
+    final today = DateTime.utc(now.year, now.month, now.day);
+    final target = DateTime.utc(date.year, date.month, date.day);
+    final left = target.difference(today).inDays;
+    return left < 0 ? 0 : left;
+  }
 
   bool get isPending => status == SupervisionStatus.pendingGuardian;
 
@@ -122,6 +151,96 @@ class SupervisionInfo extends Equatable {
         guardians,
         summaryVisibleToGuardians,
         serverDaysLeft,
+        majorityDate,
+        majorityNoticeSent,
+      ];
+}
+
+/// Estado de la liberación de un adulto (`principal.release.status`).
+enum ReleaseStatus {
+  /// Liberado y con el plazo corriendo (o ya sin tutores): debe aceptar y, si
+  /// falta, agregar un correo.
+  pending,
+
+  /// Congelado por no completar el paso a tiempo. NUNCA se borra solo (R6):
+  /// solo conserva sus datos, ocultos, hasta que vuelva.
+  frozen;
+
+  /// `null` si falta o no se reconoce.
+  static ReleaseStatus? parse(Object? raw) => switch (raw) {
+        'pending' => pending,
+        'frozen' => frozen,
+        _ => null,
+      };
+}
+
+/// Cómo inicia sesión la persona liberada.
+enum ReleaseLoginMethod {
+  email,
+  handle;
+
+  static ReleaseLoginMethod? parse(Object? raw) => switch (raw) {
+        'email' => email,
+        'handle' => handle,
+        _ => null,
+      };
+}
+
+/// Bloque `principal.release` de `GET /auth/me` (Fase 4): lo que la app
+/// necesita para dibujar el flujo de liberación de un adulto recién liberado.
+class ReleaseInfo extends Equatable {
+  final ReleaseStatus status;
+
+  /// Nulos hasta que el cron persiste la liberación (compuerta perezosa).
+  final DateTime? releasedAt;
+  final DateTime? deadlineAt;
+  final DateTime? frozenAt;
+
+  /// Sin uso mientras no haya borrado automático (R6): el servidor no lo manda
+  /// para una congelación por mayoría de edad. Se parsea por compatibilidad y
+  /// la app NUNCA lo muestra.
+  final DateTime? purgeAfter;
+
+  /// Falta aceptar los Términos y la Privacidad vigentes.
+  final bool needsAcceptance;
+
+  /// Falta agregar un correo (un correo sin verificar basta, R5).
+  final bool needsEmail;
+  final ReleaseLoginMethod? loginMethod;
+
+  const ReleaseInfo({
+    required this.status,
+    this.releasedAt,
+    this.deadlineAt,
+    this.frozenAt,
+    this.purgeAfter,
+    this.needsAcceptance = true,
+    this.needsEmail = false,
+    this.loginMethod,
+  });
+
+  bool get isFrozen => status == ReleaseStatus.frozen;
+
+  /// Días hasta el cierre del plazo (nunca negativo), o `null` sin plazo o ya
+  /// congelado.
+  int? daysLeftAt(DateTime now) {
+    final deadline = deadlineAt;
+    if (deadline == null || isFrozen) return null;
+    final left = deadline.toUtc().difference(now.toUtc()).inHours;
+    if (left <= 0) return 0;
+    return (left / 24).ceil();
+  }
+
+  @override
+  List<Object?> get props => [
+        status,
+        releasedAt,
+        deadlineAt,
+        frozenAt,
+        purgeAfter,
+        needsAcceptance,
+        needsEmail,
+        loginMethod,
       ];
 }
 
@@ -163,15 +282,19 @@ class PrincipalInfo extends Equatable {
   /// Solo para un teléfono vinculado (`linked_device`).
   final DeviceInfo? device;
 
+  /// Solo para un adulto liberado (`released_user`, Fase 4).
+  final ReleaseInfo? release;
+
   const PrincipalInfo({
     required this.kind,
     this.scopes,
     this.supervision,
     this.device,
+    this.release,
   });
 
   @override
-  List<Object?> get props => [kind, scopes, supervision, device];
+  List<Object?> get props => [kind, scopes, supervision, device, release];
 }
 
 /// Banderas de la familia que el servidor expone en `/auth/me`
@@ -181,14 +304,20 @@ class FamilyFeatures extends Equatable {
   final bool linkedDevice;
   final bool directorCreateMinor;
 
+  /// Liberación al cumplir la mayoría de edad (Fase 4). Apagada = ninguna
+  /// pantalla, aviso ni entrada de la Fase 4 (FP4-67).
+  final bool majorityRelease;
+
   const FamilyFeatures({
     this.teenLogin = false,
     this.linkedDevice = false,
     this.directorCreateMinor = false,
+    this.majorityRelease = false,
   });
 
   @override
-  List<Object?> get props => [teenLogin, linkedDevice, directorCreateMinor];
+  List<Object?> get props =>
+      [teenLogin, linkedDevice, directorCreateMinor, majorityRelease];
 }
 
 /// Modo de la cuenta para enrutar la app (FP3-31).
@@ -211,6 +340,12 @@ enum AccountMode {
   /// perfil, sin Mi familia, sin cuenta (`principal.kind == linked_device`).
   linkedDevice,
 
+  /// Adulto liberado que aún no reclamó su cuenta (Fase 4,
+  /// `principal.kind == released_user`): solo el flujo `/release` (pendiente) o
+  /// `/release/frozen`. Nunca es un adulto completo ni se identifica en
+  /// analítica.
+  released,
+
   /// Modo o principal que la app no reconoce (servidor más nuevo). Falla
   /// cerrado: nunca se trata como adulto.
   restricted;
@@ -224,6 +359,7 @@ enum AccountMode {
         'teen_supervised' => teenSupervised,
         'device' => linkedDevice,
         'profile_incomplete' => profileIncomplete,
+        'released' => released,
         String() => restricted,
         _ => null,
       };

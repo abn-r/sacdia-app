@@ -49,4 +49,18 @@ void main() {
     expect(content.contains('legal-representative'), isFalse);
     expect(content.contains('requires-legal-representative'), isFalse);
   });
+
+  test('no source references legal_representative or LegalRepresentative', () {
+    final offenders = <String>[];
+    for (final file in dartFiles()) {
+      final content = file.readAsStringSync();
+      if (content.contains('legal_representative') ||
+          content.contains('LegalRepresentative') ||
+          content.contains('legalRepresentative')) {
+        offenders.add(file.path);
+      }
+    }
+
+    expect(offenders, isEmpty);
+  });
 }

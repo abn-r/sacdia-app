@@ -609,7 +609,12 @@
     "service_credential_file_invalid": "El archivo no es válido. Sube un PDF, JPG o PNG de hasta 10 MB.",
     "service_credential_upload_missing": "No se recibió el archivo. Intenta subir la constancia de nuevo.",
     "service_credential_date_invalid": "La fecha de conclusión no es válida.",
-    "service_credential_approved_locked": "Una constancia aprobada ya no se puede retirar."
+    "service_credential_approved_locked": "Una constancia aprobada ya no se puede retirar.",
+    "family_release_not_pending": "Este paso ya no está pendiente. Actualizamos tu estado.",
+    "family_release_email_unavailable": "No pudimos usar ese correo. Prueba con otro.",
+    "family_release_email_already_set": "Tu cuenta ya tiene un correo. Actualizamos tu estado.",
+    "family_adult_claim_email_unavailable": "No pudimos usar ese correo. Prueba con otro.",
+    "family_adult_claim_not_released": "Esta persona no puede reclamar su cuenta con un código."
   },
   "honors": {
     "errors": {
@@ -6410,6 +6415,17 @@
       "step1": "Registras al menor con tus datos de tutor.",
       "step2": "Completas su perfil y lo unes a un club.",
       "step3": "Cambias a su perfil cuando lo necesites."
+    },
+    "history": {
+      "entry_title": "Historial",
+      "entry_subtitle": "Mostrar liberados",
+      "title": "Personas liberadas",
+      "intro": "Personas que cumplieron la mayoría de edad y ya no están a tu cargo. Aquí solo ves el nombre y la fecha.",
+      "empty_title": "Nadie liberado",
+      "empty_body": "Cuando alguien a tu cargo cumpla la mayoría de edad aparecerá aquí.",
+      "released_person": "Persona liberada",
+      "released_on": "Liberado el {date}",
+      "generate_code": "Generar código de acceso"
     }
   },
   "restricted_account": {
@@ -6666,6 +6682,71 @@
     "file_kind": {
       "pdf": "PDF",
       "photo": "Foto"
+    }
+  },
+  "release": {
+    "title": "Eres mayor de edad y aún no has reclamado tu cuenta",
+    "body": "Al cumplir la mayoría de edad tu cuenta pasó a ser solo tuya. Tus tutores ya no tienen acceso. Completa estos pasos para seguir usando SACDIA.",
+    "step": "Paso {number}: {title}",
+    "back": "Volver",
+    "deadline": "Completa estos pasos en los próximos {days} días. Si no lo haces, tu cuenta quedará en pausa: tus datos se conservan y puedes volver cuando quieras.",
+    "deadline_today": "Completa estos pasos hoy. Si no lo haces, tu cuenta quedará en pausa: tus datos se conservan y puedes volver cuando quieras.",
+    "frozen_notice": "Tu cuenta está en pausa. Tus datos siguen guardados y ocultos. Completa estos pasos para volver.",
+    "email": {
+      "title": "Agrega tu correo",
+      "body": "Será tu correo de acceso y el medio para recuperar tu cuenta. No tienes que confirmarlo ahora.",
+      "label": "Correo electrónico",
+      "submit": "Guardar correo",
+      "added_hint": "Guardamos tu correo. Te enviamos un mensaje para confirmarlo; puedes hacerlo después."
+    },
+    "terms": {
+      "title": "Acepta los Términos y la Privacidad",
+      "body": "Lee y acepta los documentos vigentes por tu propia cuenta, ahora que eres mayor de edad.",
+      "accept": "Aceptar y continuar"
+    },
+    "actions": {
+      "export": "Descargar mis datos",
+      "delete": "Eliminar mi cuenta"
+    },
+    "frozen": {
+      "title": "Tu cuenta está en pausa",
+      "body": "No completaste el paso a tiempo. Tus datos siguen guardados y ocultos, y nadie los usa. Puedes volver cuando quieras: acepta los términos y agrega tu correo si falta.",
+      "since": "En pausa desde {date}",
+      "claim": "Reclamar mi cuenta"
+    },
+    "notice": {
+      "title": "Cumples la mayoría de edad el {date}",
+      "body": "Ese día tus tutores dejarán de tener acceso a tu cuenta. Tendrás que aceptar los términos y agregar un correo para seguir usándola.",
+      "dismiss": "Descartar aviso"
+    }
+  },
+  "adult_claim": {
+    "title": "Reclama tu cuenta",
+    "body": "Si fuiste liberado al cumplir la mayoría de edad y aún no tienes correo ni contraseña, pide un código de acceso a quien era tu tutor o al director de tu club.",
+    "code_label": "Código de acceso",
+    "code_help": "Te lo da tu antiguo tutor o el director del club. Sirve una sola vez.",
+    "code_required": "Escribe el código de acceso",
+    "email_label": "Correo electrónico",
+    "password_label": "Contraseña",
+    "password_help": "Mínimo 12 caracteres, con mayúscula, minúscula, número y un símbolo (@$!%*?&).",
+    "confirm_label": "Confirmar contraseña",
+    "submit": "Reclamar cuenta",
+    "success": "Cuenta reclamada. Inicia sesión con tu correo y tu contraseña.",
+    "login_entry": "Reclama tu cuenta",
+    "share_message": "Código de acceso de {name}: {code}. Sirve una vez y vence el {when}. Ingresa en SACDIA > Reclama tu cuenta.",
+    "code_sheet": {
+      "title": "Código de acceso",
+      "body": "Entrégaselo a {name}. Con él podrá reclamar su cuenta.",
+      "expires": "Vence el {when}",
+      "once": "Solo se muestra ahora. Si lo pierdes, genera uno nuevo.",
+      "copy": "Copiar código",
+      "copied": "Código copiado",
+      "share": "Compartir"
+    },
+    "director": {
+      "title": "Persona liberada sin acceso",
+      "hint": "Cumplió la mayoría de edad y aún no tiene credenciales. Genera un código para que reclame su cuenta.",
+      "generate": "Generar código de acceso"
     }
   }
 }

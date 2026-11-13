@@ -51,6 +51,15 @@ class ClubMember extends Equatable {
   final bool? baptism;
   final DateTime? baptismDate;
 
+  /// Fase 4 (solo lectura): `pending` si la persona fue liberada al cumplir la
+  /// mayoría de edad y aún no completa el paso (`release_status`). Nulo en
+  /// cualquier otro caso o con la liberación apagada. Sin datos personales.
+  final String? releaseStatus;
+
+  /// Fin del plazo de la liberación (`release_deadline_at`), si el servidor lo
+  /// informa.
+  final DateTime? releaseDeadlineAt;
+
   const ClubMember({
     required this.userId,
     required this.name,
@@ -73,7 +82,12 @@ class ClubMember extends Equatable {
     this.address,
     this.baptism,
     this.baptismDate,
+    this.releaseStatus,
+    this.releaseDeadlineAt,
   });
+
+  /// Liberado al cumplir la mayoría de edad y con el paso pendiente (Fase 4).
+  bool get isReleasePending => releaseStatus == 'pending';
 
   /// Cargo de la directiva de la sección, no el rol de miembro.
   bool get isSectionBoard {
@@ -125,5 +139,7 @@ class ClubMember extends Equatable {
         address,
         baptism,
         baptismDate,
+        releaseStatus,
+        releaseDeadlineAt,
       ];
 }

@@ -142,6 +142,18 @@ const _phase3bErrorCodes = [
   'LINKED_DEVICE_NOT_FOUND',
 ];
 
+/// Códigos nuevos de la Fase 4 (liberación al cumplir la mayoría de edad) que la
+/// app traduce por `code` en los 4 idiomas (FP4-45). Las llaves de pantalla
+/// `release.*`, `adult_claim.*` y `family.history.*` las cubre el test de
+/// llaves idénticas (y los placeholders de `family.*`/`errors.*`).
+const _phase4ErrorCodes = [
+  'FAMILY_RELEASE_NOT_PENDING',
+  'FAMILY_RELEASE_EMAIL_UNAVAILABLE',
+  'FAMILY_RELEASE_EMAIL_ALREADY_SET',
+  'FAMILY_ADULT_CLAIM_EMAIL_UNAVAILABLE',
+  'FAMILY_ADULT_CLAIM_NOT_RELEASED',
+];
+
 void main() {
   final translations = {for (final l in _locales) l: _load(l)};
   final base = translations['es']!;
@@ -197,6 +209,56 @@ void main() {
           isTrue,
           reason: '$key missing in $locale',
         );
+      }
+    }
+  });
+
+  test('every Phase 4 error code has an errors.* translation in all locales',
+      () {
+    for (final code in _phase4ErrorCodes) {
+      final key = 'errors.${code.toLowerCase()}';
+      for (final locale in _locales) {
+        expect(
+          translations[locale]!.containsKey(key),
+          isTrue,
+          reason: '$key missing in $locale',
+        );
+      }
+    }
+  });
+
+  test('the Phase 4 screen namespaces exist and match across locales', () {
+    const prefixes = ['release.', 'adult_claim.', 'family.history.'];
+    for (final prefix in prefixes) {
+      final expected = base.keys.where((k) => k.startsWith(prefix)).toSet();
+      expect(expected, isNotEmpty, reason: prefix);
+      for (final locale in _locales.skip(1)) {
+        final actual = translations[locale]!
+            .keys
+            .where((k) => k.startsWith(prefix))
+            .toSet();
+        expect(actual, expected, reason: '$prefix in $locale');
+      }
+    }
+  });
+
+  test('no Phase 4 text promises an automatic deletion (R6)', () {
+    // La cuenta congelada nunca se borra sola: ningún texto de la liberación
+    // puede decir que se eliminará o borrará por no completar el paso.
+    final banned = RegExp(
+      r'(se eliminar|se borrar|will be deleted|will be removed|sera supprim|'
+      r'será excluí|será exclu|sera effac|será apagad)',
+      caseSensitive: false,
+    );
+    for (final locale in _locales) {
+      for (final entry in translations[locale]!.entries.where(
+            (e) =>
+                e.key.startsWith('release.') ||
+                e.key.startsWith('adult_claim.') ||
+                e.key.startsWith('family.history.'),
+          )) {
+        expect(banned.hasMatch(entry.value), isFalse,
+            reason: '${entry.key} in $locale');
       }
     }
   });

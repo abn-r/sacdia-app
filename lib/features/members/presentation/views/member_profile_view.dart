@@ -21,6 +21,7 @@ import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.d
 import 'package:sacdia_app/features/investiture/domain/entities/investiture_status.dart';
 import 'package:sacdia_app/features/profile/presentation/widgets/info_section.dart';
 
+import '../../../majority_release/presentation/widgets/director_adult_claim_row.dart';
 import '../../domain/entities/club_member.dart';
 import '../providers/members_providers.dart';
 import '../utils/member_profile_display.dart';
@@ -57,6 +58,11 @@ class MemberProfileView extends ConsumerWidget {
       authUser,
       const {'health:read', 'users:read_detail'},
     );
+
+    // Fase 4: solo con la liberación activa y con `club_members:approve` (el
+    // servidor lo vuelve a exigir).
+    final canIssueAdultClaim = (authUser?.majorityReleaseEnabled ?? false) &&
+        hasAnyPermission(authUser, const {'club_members:approve'});
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -104,6 +110,13 @@ class MemberProfileView extends ConsumerWidget {
                 detail: fullDetail,
                 hPad: hPad,
                 canViewMedical: canViewMedical,
+                // Fase 4: el director puede generar un código de acceso para una
+                // persona liberada pendiente. La lista del club trae
+                // `release_status`; el detalle puede no traerlo.
+                showAdultClaim: canIssueAdultClaim &&
+                    (fullDetail.isReleasePending || member.isReleasePending),
+                claimSectionId:
+                    fullDetail.clubSectionId ?? member.clubSectionId,
               ),
             ),
           ),
@@ -119,11 +132,15 @@ class _ProfileScrollBody extends StatelessWidget {
   final ClubMember detail;
   final double hPad;
   final bool canViewMedical;
+  final bool showAdultClaim;
+  final int? claimSectionId;
 
   const _ProfileScrollBody({
     required this.detail,
     required this.hPad,
     required this.canViewMedical,
+    this.showAdultClaim = false,
+    this.claimSectionId,
   });
 
   @override
@@ -136,6 +153,15 @@ class _ProfileScrollBody extends StatelessWidget {
         children: [
           const SizedBox(height: 16),
           _MemberProfileHeader(member: detail),
+          if (showAdultClaim && claimSectionId != null) ...[
+            const SizedBox(height: 16),
+            DirectorAdultClaimRow(
+              clubSectionId: claimSectionId!,
+              dependentUserId: detail.userId,
+              dependentName:
+                  detail.name.isNotEmpty ? detail.name : detail.fullName,
+            ),
+          ],
           const SizedBox(height: 24),
           _PersonalInfoSection(detail: detail),
           const SizedBox(height: 20),

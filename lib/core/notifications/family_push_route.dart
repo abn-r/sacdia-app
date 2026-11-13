@@ -17,6 +17,22 @@ enum FamilyPushKind {
   /// Aviso AL adolescente sin tutor (recordatorio a los días 7/30/83) o de que
   /// un tutor se vinculó.
   teenReminder,
+
+  /// Fase 4: faltan 30 días para la mayoría de edad (al menor y a sus tutores).
+  majorityNotice,
+
+  /// Fase 4: la persona ya fue liberada al cumplir la mayoría de edad.
+  majorityReleased,
+
+  /// Fase 4: recordatorio a la persona liberada que aún no completa el paso.
+  majorityReminder,
+
+  /// Fase 4: la cuenta liberada quedó congelada (solo a la persona).
+  majorityFrozen,
+
+  /// Fase 4: aviso a los ex tutores o directores de que una persona liberada
+  /// sin credenciales necesita un código de acceso.
+  majorityHandover,
 }
 
 /// Qué `data.type` (o `data.source`) corresponde a cada [FamilyPushKind].
@@ -35,6 +51,17 @@ const Map<String, FamilyPushKind> _kindByType = {
   'family:teen_reminder': FamilyPushKind.teenReminder,
   'teen_guardian_reminder': FamilyPushKind.teenReminder,
   'teen_guardian_linked': FamilyPushKind.teenReminder,
+  // Fase 4: `data.type` y `source` del servidor.
+  'majority_notice': FamilyPushKind.majorityNotice,
+  'family:majority:notice': FamilyPushKind.majorityNotice,
+  'majority_released': FamilyPushKind.majorityReleased,
+  'family:majority:released': FamilyPushKind.majorityReleased,
+  'majority_reminder': FamilyPushKind.majorityReminder,
+  'family:majority:reminder': FamilyPushKind.majorityReminder,
+  'majority_frozen': FamilyPushKind.majorityFrozen,
+  'family:majority:frozen': FamilyPushKind.majorityFrozen,
+  'majority_handover': FamilyPushKind.majorityHandover,
+  'family:majority:handover': FamilyPushKind.majorityHandover,
 };
 
 /// Tipo de familia del payload de un push, o `null` si no es uno.
@@ -81,6 +108,8 @@ final RegExp _uuid = RegExp(
 ///   es un UUID.
 /// - **Adolescente sin tutor** (o de estado ilegible): su pantalla de estado.
 /// - **Adolescente con tutor**: la bandeja de avisos. Jamás `/family`.
+/// - **Adulto liberado** (Fase 4): `/release` o `/release/frozen` según su
+///   estado; jamás otra ruta ni un cambio de perfil.
 /// - Teléfono vinculado, principal desconocido, cuenta sin edad o sin sesión:
 ///   `null` (el teléfono vinculado tiene su propia resolución y se IGNORA
 ///   `dependent_user_id`).
@@ -99,6 +128,26 @@ FamilyPushTarget? familyPushTarget({
       if (kind == FamilyPushKind.teenReminder) {
         return const FamilyPushTarget(route: RouteNames.notificationsInbox);
       }
+      // Fase 4: el aviso de mayoría de edad lleva a Mi familia; el de «necesita
+      // un código» al historial de liberados. Los avisos que son de la propia
+      // persona liberada no son de un tutor.
+      if (kind == FamilyPushKind.majorityNotice) {
+        return const FamilyPushTarget(
+          route: RouteNames.family,
+          needsGuardianProfile: true,
+        );
+      }
+      if (kind == FamilyPushKind.majorityHandover) {
+        return const FamilyPushTarget(
+          route: RouteNames.familyReleased,
+          needsGuardianProfile: true,
+        );
+      }
+      if (kind == FamilyPushKind.majorityReleased ||
+          kind == FamilyPushKind.majorityReminder ||
+          kind == FamilyPushKind.majorityFrozen) {
+        return null;
+      }
       final raw = data['dependent_user_id']?.toString().trim() ?? '';
       if (_uuid.hasMatch(raw)) {
         return FamilyPushTarget(
@@ -115,6 +164,21 @@ FamilyPushTarget? familyPushTarget({
       return user.mode == AccountMode.teenSupervised
           ? const FamilyPushTarget(route: RouteNames.notificationsInbox)
           : const FamilyPushTarget(route: RouteNames.teenPendingHome);
+    case PrincipalKind.releasedUser:
+      // Solo los avisos propios de la persona; un tutor o director no los
+      // recibe en esta sesión. El estado lo decide `/auth/me`, no el payload.
+      if (user.mode != AccountMode.released) return null;
+      if (kind == FamilyPushKind.majorityReleased ||
+          kind == FamilyPushKind.majorityReminder ||
+          kind == FamilyPushKind.majorityFrozen ||
+          kind == FamilyPushKind.majorityNotice) {
+        return FamilyPushTarget(
+          route: user.isReleaseFrozen
+              ? RouteNames.releaseFrozen
+              : RouteNames.release,
+        );
+      }
+      return null;
     case PrincipalKind.linkedDevice:
     case PrincipalKind.ageUnknownUser:
     case PrincipalKind.unknown:

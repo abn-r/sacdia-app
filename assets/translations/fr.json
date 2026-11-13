@@ -609,7 +609,12 @@
     "service_credential_file_invalid": "Le fichier n'est pas valide. Envoyez un PDF, JPG ou PNG de 10 Mo maximum.",
     "service_credential_upload_missing": "Le fichier n'a pas été reçu. Essayez d'envoyer l'attestation à nouveau.",
     "service_credential_date_invalid": "La date d'achèvement n'est pas valide.",
-    "service_credential_approved_locked": "Une attestation approuvée ne peut plus être retirée."
+    "service_credential_approved_locked": "Une attestation approuvée ne peut plus être retirée.",
+    "family_release_not_pending": "Cette étape n'est plus en attente. Nous avons actualisé votre état.",
+    "family_release_email_unavailable": "Nous n'avons pas pu utiliser cet e-mail. Essayez-en un autre.",
+    "family_release_email_already_set": "Votre compte a déjà un e-mail. Nous avons actualisé votre état.",
+    "family_adult_claim_email_unavailable": "Nous n'avons pas pu utiliser cet e-mail. Essayez-en un autre.",
+    "family_adult_claim_not_released": "Cette personne ne peut pas réclamer son compte avec un code."
   },
   "honors": {
     "errors": {
@@ -6408,6 +6413,17 @@
       "step1": "Tu inscris le mineur avec tes données de tuteur.",
       "step2": "Tu complètes son profil et l’ajoutes à un club.",
       "step3": "Tu passes à son profil quand tu en as besoin."
+    },
+    "history": {
+      "entry_title": "Historique",
+      "entry_subtitle": "Afficher les personnes libérées",
+      "title": "Personnes libérées",
+      "intro": "Personnes devenues majeures qui ne sont plus à votre charge. Vous ne voyez ici que leur nom et la date.",
+      "empty_title": "Personne de libéré",
+      "empty_body": "Quand une personne à votre charge deviendra majeure, elle apparaîtra ici.",
+      "released_person": "Personne libérée",
+      "released_on": "Libéré le {date}",
+      "generate_code": "Générer un code d'accès"
     }
   },
   "restricted_account": {
@@ -6664,6 +6680,71 @@
     "file_kind": {
       "pdf": "PDF",
       "photo": "Photo"
+    }
+  },
+  "release": {
+    "title": "Vous êtes majeur et vous n'avez pas encore réclamé votre compte",
+    "body": "Maintenant que vous êtes majeur, votre compte n'appartient qu'à vous. Vos tuteurs n'y ont plus accès. Terminez ces étapes pour continuer à utiliser SACDIA.",
+    "step": "Étape {number} : {title}",
+    "back": "Retour",
+    "deadline": "Terminez ces étapes dans les {days} prochains jours. Sinon, votre compte sera mis en pause : vos données sont conservées et vous pourrez revenir quand vous voulez.",
+    "deadline_today": "Terminez ces étapes aujourd'hui. Sinon, votre compte sera mis en pause : vos données sont conservées et vous pourrez revenir quand vous voulez.",
+    "frozen_notice": "Votre compte est en pause. Vos données restent enregistrées et masquées. Terminez ces étapes pour revenir.",
+    "email": {
+      "title": "Ajoutez votre e-mail",
+      "body": "Ce sera votre e-mail de connexion et le moyen de récupérer votre compte. Vous n'avez pas à le confirmer maintenant.",
+      "label": "Adresse e-mail",
+      "submit": "Enregistrer l'e-mail",
+      "added_hint": "Nous avons enregistré votre e-mail. Nous vous avons envoyé un message pour le confirmer ; vous pouvez le faire plus tard."
+    },
+    "terms": {
+      "title": "Acceptez les Conditions et la Confidentialité",
+      "body": "Lisez et acceptez les documents en vigueur en votre nom, maintenant que vous êtes majeur.",
+      "accept": "Accepter et continuer"
+    },
+    "actions": {
+      "export": "Télécharger mes données",
+      "delete": "Supprimer mon compte"
+    },
+    "frozen": {
+      "title": "Votre compte est en pause",
+      "body": "Vous n'avez pas terminé l'étape à temps. Vos données restent enregistrées et masquées, et personne ne les utilise. Vous pouvez revenir quand vous voulez : acceptez les conditions et ajoutez votre e-mail s'il manque.",
+      "since": "En pause depuis le {date}",
+      "claim": "Réclamer mon compte"
+    },
+    "notice": {
+      "title": "Vous devenez majeur le {date}",
+      "body": "Ce jour-là, vos tuteurs perdront l'accès à votre compte. Vous devrez accepter les conditions et ajouter un e-mail pour continuer à l'utiliser.",
+      "dismiss": "Ignorer l'avis"
+    }
+  },
+  "adult_claim": {
+    "title": "Réclamez votre compte",
+    "body": "Si vous avez été libéré à votre majorité et que vous n'avez pas encore d'e-mail ni de mot de passe, demandez un code d'accès à votre ancien tuteur ou au directeur de votre club.",
+    "code_label": "Code d'accès",
+    "code_help": "Votre ancien tuteur ou le directeur du club vous le donne. Il ne sert qu'une fois.",
+    "code_required": "Saisissez le code d'accès",
+    "email_label": "Adresse e-mail",
+    "password_label": "Mot de passe",
+    "password_help": "Au moins 12 caractères, avec une majuscule, une minuscule, un chiffre et un symbole (@$!%*?&).",
+    "confirm_label": "Confirmer le mot de passe",
+    "submit": "Réclamer le compte",
+    "success": "Compte réclamé. Connectez-vous avec votre e-mail et votre mot de passe.",
+    "login_entry": "Réclamez votre compte",
+    "share_message": "Code d'accès de {name} : {code}. Il ne sert qu'une fois et expire le {when}. Saisissez-le dans SACDIA > Réclamez votre compte.",
+    "code_sheet": {
+      "title": "Code d'accès",
+      "body": "Remettez-le à {name}. Il pourra ainsi réclamer son compte.",
+      "expires": "Expire le {when}",
+      "once": "Il n'est affiché que maintenant. Si vous le perdez, générez-en un nouveau.",
+      "copy": "Copier le code",
+      "copied": "Code copié",
+      "share": "Partager"
+    },
+    "director": {
+      "title": "Personne libérée sans accès",
+      "hint": "Elle a atteint la majorité et n'a pas encore d'identifiants. Générez un code pour qu'elle réclame son compte.",
+      "generate": "Générer un code d'accès"
     }
   }
 }

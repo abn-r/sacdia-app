@@ -379,6 +379,10 @@ class RouteNames {
   // del tutor; mientras se actúa por un menor estas rutas redirigen al inicio.
   static const String family = '/family';
   static const String familyAdd = '/family/add';
+
+  /// Historial de personas liberadas al cumplir la mayoría de edad (Fase 4).
+  /// Ruta estática: va antes de [familyDetail] (`/family/:dependentId`).
+  static const String familyReleased = '/family/released';
   static const String familyLink = '/family/link';
   static const String familyDetail = '/family/:dependentId';
 
@@ -402,6 +406,19 @@ class RouteNames {
   // cerrado en una pantalla única con «Cerrar sesión». Ver
   // `supervised_route_policy.dart`.
   static const String restrictedAccount = '/account/restricted';
+
+  // Liberación por mayoría de edad (Fase 4).
+  /// Flujo de un adulto liberado: agregar correo y aceptar términos. También
+  /// lo abre quien está congelado (aceptar descongela).
+  static const String release = '/release';
+
+  /// Pantalla de un adulto liberado y congelado: sus datos siguen guardados y
+  /// ocultos; puede volver, exportar o borrar. Nunca se borra solo.
+  static const String releaseFrozen = '/release/frozen';
+
+  /// PÚBLICA: reclamar la cuenta con un código de acceso (adulto liberado sin
+  /// credenciales).
+  static const String adultClaim = '/adult-claim';
 
   // Fase 3b: vinculación de un teléfono de menor por QR (lado del tutor).
   static const String familyPairDevice = '/family/:dependentId/pair-device';

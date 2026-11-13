@@ -51,6 +51,9 @@ class AuthInterceptor extends QueuedInterceptor {
     '/auth/device/pair',
     '/auth/password/reset-request',
     '/auth/password/reset',
+    // Fase 4: canje público del código de acceso (sin sesión). Un 401 aquí no
+    // es una sesión expirada.
+    '/auth/adult-claim',
   ];
 
   /// Called once when the refresh token is dead and the session cannot be
@@ -108,6 +111,8 @@ class AuthInterceptor extends QueuedInterceptor {
     '/notifications/preferences',
     '/users/me/notification-preferences',
     '/users/me/data-export',
+    // Fase 4: el correo de una persona liberada es de ella misma.
+    '/users/me/release',
   ];
 
   /// Nombre del encabezado que sustituye al principal en el backend.

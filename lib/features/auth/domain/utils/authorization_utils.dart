@@ -5,7 +5,7 @@ import '../entities/user_entity.dart';
 enum SensitiveUserFamily {
   health,
   emergencyContacts,
-  legalRepresentative,
+  guardianship,
   postRegistration,
 }
 
@@ -15,8 +15,8 @@ const Map<SensitiveUserFamily, Set<String>> _sensitiveFamilyReadPermissions = {
     'emergency_contacts:read',
     'users:read_detail',
   },
-  SensitiveUserFamily.legalRepresentative: {
-    'legal_representative:read',
+  SensitiveUserFamily.guardianship: {
+    'guardianship:read',
     'users:read_detail',
   },
   SensitiveUserFamily.postRegistration: {
@@ -32,8 +32,8 @@ const Map<SensitiveUserFamily, Set<String>> _sensitiveFamilyUpdatePermissions =
     'emergency_contacts:update',
     'users:update_profile',
   },
-  SensitiveUserFamily.legalRepresentative: {
-    'legal_representative:update',
+  SensitiveUserFamily.guardianship: {
+    'guardianship:update',
     'users:update_profile',
   },
   // No `post_registration:update` grant exists; the route falls back to users:update_profile.
@@ -324,7 +324,12 @@ bool canDeleteAccountInPostRegistration(
 }
 
 /// ¿Debe aceptar los documentos legales vigentes antes de usar la app?
-bool userNeedsLegalAcceptance(UserEntity user) => user.legalAcceptancePending;
+///
+/// Un adulto liberado (Fase 4) NO pasa por la compuerta genérica: su
+/// aceptación es parte del flujo `/release` (documentos del servidor para su
+/// principal) y las dos compuertas nunca deben pelearse.
+bool userNeedsLegalAcceptance(UserEntity user) =>
+    user.legalAcceptancePending && !user.isReleased;
 
 bool isUserOwner(UserEntity? user, String targetUserId) {
   final normalizedTarget = targetUserId.trim();

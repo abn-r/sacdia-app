@@ -1542,6 +1542,13 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   @visibleForTesting
   static bool authorizationChanged(UserEntity before, UserEntity after) {
     if (before.authorizationStale != after.authorizationStale) return true;
+    // Fase 4: pasar de liberado a adulto (o de congelado a pendiente, o aceptar
+    // los documentos) cambia el principal y el modo aunque los permisos no
+    // cambien: sin esto el router no saldría de `/release`.
+    if (before.principal != after.principal ||
+        before.serverMode != after.serverMode) {
+      return true;
+    }
     final a = before.authorization;
     final b = after.authorization;
     if (a == null || b == null) return a != b;

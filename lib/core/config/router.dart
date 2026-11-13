@@ -106,6 +106,7 @@ import 'route_not_found_view.dart';
 import 'route_screen_policy.dart';
 import 'device_route_policy.dart';
 import 'pending_navigation.dart';
+import 'release_route_policy.dart';
 import 'supervised_route_policy.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/providers/logout_cleanup.dart';
@@ -133,6 +134,10 @@ import '../../features/family/presentation/views/dependent_detail_view.dart';
 import '../../features/family/presentation/views/enable_teen_login_wizard.dart';
 import '../../features/family/presentation/views/family_view.dart';
 import '../../features/family/presentation/views/guardian_summary_view.dart';
+import '../../features/majority_release/presentation/views/adult_claim_view.dart';
+import '../../features/majority_release/presentation/views/guardian_released_history_view.dart';
+import '../../features/majority_release/presentation/views/release_frozen_view.dart';
+import '../../features/majority_release/presentation/views/release_view.dart';
 import '../../features/family/presentation/views/pairing_qr_view.dart';
 import '../../features/family/presentation/views/redeem_link_code_view.dart';
 import '../../features/auth/presentation/views/welcome_carousel_view.dart';
@@ -244,6 +249,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         RouteNames.login,
         RouteNames.register,
         RouteNames.forgotPassword,
+        // Fase 4: reclamar la cuenta con un código (sin credenciales aún).
+        RouteNames.adultClaim,
       ];
 
       final isPublicRoute = publicRoutes.contains(currentPath);
@@ -302,6 +309,27 @@ final routerProvider = Provider<GoRouter>((ref) {
         }
 
         // AppBootstrapReady → fall through to normal routing
+      }
+
+      // RELEASE GATE (Fase 4): un adulto liberado al cumplir la mayoría de edad
+      // solo ve el flujo de liberación. Va ANTES del gate legal (la aceptación es
+      // parte del flujo y `userNeedsLegalAcceptance` es falso para este modo, así
+      // que las dos compuertas nunca se pelean) y devuelve `null` para sus propias
+      // rutas (sin bucle). Pendiente: {/release, /access-denied}. Congelado:
+      // {/release/frozen, /release (aceptar descongela), /access-denied}.
+      if (isLoggedIn && user.isReleased) {
+        return releaseRouteRedirect(
+          path: currentPath,
+          frozen: user.isReleaseFrozen,
+        );
+      }
+      // Quien no está liberado (o ya completó) no tiene nada que hacer en esas
+      // pantallas: vuelve al inicio de su modo.
+      if (isLoggedIn && isReleaseOnlyRoute(currentPath)) {
+        return accountHomeFor(
+          user.mode,
+          needsPostRegistration: userNeedsPostRegistration(user),
+        );
       }
 
       // Legal acceptance gate: blocks everything (deep links, post-registration,
@@ -616,6 +644,25 @@ final routerProvider = Provider<GoRouter>((ref) {
                 int.tryParse(state.pathParameters['activityId'] ?? '') ?? 0,
           ),
         ),
+      ),
+
+      // Liberación por mayoría de edad (Fase 4). El router solo las deja abrir a
+      // un adulto liberado (`release_route_policy.dart`); `/adult-claim` es
+      // pública.
+      GoRoute(
+        path: RouteNames.release,
+        pageBuilder: (context, state) =>
+            _slideUpBuild(context, state, const ReleaseView()),
+      ),
+      GoRoute(
+        path: RouteNames.releaseFrozen,
+        pageBuilder: (context, state) =>
+            _slideUpBuild(context, state, const ReleaseFrozenView()),
+      ),
+      GoRoute(
+        path: RouteNames.adultClaim,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const AdultClaimView()),
       ),
 
       // Gate de aceptación legal (fuera del shell, no es ruta pública).
@@ -1740,6 +1787,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RouteNames.familyLink,
         pageBuilder: (context, state) =>
             _sharedAxisBuild(context, state, const RedeemLinkCodeView()),
+      ),
+      GoRoute(
+        path: RouteNames.familyReleased,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+            context, state, const GuardianReleasedHistoryView()),
       ),
       GoRoute(
         path: RouteNames.familyDetail,

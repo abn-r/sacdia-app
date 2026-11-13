@@ -15,6 +15,7 @@ import '../../../../core/widgets/sac_pressable.dart';
 import '../../../../core/widgets/sac_error_state.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
+import '../../../majority_release/presentation/widgets/released_history_tile.dart';
 import '../../domain/entities/dependent.dart';
 import '../family_error_messages.dart';
 import '../providers/family_providers.dart';
@@ -121,6 +122,8 @@ class _ListBody extends ConsumerWidget {
             ],
           ),
         ),
+        // Fase 4: personas liberadas al cumplir la mayoría de edad, colapsadas.
+        const ReleasedHistoryTile(),
       ],
     );
   }
@@ -197,6 +200,8 @@ class _EmptyBody extends StatelessWidget {
           _HowStep(number: i, text: 'family.how.step$i'.tr(), tone: tone),
           if (i < 3) const SizedBox(height: 10),
         ],
+        // Fase 4: personas liberadas al cumplir la mayoría de edad.
+        const ReleasedHistoryTile(),
       ],
     );
   }

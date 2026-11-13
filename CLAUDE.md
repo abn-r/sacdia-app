@@ -150,7 +150,7 @@ Todo provider con `keepAlive()` bajo `lib/features/**/providers/*.dart` vive en 
 
 ### Modos de sesión (Fase 3)
 
-La app puede estar en cuatro modos. El servidor decide cuál es: `GET /auth/me` devuelve `principal.kind` (`PrincipalKind.parse`, `lib/features/auth/domain/entities/principal_info.dart`) y `UserEntity.mode` (`AccountMode`) lo deriva. Nunca se deduce de un claim del JWT ni de la edad calculada en el cliente. Un `kind` desconocido es `AccountMode.restricted` (falla cerrado: solo «Cerrar sesión», analítica anónima, jamás adulto) y `age_unknown_user` es `profileIncomplete`.
+La app puede estar en cinco modos. El servidor decide cuál es: `GET /auth/me` devuelve `principal.kind` (`PrincipalKind.parse`, `lib/features/auth/domain/entities/principal_info.dart`) y `UserEntity.mode` (`AccountMode`) lo deriva. Nunca se deduce de un claim del JWT ni de la edad calculada en el cliente. Un `kind` desconocido es `AccountMode.restricted` (falla cerrado: solo «Cerrar sesión», analítica anónima, jamás adulto) y `age_unknown_user` es `profileIncomplete`.
 
 | Modo | `principal.kind` | `AccountMode` | Quién es |
 | --- | --- | --- | --- |
@@ -158,6 +158,7 @@ La app puede estar en cuatro modos. El servidor decide cuál es: `GET /auth/me` 
 | Adolescente supervisado | `supervised_user` | `teenPending` (sin tutor verificado, `supervision.status = pending_guardian`) o `teenSupervised` (`active`). Si el estado no se pudo leer, cuenta como pendiente | Menor de 13 a 17 con cuenta propia |
 | Dispositivo vinculado | `linked_device` | `linkedDevice` | Teléfono de un menor de 13, sin cuenta, enlazado por QR. Cáscara propia (`RouteNames.device*`): sin perfil, sin Mi familia |
 | Tutor actuando | `guardian_acting` | `adult` (el JWT es el del tutor) | Tutor con `X-Acting-For` sobre un menor (ver «Actuar por») |
+| Adulto liberado (Fase 4) | `released_user` | `released` | Persona que cumplió la mayoría de edad y aún no reclamó su cuenta. Solo `/release` (pendiente) o `/release/frozen`; ver «Liberación por mayoría de edad». Una app anterior a la Fase 4 lee este `kind` como desconocido y falla cerrado (`restricted`) |
 
 - **`SessionMode` es otra cosa** (`lib/core/auth/session_mode.dart`): solo `account | device`. Es una bandeja de arranque, NO identidad ni permiso. Se guarda en el almacenamiento seguro bajo `session_mode` (`AppConstants.sessionModeKey`) y solo se escribe el valor `device` (el modo cuenta es la ausencia de la clave). Existe para elegir la cáscara en el arranque en frío antes de que `/auth/me` responda y para no inicializar la analítica. `AuthNotifier._reconcileSessionMode` la reescribe con lo que dice el servidor (`linked_device` la pone en `device`; cualquier otro principal la borra; bandera `device` sin principal = principal desconocido, restringido). `sessionModeProvider` es la copia en memoria; se reinicia al cerrar sesión.
 - **Un teléfono vinculado nunca manda `X-Acting-For`** (`AuthInterceptor.isDeviceSession`) y, si su refresh muere (`AUTH_DEVICE_REVOKED` o `AUTH_DEVICE_SESSION_EXPIRED`), vuelve a la pantalla de vinculación en lugar del login.
@@ -186,6 +187,18 @@ La app puede estar en cuatro modos. El servidor decide cuál es: `GET /auth/me` 
 - **Cambio de perfil por un push de un menor** (`DependentPushTapHandler`): el diálogo «¿cambiar a su perfil?» solo se ofrece a quien puede actuar (`mayConfirmProfileSwitch`: `user` o `guardian_acting`). Adolescentes, dispositivos y cuentas restringidas ignoran `dependent_user_id`.
 - **Arranque en frío**: si el router aún está en `splash`, el destino se guarda en `pendingNavigationProvider` y se entrega cuando la sesión está lista, solo si la política del modo lo permite.
 
+### Liberación por mayoría de edad (Fase 4, `lib/features/majority_release/`)
+
+Al cumplir la mayoría de edad la persona deja de estar bajo sus tutores (el servidor revoca todas las tutorías). Con `family_features.majority_release` apagado la app no muestra nada de esto (FP4-67). Pendiente de aprobación legal: los textos de aviso, aceptación y pausa (`release.*`, `adult_claim.*`).
+
+- **Principal y modo**: `principal.kind == released_user` -> `AccountMode.released`; `principal.release` (`ReleaseInfo`: `status` pending|frozen, `needsAcceptance`, `needsEmail`, `deadlineAt`, `frozenAt`) es de solo lectura. Nunca se identifica en analítica (`canIdentifyInAnalytics` exige `user`) hasta que completa. `authorizationChanged` compara también principal y modo para que `refreshAuthorization` republique al completar.
+- **Compuerta del router** (`release_route_policy.dart`): va justo después de la de arranque y ANTES de la legal (`userNeedsLegalAcceptance` es falso para este modo). Pendiente: lista blanca `{/release, /access-denied}`; congelado: `{/release/frozen, /release, /access-denied}` (aceptar descongela). Quien no está liberado no abre ninguna. `/adult-claim` es pública. Al actuar por un menor `/release*` y `/adult-claim` se bloquean.
+- **R6 (nunca se borra solo)**: congelado NO es «se borrará»: no hay fecha de purga, la app no muestra ninguna y ningún texto promete un borrado (`translation_parity_test` lo vigila). Congelado no bloquea el login; aceptar y agregar el correo (si falta) lo descongela sin plazo. Siempre se ofrece exportar datos y borrar la cuenta (los flujos de Ajustes).
+- **Flujo `/release`** (`ReleaseView` + `ReleaseController`): 1) correo si `needsEmail` (`POST /users/me/release/email`, basta sin verificar), 2) Términos/Privacidad con las versiones de `GET /users/me/legal-acceptance` (`POST /users/me/legal-acceptance`). Tras cada paso `refreshAuthorization`: el servidor decide si completó; la app no lo deduce. `/users/me/release` está en `actingForSkipPrefixes`.
+- **Sin credenciales**: el login ofrece «Reclama tu cuenta» (`/adult-claim`, pública): código de acceso + correo + contraseña (`POST /auth/adult-claim/redeem`, sin tokens) y lleva al login con el correo escrito. El ex tutor (`/family/released`, historial colapsado en Mi familia) y el director (ficha del miembro con `release_status = pending` y `club_members:approve`) generan el código; se muestra UNA vez.
+- **Aviso al adolescente**: `MajorityNoticeSlot` (perfil y pantalla de estado del adolescente pendiente) con `supervision.majority_date`. Push: `family_push_route.dart` lee `majority_notice|released|reminder|frozen|handover` (la persona va a `/release` o `/release/frozen`; el tutor a `/family` o `/family/released`).
+- **Providers**: todos `autoDispose` (`releaseControllerProvider`, `adultClaimControllerProvider`, `guardianReleasedHistoryProvider`, `releaseInfoProvider` derivado); ninguno entra en `profile_scope_registry.dart`.
+
 ### Push: FID (Firebase Installation ID)
 
 - **Qué se envía**: desde `firebase_messaging` 17 la app NO manda el token FCM legacy sino el FID: `POST /users/me/fcm-tokens` con `{ token: <fid>, kind: 'fid' }`. El FID llega por `onRegistered` tras `register()` (se re-emite en cada `initialize()`). Se guarda en `flutter_secure_storage` en `fcm_registered_token` / `fcm_registered_token_id`, y el tipo en `fcm_registered_kind` (ausente = `token`, instalación anterior a la migración). Si había un token legacy guardado, tras registrar el FID se borra su fila (`DELETE` por id, o por valor si no hay id).
@@ -210,7 +223,7 @@ Entrada desde el perfil (`FamilyProfileEntry`, oculta al actuar); `FamilyPromptH
 ### Alta de un menor
 
 1. **Paso 0** (`AddDependentView`): nombre, fecha de nacimiento, parentesco, declaración bajo protesta y aceptación de Términos/Privacidad EN NOMBRE del menor, con las versiones de `GET /legal/current` que el tutor vio. Los errores del servidor se mapean por `code` (`familyErrorKey`).
-2. Al crearlo, la app llama `switchToDependent` y el router lleva al post-registro (pasos 1-3) YA actuando por el menor. El tutor completa el post-registro del menor; no hay paso de representante legal (se eliminó `LegalRepresentativeView`; el backend solo expone GET).
+2. Al crearlo, la app llama `switchToDependent` y el router lleva al post-registro (pasos 1-3) YA actuando por el menor. El tutor completa el post-registro del menor; no hay paso de representante legal (se eliminó `LegalRepresentativeView`; el endpoint y la tabla se eliminaron en la Fase 4).
 
 ### Salida solo como tutor (guardian-only)
 
@@ -230,7 +243,7 @@ El servidor reenvía al tutor los push del menor (`data.dependent_user_id`, tít
 
 ### i18n: paridad de traducciones
 
-`test/core/l10n/translation_parity_test.dart` exige que en, fr y pt-BR tengan exactamente las llaves de es (solo 2 huecos históricos permitidos en `_knownGaps`: no añadir más), sin textos vacíos, mismos placeholders en `family.*`/`errors.*`, y una traducción `errors.<code en minúsculas>` por cada código de Fase 2 (`_phase2ErrorCodes`). Al añadir un código de error del backend, agrégalo a esa lista y a los 4 idiomas.
+`test/core/l10n/translation_parity_test.dart` exige que en, fr y pt-BR tengan exactamente las llaves de es (solo 2 huecos históricos permitidos en `_knownGaps`: no añadir más), sin textos vacíos, mismos placeholders en `family.*`/`errors.*`, y una traducción `errors.<code en minúsculas>` por cada código de Fase 2 (`_phase2ErrorCodes`) y de Fase 4 (`_phase4ErrorCodes`). Al añadir un código de error del backend, agrégalo a esa lista y a los 4 idiomas.
 
 ## CI y deployment
 

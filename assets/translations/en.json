@@ -609,7 +609,12 @@
     "service_credential_file_invalid": "The file is not valid. Upload a PDF, JPG or PNG up to 10 MB.",
     "service_credential_upload_missing": "The file was not received. Try uploading the certificate again.",
     "service_credential_date_invalid": "The completion date is not valid.",
-    "service_credential_approved_locked": "An approved certificate can no longer be withdrawn."
+    "service_credential_approved_locked": "An approved certificate can no longer be withdrawn.",
+    "family_release_not_pending": "This step is no longer pending. We refreshed your status.",
+    "family_release_email_unavailable": "We couldn't use that email. Try another one.",
+    "family_release_email_already_set": "Your account already has an email. We refreshed your status.",
+    "family_adult_claim_email_unavailable": "We couldn't use that email. Try another one.",
+    "family_adult_claim_not_released": "This person can't claim their account with a code."
   },
   "honors": {
     "errors": {
@@ -6410,6 +6415,17 @@
       "step1": "You register the minor with your guardian details.",
       "step2": "You complete their profile and join them to a club.",
       "step3": "You switch to their profile whenever you need."
+    },
+    "history": {
+      "entry_title": "History",
+      "entry_subtitle": "Show released people",
+      "title": "Released people",
+      "intro": "People who reached legal age and are no longer in your care. You only see their name and date here.",
+      "empty_title": "Nobody released",
+      "empty_body": "When someone in your care reaches legal age they will appear here.",
+      "released_person": "Released person",
+      "released_on": "Released on {date}",
+      "generate_code": "Generate access code"
     }
   },
   "restricted_account": {
@@ -6666,6 +6682,71 @@
     "file_kind": {
       "pdf": "PDF",
       "photo": "Photo"
+    }
+  },
+  "release": {
+    "title": "You're now an adult and haven't claimed your account yet",
+    "body": "Now that you are of legal age, your account is yours alone. Your guardians no longer have access. Complete these steps to keep using SACDIA.",
+    "step": "Step {number}: {title}",
+    "back": "Back",
+    "deadline": "Complete these steps within {days} days. If you don't, your account will be paused: your data is kept and you can come back whenever you like.",
+    "deadline_today": "Complete these steps today. If you don't, your account will be paused: your data is kept and you can come back whenever you like.",
+    "frozen_notice": "Your account is paused. Your data is still saved and hidden. Complete these steps to come back.",
+    "email": {
+      "title": "Add your email",
+      "body": "It will be your sign-in email and the way to recover your account. You don't have to confirm it right now.",
+      "label": "Email address",
+      "submit": "Save email",
+      "added_hint": "We saved your email. We sent you a message to confirm it; you can do that later."
+    },
+    "terms": {
+      "title": "Accept the Terms and Privacy",
+      "body": "Read and accept the current documents on your own behalf, now that you are of legal age.",
+      "accept": "Accept and continue"
+    },
+    "actions": {
+      "export": "Download my data",
+      "delete": "Delete my account"
+    },
+    "frozen": {
+      "title": "Your account is paused",
+      "body": "You didn't complete the step in time. Your data is still saved and hidden, and nobody is using it. You can come back whenever you like: accept the terms and add your email if it is missing.",
+      "since": "Paused since {date}",
+      "claim": "Claim my account"
+    },
+    "notice": {
+      "title": "You reach legal age on {date}",
+      "body": "On that day your guardians will lose access to your account. You will need to accept the terms and add an email to keep using it.",
+      "dismiss": "Dismiss notice"
+    }
+  },
+  "adult_claim": {
+    "title": "Claim your account",
+    "body": "If you were released when you reached legal age and you don't have an email or password yet, ask your former guardian or your club director for an access code.",
+    "code_label": "Access code",
+    "code_help": "Your former guardian or the club director gives it to you. It works only once.",
+    "code_required": "Enter the access code",
+    "email_label": "Email address",
+    "password_label": "Password",
+    "password_help": "At least 12 characters, with an uppercase letter, a lowercase letter, a number and a symbol (@$!%*?&).",
+    "confirm_label": "Confirm password",
+    "submit": "Claim account",
+    "success": "Account claimed. Sign in with your email and password.",
+    "login_entry": "Claim your account",
+    "share_message": "Access code for {name}: {code}. It works once and expires on {when}. Enter it in SACDIA > Claim your account.",
+    "code_sheet": {
+      "title": "Access code",
+      "body": "Give it to {name}. With it they can claim their account.",
+      "expires": "Expires on {when}",
+      "once": "It is only shown now. If you lose it, generate a new one.",
+      "copy": "Copy code",
+      "copied": "Code copied",
+      "share": "Share"
+    },
+    "director": {
+      "title": "Released person without access",
+      "hint": "They reached legal age and don't have credentials yet. Generate a code so they can claim their account.",
+      "generate": "Generate access code"
     }
   }
 }

@@ -24,6 +24,8 @@ class ClubMemberModel extends ClubMember {
     super.address,
     super.baptism,
     super.baptismDate,
+    super.releaseStatus,
+    super.releaseDeadlineAt,
   });
 
   /// Crea un ClubMemberModel a partir de la respuesta de la API.
@@ -111,6 +113,12 @@ class ClubMemberModel extends ClubMember {
       baptism: user['baptism'] as bool? ?? json['baptism'] as bool?,
       baptismDate:
           baptismDateRaw != null ? DateTime.tryParse(baptismDateRaw) : null,
+      releaseStatus:
+          (json['release_status'] ?? user['release_status'])?.toString(),
+      releaseDeadlineAt: DateTime.tryParse(
+        (json['release_deadline_at'] ?? user['release_deadline_at'] ?? '')
+            .toString(),
+      ),
     );
   }
 

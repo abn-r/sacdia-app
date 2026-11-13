@@ -461,6 +461,21 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                                 .push(RouteNames.devicePair),
                                       ),
                                     ),
+                                    // Fase 4: quien fue liberado al cumplir la
+                                    // mayoría de edad y no tiene credenciales
+                                    // reclama su cuenta con un código.
+                                    Center(
+                                      child: SacButton.text(
+                                        key:
+                                            const ValueKey('login_adult_claim'),
+                                        text: 'adult_claim.login_entry'.tr(),
+                                        color: context.sac.textSecondary,
+                                        onPressed: isLoading || socialInFlight
+                                            ? null
+                                            : () => context
+                                                .push(RouteNames.adultClaim),
+                                      ),
+                                    ),
                                     const SizedBox(height: 32),
                                   ],
                                 ),

@@ -1,3 +1,4 @@
+import '../../../majority_release/presentation/widgets/majority_notice_banner.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:flutter/material.dart';
@@ -449,6 +450,9 @@ class _ProfileScrollBody extends StatelessWidget {
 
             // ── 2c. Adolescente con tutor: qué ve su tutor y qué no ────────
             SupervisionInfoSlot(horizontalPadding: hPad),
+
+            // Fase 4: aviso de mayoría de edad próxima (adolescente supervisado).
+            MajorityNoticeSlot(horizontalPadding: hPad),
 
             const SizedBox(height: 20),
 

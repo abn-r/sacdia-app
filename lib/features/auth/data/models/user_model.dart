@@ -145,6 +145,31 @@ class UserModel extends UserEntity {
         // Solo un teléfono vinculado trae el club fuera de `authorization`.
         club: kind == PrincipalKind.linkedDevice ? club : null,
       ),
+      // Solo un adulto liberado trae el bloque (Fase 4).
+      release: kind == PrincipalKind.releasedUser
+          ? _parseRelease(value['release'])
+          : null,
+    );
+  }
+
+  /// `principal.release`: `{status, released_at, deadline_at, frozen_at,
+  /// purge_after, needs_acceptance, needs_email, login_method}`. Ausente o con
+  /// un estado desconocido es nulo (la app trata a la persona como pendiente:
+  /// el servidor sigue decidiendo).
+  static ReleaseInfo? _parseRelease(dynamic value) {
+    if (value is! Map) return null;
+    final status = ReleaseStatus.parse(value['status']);
+    if (status == null) return null;
+    return ReleaseInfo(
+      status: status,
+      releasedAt: _parseDateTime(value['released_at']),
+      deadlineAt: _parseDateTime(value['deadline_at']),
+      frozenAt: _parseDateTime(value['frozen_at']),
+      purgeAfter: _parseDateTime(value['purge_after']),
+      // Solo `false` explícito lo da por hecho: falla del lado de pedirlo.
+      needsAcceptance: value['needs_acceptance'] != false,
+      needsEmail: value['needs_email'] == true,
+      loginMethod: ReleaseLoginMethod.parse(value['login_method']),
     );
   }
 
@@ -196,6 +221,8 @@ class UserModel extends UserEntity {
       // honesto por defecto.
       summaryVisibleToGuardians: value['summary_visible_to_guardians'] != false,
       serverDaysLeft: daysLeft is num ? daysLeft.toInt() : null,
+      majorityDate: _parseDateTime(value['majority_date']),
+      majorityNoticeSent: value['release_notice_sent'] == true,
     );
   }
 
@@ -222,6 +249,7 @@ class UserModel extends UserEntity {
       teenLogin: value['teen_login'] == true,
       linkedDevice: value['linked_device'] == true,
       directorCreateMinor: value['director_create_minor'] == true,
+      majorityRelease: value['majority_release'] == true,
     );
   }
 
