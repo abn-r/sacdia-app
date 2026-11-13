@@ -221,6 +221,7 @@ class UserModel extends UserEntity {
       // honesto por defecto.
       summaryVisibleToGuardians: value['summary_visible_to_guardians'] != false,
       serverDaysLeft: daysLeft is num ? daysLeft.toInt() : null,
+      frozenAt: _parseDateTime(value['frozen_at']),
       majorityDate: _parseDateTime(value['majority_date']),
       majorityNoticeSent: value['release_notice_sent'] == true,
     );

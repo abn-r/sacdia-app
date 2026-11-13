@@ -58,6 +58,10 @@ class TeenSupervision extends Equatable {
   /// `null` si el servidor no declara estado (cuenta sin supervisión).
   final SupervisionStatus? status;
   final DateTime? pendingSince;
+
+  /// Desde cuándo la cuenta está en pausa por no tener un tutor verificado
+  /// (`frozen_at`); `null` si no lo está. Nunca se elimina sola.
+  final DateTime? frozenAt;
   final List<TeenGuardian> guardians;
   final OpenTeenLinkCode? openLinkCode;
   final bool summaryVisibleToGuardians;
@@ -65,6 +69,7 @@ class TeenSupervision extends Equatable {
   const TeenSupervision({
     this.status,
     this.pendingSince,
+    this.frozenAt,
     this.guardians = const [],
     this.openLinkCode,
     this.summaryVisibleToGuardians = true,
@@ -72,9 +77,13 @@ class TeenSupervision extends Equatable {
 
   bool get isPending => status == SupervisionStatus.pendingGuardian;
 
-  /// Días que quedan antes de congelar la cuenta, o `null` sin reloj.
+  /// La cuenta está en pausa a la espera de un tutor verificado.
+  bool get isPaused => isPending && frozenAt != null;
+
+  /// Días que quedan antes de pausar la cuenta, o `null` sin reloj o ya en
+  /// pausa.
   int? daysLeftAt(DateTime now) {
-    if (!isPending) return null;
+    if (!isPending || isPaused) return null;
     final since = pendingSince;
     if (since == null) return null;
     final left = kPendingGuardianDeadlineDays -
@@ -86,6 +95,7 @@ class TeenSupervision extends Equatable {
   List<Object?> get props => [
         status,
         pendingSince,
+        frozenAt,
         guardians,
         openLinkCode,
         summaryVisibleToGuardians,

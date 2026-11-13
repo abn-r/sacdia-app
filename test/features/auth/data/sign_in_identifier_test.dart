@@ -473,7 +473,7 @@ void main() {
 
       expect(out[0], contains('incorrectos'));
       expect(out[1], contains('desactivó este acceso'));
-      expect(out[2], contains('no tenía un tutor vinculado'));
+      expect(out[2], contains('no tiene un tutor verificado'));
       expect(out[3], 'Demasiados intentos. Inténtalo de nuevo más tarde.');
       expect(out[4], contains('15 min'));
       // Un 401 sin código (backend anterior) también es "credenciales".

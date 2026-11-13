@@ -85,6 +85,26 @@ void main() {
       expect(s.daysLeftAt(DateTime.utc(2027, 6, 1)), 0);
     });
 
+    test('a paused supervision (frozen_at) has no clock and is paused', () {
+      final s = TeenJson.supervision({
+        'status': 'pending_guardian',
+        'pending_since': '2026-10-01T00:00:00.000Z',
+        'frozen_at': '2026-12-30T00:00:00.000Z',
+        'days_left': null,
+      });
+      expect(s.frozenAt, DateTime.utc(2026, 12, 30));
+      expect(s.isPaused, isTrue);
+      expect(s.daysLeftAt(DateTime.utc(2027, 6, 1)), isNull);
+    });
+
+    test('without frozen_at the account is not paused', () {
+      final s = TeenJson.supervision({
+        'status': 'pending_guardian',
+        'pending_since': '2026-10-01T00:00:00.000Z',
+      });
+      expect(s.isPaused, isFalse);
+    });
+
     test('an active supervision has no clock', () {
       final s = TeenJson.supervision({
         'status': 'active',

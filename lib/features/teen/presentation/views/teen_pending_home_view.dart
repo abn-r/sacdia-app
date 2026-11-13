@@ -19,6 +19,7 @@ import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../../auth/domain/entities/principal_info.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../profile/presentation/utils/change_password_flow.dart';
+import '../../../profile/presentation/utils/run_delete_account_flow.dart';
 import '../../../profile/presentation/views/edit_profile_view.dart';
 import '../../domain/entities/teen_supervision.dart';
 import '../providers/teen_providers.dart';
@@ -37,7 +38,8 @@ Future<void> _defaultShare(String text) async {
 /// Muestra el estado, un botón para generar el código que el tutor canjea
 /// (copiar / compartir, vence en 72 h), el tutor ya vinculado con la opción de
 /// quitarlo mientras nadie lo haya verificado, y los días que quedan antes de
-/// que la cuenta se elimine. Nada de datos del club: lo único que puede hacer
+/// que la cuenta quede en pausa (nunca se elimina sola; si ya está en pausa se
+/// avisa, y solo la propia persona puede pedir eliminarla). Nada de datos del club: lo único que puede hacer
 /// además es completar su perfil, cambiar su contraseña y salir.
 class TeenPendingHomeView extends ConsumerStatefulWidget {
   const TeenPendingHomeView({
@@ -158,6 +160,10 @@ class _TeenPendingHomeViewState extends ConsumerState<TeenPendingHomeView> {
     // `/auth/me` ya trae el reloj y los tutores; el endpoint propio añade los
     // ids de tutoría (para quitar un vínculo) y el código abierto.
     final daysLeft = fromMe?.daysLeftAt(now) ?? fromServer?.daysLeftAt(now);
+    // En pausa: pasaron los 90 días sin tutor verificado. La cuenta NO se
+    // elimina sola; se reactiva cuando un tutor queda vinculado y verificado.
+    final paused =
+        (fromMe?.isPaused ?? false) || (fromServer?.isPaused ?? false);
     final guardians = fromServer?.guardians ??
         [
           for (final g in fromMe?.guardians ?? const <SupervisionGuardian>[])
@@ -206,7 +212,10 @@ class _TeenPendingHomeViewState extends ConsumerState<TeenPendingHomeView> {
                   height: 1.45,
                 ),
               ),
-              if (daysLeft != null) ...[
+              if (paused) ...[
+                const SizedBox(height: 16),
+                const _PausedNotice(),
+              ] else if (daysLeft != null) ...[
                 const SizedBox(height: 16),
                 _Countdown(daysLeft: daysLeft),
               ],
@@ -319,6 +328,16 @@ class _TeenPendingHomeViewState extends ConsumerState<TeenPendingHomeView> {
                 onPressed: () => runChangePasswordFlow(context, ref),
               ),
               const SizedBox(height: 24),
+              // Solo la propia persona puede pedir que se elimine su cuenta; la
+              // pausa nunca lo hace por ella.
+              if (paused)
+                SacButton.ghost(
+                  key: const ValueKey('teen_pending_delete_account'),
+                  text: 'release.actions.delete'.tr(),
+                  icon: HugeIcons.strokeRoundedDelete02,
+                  textColor: AppColors.error,
+                  onPressed: () => runDeleteAccountFlow(context, ref),
+                ),
               SacButton.ghost(
                 text: 'legal_gate.sign_out'.tr(),
                 icon: HugeIcons.strokeRoundedLogout02,
@@ -348,6 +367,40 @@ class _SectionLabel extends StatelessWidget {
             fontWeight: FontWeight.w700,
             letterSpacing: 0.8,
           ),
+    );
+  }
+}
+
+/// Aviso de cuenta en pausa: nunca se elimina sola y vuelve cuando un tutor
+/// verificado queda vinculado.
+class _PausedNotice extends StatelessWidget {
+  const _PausedNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return SacCard(
+      key: const ValueKey('teen_pending_paused'),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedPause,
+            size: 22,
+            color: SacAccent.of(context).color,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'teen.pending.paused'.tr(),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: context.sac.text,
+                    fontWeight: FontWeight.w600,
+                    height: 1.35,
+                  ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

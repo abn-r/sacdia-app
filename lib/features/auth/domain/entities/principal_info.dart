@@ -82,7 +82,7 @@ class SupervisionGuardian extends Equatable {
 }
 
 /// Plazo (en días) que el servidor da a un adolescente sin tutor antes de
-/// congelar la cuenta (FP3-06).
+/// pausar la cuenta (FP3-06). La pausa no elimina la cuenta.
 const int kPendingGuardianDeadlineDays = 90;
 
 /// Bloque `principal.supervision` de `GET /auth/me`.
@@ -98,6 +98,11 @@ class SupervisionInfo extends Equatable {
   /// [daysLeftAt].
   final int? serverDaysLeft;
 
+  /// Desde cuándo la cuenta está en pausa por no tener un tutor verificado
+  /// (`frozen_at`). Nulo si no está en pausa. La pausa nunca elimina la cuenta:
+  /// se levanta sola cuando un tutor queda vinculado Y verificado.
+  final DateTime? frozenAt;
+
   /// Fecha (calendario, solo día) en que cumplirá la mayoría de edad. El
   /// servidor solo la informa dentro de la ventana de aviso de 30 días y con la
   /// liberación activa (Fase 4); nula en cualquier otro caso.
@@ -112,6 +117,7 @@ class SupervisionInfo extends Equatable {
     this.guardians = const [],
     this.summaryVisibleToGuardians = true,
     this.serverDaysLeft,
+    this.frozenAt,
     this.majorityDate,
     this.majorityNoticeSent = false,
   });
@@ -131,10 +137,13 @@ class SupervisionInfo extends Equatable {
 
   bool get isPending => status == SupervisionStatus.pendingGuardian;
 
-  /// Días que quedan antes de congelar la cuenta (nunca negativo). `null` si no
-  /// hay reloj (supervisión activa o sin fecha de inicio).
+  /// La cuenta está en pausa a la espera de un tutor verificado.
+  bool get isPaused => isPending && frozenAt != null;
+
+  /// Días que quedan antes de pausar la cuenta (nunca negativo). `null` si no
+  /// hay reloj (supervisión activa, ya en pausa o sin fecha de inicio).
   int? daysLeftAt(DateTime now) {
-    if (!isPending) return null;
+    if (!isPending || isPaused) return null;
     final server = serverDaysLeft;
     if (server != null) return server < 0 ? 0 : server;
     final since = pendingSince;
@@ -151,6 +160,7 @@ class SupervisionInfo extends Equatable {
         guardians,
         summaryVisibleToGuardians,
         serverDaysLeft,
+        frozenAt,
         majorityDate,
         majorityNoticeSent,
       ];
