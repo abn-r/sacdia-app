@@ -35,6 +35,7 @@ abstract final class TeenJson {
     return TeenSupervision(
       status: SupervisionStatus.parse(json['status']),
       pendingSince: _date(json['pending_since']),
+      frozenAt: _date(json['frozen_at']),
       guardians: guardians is List
           ? guardians
               .whereType<Map>()

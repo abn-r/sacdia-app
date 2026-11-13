@@ -243,6 +243,17 @@ void main() {
       );
     });
 
+    test('frozen_at marks the teen as paused and stops the clock', () {
+      final principal = _teenPrincipal();
+      (principal['supervision'] as Map<String, dynamic>)['frozen_at'] =
+          '2026-12-30T00:00:00.000Z';
+      final user = UserModel.fromCustomApi(_payload({'principal': principal}));
+      final s = user.principal!.supervision!;
+      expect(s.frozenAt, DateTime.utc(2026, 12, 30));
+      expect(s.isPaused, isTrue);
+      expect(s.daysLeftAt(DateTime.utc(2027, 3, 1)), isNull);
+    });
+
     test('no clock without a start date or a server value', () {
       final user = UserModel.fromCustomApi(_payload({
         'principal': _teenPrincipal(pendingSince: null),

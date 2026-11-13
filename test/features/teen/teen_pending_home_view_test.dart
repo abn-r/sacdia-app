@@ -89,6 +89,7 @@ class _TeenAuth extends AuthNotifier {
 
 UserEntity _teen({
   DateTime? pendingSince,
+  DateTime? frozenAt,
   int? daysLeft,
   List<SupervisionGuardian> guardians = const [],
 }) =>
@@ -103,6 +104,7 @@ UserEntity _teen({
           pendingSince: pendingSince ?? _now.subtract(const Duration(days: 7)),
           guardians: guardians,
           serverDaysLeft: daysLeft,
+          frozenAt: frozenAt,
         ),
       ),
     );
@@ -183,11 +185,43 @@ void main() {
     // 7 días corridos de 90: quedan 83.
     expect(
       find.text(
-        'Te quedan 83 días para vincular a un tutor. Si no, tu cuenta se '
-        'eliminará.',
+        'Te quedan 83 días para vincular a un tutor. Si no, tu cuenta quedará '
+        'en pausa hasta que un tutor verificado se vincule.',
       ),
       findsOneWidget,
     );
+    // El adolescente nunca lee que su cuenta se va a eliminar.
+    expect(find.textContaining('eliminar'), findsNothing);
+    expect(find.byKey(const ValueKey('teen_pending_delete_account')),
+        findsNothing);
+  });
+
+  testWidgets(
+      'a paused account says it is paused, never deleted automatically, '
+      'and offers deletion to the person only', (tester) async {
+    await pump(
+      tester,
+      _teen(
+        pendingSince: _now.subtract(const Duration(days: 120)),
+        frozenAt: _now.subtract(const Duration(days: 30)),
+      ),
+    );
+
+    expect(find.byKey(const ValueKey('teen_pending_paused')), findsOneWidget);
+    expect(
+      find.text(
+        'Tu cuenta está en pausa hasta que un tutor verificado se vincule. No '
+        'se elimina sola: solo tú puedes pedir que se elimine.',
+      ),
+      findsOneWidget,
+    );
+    // Ni cuenta atrás ni «último día»: ya no hay plazo.
+    expect(find.byKey(const ValueKey('teen_pending_countdown')), findsNothing);
+    expect(find.textContaining('Hoy es el último día'), findsNothing);
+    // Sigue pudiendo vincular un tutor y eliminar su cuenta.
+    expect(find.text('Generar código'), findsOneWidget);
+    expect(find.byKey(const ValueKey('teen_pending_delete_account')),
+        findsOneWidget);
   });
 
   testWidgets('one day left reads in the singular', (tester) async {
