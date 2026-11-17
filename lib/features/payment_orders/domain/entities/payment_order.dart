@@ -95,15 +95,24 @@ class PaymentOrderLine extends Equatable {
   final String beneficiaryUserId;
   final int unitCostCentavos;
 
+  /// Name of the person the line covers. Empty when the server omits it.
+  final String beneficiaryName;
+
+  /// Board member (non-member role in the order's section).
+  final bool isStaff;
+
   const PaymentOrderLine({
     required this.lineId,
     required this.sequence,
     required this.beneficiaryUserId,
     required this.unitCostCentavos,
+    this.beneficiaryName = '',
+    this.isStaff = false,
   });
 
   @override
-  List<Object?> get props => [lineId, sequence, beneficiaryUserId];
+  List<Object?> get props =>
+      [lineId, sequence, beneficiaryUserId, beneficiaryName, isStaff];
 }
 
 /// Comprobante de pago subido a una orden.

@@ -3647,117 +3647,178 @@
   },
   "insurance": {
     "errors": {
-      "get_members": "Error fetching club insurance records",
-      "get_detail": "Error fetching insurance details",
-      "create": "Error creating insurance record",
-      "update": "Error updating insurance record",
-      "get_expiring": "Error fetching expiring insurance records"
+      "get_overview": "We couldn't load the insurance",
+      "get_free_coverages": "We couldn't load the free insurance",
+      "get_members": "Error loading the club's insurance"
     },
-    "view": {
-      "title": "Club Insurance",
-      "search_hint": "Search member...",
-      "coverage_title": "Coverage",
-      "coverage_of": "{insured} of {total} insured",
-      "expiring_banner_one": "{count} insurance expires in the next 30 days",
-      "expiring_banner_other": "{count} insurances expire in the next 30 days",
-      "member_count_one": "{count} member",
-      "member_count_other": "{count} members",
-      "sort_title": "Sort by",
-      "error_title": "Error loading insurances",
-      "empty_title": "No insurance information",
-      "empty_subtitle_manager": "Register the club members' insurances.",
-      "empty_subtitle_member": "There are no insurance records for this club yet.",
-      "empty_filtered_title": "No members match that filter",
-      "empty_filtered_subtitle": "Try a different filter or search.",
-      "fab_register": "Register insurance"
-    },
-    "summary": {
-      "total": "Total",
-      "insured": "Insured",
-      "expired": "Expired",
+    "status": {
+      "covered": "Insured",
+      "in_order": "In an order",
+      "in_review": "In review",
+      "rejected": "Rejected",
       "uninsured": "Uninsured"
     },
     "detail": {
-      "title": "Insurance Detail",
-      "section_data": "Insurance data",
-      "section_period": "Coverage period",
-      "section_evidence": "Payment evidence",
-      "section_audit": "Audit",
-      "section_status": "Insurance status",
-      "label_type": "Insurance type",
-      "label_policy": "Policy number / folio",
-      "label_provider": "Insurer",
-      "label_start_date": "Coverage start",
-      "label_end_date": "Coverage end",
-      "label_amount": "Coverage amount / premium",
-      "label_registered_by": "Registered by",
-      "label_modified_by": "Last modified",
-      "expires_today": "Expires today",
-      "days_remaining_one": "Valid for {days} more day",
-      "days_remaining_other": "Valid for {days} more days",
-      "expired_since_one": "Expired {days} day ago",
-      "expired_since_other": "Expired {days} days ago",
-      "receipt_fallback": "Receipt",
-      "image_load_error": "Could not load image",
-      "tap_to_open": "Tap to open",
-      "no_evidence": "No payment evidence attached"
-    },
-    "form": {
-      "title_edit": "Edit insurance",
-      "title_create": "Register insurance",
-      "label_type": "Insurance type *",
-      "label_policy": "Policy number / folio (optional)",
-      "label_provider": "Insurer / company (optional)",
-      "label_start_date": "Coverage start date *",
-      "label_end_date": "Coverage end date *",
-      "label_amount": "Coverage amount / premium (optional)",
-      "label_evidence_required": "Payment receipt (image or PDF) *",
-      "label_evidence_optional": "Payment receipt (image or PDF) (optional)",
-      "hint_policy": "POL-001234",
-      "hint_provider": "Insurer name...",
-      "hint_amount": "0.00",
-      "placeholder_start_date": "Select start date",
-      "placeholder_end_date": "Select expiry date",
-      "button_save_edit": "Save changes",
-      "button_save_create": "Register insurance",
-      "error_start_date_required": "Select the coverage start date",
-      "error_end_date_required": "Select the coverage end date",
-      "error_end_after_start": "End date must be after start date",
-      "error_evidence_required": "Attach the payment receipt",
-      "error_member_unknown": "Could not determine member",
-      "success_updated": "Insurance updated successfully",
-      "success_created": "Insurance registered successfully",
-      "upload_receipt": "Upload receipt",
-      "upload_formats": "JPG, PNG or PDF",
-      "file_selected": "File selected",
-      "current_receipt_fallback": "Current receipt",
-      "current_receipt_label": "Current receipt",
-      "replace_button": "Replace",
-      "picker_title": "Select receipt",
-      "picker_camera": "Take photo",
-      "picker_camera_subtitle": "Use device camera",
-      "picker_gallery": "Choose from gallery",
-      "picker_gallery_subtitle": "JPG or PNG from your gallery",
-      "picker_pdf": "Select PDF",
-      "picker_pdf_subtitle": "PDF file from your device"
-    },
-    "card": {
-      "register_button": "Register",
-      "expires_in_one": "Expires in {days} day",
-      "expires_in_other": "Expires in {days} days",
-      "valid_until": "Valid until {date}",
-      "expired_since_one": "Expired {days} day ago",
-      "expired_since_other": "Expired {days} days ago"
+      "in_order": "Payment due",
+      "in_order_until": "Payment due · {date}",
+      "in_review": "Payment sent",
+      "rejected": "Upload another receipt",
+      "paid": "Paid",
+      "paid_folio": "Paid · {folio}",
+      "paid_in": "Paid in {place}",
+      "paid_elsewhere": "Paid in another section",
+      "reassigned": "Reassigned insurance",
+      "reassigned_from": "Reassigned from {name}"
     },
     "filter": {
-      "status_all": "All",
-      "status_insured": "Insured",
-      "status_expired": "Expired",
-      "status_uninsured": "Uninsured",
-      "sort_name_asc": "Name A-Z",
-      "sort_name_desc": "Name Z-A",
-      "sort_expiry_asc": "Expiring soon",
-      "sort_expiry_desc": "Expiring later"
+      "all": "All",
+      "uninsured": "Uninsured",
+      "in_process": "In progress",
+      "covered": "Insured"
+    },
+    "summary": {
+      "label": "Insured {year}",
+      "covered_of_total": "{covered} of {total}",
+      "missing": "{count} missing",
+      "legend_covered": "Insured {count}",
+      "legend_in_process": "In progress {count}",
+      "legend_uninsured": "Uninsured {count}",
+      "unit_cost": "Cost per person",
+      "pay_before": "Pay before"
+    },
+    "home": {
+      "title": "Insurance",
+      "orders_tooltip": "Payment orders",
+      "search_hint": "Search member",
+      "people_title": "Members and leadership",
+      "no_results": "No results",
+      "issue_cta": "Insure those missing ({count})",
+      "issue_cta_all": "Insure the club ({count})",
+      "read_only_note": "Only the director, secretary and treasurer can insure or reassign."
+    },
+    "attend": {
+      "title": "To attend",
+      "free_label": "Free insurance",
+      "free_title": "Free insurance from {name}",
+      "free_detail": "Pass it to someone without insurance",
+      "rejected_label": "Receipt rejected",
+      "rejected_title": "Receipt rejected",
+      "receipt_label": "Receipt missing",
+      "receipt_title": "Upload the receipt",
+      "receipt_detail": "{folio} · before {date}",
+      "people_count": {
+        "one": "{} person",
+        "other": "{} people"
+      }
+    },
+    "states": {
+      "offline_title": "No connection",
+      "offline_body": "We couldn't load the insurance. Check your connection and try again.",
+      "error_title": "We couldn't load the insurance",
+      "no_section_title": "No active section",
+      "no_section_body": "Choose a club to see its insurance.",
+      "no_year_title": "No ecclesiastical year yet",
+      "no_year_body": "Once your field opens the year, you'll see the insurance here.",
+      "no_cost_title": "No cost for {year} yet",
+      "no_cost_body": "Your local field hasn't published this year's insurance cost yet. Once it does, you'll be able to insure from here.",
+      "no_people_title": "No people yet",
+      "no_people_body": "When the section has members or leadership, they'll show up here.",
+      "all_covered_title": "The whole club is insured",
+      "all_covered_body": "Insurance covers until the {next} ecclesiastical year starts. If someone new joins, they'll show up here uninsured.",
+      "year_start_title": "The year {year} has started",
+      "year_start_body": "Last year's insurance has ended. Insure your club before {date}.",
+      "year_start_body_no_date": "Last year's insurance has ended. Insure your club.",
+      "restricted_title": "No permission",
+      "restricted_body": "Only the director, secretary and treasurer can insure or reassign."
+    },
+    "issue": {
+      "title": "Insure",
+      "insurance": "Insurance",
+      "annual": "Annual insurance {year}",
+      "covers": "Covers",
+      "covers_value": "The whole ecclesiastical year {year}",
+      "uninsured_title": "Uninsured",
+      "select_all": "Select all",
+      "select_none": "Clear all",
+      "select_person": "Select {name}",
+      "blocked_title": "Can't be added",
+      "nobody_left": "Nobody uninsured for now: everyone is insured or in an order.",
+      "reason_covered": "Already insured",
+      "reason_covered_in": "Already insured · paid in {place}",
+      "reason_reassigned": "Already insured · reassigned",
+      "submit": "Issue order · {people} · {total}",
+      "people": {
+        "one": "{} person",
+        "other": "{} people"
+      },
+      "footer_note": "Nobody can be in two orders or have two insurances in a year.",
+      "confirm_title": "Issue the order?",
+      "confirm_body": {
+        "one": "Order of {total} for 1 person. Pay it at the field cashier, with your district pastor or by transfer, and upload the receipt.",
+        "other": "Order of {total} for {} people. Pay it at the field cashier, with your district pastor or by transfer, and upload the receipt."
+      },
+      "confirm_deadline": "Pay it before {date}.",
+      "confirm_expiry": "If you don't upload it in time, the order expires and the people are freed.",
+      "confirm_action": "Issue order",
+      "success": "Order {folio} issued",
+      "error_generic": "We couldn't issue the order. Try again."
+    },
+    "conflict": {
+      "title_covered": "{name} is already insured",
+      "title_in_order": "{name} is already in an order",
+      "title_many": "{count} people can no longer be added",
+      "covered_in": "They got insured in {place} while you were building the order.",
+      "covered_elsewhere": "They got insured in another section while you were building the order.",
+      "in_order_folio": "Already in order {folio}.",
+      "in_order": "Already in another order.",
+      "outcome": {
+        "one": "Without them, the order has 1 person for {total}.",
+        "other": "Without them, the order has {} people for {total}."
+      },
+      "outcome_none": "Without them, nobody is left to include in the order.",
+      "issue_remaining": {
+        "one": "Issue with 1 person",
+        "other": "Issue with {} people"
+      },
+      "review_list": "Review the list"
+    },
+    "person": {
+      "staff_suffix": "leadership",
+      "not_found_title": "We couldn't find this person",
+      "not_found_body": "They may no longer be in the section. Go back to the insurance list.",
+      "title_covered": "Insured all of {year}",
+      "title_elsewhere": "Insured in another section",
+      "message_covered": "Covered until the {next} ecclesiastical year starts.",
+      "message_elsewhere": "Their {year} insurance was paid in {place}. They don't need another one.",
+      "message_reassigned": "Received the insurance that {name} left free when leaving the club.",
+      "message_reassigned_generic": "Received an insurance that someone else left free when leaving the club.",
+      "insurance": "Insurance",
+      "year": "Ecclesiastical year",
+      "paid_in": "Paid in",
+      "order": "Order",
+      "approved": "Approved",
+      "reassigned_from": "Reassigned from",
+      "reassigned_by": "Reassigned by",
+      "original_order": "Original order"
+    },
+    "reassign": {
+      "title": "Reassign insurance",
+      "free_label": "Free insurance",
+      "left_club": "Left the club",
+      "left_club_on": "Left the club on {date}",
+      "paid_in": "Paid in",
+      "pick_free": "Choose which insurance to pass on",
+      "to_whom": "Who gets it?",
+      "only_free_note": "Only people without insurance and not in an order appear.",
+      "nobody": "Nobody without insurance to pass it to. When someone new joins, you can do it from here.",
+      "submit": "Pass to {name}",
+      "confirm_title": "Pass the insurance to {name}?",
+      "confirm_body": "{name} will be insured for the rest of the {year} ecclesiastical year. {holder} will no longer be covered. It will be recorded that you did it.",
+      "confirm_action": "Pass insurance",
+      "success": "The insurance went to {name}",
+      "error_generic": "We couldn't pass the insurance. Try again.",
+      "none_title": "No free insurance",
+      "none_body": "When someone with insurance leaves the club, their insurance will appear here to be passed on."
     }
   },
   "evidence_folder": {
@@ -4858,6 +4919,17 @@
       "overdue_days": {
         "one": "Overdue by {} day",
         "other": "Overdue by {} days"
+      },
+      "uninsured_members": "Members without insurance",
+      "free_insurance": "Free insurance",
+      "uninsured_people": {
+        "one": "{} person",
+        "other": "{} people"
+      },
+      "uninsured_due": "{people} · before {date}",
+      "free_insurance_count": {
+        "one": "{} insurance to pass on",
+        "other": "{} insurances to pass on"
       }
     }
   },
@@ -5334,7 +5406,14 @@
     "list": {
       "title": "Payment orders",
       "empty": "No payment orders yet",
-      "beneficiaries_count": "{count} beneficiary(ies)"
+      "group_attend": "To attend",
+      "group_review": "In review",
+      "group_closed": "Closed",
+      "people_count": {
+        "one": "{} person",
+        "other": "{} people"
+      },
+      "expires": "expires {date}"
     },
     "purpose": {
       "insurance": "Insurance",
@@ -5342,60 +5421,62 @@
     },
     "status": {
       "issued": "Issued",
-      "proof_submitted": "Proof submitted",
+      "proof_submitted": "In review",
       "approved": "Approved",
-      "proof_rejected": "Proof rejected",
+      "proof_rejected": "Rejected",
       "cancelled": "Cancelled",
       "expired": "Expired"
-    },
-    "timeline": {
-      "issued": "Order issued",
-      "proof_submitted": "Proof submitted",
-      "approved": "Payment approved"
     },
     "detail": {
       "amounts_title": "Amount",
       "documents_title": "Documents",
-      "title": "Order detail",
       "total": "Total",
-      "unit_cost": "Unit cost",
-      "expires": "Expires",
-      "beneficiaries": "Beneficiaries",
-      "timeline_title": "Status",
-      "proof_title": "Payment proof",
-      "view_pdf": "View order (PDF)",
-      "upload_proof": "Upload proof",
-      "reupload_proof": "Re-upload proof",
-      "proof_uploaded": "Proof submitted for review",
+      "unit_cost": "Cost per person",
+      "proof_title": "Payment receipt",
+      "view_pdf": "Payment order",
+      "upload_proof": "Upload receipt",
+      "reupload_proof": "Upload receipt again",
+      "proof_uploaded": "Receipt sent for review",
       "proof_too_large": "The file exceeds the 10 MB limit",
-      "reject_reason": "Rejection reason",
+      "reject_reason": "Field's reason",
       "cancel_order": "Cancel order",
       "cancel_title": "Cancel order?",
-      "cancel_body": "The order will no longer be valid and no spots will be reserved.",
+      "cancel_body": "The order will no longer be valid and the people will be free for another order.",
       "cancel_confirm": "Yes, cancel",
       "cancelled": "Order cancelled",
       "proof_source": "Upload receipt",
       "proof_source_camera": "Take photo",
-      "proof_source_gallery": "Choose from photos",
-      "proof_source_file": "Choose file",
+      "proof_source_gallery": "Choose from gallery",
+      "proof_source_file": "Choose PDF",
       "proof_source_file_hint": "PDF, JPG or PNG, up to 10 MB",
       "proof_confirm_title": "Send this receipt?",
-      "proof_send": "Send"
+      "proof_send": "Send",
+      "covers": "Covers",
+      "covers_year": "Ecclesiastical year {year}",
+      "covers_people": "Covers",
+      "unnamed": "No name",
+      "role_member": "Member",
+      "role_staff": "Leadership",
+      "pdf_hint": "PDF · cashier, pastor or transfer",
+      "proof_sent": "Sent",
+      "proof_rejected": "Rejected",
+      "proof_approved": "Approved",
+      "proof_note": "Cashier receipt or transfer confirmation · PDF, JPG or PNG",
+      "more": "More options",
+      "cancel_sheet_title": "Cancel {folio}?",
+      "cancel_sheet_body_one": "The person in this order becomes free to be added to another one.",
+      "cancel_sheet_body_other": "The {count} people in this order become free to be added to another one.",
+      "cancel_sheet_paid_hint": "If you already paid, don’t cancel it: upload the receipt so the field can approve it.",
+      "cancel_sheet_back": "Go back"
     },
     "issue": {
       "select_all": "Select all",
       "deselect_all": "Clear selection",
-      "deadline_short": "Deadline",
-      "title_insurance": "Issue insurance order",
       "title_camporee": "Issue camporee order",
       "select_members": "Select members",
-      "eligible_hint_insurance": "Only active members without current coverage are shown.",
       "eligible_hint_camporee": "Only active members with valid insurance who are not already registered are shown.",
       "no_eligible": "No eligible members",
-      "no_cycle": "No insurance cycle is configured for your section",
       "unavailable": "Payment orders are not enabled in your local field",
-      "unit_cost_label": "Unit cost: {cost}",
-      "deadline_label": "Deadline: {date}",
       "total_label": "Total ({count} selected)",
       "submit": "Issue order",
       "success": "Order issued successfully",
@@ -5410,10 +5491,10 @@
     },
     "camporee_redirect": {
       "title": "How to enroll",
-      "body": "Your local field uses payment orders. Choose the members, issue an order, pay at the bank or field cashier, and upload your proof; they appear under Attendees once the field approves the payment.",
+      "body": "Your local field uses payment orders. Choose the members, issue an order, pay at the bank or field cashier, and upload your receipt; they appear under Attendees once the field approves the payment.",
       "step_1": "Choose the members",
       "step_2": "Issue the order and pay at the bank or field cashier",
-      "step_3": "Upload the payment proof",
+      "step_3": "Upload the receipt",
       "step_4": "When the field approves the payment, they appear under Attendees",
       "issue_button": "Choose members",
       "view_orders": "View this camporee's orders",
@@ -5438,6 +5519,71 @@
       "reassignment_invalid": "The reassignment is not valid",
       "reassignment_pending_exists": "A pending reassignment request already exists",
       "download_document": "The document could not be downloaded"
+    },
+    "state": {
+      "sheet_title": "Order states",
+      "panel_hint": "Shows every state",
+      "step_of": "Step {current} of {total}",
+      "kind_done": "Done",
+      "kind_current": "Current",
+      "kind_rejected": "Rejected",
+      "kind_pending": "Pending",
+      "pay_before": "Before {date}",
+      "review_hint": "It usually takes a few days",
+      "rejected_hint": "Upload another receipt",
+      "outcome_year": "The whole ecclesiastical year {year}",
+      "outcome_year_generic": "The whole ecclesiastical year",
+      "outcome_camporee_detail": "When the field approves the payment",
+      "step_issued": "Order issued",
+      "step_pay": "Pay and upload the receipt",
+      "step_proof_sent": "Receipt sent",
+      "step_review": "The field reviews the payment",
+      "step_proof_rejected": "The field rejected the receipt",
+      "step_approved": "The field approved the payment",
+      "step_outcome_insurance": "They become insured",
+      "step_outcome_camporee": "They become registered",
+      "step_cancelled": "Order cancelled",
+      "step_expired": "Order expired",
+      "panel_issued": {
+        "title": "The payment receipt is missing",
+        "message": "Pay {total} and upload the receipt before {date}. If it expires, the people are freed for another order."
+      },
+      "panel_proof_submitted_insurance": {
+        "title": "The field is reviewing the payment",
+        "message": "You uploaded the receipt. Once approved, they are insured for the whole {year} ecclesiastical year."
+      },
+      "panel_proof_submitted_insurance_generic": {
+        "title": "The field is reviewing the payment",
+        "message": "You uploaded the receipt. Once approved, they are insured for the whole ecclesiastical year."
+      },
+      "panel_proof_submitted_camporee": {
+        "title": "The field is reviewing the payment",
+        "message": "You uploaded the receipt. Once approved, they are registered."
+      },
+      "panel_proof_rejected": {
+        "title": "Receipt rejected",
+        "message": "The field couldn't validate the payment. Upload another receipt."
+      },
+      "panel_approved_insurance": {
+        "title": "Payment approved",
+        "message": "They are insured for the whole {year} ecclesiastical year."
+      },
+      "panel_approved_insurance_generic": {
+        "title": "Payment approved",
+        "message": "They are insured for the whole ecclesiastical year."
+      },
+      "panel_approved_camporee": {
+        "title": "Payment approved",
+        "message": "The field approved the payment and they are registered."
+      },
+      "panel_cancelled": {
+        "title": "Order cancelled",
+        "message": "This order is no longer valid. The people are free for another order."
+      },
+      "panel_expired": {
+        "title": "Order expired",
+        "message": "The receipt wasn't uploaded in time. The people are free for another order."
+      }
     }
   },
   "camporee_orders": {

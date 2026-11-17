@@ -176,15 +176,6 @@ class IssueOrderNotifier extends Notifier<IssueOrderState> {
   void clearSelection() =>
       state = state.copyWith(selectedUserIds: const {}, clearError: true);
 
-  Future<PaymentOrder?> submitInsurance({required int cycleConfigId}) {
-    return _submit(
-      (repo) => repo.createInsuranceOrder(
-        cycleConfigId: cycleConfigId,
-        beneficiaryUserIds: state.selectedUserIds.toList(),
-      ),
-    );
-  }
-
   Future<PaymentOrder?> submitCamporee({
     required int camporeeId,
     String camporeeType = 'local',

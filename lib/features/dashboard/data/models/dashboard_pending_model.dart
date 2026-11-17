@@ -55,6 +55,8 @@ abstract final class DashboardPendingModel {
         'monthly_report' => PendingItemType.monthlyReport,
         'investiture_authorizations' =>
           PendingItemType.investitureAuthorizations,
+        'uninsured_members' => PendingItemType.uninsuredMembers,
+        'free_insurance' => PendingItemType.freeInsurance,
         _ => null,
       };
 

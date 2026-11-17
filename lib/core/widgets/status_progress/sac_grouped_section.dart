@@ -12,6 +12,7 @@ class SacGroupedSection extends StatelessWidget {
     required this.children,
     this.count,
     this.action,
+    this.dividerIndent = 58,
   });
 
   /// Already translated; shown uppercase.
@@ -24,6 +25,10 @@ class SacGroupedSection extends StatelessWidget {
   /// Replaces the count at the end of the eyebrow (a text link such as
   /// "Select all"). Give it a 44dp tap target.
   final Widget? action;
+
+  /// Left inset of the dividers: 58 clears a status icon; use less for rows
+  /// without one (label and value pairs).
+  final double dividerIndent;
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +79,7 @@ class SacGroupedSection extends StatelessWidget {
                     Divider(
                       height: 1,
                       thickness: 1,
-                      indent: 58,
+                      indent: dividerIndent,
                       color: c.divider,
                     ),
                   children[i],

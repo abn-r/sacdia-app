@@ -7,7 +7,9 @@ import 'package:path_provider/path_provider.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../../../insurance/data/models/insurance_overview_model.dart';
 import '../models/payment_order_model.dart';
+import 'duplicate_beneficiaries_exception.dart';
 
 /// Fuente de datos remota para órdenes de pago territoriales.
 abstract class PaymentOrdersRemoteDataSource {
@@ -18,6 +20,7 @@ abstract class PaymentOrdersRemoteDataSource {
   Future<PaymentOrderModel> createInsuranceOrder({
     required int cycleConfigId,
     required List<String> beneficiaryUserIds,
+    String? idempotencyKey,
   });
 
   /// POST /camporees/:camporeeId/payment-orders (local) o
@@ -110,6 +113,7 @@ class PaymentOrdersRemoteDataSourceImpl
   Future<PaymentOrderModel> createInsuranceOrder({
     required int cycleConfigId,
     required List<String> beneficiaryUserIds,
+    String? idempotencyKey,
   }) async {
     try {
       final response = await _dio.post(
@@ -118,6 +122,9 @@ class PaymentOrdersRemoteDataSourceImpl
           'insurance_cycle_config_id': cycleConfigId,
           'beneficiary_user_ids': beneficiaryUserIds,
         },
+        options: idempotencyKey == null
+            ? null
+            : Options(headers: {'Idempotency-Key': idempotencyKey}),
       );
       return PaymentOrderModel.fromJson(_unwrapMap(response.data));
     } catch (e) {
@@ -393,17 +400,32 @@ class PaymentOrdersRemoteDataSourceImpl
     if (e is DioException) {
       if (e.type == DioExceptionType.cancel) throw e;
       final businessCode = _extractDioCode(e);
+      if (e.error is ConnectionException) throw e.error!;
+      if (businessCode == 'FIELD_PAYMENT_ORDER_DUPLICATE_BENEFICIARY') {
+        final conflicts =
+            InsuranceOverviewModel.conflictsFromBody(e.response?.data);
+        if (conflicts.isNotEmpty) {
+          throw DuplicateBeneficiariesException(
+            message: tr('payment_orders.errors.duplicate_beneficiary'),
+            code: e.response?.statusCode,
+            errorCode: businessCode,
+            conflicts: conflicts,
+          );
+        }
+      }
       final i18nKey =
           businessCode != null ? _businessErrorKeys[businessCode] : null;
       if (i18nKey != null) {
         throw ServerException(
           message: tr(i18nKey),
           code: e.response?.statusCode,
+          errorCode: businessCode,
         );
       }
       throw ServerException(
         message: _extractDioMessage(e),
         code: e.response?.statusCode,
+        errorCode: businessCode,
       );
     }
     if (e is ServerException || e is AuthException) throw e;

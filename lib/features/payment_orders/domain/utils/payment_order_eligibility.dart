@@ -1,21 +1,17 @@
-import '../../../insurance/domain/entities/member_insurance.dart';
+import '../../../insurance/domain/entities/insurance_overview.dart';
 import '../entities/payment_order.dart';
 
-/// Elegibilidad de un miembro como beneficiario de una orden de pago.
+/// Whether [person] can be a beneficiary of a camporee order.
 ///
-/// - Seguro: quien aún no tiene cobertura activa.
-/// - Camporee: seguro vigente y todavía no inscrito (ni pendiente) en el evento.
-bool isEligiblePaymentOrderBeneficiary({
-  required PaymentOrderPurpose purpose,
-  required MemberInsurance member,
+/// A camporee needs a valid insurance for the year and no registration (or
+/// pending one) in the event yet. Insurance orders no longer use this: the
+/// insurance overview already says who is free.
+bool isEligibleCamporeeBeneficiary({
+  required InsurancePerson person,
   Set<String> registeredCamporeeUserIds = const {},
 }) {
-  if (purpose == PaymentOrderPurpose.insurance) {
-    return member.status != InsuranceStatus.asegurado;
-  }
-
-  return member.status == InsuranceStatus.asegurado &&
-      !registeredCamporeeUserIds.contains(member.memberId);
+  return person.status == InsurancePersonStatus.covered &&
+      !registeredCamporeeUserIds.contains(person.userId);
 }
 
 /// Members held by an order that is still open (issued, in review, rejected

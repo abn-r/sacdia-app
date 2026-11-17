@@ -15,7 +15,6 @@ import 'package:sacdia_app/features/insurance/presentation/providers/insurance_p
 import 'package:sacdia_app/features/insurance/presentation/widgets/insurance_status_badge.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_participant_access_gate.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
-import 'package:sacdia_app/features/payment_orders/domain/entities/payment_order.dart';
 import 'package:sacdia_app/features/payment_orders/presentation/providers/payment_orders_providers.dart';
 import 'package:sacdia_app/features/payment_orders/presentation/views/issue_payment_order_view.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
@@ -63,10 +62,7 @@ class _CamporeeRegisterMemberViewState
     );
 
     if (paymentFlow == CamporeeRegistrationPaymentFlow.paymentOrder) {
-      return IssuePaymentOrderView(
-        purpose: PaymentOrderPurpose.camporee,
-        camporeeId: widget.camporeeId,
-      );
+      return IssuePaymentOrderView(camporeeId: widget.camporeeId);
     }
 
     return Scaffold(

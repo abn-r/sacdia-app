@@ -37,6 +37,7 @@ class _FakeRepository implements PaymentOrdersRepository {
   Future<Either<Failure, PaymentOrder>> createInsuranceOrder({
     required int cycleConfigId,
     required List<String> beneficiaryUserIds,
+    String? idempotencyKey,
   }) async {
     createInsuranceCalls++;
     lastCycleConfigId = cycleConfigId;
@@ -185,30 +186,10 @@ void main() {
     test('no emite sin beneficiarios seleccionados', () async {
       final notifier = container.read(issueOrderNotifierProvider.notifier);
 
-      final order = await notifier.submitInsurance(cycleConfigId: 3);
+      final order = await notifier.submitCamporee(camporeeId: 12);
 
       expect(order, isNull);
-      expect(repository.createInsuranceCalls, 0);
-    });
-
-    test('emite orden de seguro con ciclo y beneficiarios', () async {
-      final notifier = container.read(issueOrderNotifierProvider.notifier);
-      notifier.toggle('user-1');
-      notifier.toggle('user-2');
-
-      final order = await notifier.submitInsurance(cycleConfigId: 3);
-
-      expect(order?.orderId, 'order-1');
-      expect(repository.createInsuranceCalls, 1);
-      expect(repository.lastCycleConfigId, 3);
-      expect(
-        repository.lastBeneficiaries,
-        unorderedEquals(['user-1', 'user-2']),
-      );
-      expect(
-        container.read(issueOrderNotifierProvider).issuedOrder?.orderId,
-        'order-1',
-      );
+      expect(repository.createCamporeeCalls, 0);
     });
 
     test('emite orden de camporee con el id correcto', () async {
@@ -239,7 +220,7 @@ void main() {
       final notifier = container.read(issueOrderNotifierProvider.notifier);
       notifier.toggle('user-1');
 
-      final order = await notifier.submitInsurance(cycleConfigId: 3);
+      final order = await notifier.submitCamporee(camporeeId: 12);
 
       expect(order, isNull);
       final state = container.read(issueOrderNotifierProvider);

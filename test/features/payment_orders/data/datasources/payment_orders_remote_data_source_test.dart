@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/exceptions.dart';
+import 'package:sacdia_app/features/payment_orders/data/datasources/duplicate_beneficiaries_exception.dart';
 import 'package:sacdia_app/features/payment_orders/data/datasources/payment_orders_remote_data_source.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -134,6 +135,111 @@ void main() {
         'beneficiary_user_ids': ['user-1', 'user-2'],
       });
       expect(order.orderId, 'order-1');
+    });
+
+    test('envía el Idempotency-Key cuando se da', () async {
+      final (:dio, :adapter) = _dioWith({
+        'status': 'success',
+        'data': _orderJson(),
+      });
+
+      await _dataSource(dio).createInsuranceOrder(
+        cycleConfigId: 3,
+        beneficiaryUserIds: const ['user-1'],
+        idempotencyKey: 'ins-key-1',
+      );
+
+      expect(adapter.lastOptions?.headers['Idempotency-Key'], 'ins-key-1');
+    });
+
+    test('sin llave no manda el encabezado', () async {
+      final (:dio, :adapter) = _dioWith({
+        'status': 'success',
+        'data': _orderJson(),
+      });
+
+      await _dataSource(dio).createInsuranceOrder(
+        cycleConfigId: 3,
+        beneficiaryUserIds: const ['user-1'],
+      );
+
+      expect(
+        adapter.lastOptions?.headers.containsKey('Idempotency-Key'),
+        isFalse,
+      );
+    });
+
+    test('409 duplicado trae a quién y por qué (DuplicateBeneficiaries)',
+        () async {
+      final dio = Dio();
+      dio.httpClientAdapter = _ThrowingAdapter(
+        (options) => DioException(
+          requestOptions: options,
+          type: DioExceptionType.badResponse,
+          response: Response(
+            requestOptions: options,
+            statusCode: 409,
+            data: {
+              'code': 'FIELD_PAYMENT_ORDER_DUPLICATE_BENEFICIARY',
+              'message': 'dup',
+              'data': {
+                'conflicts': [
+                  {
+                    'user_id': 'u-2',
+                    'name': 'Valeria Ríos',
+                    'reason': 'already_covered',
+                    'section_name': 'Aventureros',
+                    'club_name': 'Club Orión',
+                    'folio': 'ORD1',
+                    'valid_until': '2027-12-31',
+                  },
+                ],
+              },
+            },
+          ),
+        ),
+      );
+
+      await expectLater(
+        _dataSource(dio).createInsuranceOrder(
+          cycleConfigId: 3,
+          beneficiaryUserIds: const ['u-1', 'u-2'],
+        ),
+        throwsA(
+          isA<DuplicateBeneficiariesException>()
+              .having((e) => e.code, 'code', 409)
+              .having((e) => e.conflicts.single.name, 'name', 'Valeria Ríos')
+              .having((e) => e.conflicts.single.userId, 'userId', 'u-2'),
+        ),
+      );
+    });
+
+    test('409 duplicado sin conflictos cae al mensaje de negocio', () async {
+      final dio = Dio();
+      dio.httpClientAdapter = _ThrowingAdapter(
+        (options) => DioException(
+          requestOptions: options,
+          type: DioExceptionType.badResponse,
+          response: Response(
+            requestOptions: options,
+            statusCode: 409,
+            data: {'code': 'FIELD_PAYMENT_ORDER_DUPLICATE_BENEFICIARY'},
+          ),
+        ),
+      );
+
+      await expectLater(
+        _dataSource(dio).createInsuranceOrder(
+          cycleConfigId: 3,
+          beneficiaryUserIds: const ['u-1'],
+        ),
+        throwsA(
+          isA<ServerException>()
+              .having((e) => e is DuplicateBeneficiariesException, 'dup', false)
+              .having((e) => e.errorCode, 'errorCode',
+                  'FIELD_PAYMENT_ORDER_DUPLICATE_BENEFICIARY'),
+        ),
+      );
     });
   });
 

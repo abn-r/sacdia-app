@@ -480,6 +480,11 @@ Future<void> _pumpView(
           onInsuranceLoad();
           return const [];
         }),
+        // The order flow reads who is insured from the insurance overview.
+        insuranceOverviewProvider.overrideWith((ref) async {
+          onInsuranceLoad();
+          return null;
+        }),
         camporeeRegisteredUserIdsProvider.overrideWith((ref, id) async {
           onRegisteredIdsLoad();
           return const <String>{};

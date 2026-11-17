@@ -1,7 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/utils/back_or_home.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/core/widgets/status_progress/status_progress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -40,73 +42,103 @@ class PaymentOrdersView extends ConsumerWidget {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: c.background,
+      backgroundColor: c.canvas,
       appBar: SacTopBar(
-          title: 'payment_orders.list.title'.tr(),
-          backgroundColor: c.surface,
-          foregroundColor: c.text,
-          frosted: true),
+        title: 'payment_orders.list.title'.tr(),
+        backgroundColor: c.canvas,
+        frosted: true,
+        onBack: () => backOrHome(context),
+      ),
       body: SacFrostedVeil(
         child: Builder(
-          builder: (context) => SafeArea(
-            top: false,
-            child: RefreshIndicator(
-              onRefresh: () async {
-                ref.invalidate(paymentOrdersListProvider(filter));
-                ref.invalidate(pendingPaymentObligationsProvider);
-              },
-              child: ListView(
-                padding: SacTopBar.paddingBelowBar(
-                    context, const EdgeInsets.all(20)),
-                children: [
-                  _PendingObligationsSection(async: obligationsAsync),
-                  const SizedBox(height: 8),
-                  Text(
-                    'payment_orders.list.title'.tr(),
-                    style: TextStyle(
-                      fontSize: SacFontSize.titleMedium,
-                      fontWeight: FontWeight.w800,
-                      color: c.text,
-                    ),
+          builder: (context) => RefreshIndicator(
+            edgeOffset: SacTopBar.frostedInset(context),
+            onRefresh: () async {
+              ref.invalidate(paymentOrdersListProvider(filter));
+              ref.invalidate(pendingPaymentObligationsProvider);
+            },
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: SacTopBar.paddingBelowBar(
+                context,
+                const EdgeInsets.only(bottom: 32),
+              ),
+              children: [
+                // Insurance orders are the whole story of the insurance
+                // module; the camporee obligations belong to the camporee.
+                if (purpose != PaymentOrderPurpose.insurance)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+                    child: _PendingObligationsSection(async: obligationsAsync),
                   ),
-                  const SizedBox(height: 12),
-                  ordersAsync.when(
-                    loading: () => const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 32),
-                      child: Center(child: SacLoading()),
-                    ),
-                    error: (error, _) => SacErrorState.inline(
+                ordersAsync.when(
+                  loading: () => const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 32),
+                    child: Center(child: SacLoading()),
+                  ),
+                  error: (error, _) => Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: SacErrorState.inline(
                       message: userErrorMessage(error),
                       onRetry: () =>
                           ref.invalidate(paymentOrdersListProvider(filter)),
                     ),
-                    data: (orders) => orders.isEmpty
-                        ? SacEmptyState(
+                  ),
+                  data: (orders) => orders.isEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.only(top: 48),
+                          child: SacEmptyState(
                             icon: HugeIcons.strokeRoundedInvoice01,
                             title: 'payment_orders.list.empty'.tr(),
-                          )
-                        : Column(
-                            children: [
-                              for (var i = 0; i < orders.length; i++) ...[
-                                if (i > 0) const SizedBox(height: 12),
-                                _OrderCard(
-                                  order: orders[i],
-                                  onTap: () => context.push(
-                                    RouteNames.paymentOrderDetailPath(
-                                      orders[i].orderId,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ],
                           ),
-                  ),
-                ],
-              ),
+                        )
+                      : _GroupedOrders(orders: orders),
+                ),
+              ],
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Por atender (hay que subir un recibo) / En revisión / Cerradas.
+class _GroupedOrders extends StatelessWidget {
+  const _GroupedOrders({required this.orders});
+
+  final List<PaymentOrder> orders;
+
+  @override
+  Widget build(BuildContext context) {
+    bool isAttend(PaymentOrder o) =>
+        o.status == PaymentOrderStatus.issued ||
+        o.status == PaymentOrderStatus.proofRejected;
+    final attend = orders.where(isAttend).toList();
+    final review = orders
+        .where((o) => o.status == PaymentOrderStatus.proofSubmitted)
+        .toList();
+    final closed = orders
+        .where((o) =>
+            !isAttend(o) && o.status != PaymentOrderStatus.proofSubmitted)
+        .toList();
+
+    Widget group(String key, String label, List<PaymentOrder> list) =>
+        list.isEmpty
+            ? const SizedBox.shrink()
+            : SacGroupedSection(
+                key: ValueKey('payment-orders-$key'),
+                label: label,
+                children: [for (final o in list) _OrderRow(order: o)],
+              );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        group('attend', 'payment_orders.list.group_attend'.tr(), attend),
+        group('review', 'payment_orders.list.group_review'.tr(), review),
+        group('closed', 'payment_orders.list.group_closed'.tr(), closed),
+      ],
     );
   }
 }
@@ -247,94 +279,96 @@ class _ObligationCard extends StatelessWidget {
   }
 }
 
-class _OrderCard extends StatelessWidget {
+class _OrderRow extends StatelessWidget {
   final PaymentOrder order;
-  final VoidCallback onTap;
 
-  const _OrderCard({required this.order, required this.onTap});
+  const _OrderRow({required this.order});
+
+  SacStatusStyle _style(BuildContext context) {
+    final label = paymentOrderStatusLabel(order.status);
+    switch (order.status) {
+      case PaymentOrderStatus.issued:
+        return SacStatusStyle.of(
+          context,
+          SacStatusKind.review,
+          label: label,
+          icon: HugeIcons.strokeRoundedUpload01,
+        );
+      case PaymentOrderStatus.proofSubmitted:
+        return SacStatusStyle.of(
+          context,
+          SacStatusKind.review,
+          label: label,
+          icon: HugeIcons.strokeRoundedClock01,
+        );
+      case PaymentOrderStatus.proofRejected:
+        return SacStatusStyle.of(context, SacStatusKind.rejected, label: label);
+      case PaymentOrderStatus.approved:
+        return SacStatusStyle.of(
+          context,
+          SacStatusKind.validated,
+          label: label,
+          icon: HugeIcons.strokeRoundedTick02,
+        );
+      case PaymentOrderStatus.cancelled:
+        return SacStatusStyle.of(
+          context,
+          SacStatusKind.pending,
+          label: label,
+          icon: HugeIcons.strokeRoundedCancelCircle,
+        );
+      case PaymentOrderStatus.expired:
+        return SacStatusStyle.of(
+          context,
+          SacStatusKind.pending,
+          label: label,
+          icon: HugeIcons.strokeRoundedClock01,
+        );
+    }
+  }
+
+  String _detail(BuildContext context) {
+    final people =
+        'payment_orders.list.people_count'.plural(order.lines.length);
+    final parts = [people, SacMoney.fromCentavos(order.totalCentavos)];
+    if (order.status == PaymentOrderStatus.issued) {
+      parts.add(
+        'payment_orders.list.expires'.tr(
+          namedArgs: {
+            'date': DateFormat.MMMd(context.locale.toString())
+                .format(order.expiresAt.toLocal()),
+          },
+        ),
+      );
+    }
+    return parts.join(' · ');
+  }
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final purposeLabel = order.purpose == PaymentOrderPurpose.insurance
-        ? 'payment_orders.purpose.insurance'.tr()
-        : 'payment_orders.purpose.camporee'.tr();
-
-    return Material(
-      color: c.surface,
-      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-      child: SacInkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-            border: Border.all(color: c.border),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      order.folioReference,
-                      style: TextStyle(
-                        fontSize: SacFontSize.titleSmall,
-                        fontWeight: FontWeight.w800,
-                        color: c.text,
-                      ),
-                    ),
-                  ),
-                  PaymentOrderStatusBadge(status: order.status),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  HugeIcon(
-                    icon: order.purpose == PaymentOrderPurpose.insurance
-                        ? HugeIcons.strokeRoundedShield01
-                        : HugeIcons.strokeRoundedCampfire,
-                    size: 14,
-                    color: c.textTertiary,
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    purposeLabel,
-                    style: TextStyle(
-                        fontSize: SacFontSize.bodySmall,
-                        color: c.textSecondary),
-                  ),
-                  const SizedBox(width: 12),
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedUserGroup,
-                    size: 14,
-                    color: c.textTertiary,
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    'payment_orders.list.beneficiaries_count'.tr(
-                      namedArgs: {'count': order.lines.length.toString()},
-                    ),
-                    style: TextStyle(
-                        fontSize: SacFontSize.bodySmall,
-                        color: c.textSecondary),
-                  ),
-                  const Spacer(),
-                  Text(
-                    SacMoney.fromCentavos(order.totalCentavos),
-                    style: TextStyle(
-                      fontSize: SacFontSize.bodyMedium,
-                      fontWeight: FontWeight.w800,
-                      color: c.text,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+    return SacStatusRow(
+      key: ValueKey('payment-order-${order.orderId}'),
+      style: _style(context),
+      title: order.folioReference,
+      detail: _detail(context),
+      onTap: () => context.push(
+        RouteNames.paymentOrderDetailPath(order.orderId),
+      ),
+      trailing: ConstrainedBox(
+        // The title wins at large text sizes: the badge wraps inside this.
+        constraints: const BoxConstraints(maxWidth: 140),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(child: PaymentOrderStatusBadge(status: order.status)),
+            const SizedBox(width: 4),
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowRight01,
+              size: 18,
+              color: c.textTertiary,
+            ),
+          ],
         ),
       ),
     );

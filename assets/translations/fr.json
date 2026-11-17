@@ -3646,117 +3646,178 @@
   },
   "insurance": {
     "errors": {
-      "get_members": "Erreur lors de la récupération des assurances du club",
-      "get_detail": "Erreur lors de la récupération des détails de l'assurance",
-      "create": "Erreur lors de la création de l'assurance",
-      "update": "Erreur lors de la mise à jour de l'assurance",
-      "get_expiring": "Erreur lors de la récupération des assurances expirant"
+      "get_overview": "Impossible de charger les assurances",
+      "get_free_coverages": "Impossible de charger les assurances libres",
+      "get_members": "Erreur lors du chargement des assurances du club"
     },
-    "view": {
-      "title": "Assurances du Club",
-      "search_hint": "Rechercher un membre...",
-      "coverage_title": "Couverture",
-      "coverage_of": "{insured} sur {total} assurés",
-      "expiring_banner_one": "{count} assurance expire dans les 30 prochains jours",
-      "expiring_banner_other": "{count} assurances expirent dans les 30 prochains jours",
-      "member_count_one": "{count} membre",
-      "member_count_other": "{count} membres",
-      "sort_title": "Trier par",
-      "error_title": "Erreur lors du chargement des assurances",
-      "empty_title": "Aucune information d'assurance",
-      "empty_subtitle_manager": "Enregistrez les assurances des membres du club.",
-      "empty_subtitle_member": "Il n'y a pas encore d'enregistrements d'assurance pour ce club.",
-      "empty_filtered_title": "Aucun membre ne correspond à ce filtre",
-      "empty_filtered_subtitle": "Essayez un autre filtre ou une autre recherche.",
-      "fab_register": "Enregistrer l'assurance"
-    },
-    "summary": {
-      "total": "Total",
-      "insured": "Assurés",
-      "expired": "Expirés",
-      "uninsured": "Non assuré"
+    "status": {
+      "covered": "Assuré",
+      "in_order": "Dans un ordre",
+      "in_review": "En révision",
+      "rejected": "Rejeté",
+      "uninsured": "Sans assurance"
     },
     "detail": {
-      "title": "Détail de l'Assurance",
-      "section_data": "Données de l'assurance",
-      "section_period": "Période de couverture",
-      "section_evidence": "Preuve de paiement",
-      "section_audit": "Audit",
-      "section_status": "État de l'assurance",
-      "label_type": "Type d'assurance",
-      "label_policy": "N. de police / folio",
-      "label_provider": "Assureur",
-      "label_start_date": "Début de couverture",
-      "label_end_date": "Fin de couverture",
-      "label_amount": "Montant de couverture / prime",
-      "label_registered_by": "Enregistré par",
-      "label_modified_by": "Dernière modification",
-      "expires_today": "Expire aujourd'hui",
-      "days_remaining_one": "Valide encore {days} jour",
-      "days_remaining_other": "Valide encore {days} jours",
-      "expired_since_one": "Expiré il y a {days} jour",
-      "expired_since_other": "Expiré il y a {days} jours",
-      "receipt_fallback": "Reçu",
-      "image_load_error": "Impossible de charger l'image",
-      "tap_to_open": "Appuyez pour ouvrir",
-      "no_evidence": "Aucune preuve de paiement jointe"
-    },
-    "form": {
-      "title_edit": "Modifier l'assurance",
-      "title_create": "Enregistrer l'assurance",
-      "label_type": "Type d'assurance *",
-      "label_policy": "N. de police / folio (optionnel)",
-      "label_provider": "Assureur / entreprise (optionnel)",
-      "label_start_date": "Date de début de couverture *",
-      "label_end_date": "Date de fin de couverture *",
-      "label_amount": "Montant de couverture / prime (optionnel)",
-      "label_evidence_required": "Reçu de paiement (image ou PDF) *",
-      "label_evidence_optional": "Reçu de paiement (image ou PDF) (optionnel)",
-      "hint_policy": "POL-001234",
-      "hint_provider": "Nom de l'assureur...",
-      "hint_amount": "0,00",
-      "placeholder_start_date": "Sélectionner la date de début",
-      "placeholder_end_date": "Sélectionner la date d'expiration",
-      "button_save_edit": "Enregistrer les modifications",
-      "button_save_create": "Enregistrer l'assurance",
-      "error_start_date_required": "Sélectionnez la date de début de couverture",
-      "error_end_date_required": "Sélectionnez la date de fin de couverture",
-      "error_end_after_start": "La date de fin doit être postérieure à la date de début",
-      "error_evidence_required": "Joignez le reçu de paiement",
-      "error_member_unknown": "Impossible de déterminer le membre",
-      "success_updated": "Assurance mise à jour avec succès",
-      "success_created": "Assurance enregistrée avec succès",
-      "upload_receipt": "Télécharger le reçu",
-      "upload_formats": "JPG, PNG ou PDF",
-      "file_selected": "Fichier sélectionné",
-      "current_receipt_fallback": "Reçu actuel",
-      "current_receipt_label": "Reçu actuel",
-      "replace_button": "Remplacer",
-      "picker_title": "Sélectionner le reçu",
-      "picker_camera": "Prendre une photo",
-      "picker_camera_subtitle": "Utiliser l'appareil photo",
-      "picker_gallery": "Choisir dans la galerie",
-      "picker_gallery_subtitle": "JPG ou PNG de votre galerie",
-      "picker_pdf": "Sélectionner un PDF",
-      "picker_pdf_subtitle": "Fichier PDF de votre appareil"
-    },
-    "card": {
-      "register_button": "Enregistrer",
-      "expires_in_one": "Expire dans {days} jour",
-      "expires_in_other": "Expire dans {days} jours",
-      "valid_until": "Valide jusqu'au {date}",
-      "expired_since_one": "Expiré il y a {days} jour",
-      "expired_since_other": "Expiré il y a {days} jours"
+      "in_order": "Paiement à faire",
+      "in_order_until": "Paiement à faire · {date}",
+      "in_review": "Paiement envoyé",
+      "rejected": "Envoie un autre reçu",
+      "paid": "Payé",
+      "paid_folio": "Payé · {folio}",
+      "paid_in": "Payé dans {place}",
+      "paid_elsewhere": "Payé dans une autre section",
+      "reassigned": "Assurance réattribuée",
+      "reassigned_from": "Réattribuée de {name}"
     },
     "filter": {
-      "status_all": "Tous",
-      "status_insured": "Assuré",
-      "status_expired": "Expiré",
-      "status_uninsured": "Non assuré",
-      "sort_name_asc": "Nom A-Z",
-      "sort_name_desc": "Nom Z-A",
-      "sort_expiry_asc": "Expiration proche",
-      "sort_expiry_desc": "Expiration lointaine"
+      "all": "Tous",
+      "uninsured": "Sans assurance",
+      "in_process": "En cours",
+      "covered": "Assurés"
+    },
+    "summary": {
+      "label": "Assurés {year}",
+      "covered_of_total": "{covered} sur {total}",
+      "missing": "{count} manquants",
+      "legend_covered": "Assurés {count}",
+      "legend_in_process": "En cours {count}",
+      "legend_uninsured": "Sans assurance {count}",
+      "unit_cost": "Coût par personne",
+      "pay_before": "Payer avant le"
+    },
+    "home": {
+      "title": "Assurances",
+      "orders_tooltip": "Ordres de paiement",
+      "search_hint": "Rechercher un membre",
+      "people_title": "Membres et direction",
+      "no_results": "Aucun résultat",
+      "issue_cta": "Assurer ceux qui manquent ({count})",
+      "issue_cta_all": "Assurer le club ({count})",
+      "read_only_note": "Seuls le directeur, le secrétaire et le trésorier peuvent assurer ou réattribuer."
+    },
+    "attend": {
+      "title": "À traiter",
+      "free_label": "Assurance libre",
+      "free_title": "Assurance libre de {name}",
+      "free_detail": "Passe-la à quelqu'un sans assurance",
+      "rejected_label": "Reçu rejeté",
+      "rejected_title": "Reçu rejeté",
+      "receipt_label": "Reçu manquant",
+      "receipt_title": "Envoie le reçu",
+      "receipt_detail": "{folio} · avant le {date}",
+      "people_count": {
+        "one": "{} personne",
+        "other": "{} personnes"
+      }
+    },
+    "states": {
+      "offline_title": "Pas de connexion",
+      "offline_body": "Impossible de charger les assurances. Vérifie ta connexion et réessaie.",
+      "error_title": "Impossible de charger les assurances",
+      "no_section_title": "Aucune section active",
+      "no_section_body": "Choisis un club pour voir ses assurances.",
+      "no_year_title": "Pas encore d'année ecclésiastique",
+      "no_year_body": "Quand ton champ ouvrira l'année, tu verras ici les assurances.",
+      "no_cost_title": "Pas encore de coût pour {year}",
+      "no_cost_body": "Ton champ local n'a pas encore publié le coût de l'assurance de cette année. Dès qu'il le fera, tu pourras assurer d'ici.",
+      "no_people_title": "Pas encore de personnes",
+      "no_people_body": "Quand la section aura des membres ou une direction, ils apparaîtront ici.",
+      "all_covered_title": "Tout le club est assuré",
+      "all_covered_body": "L'assurance couvre jusqu'au début de l'année ecclésiastique {next}. Si quelqu'un de nouveau arrive, il apparaîtra ici sans assurance.",
+      "year_start_title": "L'année {year} a commencé",
+      "year_start_body": "L'assurance de l'an dernier est terminée. Assure ton club avant le {date}.",
+      "year_start_body_no_date": "L'assurance de l'an dernier est terminée. Assure ton club.",
+      "restricted_title": "Pas d'autorisation",
+      "restricted_body": "Seuls le directeur, le secrétaire et le trésorier peuvent assurer ou réattribuer."
+    },
+    "issue": {
+      "title": "Assurer",
+      "insurance": "Assurance",
+      "annual": "Assurance annuelle {year}",
+      "covers": "Couvre",
+      "covers_value": "Toute l'année ecclésiastique {year}",
+      "uninsured_title": "Sans assurance",
+      "select_all": "Tout choisir",
+      "select_none": "Tout retirer",
+      "select_person": "Choisir {name}",
+      "blocked_title": "Ne peuvent pas être ajoutés",
+      "nobody_left": "Personne sans assurance pour l'instant : tous sont assurés ou dans un ordre.",
+      "reason_covered": "Déjà assuré",
+      "reason_covered_in": "Déjà assuré · payé dans {place}",
+      "reason_reassigned": "Déjà assuré · réattribué",
+      "submit": "Émettre l'ordre · {people} · {total}",
+      "people": {
+        "one": "{} personne",
+        "other": "{} personnes"
+      },
+      "footer_note": "Personne ne peut être dans deux ordres ni avoir deux assurances dans l'année.",
+      "confirm_title": "Émettre l'ordre ?",
+      "confirm_body": {
+        "one": "Ordre de {total} pour 1 personne. Paie-le à la caisse du champ, auprès de ton pasteur de district ou par virement, et envoie le reçu.",
+        "other": "Ordre de {total} pour {} personnes. Paie-le à la caisse du champ, auprès de ton pasteur de district ou par virement, et envoie le reçu."
+      },
+      "confirm_deadline": "Paie-le avant le {date}.",
+      "confirm_expiry": "Si tu ne l'envoies pas à temps, l'ordre expire et les personnes sont libérées.",
+      "confirm_action": "Émettre l'ordre",
+      "success": "Ordre {folio} émis",
+      "error_generic": "Impossible d'émettre l'ordre. Réessaie."
+    },
+    "conflict": {
+      "title_covered": "{name} est déjà assuré",
+      "title_in_order": "{name} est déjà dans un ordre",
+      "title_many": "{count} personnes ne peuvent plus être ajoutées",
+      "covered_in": "Assuré dans {place} pendant que tu préparais l'ordre.",
+      "covered_elsewhere": "Assuré dans une autre section pendant que tu préparais l'ordre.",
+      "in_order_folio": "Déjà dans l'ordre {folio}.",
+      "in_order": "Déjà dans un autre ordre.",
+      "outcome": {
+        "one": "Sans eux, l'ordre compte 1 personne pour {total}.",
+        "other": "Sans eux, l'ordre compte {} personnes pour {total}."
+      },
+      "outcome_none": "Sans eux, il ne reste personne à inclure dans l'ordre.",
+      "issue_remaining": {
+        "one": "Émettre avec 1 personne",
+        "other": "Émettre avec {} personnes"
+      },
+      "review_list": "Revoir la liste"
+    },
+    "person": {
+      "staff_suffix": "direction",
+      "not_found_title": "Nous n'avons pas trouvé cette personne",
+      "not_found_body": "Elle n'est peut-être plus dans la section. Retourne à la liste des assurances.",
+      "title_covered": "Assuré toute l'année {year}",
+      "title_elsewhere": "Assuré dans une autre section",
+      "message_covered": "Couvert jusqu'au début de l'année ecclésiastique {next}.",
+      "message_elsewhere": "Son assurance {year} a été payée dans {place}. Il n'en a pas besoin d'une autre.",
+      "message_reassigned": "A reçu l'assurance que {name} a laissée libre en quittant le club.",
+      "message_reassigned_generic": "A reçu une assurance qu'une autre personne a laissée libre en quittant le club.",
+      "insurance": "Assurance",
+      "year": "Année ecclésiastique",
+      "paid_in": "Payé dans",
+      "order": "Ordre",
+      "approved": "Approuvé",
+      "reassigned_from": "Réattribuée de",
+      "reassigned_by": "Réattribuée par",
+      "original_order": "Ordre d'origine"
+    },
+    "reassign": {
+      "title": "Réattribuer l'assurance",
+      "free_label": "Assurance libre",
+      "left_club": "A quitté le club",
+      "left_club_on": "A quitté le club le {date}",
+      "paid_in": "Payé dans",
+      "pick_free": "Choisis quelle assurance passer",
+      "to_whom": "À qui la passer ?",
+      "only_free_note": "Seules apparaissent les personnes sans assurance et hors d'un ordre.",
+      "nobody": "Personne sans assurance à qui la passer. Quand quelqu'un de nouveau arrivera, tu pourras le faire d'ici.",
+      "submit": "Passer à {name}",
+      "confirm_title": "Passer l'assurance à {name} ?",
+      "confirm_body": "{name} sera assuré pour le reste de l'année ecclésiastique {year}. {holder} ne sera plus couvert. Il sera enregistré que c'est toi qui l'as fait.",
+      "confirm_action": "Passer l'assurance",
+      "success": "L'assurance est passée à {name}",
+      "error_generic": "Impossible de passer l'assurance. Réessaie.",
+      "none_title": "Aucune assurance libre",
+      "none_body": "Quand une personne assurée quittera le club, son assurance apparaîtra ici pour être passée."
     }
   },
   "evidence_folder": {
@@ -4856,6 +4917,17 @@
       "overdue_days": {
         "one": "En retard de {} jour",
         "other": "En retard de {} jours"
+      },
+      "uninsured_members": "Membres sans assurance",
+      "free_insurance": "Assurance libre",
+      "uninsured_people": {
+        "one": "{} personne",
+        "other": "{} personnes"
+      },
+      "uninsured_due": "{people} · avant le {date}",
+      "free_insurance_count": {
+        "one": "{} assurance à passer",
+        "other": "{} assurances à passer"
       }
     }
   },
@@ -5332,7 +5404,14 @@
     "list": {
       "title": "Ordres de paiement",
       "empty": "Aucun ordre de paiement pour l'instant",
-      "beneficiaries_count": "{count} bénéficiaire(s)"
+      "group_attend": "À traiter",
+      "group_review": "En révision",
+      "group_closed": "Clôturés",
+      "people_count": {
+        "one": "{} personne",
+        "other": "{} personnes"
+      },
+      "expires": "expire le {date}"
     },
     "purpose": {
       "insurance": "Assurance",
@@ -5340,60 +5419,62 @@
     },
     "status": {
       "issued": "Émis",
-      "proof_submitted": "Justificatif envoyé",
+      "proof_submitted": "En révision",
       "approved": "Approuvé",
-      "proof_rejected": "Justificatif rejeté",
+      "proof_rejected": "Rejeté",
       "cancelled": "Annulé",
       "expired": "Expiré"
-    },
-    "timeline": {
-      "issued": "Ordre émis",
-      "proof_submitted": "Justificatif envoyé",
-      "approved": "Paiement approuvé"
     },
     "detail": {
       "amounts_title": "Montant",
       "documents_title": "Documents",
-      "title": "Détail de l'ordre",
       "total": "Total",
-      "unit_cost": "Coût unitaire",
-      "expires": "Expire",
-      "beneficiaries": "Bénéficiaires",
-      "timeline_title": "Statut",
-      "proof_title": "Justificatif de paiement",
-      "view_pdf": "Voir l'ordre (PDF)",
-      "upload_proof": "Envoyer le justificatif",
-      "reupload_proof": "Renvoyer le justificatif",
-      "proof_uploaded": "Justificatif envoyé pour révision",
+      "unit_cost": "Coût par personne",
+      "proof_title": "Reçu de paiement",
+      "view_pdf": "Ordre de paiement",
+      "upload_proof": "Envoyer le reçu",
+      "reupload_proof": "Renvoyer le reçu",
+      "proof_uploaded": "Reçu envoyé pour révision",
       "proof_too_large": "Le fichier dépasse la limite de 10 Mo",
-      "reject_reason": "Motif du rejet",
+      "reject_reason": "Motif du champ",
       "cancel_order": "Annuler l'ordre",
       "cancel_title": "Annuler l'ordre ?",
-      "cancel_body": "L'ordre ne sera plus valide et aucune place ne sera réservée.",
+      "cancel_body": "L'ordre ne sera plus valide et les personnes seront libres pour un autre ordre.",
       "cancel_confirm": "Oui, annuler",
       "cancelled": "Ordre annulé",
-      "proof_source": "Téléverser le justificatif",
+      "proof_source": "Envoyer le reçu",
       "proof_source_camera": "Prendre une photo",
-      "proof_source_gallery": "Choisir dans les photos",
-      "proof_source_file": "Choisir un fichier",
-      "proof_source_file_hint": "PDF, JPG ou PNG, jusqu’à 10 Mo",
-      "proof_confirm_title": "Envoyer ce justificatif ?",
-      "proof_send": "Envoyer"
+      "proof_source_gallery": "Choisir dans la galerie",
+      "proof_source_file": "Choisir un PDF",
+      "proof_source_file_hint": "PDF, JPG ou PNG, jusqu'à 10 Mo",
+      "proof_confirm_title": "Envoyer ce reçu ?",
+      "proof_send": "Envoyer",
+      "covers": "Couvre",
+      "covers_year": "Année ecclésiastique {year}",
+      "covers_people": "Couvre",
+      "unnamed": "Sans nom",
+      "role_member": "Membre",
+      "role_staff": "Direction",
+      "pdf_hint": "PDF · caisse, pasteur ou virement",
+      "proof_sent": "Envoyé",
+      "proof_rejected": "Rejeté",
+      "proof_approved": "Approuvé",
+      "proof_note": "Reçu de caisse ou confirmation de virement · PDF, JPG ou PNG",
+      "more": "Plus d'options",
+      "cancel_sheet_title": "Annuler {folio} ?",
+      "cancel_sheet_body_one": "La personne de cet ordre redevient libre pour un autre ordre.",
+      "cancel_sheet_body_other": "Les {count} personnes de cet ordre redeviennent libres pour un autre ordre.",
+      "cancel_sheet_paid_hint": "Si tu as déjà payé, ne l’annule pas : envoie le reçu pour que le champ l’approuve.",
+      "cancel_sheet_back": "Retour"
     },
     "issue": {
       "select_all": "Tout sélectionner",
       "deselect_all": "Tout désélectionner",
-      "deadline_short": "Date limite",
-      "title_insurance": "Émettre un ordre d'assurance",
       "title_camporee": "Émettre un ordre de camporée",
       "select_members": "Sélectionner des membres",
-      "eligible_hint_insurance": "Seuls les membres actifs sans couverture en cours sont affichés.",
       "eligible_hint_camporee": "Seuls les membres actifs avec une assurance valide et non déjà inscrits sont affichés.",
       "no_eligible": "Aucun membre éligible",
-      "no_cycle": "Aucun cycle d'assurance n'est configuré pour votre section",
       "unavailable": "Les ordres de paiement ne sont pas activés dans votre champ local",
-      "unit_cost_label": "Coût unitaire : {cost}",
-      "deadline_label": "Date limite : {date}",
       "total_label": "Total ({count} sélectionnés)",
       "submit": "Émettre l'ordre",
       "success": "Ordre émis avec succès",
@@ -5402,16 +5483,16 @@
       "held_hint": "Pour les inclure dans un autre ordre, annule d’abord l’ordre où ils se trouvent.",
       "confirm_title": "Émettre l’ordre ?",
       "confirm_body": {
-        "one": "Un ordre sera émis pour 1 membre. Tu devras ensuite le payer et téléverser le justificatif.",
-        "other": "Un ordre sera émis pour {} membres. Tu devras ensuite le payer et téléverser le justificatif."
+        "one": "Un ordre sera émis pour 1 membre. Tu devras ensuite le payer et téléverser le reçu.",
+        "other": "Un ordre sera émis pour {} membres. Tu devras ensuite le payer et téléverser le reçu."
       }
     },
     "camporee_redirect": {
       "title": "Comment inscrire",
-      "body": "Votre champ local utilise des ordres de paiement. Choisissez les membres, émettez un ordre, payez à la banque ou à la caisse du champ, puis envoyez le justificatif ; ils apparaissent dans Participants lorsque le champ approuve le paiement.",
+      "body": "Votre champ local utilise des ordres de paiement. Choisissez les membres, émettez un ordre, payez à la banque ou à la caisse du champ, puis envoyez le reçu ; ils apparaissent dans Participants lorsque le champ approuve le paiement.",
       "step_1": "Choisissez les membres",
       "step_2": "Émettez l'ordre et payez à la banque ou à la caisse du champ",
-      "step_3": "Envoyez le justificatif",
+      "step_3": "Envoyez le reçu",
       "step_4": "Lorsque le champ approuve le paiement, ils apparaissent dans Participants",
       "issue_button": "Choisir les membres",
       "view_orders": "Voir les ordres de cette camporée",
@@ -5436,6 +5517,71 @@
       "reassignment_invalid": "La réaffectation n'est pas valide",
       "reassignment_pending_exists": "Une demande de réaffectation est déjà en attente",
       "download_document": "Le document n'a pas pu être téléchargé"
+    },
+    "state": {
+      "sheet_title": "États de l'ordre",
+      "panel_hint": "Affiche tous les états",
+      "step_of": "Étape {current} sur {total}",
+      "kind_done": "Fait",
+      "kind_current": "En cours",
+      "kind_rejected": "Rejeté",
+      "kind_pending": "À venir",
+      "pay_before": "Avant le {date}",
+      "review_hint": "Cela prend en général quelques jours",
+      "rejected_hint": "Envoie un autre reçu",
+      "outcome_year": "Toute l'année ecclésiastique {year}",
+      "outcome_year_generic": "Toute l'année ecclésiastique",
+      "outcome_camporee_detail": "Quand le champ approuve le paiement",
+      "step_issued": "Ordre émis",
+      "step_pay": "Payer et envoyer le reçu",
+      "step_proof_sent": "Reçu envoyé",
+      "step_review": "Le champ vérifie le paiement",
+      "step_proof_rejected": "Le champ a rejeté le reçu",
+      "step_approved": "Le champ a approuvé le paiement",
+      "step_outcome_insurance": "Ils sont assurés",
+      "step_outcome_camporee": "Ils sont inscrits",
+      "step_cancelled": "Ordre annulé",
+      "step_expired": "Ordre expiré",
+      "panel_issued": {
+        "title": "Le reçu de paiement manque",
+        "message": "Paie {total} et envoie le reçu avant le {date}. S'il expire, les personnes sont libérées pour un autre ordre."
+      },
+      "panel_proof_submitted_insurance": {
+        "title": "Le champ vérifie le paiement",
+        "message": "Tu as envoyé le reçu. Une fois approuvé, ils sont assurés toute l'année ecclésiastique {year}."
+      },
+      "panel_proof_submitted_insurance_generic": {
+        "title": "Le champ vérifie le paiement",
+        "message": "Tu as envoyé le reçu. Une fois approuvé, ils sont assurés toute l'année ecclésiastique."
+      },
+      "panel_proof_submitted_camporee": {
+        "title": "Le champ vérifie le paiement",
+        "message": "Tu as envoyé le reçu. Une fois approuvé, ils sont inscrits."
+      },
+      "panel_proof_rejected": {
+        "title": "Reçu rejeté",
+        "message": "Le champ n'a pas pu valider le paiement. Envoie un autre reçu."
+      },
+      "panel_approved_insurance": {
+        "title": "Paiement approuvé",
+        "message": "Ils sont assurés toute l'année ecclésiastique {year}."
+      },
+      "panel_approved_insurance_generic": {
+        "title": "Paiement approuvé",
+        "message": "Ils sont assurés toute l'année ecclésiastique."
+      },
+      "panel_approved_camporee": {
+        "title": "Paiement approuvé",
+        "message": "Le champ a approuvé le paiement et ils sont inscrits."
+      },
+      "panel_cancelled": {
+        "title": "Ordre annulé",
+        "message": "Cet ordre n'est plus valide. Les personnes sont libres pour un autre ordre."
+      },
+      "panel_expired": {
+        "title": "Ordre expiré",
+        "message": "Le reçu n'a pas été envoyé à temps. Les personnes sont libres pour un autre ordre."
+      }
     }
   },
   "camporee_orders": {

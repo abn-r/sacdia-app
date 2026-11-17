@@ -1,7 +1,7 @@
 /// Flujo de inscripción de miembros según el contexto de órdenes de pago.
 ///
 /// Loading y error son fail-closed: no se pinta el register legacy. Ese POST
-/// responde `403 FIELD_PAYMENT_ORDER_LEGACY_DISABLED` si el flag está ON.
+/// responde `409 FIELD_PAYMENT_ORDER_LEGACY_DISABLED` si el flag está ON.
 enum CamporeeRegistrationPaymentFlow {
   loading,
   unavailable,

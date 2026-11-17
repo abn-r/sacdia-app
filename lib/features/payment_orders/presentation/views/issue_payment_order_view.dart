@@ -19,25 +19,23 @@ import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
-import 'package:sacdia_app/features/insurance/domain/entities/member_insurance.dart';
+import 'package:sacdia_app/features/insurance/domain/entities/insurance_overview.dart';
 import 'package:sacdia_app/features/insurance/presentation/providers/insurance_providers.dart';
-import 'package:sacdia_app/features/insurance/presentation/widgets/insurance_status_badge.dart';
+import 'package:sacdia_app/features/insurance/presentation/utils/insurance_formatting.dart';
 
 import '../../../camporees/presentation/providers/camporees_providers.dart';
-import '../../domain/entities/payment_order.dart';
 import '../../domain/utils/payment_order_eligibility.dart';
 import '../providers/payment_orders_providers.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
-/// Flujo de emisión de una orden de pago territorial.
+/// Emisión de una orden de camporee: selecciona miembros con seguro vigente
+/// del año (según el resumen de seguros) que aún no estén inscritos y emite la
+/// orden de inscripción al camporee [camporeeId].
 ///
-/// - [PaymentOrderPurpose.insurance]: selecciona miembros SIN cobertura activa
-///   del ciclo aplicable y emite la orden de seguro.
-/// - [PaymentOrderPurpose.camporee]: selecciona miembros con seguro activo y
-///   emite la orden de inscripción al camporee [camporeeId].
+/// Las órdenes de seguro se emiten desde el módulo de Seguros
+/// (`IssueInsuranceView`).
 class IssuePaymentOrderView extends ConsumerWidget {
-  final PaymentOrderPurpose purpose;
-  final int? camporeeId;
+  final int camporeeId;
 
   /// 'local' | 'union' — v1.1: para camporees de unión el Campo Local del
   /// emisor sigue cobrando; solo cambia el endpoint de emisión.
@@ -45,13 +43,9 @@ class IssuePaymentOrderView extends ConsumerWidget {
 
   const IssuePaymentOrderView({
     super.key,
-    required this.purpose,
-    this.camporeeId,
+    required this.camporeeId,
     this.camporeeType = 'local',
-  }) : assert(
-          purpose != PaymentOrderPurpose.camporee || camporeeId != null,
-          'camporeeId es requerido para órdenes de camporee',
-        );
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -62,9 +56,7 @@ class IssuePaymentOrderView extends ConsumerWidget {
       extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-          title: purpose == PaymentOrderPurpose.insurance
-              ? 'payment_orders.issue.title_insurance'.tr()
-              : 'payment_orders.issue.title_camporee'.tr(),
+          title: 'payment_orders.issue.title_camporee'.tr(),
           backgroundColor: c.surface,
           foregroundColor: c.text,
           frosted: true),
@@ -79,17 +71,9 @@ class IssuePaymentOrderView extends ConsumerWidget {
                 if (ordersContext == null || !ordersContext.enabled) {
                   return _UnavailableState(c: c);
                 }
-                if (purpose == PaymentOrderPurpose.insurance &&
-                    ordersContext.insuranceCycles.isEmpty) {
-                  return _NoCycleState(c: c);
-                }
                 return _IssueOrderForm(
-                  purpose: purpose,
                   camporeeId: camporeeId,
                   camporeeType: camporeeType,
-                  cycle: purpose == PaymentOrderPurpose.insurance
-                      ? ordersContext.insuranceCycles.first
-                      : null,
                 );
               },
             ),
@@ -101,59 +85,49 @@ class IssuePaymentOrderView extends ConsumerWidget {
 }
 
 class _IssueOrderForm extends ConsumerWidget {
-  final PaymentOrderPurpose purpose;
-  final int? camporeeId;
+  final int camporeeId;
   final String camporeeType;
-  final InsuranceCycleOption? cycle;
 
   const _IssueOrderForm({
-    required this.purpose,
     required this.camporeeId,
     required this.camporeeType,
-    required this.cycle,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final issueState = ref.watch(issueOrderNotifierProvider);
-    final membersAsync = ref.watch(membersInsuranceProvider);
-    final isCamporee = purpose == PaymentOrderPurpose.camporee;
-    final registeredIdsAsync = isCamporee
-        ? ref.watch(camporeeRegisteredUserIdsProvider(camporeeId!))
-        : const AsyncValue<Set<String>>.data({});
-    final ordersKey = (camporeeId: camporeeId ?? 0, camporeeType: camporeeType);
-    final heldAsync = isCamporee
-        ? ref.watch(camporeeHeldBeneficiariesProvider(ordersKey))
-        : const AsyncValue<Map<String, String>>.data({});
+    final overviewAsync = ref.watch(insuranceOverviewProvider);
+    final registeredIdsAsync =
+        ref.watch(camporeeRegisteredUserIdsProvider(camporeeId));
+    final ordersKey = (camporeeId: camporeeId, camporeeType: camporeeType);
+    final heldAsync = ref.watch(camporeeHeldBeneficiariesProvider(ordersKey));
     final c = context.sac;
 
     // Camporee orders charge the camporee's registration cost per member.
-    final camporeeCost = isCamporee
-        ? ref.watch(camporeeDetailProvider(camporeeId!)).value?.registrationCost
+    final camporeeCost =
+        ref.watch(camporeeDetailProvider(camporeeId)).value?.registrationCost;
+    final unitCost = camporeeCost != null && camporeeCost > 0
+        ? (camporeeCost * 100).round()
         : null;
-    final unitCost = cycle?.unitCostCentavos ??
-        (camporeeCost != null && camporeeCost > 0
-            ? (camporeeCost * 100).round()
-            : null);
     final selectedCount = issueState.selectedUserIds.length;
     final totalCentavos = unitCost != null ? unitCost * selectedCount : null;
 
-    if (membersAsync.isLoading ||
+    if (overviewAsync.isLoading ||
         registeredIdsAsync.isLoading ||
         heldAsync.isLoading) {
       return const Center(child: SacLoading());
     }
-    if (membersAsync.hasError) {
+    if (overviewAsync.hasError) {
       return _IssueLoadError(
-        message: userErrorMessage(membersAsync.error),
-        onRetry: () => ref.invalidate(membersInsuranceProvider),
+        message: userErrorMessage(overviewAsync.error),
+        onRetry: () => ref.invalidate(insuranceOverviewProvider),
       );
     }
     if (registeredIdsAsync.hasError) {
       return _IssueLoadError(
         message: userErrorMessage(registeredIdsAsync.error),
         onRetry: () =>
-            ref.invalidate(camporeeRegisteredUserIdsProvider(camporeeId!)),
+            ref.invalidate(camporeeRegisteredUserIdsProvider(camporeeId)),
       );
     }
     if (heldAsync.hasError) {
@@ -164,28 +138,27 @@ class _IssueOrderForm extends ConsumerWidget {
       );
     }
 
-    final members = membersAsync.value ?? const <MemberInsurance>[];
+    final people = overviewAsync.value?.people ?? const <InsurancePerson>[];
     final registeredIds = registeredIdsAsync.value ?? const <String>{};
     final held = heldAsync.value ?? const <String, String>{};
-    final candidates = members
+    final candidates = people
         .where(
-          (member) => isEligiblePaymentOrderBeneficiary(
-            purpose: purpose,
-            member: member,
+          (person) => isEligibleCamporeeBeneficiary(
+            person: person,
             registeredCamporeeUserIds: registeredIds,
           ),
         )
         .toList()
-      ..sort((a, b) => a.memberName.compareTo(b.memberName));
+      ..sort((a, b) => a.name.compareTo(b.name));
     // Members already in an open order can't go in a second one.
     final eligible =
-        candidates.where((m) => !held.containsKey(m.memberId)).toList();
+        candidates.where((m) => !held.containsKey(m.userId)).toList();
     final heldMembers =
-        candidates.where((m) => held.containsKey(m.memberId)).toList();
+        candidates.where((m) => held.containsKey(m.userId)).toList();
 
     final notifier = ref.read(issueOrderNotifierProvider.notifier);
     final allSelected = eligible.isNotEmpty &&
-        eligible.every((m) => issueState.selectedUserIds.contains(m.memberId));
+        eligible.every((m) => issueState.selectedUserIds.contains(m.userId));
     final title = 'payment_orders.issue.select_members'.tr().toUpperCase();
 
     return Column(
@@ -197,10 +170,6 @@ class _IssueOrderForm extends ConsumerWidget {
               const EdgeInsets.fromLTRB(20, 16, 20, 32),
             ),
             children: [
-              if (cycle != null) ...[
-                _CycleSummaryGroup(cycle: cycle!),
-                const SizedBox(height: 24),
-              ],
               SacSettingsGroup(
                 key: const Key('issue-order-members'),
                 title: eligible.isEmpty
@@ -246,7 +215,7 @@ class _IssueOrderForm extends ConsumerWidget {
                             allSelected
                                 ? notifier.clearSelection()
                                 : notifier.selectAll(
-                                    eligible.map((m) => m.memberId),
+                                    eligible.map((m) => m.userId),
                                   );
                           },
                         ),
@@ -254,21 +223,15 @@ class _IssueOrderForm extends ConsumerWidget {
                           const SacSettingsDivider(),
                           _EligibleMemberTile(
                             member: member,
-                            // Camporee lists insured members only: the
-                            // badge would repeat it on every row.
-                            showInsurance:
-                                purpose == PaymentOrderPurpose.insurance,
                             selected: issueState.selectedUserIds
-                                .contains(member.memberId),
-                            onTap: () => notifier.toggle(member.memberId),
+                                .contains(member.userId),
+                            onTap: () => notifier.toggle(member.userId),
                           ),
                         ],
                       ],
               ),
               SacSettingsFooter(
-                purpose == PaymentOrderPurpose.insurance
-                    ? 'payment_orders.issue.eligible_hint_insurance'.tr()
-                    : 'payment_orders.issue.eligible_hint_camporee'.tr(),
+                'payment_orders.issue.eligible_hint_camporee'.tr(),
               ),
               if (heldMembers.isNotEmpty) ...[
                 const SizedBox(height: 24),
@@ -280,7 +243,7 @@ class _IssueOrderForm extends ConsumerWidget {
                       if (i > 0) const SacSettingsDivider(),
                       _HeldMemberTile(
                         member: heldMembers[i],
-                        folio: held[heldMembers[i].memberId]!,
+                        folio: held[heldMembers[i].userId]!,
                       ),
                     ],
                   ],
@@ -376,12 +339,10 @@ class _IssueOrderForm extends ConsumerWidget {
     );
     if (confirmed != true || !context.mounted) return;
 
-    final order = purpose == PaymentOrderPurpose.insurance
-        ? await notifier.submitInsurance(cycleConfigId: cycle!.cycleConfigId)
-        : await notifier.submitCamporee(
-            camporeeId: camporeeId!,
-            camporeeType: camporeeType,
-          );
+    final order = await notifier.submitCamporee(
+      camporeeId: camporeeId,
+      camporeeType: camporeeType,
+    );
 
     if (order != null && context.mounted) {
       SacSnackBar.show(
@@ -400,50 +361,16 @@ class _IssueOrderForm extends ConsumerWidget {
   }
 }
 
-/// The insurance being bought: product, unit cost and deadline.
-class _CycleSummaryGroup extends StatelessWidget {
-  final InsuranceCycleOption cycle;
-
-  const _CycleSummaryGroup({required this.cycle});
-
-  @override
-  Widget build(BuildContext context) {
-    final dateFormat = DateFormat.yMMMd(context.locale.toString());
-    final deadline = cycle.purchaseDeadline;
-
-    return SacSettingsGroup(
-      title: cycle.productName.toUpperCase(),
-      children: [
-        SacSettingsValueTile(
-          icon: HugeIcons.strokeRoundedTicket01,
-          label: 'payment_orders.detail.unit_cost'.tr(),
-          value: SacMoney.fromCentavos(cycle.unitCostCentavos),
-        ),
-        if (deadline != null) ...[
-          const SacSettingsDivider(),
-          SacSettingsValueTile(
-            icon: HugeIcons.strokeRoundedCalendar03,
-            label: 'payment_orders.issue.deadline_short'.tr(),
-            value: dateFormat.format(deadline.toLocal()),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
 /// One eligible member: a check circle on the left (iOS multi-select),
 /// photo or initials, name and class, and the insurance status.
 class _EligibleMemberTile extends StatelessWidget {
-  final MemberInsurance member;
+  final InsurancePerson member;
   final bool selected;
-  final bool showInsurance;
   final VoidCallback onTap;
 
   const _EligibleMemberTile({
     required this.member,
     required this.selected,
-    required this.showInsurance,
     required this.onTap,
   });
 
@@ -457,7 +384,7 @@ class _EligibleMemberTile extends StatelessWidget {
     return Semantics(
       selected: selected,
       child: SacInkWell(
-        key: ValueKey('issue-order-member-${member.memberId}'),
+        key: ValueKey('issue-order-member-${member.userId}'),
         onTap: () {
           HapticFeedback.selectionClick();
           onTap();
@@ -492,8 +419,8 @@ class _EligibleMemberTile extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 SacMemberAvatar(
-                  name: member.memberName,
-                  imageUrl: member.memberPhotoUrl,
+                  name: member.name,
+                  imageUrl: member.picture,
                   size: 36,
                 ),
                 const SizedBox(width: 12),
@@ -502,7 +429,7 @@ class _EligibleMemberTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        member.memberName,
+                        member.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -511,9 +438,9 @@ class _EligibleMemberTile extends StatelessWidget {
                           color: c.text,
                         ),
                       ),
-                      if (member.memberClass?.trim().isNotEmpty == true)
+                      if (member.roleLabel?.trim().isNotEmpty == true)
                         Text(
-                          member.memberClass!,
+                          insuranceRoleLine(member),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -524,10 +451,6 @@ class _EligibleMemberTile extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (showInsurance) ...[
-                  const SizedBox(width: 8),
-                  InsuranceStatusBadge(status: member.status, compact: true),
-                ],
               ],
             ),
           ),
@@ -540,7 +463,7 @@ class _EligibleMemberTile extends StatelessWidget {
 /// A member already held by an open order: shown greyed out with its folio,
 /// so the director knows why it can't be selected.
 class _HeldMemberTile extends StatelessWidget {
-  final MemberInsurance member;
+  final InsurancePerson member;
   final String folio;
 
   const _HeldMemberTile({required this.member, required this.folio});
@@ -550,7 +473,7 @@ class _HeldMemberTile extends StatelessWidget {
     final c = context.sac;
 
     return ConstrainedBox(
-      key: ValueKey('issue-order-held-${member.memberId}'),
+      key: ValueKey('issue-order-held-${member.userId}'),
       constraints: const BoxConstraints(minHeight: 56),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -559,8 +482,8 @@ class _HeldMemberTile extends StatelessWidget {
             Opacity(
               opacity: 0.6,
               child: SacMemberAvatar(
-                name: member.memberName,
-                imageUrl: member.memberPhotoUrl,
+                name: member.name,
+                imageUrl: member.picture,
                 size: 36,
               ),
             ),
@@ -570,7 +493,7 @@ class _HeldMemberTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    member.memberName,
+                    member.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -644,27 +567,6 @@ class _UnavailableState extends StatelessWidget {
                   fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _NoCycleState extends StatelessWidget {
-  final SacColors c;
-
-  const _NoCycleState({required this.c});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(30),
-        child: Text(
-          'payment_orders.issue.no_cycle'.tr(),
-          textAlign: TextAlign.center,
-          style: TextStyle(
-              fontSize: SacFontSize.bodyMedium, color: c.textSecondary),
         ),
       ),
     );
