@@ -124,8 +124,8 @@ void main() {
       expect(find.text('¿Pasar el seguro a Diego Campos?'), findsOneWidget);
       expect(
         find.text(
-          'Diego Campos queda asegurado el resto del año eclesiástico 2027. '
-          'Pablo Ruiz deja de estar cubierto. Queda registrado que tú lo hiciste.',
+          'El seguro cubre a Diego Campos el resto del año eclesiástico 2027. '
+          'Pablo Ruiz pierde la cobertura. Queda registrado que tú lo hiciste.',
         ),
         findsOneWidget,
       );

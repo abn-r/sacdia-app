@@ -36,7 +36,10 @@ class InsurancePersonView extends ConsumerWidget {
     final person = overview?.personById(userId);
 
     Widget body;
-    if (overview == null && overviewAsync.isLoading) {
+    // Riverpod 3 keeps the previous value while reloading: right after a
+    // reassignment that stale value still has the person uninsured. This
+    // screen has no pull-to-refresh, so wait for the fresh data instead.
+    if (overviewAsync.isLoading) {
       body = const InsuranceSkeleton(rows: 3);
     } else if (overview == null && overviewAsync.hasError) {
       body = InsuranceMessageState.loadError(
@@ -255,6 +258,8 @@ class _Body extends ConsumerWidget {
         SacGroupedSection(
           key: const ValueKey('insurance-person-details'),
           label: tr('insurance.person.insurance'),
+          // Key-value details, not a list: no count in the eyebrow.
+          action: const SizedBox.shrink(),
           dividerIndent: 14,
           children: rows,
         ),

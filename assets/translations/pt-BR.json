@@ -3812,7 +3812,7 @@
       "nobody": "Não há ninguém sem seguro para quem passar. Quando alguém novo entrar, você poderá fazer isso daqui.",
       "submit": "Passar para {name}",
       "confirm_title": "Passar o seguro para {name}?",
-      "confirm_body": "{name} fica segurado pelo resto do ano eclesiástico {year}. {holder} deixa de estar coberto. Fica registrado que foi você quem fez.",
+      "confirm_body": "O seguro cobre {name} pelo resto do ano eclesiástico {year}. {holder} perde a cobertura. Fica registrado que foi você quem fez.",
       "confirm_action": "Passar seguro",
       "success": "O seguro passou para {name}",
       "error_generic": "Não foi possível passar o seguro. Tente novamente.",

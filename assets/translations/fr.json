@@ -3812,7 +3812,7 @@
       "nobody": "Personne sans assurance à qui la passer. Quand quelqu'un de nouveau arrivera, tu pourras le faire d'ici.",
       "submit": "Passer à {name}",
       "confirm_title": "Passer l'assurance à {name} ?",
-      "confirm_body": "{name} sera assuré pour le reste de l'année ecclésiastique {year}. {holder} ne sera plus couvert. Il sera enregistré que c'est toi qui l'as fait.",
+      "confirm_body": "L'assurance couvre {name} pour le reste de l'année ecclésiastique {year}. {holder} perd la couverture. Il sera enregistré que c'est toi qui l'as fait.",
       "confirm_action": "Passer l'assurance",
       "success": "L'assurance est passée à {name}",
       "error_generic": "Impossible de passer l'assurance. Réessaie.",
