@@ -23,6 +23,8 @@ String pendingRouteFor(PendingItemType type) => switch (type) {
       PendingItemType.monthlyReport => RouteNames.homeReports,
       PendingItemType.investitureAuthorizations =>
         RouteNames.investitureAuthorize,
+      PendingItemType.uninsuredMembers => RouteNames.homeInsurance,
+      PendingItemType.freeInsurance => RouteNames.homeInsuranceReassign,
     };
 
 /// Tarjeta «Pendientes» del inicio en modo gestión.
@@ -285,6 +287,9 @@ class _PendingRow extends StatelessWidget {
         PendingItemType.monthlyReport => HugeIcons.strokeRoundedFile01,
         PendingItemType.investitureAuthorizations =>
           HugeIcons.strokeRoundedMedal01,
+        PendingItemType.uninsuredMembers => HugeIcons.strokeRoundedShield01,
+        PendingItemType.freeInsurance =>
+          HugeIcons.strokeRoundedArrowDataTransferHorizontal,
       };
 
   String get _label => tr('dashboard.pending.${switch (item.type) {
@@ -293,9 +298,24 @@ class _PendingRow extends StatelessWidget {
         PendingItemType.monthlyReport => 'monthly_report',
         PendingItemType.investitureAuthorizations =>
           'investiture_authorizations',
+        PendingItemType.uninsuredMembers => 'uninsured_members',
+        PendingItemType.freeInsurance => 'free_insurance',
       }}');
 
   String? get _subtitle {
+    if (item.type == PendingItemType.uninsuredMembers) {
+      final due = item.dueDate;
+      final people = 'dashboard.pending.uninsured_people'.plural(item.count);
+      if (due == null) return people;
+      final date = DateFormat.MMMd(Intl.getCurrentLocale()).format(due);
+      return tr(
+        'dashboard.pending.uninsured_due',
+        namedArgs: {'people': people, 'date': date},
+      );
+    }
+    if (item.type == PendingItemType.freeInsurance) {
+      return 'dashboard.pending.free_insurance_count'.plural(item.count);
+    }
     if (item.type != PendingItemType.evidenceFolder) return null;
     final parts = [
       if ((item.rejectedCount ?? 0) > 0)
@@ -305,6 +325,12 @@ class _PendingRow extends StatelessWidget {
     ];
     return parts.isEmpty ? null : parts.join(' · ');
   }
+
+  /// Insurance rows say it all in the subtitle: a count badge would repeat
+  /// it.
+  bool get _hasBadge =>
+      item.type != PendingItemType.uninsuredMembers &&
+      item.type != PendingItemType.freeInsurance;
 
   String get _badgeText {
     final days = item.daysLeft;
@@ -318,12 +344,14 @@ class _PendingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final badgeText = _badgeText;
-    final badge = switch (item.severity) {
-      PendingSeverity.urgent => SacBadge.error(label: badgeText),
-      PendingSeverity.warning => SacBadge.warning(label: badgeText),
-      PendingSeverity.info => SacBadge.info(label: badgeText),
-    };
+    final badgeText = _hasBadge ? _badgeText : null;
+    final badge = badgeText == null
+        ? null
+        : switch (item.severity) {
+            PendingSeverity.urgent => SacBadge.error(label: badgeText),
+            PendingSeverity.warning => SacBadge.warning(label: badgeText),
+            PendingSeverity.info => SacBadge.info(label: badgeText),
+          };
     return _PendingRowLayout(
       icon: _icon,
       label: _label,

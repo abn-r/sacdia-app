@@ -4,8 +4,10 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/cancel_token_adapter.dart';
 import '../../../../core/usecases/cancellation_token.dart';
+import '../../../insurance/domain/entities/insurance_conflict.dart';
 import '../../domain/entities/payment_order.dart';
 import '../../domain/repositories/payment_orders_repository.dart';
+import '../datasources/duplicate_beneficiaries_exception.dart';
 import '../datasources/payment_orders_remote_data_source.dart';
 
 /// Implementación del repositorio de órdenes de pago territoriales.
@@ -17,8 +19,21 @@ class PaymentOrdersRepositoryImpl implements PaymentOrdersRepository {
   Future<Either<Failure, T>> _guard<T>(Future<T> Function() body) async {
     try {
       return Right(await body());
+    } on DuplicateBeneficiariesException catch (e) {
+      return Left(
+        DuplicateBeneficiariesFailure(
+          message: e.message,
+          code: e.code,
+          errorCode: e.errorCode,
+          conflicts: e.conflicts,
+        ),
+      );
+    } on ConnectionException catch (e) {
+      return Left(ConnectionFailure(message: e.message));
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, code: e.code));
+      return Left(
+        ServerFailure(message: e.message, code: e.code, errorCode: e.errorCode),
+      );
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));
     } catch (e) {
@@ -42,11 +57,13 @@ class PaymentOrdersRepositoryImpl implements PaymentOrdersRepository {
   Future<Either<Failure, PaymentOrder>> createInsuranceOrder({
     required int cycleConfigId,
     required List<String> beneficiaryUserIds,
+    String? idempotencyKey,
   }) {
     return _guard(() async {
       final model = await remoteDataSource.createInsuranceOrder(
         cycleConfigId: cycleConfigId,
         beneficiaryUserIds: beneficiaryUserIds,
+        idempotencyKey: idempotencyKey,
       );
       return model.toEntity();
     });

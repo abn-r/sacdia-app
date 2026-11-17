@@ -45,6 +45,34 @@ void main() {
       expect(entity.proofs.first.status, PaymentOrderProofStatus.submitted);
     });
 
+    test('las líneas traen el nombre y si es de la directiva', () {
+      final entity = PaymentOrderModel.fromJson({
+        'field_payment_order_id': 'order-1',
+        'lines': [
+          {
+            'field_payment_order_line_id': 'l-1',
+            'sequence': 1,
+            'beneficiary_user_id': 'u-1',
+            'unit_cost_centavos': 15000,
+            'beneficiary_name': 'Mateo Herrera',
+            'is_staff': true,
+          },
+          {
+            'field_payment_order_line_id': 'l-2',
+            'sequence': 2,
+            'beneficiary_user_id': 'u-2',
+            'unit_cost_centavos': 15000,
+          },
+        ],
+      }).toEntity();
+
+      expect(entity.lines[0].beneficiaryName, 'Mateo Herrera');
+      expect(entity.lines[0].isStaff, isTrue);
+      // An older server omits both: safe defaults.
+      expect(entity.lines[1].beneficiaryName, '');
+      expect(entity.lines[1].isStaff, isFalse);
+    });
+
     test('tolera campos faltantes con defaults seguros', () {
       final entity = PaymentOrderModel.fromJson(const {}).toEntity();
       expect(entity.orderId, '');

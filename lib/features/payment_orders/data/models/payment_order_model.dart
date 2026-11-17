@@ -6,12 +6,16 @@ class PaymentOrderLineModel {
   final int sequence;
   final String beneficiaryUserId;
   final int unitCostCentavos;
+  final String beneficiaryName;
+  final bool isStaff;
 
   const PaymentOrderLineModel({
     required this.lineId,
     required this.sequence,
     required this.beneficiaryUserId,
     required this.unitCostCentavos,
+    this.beneficiaryName = '',
+    this.isStaff = false,
   });
 
   factory PaymentOrderLineModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +24,8 @@ class PaymentOrderLineModel {
       sequence: (json['sequence'] as num?)?.toInt() ?? 0,
       beneficiaryUserId: json['beneficiary_user_id']?.toString() ?? '',
       unitCostCentavos: (json['unit_cost_centavos'] as num?)?.toInt() ?? 0,
+      beneficiaryName: json['beneficiary_name']?.toString().trim() ?? '',
+      isStaff: json['is_staff'] == true,
     );
   }
 
@@ -28,6 +34,8 @@ class PaymentOrderLineModel {
         sequence: sequence,
         beneficiaryUserId: beneficiaryUserId,
         unitCostCentavos: unitCostCentavos,
+        beneficiaryName: beneficiaryName,
+        isStaff: isStaff,
       );
 }
 

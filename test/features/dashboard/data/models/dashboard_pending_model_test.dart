@@ -61,6 +61,32 @@ void main() {
       expect(report.daysLeft, 1);
     });
 
+    test('parses the insurance rows: uninsured members and free insurance', () {
+      final pending = DashboardPendingModel.fromJson({
+        'items': [
+          {
+            'type': 'uninsured_members',
+            'count': 3,
+            'due_date': '2027-02-28',
+            'days_left': 14,
+            'severity': 'warning',
+          },
+          {'type': 'free_insurance', 'count': 1, 'severity': 'info'},
+        ],
+      });
+
+      expect(pending.items.map((i) => i.type), [
+        PendingItemType.uninsuredMembers,
+        PendingItemType.freeInsurance,
+      ]);
+      expect(pending.items[0].count, 3);
+      expect(pending.items[0].dueDate, DateTime(2027, 2, 28));
+      expect(pending.items[0].daysLeft, 14);
+      expect(pending.items[0].severity, PendingSeverity.warning);
+      expect(pending.items[1].severity, PendingSeverity.info);
+      expect(pending.total, 4);
+    });
+
     test('ignores unknown item types and severities', () {
       final pending = DashboardPendingModel.fromJson({
         'total': 5,

@@ -41,7 +41,10 @@ import 'package:sacdia_app/features/honors/presentation/views/honor_requirements
 import 'package:sacdia_app/features/finances/presentation/views/finances_view.dart';
 import 'package:sacdia_app/features/resources/presentation/views/resources_view.dart';
 import 'package:sacdia_app/features/inventory/presentation/views/inventory_view.dart';
+import 'package:sacdia_app/features/insurance/presentation/views/insurance_person_view.dart';
 import 'package:sacdia_app/features/insurance/presentation/views/insurance_view.dart';
+import 'package:sacdia_app/features/insurance/presentation/views/issue_insurance_view.dart';
+import 'package:sacdia_app/features/insurance/presentation/views/reassign_insurance_view.dart';
 import 'package:sacdia_app/features/camporees/presentation/views/camporees_list_view.dart';
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_detail_view.dart';
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_members_view.dart';
@@ -756,6 +759,34 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: RouteNames.homeInsurance,
                 pageBuilder: (context, state) =>
                     _sharedAxisBuild(context, state, const InsuranceView()),
+              ),
+              GoRoute(
+                path: RouteNames.homeInsuranceIssue,
+                pageBuilder: (context, state) => _sharedAxisBuild(
+                  context,
+                  state,
+                  const IssueInsuranceView(),
+                ),
+              ),
+              GoRoute(
+                path: RouteNames.homeInsuranceReassign,
+                pageBuilder: (context, state) => _sharedAxisBuild(
+                  context,
+                  state,
+                  ReassignInsuranceView(
+                    assignmentId: int.tryParse(
+                      state.uri.queryParameters['assignment_id'] ?? '',
+                    ),
+                  ),
+                ),
+              ),
+              GoRoute(
+                path: RouteNames.homeInsurancePerson,
+                pageBuilder: (context, state) => _sharedAxisBuild(
+                  context,
+                  state,
+                  InsurancePersonView(userId: state.pathParameters['userId']!),
+                ),
               ),
               GoRoute(
                 path: RouteNames.homeInventory,
@@ -1561,14 +1592,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // Órdenes de pago — emitir orden de seguro
+      // Órdenes de pago — emitir orden de seguro. Enlace antiguo: el flujo
+      // vive ahora en el módulo de Seguros.
       GoRoute(
         path: RouteNames.paymentOrderIssueInsurance,
-        pageBuilder: (context, state) => _sharedAxisBuild(
-          context,
-          state,
-          const IssuePaymentOrderView(purpose: PaymentOrderPurpose.insurance),
-        ),
+        redirect: (context, state) => RouteNames.homeInsuranceIssue,
       ),
 
       // Órdenes de pago — detalle
@@ -1597,7 +1625,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             context,
             state,
             IssuePaymentOrderView(
-              purpose: PaymentOrderPurpose.camporee,
               camporeeId: camporeeId,
               camporeeType: camporeeType,
             ),

@@ -9,6 +9,12 @@ enum PendingItemType {
   evidenceFolder,
   monthlyReport,
   investitureAuthorizations,
+
+  /// Personas del club sin seguro del año (con fecha límite de pago).
+  uninsuredMembers,
+
+  /// Seguros que dejó libres quien salió del club: el director los reasigna.
+  freeInsurance,
 }
 
 /// Gravedad de un pendiente, de mayor a menor.

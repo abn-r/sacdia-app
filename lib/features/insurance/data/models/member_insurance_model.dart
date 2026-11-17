@@ -140,61 +140,6 @@ class MemberInsuranceModel extends MemberInsurance {
     );
   }
 
-  // ── Factory desde respuesta directa del detalle de seguro ─────────────────
-
-  factory MemberInsuranceModel.fromDetailJson(Map<String, dynamic> json) {
-    // El detalle incluye el user anidado y el seguro en el mismo nivel
-    final user = json['user'] as Map<String, dynamic>? ?? {};
-    final insurance = json['insurance'] as Map<String, dynamic>? ?? json;
-
-    final name = (user['name'] ?? '').toString();
-    final paternal = (user['paternal_last_name'] ?? '').toString();
-    final maternal = (user['maternal_last_name'] ?? '').toString();
-    final fullName =
-        [name, paternal, maternal].where((s) => s.isNotEmpty).join(' ');
-
-    final startDate = _parseDate(insurance['start_date']);
-    final endDate = _parseDate(insurance['end_date']);
-    final now = DateTime.now();
-
-    InsuranceStatus status;
-    if (endDate == null) {
-      status = InsuranceStatus.sinSeguro;
-    } else if (endDate.isBefore(DateTime(now.year, now.month, now.day))) {
-      status = InsuranceStatus.vencido;
-    } else {
-      status = InsuranceStatus.asegurado;
-    }
-
-    return MemberInsuranceModel(
-      insuranceId: _parseInt(insurance['insurance_id'] ?? insurance['id']),
-      memberId:
-          (user['user_id'] ?? user['id'] ?? json['user_id'] ?? '').toString(),
-      memberName: fullName.isNotEmpty ? fullName : 'Sin nombre',
-      memberPhotoUrl: (user['user_image'] ?? user['avatar'])?.toString(),
-      memberClass:
-          (json['current_class'] as Map<String, dynamic>?)?['name']?.toString(),
-      status: status,
-      insuranceType: _parseType(insurance['insurance_type']?.toString()),
-      policyNumber: insurance['policy_number']?.toString(),
-      providerName: insurance['provider']?.toString() ??
-          insurance['provider_name']?.toString(),
-      startDate: startDate,
-      endDate: endDate,
-      coverageAmount: insurance['coverage_amount'] != null
-          ? _parseDouble(insurance['coverage_amount'])
-          : null,
-      evidenceFileUrl: insurance['evidence_file_url']?.toString(),
-      evidenceFileName: insurance['evidence_file_name']?.toString(),
-      registeredByName: insurance['created_by_name']?.toString(),
-      registeredAt: _parseDate(insurance['created_at']),
-      modifiedByName: insurance['modified_by_name']?.toString(),
-      modifiedAt: insurance['modified_at'] != null
-          ? _parseDate(insurance['modified_at'])
-          : null,
-    );
-  }
-
   // ── Helpers estáticos ─────────────────────────────────────────────────────
 
   static InsuranceType _parseType(String? raw) {

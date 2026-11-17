@@ -56,6 +56,19 @@ class RouteNames {
   static const String homeGroupedClassRequirement =
       '/home/grouped-class/class/:classId/member/:userId/requirement/:requirementId';
   static const String homeInsurance = '/home/insurance';
+  static const String homeInsuranceIssue = '/home/insurance/issue';
+  static const String homeInsuranceReassign = '/home/insurance/reassign';
+  static const String homeInsurancePerson = '/home/insurance/person/:userId';
+
+  static String homeInsurancePersonPath(String userId) =>
+      '/home/insurance/person/$userId';
+
+  /// Without [assignmentId] the screen picks the free insurance itself (or
+  /// lists them when there is more than one).
+  static String homeInsuranceReassignPath({int? assignmentId}) =>
+      assignmentId == null
+          ? homeInsuranceReassign
+          : '$homeInsuranceReassign?assignment_id=$assignmentId';
   static const String homeInventory = '/home/inventory';
   static const String homeResources = '/home/resources';
   static const String homeReports = '/home/reports';

@@ -10,9 +10,15 @@ abstract class PaymentOrdersRepository {
     RequestCancelToken? cancelToken,
   });
 
+  /// [idempotencyKey] makes a retry of the same request return the same
+  /// order instead of issuing a second one.
+  ///
+  /// Fails with `DuplicateBeneficiariesFailure` when someone is no longer
+  /// free (already insured elsewhere or in another open order).
   Future<Either<Failure, PaymentOrder>> createInsuranceOrder({
     required int cycleConfigId,
     required List<String> beneficiaryUserIds,
+    String? idempotencyKey,
   });
 
   Future<Either<Failure, PaymentOrder>> createCamporeeOrder({
@@ -51,6 +57,7 @@ abstract class PaymentOrdersRepository {
 
   Future<Either<Failure, PaymentOrder>> cancelOrder(String orderId);
 
+  /// Passes a free insurance to someone else. The server executes it at once.
   Future<Either<Failure, InsuranceReassignment>> createReassignment({
     required int insuranceAssignmentId,
     required String toUserId,

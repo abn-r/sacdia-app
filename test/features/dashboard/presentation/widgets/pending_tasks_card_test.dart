@@ -81,6 +81,20 @@ const _authorizations = PendingItem(
   severity: PendingSeverity.info,
 );
 
+final _uninsured = PendingItem(
+  type: PendingItemType.uninsuredMembers,
+  count: 3,
+  severity: PendingSeverity.warning,
+  dueDate: DateTime(2027, 2, 28),
+  daysLeft: 14,
+);
+
+const _freeInsurance = PendingItem(
+  type: PendingItemType.freeInsurance,
+  count: 1,
+  severity: PendingSeverity.info,
+);
+
 DashboardPending _pending(List<PendingItem> items) => DashboardPending(
       total: items.fold(0, (sum, i) => sum + i.count),
       urgent: items.where((i) => i.severity == PendingSeverity.urgent).length,
@@ -104,6 +118,14 @@ Future<_FakePendingRepository> _pumpCard(
       GoRoute(
         path: RouteNames.homeEvidences,
         builder: (_, __) => const Scaffold(body: Text('evidences screen')),
+      ),
+      GoRoute(
+        path: RouteNames.homeInsurance,
+        builder: (_, __) => const Scaffold(body: Text('insurance screen')),
+      ),
+      GoRoute(
+        path: RouteNames.homeInsuranceReassign,
+        builder: (_, __) => const Scaffold(body: Text('reassign screen')),
       ),
     ],
   );
@@ -219,6 +241,38 @@ void main() {
       expect(find.text('evidences screen'), findsOneWidget);
     });
 
+    testWidgets('insurance rows: "N personas · antes del <fecha>" and a route',
+        (tester) async {
+      await _pumpCard(
+        tester,
+        Right(_pending([_uninsured, _freeInsurance])),
+      );
+      await tester.tap(find.text('Pendientes'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Miembros sin seguro'), findsOneWidget);
+      expect(find.text('3 personas · antes del 28 feb'), findsOneWidget);
+      expect(find.text('Seguro libre'), findsOneWidget);
+      expect(find.text('1 seguro por pasar'), findsOneWidget);
+      // The subtitle says it all: no count badge repeating it.
+      expect(find.text('3'), findsNothing);
+
+      await tester.tap(find.text('Miembros sin seguro'));
+      await tester.pumpAndSettle();
+      expect(find.text('insurance screen'), findsOneWidget);
+    });
+
+    testWidgets('free insurance goes to the reassign screen', (tester) async {
+      await _pumpCard(tester, Right(_pending([_freeInsurance])));
+      await tester.tap(find.text('Pendientes'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Seguro libre'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('reassign screen'), findsOneWidget);
+    });
+
     test('maps every item type to its app route', () {
       expect(
         pendingRouteFor(PendingItemType.membershipRequests),
@@ -235,6 +289,14 @@ void main() {
       expect(
         pendingRouteFor(PendingItemType.investitureAuthorizations),
         RouteNames.investitureAuthorize,
+      );
+      expect(
+        pendingRouteFor(PendingItemType.uninsuredMembers),
+        RouteNames.homeInsurance,
+      );
+      expect(
+        pendingRouteFor(PendingItemType.freeInsurance),
+        RouteNames.homeInsuranceReassign,
       );
     });
 
