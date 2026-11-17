@@ -118,7 +118,8 @@ class UnitsState {
   /// Unidad actualmente seleccionada (null = ninguna).
   final Unit? selectedUnit;
 
-  /// Miembros de la unidad seleccionada.
+  /// Personas que reciben puntos en la unidad seleccionada (capitán,
+  /// secretario y miembros; sin consejeros). No es la lista de gestión.
   final List<UnitMember> members;
 
   /// Puntos pendientes de guardar por miembro y categoría.
@@ -407,15 +408,15 @@ class UnitsNotifier extends Notifier<UnitsState> {
   Future<void> selectUnit(Unit unit) async {
     state = state.copyWith(
       selectedUnit: unit,
-      members: unit.members,
-      pendingScores: _buildInitialScores(unit.members, state.categories),
+      members: unit.scoringMembers,
+      pendingScores: _buildInitialScores(unit.scoringMembers, state.categories),
       isSavedToday: false,
       clearError: true,
     );
 
     var localFieldId = unit.localFieldId;
 
-    if (unit.members.isEmpty) {
+    if (!unit.hasServerScoringMembers || unit.members.isEmpty) {
       await _loadUnitDetail(unit);
       localFieldId = state.selectedUnit?.localFieldId ?? localFieldId;
     }
@@ -449,8 +450,9 @@ class UnitsNotifier extends Notifier<UnitsState> {
         state = state.copyWith(
           isLoading: false,
           selectedUnit: detail,
-          members: detail.members,
-          pendingScores: _buildInitialScores(detail.members, state.categories),
+          members: detail.scoringMembers,
+          pendingScores:
+              _buildInitialScores(detail.scoringMembers, state.categories),
           isSavedToday: false,
         );
       },

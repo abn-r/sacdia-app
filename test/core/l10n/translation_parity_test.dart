@@ -56,6 +56,14 @@ const _phase2ErrorCodes = [
 
 /// Códigos del `POST .../roles` al agregar un directivo de Guías Mayores a una
 /// sección de Aventureros o Conquistadores (la app los traduce por `code`).
+/// Códigos de la clase agrupada (consejeros por clase y tope de archivos).
+const _groupedClassErrorCodes = [
+  'CLASS_COUNSELOR_PRIMARY_EXISTS',
+  'CLASS_COUNSELOR_ASSISTANT_EXISTS',
+  'CLASS_COUNSELOR_GUIDE_MAJOR_REQUIRED',
+  'CLASS_EVIDENCE_MAX_FILES_REACHED',
+];
+
 const _gmRoleErrorCodes = [
   'CLUB_ROLE_SLOT_LIMIT_REACHED',
   'CLUB_ROLE_EXCLUSIVE_CONFLICT',
@@ -265,6 +273,19 @@ void main() {
 
   test('every annual enrollment error code has an errors.* key', () {
     for (final code in _enrollmentErrorCodes) {
+      final key = 'errors.${code.toLowerCase()}';
+      for (final locale in _locales) {
+        expect(
+          translations[locale]!.containsKey(key),
+          isTrue,
+          reason: '$key missing in $locale',
+        );
+      }
+    }
+  });
+
+  test('every grouped-class error code has an errors.* key', () {
+    for (final code in _groupedClassErrorCodes) {
       final key = 'errors.${code.toLowerCase()}';
       for (final locale in _locales) {
         expect(

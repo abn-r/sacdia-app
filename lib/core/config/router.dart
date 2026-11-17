@@ -148,6 +148,11 @@ import '../../features/classes/presentation/views/classes_tabs_view.dart';
 import '../../features/classes/presentation/views/class_detail_with_progress_view.dart';
 import '../../features/classes/presentation/views/class_catalog_view.dart';
 import '../../features/classes/presentation/views/teaching_scope_view.dart';
+import '../../features/classes/presentation/views/class_members_progress_view.dart';
+import '../../features/classes/presentation/views/grouped_class_assign_route_view.dart';
+import '../../features/classes/presentation/views/grouped_class_context_gate.dart';
+import '../../features/classes/presentation/views/member_progress_view.dart';
+import '../../features/classes/presentation/views/requirement_detail_route_view.dart';
 import '../../features/members/presentation/utils/member_requests_notification_route.dart';
 import '../../features/members/presentation/views/members_view.dart';
 import '../../features/profile/presentation/views/profile_view.dart';
@@ -174,6 +179,10 @@ Page<void> _sharedAxisBuild(
 ) {
   return sharedAxisPage<void>(key: state.pageKey, child: child);
 }
+
+/// Integer query parameter, or null when absent or not a number.
+int? _intQuery(GoRouterState state, String key) =>
+    int.tryParse(state.uri.queryParameters[key] ?? '');
 
 /// Cross-fade for bottom-nav tab switching (no directional cue needed).
 Page<void> _fadeThroughBuild(
@@ -823,7 +832,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                 pageBuilder: (context, state) => _sharedAxisBuild(
                   context,
                   state,
-                  const SectionInvestitureHistoryView(),
+                  SectionInvestitureHistoryView(
+                    initialTab: state.uri.queryParameters['tab'] == 'yearbook'
+                        ? HistoryTab.yearbook
+                        : HistoryTab.history,
+                  ),
                 ),
               ),
               GoRoute(
@@ -993,6 +1006,76 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           );
         },
+      ),
+
+      // Clase agrupada: del listado de clases a un requisito de un miembro.
+      // Rutas hermanas de `homeGroupedClass` (pantalla completa, sin la barra
+      // inferior); el redirect les aplica el gate de 'app-grouped-class'.
+      GoRoute(
+        path: RouteNames.homeGroupedClassAssign,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          GroupedClassAssignRouteView(
+            yearId: _intQuery(state, 'yearId'),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.homeGroupedClassClass,
+        pageBuilder: (context, state) {
+          final classId =
+              int.tryParse(state.pathParameters['classId'] ?? '') ?? 0;
+          final yearId = _intQuery(state, 'yearId');
+          final className = state.uri.queryParameters['className'];
+          return _sharedAxisBuild(
+            context,
+            state,
+            GroupedClassContextGate(
+              clubId: _intQuery(state, 'clubId'),
+              sectionId: _intQuery(state, 'sectionId'),
+              builder: (clubId, sectionId) => ClassMembersProgressView(
+                clubId: clubId,
+                sectionId: sectionId,
+                classId: classId,
+                className: className,
+                yearId: yearId,
+              ),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: RouteNames.homeGroupedClassMember,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          MemberProgressView(
+            classId: int.tryParse(state.pathParameters['classId'] ?? '') ?? 0,
+            userId: state.pathParameters['userId'] ?? '',
+            enrollmentId: _intQuery(state, 'enrollmentId'),
+            clubId: _intQuery(state, 'clubId'),
+            sectionId: _intQuery(state, 'sectionId'),
+            yearId: _intQuery(state, 'yearId'),
+            className: state.uri.queryParameters['className'],
+            memberName: state.uri.queryParameters['memberName'],
+          ),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.homeGroupedClassRequirement,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          RequirementDetailRouteView(
+            classId: int.tryParse(state.pathParameters['classId'] ?? '') ?? 0,
+            userId: state.pathParameters['userId'] ?? '',
+            requirementId:
+                int.tryParse(state.pathParameters['requirementId'] ?? '') ?? 0,
+            enrollmentId: _intQuery(state, 'enrollmentId'),
+            memberName: state.uri.queryParameters['memberName'],
+          ),
+        ),
       ),
 
       // Detalle de honor

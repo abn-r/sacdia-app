@@ -19,10 +19,19 @@ const _allowlist = <String>{
   'lib/features/honors/data/models/user_honor_model.dart',
   // JSON key `gm['instructor']` (flag of the guide_major object, not a role).
   'lib/features/members/data/models/role_candidate_model.dart',
+  // JSON keys `json['counselor']` (the class counselor object, not a club
+  // role) and l10n named args `{'counselor': ...}` / `{'member': ...}`.
+  'lib/features/classes/data/models/progress_scope_result_model.dart',
+  'lib/features/classes/data/models/class_members_progress_result_model.dart',
+  'lib/features/classes/presentation/views/member_progress_view.dart',
+  'lib/features/classes/presentation/views/requirement_detail_view.dart',
   // JSON key `json['member']` (a nested object, not a role value).
   'lib/features/qr/data/models/qr_scan_result_model.dart',
   'lib/features/rankings/data/models/member_ranking_dto.dart',
   'lib/features/virtual_card/data/models/virtual_card_model.dart',
+  // `unit_role` values of `scoring_members` ('captain' / 'secretary'): unit
+  // positions from the units API, not club roles.
+  'lib/features/units/domain/entities/unit_member.dart',
 };
 
 void main() {

@@ -79,6 +79,7 @@ abstract class InvestitureRequestsRemoteDataSource {
   /// GET /investiture-requests?ecclesiastical_year_id= (autorizador)
   Future<List<InvestitureRequestModel>> listForAuthorizer(
     int yearId, {
+    bool includeResolved = false,
     CancelToken? cancelToken,
   });
 
@@ -424,12 +425,16 @@ class InvestitureRequestsRemoteDataSourceImpl
   @override
   Future<List<InvestitureRequestModel>> listForAuthorizer(
     int yearId, {
+    bool includeResolved = false,
     CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl/investiture-requests',
-        queryParameters: {'ecclesiastical_year_id': yearId},
+        queryParameters: {
+          'ecclesiastical_year_id': yearId,
+          if (includeResolved) 'include_resolved': true,
+        },
         cancelToken: cancelToken,
       );
       return _requireList(response, 'requests')

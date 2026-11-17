@@ -17,12 +17,10 @@ import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/widgets/sac_badge.dart';
 import '../../../../core/widgets/sac_network_image.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../investiture/domain/entities/investiture_status.dart';
-import '../../../investiture_requests/presentation/providers/investiture_requests_providers.dart';
-import '../../../investiture_requests/presentation/widgets/own_investiture_card.dart';
+import '../../../investiture_requests/presentation/widgets/own_investiture_row.dart';
 import '../../domain/entities/class_honor.dart';
 import '../../domain/entities/class_module_detail.dart';
 import '../../domain/entities/class_prerequisite.dart';
@@ -283,22 +281,9 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
     final classData = widget.classWithProgress;
     final classColor = AppColors.classColor(classData.name);
     final investitureStatus = _investitureStatusOf(classData);
-    // Quien mira su propia clase ve el estado de la autorización; el envío a
-    // validación ya no es suyo: lo presenta la directiva de la sección.
+    // Quien mira su propia clase ve UNA fila de investidura (estado de la
+    // autorización, o «Investido» si la clase se acreditó sin ese flujo).
     final isOwnView = widget.targetUserId == null;
-    final hasOwnAuthorization = isOwnView &&
-        ref.watch(ownInvestitureEntryForClassProvider(widget.classId)) != null;
-    // Mientras el historial de autorización carga no se sabe si la entrada
-    // nueva reemplaza a la insignia «Investido»: se espera para no mostrar un
-    // estado que enseguida desaparece. Si falla, se muestra la insignia.
-    final ownHistory =
-        isOwnView ? ref.watch(ownInvestitureHistoryProvider) : null;
-    final awaitingOwnHistory =
-        ownHistory != null && ownHistory.isLoading && ownHistory.value == null;
-    final showInvestedBadge =
-        investitureStatus == InvestitureStatus.investido &&
-            !hasOwnAuthorization &&
-            !awaitingOwnHistory;
 
     return RefreshIndicator(
       color: classColor,
@@ -321,8 +306,12 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
                   if (widget.prerequisites.isNotEmpty)
                     _PrerequisitesBanner(prerequisites: widget.prerequisites),
                   _PillsRow(classData: classData),
-                  if (isOwnView) OwnInvestitureCard(classId: widget.classId),
-                  if (showInvestedBadge) const _EnrollmentInvestedBadge(),
+                  OwnInvestitureRow(
+                    classId: widget.classId,
+                    isOwnView: isOwnView,
+                    enrollmentInvested:
+                        investitureStatus == InvestitureStatus.investido,
+                  ),
                   ValueListenableBuilder<String>(
                     valueListenable: _query,
                     builder: (context, query, _) {
@@ -1636,24 +1625,3 @@ class _SkeletonBox extends StatelessWidget {
 // ── Empty modules ──────────────────────────────────────────────────────────────
 
 // ── Error state ────────────────────────────────────────────────────────────────
-
-/// «Investido» para una inscripción ya investida que no tiene entrada del flujo
-/// de autorización (acreditación por certificado o investidura de la vía
-/// anterior). Solo lectura: no ofrece envío ni historial.
-class _EnrollmentInvestedBadge extends StatelessWidget {
-  const _EnrollmentInvestedBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 12, bottom: 2),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: SacBadge.success(
-          label: tr('investiture.status.investido'),
-          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-        ),
-      ),
-    );
-  }
-}

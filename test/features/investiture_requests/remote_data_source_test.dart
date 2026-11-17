@@ -394,6 +394,23 @@ void main() {
       expect(one.people.single.canAuthorize, isTrue);
     });
 
+    test('listForAuthorizer asks for resolved requests when told to', () async {
+      final t = _build((o) => _ok(o, {
+            'status': 'success',
+            'data': [
+              {..._request(), 'invested_count': 6, 'rejected_count': 0},
+            ],
+          }));
+
+      final list = await t.ds.listForAuthorizer(9, includeResolved: true);
+
+      expect(t.calls.single.queryParameters, {
+        'ecclesiastical_year_id': 9,
+        'include_resolved': true,
+      });
+      expect(list.single.investedCount, 6);
+    });
+
     test('resolve sends invest/reject decisions and parses the view', () async {
       final t = _build(
         (o) => _ok(

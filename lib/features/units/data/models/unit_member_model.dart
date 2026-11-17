@@ -25,6 +25,7 @@ class UnitMemberModel extends UnitMember {
     required super.name,
     required super.surname,
     super.avatar,
+    super.role,
   });
 
   factory UnitMemberModel.fromJson(Map<String, dynamic> json) {
@@ -51,6 +52,23 @@ class UnitMemberModel extends UnitMember {
     );
   }
 
+  /// Entrada plana de `scoring_members`:
+  /// `{ user_id, name, paternal_last_name, maternal_last_name, user_image,
+  /// unit_role }`.
+  factory UnitMemberModel.fromScoringJson(Map<String, dynamic> json) {
+    final surname = [json['paternal_last_name'], json['maternal_last_name']]
+        .map((v) => v?.toString() ?? '')
+        .where((s) => s.isNotEmpty)
+        .join(' ');
+    return UnitMemberModel(
+      id: (json['user_id'] ?? '').toString(),
+      name: (json['name'] ?? '').toString(),
+      surname: surname.isNotEmpty ? surname : 'Sin apellido',
+      avatar: json['user_image']?.toString(),
+      role: UnitMemberRole.parse(json['unit_role']),
+    );
+  }
+
   Map<String, dynamic> toJson() => {
         'unit_member_id': unitMemberId,
         'user_id': id,
@@ -65,6 +83,7 @@ class UnitMemberModel extends UnitMember {
         name: name,
         surname: surname,
         avatar: avatar,
+        role: role,
       );
 
   // ── Helpers ───────────────────────────────────────────────────────────────

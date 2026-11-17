@@ -19,7 +19,9 @@ import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/utils/back_or_home.dart';
 
+import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
@@ -28,7 +30,7 @@ import '../../domain/entities/unit.dart';
 import '../providers/units_providers.dart';
 import 'member_of_month_history_view.dart';
 import 'unit_detail_view.dart';
-import 'unit_form_sheet.dart';
+import 'unit_form_view.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 
 // ── Permission helpers ────────────────────────────────────────────────────────
@@ -55,8 +57,10 @@ List<Unit> _filterUnitsByRole(
 /// 1. Card "Miembro del Mes" si hay datos para el mes actual.
 /// 2. Lista de unidades del usuario.
 ///
-/// Si el usuario tiene exactamente una unidad, navega directamente
-/// a [UnitDetailView] sin mostrar la lista (post-build callback).
+/// Si el usuario tiene exactamente una unidad y NO puede gestionar unidades
+/// (sin `units:update` ni `units:create`), navega directamente a
+/// [UnitDetailView]. Quien gestiona siempre aterriza en la lista para poder
+/// editar, crear y eliminar.
 class UnitsListView extends ConsumerStatefulWidget {
   const UnitsListView({super.key});
 
@@ -79,6 +83,11 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
     });
   }
 
+  /// Gestionar = editar o crear unidades. Estos usuarios nunca son
+  /// redirigidos a una unidad.
+  static bool _canManageUnits(UserEntity? user) =>
+      hasAnyPermission(user, const {'units:update', 'units:create'});
+
   void _tryOpenSingleUnit() {
     if (_openedSingleUnit || !mounted) return;
 
@@ -90,6 +99,7 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
     if (clubAsync.isLoading || auth.isLoading) return;
 
     final user = auth.value;
+    if (_canManageUnits(user)) return;
     final visible = _filterUnitsByRole(
       state.units,
       hasAnyPermission(user, const {'units:create'}),
@@ -165,8 +175,14 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
     final identityPending = state.units.isNotEmpty &&
         visibleUnits.isEmpty &&
         (authAsync.isLoading || clubContextAsync.isLoading);
-    final redirectingToOnlyUnit =
-        !state.isLoading && !identityPending && visibleUnits.length == 1;
+    // El esqueleto de redirección solo existe mientras una apertura
+    // automática está realmente pendiente. Quien gestiona, o ya fue
+    // redirigido, ve la lista.
+    final redirectingToOnlyUnit = !_openedSingleUnit &&
+        !_canManageUnits(currentUser) &&
+        !state.isLoading &&
+        !identityPending &&
+        visibleUnits.length == 1;
 
     final Widget content;
     if (initialLoad || identityPending || redirectingToOnlyUnit) {
@@ -181,9 +197,7 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
             ? 'units.list.empty_subtitle_can_create'.tr()
             : 'units.list.empty_subtitle'.tr(),
         actionLabel: canCreate ? 'units.list.empty_action'.tr() : null,
-        onAction: canCreate
-            ? () => showUnitFormSheet(context: context, ref: ref)
-            : null,
+        onAction: canCreate ? () => openUnitForm(context) : null,
       );
     } else {
       content = _Body(
@@ -202,6 +216,7 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
       backgroundColor: c.background,
       appBar: SacTopBar(
           title: 'units.list.title'.tr(),
+          onBack: () => backOrHome(context),
           actions: [
             if (canCreate)
               SacPressable(
@@ -210,7 +225,7 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
                   enableFeedback: false,
                   tooltip: 'units.list.empty_action'.tr(),
                   onPressed: () {
-                    showUnitFormSheet(context: context, ref: ref);
+                    openUnitForm(context);
                   },
                   icon: HugeIcon(
                     icon: HugeIcons.strokeRoundedAdd01,
@@ -357,7 +372,7 @@ class _Body extends ConsumerWidget {
 
     switch (action) {
       case _UnitAction.edit:
-        await showUnitFormSheet(context: context, ref: ref, unit: unit);
+        await openUnitForm(context, unit: unit);
         break;
       case _UnitAction.delete:
         await _confirmDeleteUnit(context, ref, unit);

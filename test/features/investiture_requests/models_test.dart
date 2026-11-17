@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/features/investiture_requests/domain/entities/investiture_request.dart';
+import 'package:sacdia_app/features/investiture_requests/presentation/utils/pastor_label.dart';
 import 'package:sacdia_app/features/investiture_requests/data/models/investiture_request_model.dart';
 import 'package:sacdia_app/features/investiture_requests/data/models/investiture_resolution_model.dart';
 import 'package:sacdia_app/features/investiture_requests/data/models/own_investiture_entry_model.dart';
@@ -247,6 +249,131 @@ void main() {
       expect(y.enrollmentId, 11);
       expect(y.className, 'Amigo');
       expect(y.ecclesiasticalYearId, 9);
+    });
+  });
+
+  group('additive redesign fields (parsed defensively)', () {
+    Map<String, dynamic> ctxJson(Map<String, dynamic> extra) => {
+          'club_section_id': 4,
+          'ecclesiastical_year_id': 9,
+          'window': {'open_today': true},
+          'year_open': true,
+          'candidates': [
+            {
+              'enrollment_id': 11,
+              'user_id': 'u1',
+              'class_id': 3,
+              'overall_progress': 62,
+              'eligible': false,
+              'missing_requirements_count': 5,
+            },
+            {
+              'enrollment_id': 12,
+              'user_id': 'u2',
+              'class_id': 3,
+              'overall_progress': 100,
+              'eligible': true,
+              'missing_requirements_count': null,
+            },
+          ],
+          ...extra,
+        };
+
+    test('presentation context reads authorizers and missing requirements', () {
+      final ctx = PresentationContextModel.fromJson(ctxJson({
+        'authorizers': [
+          {'user_id': 'a1', 'name': 'Samuel Ibarra'},
+          {'user_id': 'a2', 'name': null},
+          'basura',
+        ],
+      }));
+      expect(ctx.authorizers,
+          [const InvestitureActor(userId: 'a1', name: 'Samuel Ibarra')]);
+      expect(ctx.candidates[0].missingRequirementsCount, 5);
+      expect(ctx.candidates[1].missingRequirementsCount, isNull);
+    });
+
+    test('a context without the new fields still parses', () {
+      final ctx = PresentationContextModel.fromJson({
+        'club_section_id': 4,
+        'ecclesiastical_year_id': 9,
+        'window': {'open_today': true},
+        'year_open': true,
+        'candidates': [
+          {'enrollment_id': 11, 'user_id': 'u1', 'class_id': 3},
+        ],
+      });
+      expect(ctx.authorizers, isEmpty);
+      expect(ctx.candidates.single.missingRequirementsCount, isNull);
+    });
+
+    test('request reads created_by and the resolved counters', () {
+      final request = InvestitureRequestModel.fromJson({
+        'request_id': 'r1',
+        'club_section_id': 4,
+        'ecclesiastical_year_id': 9,
+        'created_at': '2026-11-08T15:00:00Z',
+        'created_by': {'user_id': 'd1', 'name': 'Mariana Paz'},
+        'invested_count': 6,
+        'rejected_count': 1,
+        'people': [_personJson()],
+      });
+      expect(request.createdBy?.name, 'Mariana Paz');
+      expect(request.investedCount, 6);
+      expect(request.rejectedCount, 1);
+    });
+
+    test('request without the new fields defaults to null and zero', () {
+      final request = InvestitureRequestModel.fromJson({
+        'request_id': 'r1',
+        'club_section_id': 4,
+        'ecclesiastical_year_id': 9,
+        'created_by': null,
+        'people': const <dynamic>[],
+      });
+      expect(request.createdBy, isNull);
+      expect(request.investedCount, 0);
+      expect(request.rejectedCount, 0);
+    });
+
+    test('history entries read who resolved and when', () {
+      final entry = OwnInvestitureEntryModel.fromJson({
+        'person_id': 'p1',
+        'user_id': 'u1',
+        'class_id': 3,
+        'club_section_id': 4,
+        'ecclesiastical_year_id': 9,
+        'investiture_date': '2026-12-14',
+        'status': 'INVESTED',
+        'resolved_by_name': 'Samuel Ibarra',
+        'resolved_at': '2026-12-14T15:00:00Z',
+      });
+      expect(entry.resolvedByName, 'Samuel Ibarra');
+      expect(entry.resolvedAt, DateTime.utc(2026, 12, 14, 15));
+
+      final bare = OwnInvestitureEntryModel.fromJson({
+        'person_id': 'p1',
+        'user_id': 'u1',
+        'class_id': 3,
+        'club_section_id': 4,
+        'ecclesiastical_year_id': 9,
+        'investiture_date': '2026-12-14',
+        'status': 'REJECTED_BY_SYSTEM',
+        'resolved_by_name': 'Sistema',
+        'resolved_at': null,
+      });
+      expect(bare.resolvedByName, 'Sistema');
+      expect(bare.resolvedAt, isNull);
+    });
+  });
+
+  group('pastorLabel', () {
+    test('no authorizers gives no name', () {
+      expect(pastorLabel(const []), isNull);
+      expect(
+        pastorLabel(const [InvestitureActor(userId: 'a', name: '  ')]),
+        isNull,
+      );
     });
   });
 }

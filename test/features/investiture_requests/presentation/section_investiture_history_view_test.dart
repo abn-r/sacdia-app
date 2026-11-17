@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/providers/riverpod_aliases.dart';
@@ -28,6 +29,8 @@ OwnInvestitureEntry _history(
   DateTime? date,
   String? rejectionReason,
   String? systemReason,
+  String? resolvedBy,
+  DateTime? resolvedAt,
 }) =>
     OwnInvestitureEntry(
       personId: id,
@@ -40,6 +43,8 @@ OwnInvestitureEntry _history(
       status: status,
       rejectionReason: rejectionReason,
       systemReason: systemReason,
+      resolvedByName: resolvedBy,
+      resolvedAt: resolvedAt,
     );
 
 YearbookEntry _yearbook(
@@ -88,10 +93,11 @@ Future<void> _pump(
   FakeInvestitureRequestsRepository repo, {
   String role = 'director',
   Map<String, String> names = const {},
+  HistoryTab tab = HistoryTab.history,
 }) =>
     pumpApp(
       tester,
-      const SectionInvestitureHistoryView(),
+      SectionInvestitureHistoryView(initialTab: tab),
       overrides: _overrides(repo, role: role, names: names),
     );
 
@@ -128,7 +134,7 @@ class _FakeAuth extends AuthNotifier {
 void main() {
   setUpAll(initInvestitureTestEnv);
 
-  testWidgets('groups the history by year (newest first) and class',
+  testWidgets('shows the newest year with a chip per year and class groups',
       (tester) async {
     final repo = FakeInvestitureRequestsRepository()
       ..sectionHistory = [
@@ -143,25 +149,46 @@ void main() {
       names: {'u1': 'Ana Pérez', 'u2': 'Beto Gómez', 'u3': 'Carla Ruiz'},
     );
 
-    expect(find.text('2025-2026'), findsOneWidget);
+    // Chips de año; el más reciente viene elegido (su nombre también titula
+    // el resumen).
     expect(find.text('2024-2025'), findsOneWidget);
-    expect(
-      tester.getTopLeft(find.text('2025-2026')).dy,
-      lessThan(tester.getTopLeft(find.text('2024-2025')).dy),
-    );
-    expect(find.text('Ana Pérez'), findsOneWidget);
+    expect(find.text('2025-2026'), findsNWidgets(2));
     expect(find.text('Beto Gómez'), findsOneWidget);
-    // Cada clase del año reciente tiene su propio encabezado.
-    expect(find.text('Compañero'), findsOneWidget);
-    expect(find.text('Amigo'), findsNWidgets(2));
+    expect(find.text('Carla Ruiz'), findsOneWidget);
+    expect(find.text('Ana Pérez'), findsNothing);
+    // Cada clase del año tiene su propio encabezado.
+    expect(find.text('COMPAÑERO'), findsOneWidget);
+    expect(find.text('AMIGO'), findsOneWidget);
+
+    await tester.tap(find.text('2024-2025'));
+    await settle(tester);
+    expect(find.text('Ana Pérez'), findsOneWidget);
+    expect(find.text('Carla Ruiz'), findsNothing);
   });
 
-  testWidgets(
-      'shows the status and the human reason only when the API sends it',
-      (tester) async {
+  testWidgets('year summary counts invested and not invested', (tester) async {
     final repo = FakeInvestitureRequestsRepository()
       ..sectionHistory = [
         _history('a', 'u1', PersonStatus.invested),
+        _history('b', 'u2', PersonStatus.invested),
+        _history('c', 'u3', PersonStatus.rejectedByPerson),
+      ];
+    await _pump(tester, repo,
+        names: {'u1': 'Ana', 'u2': 'Beto', 'u3': 'Carla'});
+
+    final summary = tester.widget<Text>(
+      find.byKey(const ValueKey('history-year-summary')),
+    );
+    expect(summary.textSpan!.toPlainText(), '2 investidos · 1 no investido');
+  });
+
+  testWidgets('shows who resolved and when, and the reason only if sent',
+      (tester) async {
+    final repo = FakeInvestitureRequestsRepository()
+      ..sectionHistory = [
+        _history('a', 'u1', PersonStatus.invested,
+            resolvedBy: 'Samuel Ibarra',
+            resolvedAt: DateTime.utc(2026, 12, 14, 15)),
         _history('b', 'u2', PersonStatus.rejectedByPerson,
             rejectionReason: 'Faltan evidencias del tercer requisito'),
         _history('c', 'u3', PersonStatus.rejectedBySystem),
@@ -176,6 +203,7 @@ void main() {
     expect(find.text('Investido'), findsOneWidget);
     expect(find.text('No investido'), findsNWidgets(2));
     expect(find.text('No investido en el año'), findsOneWidget);
+    expect(find.text('14 dic 2026 · Samuel Ibarra'), findsOneWidget);
     expect(
       find.textContaining('Faltan evidencias del tercer requisito'),
       findsOneWidget,
@@ -198,7 +226,7 @@ void main() {
         find.text('Todavía no hay investiduras registradas'), findsOneWidget);
   });
 
-  testWidgets('yearbook tab lists enrollments by year and class',
+  testWidgets('yearbook tab lists enrollments by class for the chosen year',
       (tester) async {
     final repo = FakeInvestitureRequestsRepository()
       ..yearbook = [
@@ -216,13 +244,23 @@ void main() {
     await tester.tap(find.text('Anuario'));
     await settle(tester);
 
-    expect(find.text('Ana Pérez'), findsOneWidget);
     expect(find.text('Beto Gómez'), findsOneWidget);
     expect(find.text('Carla Ruiz'), findsOneWidget);
-    expect(
-      tester.getTopLeft(find.text('2025-2026')).dy,
-      lessThan(tester.getTopLeft(find.text('2024-2025')).dy),
-    );
+    expect(find.text('COMPAÑERO · 2025-2026'), findsOneWidget);
+    expect(find.text('AMIGO · 2025-2026'), findsOneWidget);
+
+    await tester.tap(find.text('2024-2025'));
+    await settle(tester);
+    expect(find.text('Ana Pérez'), findsOneWidget);
+    expect(find.text('Carla Ruiz'), findsNothing);
+  });
+
+  testWidgets('can open straight on the yearbook', (tester) async {
+    final repo = FakeInvestitureRequestsRepository()
+      ..yearbook = [_yearbook(3, 'u3')];
+    await _pump(tester, repo,
+        names: {'u3': 'Carla Ruiz'}, tab: HistoryTab.yearbook);
+    expect(find.text('Carla Ruiz'), findsOneWidget);
   });
 
   testWidgets('yearbook tab shows an empty state without enrollments',
@@ -235,7 +273,7 @@ void main() {
 
   testWidgets('shows a retry state when loading fails', (tester) async {
     final repo = FakeInvestitureRequestsRepository()
-      ..readFailure = const ServerFailure(message: 'sin conexión');
+      ..readFailure = const ServerFailure(message: 'Falló el servidor');
     await _pump(tester, repo);
     expect(find.text('No pudimos cargar el historial'), findsOneWidget);
 
@@ -247,13 +285,15 @@ void main() {
     expect(find.text('Investido'), findsOneWidget);
   });
 
-  testWidgets('is restricted to the board', (tester) async {
+  testWidgets('is restricted to the board and points to Mi investidura',
+      (tester) async {
     await _pump(
       tester,
       FakeInvestitureRequestsRepository(),
       role: 'deputy-director',
     );
-    expect(find.text('Acceso restringido'), findsOneWidget);
+    expect(find.text('Solo la directiva del club'), findsOneWidget);
+    expect(find.text('Mi investidura'), findsOneWidget);
     expect(find.text('Historial'), findsNothing);
   });
 }

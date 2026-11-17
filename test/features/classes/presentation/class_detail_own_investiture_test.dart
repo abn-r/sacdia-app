@@ -6,6 +6,8 @@ import 'package:sacdia_app/features/classes/presentation/views/class_detail_with
 import 'package:sacdia_app/features/investiture_requests/domain/entities/own_investiture_entry.dart';
 import 'package:sacdia_app/features/investiture_requests/domain/entities/person_status.dart';
 import 'package:sacdia_app/features/investiture_requests/presentation/providers/investiture_requests_providers.dart';
+import 'package:sacdia_app/features/investiture_requests/presentation/widgets/investiture_rows.dart';
+import 'package:sacdia_app/features/investiture_requests/presentation/widgets/own_investiture_row.dart';
 import 'package:sacdia_app/features/members/presentation/providers/members_providers.dart';
 
 import '../../investiture_requests/fake_investiture_requests_repository.dart';
@@ -69,7 +71,7 @@ Future<void> _pump(
 
 const _legacySend = 'Enviar a validación';
 const _legacyReady = 'Lista para enviar';
-const _pending = 'En espera de autorización.';
+const _pending = 'Investidura en espera';
 
 void main() {
   setUpAll(initInvestitureTestEnv);
@@ -106,12 +108,7 @@ void main() {
         history: [_entry(PersonStatus.invested)],
       );
 
-      expect(
-        find.text(
-          'El camino rindió fruto. Ya estás investido, y esta noticia es para celebrarla.',
-        ),
-        findsOneWidget,
-      );
+      expect(find.text('Investido'), findsOneWidget);
       expect(find.text('Enviado a validación'), findsNothing);
     });
 
@@ -122,8 +119,9 @@ void main() {
         history: [_entry(PersonStatus.rejected)],
       );
 
-      expect(
-          find.text('Falta de requisitos para investidura.'), findsOneWidget);
+      expect(find.text('No investido'), findsOneWidget);
+      expect(find.text('Faltaron requisitos. Habla con tu directiva.'),
+          findsOneWidget);
     });
   });
 
@@ -156,35 +154,60 @@ void main() {
     });
 
     testWidgets(
-        'an INVESTIDO class without an authorization entry shows the badge',
-        (tester) async {
+        'an INVESTIDO class without an authorization entry (certificate or '
+        'legacy) shows ONE Investido row', (tester) async {
       await _pump(tester, legacyStatus: 'INVESTIDO');
 
+      expect(find.byType(OwnInvestitureRow), findsOneWidget);
       expect(find.text('Investido'), findsOneWidget);
+      expect(find.text('Investidura registrada'), findsOneWidget);
     });
 
-    testWidgets('a member viewed by the board also shows the badge',
+    testWidgets('a member viewed by the board shows Investido read only',
         (tester) async {
       await _pump(tester, legacyStatus: 'INVESTIDO', targetUserId: 'u99');
 
       expect(find.text('Investido'), findsOneWidget);
+      // No lleva a «Mi investidura»: esa pantalla es de quien mira.
+      expect(find.byType(InvestitureChevron), findsNothing);
     });
 
-    testWidgets('the authorization entry replaces the badge', (tester) async {
+    testWidgets('a member viewed by the board shows nothing when not invested',
+        (tester) async {
+      await _pump(
+        tester,
+        legacyStatus: 'IN_PROGRESS',
+        targetUserId: 'u99',
+        history: [_entry(PersonStatus.pending)],
+      );
+
+      expect(find.byType(InvestitureRow), findsNothing);
+    });
+
+    testWidgets('the authorization entry replaces the registered row',
+        (tester) async {
       await _pump(
         tester,
         legacyStatus: 'INVESTIDO',
         history: [_entry(PersonStatus.invested)],
       );
 
-      // Solo la insignia de la tarjeta de autorización.
+      // Una sola fila: la del flujo de autorización.
+      expect(find.byType(InvestitureRow), findsOneWidget);
       expect(find.text('Investido'), findsOneWidget);
-      expect(
-        find.text(
-          'El camino rindió fruto. Ya estás investido, y esta noticia es para celebrarla.',
-        ),
-        findsOneWidget,
+      expect(find.text('Investidura registrada'), findsNothing);
+    });
+
+    testWidgets('a pending entry shows a single row with the date',
+        (tester) async {
+      await _pump(
+        tester,
+        legacyStatus: 'IN_PROGRESS',
+        history: [_entry(PersonStatus.pending)],
       );
+
+      expect(find.byType(InvestitureRow), findsOneWidget);
+      expect(find.text('dom 15 nov · progreso bloqueado'), findsOneWidget);
     });
   });
 }

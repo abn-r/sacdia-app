@@ -16,6 +16,8 @@ class OwnInvestitureEntryModel extends OwnInvestitureEntry {
     super.systemReason,
     super.personText,
     super.authorizationComment,
+    super.resolvedByName,
+    super.resolvedAt,
   });
 
   factory OwnInvestitureEntryModel.fromJson(Map<String, dynamic> json) {
@@ -33,6 +35,8 @@ class OwnInvestitureEntryModel extends OwnInvestitureEntry {
       systemReason: asStringOrNull(json['system_reason']),
       personText: asStringOrNull(json['person_text']),
       authorizationComment: asStringOrNull(json['authorization_comment']),
+      resolvedByName: asStringOrNull(json['resolved_by_name']),
+      resolvedAt: DateTime.tryParse(json['resolved_at']?.toString() ?? ''),
     );
   }
 }

@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'class_progress_summary.dart';
+
 class ClassMemberProgress extends Equatable {
   final String userId;
   final String name;
@@ -12,6 +14,9 @@ class ClassMemberProgress extends Equatable {
   final int overallProgress;
   final bool crossTypeEnrollment;
 
+  /// This member's requirements by status.
+  final RequirementStatusCounts statusCounts;
+
   const ClassMemberProgress({
     required this.userId,
     required this.name,
@@ -23,7 +28,14 @@ class ClassMemberProgress extends Equatable {
     required this.totalSections,
     required this.overallProgress,
     this.crossTypeEnrollment = false,
+    this.statusCounts = RequirementStatusCounts.zero,
   });
+
+  /// Behind schedule: less than 40% of the way through the class.
+  bool get isBehind => overallProgress < 40;
+
+  /// Has requirements the local field sent back.
+  bool get hasRejected => statusCounts.rejected > 0;
 
   @override
   List<Object?> get props => [
@@ -37,6 +49,7 @@ class ClassMemberProgress extends Equatable {
         totalSections,
         overallProgress,
         crossTypeEnrollment,
+        statusCounts,
       ];
 }
 
@@ -47,6 +60,9 @@ class ClassMembersProgressResult extends Equatable {
   final int ecclesiasticalYearId;
   final String accessLevel;
   final List<ClassMemberProgress> members;
+  final ClassProgressSummary summary;
+  final ClassResponsible? counselor;
+  final ClassResponsible? assistant;
 
   const ClassMembersProgressResult({
     required this.clubSectionId,
@@ -55,6 +71,9 @@ class ClassMembersProgressResult extends Equatable {
     required this.ecclesiasticalYearId,
     required this.accessLevel,
     required this.members,
+    this.summary = const ClassProgressSummary(),
+    this.counselor,
+    this.assistant,
   });
 
   @override
@@ -65,5 +84,8 @@ class ClassMembersProgressResult extends Equatable {
         ecclesiasticalYearId,
         accessLevel,
         members,
+        summary,
+        counselor,
+        assistant,
       ];
 }

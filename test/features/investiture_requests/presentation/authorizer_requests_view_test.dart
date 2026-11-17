@@ -31,7 +31,7 @@ void main() {
   setUpAll(initInvestitureTestEnv);
 
   group('AuthorizerRequestsView', () {
-    testWidgets('lists each request with club, section, district and pending',
+    testWidgets('lists each request with club, section, date and pending',
         (tester) async {
       final repo = FakeInvestitureRequestsRepository()
         ..authorizerRequests = [
@@ -50,11 +50,73 @@ void main() {
       );
 
       expect(find.text('Autorizaciones'), findsOneWidget);
+      expect(find.text('Distrito Norte · 2025-2026'), findsOneWidget);
+      expect(find.text('PARA AUTORIZAR'), findsOneWidget);
       expect(find.text('Club Alfa'), findsOneWidget);
       expect(find.textContaining('Conquistadores'), findsOneWidget);
-      expect(find.textContaining('Distrito Norte'), findsOneWidget);
       expect(find.text('2 en espera'), findsOneWidget);
-      expect(find.textContaining('15 nov 2026'), findsOneWidget);
+      // Pide también las resueltas.
+      expect(repo.lastIncludeResolved, isTrue);
+    });
+
+    testWidgets('summary adds up the people waiting and the nearest date',
+        (tester) async {
+      final repo = FakeInvestitureRequestsRepository()
+        ..authorizerRequests = [
+          authorizerRequest(
+            id: 'r1',
+            club: 'Club Alfa',
+            earliest: DateTime(2026, 12, 21),
+          ),
+          authorizerRequest(
+            id: 'r2',
+            club: 'Club Beta',
+            clubId: 2,
+            people: [
+              requestPerson('x1', 'Uno'),
+              requestPerson('x2', 'Dos'),
+              requestPerson('x3', 'Tres'),
+            ],
+            earliest: DateTime(2026, 12, 14),
+          ),
+        ];
+      await pumpRouterApp(
+        tester,
+        _router([]),
+        overrides: authorizerOverrides(repo),
+      );
+
+      final summary = tester.widget<Text>(
+        find.byKey(const ValueKey('authorizer-summary-people')),
+      );
+      expect(summary.textSpan!.toPlainText(), '5  ·  en 2 clubes');
+      expect(find.textContaining('La más próxima:'), findsOneWidget);
+      expect(find.textContaining('14 dic · Club Beta'), findsOneWidget);
+    });
+
+    testWidgets('resolved requests go last with their result', (tester) async {
+      final repo = FakeInvestitureRequestsRepository()
+        ..authorizerRequests = [
+          authorizerRequest(
+            id: 'done',
+            club: 'Club Sirio',
+            people: [requestPerson('x', 'Ya', status: PersonStatus.invested)],
+            investedCount: 6,
+          ),
+          authorizerRequest(id: 'open', club: 'Club Abierto'),
+        ];
+      await pumpRouterApp(
+        tester,
+        _router([]),
+        overrides: authorizerOverrides(repo),
+      );
+
+      expect(find.text('RESUELTAS'), findsOneWidget);
+      expect(find.text('6 investidos'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('Club Abierto')).dy,
+        lessThan(tester.getTopLeft(find.text('Club Sirio')).dy),
+      );
     });
 
     testWidgets('opens the request detail when a card is tapped',
@@ -74,28 +136,6 @@ void main() {
       expect(visited, ['/investiture/authorize/r-77']);
     });
 
-    testWidgets('puts the requests with people waiting first', (tester) async {
-      final repo = FakeInvestitureRequestsRepository()
-        ..authorizerRequests = [
-          authorizerRequest(
-            id: 'done',
-            club: 'Club Cerrado',
-            people: [requestPerson('x', 'Ya', status: PersonStatus.invested)],
-          ),
-          authorizerRequest(id: 'open', club: 'Club Abierto'),
-        ];
-      await pumpRouterApp(
-        tester,
-        _router([]),
-        overrides: authorizerOverrides(repo),
-      );
-
-      expect(
-        tester.getTopLeft(find.text('Club Abierto')).dy,
-        lessThan(tester.getTopLeft(find.text('Club Cerrado')).dy),
-      );
-    });
-
     testWidgets('shows an empty state without requests', (tester) async {
       await pumpRouterApp(
         tester,
@@ -107,7 +147,7 @@ void main() {
 
     testWidgets('shows a retry state when loading fails', (tester) async {
       final repo = FakeInvestitureRequestsRepository()
-        ..readFailure = const ServerFailure(message: 'sin conexión');
+        ..readFailure = const ServerFailure(message: 'Falló el servidor');
       await pumpRouterApp(
         tester,
         _router([]),
@@ -137,9 +177,9 @@ void main() {
         overrides: authorizerOverrides(repo),
       );
 
+      expect(find.text('Aún no tienes distritos asignados'), findsOneWidget);
       expect(
-          find.text('Todavía no tienes distritos asignados.'), findsOneWidget);
-      expect(find.text('Pide al Campo que te asigne.'), findsOneWidget);
+          find.textContaining('El Campo local debe asignarte'), findsOneWidget);
       expect(find.text('No pudimos cargar las autorizaciones'), findsNothing);
       expect(find.text('Reintentar'), findsNothing);
     });

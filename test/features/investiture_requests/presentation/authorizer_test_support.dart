@@ -84,11 +84,15 @@ RequestPerson requestPerson(
 InvestitureRequest authorizerRequest({
   String id = 'r1',
   String club = 'Club Alfa',
+  int clubId = 1,
   String section = 'Conquistadores',
   String district = 'Norte',
   List<RequestPerson>? people,
   int? pendingCount,
   DateTime? earliest,
+  int investedCount = 0,
+  int rejectedCount = 0,
+  InvestitureActor? createdBy,
 }) {
   final list = people ??
       [
@@ -99,7 +103,7 @@ InvestitureRequest authorizerRequest({
     requestId: id,
     clubSectionId: 4,
     ecclesiasticalYearId: 9,
-    clubId: 1,
+    clubId: clubId,
     clubName: club,
     sectionName: section,
     districtName: district,
@@ -107,6 +111,9 @@ InvestitureRequest authorizerRequest({
         list.where((p) => p.status == PersonStatus.pending).length,
     earliestInvestitureDate: earliest ?? DateTime(2026, 11, 15),
     createdAt: DateTime(2026, 10, 1),
+    createdBy: createdBy,
+    investedCount: investedCount,
+    rejectedCount: rejectedCount,
     people: list,
   );
 }

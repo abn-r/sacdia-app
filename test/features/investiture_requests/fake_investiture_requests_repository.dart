@@ -37,6 +37,7 @@ class FakeInvestitureRequestsRepository
   int contextCalls = 0;
   int openRequestCalls = 0;
   int authorizerListCalls = 0;
+  bool? lastIncludeResolved;
   final calls = <String>[];
   Map<String, Object?>? lastArgs;
 
@@ -162,9 +163,11 @@ class FakeInvestitureRequestsRepository
   @override
   Future<Either<Failure, List<InvestitureRequest>>> listForAuthorizer(
     int yearId, {
+    bool includeResolved = false,
     RequestCancelToken? cancelToken,
   }) async {
     authorizerListCalls++;
+    lastIncludeResolved = includeResolved;
     return _read(authorizerRequests);
   }
 

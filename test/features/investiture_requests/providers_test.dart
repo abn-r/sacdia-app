@@ -151,18 +151,10 @@ void main() {
   });
 
   group('other action notifiers', () {
-    test('addPeople, remove and changeDates call the repository', () async {
+    test('remove and changeDates call the repository', () async {
       final repo = FakeInvestitureRequestsRepository();
       final container = _container(repo);
 
-      expect(
-        await container.read(addPeopleNotifierProvider(_query).notifier).submit(
-          requestId: 'r1',
-          investitureDate: DateTime(2026, 11, 5),
-          enrollmentIds: const [13],
-        ),
-        isTrue,
-      );
       expect(
         await container
             .read(removePersonNotifierProvider(_query).notifier)
@@ -182,7 +174,7 @@ void main() {
         ),
         isTrue,
       );
-      expect(repo.calls, ['addPeople', 'removePerson', 'changeDates']);
+      expect(repo.calls, ['removePerson', 'changeDates']);
     });
   });
 

@@ -1,19 +1,31 @@
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/utils/json_helpers.dart';
+import '../../domain/entities/class_progress_summary.dart';
 import '../../domain/entities/progress_scope.dart';
+import 'class_progress_parsing.dart';
 
 class ProgressScopeClassModel extends Equatable {
   final int classId;
   final String name;
   final int clubTypeId;
   final String accessLevel;
+  final int membersCount;
+  final int avgProgress;
+  final RequirementStatusCounts statusCounts;
+  final ClassResponsible? counselor;
+  final ClassResponsible? assistant;
 
   const ProgressScopeClassModel({
     required this.classId,
     required this.name,
     required this.clubTypeId,
     required this.accessLevel,
+    this.membersCount = 0,
+    this.avgProgress = 0,
+    this.statusCounts = RequirementStatusCounts.zero,
+    this.counselor,
+    this.assistant,
   });
 
   factory ProgressScopeClassModel.fromJson(Map<String, dynamic> json) {
@@ -22,6 +34,11 @@ class ProgressScopeClassModel extends Equatable {
       name: safeString(json['name']),
       clubTypeId: safeInt(json['club_type_id']),
       accessLevel: safeString(json['access_level']),
+      membersCount: safeInt(json['members_count']),
+      avgProgress: parseProgressPercent(json['avg_progress']),
+      statusCounts: parseStatusCounts(json['status_counts']),
+      counselor: parseResponsible(json['counselor']),
+      assistant: parseResponsible(json['assistant']),
     );
   }
 
@@ -31,6 +48,11 @@ class ProgressScopeClassModel extends Equatable {
       'name': name,
       'club_type_id': clubTypeId,
       'access_level': accessLevel,
+      'members_count': membersCount,
+      'avg_progress': avgProgress,
+      'status_counts': statusCountsToJson(statusCounts),
+      'counselor': responsibleToJson(counselor),
+      'assistant': responsibleToJson(assistant),
     };
   }
 
@@ -40,11 +62,26 @@ class ProgressScopeClassModel extends Equatable {
       name: name,
       clubTypeId: clubTypeId,
       accessLevel: accessLevel,
+      membersCount: membersCount,
+      avgProgress: avgProgress,
+      statusCounts: statusCounts,
+      counselor: counselor,
+      assistant: assistant,
     );
   }
 
   @override
-  List<Object?> get props => [classId, name, clubTypeId, accessLevel];
+  List<Object?> get props => [
+        classId,
+        name,
+        clubTypeId,
+        accessLevel,
+        membersCount,
+        avgProgress,
+        statusCounts,
+        counselor,
+        assistant,
+      ];
 }
 
 class ProgressScopeResultModel extends Equatable {

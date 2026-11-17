@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/investiture_requests/domain/entities/investiture_request.dart';
@@ -29,16 +31,28 @@ Future<void> _tapText(WidgetTester tester, String text) async {
   await settle(tester);
 }
 
-/// Abre la hoja de decisión de la persona [name] (toda la fila es tocable).
-Future<void> _openSheetFor(WidgetTester tester, String name) async {
-  final label = find.text(name);
-  await tester.ensureVisible(label.first);
+Finder _invest(String personId) => find.byKey(ValueKey('invest-$personId'));
+Finder _reject(String personId) => find.byKey(ValueKey('reject-$personId'));
+
+Future<void> _tapKey(WidgetTester tester, Finder finder) async {
+  await tester.ensureVisible(finder);
   await tester.pump();
-  await tester.tap(label.first);
+  await tester.tap(finder);
   await settle(tester);
 }
 
-Finder _confirmButton() => find.widgetWithText(SacButton, 'Guardar decisión');
+/// Rechaza a [personId] escribiendo [reason] en la hoja del motivo.
+Future<void> _rejectWith(
+  WidgetTester tester,
+  String personId,
+  String reason,
+) async {
+  await _tapKey(tester, _reject(personId));
+  await tester.enterText(find.byType(TextField), reason);
+  await tester.pump();
+  await tester.tap(find.widgetWithText(SacButton, 'Guardar motivo'));
+  await settle(tester);
+}
 
 void main() {
   setUpAll(initInvestitureTestEnv);
@@ -46,9 +60,11 @@ void main() {
   FakeInvestitureRequestsRepository repoWith({
     bool secondCanAuthorize = true,
     List<RequestPerson>? extra,
+    InvestitureActor? createdBy,
   }) =>
       FakeInvestitureRequestsRepository()
         ..authorizerRequest = authorizerRequest(
+          createdBy: createdBy,
           people: [
             requestPerson('p1', 'Ana Pérez'),
             requestPerson('p2', 'Beto Gómez', canAuthorize: secondCanAuthorize),
@@ -57,191 +73,257 @@ void main() {
         );
 
   group('AuthorizerRequestDetailView', () {
-    testWidgets('shows the header and the people waiting', (tester) async {
-      await _pump(tester, repoWith());
+    testWidgets('shows the club, who sent it and the people waiting',
+        (tester) async {
+      await _pump(
+        tester,
+        repoWith(
+          createdBy: const InvestitureActor(userId: 'd1', name: 'Mariana Paz'),
+        ),
+      );
 
       expect(find.text('Club Alfa'), findsOneWidget);
-      expect(find.textContaining('Distrito Norte'), findsOneWidget);
+      expect(
+          find.textContaining('Conquistadores · investidura'), findsOneWidget);
+      expect(find.text('Envió Mariana Paz · 1 oct 2026'), findsOneWidget);
       expect(find.text('Ana Pérez'), findsOneWidget);
       expect(find.text('Beto Gómez'), findsOneWidget);
-      expect(find.text('Confirmar decisiones (0)'), findsNothing);
+      // Nada decidido todavía: el botón no ofrece confirmar.
+      expect(
+        tester
+            .widget<SacButton>(find.widgetWithText(
+                SacButton, 'Confirmar · 0 investir · 0 rechazar'))
+            .isEnabled,
+        isFalse,
+      );
+      expect(find.text('2 sin decidir quedarán en espera'), findsOneWidget);
     });
 
     testWidgets('has no decision controls for people it cannot authorize',
         (tester) async {
       await _pump(tester, repoWith(secondCanAuthorize: false));
 
-      // Solo la primera persona ofrece decidir.
-      expect(find.text('Decidir'), findsOneWidget);
+      expect(_invest('p1'), findsOneWidget);
+      expect(_invest('p2'), findsNothing);
+      expect(_reject('p2'), findsNothing);
     });
 
-    testWidgets('sends the invest and reject decisions after confirming',
+    testWidgets('the check and cross are at least 44 dp', (tester) async {
+      await _pump(tester, repoWith());
+
+      for (final finder in [_invest('p1'), _reject('p1')]) {
+        final size = tester.getSize(finder);
+        expect(size.width, greaterThanOrEqualTo(44));
+        expect(size.height, greaterThanOrEqualTo(44));
+      }
+    });
+
+    testWidgets('the check invests in the same row, with no comment',
         (tester) async {
       final repo = repoWith();
       await _pump(tester, repo);
 
-      // Ana: investir con un comentario.
-      await _openSheetFor(tester, 'Ana Pérez');
-      await _tapText(tester, 'Investir');
-      await tester.enterText(find.byType(TextField), 'Gracias por el camino');
-      await tester.pump();
-      await tester.tap(_confirmButton());
-      await settle(tester);
+      await _tapKey(tester, _invest('p1'));
+      expect(find.text('Confirmar · 1 investir · 0 rechazar'), findsOneWidget);
+      expect(find.text('1 sin decidir quedarán en espera'), findsOneWidget);
 
-      // Beto: rechazar con motivo.
-      await _openSheetFor(tester, 'Beto Gómez');
-      await _tapText(tester, 'Rechazar');
-      await tester.enterText(find.byType(TextField), 'Faltan evidencias');
-      await tester.pump();
-      await tester.tap(_confirmButton());
-      await settle(tester);
+      // Un segundo toque quita la decisión.
+      await _tapKey(tester, _invest('p1'));
+      expect(find.text('Confirmar · 0 investir · 0 rechazar'), findsOneWidget);
+    });
 
-      expect(find.text('Confirmar decisiones (2)'), findsOneWidget);
-      await _tapText(tester, 'Confirmar decisiones (2)');
+    testWidgets('the cross asks only for a reason; cancel leaves it undecided',
+        (tester) async {
+      await _pump(tester, repoWith());
+
+      await _tapKey(tester, _reject('p2'));
+      expect(find.text('Rechazar a Beto Gómez'), findsOneWidget);
+      expect(find.text('Motivo (solo lo ve la directiva)'), findsOneWidget);
+      // No hay opción de comentario ni de investir en la hoja.
+      expect(find.text('Investir'), findsNothing);
+      expect(find.text('Comentario (opcional)'), findsNothing);
+
+      var save = tester
+          .widget<SacButton>(find.widgetWithText(SacButton, 'Guardar motivo'));
+      expect(save.onPressed, isNull);
+      await tester.enterText(find.byType(TextField), '   ');
+      await tester.pump();
+      save = tester
+          .widget<SacButton>(find.widgetWithText(SacButton, 'Guardar motivo'));
+      expect(save.onPressed, isNull);
+
+      await tester.tap(find.widgetWithText(SacButton, 'Cancelar'));
+      await settle(tester);
+      expect(find.text('Confirmar · 0 investir · 1 rechazar'), findsNothing);
+      expect(find.text('Rechazar · motivo agregado'), findsNothing);
+    });
+
+    testWidgets('limits the reason to 1000 characters', (tester) async {
+      await _pump(tester, repoWith());
+      await _tapKey(tester, _reject('p1'));
+      expect(tester.widget<TextField>(find.byType(TextField)).maxLength, 1000);
+    });
+
+    testWidgets('a saved reason marks the row and counts as a rejection',
+        (tester) async {
+      await _pump(tester, repoWith());
+
+      await _rejectWith(tester, 'p2', 'Faltan evidencias');
+      expect(find.text('Rechazar · motivo agregado'), findsOneWidget);
+      expect(find.text('Confirmar · 0 investir · 1 rechazar'), findsOneWidget);
+
+      // Volver a tocar la cruz reabre la hoja con el motivo escrito.
+      await _tapKey(tester, _reject('p2'));
+      expect(find.text('Faltan evidencias'), findsOneWidget);
+    });
+
+    testWidgets('Investir a todos keeps the rejections already chosen',
+        (tester) async {
+      await _pump(tester, repoWith());
+
+      await _rejectWith(tester, 'p2', 'Faltan evidencias');
+      await _tapText(tester, 'Investir a todos');
+
+      expect(find.text('Confirmar · 1 investir · 1 rechazar'), findsOneWidget);
+      expect(find.text('Todos decididos'), findsOneWidget);
+    });
+
+    testWidgets('partial confirmation sends only the decided people',
+        (tester) async {
+      final repo = repoWith();
+      await _pump(tester, repo);
+
+      await _tapKey(tester, _invest('p1'));
+      await _tapText(tester, 'Confirmar · 1 investir · 0 rechazar');
       // Antes de confirmar hay un diálogo; todavía no se llamó al backend.
+      expect(find.text('¿Confirmar decisiones?'), findsOneWidget);
+      expect(find.textContaining('Se investirá a 1 y se rechazará a 0'),
+          findsOneWidget);
       expect(repo.calls, isEmpty);
       await _tapText(tester, 'Confirmar');
 
       expect(repo.calls, ['resolve']);
       expect(repo.lastArgs!['requestId'], 'r1');
-      expect(repo.lastArgs!['invest'], [
-        const InvestDecision(personId: 'p1', comment: 'Gracias por el camino'),
-      ]);
+      expect(repo.lastArgs!['invest'], [const InvestDecision(personId: 'p1')]);
+      expect(repo.lastArgs!['reject'], isEmpty);
+    });
+
+    testWidgets('sends invest and reject together', (tester) async {
+      final repo = repoWith();
+      await _pump(tester, repo);
+
+      await _tapKey(tester, _invest('p1'));
+      await _rejectWith(tester, 'p2', 'Faltan evidencias');
+      await _tapText(tester, 'Confirmar · 1 investir · 1 rechazar');
+      await _tapText(tester, 'Confirmar');
+
+      expect(repo.lastArgs!['invest'], [const InvestDecision(personId: 'p1')]);
       expect(repo.lastArgs!['reject'], [
         const RejectDecision(personId: 'p2', reason: 'Faltan evidencias'),
       ]);
     });
 
-    testWidgets('cancelling the confirmation sends nothing', (tester) async {
+    testWidgets('reviewing again sends nothing', (tester) async {
       final repo = repoWith();
       await _pump(tester, repo);
 
-      await _openSheetFor(tester, 'Ana Pérez');
-      await _tapText(tester, 'Investir');
-      await tester.tap(_confirmButton());
-      await settle(tester);
-
-      await _tapText(tester, 'Confirmar decisiones (1)');
-      await _tapText(tester, 'Cancelar');
+      await _tapKey(tester, _invest('p1'));
+      await _tapText(tester, 'Confirmar · 1 investir · 0 rechazar');
+      await _tapText(tester, 'Revisar otra vez');
 
       expect(repo.calls, isEmpty);
-      expect(find.text('Confirmar decisiones (1)'), findsOneWidget);
+      expect(find.text('Confirmar · 1 investir · 0 rechazar'), findsOneWidget);
     });
 
-    testWidgets('an invest decision without a comment omits it',
-        (tester) async {
-      final repo = repoWith();
-      await _pump(tester, repo);
+    group('result', () {
+      InvestitureResolution resolution() => InvestitureResolution(
+            requestId: 'r1',
+            invested: [
+              requestPerson('p1', 'Ana Pérez', status: PersonStatus.invested),
+            ],
+            rejectedByPerson: [
+              requestPerson('p2', 'Beto Gómez',
+                  status: PersonStatus.rejectedByPerson),
+            ],
+            rejectedBySystem: [
+              requestPerson(
+                'p3',
+                'Carla Ruiz',
+                status: PersonStatus.rejectedBySystem,
+              ),
+            ],
+            retired: const [],
+            blocked: const [
+              BlockedDecision(
+                personId: 'p2',
+                code: 'INVESTITURE_REQUEST_DATE_OUTSIDE_WINDOW',
+              ),
+            ],
+            alreadyResolved: const [],
+          );
 
-      await _openSheetFor(tester, 'Ana Pérez');
-      await _tapText(tester, 'Investir');
-      await tester.tap(_confirmButton());
-      await settle(tester);
-      await _tapText(tester, 'Confirmar decisiones (1)');
-      await _tapText(tester, 'Confirmar');
+      testWidgets('is a full state with the outcome in plain words',
+          (tester) async {
+        final repo = repoWith()..resolution = resolution();
+        await _pump(tester, repo);
 
-      expect(repo.lastArgs!['invest'], [
-        const InvestDecision(personId: 'p1'),
-      ]);
-      expect(repo.lastArgs!['reject'], isEmpty);
-    });
+        await _tapKey(tester, _invest('p1'));
+        await _tapText(tester, 'Confirmar · 1 investir · 0 rechazar');
+        await _tapText(tester, 'Confirmar');
 
-    testWidgets('a rejection without a reason cannot be saved', (tester) async {
-      await _pump(tester, repoWith());
-
-      await _openSheetFor(tester, 'Ana Pérez');
-      await _tapText(tester, 'Rechazar');
-
-      var button = tester.widget<SacButton>(_confirmButton());
-      expect(button.onPressed, isNull);
-
-      await tester.enterText(find.byType(TextField), '   ');
-      await tester.pump();
-      button = tester.widget<SacButton>(_confirmButton());
-      expect(button.onPressed, isNull);
-
-      await tester.enterText(find.byType(TextField), 'Faltan evidencias');
-      await tester.pump();
-      button = tester.widget<SacButton>(_confirmButton());
-      expect(button.onPressed, isNotNull);
-    });
-
-    testWidgets('limits the comment to 500 and the reason to 1000',
-        (tester) async {
-      await _pump(tester, repoWith());
-
-      await _openSheetFor(tester, 'Ana Pérez');
-      await _tapText(tester, 'Investir');
-      expect(tester.widget<TextField>(find.byType(TextField)).maxLength, 500);
-
-      await _tapText(tester, 'Rechazar');
-      expect(tester.widget<TextField>(find.byType(TextField)).maxLength, 1000);
-    });
-
-    testWidgets('a decision can be changed or cleared before confirming',
-        (tester) async {
-      final repo = repoWith();
-      await _pump(tester, repo);
-
-      await _openSheetFor(tester, 'Ana Pérez');
-      await _tapText(tester, 'Investir');
-      await tester.tap(_confirmButton());
-      await settle(tester);
-      expect(find.text('Confirmar decisiones (1)'), findsOneWidget);
-
-      await _openSheetFor(tester, 'Ana Pérez');
-      await _tapText(tester, 'Quitar decisión');
-      expect(find.text('Confirmar decisiones (1)'), findsNothing);
-      expect(repo.calls, isEmpty);
-    });
-
-    testWidgets('shows the outcome summary after resolving', (tester) async {
-      final repo = repoWith()
-        ..resolution = InvestitureResolution(
-          requestId: 'r1',
-          invested: [
-            requestPerson('p1', 'Ana Pérez', status: PersonStatus.invested)
-          ],
-          rejectedByPerson: const [],
-          rejectedBySystem: [
-            requestPerson(
-              'p3',
-              'Carla Ruiz',
-              status: PersonStatus.rejectedBySystem,
-              systemReason: 'Al comprobar el avance, no cubría el requisito 4.',
-            ),
-          ],
-          retired: const [],
-          blocked: const [
-            BlockedDecision(
-              personId: 'p2',
-              code: 'INVESTITURE_REQUEST_DATE_OUTSIDE_WINDOW',
-            ),
-          ],
-          alreadyResolved: const [],
+        expect(find.text('Decisiones confirmadas'), findsOneWidget);
+        expect(find.text('1 investido'), findsOneWidget);
+        expect(find.text('1 no investido'), findsOneWidget);
+        expect(find.text('Rechazados por el sistema (1)'), findsOneWidget);
+        expect(find.text('No se aplicaron (1)'), findsOneWidget);
+        expect(
+          find.textContaining(
+              'La fecha de investidura queda fuera de la ventana del Campo'),
+          findsOneWidget,
         );
-      await _pump(tester, repo);
+        expect(find.text('Volver a autorizaciones'), findsOneWidget);
+        // La lista de decisiones ya no está.
+        expect(_invest('p1'), findsNothing);
+        expect(find.textContaining('sin decidir'), findsNothing);
+      });
 
-      await _openSheetFor(tester, 'Ana Pérez');
-      await _tapText(tester, 'Investir');
-      await tester.tap(_confirmButton());
-      await settle(tester);
-      await _tapText(tester, 'Confirmar decisiones (1)');
-      await _tapText(tester, 'Confirmar');
+      testWidgets('Volver a autorizaciones goes back to the list',
+          (tester) async {
+        final repo = repoWith()..resolution = resolution();
+        final router = GoRouter(
+          initialLocation: RouteNames.investitureAuthorize,
+          routes: [
+            GoRoute(
+              path: RouteNames.investitureAuthorize,
+              builder: (context, state) => Scaffold(
+                body: Center(
+                  child: TextButton(
+                    onPressed: () => context
+                        .push(RouteNames.investitureAuthorizeDetailPath('r1')),
+                    child: const Text('abrir lista'),
+                  ),
+                ),
+              ),
+            ),
+            GoRoute(
+              path: RouteNames.investitureAuthorizeDetail,
+              builder: (context, state) =>
+                  const AuthorizerRequestDetailView(requestId: 'r1'),
+            ),
+          ],
+        );
+        await pumpRouterApp(tester, router,
+            overrides: authorizerOverrides(repo));
+        await _tapText(tester, 'abrir lista');
 
-      expect(find.text('Resultado de las decisiones'), findsOneWidget);
-      expect(find.text('Investidos (1)'), findsOneWidget);
-      expect(find.text('Rechazados por el sistema (1)'), findsOneWidget);
-      expect(
-        find.text('Al comprobar el avance, no cubría el requisito 4.'),
-        findsOneWidget,
-      );
-      expect(find.text('No se aplicaron (1)'), findsOneWidget);
-      expect(
-        find.text(
-            'La fecha de investidura queda fuera de la ventana del Campo'),
-        findsOneWidget,
-      );
+        await _tapKey(tester, _invest('p1'));
+        await _tapText(tester, 'Confirmar · 1 investir · 0 rechazar');
+        await _tapText(tester, 'Confirmar');
+        await _tapText(tester, 'Volver a autorizaciones');
+
+        expect(find.text('abrir lista'), findsOneWidget);
+        expect(find.text('Decisiones confirmadas'), findsNothing);
+      });
     });
 
     testWidgets('never shows the human rejection reason of a resolved person',
@@ -266,11 +348,8 @@ void main() {
     });
 
     Future<void> confirmOneDecision(WidgetTester tester) async {
-      await _openSheetFor(tester, 'Ana Pérez');
-      await _tapText(tester, 'Investir');
-      await tester.tap(_confirmButton());
-      await settle(tester);
-      await _tapText(tester, 'Confirmar decisiones (1)');
+      await _tapKey(tester, _invest('p1'));
+      await _tapText(tester, 'Confirmar · 1 investir · 0 rechazar');
       await _tapText(tester, 'Confirmar');
     }
 
@@ -291,8 +370,9 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.text('Decidir'), findsNothing);
-      expect(find.text('Confirmar decisiones (1)'), findsNothing);
+      // Los controles quedan apagados y ya no se ofrece confirmar.
+      expect(tester.widget<InkWell>(_invest('p1')).onTap, isNull);
+      expect(find.textContaining('Confirmar ·'), findsNothing);
     });
 
     testWidgets('a closed year blocks the decisions (by error code)',
@@ -312,7 +392,7 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.text('Decidir'), findsNothing);
+      expect(tester.widget<InkWell>(_invest('p1')).onTap, isNull);
     });
 
     testWidgets('the same message without the code is not treated as closed',
@@ -331,11 +411,13 @@ void main() {
         ),
         findsNothing,
       );
+      // El error se avisa y las decisiones siguen disponibles.
+      expect(_invest('p1'), findsOneWidget);
     });
 
     testWidgets('shows a retry state when loading fails', (tester) async {
       final repo = repoWith()
-        ..readFailure = const ServerFailure(message: 'sin conexión');
+        ..readFailure = const ServerFailure(message: 'Falló el servidor');
       await _pump(tester, repo);
       expect(find.text('No pudimos cargar la solicitud'), findsOneWidget);
 

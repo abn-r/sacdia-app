@@ -1,8 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/features/classes/domain/entities/progressive_class.dart';
@@ -10,6 +12,7 @@ import 'package:sacdia_app/features/classes/presentation/providers/classes_provi
 import 'package:sacdia_app/features/classes/presentation/views/class_detail_with_progress_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/features/classes/presentation/views/classes_list_view.dart';
+import 'package:sacdia_app/features/investiture_requests/presentation/widgets/investiture_rows.dart';
 import 'profile_quiet_add_chip.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -104,10 +107,40 @@ class ProfileClassesSection extends ConsumerWidget {
                   );
                 },
               ),
+              const _OwnInvestitureEntry(),
             ],
           );
         },
       ),
+    );
+  }
+}
+
+/// Entrada a «Mi investidura» desde el perfil, debajo de las clases.
+class _OwnInvestitureEntry extends StatelessWidget {
+  const _OwnInvestitureEntry();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final tint = investitureAccentTint(context);
+    return InvestitureCard(
+      key: const ValueKey('profile-own-investiture'),
+      margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+      children: [
+        InvestitureRow(
+          leading: InvestitureIconBadge(
+            icon: HugeIcons.strokeRoundedMedal01,
+            background: tint.background,
+            foreground: tint.foreground,
+          ),
+          title: 'profile.classes_section.own_investiture'.tr(),
+          detail: 'profile.classes_section.own_investiture_hint'.tr(),
+          detailColor: c.textSecondary,
+          trailing: const InvestitureChevron(),
+          onTap: () => context.push(RouteNames.ownInvestiture),
+        ),
+      ],
     );
   }
 }

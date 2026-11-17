@@ -41,6 +41,10 @@ class Unit {
   /// Lista de miembros activos (incluida en el detalle de la unidad).
   final List<UnitMember> members;
 
+  /// Lista tal como la envía el backend (`scoring_members`): capitán,
+  /// secretario y miembros, sin consejeros. Null = servidor anterior.
+  final List<UnitMember>? serverScoringMembers;
+
   const Unit({
     required this.id,
     required this.name,
@@ -55,7 +59,44 @@ class Unit {
     this.advisorId,
     this.substituteAdvisorId,
     this.members = const [],
+    this.serverScoringMembers,
   });
+
+  /// ¿El servidor envió `scoring_members`?
+  bool get hasServerScoringMembers => serverScoringMembers != null;
+
+  /// Personas que reciben puntos: capitán, secretario y miembros; nunca los
+  /// consejeros. Usa la lista del servidor y, si falta (servidor anterior),
+  /// la deriva de [members] (capitán y secretario solo si ya están ahí).
+  List<UnitMember> get scoringMembers {
+    final fromServer = serverScoringMembers;
+    if (fromServer != null) return fromServer;
+
+    final excluded = <String>{
+      if (advisorId != null && advisorId!.isNotEmpty) advisorId!,
+      if (substituteAdvisorId != null && substituteAdvisorId!.isNotEmpty)
+        substituteAdvisorId!,
+    };
+    final seen = <String>{};
+    UnitMember? captain;
+    UnitMember? secretary;
+    final rest = <UnitMember>[];
+    for (final m in members) {
+      if (m.id.isEmpty || excluded.contains(m.id) || !seen.add(m.id)) continue;
+      if (m.id == captainId) {
+        captain = m.withRole(UnitMemberRole.captain);
+      } else if (m.id == secretaryId) {
+        secretary = m.withRole(UnitMemberRole.secretary);
+      } else {
+        rest.add(m.withRole(UnitMemberRole.member));
+      }
+    }
+    return [
+      if (captain != null) captain,
+      if (secretary != null) secretary,
+      ...rest,
+    ];
+  }
 
   /// ¿[userId] dirige esta unidad? Capitán, secretario, consejero o consejero
   /// suplente. Un id nulo o vacío nunca dirige (falla cerrado).

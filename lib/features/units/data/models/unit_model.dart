@@ -50,6 +50,7 @@ class UnitModel extends Unit {
     super.advisorId,
     super.substituteAdvisorId,
     super.members,
+    super.serverScoringMembers,
   });
 
   factory UnitModel.fromJson(Map<String, dynamic> json) {
@@ -79,6 +80,17 @@ class UnitModel extends Unit {
         .cast<UnitMember>()
         .toList();
 
+    // Planilla de puntos (backend nuevo). Ausente = null -> fallback.
+    final rawScoring = json['scoring_members'];
+    final scoringMembers = rawScoring is List
+        ? rawScoring
+            .whereType<Map<String, dynamic>>()
+            .map(UnitMemberModel.fromScoringJson)
+            .where((m) => m.id.isNotEmpty)
+            .cast<UnitMember>()
+            .toList()
+        : null;
+
     return UnitModel(
       id: _parseInt(json['unit_id']) ?? 0,
       name: json['name']?.toString() ?? 'Sin nombre',
@@ -97,6 +109,7 @@ class UnitModel extends Unit {
       advisorId: json['advisor_id']?.toString(),
       substituteAdvisorId: json['substitute_advisor_id']?.toString(),
       members: members,
+      serverScoringMembers: scoringMembers,
     );
   }
 
@@ -129,6 +142,7 @@ class UnitModel extends Unit {
         advisorId: advisorId,
         substituteAdvisorId: substituteAdvisorId,
         members: members,
+        serverScoringMembers: serverScoringMembers,
       );
 
   // ── Helpers ───────────────────────────────────────────────────────────────

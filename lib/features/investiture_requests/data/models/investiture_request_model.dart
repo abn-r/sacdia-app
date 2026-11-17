@@ -2,6 +2,15 @@ import '../../domain/entities/investiture_request.dart';
 import '../../domain/entities/person_status.dart';
 import 'json_parsing.dart';
 
+/// `{user_id, name}` o `null` (ausente, vacío o sin nombre).
+InvestitureActor? parseInvestitureActor(Object? raw) {
+  if (raw is! Map) return null;
+  final map = asJsonMap(raw);
+  final name = asStringOrNull(map['name']);
+  if (name == null) return null;
+  return InvestitureActor(userId: map['user_id']?.toString() ?? '', name: name);
+}
+
 class RequestPersonModel extends RequestPerson {
   const RequestPersonModel({
     required super.personId,
@@ -55,6 +64,9 @@ class InvestitureRequestModel extends InvestitureRequest {
     super.pendingCount,
     super.earliestInvestitureDate,
     super.createdAt,
+    super.createdBy,
+    super.investedCount,
+    super.rejectedCount,
     required super.people,
   });
 
@@ -71,6 +83,9 @@ class InvestitureRequestModel extends InvestitureRequest {
       earliestInvestitureDate:
           parseCivilDate(json['earliest_investiture_date']),
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? ''),
+      createdBy: parseInvestitureActor(json['created_by']),
+      investedCount: asInt(json['invested_count']),
+      rejectedCount: asInt(json['rejected_count']),
       people: asJsonMapList(json['people'])
           .map(RequestPersonModel.fromJson)
           .toList(growable: false),

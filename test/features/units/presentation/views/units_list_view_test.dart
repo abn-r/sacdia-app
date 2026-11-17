@@ -14,6 +14,7 @@ import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/units/domain/entities/unit.dart';
 import 'package:sacdia_app/features/units/presentation/providers/units_providers.dart';
+import 'package:sacdia_app/features/units/presentation/views/unit_detail_view.dart';
 import 'package:sacdia_app/features/units/presentation/views/units_list_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../support/riverpod_test_support.dart';
@@ -32,8 +33,16 @@ class _StaticUnitsNotifier extends UnitsNotifier {
 
   final UnitsState initial;
 
+  int selectCalls = 0;
+
   @override
   UnitsState build() => initial;
+
+  @override
+  Future<void> selectUnit(Unit unit) async {
+    selectCalls++;
+    state = state.copyWith(selectedUnit: unit, members: unit.scoringMembers);
+  }
 }
 
 final _manageMenus = find.byWidgetPredicate(
@@ -161,6 +170,112 @@ void main() {
       expect(_manageMenus, findsNWidgets(2));
     });
   });
+
+  group('una sola unidad visible', () {
+    const manager = ['units:read', 'units:update', 'units:create'];
+
+    testWidgets('quien gestiona aterriza en la lista, sin esqueleto',
+        (tester) async {
+      final notifier =
+          _StaticUnitsNotifier(UnitsState(units: [_unit('Halcones')]));
+      await _pumpUnits(
+        tester,
+        user: _member(permissions: manager),
+        notifier: notifier,
+        units: UnitsState(units: [_unit('Halcones')]),
+      );
+
+      expect(find.byType(SacSkeletonList), findsNothing);
+      expect(find.byType(UnitDetailView), findsNothing);
+      expect(find.text('Halcones'), findsOneWidget);
+      expect(find.byTooltip('Crear unidad'), findsOneWidget);
+      expect(_manageMenus, findsOneWidget);
+      expect(notifier.selectCalls, 0);
+    });
+
+    testWidgets('units:update solo tambien gestiona: nunca se redirige',
+        (tester) async {
+      final units = UnitsState(units: [_unit('Halcones')]);
+      final notifier = _StaticUnitsNotifier(units);
+      await _pumpUnits(
+        tester,
+        user: _member(permissions: const ['units:read', 'units:update']),
+        notifier: notifier,
+        units: units,
+      );
+
+      expect(find.byType(UnitDetailView), findsNothing);
+      expect(find.byType(SacSkeletonList), findsNothing);
+      expect(find.text('Halcones'), findsOneWidget);
+      expect(notifier.selectCalls, 0);
+    });
+
+    testWidgets('quien no gestiona entra directo a su unica unidad una vez',
+        (tester) async {
+      final units = UnitsState(units: [_unit('Halcones')]);
+      final notifier = _StaticUnitsNotifier(units);
+      await _pumpUnits(
+        tester,
+        user: _member(permissions: const ['units:read']),
+        notifier: notifier,
+        units: units,
+        viaHome: true,
+      );
+
+      expect(find.byType(UnitDetailView), findsOneWidget);
+      expect(find.byType(UnitsListView), findsNothing);
+      expect(notifier.selectCalls, 1);
+    });
+
+    testWidgets('al volver de la unidad no queda un esqueleto eterno',
+        (tester) async {
+      final units = UnitsState(units: [_unit('Halcones')]);
+      final notifier = _StaticUnitsNotifier(units);
+      await _pumpUnits(
+        tester,
+        user: _member(permissions: const ['units:read']),
+        notifier: notifier,
+        units: units,
+        viaHome: true,
+      );
+      expect(find.byType(UnitDetailView), findsOneWidget);
+
+      Navigator.of(tester.element(find.byType(UnitDetailView))).pop();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(find.text('Inicio'), findsOneWidget);
+      expect(find.byType(SacSkeletonList), findsNothing);
+      expect(find.byType(UnitDetailView), findsNothing);
+      expect(notifier.selectCalls, 1);
+    });
+
+    testWidgets('quien gestiona abre la unidad, vuelve y ve la fila',
+        (tester) async {
+      final units = UnitsState(units: [_unit('Halcones')]);
+      final notifier = _StaticUnitsNotifier(units);
+      await _pumpUnits(
+        tester,
+        user: _member(permissions: manager),
+        notifier: notifier,
+        units: units,
+      );
+
+      await tester.tap(find.text('Halcones'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(find.byType(UnitDetailView), findsOneWidget);
+
+      Navigator.of(tester.element(find.byType(UnitDetailView))).pop();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(find.byType(UnitDetailView), findsNothing);
+      expect(find.byType(SacSkeletonList), findsNothing);
+      expect(find.text('Halcones'), findsOneWidget);
+      expect(find.byTooltip('Crear unidad'), findsOneWidget);
+    });
+  });
 }
 
 Unit _unit(
@@ -208,13 +323,16 @@ Future<void> _pumpUnits(
   WidgetTester tester, {
   required UnitsState units,
   UserEntity? user,
+  _StaticUnitsNotifier? notifier,
+  bool viaHome = false,
 }) async {
   await tester.pumpWidget(
     testProviderScope(
       overrides: [
         authNotifierProvider
             .overrideWith(() => _FakeAuthNotifier(user ?? _member())),
-        unitsNotifierProvider.overrideWith(() => _StaticUnitsNotifier(units)),
+        unitsNotifierProvider
+            .overrideWith(() => notifier ?? _StaticUnitsNotifier(units)),
       ],
       child: EasyLocalization(
         supportedLocales: const [Locale('es')],
@@ -228,7 +346,7 @@ Future<void> _pumpUnits(
             locale: context.locale,
             localizationsDelegates: context.localizationDelegates,
             supportedLocales: context.supportedLocales,
-            home: const UnitsListView(),
+            home: viaHome ? const _Home() : const UnitsListView(),
           ),
         ),
       ),
@@ -236,8 +354,38 @@ Future<void> _pumpUnits(
   );
 
   await tester.pump();
+  if (viaHome) {
+    await tester.tap(find.text('Abrir unidades'));
+  }
   await tester.pump();
-  await tester.pump(const Duration(milliseconds: 400));
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 600));
+  // La apertura automática de una sola unidad espera dos frames más.
+  await tester.pump(const Duration(milliseconds: 600));
+}
+
+class _Home extends StatelessWidget {
+  const _Home();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Inicio'),
+            TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const UnitsListView()),
+              ),
+              child: const Text('Abrir unidades'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _FileAssetLoader extends AssetLoader {
