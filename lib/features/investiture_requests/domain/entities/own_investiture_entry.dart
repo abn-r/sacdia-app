@@ -20,6 +20,8 @@ class OwnInvestitureEntry extends Equatable {
     this.systemReason,
     this.personText,
     this.authorizationComment,
+    this.resolvedByName,
+    this.resolvedAt,
   });
 
   final String personId;
@@ -37,6 +39,10 @@ class OwnInvestitureEntry extends Equatable {
   final String? personText;
   final String? authorizationComment;
 
+  /// Quién resolvió ('Sistema' en un rechazo del sistema) y cuándo.
+  final String? resolvedByName;
+  final DateTime? resolvedAt;
+
   @override
   List<Object?> get props => [
         personId,
@@ -51,5 +57,7 @@ class OwnInvestitureEntry extends Equatable {
         systemReason,
         personText,
         authorizationComment,
+        resolvedByName,
+        resolvedAt,
       ];
 }

@@ -5,18 +5,19 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/back_or_home.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/widgets/sac_badge.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_dialog.dart';
 import '../../../../core/widgets/sac_empty_state.dart';
-import '../../../../core/widgets/sac_loading.dart';
-import '../../../../core/widgets/sac_pressable.dart';
 import '../../../../core/widgets/sac_progress_bar.dart';
 import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
+import '../../../../core/widgets/status_progress/status_progress.dart';
 import '../../../../providers/catalogs_provider.dart';
 import '../../../../shared/models/catalogs/ecclesiastical_year_model.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
@@ -27,24 +28,28 @@ import '../../domain/entities/investiture_request.dart';
 import '../../domain/entities/presentation_context.dart';
 import '../providers/investiture_requests_providers.dart';
 import '../utils/investiture_dates.dart';
-import '../utils/investiture_error_message.dart';
+import '../utils/pastor_label.dart';
+import '../utils/section_board.dart';
 import '../widgets/change_date_sheet.dart';
-import '../widgets/investiture_banner.dart';
 import '../widgets/investiture_message_state.dart';
-import '../widgets/investiture_person_row.dart';
-import '../widgets/investiture_section_label.dart';
+import '../widgets/investiture_rows.dart';
+import '../widgets/investiture_skeleton.dart';
 import '../widgets/present_sheet.dart';
+import '../widgets/section_board_summary.dart';
+import '../widgets/waiting_person_sheet.dart';
 
 const _i18n = 'investiture_requests.section';
 
-/// Pantalla de la directiva de la sección: presentar, agregar, quitar y
-/// cambiar la fecha de quienes cumplen los requisitos de su clase.
+enum _MenuAction { history, yearbook, changeDate }
+
+/// Tablero de la directiva de la sección: quién está listo para enviarse a
+/// autorización, quién espera y quién aún no cumple. Los listos vienen
+/// elegidos; un solo botón los envía.
 class SectionInvestitureView extends ConsumerWidget {
   const SectionInvestitureView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.sac;
     final clubAsync = ref.watch(clubContextProvider);
     final yearAsync = ref.watch(currentEcclesiasticalYearProvider);
     final club = clubAsync.value;
@@ -53,100 +58,96 @@ class SectionInvestitureView extends ConsumerWidget {
     // sobre la concesión activa) y un contexto de club resuelto.
     final isBoard = club != null && hasCapability(user, 'investiture.board');
 
+    if (club == null && clubAsync.hasError) {
+      return _shell(
+        context,
+        InvestitureMessageState.loadError(
+          title: tr('$_i18n.load_error_title'),
+          error: clubAsync.error,
+          onRetry: () => ref.invalidate(clubContextProvider),
+        ),
+      );
+    }
+    if (club == null && clubAsync.isLoading) {
+      return _shell(context, const InvestitureListSkeleton());
+    }
+    if (!isBoard) return _shell(context, _restricted(context));
+
+    final year = yearAsync.value;
+    if (year == null) {
+      if (yearAsync.hasError) {
+        return _shell(
+          context,
+          InvestitureMessageState.loadError(
+            title: tr('$_i18n.load_error_title'),
+            error: yearAsync.error,
+            onRetry: () => ref.invalidate(currentEcclesiasticalYearProvider),
+          ),
+        );
+      }
+      return _shell(
+        context,
+        yearAsync.isLoading
+            ? const InvestitureListSkeleton()
+            : InvestitureMessageState(
+                title: tr('$_i18n.no_year_title'),
+                body: tr('$_i18n.no_year_body'),
+                icon: HugeIcons.strokeRoundedCalendar03,
+              ),
+      );
+    }
+    return _BoardScaffold(
+      query: SectionYearQuery(
+        sectionId: club.sectionId,
+        yearId: year.ecclesiasticalYearId,
+      ),
+      year: year,
+      clubTypeName: club.clubTypeName,
+    );
+  }
+
+  Widget _restricted(BuildContext context) => InvestitureMessageState(
+        title: tr('$_i18n.restricted_title'),
+        body: tr('$_i18n.restricted_body'),
+        icon: HugeIcons.strokeRoundedLockKey,
+        actionLabel: tr('$_i18n.see_mine'),
+        onAction: () => context.push(RouteNames.ownInvestiture),
+      );
+
+  Widget _shell(BuildContext context, Widget body) {
+    final c = context.sac;
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: c.canvas,
       appBar: SacTopBar(
-        title: tr('$_i18n.title'),
+        title: '',
         backgroundColor: c.canvas,
         frosted: true,
-        actions: [
-          if (isBoard)
-            SacPressable(
-              listenOnly: true,
-              child: IconButton(
-                enableFeedback: false,
-                tooltip: tr('$_i18n.history_action'),
-                onPressed: () =>
-                    context.push(RouteNames.sectionInvestitureHistory),
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedTime04,
-                  size: 22,
-                  color: c.text,
-                ),
-              ),
-            ),
-        ],
+        onBack: () => backOrHome(context),
       ),
-      body: SacFrostedVeil(
-        child: Builder(
-          builder: (context) {
-            if (club == null) {
-              if (clubAsync.hasError) {
-                return InvestitureMessageState(
-                  title: tr('$_i18n.load_error_title'),
-                  onRetry: () => ref.invalidate(clubContextProvider),
-                );
-              }
-              return clubAsync.isLoading
-                  ? const Center(child: SacLoading())
-                  : InvestitureMessageState(
-                      title: tr('$_i18n.restricted_title'),
-                      body: tr('$_i18n.restricted_body'),
-                      icon: HugeIcons.strokeRoundedLockKey,
-                    );
-            }
-            if (!isBoard) {
-              return InvestitureMessageState(
-                title: tr('$_i18n.restricted_title'),
-                body: tr('$_i18n.restricted_body'),
-                icon: HugeIcons.strokeRoundedLockKey,
-              );
-            }
-            final year = yearAsync.value;
-            if (year == null) {
-              if (yearAsync.hasError) {
-                return InvestitureMessageState(
-                  title: tr('$_i18n.load_error_title'),
-                  onRetry: () =>
-                      ref.invalidate(currentEcclesiasticalYearProvider),
-                );
-              }
-              return yearAsync.isLoading
-                  ? const Center(child: SacLoading())
-                  : InvestitureMessageState(
-                      title: tr('$_i18n.no_year_title'),
-                      body: tr('$_i18n.no_year_body'),
-                      icon: HugeIcons.strokeRoundedCalendar03,
-                    );
-            }
-            return _SectionBody(
-              query: SectionYearQuery(
-                sectionId: club.sectionId,
-                yearId: year.ecclesiasticalYearId,
-              ),
-              year: year,
-            );
-          },
-        ),
-      ),
+      body: SacFrostedVeil(child: body),
     );
   }
 }
 
-class _SectionBody extends ConsumerStatefulWidget {
-  const _SectionBody({required this.query, required this.year});
+class _BoardScaffold extends ConsumerStatefulWidget {
+  const _BoardScaffold({
+    required this.query,
+    required this.year,
+    required this.clubTypeName,
+  });
 
   final SectionYearQuery query;
   final EcclesiasticalYearModel year;
+  final String? clubTypeName;
 
   @override
-  ConsumerState<_SectionBody> createState() => _SectionBodyState();
+  ConsumerState<_BoardScaffold> createState() => _BoardScaffoldState();
 }
 
-class _SectionBodyState extends ConsumerState<_SectionBody> {
-  final Set<int> _selectedEnrollments = {};
-  final Set<String> _selectedPeople = {};
+class _BoardScaffoldState extends ConsumerState<_BoardScaffold> {
+  /// Los listos vienen elegidos: aquí se guardan quienes la directiva quitó.
+  final Set<int> _deselected = {};
 
   SectionYearQuery get _query => widget.query;
 
@@ -165,8 +166,7 @@ class _SectionBodyState extends ConsumerState<_SectionBody> {
   }
 
   /// Rango de fechas válido: ventana del Campo recortada al año eclesiástico.
-  /// `null` si el Campo no configuró la ventana (el backend rechaza toda fecha
-  /// con `DATE_OUTSIDE_WINDOW`) o si no se cruzan (nadie puede elegir fecha).
+  /// `null` si el Campo no configuró la ventana o si no se cruzan.
   ({DateTime first, DateTime last})? _bounds(WindowState window) {
     final start = window.startDate;
     final end = window.endDate;
@@ -181,34 +181,12 @@ class _SectionBodyState extends ConsumerState<_SectionBody> {
     return (first: first, last: last);
   }
 
-  void _toggleEnrollment(int id, bool selected) => setState(() {
-        selected
-            ? _selectedEnrollments.add(id)
-            : _selectedEnrollments.remove(id);
-      });
-
-  void _togglePerson(String id, bool selected) => setState(() {
-        selected ? _selectedPeople.add(id) : _selectedPeople.remove(id);
-      });
-
   /// Cierra una acción: avisa el resultado; si falló, recarga para no operar
   /// sobre datos viejos (p. ej. `INVESTITURE_REQUEST_STALE`).
-  void _finish(
-    bool ok,
-    String? errorMessage,
-    String successKey, {
-    Set<int>? clearEnrollments,
-    Set<String>? clearPeople,
-  }) {
+  void _finish(bool ok, String? errorMessage, String successMessage) {
     if (!mounted) return;
     if (ok) {
-      setState(() {
-        if (clearEnrollments != null) {
-          _selectedEnrollments.removeAll(clearEnrollments);
-        }
-        if (clearPeople != null) _selectedPeople.removeAll(clearPeople);
-      });
-      SacSnackBar.show(context, tr(successKey));
+      SacSnackBar.show(context, successMessage, isSuccess: true);
       return;
     }
     SacSnackBar.show(
@@ -221,83 +199,72 @@ class _SectionBodyState extends ConsumerState<_SectionBody> {
       ..invalidate(openRequestProvider(_query));
   }
 
+  DateTime? _earliestPending(Iterable<RequestPerson> people) {
+    final dates = people.map((p) => civilDay(p.investitureDate)).toList();
+    if (dates.isEmpty) return null;
+    return dates.reduce((a, b) => a.isBefore(b) ? a : b);
+  }
+
   Future<void> _present({
     required PresentationContext ctx,
-    required InvestitureRequest? request,
+    required SectionBoard board,
     required List<PresentationCandidate> selected,
   }) async {
     final bounds = _bounds(ctx.window);
     if (bounds == null || selected.isEmpty) return;
-    final requestId = ctx.openRequestId ?? request?.requestId;
-    final adding = requestId != null;
-    final previous = adding ? _earliestPendingDate(request) : null;
+    final pastor = pastorLabel(ctx.authorizers);
 
     final date = await showPresentSheet(
       context,
-      peopleCount: selected.length,
+      people: selected,
       firstDate: bounds.first,
       lastDate: bounds.last,
-      adding: adding,
-      previousDate: previous,
+      pastor: pastor,
+      currentDate: _earliestPending(board.waiting),
     );
     if (date == null || !mounted) return;
 
-    final ids = selected.map((c) => c.enrollmentId).toList(growable: false);
-    final bool ok;
-    final String? error;
-    if (requestId != null) {
-      ok = await ref.read(addPeopleNotifierProvider(_query).notifier).submit(
-            requestId: requestId,
-            investitureDate: date,
-            enrollmentIds: ids,
-          );
-      error = ref.read(addPeopleNotifierProvider(_query)).errorMessage;
-    } else {
-      ok = await ref
-          .read(presentNotifierProvider(_query).notifier)
-          .submit(investitureDate: date, enrollmentIds: ids);
-      error = ref.read(presentNotifierProvider(_query)).errorMessage;
-    }
+    final ok = await ref.read(presentNotifierProvider(_query).notifier).submit(
+          investitureDate: date,
+          enrollmentIds:
+              selected.map((c) => c.enrollmentId).toList(growable: false),
+        );
     _finish(
       ok,
-      error,
-      adding ? '$_i18n.added' : '$_i18n.presented',
-      clearEnrollments: ids.toSet(),
+      ref.read(presentNotifierProvider(_query)).errorMessage,
+      pastor == null
+          ? '$_i18n.presented_generic'.plural(selected.length)
+          : '$_i18n.presented'
+              .plural(selected.length, namedArgs: {'name': pastor}),
     );
   }
 
   Future<void> _changeDate({
     required PresentationContext ctx,
     required InvestitureRequest request,
-    required List<RequestPerson> selected,
+    required List<RequestPerson> people,
   }) async {
     final bounds = _bounds(ctx.window);
-    if (bounds == null || selected.isEmpty) return;
-    final current = selected
-        .map((p) => civilDay(p.investitureDate))
-        .reduce((a, b) => a.isBefore(b) ? a : b);
-
+    if (bounds == null || people.isEmpty) return;
     final date = await showChangeDateSheet(
       context,
-      peopleCount: selected.length,
+      peopleCount: people.length,
       firstDate: bounds.first,
       lastDate: bounds.last,
-      currentDate: current,
+      currentDate: _earliestPending(people)!,
     );
     if (date == null || !mounted) return;
 
-    final ids = selected.map((p) => p.personId).toList(growable: false);
     final ok =
         await ref.read(changeDatesNotifierProvider(_query).notifier).submit(
               requestId: request.requestId,
               investitureDate: date,
-              personIds: ids,
+              personIds: people.map((p) => p.personId).toList(growable: false),
             );
     _finish(
       ok,
       ref.read(changeDatesNotifierProvider(_query)).errorMessage,
-      '$_i18n.date_changed',
-      clearPeople: ids.toSet(),
+      tr('$_i18n.date_changed'),
     );
   }
 
@@ -323,398 +290,553 @@ class _SectionBodyState extends ConsumerState<_SectionBody> {
     _finish(
       ok,
       ref.read(removePersonNotifierProvider(_query)).errorMessage,
-      '$_i18n.removed',
-      clearPeople: {person.personId},
+      tr('$_i18n.removed'),
     );
   }
 
-  DateTime? _earliestPendingDate(InvestitureRequest? request) {
-    final dates = request?.pendingPeople
-        .map((p) => civilDay(p.investitureDate))
-        .toList(growable: false);
-    if (dates == null || dates.isEmpty) return null;
-    return dates.reduce((a, b) => a.isBefore(b) ? a : b);
+  Future<void> _openWaiting({
+    required PresentationContext ctx,
+    required InvestitureRequest? request,
+    required RequestPerson person,
+    required bool canManage,
+  }) async {
+    final action = await showWaitingPersonSheet(
+      context,
+      person: person,
+      name: person.userName ?? tr('$_i18n.unnamed_person'),
+      pastor: pastorLabel(ctx.authorizers),
+      sentAt: request?.createdAt,
+      canManage: canManage && request != null,
+    );
+    if (action == null || request == null || !mounted) return;
+    switch (action) {
+      case WaitingPersonAction.changeDate:
+        await _changeDate(ctx: ctx, request: request, people: [person]);
+      case WaitingPersonAction.remove:
+        await _remove(request: request, person: person);
+    }
+  }
+
+  void _onMenu(
+    _MenuAction action,
+    PresentationContext? ctx,
+    InvestitureRequest? request,
+  ) {
+    switch (action) {
+      case _MenuAction.history:
+        context.push(RouteNames.sectionInvestitureHistory);
+      case _MenuAction.yearbook:
+        context.push('${RouteNames.sectionInvestitureHistory}?tab=yearbook');
+      case _MenuAction.changeDate:
+        if (ctx == null || request == null) return;
+        _changeDate(ctx: ctx, request: request, people: request.pendingPeople);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     final contextAsync = ref.watch(presentationContextProvider(_query));
     final requestAsync = ref.watch(openRequestProvider(_query));
     // Mantiene vivos los notifiers de escritura mientras exista la pantalla.
     final busy = [
       ref.watch(presentNotifierProvider(_query)),
-      ref.watch(addPeopleNotifierProvider(_query)),
       ref.watch(removePersonNotifierProvider(_query)),
       ref.watch(changeDatesNotifierProvider(_query)),
     ].any((state) => state.isLoading);
 
     final ctx = contextAsync.value;
     final request = requestAsync.value;
-    if (ctx == null || (request == null && requestAsync.isLoading)) {
-      if (contextAsync.hasError || requestAsync.hasError) {
-        return InvestitureMessageState(
-          title: tr('$_i18n.load_error_title'),
-          body: investitureErrorMessage(
-            contextAsync.error ?? requestAsync.error,
-          ),
-          onRetry: _refresh,
-        );
-      }
-      return const Center(child: SacLoading());
+    final loaded = ctx != null && !(request == null && requestAsync.isLoading);
+
+    Widget body;
+    List<Widget> actions = const [];
+    if (!loaded) {
+      body = (contextAsync.hasError || requestAsync.hasError)
+          ? InvestitureMessageState.loadError(
+              title: tr('$_i18n.load_error_title'),
+              error: contextAsync.error ?? requestAsync.error,
+              onRetry: _refresh,
+            )
+          : const InvestitureListSkeleton();
+    } else {
+      final board = partitionSectionBoard(ctx, request);
+      final closed = boardClosedReason(ctx);
+      final canPresent = closed == null && _bounds(ctx.window) != null;
+      final canManagePending = ctx.yearOpen && _bounds(ctx.window) != null;
+      actions = [
+        _BoardMenu(
+          canChangeDate:
+              canManagePending && request != null && board.waiting.isNotEmpty,
+          onSelected: (a) => _onMenu(a, ctx, request),
+        ),
+      ];
+      body = _body(
+        context,
+        ctx: ctx,
+        request: request,
+        board: board,
+        closed: closed,
+        canPresent: canPresent,
+        canManagePending: canManagePending,
+        busy: busy,
+      );
     }
 
-    final bounds = _bounds(ctx.window);
-    final canPresent = ctx.yearOpen &&
-        ctx.window.openToday &&
-        !ctx.window.timeZoneInvalid &&
-        bounds != null;
-    final canManagePending = ctx.yearOpen && bounds != null;
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      backgroundColor: c.canvas,
+      appBar: SacTopBar(
+        title: '',
+        backgroundColor: c.canvas,
+        frosted: true,
+        onBack: () => backOrHome(context),
+        actions: actions,
+      ),
+      body: SacFrostedVeil(child: body),
+    );
+  }
 
-    final pending = request?.pendingPeople ?? const <RequestPerson>[];
-    final eligible = ctx.candidates
-        .where((c) => c.eligible && c.pendingPersonId == null)
-        .toList(growable: false);
-    final blocked = ctx.candidates
-        .where((c) => !c.eligible && c.pendingPersonId == null)
-        .toList(growable: false);
-
-    final selectedCandidates = eligible
-        .where((c) => _selectedEnrollments.contains(c.enrollmentId))
-        .toList(growable: false);
-    final selectedPending = pending
-        .where((p) => _selectedPeople.contains(p.personId))
-        .toList(growable: false);
-    final showPresentBar = canPresent && selectedCandidates.isNotEmpty;
-    final showDateBar =
-        canManagePending && selectedPending.isNotEmpty && request != null;
-    final barButtons = (showPresentBar ? 1 : 0) + (showDateBar ? 1 : 0);
-    final adding = (ctx.openRequestId ?? request?.requestId) != null;
-
-    final isEmpty = eligible.isEmpty && blocked.isEmpty && pending.isEmpty;
+  Widget _body(
+    BuildContext context, {
+    required PresentationContext ctx,
+    required InvestitureRequest? request,
+    required SectionBoard board,
+    required BoardClosedReason? closed,
+    required bool canPresent,
+    required bool canManagePending,
+    required bool busy,
+  }) {
     final c = context.sac;
+    final selected = board.ready
+        .where((p) => !_deselected.contains(p.enrollmentId))
+        .toList(growable: false);
+    final showFooter = board.ready.isNotEmpty;
+    final pastor = pastorLabel(ctx.authorizers);
+    final subtitle = [
+      if (widget.clubTypeName != null && widget.clubTypeName!.isNotEmpty)
+        widget.clubTypeName!,
+      if (widget.year.name.trim().isNotEmpty) widget.year.name.trim(),
+    ].join(' · ');
+    final nobodyReady = board.ready.isEmpty && board.waiting.isEmpty;
 
     return Stack(
       children: [
         RefreshIndicator(
           color: SacAccent.of(context).color,
+          edgeOffset: SacTopBar.frostedInset(context),
           onRefresh: _refresh,
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: SacTopBar.paddingBelowBar(
               context,
-              EdgeInsets.fromLTRB(16, 16, 16, 32 + barButtons * 64.0),
+              EdgeInsets.only(
+                top: 4,
+                bottom: 32 + (showFooter ? InvestitureFooter.height : 0),
+              ),
             ),
             children: [
-              _WindowBanner(ctx: ctx),
-              if (isEmpty) ...[
-                const SizedBox(height: 48),
-                SacEmptyState(
-                  title: tr('$_i18n.empty_title'),
-                  body: tr('$_i18n.empty_body'),
-                  icon: HugeIcons.strokeRoundedUserGroup,
-                ),
-              ] else ...[
-                if (pending.isNotEmpty) ...[
-                  const SizedBox(height: 20),
-                  InvestitureSectionLabel(
-                    title: tr('$_i18n.pending_title'),
-                    count: pending.length,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Semantics(
+                  header: true,
+                  child: Text(
+                    tr('$_i18n.title'),
+                    style: TextStyle(
+                      fontSize: SacFontSize.displayMedium,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.5,
+                      color: c.text,
+                    ),
                   ),
-                  const SizedBox(height: 10),
-                  for (final person in pending)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: _PendingRow(
-                        person: person,
-                        selectable: canManagePending,
-                        selected: _selectedPeople.contains(person.personId),
-                        busy: busy,
-                        onSelected: (value) =>
-                            _togglePerson(person.personId, value),
-                        onRemove: request == null
-                            ? null
-                            : () => _remove(request: request, person: person),
-                      ),
-                    ),
-                ],
-                const SizedBox(height: 20),
-                InvestitureSectionLabel(
-                  title: tr('$_i18n.eligible_title'),
-                  count: eligible.length,
                 ),
-                const SizedBox(height: 10),
-                if (eligible.isEmpty)
-                  Text(
-                    tr('$_i18n.eligible_empty'),
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyMedium
-                        ?.copyWith(color: c.ink500),
-                  )
-                else
-                  for (final candidate in eligible)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: _CandidateRow(
-                        candidate: candidate,
-                        selectable: canPresent,
-                        selected: _selectedEnrollments
-                            .contains(candidate.enrollmentId),
-                        onSelected: (value) =>
-                            _toggleEnrollment(candidate.enrollmentId, value),
-                      ),
+              ),
+              if (subtitle.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 2, 20, 0),
+                  child: Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: SacFontSize.titleSmall,
+                      color: c.textSecondary,
                     ),
-                if (blocked.isNotEmpty) ...[
-                  const SizedBox(height: 20),
-                  InvestitureSectionLabel(
-                    title: tr('$_i18n.blocked_title'),
-                    count: blocked.length,
                   ),
-                  const SizedBox(height: 10),
-                  for (final candidate in blocked)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: _BlockedRow(candidate: candidate),
+                ),
+              if (board.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 48),
+                  child: SacEmptyState(
+                    title: tr('$_i18n.empty_title'),
+                    body: tr('$_i18n.empty_body'),
+                    icon: HugeIcons.strokeRoundedUserGroup,
+                  ),
+                )
+              else ...[
+                SectionBoardSummary(
+                    ctx: ctx, board: board, closedReason: closed),
+                if (nobodyReady && board.notYet.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 24),
+                    child: SacEmptyState.inline(
+                      title: tr('$_i18n.nobody_ready_title'),
+                      body: tr('$_i18n.nobody_ready_body'),
+                      icon: HugeIcons.strokeRoundedMedal01,
                     ),
-                ],
+                  ),
+                if (board.ready.isNotEmpty)
+                  _readyGroup(context, board, canPresent),
+                if (board.waiting.isNotEmpty)
+                  _waitingGroup(context, ctx, request, board, canManagePending),
+                if (board.notYet.isNotEmpty)
+                  _notYetGroup(context, board, nobodyReady),
               ],
             ],
           ),
         ),
-        if (barButtons > 0)
+        if (showFooter)
           Positioned(
             left: 0,
             right: 0,
             bottom: 0,
-            child: _ActionBar(
-              children: [
-                if (showPresentBar)
-                  SacButton.primary(
-                    text: tr(
-                      adding ? '$_i18n.add_cta' : '$_i18n.present_cta',
-                      namedArgs: {'count': '${selectedCandidates.length}'},
+            child: InvestitureFooter(
+              button: canPresent
+                  ? SacButton.primary(
+                      text: tr(
+                        '$_i18n.send_cta',
+                        namedArgs: {'count': '${selected.length}'},
+                      ),
+                      icon: HugeIcons.strokeRoundedSent,
+                      isEnabled: selected.isNotEmpty && !busy,
+                      isLoading: busy,
+                      onPressed: () => _present(
+                        ctx: ctx,
+                        board: board,
+                        selected: selected,
+                      ),
+                    )
+                  : SacButton.primary(
+                      text: tr('$_i18n.send_closed'),
+                      icon: HugeIcons.strokeRoundedLockKey,
+                      isEnabled: false,
                     ),
-                    icon: HugeIcons.strokeRoundedMedal01,
-                    isEnabled: !busy,
-                    isLoading: busy,
-                    onPressed: () => _present(
-                      ctx: ctx,
-                      request: request,
-                      selected: selectedCandidates,
-                    ),
-                  ),
-                if (showDateBar)
-                  SacButton.outline(
-                    text: tr(
-                      '$_i18n.change_date_cta',
-                      namedArgs: {'count': '${selectedPending.length}'},
-                    ),
-                    icon: HugeIcons.strokeRoundedCalendar03,
-                    isEnabled: !busy,
-                    onPressed: () => _changeDate(
-                      ctx: ctx,
-                      request: request,
-                      selected: selectedPending,
-                    ),
-                  ),
-              ],
+              note: canPresent
+                  ? (pastor == null
+                      ? tr('$_i18n.footer_pastor_generic')
+                      : tr('$_i18n.footer_pastor', namedArgs: {'name': pastor}))
+                  : null,
             ),
+          ),
+      ],
+    );
+  }
+
+  Widget _readyGroup(
+      BuildContext context, SectionBoard board, bool canPresent) {
+    final allSelected = board.ready.every(
+      (p) => !_deselected.contains(p.enrollmentId),
+    );
+    return SacGroupedSection(
+      key: const ValueKey('board-group-ready'),
+      label: tr('$_i18n.ready_title'),
+      count: board.ready.length,
+      action: canPresent
+          ? InvestitureEyebrowAction(
+              label:
+                  tr(allSelected ? '$_i18n.select_none' : '$_i18n.select_all'),
+              onTap: () => setState(() {
+                if (allSelected) {
+                  _deselected.addAll(board.ready.map((p) => p.enrollmentId));
+                } else {
+                  _deselected.clear();
+                }
+              }),
+            )
+          : null,
+      children: [
+        for (final candidate in board.ready)
+          _ReadyRow(
+            candidate: candidate,
+            selectable: canPresent,
+            selected: !_deselected.contains(candidate.enrollmentId),
+            onToggle: () => setState(() {
+              if (!_deselected.remove(candidate.enrollmentId)) {
+                _deselected.add(candidate.enrollmentId);
+              }
+            }),
+          ),
+      ],
+    );
+  }
+
+  Widget _waitingGroup(
+    BuildContext context,
+    PresentationContext ctx,
+    InvestitureRequest? request,
+    SectionBoard board,
+    bool canManage,
+  ) {
+    return SacGroupedSection(
+      key: const ValueKey('board-group-waiting'),
+      label: tr('$_i18n.pending_title'),
+      children: [
+        for (final person in board.waiting)
+          _WaitingRow(
+            person: person,
+            onTap: () => _openWaiting(
+              ctx: ctx,
+              request: request,
+              person: person,
+              canManage: canManage,
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// Opens the member's progress in the redesigned grouped-class flow (named,
+  /// requirements grouped by status). Falls back to the plain class detail
+  /// only when the club context is not resolved.
+  void _openCandidateProgress(
+    BuildContext context,
+    PresentationCandidate candidate,
+  ) {
+    final clubId = ref.read(clubContextProvider).value?.clubId;
+    if (clubId == null) {
+      context.push(
+        RouteNames.classDetailPath(
+          '${candidate.classId}',
+          enrollmentId: candidate.enrollmentId,
+          targetUserId: candidate.userId,
+        ),
+      );
+      return;
+    }
+    context.push(
+      RouteNames.groupedClassMemberPath(
+        candidate.classId,
+        candidate.userId,
+        clubId: clubId,
+        sectionId: widget.query.sectionId,
+        enrollmentId: candidate.enrollmentId,
+        yearId: widget.query.yearId,
+        className: candidate.className,
+        memberName: candidate.userName,
+      ),
+    );
+  }
+
+  Widget _notYetGroup(BuildContext context, SectionBoard board, bool closest) {
+    return SacGroupedSection(
+      key: const ValueKey('board-group-not-yet'),
+      label: tr(closest ? '$_i18n.closest_title' : '$_i18n.blocked_title'),
+      children: [
+        for (final candidate in board.notYet)
+          _NotYetRow(
+            candidate: candidate,
+            onTap: () => _openCandidateProgress(context, candidate),
           ),
       ],
     );
   }
 }
 
-class _WindowBanner extends StatelessWidget {
-  const _WindowBanner({required this.ctx});
+class _BoardMenu extends StatelessWidget {
+  const _BoardMenu({required this.canChangeDate, required this.onSelected});
 
-  final PresentationContext ctx;
-
-  @override
-  Widget build(BuildContext context) {
-    final window = ctx.window;
-    if (!ctx.yearOpen) {
-      return InvestitureBanner(
-        text: tr('$_i18n.year_closed'),
-        icon: HugeIcons.strokeRoundedLockKey,
-      );
-    }
-    if (window.timeZoneInvalid) {
-      return InvestitureBanner(
-        text: tr('$_i18n.window_time_zone_invalid'),
-        tone: InvestitureBannerTone.caution,
-      );
-    }
-    // Sin ventana configurada (fechas nulas) tampoco hay nada que presentar.
-    if (!window.openToday ||
-        window.startDate == null ||
-        window.endDate == null) {
-      return InvestitureBanner(
-        text: tr('$_i18n.window_closed'),
-        tone: InvestitureBannerTone.caution,
-        icon: HugeIcons.strokeRoundedCalendarLock01,
-      );
-    }
-    return InvestitureBanner(
-      text: tr(
-        '$_i18n.window_open',
-        namedArgs: {'date': formatInvestitureDate(context, window.endDate!)},
-      ),
-      tone: InvestitureBannerTone.positive,
-    );
-  }
-}
-
-class _PendingRow extends StatelessWidget {
-  const _PendingRow({
-    required this.person,
-    required this.selectable,
-    required this.selected,
-    required this.busy,
-    required this.onSelected,
-    required this.onRemove,
-  });
-
-  final RequestPerson person;
-  final bool selectable;
-  final bool selected;
-  final bool busy;
-  final ValueChanged<bool> onSelected;
-  final VoidCallback? onRemove;
-
-  @override
-  Widget build(BuildContext context) {
-    final name = person.userName ?? tr('$_i18n.unnamed_person');
-    final date = tr(
-      '$_i18n.pending_date',
-      namedArgs: {
-        'date': formatInvestitureDate(context, person.investitureDate),
-      },
-    );
-    return InvestiturePersonRow(
-      name: name,
-      className: person.className,
-      detail:
-          [if (person.className != null) person.className!, date].join(' · '),
-      selected: selectable ? selected : null,
-      onSelectedChanged: selectable ? onSelected : null,
-      selectSemanticLabel:
-          tr('$_i18n.select_person', namedArgs: {'name': name}),
-      footer: Row(
-        children: [
-          SacBadge.warning(
-            label: tr('$_i18n.pending_badge'),
-            icon: HugeIcons.strokeRoundedClock01,
-          ),
-          const Spacer(),
-          if (selectable && onRemove != null)
-            SacButton(
-              text: tr('$_i18n.remove_action'),
-              variant: SacButtonVariant.outline,
-              size: SacButtonSize.small,
-              minHeight: 44,
-              icon: HugeIcons.strokeRoundedDelete02,
-              textColor: AppColors.error,
-              borderColor: AppColors.error.withValues(alpha: 0.5),
-              isEnabled: !busy,
-              onPressed: onRemove,
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CandidateRow extends StatelessWidget {
-  const _CandidateRow({
-    required this.candidate,
-    required this.selectable,
-    required this.selected,
-    required this.onSelected,
-  });
-
-  final PresentationCandidate candidate;
-  final bool selectable;
-  final bool selected;
-  final ValueChanged<bool> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    final name = candidate.userName ?? tr('$_i18n.unnamed_person');
-    final progress = candidate.overallProgress.clamp(0, 100).toDouble();
-    return InvestiturePersonRow(
-      name: name,
-      className: candidate.className,
-      detail: candidate.className,
-      selected: selectable ? selected : null,
-      onSelectedChanged: selectable ? onSelected : null,
-      selectSemanticLabel:
-          tr('$_i18n.select_person', namedArgs: {'name': name}),
-      footer: SacProgressBar(
-        progress: progress / 100,
-        height: 8,
-        color: AppColors.classColor(candidate.className ?? ''),
-        label:
-            tr('$_i18n.progress', namedArgs: {'value': '${progress.round()}'}),
-      ),
-    );
-  }
-}
-
-class _BlockedRow extends StatelessWidget {
-  const _BlockedRow({required this.candidate});
-
-  final PresentationCandidate candidate;
-
-  @override
-  Widget build(BuildContext context) {
-    final reason = investitureRequestErrorMessage(candidate.blockedCode) ??
-        tr('$_i18n.blocked_fallback');
-    return InvestiturePersonRow(
-      name: candidate.userName ?? tr('$_i18n.unnamed_person'),
-      className: candidate.className,
-      detail: candidate.className,
-      footer: Text(
-        reason,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: context.sac.ink600,
-              height: 1.35,
-            ),
-      ),
-    );
-  }
-}
-
-/// Barra inferior con las acciones principales, a la altura del pulgar.
-class _ActionBar extends StatelessWidget {
-  const _ActionBar({required this.children});
-
-  final List<Widget> children;
+  final bool canChangeDate;
+  final ValueChanged<_MenuAction> onSelected;
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    return Container(
-      decoration: BoxDecoration(
-        color: c.canvas,
-        border: Border(top: BorderSide(color: c.ink150)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    PopupMenuItem<_MenuAction> item(
+      _MenuAction value,
+      HugeIconData icon,
+      String label,
+    ) =>
+        PopupMenuItem<_MenuAction>(
+          value: value,
+          height: 48,
+          child: Row(
             children: [
-              for (var i = 0; i < children.length; i++) ...[
-                if (i > 0) const SizedBox(height: 8),
-                children[i],
-              ],
+              buildIcon(icon, size: 18, color: c.text),
+              const SizedBox(width: 10),
+              Text(label),
             ],
           ),
+        );
+
+    return PopupMenuButton<_MenuAction>(
+      tooltip: tr('$_i18n.more_options'),
+      icon: HugeIcon(
+        icon: HugeIcons.strokeRoundedMoreHorizontal,
+        size: 22,
+        color: c.text,
+      ),
+      onSelected: onSelected,
+      itemBuilder: (_) => [
+        item(
+          _MenuAction.history,
+          HugeIcons.strokeRoundedTime04,
+          tr('$_i18n.menu_history'),
+        ),
+        item(
+          _MenuAction.yearbook,
+          HugeIcons.strokeRoundedBookOpen01,
+          tr('$_i18n.menu_yearbook'),
+        ),
+        if (canChangeDate)
+          item(
+            _MenuAction.changeDate,
+            HugeIcons.strokeRoundedCalendar03,
+            tr('$_i18n.menu_change_date'),
+          ),
+      ],
+    );
+  }
+}
+
+String _nameOf(String? name) => name?.trim().isNotEmpty ?? false
+    ? name!.trim()
+    : tr('$_i18n.unnamed_person');
+
+class _ReadyRow extends StatelessWidget {
+  const _ReadyRow({
+    required this.candidate,
+    required this.selectable,
+    required this.selected,
+    required this.onToggle,
+  });
+
+  final PresentationCandidate candidate;
+  final bool selectable;
+  final bool selected;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = _nameOf(candidate.userName);
+    final progress = candidate.overallProgress.clamp(0, 100).round();
+    return InvestitureRow(
+      leading: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (selectable) ...[
+            InvestitureSelectBox(selected: selected),
+            const SizedBox(width: 12),
+          ],
+          InvestitureAvatar(name: name),
+        ],
+      ),
+      title: name,
+      detail: candidate.className,
+      trailing: SacBadge.success(
+        label: tr('$_i18n.progress_pct', namedArgs: {'value': '$progress'}),
+      ),
+      selected: selectable ? selected : null,
+      semanticLabel: selectable
+          ? tr('$_i18n.select_person', namedArgs: {'name': name})
+          : null,
+      onTap: selectable ? onToggle : null,
+    );
+  }
+}
+
+class _WaitingRow extends StatelessWidget {
+  const _WaitingRow({required this.person, required this.onTap});
+
+  final RequestPerson person;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = _nameOf(person.userName);
+    final date = tr(
+      '$_i18n.waiting_date',
+      namedArgs: {
+        'date': formatInvestitureDate(context, person.investitureDate),
+      },
+    );
+    return InvestitureRow(
+      leading: InvestitureAvatar(name: name),
+      title: name,
+      detail: [
+        if (person.className != null && person.className!.isNotEmpty)
+          person.className!,
+        date,
+      ].join(' · '),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: SacBadge.info(
+              label: tr('$_i18n.pending_badge'),
+              icon: HugeIcons.strokeRoundedClock01,
+            ),
+          ),
+          const SizedBox(width: 4),
+          const InvestitureChevron(),
+        ],
+      ),
+      onTap: onTap,
+    );
+  }
+}
+
+class _NotYetRow extends StatelessWidget {
+  const _NotYetRow({required this.candidate, required this.onTap});
+
+  final PresentationCandidate candidate;
+  final VoidCallback onTap;
+
+  String _reason() {
+    final missing = candidate.missingRequirementsCount;
+    if (missing != null && missing > 0) {
+      return '$_i18n.missing_requirements'.plural(missing);
+    }
+    return investitureRequestErrorMessage(candidate.blockedCode) ??
+        tr('$_i18n.blocked_fallback');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final name = _nameOf(candidate.userName);
+    final progress = candidate.overallProgress.clamp(0, 100).toDouble();
+    return InvestitureRow(
+      leading: InvestitureAvatar(name: name, muted: true),
+      title: name,
+      detail: [
+        if (candidate.className != null && candidate.className!.isNotEmpty)
+          candidate.className!,
+        _reason(),
+      ].join(' · '),
+      detailMaxLines: 2,
+      extra: SizedBox(
+        width: 120,
+        child: SacProgressBar(
+          progress: progress / 100,
+          height: 4,
+          color: c.textTertiary,
         ),
       ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            tr('$_i18n.progress_pct',
+                namedArgs: {'value': '${progress.round()}'}),
+            style: TextStyle(
+              fontSize: SacFontSize.titleMedium,
+              fontWeight: FontWeight.w700,
+              color: c.textTertiary,
+            ),
+          ),
+          const SizedBox(width: 4),
+          const InvestitureChevron(),
+        ],
+      ),
+      onTap: onTap,
     );
   }
 }

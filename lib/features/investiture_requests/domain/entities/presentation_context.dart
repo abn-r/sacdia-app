@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'investiture_request.dart';
+
 /// Ventana del Campo para presentar o agregar personas.
 class WindowState extends Equatable {
   const WindowState({
@@ -33,6 +35,7 @@ class PresentationCandidate extends Equatable {
     required this.eligible,
     this.blockedCode,
     this.pendingPersonId,
+    this.missingRequirementsCount,
   });
 
   final int enrollmentId;
@@ -49,6 +52,9 @@ class PresentationCandidate extends Equatable {
   /// Presente cuando la persona ya está PENDING en la solicitud abierta.
   final String? pendingPersonId;
 
+  /// Requisitos que faltan; `null` si la persona ya es elegible.
+  final int? missingRequirementsCount;
+
   @override
   List<Object?> get props => [
         enrollmentId,
@@ -60,6 +66,7 @@ class PresentationCandidate extends Equatable {
         eligible,
         blockedCode,
         pendingPersonId,
+        missingRequirementsCount,
       ];
 }
 
@@ -71,6 +78,7 @@ class PresentationContext extends Equatable {
     required this.window,
     required this.yearOpen,
     this.openRequestId,
+    this.authorizers = const [],
     required this.candidates,
   });
 
@@ -79,6 +87,9 @@ class PresentationContext extends Equatable {
   final WindowState window;
   final bool yearOpen;
   final String? openRequestId;
+
+  /// Quienes revisarán la solicitud (pastores del distrito); puede ser vacío.
+  final List<InvestitureActor> authorizers;
   final List<PresentationCandidate> candidates;
 
   @override
@@ -88,6 +99,7 @@ class PresentationContext extends Equatable {
         window,
         yearOpen,
         openRequestId,
+        authorizers,
         candidates,
       ];
 }

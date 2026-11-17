@@ -164,6 +164,36 @@ void main() {
       expect(find.text(_historyLabel), findsOneWidget);
     });
 
+    testWidgets('shows role labels for captain and secretary only',
+        (tester) async {
+      await _pumpDetail(
+        tester,
+        user: _user(const ['units:read', 'units:update', 'units:create']),
+        unit: _unit(captainId: 'cap'),
+        members: const [
+          UnitMember(
+              id: 'cap',
+              name: 'Carla',
+              surname: 'Cap',
+              role: UnitMemberRole.captain),
+          UnitMember(
+              id: 'sec',
+              name: 'Saul',
+              surname: 'Sec',
+              role: UnitMemberRole.secretary),
+          UnitMember(id: 'm-1', name: 'Ana', surname: 'Lopez'),
+        ],
+      );
+
+      expect(find.text('Carla Cap'), findsOneWidget);
+      expect(find.text('Saul Sec'), findsOneWidget);
+      expect(find.text('Ana Lopez'), findsOneWidget);
+      expect(find.text('Capitán'), findsOneWidget);
+      expect(find.text('Secretario'), findsOneWidget);
+      expect(find.byKey(const ValueKey('unit_member_role_label')),
+          findsNWidgets(2));
+    });
+
     testWidgets('a director keeps editing any unit', (tester) async {
       await _pumpDetail(
         tester,
@@ -181,13 +211,14 @@ Future<void> _pumpDetail(
   WidgetTester tester, {
   required UserEntity user,
   required Unit unit,
+  List<UnitMember> members = const [
+    UnitMember(id: 'm-1', name: 'Ana', surname: 'Lopez'),
+  ],
 }) async {
   final state = UnitsState(
     units: [unit],
     selectedUnit: unit,
-    members: const [
-      UnitMember(id: 'm-1', name: 'Ana', surname: 'Lopez'),
-    ],
+    members: members,
     categories: const [
       ScoringCategory(
         scoringCategoryId: 1,
@@ -197,8 +228,8 @@ Future<void> _pumpDetail(
         originId: 1,
       ),
     ],
-    pendingScores: const {
-      'm-1': {1: 0},
+    pendingScores: {
+      for (final m in members) m.id: const {1: 0},
     },
   );
 

@@ -11,6 +11,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_dialog.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/widgets/status_progress/status_progress.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
@@ -251,7 +252,7 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
           else
             for (final (id, label, items) in groups)
               SliverToBoxAdapter(
-                child: EvidenceSectionGroup(
+                child: SacGroupedSection(
                   key: ValueKey('evidence-group-$id'),
                   label: label,
                   children: [for (final s in items) _row(s)],

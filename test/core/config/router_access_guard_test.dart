@@ -120,6 +120,14 @@ void main() {
       expect(routeScreenIds[RouteNames.homeClub], 'app-club');
       expect(routeScreenIds[RouteNames.homeMaterials], 'app-materials');
       expect(routeScreenIds[RouteNames.homeGroupedClass], 'app-grouped-class');
+      for (final route in [
+        RouteNames.homeGroupedClassAssign,
+        RouteNames.homeGroupedClassClass,
+        RouteNames.homeGroupedClassMember,
+        RouteNames.homeGroupedClassRequirement,
+      ]) {
+        expect(routeScreenIds[route], 'app-grouped-class', reason: route);
+      }
       expect(
         routeScreenIds[RouteNames.sectionInvestiture],
         'app-section-investiture',
@@ -208,6 +216,19 @@ void main() {
           await redirectFor(c, denied),
           RouteNames.accessDenied,
           reason: denied,
+        );
+      }
+      // Las pantallas de la clase agrupada heredan el gate de su pantalla.
+      for (final pattern in [
+        RouteNames.homeGroupedClassAssign,
+        RouteNames.homeGroupedClassClass,
+        RouteNames.homeGroupedClassMember,
+        RouteNames.homeGroupedClassRequirement,
+      ]) {
+        expect(
+          await redirectFor(c, '/x', fullPath: pattern),
+          RouteNames.accessDenied,
+          reason: pattern,
         );
       }
       // El detalle hereda el gate de su pantalla (patrón de ruta).

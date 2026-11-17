@@ -44,6 +44,17 @@ class RouteNames {
   static const String homeFinances = '/home/finances';
   static const String homeUnits = '/home/units';
   static const String homeGroupedClass = '/home/grouped-class';
+
+  // «Clase agrupada»: del listado de clases a un requisito de un miembro.
+  // Rutas hermanas (no hijas) para abrir a pantalla completa, sin la barra
+  // inferior del shell; heredan el gate de `homeGroupedClass`.
+  static const String homeGroupedClassAssign = '/home/grouped-class/assign';
+  static const String homeGroupedClassClass =
+      '/home/grouped-class/class/:classId';
+  static const String homeGroupedClassMember =
+      '/home/grouped-class/class/:classId/member/:userId';
+  static const String homeGroupedClassRequirement =
+      '/home/grouped-class/class/:classId/member/:userId/requirement/:requirementId';
   static const String homeInsurance = '/home/insurance';
   static const String homeInventory = '/home/inventory';
   static const String homeResources = '/home/resources';
@@ -118,6 +129,81 @@ class RouteNames {
     final query = Uri(queryParameters: queryParameters).query;
     return query.isEmpty ? '/class/$classId' : '/class/$classId?$query';
   }
+
+  static String _withQuery(String path, Map<String, Object?> query) {
+    final params = <String, String>{
+      for (final entry in query.entries)
+        if (entry.value != null && entry.value.toString().isNotEmpty)
+          entry.key: entry.value.toString(),
+    };
+    final encoded = Uri(queryParameters: params).query;
+    return encoded.isEmpty ? path : '$path?$encoded';
+  }
+
+  static String groupedClassAssignPath({int? yearId}) => _withQuery(
+        homeGroupedClassAssign,
+        {'yearId': yearId},
+      );
+
+  /// Members of a class. `className` only saves a lookup for the title.
+  static String groupedClassClassPath(
+    int classId, {
+    required int clubId,
+    required int sectionId,
+    int? yearId,
+    String? className,
+  }) =>
+      _withQuery('/home/grouped-class/class/$classId', {
+        'clubId': clubId,
+        'sectionId': sectionId,
+        'yearId': yearId,
+        'className': className,
+      });
+
+  /// One member's progress in a class.
+  static String groupedClassMemberPath(
+    int classId,
+    String userId, {
+    required int clubId,
+    required int sectionId,
+    int? enrollmentId,
+    int? yearId,
+    String? className,
+    String? memberName,
+  }) =>
+      _withQuery(
+        '/home/grouped-class/class/$classId/member/${Uri.encodeComponent(userId)}',
+        {
+          'clubId': clubId,
+          'sectionId': sectionId,
+          'enrollmentId': enrollmentId,
+          'yearId': yearId,
+          'className': className,
+          'memberName': memberName,
+        },
+      );
+
+  /// One requirement of a member. Resolved by id from the member's progress.
+  static String groupedClassRequirementPath(
+    int classId,
+    String userId,
+    int requirementId, {
+    int? enrollmentId,
+    int? clubId,
+    int? sectionId,
+    int? yearId,
+    String? memberName,
+  }) =>
+      _withQuery(
+        '/home/grouped-class/class/$classId/member/${Uri.encodeComponent(userId)}/requirement/$requirementId',
+        {
+          'enrollmentId': enrollmentId,
+          'clubId': clubId,
+          'sectionId': sectionId,
+          'yearId': yearId,
+          'memberName': memberName,
+        },
+      );
 
   static String investitureAuthorizeDetailPath(String requestId) =>
       '/investiture/authorize/${Uri.encodeComponent(requestId)}';

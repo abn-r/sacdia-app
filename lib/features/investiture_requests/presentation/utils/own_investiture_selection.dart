@@ -1,3 +1,4 @@
+import '../../../classes/domain/entities/progressive_class.dart';
 import '../../domain/entities/own_investiture_entry.dart';
 import '../../domain/entities/person_status.dart';
 
@@ -71,4 +72,30 @@ List<OwnInvestitureEntry> sortOwnEntries(
     return _statusRank(a.status).compareTo(_statusRank(b.status));
   });
   return visible;
+}
+
+/// Clase siguiente de quien acaba de investirse en [classId]: la inscrita con
+/// el id inmediato mayor (las clases progresivas van en orden de id) que aún
+/// no está investida. `null` si no se puede derivar.
+ProgressiveClass? nextEnrolledClass(
+  Iterable<ProgressiveClass> enrolled,
+  int classId,
+) {
+  ProgressiveClass? best;
+  for (final candidate in enrolled) {
+    if (candidate.id <= classId) continue;
+    if (candidate.investitureStatus == 'INVESTIDO') continue;
+    if (best == null || candidate.id < best.id) best = candidate;
+  }
+  return best;
+}
+
+/// Entrada que protagoniza «Mi investidura»: la pendiente más reciente; si no
+/// hay, la más reciente de todas. [sorted] viene de [sortOwnEntries].
+OwnInvestitureEntry? heroEntry(List<OwnInvestitureEntry> sorted) {
+  if (sorted.isEmpty) return null;
+  for (final entry in sorted) {
+    if (entry.status == PersonStatus.pending) return entry;
+  }
+  return sorted.first;
 }

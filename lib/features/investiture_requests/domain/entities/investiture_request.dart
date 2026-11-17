@@ -2,6 +2,17 @@ import 'package:equatable/equatable.dart';
 
 import 'person_status.dart';
 
+/// Persona con nombre (quien envió la solicitud, quien la autoriza).
+class InvestitureActor extends Equatable {
+  const InvestitureActor({required this.userId, required this.name});
+
+  final String userId;
+  final String name;
+
+  @override
+  List<Object?> get props => [userId, name];
+}
+
 /// Persona dentro de una solicitud de investidura.
 class RequestPerson extends Equatable {
   const RequestPerson({
@@ -78,6 +89,9 @@ class InvestitureRequest extends Equatable {
     this.pendingCount,
     this.earliestInvestitureDate,
     this.createdAt,
+    this.createdBy,
+    this.investedCount = 0,
+    this.rejectedCount = 0,
     required this.people,
   });
 
@@ -91,6 +105,13 @@ class InvestitureRequest extends Equatable {
   final int? pendingCount;
   final DateTime? earliestInvestitureDate;
   final DateTime? createdAt;
+
+  /// Quien envió la solicitud; `null` si el backend no lo informa.
+  final InvestitureActor? createdBy;
+
+  /// Resumen de una solicitud ya resuelta (listado con `include_resolved`).
+  final int investedCount;
+  final int rejectedCount;
   final List<RequestPerson> people;
 
   List<RequestPerson> get pendingPeople => people
@@ -109,6 +130,9 @@ class InvestitureRequest extends Equatable {
         pendingCount,
         earliestInvestitureDate,
         createdAt,
+        createdBy,
+        investedCount,
+        rejectedCount,
         people,
       ];
 }

@@ -162,11 +162,13 @@ class InvestitureRequestsRepositoryImpl
   @override
   Future<Either<Failure, List<InvestitureRequest>>> listForAuthorizer(
     int yearId, {
+    bool includeResolved = false,
     RequestCancelToken? cancelToken,
   }) =>
       _guard(
         () => remoteDataSource.listForAuthorizer(
           yearId,
+          includeResolved: includeResolved,
           cancelToken: cancelToken.asDioCancelToken(),
         ),
       );

@@ -69,6 +69,7 @@ abstract class InvestitureRequestsRepository {
 
   Future<Either<Failure, List<InvestitureRequest>>> listForAuthorizer(
     int yearId, {
+    bool includeResolved = false,
     RequestCancelToken? cancelToken,
   });
 

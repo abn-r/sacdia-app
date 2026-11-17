@@ -2,9 +2,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/status_progress/status_progress.dart';
 import '../../domain/entities/evidence_section.dart';
 import 'evidence_folder_summary.dart';
 import 'section_status_style.dart';
@@ -108,11 +108,15 @@ class EvidenceSectionStatusPanel extends StatelessWidget {
     final isValidated = section.status == EvidenceSectionStatus.validated;
     final isRejected = section.status == EvidenceSectionStatus.rejected;
     final isPending = section.status == EvidenceSectionStatus.pending;
-    final ink = isPending ? c.text : style.onContainer;
-    final meta = _meta(context);
     final notes = section.evaluationNotes?.trim();
     final hasNotes = notes != null && notes.isNotEmpty;
     final (step, fill) = _progress();
+    final names = [
+      'evidence_folder.panel.step_files'.tr(),
+      'evidence_folder.panel.step_sent'.tr(),
+      'evidence_folder.panel.step_local_field'.tr(),
+      if (_showsUnion) 'evidence_folder.panel.step_union'.tr(),
+    ];
 
     final String? trailing = isValidated
         ? 'evidence_folder.row.points'.tr(namedArgs: {
@@ -126,227 +130,82 @@ class EvidenceSectionStatusPanel extends StatelessWidget {
               })
             : null;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          key: const ValueKey('evidence-section-status-panel'),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: style.container,
-            borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return SacStatusPanel(
+      key: const ValueKey('evidence-section-status-panel'),
+      stepPathKey: const ValueKey('evidence-section-step-path'),
+      style: style,
+      trailing: trailing,
+      emphasizeTrailing: isValidated,
+      meta: _meta(context),
+      steps: names,
+      currentStep: step,
+      fill: fill,
+      stepsSemanticsLabel:
+          'evidence_folder.panel.step_semantics'.tr(namedArgs: {
+        'current': '${step + 1}',
+        'total': '${names.length}',
+        'label': names[step],
+      }),
+      note: hasNotes
+          ? _ReviewerNote(notes: notes, isRejected: isRejected, c: c)
+          : null,
+    );
+  }
+}
+
+class _ReviewerNote extends StatelessWidget {
+  const _ReviewerNote({
+    required this.notes,
+    required this.isRejected,
+    required this.c,
+  });
+
+  final String notes;
+  final bool isRejected;
+  final SacColors c;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const ValueKey('evidence-section-note'),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: c.surfaceVariant,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  HugeIcon(icon: style.icon, size: 20, color: ink),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      style.label,
-                      style: TextStyle(
-                        fontSize: SacFontSize.titleMedium,
-                        fontWeight: FontWeight.w700,
-                        color: ink,
-                      ),
-                    ),
-                  ),
-                  if (trailing != null)
-                    Text(
-                      trailing,
-                      style: TextStyle(
-                        fontSize: isValidated
-                            ? SacFontSize.headlineSmall
-                            : SacFontSize.bodySmall,
-                        fontWeight:
-                            isValidated ? FontWeight.w700 : FontWeight.w600,
-                        color: isValidated ? ink : c.textSecondary,
-                      ),
-                    ),
-                ],
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedComment01,
+                size: 16,
+                color: c.textSecondary,
               ),
-              if (meta != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  meta,
-                  style: TextStyle(
-                    fontSize: SacFontSize.bodySmall,
-                    height: 1.35,
-                    color: isPending ? c.textSecondary : ink,
-                  ),
+              const SizedBox(width: 6),
+              Text(
+                isRejected
+                    ? 'evidence_folder.detail.reviewer_note'.tr()
+                    : 'evidence_folder.detail.evaluator_note'.tr(),
+                style: TextStyle(
+                  fontSize: SacFontSize.bodySmall,
+                  fontWeight: FontWeight.w600,
+                  color: c.textSecondary,
                 ),
-              ],
-              const SizedBox(height: 16),
-              _StepPath(
-                withUnion: _showsUnion,
-                current: step,
-                fill: fill,
-                color: isPending ? c.text : ink,
-                track: isPending ? c.border : ink.withValues(alpha: 0.22),
-                labelColor: isPending ? c.textSecondary : ink,
               ),
             ],
           ),
-        ),
-        if (hasNotes) ...[
-          const SizedBox(height: 12),
-          Container(
-            key: const ValueKey('evidence-section-note'),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: c.surfaceVariant,
-              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedComment01,
-                      size: 16,
-                      color: c.textSecondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      isRejected
-                          ? 'evidence_folder.detail.reviewer_note'.tr()
-                          : 'evidence_folder.detail.evaluator_note'.tr(),
-                      style: TextStyle(
-                        fontSize: SacFontSize.bodySmall,
-                        fontWeight: FontWeight.w600,
-                        color: c.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  notes,
-                  style: TextStyle(
-                    fontSize: SacFontSize.titleMedium,
-                    height: 1.4,
-                    color: c.text,
-                  ),
-                ),
-              ],
+          const SizedBox(height: 6),
+          Text(
+            notes,
+            style: TextStyle(
+              fontSize: SacFontSize.titleMedium,
+              height: 1.4,
+              color: c.text,
             ),
           ),
         ],
-      ],
-    );
-  }
-}
-
-/// Equal segments: Archivos, Enviada, Campo local and, when the folder
-/// requires it, Unión. Segments
-/// before [current] are full; [current] fills to [fill]; the rest are track.
-/// Screen readers get one label naming the current step.
-class _StepPath extends StatelessWidget {
-  const _StepPath({
-    required this.withUnion,
-    required this.current,
-    required this.fill,
-    required this.color,
-    required this.track,
-    required this.labelColor,
-  });
-
-  final bool withUnion;
-  final int current;
-  final double fill;
-  final Color color;
-  final Color track;
-  final Color labelColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final names = [
-      'evidence_folder.panel.step_files'.tr(),
-      'evidence_folder.panel.step_sent'.tr(),
-      'evidence_folder.panel.step_local_field'.tr(),
-      if (withUnion) 'evidence_folder.panel.step_union'.tr(),
-    ];
-    return Semantics(
-      container: true,
-      label: 'evidence_folder.panel.step_semantics'.tr(namedArgs: {
-        'current': '${current + 1}',
-        'total': '${names.length}',
-        'label': names[current],
-      }),
-      excludeSemantics: true,
-      child: Row(
-        key: const ValueKey('evidence-section-step-path'),
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (var i = 0; i < names.length; i++) ...[
-            if (i > 0) const SizedBox(width: 6),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _Segment(
-                    fill: i < current ? 1 : (i == current ? fill : 0),
-                    color: color,
-                    track: track,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    names[i],
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: SacFontSize.labelSmall,
-                      fontWeight:
-                          i == current ? FontWeight.w700 : FontWeight.w500,
-                      color: i <= current
-                          ? labelColor
-                          : labelColor.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _Segment extends StatelessWidget {
-  const _Segment({
-    required this.fill,
-    required this.color,
-    required this.track,
-  });
-
-  final double fill;
-  final Color color;
-  final Color track;
-
-  @override
-  Widget build(BuildContext context) {
-    final duration =
-        SacMotion.reduceMotionOf(context) ? Duration.zero : SacMotion.modal;
-    final radius = BorderRadius.circular(AppTheme.radiusHairline);
-    return Container(
-      height: 4,
-      decoration: BoxDecoration(color: track, borderRadius: radius),
-      alignment: Alignment.centerLeft,
-      child: TweenAnimationBuilder<double>(
-        tween: Tween<double>(end: fill),
-        duration: duration,
-        curve: SacMotion.easeOut,
-        builder: (context, value, _) => FractionallySizedBox(
-          widthFactor: value,
-          heightFactor: 1,
-          child: DecoratedBox(
-            decoration: BoxDecoration(color: color, borderRadius: radius),
-          ),
-        ),
       ),
     );
   }

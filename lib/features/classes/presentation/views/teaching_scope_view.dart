@@ -1,400 +1,154 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:sacdia_app/core/widgets/sac_error_state.dart';
-import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import 'package:sacdia_app/core/theme/sac_accent.dart';
+import '../../../../core/config/route_names.dart';
+import '../../../../core/utils/back_or_home.dart';
+import '../../../../core/errors/user_error_message.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/sac_empty_state.dart';
+import '../../../../core/widgets/sac_error_state.dart';
+import '../../../../core/widgets/sac_pressable.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
-import '../../../../core/widgets/sac_loading.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
-import '../../domain/entities/progress_scope.dart';
 import '../providers/classes_providers.dart';
-import '../widgets/class_identity_badge.dart';
-import 'class_counselor_assignments_view.dart';
-import 'class_members_progress_view.dart';
-import 'package:sacdia_app/core/animations/page_transitions.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
+import '../widgets/grouped_class_skeleton.dart';
+import '../widgets/grouped_scope_body.dart';
 
+/// Home of the grouped-class flow (`/home/grouped-class`): how every class in
+/// scope is doing. The director sees the whole section; a counselor only the
+/// classes assigned to them (the server decides, see `access_level`).
 class TeachingScopeView extends ConsumerWidget {
   final int? yearId;
 
-  const TeachingScopeView({
-    super.key,
-    this.yearId,
-  });
+  const TeachingScopeView({super.key, this.yearId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final clubContextAsync = ref.watch(clubContextProvider);
-    final activeClubContext = clubContextAsync.value;
+    final clubContext = clubContextAsync.value;
     final user = ref.watch(authNotifierProvider).value;
-    final canReadAssignments = hasAnyPermission(user, const {
-      'club_roles:read',
-    });
-    final canMutateAssignments = hasAnyPermission(user, const {
-      'club_roles:assign',
-      'club_roles:revoke',
-    });
-    final canManageAssignments = canReadAssignments && canMutateAssignments;
-    final actionScopeQuery = activeClubContext == null
+    final canManageAssignments =
+        hasAnyPermission(user, const {'club_roles:read'}) &&
+            hasAnyPermission(
+              user,
+              const {'club_roles:assign', 'club_roles:revoke'},
+            );
+
+    TeachingScopeQuery? queryOf(ClubContext? ctx) => ctx == null
         ? null
         : TeachingScopeQuery(
-            clubId: activeClubContext.clubId,
-            sectionId: activeClubContext.sectionId,
+            clubId: ctx.clubId,
+            sectionId: ctx.sectionId,
             yearId: yearId,
           );
-    final resolvedAssignmentYearId = actionScopeQuery == null
+
+    final query = queryOf(clubContext);
+    final resolvedYearId = query == null
         ? yearId
         : ref
-                .watch(classProgressScopeProvider(actionScopeQuery))
+                .watch(classProgressScopeProvider(query))
                 .value
                 ?.ecclesiasticalYearId ??
             yearId;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: context.sac.canvas,
+      backgroundColor: context.sac.background,
       appBar: SacTopBar(
-          title: 'classes.teaching_scope.title'.tr(),
-          actions: [
-            if (canManageAssignments && activeClubContext != null)
-              SacPressable(
-                listenOnly: true,
-                child: IconButton(
-                  enableFeedback: false,
-                  tooltip: 'classes.class_assignments.title'.tr(),
-                  onPressed: resolvedAssignmentYearId == null
-                      ? null
-                      : () async {
-                          final query = TeachingScopeQuery(
-                            clubId: activeClubContext.clubId,
-                            sectionId: activeClubContext.sectionId,
-                            yearId: resolvedAssignmentYearId,
-                          );
-                          await Navigator.of(context).push(
-                            SacSharedAxisRoute<void>(
-                              builder: (_) => ClassCounselorAssignmentsView(
-                                clubId: activeClubContext.clubId,
-                                sectionId: activeClubContext.sectionId,
-                                clubTypeId: activeClubContext.clubTypeId,
-                                yearId: resolvedAssignmentYearId,
-                              ),
-                            ),
-                          );
-                          ref.invalidate(classProgressScopeProvider(query));
-                        },
-                  icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedUserCheck01,
-                    size: 22,
-                    color: context.sac.ink700,
-                  ),
+        title: 'classes.grouped.title'.tr(),
+        frosted: true,
+        onBack: () => backOrHome(context),
+        actions: [
+          if (canManageAssignments && query != null)
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                key: const ValueKey('grouped-assign-button'),
+                enableFeedback: false,
+                tooltip: 'classes.grouped.assign_tooltip'.tr(),
+                onPressed: () async {
+                  await context.push<void>(
+                    RouteNames.groupedClassAssignPath(yearId: resolvedYearId),
+                  );
+                  // The assignments changed who the counselors are.
+                  ref.invalidate(classProgressScopeProvider(query));
+                },
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedUserAdd01,
+                  size: 22,
+                  color: context.sac.text,
                 ),
               ),
-          ],
-          frosted: true),
+            ),
+        ],
+      ),
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) => clubContextAsync.when(
-            loading: () => const Center(child: SacLoading()),
-            error: (error, _) => _MessageState(
-              icon: HugeIcons.strokeRoundedAlert02,
+            loading: () => const GroupedClassSkeleton(),
+            error: (error, _) => SacErrorState(
               title: 'classes.teaching_scope.context_error_title'.tr(),
               message: userErrorMessage(error),
+              padding: SacTopBar.paddingBelowBar(
+                context,
+                const EdgeInsets.all(32),
+              ),
+              onRetry: () => ref.invalidate(clubContextProvider),
             ),
-            data: (clubContext) {
-              if (clubContext == null) {
-                return _MessageState(
-                  icon: HugeIcons.strokeRoundedBuilding01,
-                  title: 'classes.teaching_scope.no_context_title'.tr(),
-                  message: 'classes.teaching_scope.no_context_body'.tr(),
+            data: (ctx) {
+              if (ctx == null || query == null) {
+                return Padding(
+                  padding:
+                      EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+                  child: SacEmptyState(
+                    icon: HugeIcons.strokeRoundedBuilding01,
+                    title: 'classes.teaching_scope.no_context_title'.tr(),
+                    body: 'classes.teaching_scope.no_context_body'.tr(),
+                  ),
                 );
               }
-
-              final query = TeachingScopeQuery(
-                clubId: clubContext.clubId,
-                sectionId: clubContext.sectionId,
-                yearId: yearId,
-              );
               final scopeAsync = ref.watch(classProgressScopeProvider(query));
-
               return scopeAsync.when(
-                loading: () => const Center(child: SacLoading()),
+                loading: () => const GroupedClassSkeleton(),
                 error: (error, _) => SacErrorState(
-                  title: 'classes.teaching_scope.load_error_title'.tr(),
+                  title: 'classes.grouped.load_error_title'.tr(),
                   message: userErrorMessage(error),
+                  padding: SacTopBar.paddingBelowBar(
+                    context,
+                    const EdgeInsets.all(32),
+                  ),
                   onRetry: () =>
                       ref.invalidate(classProgressScopeProvider(query)),
                 ),
-                data: (scope) => _TeachingScopeBody(
+                data: (scope) => GroupedScopeBody(
                   scope: scope,
-                  clubId: clubContext.clubId,
-                  sectionId: clubContext.sectionId,
-                  onRefresh: () async =>
-                      ref.invalidate(classProgressScopeProvider(query)),
+                  clubTypeName: ctx.clubTypeName,
+                  onRefresh: () async {
+                    ref.invalidate(classProgressScopeProvider(query));
+                    try {
+                      await ref.read(classProgressScopeProvider(query).future);
+                    } catch (_) {
+                      // The error state of the provider already shows it.
+                    }
+                  },
+                  onOpenClass: (item) => context.push<void>(
+                    RouteNames.groupedClassClassPath(
+                      item.classId,
+                      clubId: ctx.clubId,
+                      sectionId: ctx.sectionId,
+                      yearId: scope.ecclesiasticalYearId,
+                      className: item.name,
+                    ),
+                  ),
                 ),
               );
             },
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _TeachingScopeBody extends StatelessWidget {
-  final ProgressScopeResult scope;
-  final int clubId;
-  final int sectionId;
-  final Future<void> Function() onRefresh;
-
-  const _TeachingScopeBody({
-    required this.scope,
-    required this.clubId,
-    required this.sectionId,
-    required this.onRefresh,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (scope.classes.isEmpty) {
-      return RefreshIndicator(
-        color: SacAccent.of(context).color,
-        onRefresh: onRefresh,
-        child: ListView(
-          padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(24)),
-          children: [
-            const SizedBox(height: 120),
-            _MessageState(
-              icon: HugeIcons.strokeRoundedBookOpen01,
-              title: 'classes.teaching_scope.empty_title'.tr(),
-              message: 'classes.teaching_scope.empty_body'.tr(),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      color: SacAccent.of(context).color,
-      onRefresh: onRefresh,
-      child: ListView.separated(
-        padding: SacTopBar.paddingBelowBar(
-            context, const EdgeInsets.fromLTRB(16, 16, 16, 32)),
-        itemCount: scope.classes.length + 1,
-        separatorBuilder: (_, index) =>
-            index == 0 ? const SizedBox(height: 12) : const SizedBox(height: 8),
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            return const SizedBox();
-          }
-
-          final progressiveClass = scope.classes[index - 1];
-          return _ClassScopeTile(
-            progressiveClass: progressiveClass,
-            onTap: () => Navigator.of(context).push(
-              SacSharedAxisRoute<void>(
-                builder: (_) => ClassMembersProgressView(
-                  clubId: clubId,
-                  sectionId: sectionId,
-                  classId: progressiveClass.classId,
-                  className: progressiveClass.name,
-                  yearId: scope.ecclesiasticalYearId,
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _ScopeHeader extends StatelessWidget {
-  final ProgressScopeResult scope;
-
-  const _ScopeHeader({required this.scope});
-
-  @override
-  Widget build(BuildContext context) {
-    final isSectionScope = scope.hasSectionWideAccess;
-    final title = isSectionScope
-        ? 'classes.teaching_scope.section_scope_title'.tr()
-        : 'classes.teaching_scope.assigned_scope_title'.tr();
-    final body = isSectionScope
-        ? 'classes.teaching_scope.section_scope_body'.tr()
-        : 'classes.teaching_scope.assigned_scope_body'.tr();
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: SacAccent.of(context).color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-        border: Border.all(
-            color: SacAccent.of(context).color.withValues(alpha: 0.18)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: SacAccent.of(context).color.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-            ),
-            child: Center(
-              child: HugeIcon(
-                icon: HugeIcons.strokeRoundedSchool,
-                size: 22,
-                color: SacAccent.of(context).color,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: context.sac.ink900,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  body,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: context.sac.ink600,
-                        height: 1.35,
-                      ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ClassScopeTile extends StatelessWidget {
-  final ProgressScopeClass progressiveClass;
-  final VoidCallback onTap;
-
-  const _ClassScopeTile({
-    required this.progressiveClass,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final classColor = AppColors.classColor(progressiveClass.name);
-    final c = context.sac;
-
-    return Material(
-      color: c.paper,
-      borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-      child: SacInkWell(
-        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-            border: Border.all(color: classColor.withValues(alpha: 0.18)),
-          ),
-          child: Row(
-            children: [
-              ClassIdentityBadge(
-                className: progressiveClass.name,
-                fallbackIcon: HugeIcons.strokeRoundedBookOpen01,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      progressiveClass.name,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: c.ink900,
-                          ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'classes.teaching_scope.open_members'.tr(),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: c.ink500,
-                          ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowRight01,
-                size: 20,
-                color: classColor,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MessageState extends StatelessWidget {
-  final List<List<dynamic>> icon;
-  final String title;
-  final String message;
-
-  const _MessageState({
-    required this.icon,
-    required this.title,
-    required this.message,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            HugeIcon(
-              icon: icon,
-              size: 54,
-              color: context.sac.ink400,
-            ),
-            const SizedBox(height: 14),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: context.sac.ink600,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-          ],
         ),
       ),
     );

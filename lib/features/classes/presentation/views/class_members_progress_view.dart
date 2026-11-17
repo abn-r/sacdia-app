@@ -1,28 +1,28 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
-import 'package:sacdia_app/core/widgets/sac_error_state.dart';
-import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hugeicons/hugeicons.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/config/route_names.dart';
+import '../../../../core/errors/user_error_message.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/sac_error_state.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
-import '../../../../core/widgets/sac_loading.dart';
-import '../../domain/entities/class_members_progress.dart';
+import '../../../members/presentation/providers/members_providers.dart';
 import '../providers/classes_providers.dart';
-import '../widgets/class_identity_badge.dart';
-import 'class_detail_with_progress_view.dart';
-import 'package:sacdia_app/core/animations/page_transitions.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
+import '../widgets/grouped_class_skeleton.dart';
+import '../widgets/grouped_members_body.dart';
 
-class ClassMembersProgressView extends ConsumerWidget {
+/// Members of one class and how far along each is, lowest progress first.
+/// Route: `/home/grouped-class/class/:classId`.
+class ClassMembersProgressView extends ConsumerStatefulWidget {
   final int clubId;
   final int sectionId;
   final int classId;
-  final String className;
+
+  /// Already known by the caller. When null (deep link) it is looked up in
+  /// the scope of the section.
+  final String? className;
   final int? yearId;
 
   const ClassMembersProgressView({
@@ -30,366 +30,102 @@ class ClassMembersProgressView extends ConsumerWidget {
     required this.clubId,
     required this.sectionId,
     required this.classId,
-    required this.className,
+    this.className,
     this.yearId,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final query = ClassMembersProgressQuery(
-      clubId: clubId,
-      sectionId: sectionId,
-      classId: classId,
-      yearId: yearId,
-    );
+  ConsumerState<ClassMembersProgressView> createState() =>
+      _ClassMembersProgressViewState();
+}
+
+class _ClassMembersProgressViewState
+    extends ConsumerState<ClassMembersProgressView> {
+  GroupedMembersFilter _filter = GroupedMembersFilter.all;
+
+  ClassMembersProgressQuery get _query => ClassMembersProgressQuery(
+        clubId: widget.clubId,
+        sectionId: widget.sectionId,
+        classId: widget.classId,
+        yearId: widget.yearId,
+      );
+
+  String _resolveClassName() {
+    final given = widget.className?.trim();
+    if (given != null && given.isNotEmpty) return given;
+    final scope = ref
+        .watch(
+          classProgressScopeProvider(
+            TeachingScopeQuery(
+              clubId: widget.clubId,
+              sectionId: widget.sectionId,
+              yearId: widget.yearId,
+            ),
+          ),
+        )
+        .value;
+    for (final item in scope?.classes ?? const []) {
+      if (item.classId == widget.classId) return item.name;
+    }
+    return 'classes.grouped.class_fallback'.tr();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final query = _query;
     final membersAsync = ref.watch(classMembersProgressProvider(query));
+    final className = _resolveClassName();
+    final clubTypeName = ref.watch(clubContextProvider).value?.clubTypeName;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: context.sac.canvas,
-      appBar: SacTopBar(title: className, frosted: true),
+      backgroundColor: context.sac.background,
+      appBar: SacTopBar(
+        title: className,
+        subtitle: clubTypeName,
+        frosted: true,
+      ),
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) => membersAsync.when(
-            loading: () => const Center(child: SacLoading()),
+            loading: () => const GroupedClassSkeleton(),
             error: (error, _) => SacErrorState(
-              title: 'classes.members_progress.load_error_title'.tr(),
+              title: 'classes.grouped.load_error_title'.tr(),
               message: userErrorMessage(error),
+              padding: SacTopBar.paddingBelowBar(
+                context,
+                const EdgeInsets.all(32),
+              ),
               onRetry: () =>
                   ref.invalidate(classMembersProgressProvider(query)),
             ),
-            data: (result) => _MembersBody(
+            data: (result) => GroupedMembersBody(
               result: result,
               className: className,
-              onRefresh: () async =>
-                  ref.invalidate(classMembersProgressProvider(query)),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MembersBody extends StatelessWidget {
-  final ClassMembersProgressResult result;
-  final String className;
-  final Future<void> Function() onRefresh;
-
-  const _MembersBody({
-    required this.result,
-    required this.className,
-    required this.onRefresh,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final classColor = AppColors.classColor(className);
-
-    if (result.members.isEmpty) {
-      return RefreshIndicator(
-        color: classColor,
-        onRefresh: onRefresh,
-        child: ListView(
-          padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(24)),
-          children: [
-            const SizedBox(height: 120),
-            _MessageState(
-              icon: HugeIcons.strokeRoundedUserGroup,
-              title: 'classes.members_progress.empty_title'.tr(),
-              message: 'classes.members_progress.empty_body'.tr(),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      color: classColor,
-      onRefresh: onRefresh,
-      child: ListView.separated(
-        padding: SacTopBar.paddingBelowBar(
-            context, const EdgeInsets.fromLTRB(16, 16, 16, 32)),
-        itemCount: result.members.length + 1,
-        separatorBuilder: (_, index) =>
-            index == 0 ? const SizedBox(height: 12) : const SizedBox(height: 8),
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            return _MembersHeader(
-              className: className,
-              count: result.members.length,
-              classColor: classColor,
-            );
-          }
-
-          final member = result.members[index - 1];
-          return _MemberProgressTile(
-            member: member,
-            classColor: classColor,
-            onTap: () => Navigator.of(context).push(
-              SacSharedAxisRoute<void>(
-                builder: (_) => ClassDetailWithProgressView(
-                  classId: member.classId,
+              filter: _filter,
+              onFilterChanged: (filter) => setState(() => _filter = filter),
+              onRefresh: () async {
+                ref.invalidate(classMembersProgressProvider(query));
+                try {
+                  await ref.read(classMembersProgressProvider(query).future);
+                } catch (_) {
+                  // The error state of the provider already shows it.
+                }
+              },
+              onOpenMember: (member) => context.push<void>(
+                RouteNames.groupedClassMemberPath(
+                  widget.classId,
+                  member.userId,
+                  clubId: widget.clubId,
+                  sectionId: widget.sectionId,
                   enrollmentId: member.enrollmentId,
-                  targetUserId: member.userId,
+                  yearId: widget.yearId,
+                  className: className,
+                  memberName: member.name,
                 ),
               ),
             ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _MembersHeader extends StatelessWidget {
-  final String className;
-  final int count;
-  final Color classColor;
-
-  const _MembersHeader({
-    required this.className,
-    required this.count,
-    required this.classColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: c.paper,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-        border: Border.all(color: classColor.withValues(alpha: 0.18)),
-      ),
-      child: Row(
-        children: [
-          ClassIdentityBadge(
-            className: className,
-            size: 44,
-            fallbackIcon: HugeIcons.strokeRoundedUserGroup,
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  className,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: c.ink900,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'classes.members_progress.member_count'
-                      .tr(namedArgs: {'count': count.toString()}),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: c.ink600,
-                      ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MemberProgressTile extends StatelessWidget {
-  final ClassMemberProgress member;
-  final Color classColor;
-  final VoidCallback onTap;
-
-  const _MemberProgressTile({
-    required this.member,
-    required this.classColor,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final safeProgress = member.overallProgress.clamp(0, 100);
-    final completedLabel =
-        '${member.completedSections}/${member.totalSections}';
-    final c = context.sac;
-
-    return Material(
-      color: c.paper,
-      borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-      child: SacInkWell(
-        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-            border: Border.all(color: c.ink150),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 22,
-                    backgroundColor: classColor.withValues(alpha: 0.12),
-                    child: Text(
-                      _initials(member.name),
-                      style: TextStyle(
-                        color: classColor,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Flexible(
-                              child: Text(
-                                member.name.isEmpty
-                                    ? member.userId
-                                    : member.name,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w800,
-                                      color: c.ink900,
-                                    ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            if (member.crossTypeEnrollment) ...[
-                              const SizedBox(width: 6),
-                              _CrossTypeChip(classColor: classColor),
-                            ],
-                          ],
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          'classes.members_progress.completed_sections'
-                              .tr(namedArgs: {'value': completedLabel}),
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: c.ink500,
-                                  ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '$safeProgress%',
-                    style: TextStyle(
-                      fontSize: SacFontSize.titleMedium,
-                      fontWeight: FontWeight.w900,
-                      color: classColor,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              SacProgressBar(
-                progress: safeProgress / 100,
-                height: 8,
-                color: classColor,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  static String _initials(String name) {
-    final parts = name
-        .trim()
-        .split(RegExp(r'\s+'))
-        .where((part) => part.isNotEmpty)
-        .toList();
-    if (parts.isEmpty) return '?';
-    final first = parts.first.characters.first;
-    final second = parts.length > 1 ? parts.last.characters.first : '';
-    return '$first$second'.toUpperCase();
-  }
-}
-
-class _CrossTypeChip extends StatelessWidget {
-  final Color classColor;
-
-  const _CrossTypeChip({required this.classColor});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: classColor.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppTheme.radius2XS),
-        border: Border.all(color: classColor.withValues(alpha: 0.30)),
-      ),
-      child: Text(
-        'classes.members_progress.cross_type_chip'.tr(),
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: classColor,
-              fontWeight: FontWeight.w700,
-              fontSize: SacFontSize.caption,
-            ),
-      ),
-    );
-  }
-}
-
-class _MessageState extends StatelessWidget {
-  final List<List<dynamic>> icon;
-  final String title;
-  final String message;
-
-  const _MessageState({
-    required this.icon,
-    required this.title,
-    required this.message,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            HugeIcon(
-              icon: icon,
-              size: 54,
-              color: context.sac.ink400,
-            ),
-            const SizedBox(height: 14),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: context.sac.ink600,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-          ],
         ),
       ),
     );

@@ -2,6 +2,8 @@ import 'package:equatable/equatable.dart';
 
 import '../../../../core/utils/json_helpers.dart';
 import '../../domain/entities/class_members_progress.dart';
+import '../../domain/entities/class_progress_summary.dart';
+import 'class_progress_parsing.dart';
 
 class ClassMemberProgressModel extends Equatable {
   final String userId;
@@ -14,6 +16,7 @@ class ClassMemberProgressModel extends Equatable {
   final int totalSections;
   final int overallProgress;
   final bool crossTypeEnrollment;
+  final RequirementStatusCounts statusCounts;
 
   const ClassMemberProgressModel({
     required this.userId,
@@ -26,6 +29,7 @@ class ClassMemberProgressModel extends Equatable {
     required this.totalSections,
     required this.overallProgress,
     this.crossTypeEnrollment = false,
+    this.statusCounts = RequirementStatusCounts.zero,
   });
 
   factory ClassMemberProgressModel.fromJson(Map<String, dynamic> json) {
@@ -40,6 +44,7 @@ class ClassMemberProgressModel extends Equatable {
       totalSections: safeInt(json['total_sections']),
       overallProgress: safeInt(json['overall_progress']),
       crossTypeEnrollment: json['cross_type_enrollment'] == true,
+      statusCounts: parseStatusCounts(json['status_counts']),
     );
   }
 
@@ -55,6 +60,7 @@ class ClassMemberProgressModel extends Equatable {
       'total_sections': totalSections,
       'overall_progress': overallProgress,
       'cross_type_enrollment': crossTypeEnrollment,
+      'status_counts': statusCountsToJson(statusCounts),
     };
   }
 
@@ -70,6 +76,7 @@ class ClassMemberProgressModel extends Equatable {
       totalSections: totalSections,
       overallProgress: overallProgress,
       crossTypeEnrollment: crossTypeEnrollment,
+      statusCounts: statusCounts,
     );
   }
 
@@ -85,6 +92,7 @@ class ClassMemberProgressModel extends Equatable {
         totalSections,
         overallProgress,
         crossTypeEnrollment,
+        statusCounts,
       ];
 }
 
@@ -95,6 +103,9 @@ class ClassMembersProgressResultModel extends Equatable {
   final int ecclesiasticalYearId;
   final String accessLevel;
   final List<ClassMemberProgressModel> members;
+  final ClassProgressSummary summary;
+  final ClassResponsible? counselor;
+  final ClassResponsible? assistant;
 
   const ClassMembersProgressResultModel({
     required this.clubSectionId,
@@ -103,10 +114,14 @@ class ClassMembersProgressResultModel extends Equatable {
     required this.ecclesiasticalYearId,
     required this.accessLevel,
     required this.members,
+    this.summary = const ClassProgressSummary(),
+    this.counselor,
+    this.assistant,
   });
 
   factory ClassMembersProgressResultModel.fromJson(Map<String, dynamic> json) {
     final rawMembers = json['members'] as List<dynamic>? ?? const [];
+    final rawSummary = json['summary'];
 
     return ClassMembersProgressResultModel(
       clubSectionId: safeInt(json['club_section_id']),
@@ -121,6 +136,14 @@ class ClassMembersProgressResultModel extends Equatable {
             ),
           )
           .toList(),
+      summary: rawSummary is Map
+          ? ClassProgressSummary(
+              avgProgress: parseProgressPercent(rawSummary['avg_progress']),
+              statusCounts: parseStatusCounts(rawSummary['status_counts']),
+            )
+          : const ClassProgressSummary(),
+      counselor: parseResponsible(json['counselor']),
+      assistant: parseResponsible(json['assistant']),
     );
   }
 
@@ -132,6 +155,12 @@ class ClassMembersProgressResultModel extends Equatable {
       'ecclesiastical_year_id': ecclesiasticalYearId,
       'access_level': accessLevel,
       'members': members.map((item) => item.toJson()).toList(),
+      'summary': {
+        'avg_progress': summary.avgProgress,
+        'status_counts': statusCountsToJson(summary.statusCounts),
+      },
+      'counselor': responsibleToJson(counselor),
+      'assistant': responsibleToJson(assistant),
     };
   }
 
@@ -143,6 +172,9 @@ class ClassMembersProgressResultModel extends Equatable {
       ecclesiasticalYearId: ecclesiasticalYearId,
       accessLevel: accessLevel,
       members: members.map((item) => item.toEntity()).toList(),
+      summary: summary,
+      counselor: counselor,
+      assistant: assistant,
     );
   }
 
@@ -154,5 +186,8 @@ class ClassMembersProgressResultModel extends Equatable {
         ecclesiasticalYearId,
         accessLevel,
         members,
+        summary,
+        counselor,
+        assistant,
       ];
 }

@@ -126,14 +126,16 @@ final sectionPeopleNamesProvider =
 
 // ── Lectura: autorizador ─────────────────────────────────────────────────────
 
-/// Solicitudes visibles para el autorizador en el año (family por `yearId`).
+/// Solicitudes visibles para el autorizador en el año (family por `yearId`),
+/// incluidas las ya resueltas (con su resumen de investidos y rechazados).
 final authorizerRequestsProvider = FutureProvider.autoDispose
     .family<List<InvestitureRequest>, int>((ref, yearId) async {
   final cancelToken = CancelToken();
   ref.onDispose(cancelToken.cancel);
   final result = await ref
       .watch(investitureRequestsRepositoryProvider)
-      .listForAuthorizer(yearId, cancelToken: cancelToken);
+      .listForAuthorizer(yearId,
+          includeResolved: true, cancelToken: cancelToken);
   return result.fold((failure) => throw failure, (value) => value);
 });
 
@@ -212,7 +214,8 @@ abstract class _SectionActionNotifier extends Notifier<RequestActionState> {
   void reset() => state = const RequestActionState();
 }
 
-/// Presenta personas en una solicitud nueva.
+/// Envía personas a autorización. El backend las agrega a la solicitud abierta
+/// de la sección o crea una nueva, así que la UI no distingue los dos casos.
 class PresentNotifier extends _SectionActionNotifier {
   PresentNotifier(super.arg);
 
@@ -224,24 +227,6 @@ class PresentNotifier extends _SectionActionNotifier {
         () => _repo.present(
           sectionId: arg.sectionId,
           yearId: arg.yearId,
-          investitureDate: investitureDate,
-          enrollmentIds: enrollmentIds,
-        ),
-      );
-}
-
-/// Agrega personas a la solicitud abierta.
-class AddPeopleNotifier extends _SectionActionNotifier {
-  AddPeopleNotifier(super.arg);
-
-  Future<bool> submit({
-    required String requestId,
-    required DateTime investitureDate,
-    required List<int> enrollmentIds,
-  }) =>
-      _execute(
-        () => _repo.addPeople(
-          requestId: requestId,
           investitureDate: investitureDate,
           enrollmentIds: enrollmentIds,
         ),
@@ -282,11 +267,6 @@ class ChangeDatesNotifier extends _SectionActionNotifier {
 final presentNotifierProvider = NotifierProvider.autoDispose
     .family<PresentNotifier, RequestActionState, SectionYearQuery>(
   PresentNotifier.new,
-);
-
-final addPeopleNotifierProvider = NotifierProvider.autoDispose
-    .family<AddPeopleNotifier, RequestActionState, SectionYearQuery>(
-  AddPeopleNotifier.new,
 );
 
 final removePersonNotifierProvider = NotifierProvider.autoDispose

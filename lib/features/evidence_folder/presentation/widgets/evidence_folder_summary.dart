@@ -3,34 +3,24 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 
-import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/status_progress/status_progress.dart';
 import '../../domain/entities/evidence_folder.dart';
 import '../../domain/entities/evidence_section.dart';
-import 'section_status_style.dart';
 
 /// Section counts by what they mean for the club.
-class EvidenceFolderCounts {
+class EvidenceFolderCounts extends StatusCounts {
   EvidenceFolderCounts(List<EvidenceSection> sections)
-      : total = sections.length,
-        validated = _count(sections, {EvidenceSectionStatus.validated}),
-        review = _count(sections, {
-          EvidenceSectionStatus.submitted,
-          EvidenceSectionStatus.preapprovedLf,
-        }),
-        rejected = _count(sections, {EvidenceSectionStatus.rejected}),
-        pending = _count(sections, {EvidenceSectionStatus.pending});
-
-  final int total;
-  final int validated;
-  final int review;
-  final int rejected;
-  final int pending;
-
-  /// Sent or validated: nothing left for the club to do there.
-  int get ready => validated + review;
-
-  int get missing => total - ready;
+      : super(
+          validated: _count(sections, {EvidenceSectionStatus.validated}),
+          review: _count(sections, {
+            EvidenceSectionStatus.submitted,
+            EvidenceSectionStatus.preapprovedLf,
+          }),
+          rejected: _count(sections, {EvidenceSectionStatus.rejected}),
+          pending: _count(sections, {EvidenceSectionStatus.pending}),
+        );
 
   static int _count(
     List<EvidenceSection> sections,
@@ -88,7 +78,7 @@ class _OpenSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    return _SummaryBox(
+    return SacSummaryBox(
       color: c.surfaceVariant,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,7 +142,7 @@ class _WaitingSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final underEvaluation = folder.isUnderEvaluation;
-    return _SummaryBox(
+    return SacSummaryBox(
       color: c.infoContainer,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,7 +172,7 @@ class _ClosedSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    return _SummaryBox(
+    return SacSummaryBox(
       color: c.surfaceVariant,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,7 +208,7 @@ class _EvaluatedSummary extends StatelessWidget {
     final ink = c.onSuccessContainer;
     final date = folder.evaluatedAt;
     final percent = (folder.completionRatio * 100).round();
-    return _SummaryBox(
+    return SacSummaryBox(
       color: c.successContainer,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -284,26 +274,6 @@ class _EvaluatedSummary extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _SummaryBox extends StatelessWidget {
-  const _SummaryBox({required this.color, required this.child});
-
-  final Color color;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-      ),
-      child: child,
     );
   }
 }
@@ -408,95 +378,18 @@ class EvidenceStatusBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    final parts = <(int, Color, String)>[
-      (
-        counts.validated,
-        EvidenceStatusStyle.of(context, EvidenceSectionStatus.validated).solid,
-        'evidence_folder.summary.legend_validated'.plural(counts.validated),
-      ),
-      (
-        counts.review,
-        EvidenceStatusStyle.of(context, EvidenceSectionStatus.submitted).solid,
-        'evidence_folder.summary.legend_review'.plural(counts.review),
-      ),
-      (
-        counts.rejected,
-        EvidenceStatusStyle.of(context, EvidenceSectionStatus.rejected).solid,
-        'evidence_folder.summary.legend_rejected'.plural(counts.rejected),
-      ),
-      (
-        counts.pending,
-        c.textTertiary.withValues(alpha: 0.45),
-        'evidence_folder.summary.legend_pending'.plural(counts.pending),
-      ),
-    ].where((p) => p.$1 > 0).toList();
-
-    if (parts.isEmpty) return const SizedBox.shrink();
-
-    return Semantics(
-      container: true,
-      label: parts.map((p) => p.$3).join(', '),
-      excludeSemantics: true,
-      child: Column(
-        key: const ValueKey('evidence-folder-status-bar'),
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-            child: SizedBox(
-              height: 8,
-              child: Row(
-                // Without stretch an empty ColoredBox is 0 tall.
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (var i = 0; i < parts.length; i++) ...[
-                    if (i > 0) const SizedBox(width: 3),
-                    Expanded(
-                      flex: parts[i].$1,
-                      child: ColoredBox(color: parts[i].$2),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 14,
-            runSpacing: 6,
-            children: [
-              for (final p in parts)
-                Text.rich(
-                  TextSpan(
-                    children: [
-                      WidgetSpan(
-                        alignment: PlaceholderAlignment.middle,
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 6),
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: p.$2,
-                              borderRadius: BorderRadius.circular(
-                                AppTheme.radiusHairline,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      TextSpan(text: p.$3),
-                    ],
-                  ),
-                  style: TextStyle(
-                    fontSize: SacFontSize.bodySmall,
-                    color: legendColor ?? c.textSecondary,
-                  ),
-                ),
-            ],
-          ),
-        ],
+    return SacStatusBar.counts(
+      key: const ValueKey('evidence-folder-status-bar'),
+      counts: counts,
+      legendColor: legendColor,
+      countLabels: SacStatusCountLabels(
+        validated:
+            'evidence_folder.summary.legend_validated'.plural(counts.validated),
+        review: 'evidence_folder.summary.legend_review'.plural(counts.review),
+        rejected:
+            'evidence_folder.summary.legend_rejected'.plural(counts.rejected),
+        pending:
+            'evidence_folder.summary.legend_pending'.plural(counts.pending),
       ),
     );
   }

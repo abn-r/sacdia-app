@@ -1,4 +1,6 @@
+import '../../domain/entities/investiture_request.dart';
 import '../../domain/entities/presentation_context.dart';
+import 'investiture_request_model.dart';
 import 'json_parsing.dart';
 
 class WindowStateModel extends WindowState {
@@ -30,6 +32,7 @@ class PresentationCandidateModel extends PresentationCandidate {
     required super.eligible,
     super.blockedCode,
     super.pendingPersonId,
+    super.missingRequirementsCount,
   });
 
   factory PresentationCandidateModel.fromJson(Map<String, dynamic> json) {
@@ -43,6 +46,7 @@ class PresentationCandidateModel extends PresentationCandidate {
       eligible: json['eligible'] == true,
       blockedCode: asStringOrNull(json['blocked_code']),
       pendingPersonId: asStringOrNull(json['pending_person_id']),
+      missingRequirementsCount: asIntOrNull(json['missing_requirements_count']),
     );
   }
 }
@@ -54,6 +58,7 @@ class PresentationContextModel extends PresentationContext {
     required super.window,
     required super.yearOpen,
     super.openRequestId,
+    super.authorizers,
     required super.candidates,
   });
 
@@ -64,6 +69,10 @@ class PresentationContextModel extends PresentationContext {
       window: WindowStateModel.fromJson(asJsonMap(json['window'])),
       yearOpen: json['year_open'] == true,
       openRequestId: asStringOrNull(json['open_request_id']),
+      authorizers: asJsonMapList(json['authorizers'])
+          .map(parseInvestitureActor)
+          .whereType<InvestitureActor>()
+          .toList(growable: false),
       candidates: asJsonMapList(json['candidates'])
           .map(PresentationCandidateModel.fromJson)
           .toList(growable: false),

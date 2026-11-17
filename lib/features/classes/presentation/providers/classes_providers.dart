@@ -463,22 +463,29 @@ final classCounselorAssignmentsProvider = FutureProvider.autoDispose
 class ClassCounselorAssignmentActionState {
   final bool isLoading;
   final String? errorMessage;
+
+  /// Código de negocio del backend (`CLASS_COUNSELOR_PRIMARY_EXISTS`, ...).
+  /// La pantalla traduce por este código en vez de mostrar el texto crudo.
+  final String? errorCode;
   final bool success;
 
   const ClassCounselorAssignmentActionState({
     this.isLoading = false,
     this.errorMessage,
+    this.errorCode,
     this.success = false,
   });
 
   ClassCounselorAssignmentActionState copyWith({
     bool? isLoading,
     String? errorMessage,
+    String? errorCode,
     bool? success,
   }) {
     return ClassCounselorAssignmentActionState(
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
+      errorCode: errorCode,
       success: success ?? this.success,
     );
   }
@@ -527,6 +534,7 @@ class ClassCounselorAssignmentsNotifier
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,
+          errorCode: failure.errorCode,
           success: false,
         );
         return false;
@@ -573,6 +581,7 @@ class ClassCounselorAssignmentsNotifier
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,
+          errorCode: failure.errorCode,
           success: false,
         );
         return false;
@@ -608,6 +617,7 @@ class ClassCounselorAssignmentsNotifier
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,
+          errorCode: failure.errorCode,
           success: false,
         );
         return false;

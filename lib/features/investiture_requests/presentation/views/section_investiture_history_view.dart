@@ -1,15 +1,19 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/config/route_names.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_badge.dart';
 import '../../../../core/widgets/sac_empty_state.dart';
 import '../../../../core/widgets/sac_filter_chip.dart';
-import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/widgets/sac_pressable.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
+import '../../../../core/widgets/status_progress/status_progress.dart';
 import '../../../../providers/catalogs_provider.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -21,18 +25,23 @@ import '../providers/investiture_requests_providers.dart';
 import '../utils/investiture_dates.dart';
 import '../utils/investiture_history_grouping.dart';
 import '../widgets/investiture_message_state.dart';
-import '../widgets/investiture_person_row.dart';
-import '../widgets/investiture_section_label.dart';
+import '../widgets/investiture_rows.dart';
+import '../widgets/investiture_skeleton.dart';
 
 const _i18n = 'investiture_requests.history';
 const _sectionI18n = 'investiture_requests.section';
 
-enum _HistoryTab { history, yearbook }
+enum HistoryTab { history, yearbook }
 
 /// Historial de investiduras y anuario de inscripciones de la sección, para la
-/// directiva. Se entra desde la pantalla de la directiva.
+/// directiva. Se entra desde el menú del tablero.
 class SectionInvestitureHistoryView extends ConsumerStatefulWidget {
-  const SectionInvestitureHistoryView({super.key});
+  const SectionInvestitureHistoryView({
+    super.key,
+    this.initialTab = HistoryTab.history,
+  });
+
+  final HistoryTab initialTab;
 
   @override
   ConsumerState<SectionInvestitureHistoryView> createState() =>
@@ -41,7 +50,8 @@ class SectionInvestitureHistoryView extends ConsumerStatefulWidget {
 
 class _SectionInvestitureHistoryViewState
     extends ConsumerState<SectionInvestitureHistoryView> {
-  _HistoryTab _tab = _HistoryTab.history;
+  late HistoryTab _tab = widget.initialTab;
+  int? _yearId;
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +63,31 @@ class _SectionInvestitureHistoryViewState
       'investiture.board',
     );
 
+    Widget body;
+    if (club == null) {
+      if (clubAsync.hasError) {
+        body = InvestitureMessageState.loadError(
+          title: tr('$_i18n.load_error_title'),
+          error: clubAsync.error,
+          onRetry: () => ref.invalidate(clubContextProvider),
+        );
+      } else {
+        body = clubAsync.isLoading
+            ? const InvestitureListSkeleton()
+            : _restricted(context);
+      }
+    } else if (!isBoard) {
+      body = _restricted(context);
+    } else {
+      body = _Body(
+        sectionId: club.sectionId,
+        tab: _tab,
+        yearId: _yearId,
+        onTabChanged: (tab) => setState(() => _tab = tab),
+        onYearChanged: (year) => setState(() => _yearId = year),
+      );
+    }
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: c.canvas,
@@ -61,36 +96,16 @@ class _SectionInvestitureHistoryViewState
         backgroundColor: c.canvas,
         frosted: true,
       ),
-      body: SacFrostedVeil(
-        child: Builder(
-          builder: (context) {
-            if (club == null) {
-              if (clubAsync.hasError) {
-                return InvestitureMessageState(
-                  title: tr('$_i18n.load_error_title'),
-                  onRetry: () => ref.invalidate(clubContextProvider),
-                );
-              }
-              return clubAsync.isLoading
-                  ? const Center(child: SacLoading())
-                  : _restricted();
-            }
-            if (!isBoard) return _restricted();
-            return _Body(
-              sectionId: club.sectionId,
-              tab: _tab,
-              onTabChanged: (tab) => setState(() => _tab = tab),
-            );
-          },
-        ),
-      ),
+      body: SacFrostedVeil(child: body),
     );
   }
 
-  Widget _restricted() => InvestitureMessageState(
+  Widget _restricted(BuildContext context) => InvestitureMessageState(
         title: tr('$_sectionI18n.restricted_title'),
         body: tr('$_sectionI18n.restricted_body'),
         icon: HugeIcons.strokeRoundedLockKey,
+        actionLabel: tr('$_sectionI18n.see_mine'),
+        onAction: () => context.push(RouteNames.ownInvestiture),
       );
 }
 
@@ -98,21 +113,25 @@ class _Body extends ConsumerWidget {
   const _Body({
     required this.sectionId,
     required this.tab,
+    required this.yearId,
     required this.onTabChanged,
+    required this.onYearChanged,
   });
 
   final int sectionId;
-  final _HistoryTab tab;
-  final ValueChanged<_HistoryTab> onTabChanged;
+  final HistoryTab tab;
+  final int? yearId;
+  final ValueChanged<HistoryTab> onTabChanged;
+  final ValueChanged<int> onYearChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final historyAsync =
         ref.watch(sectionInvestitureHistoryProvider(sectionId));
     final yearbookAsync = ref.watch(sectionYearbookProvider(sectionId));
-    final isHistory = tab == _HistoryTab.history;
-
+    final isHistory = tab == HistoryTab.history;
     final loading = isHistory ? historyAsync : yearbookAsync;
+
     Future<void> refresh() async {
       if (isHistory) {
         ref.invalidate(sectionInvestitureHistoryProvider(sectionId));
@@ -131,168 +150,208 @@ class _Body extends ConsumerWidget {
       }
     }
 
-    final tabs = Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          SacFilterChip(
-            label: tr('$_i18n.tab_history'),
-            selected: isHistory,
-            onTap: () => onTabChanged(_HistoryTab.history),
-          ),
-          const SizedBox(width: 8),
-          SacFilterChip(
-            label: tr('$_i18n.tab_yearbook'),
-            selected: !isHistory,
-            onTap: () => onTabChanged(_HistoryTab.yearbook),
-          ),
-        ],
-      ),
-    );
-
-    Widget content;
     if (loading.value == null) {
       if (loading.hasError) {
-        content = SizedBox(
-          height: 360,
-          child: SacEmptyState(
-            title: tr(
-              isHistory
-                  ? '$_i18n.load_error_title'
-                  : '$_i18n.yearbook_load_error_title',
-            ),
-            icon: HugeIcons.strokeRoundedAlert02,
-            actionLabel: tr('common.retry'),
-            actionIcon: HugeIcons.strokeRoundedRefresh,
-            onAction: refresh,
+        return InvestitureMessageState.loadError(
+          title: tr(
+            isHistory
+                ? '$_i18n.load_error_title'
+                : '$_i18n.yearbook_load_error_title',
           ),
+          error: loading.error,
+          onRetry: refresh,
         );
-      } else {
-        content =
-            const SizedBox(height: 280, child: Center(child: SacLoading()));
       }
-    } else if (isHistory) {
-      content = _HistoryList(entries: historyAsync.requireValue);
-    } else {
-      content = _YearbookList(entries: yearbookAsync.requireValue);
+      return const InvestitureListSkeleton();
     }
+
+    final List<OwnInvestitureEntry> historyEntries = isHistory
+        ? historyAsync.requireValue.where(_isHistoryStatus).toList()
+        : const [];
+    final yearbookEntries =
+        isHistory ? const <YearbookEntry>[] : yearbookAsync.requireValue;
+
+    final years = <int>{
+      for (final e in historyEntries) e.ecclesiasticalYearId,
+      for (final e in yearbookEntries) e.ecclesiasticalYearId,
+    }.toList()
+      ..sort((a, b) => b.compareTo(a));
+    final selectedYear =
+        years.contains(yearId) ? yearId! : (years.isEmpty ? null : years.first);
+
+    final names = ref.watch(sectionPeopleNamesProvider);
 
     return RefreshIndicator(
       color: SacAccent.of(context).color,
+      edgeOffset: SacTopBar.frostedInset(context),
       onRefresh: refresh,
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: SacTopBar.paddingBelowBar(
           context,
-          const EdgeInsets.fromLTRB(16, 16, 16, 32),
+          const EdgeInsets.only(top: 4, bottom: 32),
         ),
-        children: [tabs, content],
-      ),
-    );
-  }
-}
-
-/// Nombre del año eclesiástico del catálogo; respaldo neutro si no está.
-String _yearLabel(WidgetRef ref, int yearId) {
-  final years = ref.watch(ecclesiasticalYearsProvider(null)).value;
-  if (years != null) {
-    for (final year in years) {
-      if (year.ecclesiasticalYearId == yearId && year.name.trim().isNotEmpty) {
-        return year.name.trim();
-      }
-    }
-  }
-  return tr('$_i18n.year_fallback');
-}
-
-String _personName(Map<String, String> names, String userId) =>
-    names[userId] ?? tr('$_sectionI18n.unnamed_person');
-
-/// Encabezado de un año, con el total de personas.
-class _YearHeader extends ConsumerWidget {
-  const _YearHeader({required this.yearId, required this.count});
-
-  final int yearId;
-  final int count;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 12, bottom: 4),
-      child: InvestitureSectionLabel(
-        title: _yearLabel(ref, yearId),
-        count: count,
-      ),
-    );
-  }
-}
-
-/// Encabezado de una clase dentro de un año.
-class _ClassHeader extends StatelessWidget {
-  const _ClassHeader({required this.name});
-
-  final String? name;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 6, bottom: 8),
-      child: Text(
-        name ?? tr('$_i18n.class_fallback'),
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: context.sac.ink600,
+        children: [
+          _Segmented(tab: tab, onChanged: onTabChanged),
+          if (years.length > 1)
+            _YearChips(
+              years: years,
+              selected: selectedYear,
+              onChanged: onYearChanged,
             ),
+          if (selectedYear == null)
+            Padding(
+              padding: const EdgeInsets.only(top: 40),
+              child: SacEmptyState(
+                title: tr(
+                  isHistory
+                      ? '$_i18n.empty_title'
+                      : '$_i18n.yearbook_empty_title',
+                ),
+                body: tr(
+                  isHistory
+                      ? '$_i18n.empty_body'
+                      : '$_i18n.yearbook_empty_body',
+                ),
+                icon: isHistory
+                    ? HugeIcons.strokeRoundedTime04
+                    : HugeIcons.strokeRoundedBookOpen01,
+              ),
+            )
+          else if (isHistory)
+            ..._historyContent(
+              context,
+              ref,
+              historyEntries
+                  .where((e) => e.ecclesiasticalYearId == selectedYear)
+                  .toList(),
+              selectedYear,
+              names,
+            )
+          else
+            ..._yearbookContent(
+              context,
+              ref,
+              yearbookEntries
+                  .where((e) => e.ecclesiasticalYearId == selectedYear)
+                  .toList(),
+              selectedYear,
+              names,
+            ),
+        ],
       ),
     );
   }
-}
 
-class _HistoryList extends ConsumerWidget {
-  const _HistoryList({required this.entries});
-
-  final List<OwnInvestitureEntry> entries;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final visible = entries.where(_isHistoryStatus).toList(growable: false);
-    if (visible.isEmpty) {
-      return SizedBox(
-        height: 360,
-        child: SacEmptyState(
-          title: tr('$_i18n.empty_title'),
-          body: tr('$_i18n.empty_body'),
-          icon: HugeIcons.strokeRoundedTime04,
-        ),
-      );
-    }
-    final names = ref.watch(sectionPeopleNamesProvider);
+  List<Widget> _historyContent(
+    BuildContext context,
+    WidgetRef ref,
+    List<OwnInvestitureEntry> entries,
+    int year,
+    Map<String, String> names,
+  ) {
+    final c = context.sac;
+    final invested =
+        entries.where((e) => e.status == PersonStatus.invested).length;
+    final notInvested = entries.length - invested;
     final groups = groupByYearAndClass<OwnInvestitureEntry>(
-      visible,
+      entries,
       yearOf: (e) => e.ecclesiasticalYearId,
       classIdOf: (e) => e.classId,
       classNameOf: (e) => e.className,
     );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (final year in groups) ...[
-          _YearHeader(yearId: year.yearId, count: year.count),
-          for (final group in year.classes) ...[
-            _ClassHeader(name: group.className),
-            for (final entry in _newestFirst(group.items))
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: _HistoryRow(
+    return [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+        child: SacSummaryBox(
+          color: c.surfaceVariant,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _yearLabel(ref, year),
+                style: TextStyle(
+                  fontSize: SacFontSize.bodySmall,
+                  fontWeight: FontWeight.w600,
+                  color: c.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text.rich(
+                key: const ValueKey('history-year-summary'),
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '$invested',
+                      style: TextStyle(
+                        fontSize: SacFontSize.displayMedium,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.6,
+                        color: c.text,
+                      ),
+                    ),
+                    TextSpan(
+                      text: ' ${'$_i18n.summary_invested'.plural(invested)}'
+                          '${notInvested > 0 ? ' · ${'$_i18n.summary_not_invested'.plural(notInvested)}' : ''}',
+                      style: TextStyle(
+                        fontSize: SacFontSize.bodyMedium,
+                        color: c.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      for (final year in groups)
+        for (final group in year.classes)
+          SacGroupedSection(
+            key: ValueKey('history-class-${group.classId}'),
+            label: group.className ?? tr('$_i18n.class_fallback'),
+            children: [
+              for (final entry in _newestFirst(group.items))
+                _HistoryRow(
                   entry: entry,
                   name: _personName(names, entry.userId),
                 ),
-              ),
-          ],
-        ],
-      ],
+            ],
+          ),
+    ];
+  }
+
+  List<Widget> _yearbookContent(
+    BuildContext context,
+    WidgetRef ref,
+    List<YearbookEntry> entries,
+    int year,
+    Map<String, String> names,
+  ) {
+    final groups = groupByYearAndClass<YearbookEntry>(
+      entries,
+      yearOf: (e) => e.ecclesiasticalYearId,
+      classIdOf: (e) => e.classId,
+      classNameOf: (e) => e.className,
     );
+    return [
+      for (final yearGroup in groups)
+        for (final group in yearGroup.classes)
+          SacGroupedSection(
+            key: ValueKey('yearbook-class-${group.classId}'),
+            label:
+                '${group.className ?? tr('$_i18n.class_fallback')} · ${_yearLabel(ref, year)}',
+            children: [
+              for (final entry in group.items)
+                InvestitureRow(
+                  leading: InvestitureAvatar(
+                    name: _personName(names, entry.userId),
+                  ),
+                  title: _personName(names, entry.userId),
+                ),
+            ],
+          ),
+    ];
   }
 
   static bool _isHistoryStatus(OwnInvestitureEntry entry) {
@@ -315,6 +374,111 @@ class _HistoryList extends ConsumerWidget {
         ..sort((a, b) => b.investitureDate.compareTo(a.investitureDate));
 }
 
+/// Nombre del año eclesiástico del catálogo; respaldo neutro si no está.
+String _yearLabel(WidgetRef ref, int yearId) {
+  final years = ref.watch(ecclesiasticalYearsProvider(null)).value;
+  if (years != null) {
+    for (final year in years) {
+      if (year.ecclesiasticalYearId == yearId && year.name.trim().isNotEmpty) {
+        return year.name.trim();
+      }
+    }
+  }
+  return tr('$_i18n.year_fallback');
+}
+
+String _personName(Map<String, String> names, String userId) =>
+    names[userId] ?? tr('$_sectionI18n.unnamed_person');
+
+/// Control segmentado Historial / Anuario.
+class _Segmented extends StatelessWidget {
+  const _Segmented({required this.tab, required this.onChanged});
+
+  final HistoryTab tab;
+  final ValueChanged<HistoryTab> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    Widget segment(HistoryTab value, String label) {
+      final selected = tab == value;
+      return Expanded(
+        child: Semantics(
+          button: true,
+          selected: selected,
+          child: SacInkWell(
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM - 2),
+            onTap: () => onChanged(value),
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 44),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: selected ? c.surface : Colors.transparent,
+                borderRadius: BorderRadius.circular(AppTheme.radiusSM - 2),
+              ),
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: SacFontSize.bodyMedium,
+                  fontWeight: FontWeight.w600,
+                  color: selected ? c.text : c.textSecondary,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+      child: Container(
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(
+          color: c.surfaceVariant,
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+        ),
+        child: Row(
+          children: [
+            segment(HistoryTab.history, tr('$_i18n.tab_history')),
+            segment(HistoryTab.yearbook, tr('$_i18n.tab_yearbook')),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _YearChips extends ConsumerWidget {
+  const _YearChips({
+    required this.years,
+    required this.selected,
+    required this.onChanged,
+  });
+
+  final List<int> years;
+  final int? selected;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SizedBox(
+      height: SacFilterChip.barHeight + 8,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+        itemCount: years.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (_, i) => SacFilterChip(
+          label: _yearLabel(ref, years[i]),
+          selected: years[i] == selected,
+          onTap: () => onChanged(years[i]),
+        ),
+      ),
+    );
+  }
+}
+
 class _HistoryRow extends StatelessWidget {
   const _HistoryRow({required this.entry, required this.name});
 
@@ -323,42 +487,34 @@ class _HistoryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     final reason = _reason();
+    final date = formatInvestitureDate(
+      context,
+      entry.resolvedAt?.toLocal() ?? entry.investitureDate,
+    );
+    final by = entry.resolvedByName?.trim();
+    final dateLine = [date, if (by != null && by.isNotEmpty) by].join(' · ');
+
     final badge = switch (entry.status) {
       PersonStatus.invested => SacBadge.success(
           label: tr('$_i18n.status_invested'),
-          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
         ),
       PersonStatus.closedYear => SacBadge.warning(
           label: tr('$_i18n.status_closed_year'),
-          icon: HugeIcons.strokeRoundedCalendar03,
         ),
-      _ => SacBadge.error(
-          label: tr('$_i18n.status_not_invested'),
-          icon: HugeIcons.strokeRoundedAlert02,
-        ),
+      _ => SacBadge.error(label: tr('$_i18n.status_not_invested')),
     };
 
-    return InvestiturePersonRow(
-      name: name,
-      className: entry.className,
-      detail: formatInvestitureDate(context, entry.investitureDate),
-      footer: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Align(alignment: Alignment.centerLeft, child: badge),
-          if (reason != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              tr('$_i18n.reason', namedArgs: {'reason': reason}),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: context.sac.ink600,
-                    height: 1.35,
-                  ),
-            ),
-          ],
-        ],
-      ),
+    return InvestitureRow(
+      leading: InvestitureAvatar(name: name),
+      title: name,
+      detail: reason == null
+          ? dateLine
+          : tr('$_i18n.reason', namedArgs: {'reason': reason}),
+      detailColor: reason == null ? null : c.onErrorContainer,
+      detailMaxLines: 2,
+      trailing: badge,
     );
   }
 
@@ -373,52 +529,5 @@ class _HistoryRow extends StatelessWidget {
       if (text != null && text.isNotEmpty) return text;
     }
     return null;
-  }
-}
-
-class _YearbookList extends ConsumerWidget {
-  const _YearbookList({required this.entries});
-
-  final List<YearbookEntry> entries;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (entries.isEmpty) {
-      return SizedBox(
-        height: 360,
-        child: SacEmptyState(
-          title: tr('$_i18n.yearbook_empty_title'),
-          body: tr('$_i18n.yearbook_empty_body'),
-          icon: HugeIcons.strokeRoundedBookOpen01,
-        ),
-      );
-    }
-    final names = ref.watch(sectionPeopleNamesProvider);
-    final groups = groupByYearAndClass<YearbookEntry>(
-      entries,
-      yearOf: (e) => e.ecclesiasticalYearId,
-      classIdOf: (e) => e.classId,
-      classNameOf: (e) => e.className,
-    );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (final year in groups) ...[
-          _YearHeader(yearId: year.yearId, count: year.count),
-          for (final group in year.classes) ...[
-            _ClassHeader(name: group.className),
-            for (final entry in group.items)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: InvestiturePersonRow(
-                  name: _personName(names, entry.userId),
-                  className: entry.className,
-                ),
-              ),
-          ],
-        ],
-      ],
-    );
   }
 }
