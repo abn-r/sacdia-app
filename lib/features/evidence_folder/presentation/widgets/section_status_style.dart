@@ -1,9 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/utils/icon_helper.dart';
 
-import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/status_progress/status_progress.dart';
 import '../../domain/entities/evidence_section.dart';
 
 /// What a section status means for the club, in three groups.
@@ -36,72 +35,43 @@ extension EvidenceSectionStatusGroupX on EvidenceSectionStatus {
   }
 }
 
-/// Colors, icon and label for one section status. One source for rows,
-/// the summary bar and the detail panel.
-class EvidenceStatusStyle {
-  const EvidenceStatusStyle({
-    required this.container,
-    required this.onContainer,
-    required this.solid,
-    required this.icon,
-    required this.label,
-  });
-
-  /// Tinted background (row icon, status panel).
-  final Color container;
-
-  /// Text and icons on [container], and status text on surface.
-  final Color onContainer;
-
-  /// Solid fill for the progress bar and timeline dots.
-  final Color solid;
-
-  final HugeIconData icon;
-  final String label;
-
-  factory EvidenceStatusStyle.of(
-    BuildContext context,
-    EvidenceSectionStatus status,
-  ) {
-    final c = context.sac;
+/// Maps a section status onto the shared [SacStatusStyle]: same colors per
+/// group, with the icon and label that tell the exact state apart.
+abstract final class EvidenceStatusStyle {
+  static SacStatusStyle of(BuildContext context, EvidenceSectionStatus status) {
     switch (status) {
       case EvidenceSectionStatus.pending:
-        return EvidenceStatusStyle(
-          container: c.surfaceVariant,
-          onContainer: c.textSecondary,
-          solid: c.textTertiary.withValues(alpha: 0.45),
+        return SacStatusStyle.of(
+          context,
+          SacStatusKind.pending,
           icon: HugeIcons.strokeRoundedFolder01,
           label: 'evidence_folder.state.pending'.tr(),
         );
       case EvidenceSectionStatus.rejected:
-        return EvidenceStatusStyle(
-          container: c.errorContainer,
-          onContainer: c.onErrorContainer,
-          solid: c.error,
+        return SacStatusStyle.of(
+          context,
+          SacStatusKind.rejected,
           icon: HugeIcons.strokeRoundedAlertCircle,
           label: 'evidence_folder.state.rejected'.tr(),
         );
       case EvidenceSectionStatus.submitted:
-        return EvidenceStatusStyle(
-          container: c.infoContainer,
-          onContainer: c.onInfoContainer,
-          solid: c.info,
+        return SacStatusStyle.of(
+          context,
+          SacStatusKind.review,
           icon: HugeIcons.strokeRoundedSent,
           label: 'evidence_folder.state.submitted'.tr(),
         );
       case EvidenceSectionStatus.preapprovedLf:
-        return EvidenceStatusStyle(
-          container: c.infoContainer,
-          onContainer: c.onInfoContainer,
-          solid: c.info,
+        return SacStatusStyle.of(
+          context,
+          SacStatusKind.review,
           icon: HugeIcons.strokeRoundedCheckmarkBadge01,
           label: 'evidence_folder.state.preapproved'.tr(),
         );
       case EvidenceSectionStatus.validated:
-        return EvidenceStatusStyle(
-          container: c.successContainer,
-          onContainer: c.onSuccessContainer,
-          solid: c.success,
+        return SacStatusStyle.of(
+          context,
+          SacStatusKind.validated,
           icon: HugeIcons.strokeRoundedCheckmarkCircle02,
           label: 'evidence_folder.state.validated'.tr(),
         );

@@ -1,12 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_accent.dart';
-import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_loading.dart';
-import '../../../../core/widgets/sac_pressable.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/status_progress/status_progress.dart';
 import '../../domain/entities/evidence_section.dart';
 import 'evidence_folder_summary.dart';
 import 'section_status_style.dart';
@@ -21,79 +19,6 @@ String? evidenceSectionNote(EvidenceSection section) {
     if (note != null && note.isNotEmpty) return note;
   }
   return null;
-}
-
-/// Eyebrow label and one bordered card with the rows of a group.
-class EvidenceSectionGroup extends StatelessWidget {
-  const EvidenceSectionGroup({
-    super.key,
-    required this.label,
-    required this.children,
-  });
-
-  final String label;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 4, right: 4, bottom: 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    label.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: SacFontSize.labelSmall,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.8,
-                      color: c.textTertiary,
-                    ),
-                  ),
-                ),
-                Text(
-                  '${children.length}',
-                  style: TextStyle(
-                    fontSize: SacFontSize.labelSmall,
-                    fontWeight: FontWeight.w600,
-                    color: c.textTertiary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Material(
-            color: c.surface,
-            clipBehavior: Clip.antiAlias,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-              side: BorderSide(color: c.border),
-            ),
-            child: Column(
-              children: [
-                for (var i = 0; i < children.length; i++) ...[
-                  if (i > 0)
-                    Divider(
-                      height: 1,
-                      thickness: 1,
-                      indent: 58,
-                      color: c.divider,
-                    ),
-                  children[i],
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 /// One section in a group: status icon, name and the one line that matters
@@ -154,89 +79,23 @@ class EvidenceSectionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
     final style = EvidenceStatusStyle.of(context, section.status);
-    final detail = _detail(context);
-    final isRejected = section.status == EvidenceSectionStatus.rejected;
 
-    return SacInkWell(
+    return SacStatusRow(
       key: ValueKey('evidence-section-${section.id}'),
+      statusKey: ValueKey('evidence-section-status-${section.id}'),
+      style: style,
+      title: section.name,
+      detail: _detail(context),
+      detailIsError: section.status == EvidenceSectionStatus.rejected,
       onTap: onTap,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 64),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
-          child: Row(
-            children: [
-              Semantics(
-                label: style.label,
-                child: Container(
-                  key: ValueKey('evidence-section-status-${section.id}'),
-                  width: 32,
-                  height: 32,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: style.container,
-                    shape: BoxShape.circle,
-                  ),
-                  child: ExcludeSemantics(
-                    child: HugeIcon(
-                      icon: style.icon,
-                      size: 17,
-                      color: style.onContainer,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      section.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: SacFontSize.titleMedium,
-                        fontWeight: FontWeight.w600,
-                        height: 1.25,
-                        color: c.text,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      detail,
-                      maxLines: isRejected ? 2 : 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: SacFontSize.bodySmall,
-                        height: 1.35,
-                        color:
-                            isRejected ? c.onErrorContainer : c.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              if (onSubmit != null)
-                _SendButton(
-                  sectionId: section.id,
-                  onPressed: onSubmit!,
-                  isSubmitting: isSubmitting,
-                )
-              else
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowRight01,
-                  size: 18,
-                  color: c.textTertiary,
-                ),
-            ],
-          ),
-        ),
-      ),
+      trailing: onSubmit == null
+          ? null
+          : _SendButton(
+              sectionId: section.id,
+              onPressed: onSubmit!,
+              isSubmitting: isSubmitting,
+            ),
     );
   }
 }
