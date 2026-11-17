@@ -13,16 +13,16 @@ Widget _backButton() => Builder(
       ),
     );
 
+// Same shape as the app: there is no `/home` route, only its children.
 GoRouter _router(String initialLocation) => GoRouter(
       initialLocation: initialLocation,
+      errorBuilder: (_, __) => const Scaffold(body: Text('not found')),
       routes: [
         GoRoute(
-          path: RouteNames.home,
+          path: RouteNames.homeDashboard,
           builder: (_, __) => const Scaffold(body: Text('dashboard')),
-          routes: [
-            GoRoute(path: 'units', builder: (_, __) => _backButton()),
-          ],
         ),
+        GoRoute(path: '/home/units', builder: (_, __) => _backButton()),
         GoRoute(path: '/deep', builder: (_, __) => _backButton()),
       ],
     );
@@ -38,15 +38,18 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('dashboard'), findsOneWidget);
+    expect(find.text('not found'), findsNothing);
     expect(
-        router.routerDelegate.currentConfiguration.uri.path, RouteNames.home);
+      router.routerDelegate.currentConfiguration.uri.path,
+      RouteNames.homeDashboard,
+    );
   });
 
   testWidgets('with a previous page it simply goes back', (tester) async {
-    final router = _router(RouteNames.home);
+    final router = _router(RouteNames.homeDashboard);
     await tester.pumpWidget(MaterialApp.router(routerConfig: router));
     await tester.pumpAndSettle();
-    router.push('${RouteNames.home}/units');
+    router.push('/home/units');
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('back'));
@@ -54,5 +57,27 @@ void main() {
 
     expect(find.text('dashboard'), findsOneWidget);
     expect(find.text('back'), findsNothing);
+  });
+
+  testWidgets('a second tap while the page leaves does nothing more',
+      (tester) async {
+    final router = _router(RouteNames.homeDashboard);
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.pumpAndSettle();
+    router.push('/home/units');
+    await tester.pumpAndSettle();
+
+    // Two taps on the same back button before the exit animation ends.
+    final context = tester.element(find.text('back'));
+    backOrHome(context);
+    backOrHome(context);
+    await tester.pumpAndSettle();
+
+    expect(find.text('dashboard'), findsOneWidget);
+    expect(find.text('not found'), findsNothing);
+    expect(
+      router.routerDelegate.currentConfiguration.uri.path,
+      RouteNames.homeDashboard,
+    );
   });
 }
