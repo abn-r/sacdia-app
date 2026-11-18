@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/monthly_reports/data/models/monthly_report_model.dart';
+import 'package:sacdia_app/features/monthly_reports/domain/entities/monthly_report.dart';
 
 void main() {
   test('parses backend snapshot_data and manual_data for report detail', () {
@@ -92,5 +93,37 @@ void main() {
     expect(report.totalActivities, 9);
     expect(report.totalMembers, 35);
     expect(report.notes, 'Participación en distrito');
+  });
+
+  test('parses the live preview from auto_calculated', () {
+    final preview = MonthlyReportPreviewModel.fromJson({
+      'enrollment': {'club_enrollment_id': 'enrollment-1'},
+      'month': 11,
+      'year': 2026,
+      'auto_calculated': {
+        'member_count': 24,
+        'activities': {'total': 5, 'items': []},
+        'finances': {'income': 3240, 'expenses': 1180, 'balance': 2060},
+      },
+    }).toEntity();
+
+    expect(preview.enrollmentId, 'enrollment-1');
+    expect(preview.totalMembers, 24);
+    expect(preview.totalActivities, 5);
+    expect(preview.snapshot?.finances.balance, 2060);
+  });
+
+  test('keeps the reviewer comment of a rejected report', () {
+    final report = MonthlyReportModel.fromJson({
+      'monthly_report_id': 'report-1',
+      'club_enrollment_id': 'enrollment-1',
+      'month': 8,
+      'year': 2026,
+      'status': 'rejected',
+      'review_comment': ' Falta la actividad misionera. ',
+    }).toEntity();
+
+    expect(report.reportStatus, MonthlyReportStatus.rejected);
+    expect(report.reviewComment, 'Falta la actividad misionera.');
   });
 }

@@ -67,6 +67,13 @@ class _SlowPdfRepository implements MonthlyReportsRepository {
       throw UnimplementedError();
 
   @override
+  Future<Either<Failure, MonthlyReport>> submitReport(
+    String reportId, {
+    RequestCancelToken? cancelToken,
+  }) =>
+      throw UnimplementedError();
+
+  @override
   Future<Either<Failure, VisibleMonthlyReportsPage>> getVisibleReports({
     int page = 1,
     int limit = 25,
