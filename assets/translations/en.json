@@ -5345,21 +5345,15 @@
     },
     "annual_progress": {
       "title": "Annual progress",
-      "header_title": "Your section this year",
       "header_body": "{club} · {type} · {year}",
-      "points_value": "{points} pts",
-      "points_of_total": "of {total} available points",
-      "progress_percentage": "{percent}% of the annual goal",
-      "no_tier_yet": "No tier yet",
-      "next_tier": "Next tier",
-      "points_to_reach": "{points} pts left to reach it",
-      "top_tier_reached": "You are already in the highest tier configured for this year.",
+      "top_tier_reached": "Congratulations! You already have the highest medal this year.",
       "components_title": "Where your points come from",
       "component_points": "{earned} / {max} pts",
       "pending": {
-        "title": "Pending items that can add points",
         "empty": "There are no critical pending items for this ranking.",
-        "due_date": "Due {date}",
+        "group_title": "To deliver",
+        "overdue_since": "Overdue since {date}",
+        "due_delivery": "To deliver · due {date}",
         "status": {
           "pending_delivery": "Pending delivery",
           "pending_validation": "In validation",
@@ -5369,7 +5363,51 @@
       },
       "errors": {
         "get_progress": "We could not load your annual progress"
-      }
+      },
+      "current_medal": "Current medal",
+      "current_medal_label": "Current medal",
+      "next_medal": "Next medal",
+      "points_to_reach_medal": "{points} pts left to reach it",
+      "view_tiers": "View the tiers",
+      "tiers_sheet": {
+        "title": "Tiers of the year",
+        "from_points": "From {points} pts",
+        "current": "Current",
+        "reached": "Reached"
+      },
+      "this_year": "This year",
+      "year_points": "Points this year",
+      "year_points_value": "{earned} of {total}",
+      "no_medal_yet": "No medal yet",
+      "medal_semantics": "{tier} medal, {percent} percent",
+      "medal_semantics_full": "{tier} medal, earned",
+      "blocks_hint": "Tap a block to see how it is earned",
+      "block_hint": "See how it is earned",
+      "points_to_earn": "+{points} to earn",
+      "component_axis": "Axis: {axis}",
+      "how_it_is_earned": "How it is earned",
+      "component_explain": {
+        "annual_evidence_folder": "Each section of the annual folder adds points once the local field validates it. Deliver every section to reach the maximum.",
+        "monthly_reports_timeliness": "Each month of the year adds points if you capture the manual data of the monthly report before the deadline (the 5th of the following month, unless the local field changes it).",
+        "finance_compliance": "A month adds points when you register at least one financial movement before that month closes automatically. There are 12 months per year.",
+        "institutional_data_completeness": "It is completed with 9 section details: address, meeting schedule, director, secretary, treasurer, phone, email, map location and soul-winning goal.",
+        "activities_registered": "Counts the activities registered during the year against an annual target (12 by default). Reaching the target gives the maximum.",
+        "attendance_participation": "It is the average attendance of unit members across the weekly records of the year.",
+        "camporee_events": "These are the points your section earned in the scored events of local and union camporees, out of the maximum possible for those events.",
+        "class_investiture_progress": "It is the share of active unit members whose investiture is approved this year.",
+        "sacdia_operational_usage": "It is the share of active people in the section who used SACDIA this year: recording attendance, advancing in their class, sending reports or creating activities.",
+        "generic": "These points are calculated automatically from the information your section records in SACDIA during the year."
+      },
+      "projection": {
+        "title": "If you deliver the annual folder",
+        "reach_points": "You would reach {points} pts",
+        "reach_tier": "You would reach {tier}",
+        "missing_for": "You would still need {points} for {tier}",
+        "semantics": "Now {now} points; with the folder {projected} points",
+        "legend_now": "Now {points}",
+        "legend_folder": "Folder +{points}"
+      },
+      "open_folder": "Open the annual folder"
     },
     "club_rankings": {
       "title": "Annual progress",

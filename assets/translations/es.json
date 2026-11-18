@@ -5345,21 +5345,15 @@
     },
     "annual_progress": {
       "title": "Progreso anual",
-      "header_title": "Tu sección este año",
       "header_body": "{club} · {type} · {year}",
-      "points_value": "{points} pts",
-      "points_of_total": "de {total} puntos disponibles",
-      "progress_percentage": "{percent}% del objetivo anual",
-      "no_tier_yet": "Sin rango aún",
-      "next_tier": "Próximo rango",
-      "points_to_reach": "Te faltan {points} pts para alcanzarlo",
-      "top_tier_reached": "Ya estás en el rango más alto configurado para este año.",
+      "top_tier_reached": "¡Felicidades! Ya tienes la medalla más alta de este año.",
       "components_title": "De dónde vienen tus puntos",
       "component_points": "{earned} / {max} pts",
       "pending": {
-        "title": "Pendientes que pueden sumar",
         "empty": "No hay pendientes críticos para este ranking.",
-        "due_date": "Vence {date}",
+        "group_title": "Por entregar",
+        "overdue_since": "Venció el {date}",
+        "due_delivery": "Por entregar · vence {date}",
         "status": {
           "pending_delivery": "Pendiente de entrega",
           "pending_validation": "En validación",
@@ -5369,7 +5363,51 @@
       },
       "errors": {
         "get_progress": "No pudimos cargar tu progreso anual"
-      }
+      },
+      "current_medal": "Medalla actual",
+      "current_medal_label": "Medalla actual",
+      "next_medal": "Siguiente medalla",
+      "points_to_reach_medal": "Te faltan {points} pts para alcanzarla",
+      "view_tiers": "Ver los rangos",
+      "tiers_sheet": {
+        "title": "Rangos del año",
+        "from_points": "Desde {points} pts",
+        "current": "Actual",
+        "reached": "Alcanzado"
+      },
+      "this_year": "Este año",
+      "year_points": "Puntos del año",
+      "year_points_value": "{earned} de {total}",
+      "no_medal_yet": "Sin medalla aún",
+      "medal_semantics": "Medalla {tier}, {percent} por ciento",
+      "medal_semantics_full": "Medalla {tier}, conseguida",
+      "blocks_hint": "Toca un bloque para ver cómo se gana",
+      "block_hint": "Ver cómo se gana",
+      "points_to_earn": "+{points} por ganar",
+      "component_axis": "Eje: {axis}",
+      "how_it_is_earned": "Cómo se gana",
+      "component_explain": {
+        "annual_evidence_folder": "Cada sección de la carpeta anual suma cuando el campo local la valida. Entrega todas las secciones para llegar al máximo.",
+        "monthly_reports_timeliness": "Cada mes del año suma si capturas los datos manuales del informe mensual antes de la fecha límite (el día 5 del mes siguiente, salvo que el campo local la cambie).",
+        "finance_compliance": "Suma un mes cuando registras al menos un movimiento financiero antes del cierre automático de ese mes. Son 12 meses por año.",
+        "institutional_data_completeness": "Se completa con 9 datos de la sección: dirección, horario de reuniones, director, secretario, tesorero, teléfono, correo, ubicación en el mapa y meta de almas.",
+        "activities_registered": "Cuenta las actividades registradas en el año contra una meta anual (12 por defecto). Al llegar a la meta tienes el máximo.",
+        "attendance_participation": "Es el promedio de asistencia de los miembros de las unidades en los registros semanales del año.",
+        "camporee_events": "Son los puntos que tu sección obtuvo en los eventos con puntaje de los camporees locales y de unión, sobre el máximo posible de esos eventos.",
+        "class_investiture_progress": "Es la proporción de miembros activos de las unidades que tienen su investidura aprobada en este año.",
+        "sacdia_operational_usage": "Es la proporción de personas activas de la sección que usaron SACDIA este año: registrando asistencia, avanzando en su clase, enviando informes o creando actividades.",
+        "generic": "Estos puntos se calculan automáticamente con la información que tu sección registra en SACDIA durante el año."
+      },
+      "projection": {
+        "title": "Si entregas la carpeta anual",
+        "reach_points": "Llegarías a {points} pts",
+        "reach_tier": "Alcanzarías {tier}",
+        "missing_for": "Te faltarían {points} para {tier}",
+        "semantics": "Ahora {now} puntos; con la carpeta {projected} puntos",
+        "legend_now": "Ahora {points}",
+        "legend_folder": "Carpeta +{points}"
+      },
+      "open_folder": "Abrir la carpeta anual"
     },
     "club_rankings": {
       "title": "Progreso anual",
