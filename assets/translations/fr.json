@@ -3484,17 +3484,17 @@
     "error_loading": "Erreur lors du chargement des ressources",
     "no_more": "Plus de ressources",
     "filter": {
-      "all": "Todos",
-      "document": "Documentos",
+      "all": "Tous",
+      "document": "Documents",
       "audio": "Audio",
       "image": "Images",
-      "video": "Videos",
-      "text": "Texto"
+      "video": "Vidéos",
+      "text": "Texte"
     },
     "type_label": {
       "audio": "AUDIO",
       "image": "IMG",
-      "video": "VIDEO",
+      "video": "VIDÉO",
       "text": "TXT",
       "document": "DOC",
       "pdf": "PDF"
@@ -3520,12 +3520,12 @@
       "position_of": "{position} sur {total}"
     },
     "error": {
-      "download_url": "No se pudo obtener la URL de descarga",
+      "download_url": "Impossible d'obtenir l'URL de téléchargement",
       "media_url": "Impossible d'obtenir l'URL de la ressource",
       "audio_playback": "Impossible de lire l'audio",
-      "video_url_missing": "URL de video no disponible",
-      "invalid_url": "URL no válida",
-      "open_url_failed": "No se pudo abrir la URL",
+      "video_url_missing": "URL de la vidéo indisponible",
+      "invalid_url": "URL non valide",
+      "open_url_failed": "Impossible d'ouvrir l'URL",
       "share_failed": "Impossible de partager la ressource"
     },
     "results_label": "Résultats",
@@ -4812,6 +4812,12 @@
     }
   },
   "dashboard": {
+    "greeting": {
+      "morning": "Bonjour,",
+      "afternoon": "Bon après-midi,",
+      "evening": "Bonsoir,"
+    },
+    "greeting_name": "{name} !",
     "errors": {
       "get_summary": "Erreur lors de la récupération du résumé du tableau de bord",
       "get_pending": "Erreur lors de la récupération des tâches en attente du tableau de bord"

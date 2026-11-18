@@ -3486,15 +3486,15 @@
     "filter": {
       "all": "Todos",
       "document": "Documentos",
-      "audio": "Audio",
+      "audio": "Áudio",
       "image": "Imagens",
-      "video": "Videos",
+      "video": "Vídeos",
       "text": "Texto"
     },
     "type_label": {
-      "audio": "AUDIO",
+      "audio": "ÁUDIO",
       "image": "IMG",
-      "video": "VIDEO",
+      "video": "VÍDEO",
       "text": "TXT",
       "document": "DOC",
       "pdf": "PDF"
@@ -3520,12 +3520,12 @@
       "position_of": "{position} de {total}"
     },
     "error": {
-      "download_url": "No se pudo obtener la URL de descarga",
+      "download_url": "Não foi possível obter a URL de download",
       "media_url": "Não foi possível obter a URL do recurso",
       "audio_playback": "Não foi possível reproduzir o áudio",
-      "video_url_missing": "URL de video no disponible",
-      "invalid_url": "URL no válida",
-      "open_url_failed": "No se pudo abrir la URL",
+      "video_url_missing": "URL do vídeo indisponível",
+      "invalid_url": "URL inválida",
+      "open_url_failed": "Não foi possível abrir a URL",
       "share_failed": "Não foi possível compartilhar o recurso"
     },
     "results_label": "Resultados",
@@ -4812,6 +4812,12 @@
     }
   },
   "dashboard": {
+    "greeting": {
+      "morning": "Bom dia,",
+      "afternoon": "Boa tarde,",
+      "evening": "Boa noite,"
+    },
+    "greeting_name": "{name}!",
     "errors": {
       "get_summary": "Erro ao obter o resumo do dashboard",
       "get_pending": "Erro ao obter as pendências do painel"

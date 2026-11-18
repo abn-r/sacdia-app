@@ -44,9 +44,9 @@ class WelcomeHeader extends StatelessWidget {
 
   String _getGreeting() {
     final hour = DateTime.now().hour;
-    if (hour < 12) return '¡Buenos días';
-    if (hour < 18) return '¡Buenas tardes';
-    return '¡Buenas noches';
+    if (hour < 12) return 'dashboard.greeting.morning'.tr();
+    if (hour < 18) return 'dashboard.greeting.afternoon'.tr();
+    return 'dashboard.greeting.evening'.tr();
   }
 
   @override
@@ -66,14 +66,14 @@ class WelcomeHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '$greeting,',
+                  greeting,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: context.sac.textSecondary,
                       ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '$firstName!',
+                  'dashboard.greeting_name'.tr(namedArgs: {'name': firstName}),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: context.sac.text,
