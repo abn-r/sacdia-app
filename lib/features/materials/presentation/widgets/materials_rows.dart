@@ -39,6 +39,7 @@ class MaterialsKvRow extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 8, 12, 8),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
