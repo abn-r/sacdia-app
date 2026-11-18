@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 /// Short stagger entrance — keep under ~200ms total for frequent screens.
 class MonthlyReportEntrance extends StatefulWidget {
@@ -100,175 +102,105 @@ class MonthlyReportFrostBar extends StatelessWidget {
   }
 }
 
+/// Esqueleto de la lista: un grupo de filas bajo su etiqueta.
 class MonthlyReportSkeletonList extends StatelessWidget {
   const MonthlyReportSkeletonList({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-      children: const [
-        MonthlyReportEntrance(
-          child: _SkeletonBlock(height: 72, radius: 18, lines: 1),
+    return SacShimmer(
+      child: ExcludeSemantics(
+        child: ListView(
+          physics: const NeverScrollableScrollPhysics(),
+          padding: SacTopBar.paddingBelowBar(context, EdgeInsets.zero),
+          children: const [
+            _SkeletonGroup(rows: 1),
+            _SkeletonGroup(rows: 4),
+          ],
         ),
-        SizedBox(height: 22),
-        MonthlyReportEntrance(
-          index: 1,
-          child: _SkeletonBlock(height: 14, radius: 8, lines: 1),
-        ),
-        SizedBox(height: 12),
-        MonthlyReportEntrance(
-          index: 2,
-          child: _SkeletonBlock(height: 200, radius: 18, lines: 4),
-        ),
-      ],
+      ),
     );
   }
 }
 
+/// Esqueleto del detalle: panel de estado, grupo de filas y otro grupo.
 class MonthlyReportDetailSkeleton extends StatelessWidget {
   const MonthlyReportDetailSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-      children: const [
-        MonthlyReportEntrance(
-          child: _SkeletonBlock(height: 120, radius: 22, lines: 2),
+    return SacShimmer(
+      child: ExcludeSemantics(
+        child: ListView(
+          physics: const NeverScrollableScrollPhysics(),
+          padding: SacTopBar.paddingBelowBar(
+              context, const EdgeInsets.fromLTRB(20, 12, 20, 0)),
+          children: const [
+            SacSkeletonBox(height: 88, radius: AppTheme.radiusMD),
+            _SkeletonGroup(rows: 4, horizontalInset: 0),
+            _SkeletonGroup(rows: 3, horizontalInset: 0),
+          ],
         ),
-        SizedBox(height: 18),
-        MonthlyReportEntrance(
-          index: 1,
-          child: _SkeletonKpiGrid(),
-        ),
-        SizedBox(height: 18),
-        MonthlyReportEntrance(
-          index: 2,
-          child: _SkeletonBlock(height: 64, radius: 16, lines: 1),
-        ),
-        SizedBox(height: 10),
-        MonthlyReportEntrance(
-          index: 3,
-          child: _SkeletonBlock(height: 64, radius: 16, lines: 1),
-        ),
-      ],
-    );
-  }
-}
-
-class MonthlyReportLoadingPulse extends StatelessWidget {
-  final double width;
-  final double height;
-  final BorderRadius borderRadius;
-
-  const MonthlyReportLoadingPulse({
-    super.key,
-    required this.width,
-    required this.height,
-    required this.borderRadius,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: c.border.withValues(alpha: 0.42),
-        borderRadius: borderRadius,
       ),
     );
   }
 }
 
-class _SkeletonKpiGrid extends StatelessWidget {
-  const _SkeletonKpiGrid();
+class _SkeletonGroup extends StatelessWidget {
+  final int rows;
+  final double horizontalInset;
 
-  @override
-  Widget build(BuildContext context) {
-    return const Column(
-      children: [
-        Row(
-          children: [
-            Expanded(child: _SkeletonBlock(height: 88, radius: 16)),
-            SizedBox(width: 12),
-            Expanded(child: _SkeletonBlock(height: 88, radius: 16)),
-          ],
-        ),
-        SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(child: _SkeletonBlock(height: 88, radius: 16)),
-            SizedBox(width: 12),
-            Expanded(child: _SkeletonBlock(height: 88, radius: 16)),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _SkeletonBlock extends StatelessWidget {
-  final double height;
-  final double radius;
-  final int lines;
-
-  const _SkeletonBlock({
-    required this.height,
-    required this.radius,
-    this.lines = 2,
-  });
+  const _SkeletonGroup({required this.rows, this.horizontalInset = 20});
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    return Container(
-      height: height,
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: c.border.withValues(alpha: 0.7)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            MonthlyReportLoadingPulse(
-              width: 120,
-              height: 14,
-              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+    return Padding(
+      padding: EdgeInsets.fromLTRB(horizontalInset, 24, horizontalInset, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(left: 4, bottom: 10),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: SacSkeletonBox(width: 90, height: 11),
             ),
-            if (lines > 1) ...[
-              const SizedBox(height: 12),
-              MonthlyReportLoadingPulse(
-                width: double.infinity,
-                height: 12,
-                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-              ),
-            ],
-            if (lines > 2) ...[
-              const SizedBox(height: 8),
-              MonthlyReportLoadingPulse(
-                width: 180,
-                height: 12,
-                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-              ),
-            ],
-            if (lines > 3) ...[
-              const SizedBox(height: 8),
-              MonthlyReportLoadingPulse(
-                width: 230,
-                height: 12,
-                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-              ),
-            ],
-          ],
-        ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: c.surface,
+              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+              border: Border.all(color: c.border),
+            ),
+            child: Column(
+              children: [
+                for (var i = 0; i < rows; i++) ...[
+                  if (i > 0) Divider(height: 1, thickness: 1, color: c.divider),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                    child: Row(
+                      children: [
+                        SacSkeletonBox(width: 32, height: 32, radius: 16),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SacSkeletonBox(width: 130, height: 14),
+                              SizedBox(height: 8),
+                              SacSkeletonBox(width: 90, height: 11),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
