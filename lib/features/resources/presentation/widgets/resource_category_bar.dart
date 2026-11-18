@@ -8,14 +8,16 @@ import '../providers/resources_providers.dart';
 /// Wired to [selectedResourceCategoryProvider]; tapping the selected chip
 /// clears it. Counts come from [resourceFacetProvider] under the active type
 /// and search, and are only shown when that look covered every match.
-/// Hidden while categories load, fail or are empty.
+/// Categories come from the loaded resources (see
+/// [resourceCategoryOptionsProvider]), so a 403 on `/resource-categories`
+/// does not hide the bar. Hidden while there are none.
 class ResourceCategoryBar extends ConsumerWidget {
   const ResourceCategoryBar({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final categories = ref.watch(resourceCategoriesProvider).value;
-    if (categories == null || categories.isEmpty) {
+    final categories = ref.watch(resourceCategoryOptionsProvider);
+    if (categories.isEmpty) {
       return const SizedBox.shrink();
     }
 

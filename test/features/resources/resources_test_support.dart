@@ -30,11 +30,15 @@ class FakeResourcesRepository implements ResourcesRepository {
   FakeResourcesRepository({
     this.resources = const [],
     this.categories = const [],
+    this.categoriesForbidden = false,
     this.gate,
   });
 
   final List<Resource> resources;
   final List<ResourceCategory> categories;
+
+  /// Simulates `/resource-categories` answering 403 (no `resource_categories:read`).
+  final bool categoriesForbidden;
 
   /// When set, list calls wait for it (keeps the screen in its loading state).
   final Completer<void>? gate;
@@ -97,7 +101,9 @@ class FakeResourcesRepository implements ResourcesRepository {
   @override
   Future<Either<Failure, List<ResourceCategory>>> getCategories(
           {RequestCancelToken? cancelToken}) async =>
-      Right(categories);
+      categoriesForbidden
+          ? const Left(ServerFailure(message: 'Forbidden'))
+          : Right(categories);
 }
 
 Resource testResource({
