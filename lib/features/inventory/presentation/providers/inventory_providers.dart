@@ -131,7 +131,7 @@ final inventoryCategoriesProvider =
   ref.onDispose(() => cancelToken.cancel());
   final result = await useCase(cancelToken: cancelToken);
   return result.fold(
-    (failure) => throw Exception(failure.message),
+    (failure) => throw failure,
     (cats) => cats,
   );
 });
@@ -154,7 +154,7 @@ final inventoryItemsProvider =
   );
 
   return result.fold(
-    (failure) => throw Exception(failure.message),
+    (failure) => throw failure,
     (items) => items,
   );
 });
@@ -171,7 +171,7 @@ final inventoryItemDetailProvider =
     cancelToken: cancelToken,
   );
   return result.fold(
-    (failure) => throw Exception(failure.message),
+    (failure) => throw failure,
     (item) => item,
   );
 });
@@ -180,35 +180,44 @@ final inventoryItemDetailProvider =
 
 class InventoryFilters {
   final String searchQuery;
-  final int? categoryId;
+
+  /// Categorías marcadas en la hoja de filtros (varias a la vez).
+  final Set<int> categoryIds;
   final ItemCondition? condition;
   final InventorySortOrder sortOrder;
 
   const InventoryFilters({
     this.searchQuery = '',
-    this.categoryId,
+    this.categoryIds = const {},
     this.condition,
     this.sortOrder = InventorySortOrder.nameAsc,
   });
 
   InventoryFilters copyWith({
     String? searchQuery,
-    int? categoryId,
-    bool clearCategory = false,
+    Set<int>? categoryIds,
+    bool clearCategories = false,
     ItemCondition? condition,
     bool clearCondition = false,
     InventorySortOrder? sortOrder,
   }) {
     return InventoryFilters(
       searchQuery: searchQuery ?? this.searchQuery,
-      categoryId: clearCategory ? null : (categoryId ?? this.categoryId),
+      categoryIds:
+          clearCategories ? const {} : (categoryIds ?? this.categoryIds),
       condition: clearCondition ? null : (condition ?? this.condition),
       sortOrder: sortOrder ?? this.sortOrder,
     );
   }
 
   bool get hasActiveFilters =>
-      searchQuery.isNotEmpty || categoryId != null || condition != null;
+      searchQuery.isNotEmpty || categoryIds.isNotEmpty || condition != null;
+
+  /// Filtros que viven en la hoja: una cuenta por categoría marcada y una más
+  /// si el orden no es el predeterminado. El estado vive en los chips de la
+  /// lista y la búsqueda en su campo, por eso no cuentan aquí.
+  int get sheetFilterCount =>
+      categoryIds.length + (sortOrder == InventorySortOrder.nameAsc ? 0 : 1);
 
   List<InventoryItem> applyTo(List<InventoryItem> items) {
     var result = items.where((item) {
@@ -221,7 +230,9 @@ class InventoryFilters {
         if (!nameMatch && !descMatch) return false;
       }
       // Filtro por categoría
-      if (categoryId != null && item.category.id != categoryId) return false;
+      if (categoryIds.isNotEmpty && !categoryIds.contains(item.category.id)) {
+        return false;
+      }
       // Filtro por condición
       if (condition != null && item.condition != condition) return false;
       return true;
@@ -283,41 +294,74 @@ final filteredInventoryItemsProvider =
   return itemsAsync.whenData((items) => filters.applyTo(items));
 });
 
-// ── Inventory summary stats ─────────────────────────────────────────────────────
+// ── Derived data for chips and the filter sheet ─────────────────────────────────
 
-class InventorySummary {
-  final int totalItems;
-  final double totalValue;
-  final int buenoCount;
-  final int regularCount;
-  final int maloCount;
+/// Cuántos artículos hay por estado, con la búsqueda y las categorías ya
+/// aplicadas (el propio estado no cuenta, para que cada chip muestre lo que
+/// saldría al tocarlo).
+class InventoryConditionCounts {
+  final int total;
+  final Map<ItemCondition, int> byCondition;
 
-  const InventorySummary({
-    required this.totalItems,
-    required this.totalValue,
-    required this.buenoCount,
-    required this.regularCount,
-    required this.maloCount,
+  const InventoryConditionCounts({
+    this.total = 0,
+    this.byCondition = const {},
   });
+
+  /// `null` pide el total ("Todos").
+  int of(ItemCondition? condition) =>
+      condition == null ? total : (byCondition[condition] ?? 0);
 }
 
-final inventorySummaryProvider = Provider.autoDispose<InventorySummary?>((ref) {
-  final itemsAsync = ref.watch(inventoryItemsProvider);
-  return itemsAsync.value.map((items) {
-    return InventorySummary(
-      totalItems: items.length,
-      totalValue: items.fold(0.0, (sum, i) => sum + (i.estimatedValue ?? 0)),
-      buenoCount: items.where((i) => i.condition == ItemCondition.bueno).length,
-      regularCount:
-          items.where((i) => i.condition == ItemCondition.regular).length,
-      maloCount: items.where((i) => i.condition == ItemCondition.malo).length,
-    );
-  });
+final inventoryConditionCountsProvider =
+    Provider.autoDispose<InventoryConditionCounts>((ref) {
+  final items = ref.watch(inventoryItemsProvider).value ?? const [];
+  final filters = ref.watch(inventoryFiltersProvider);
+  final scoped = filters.copyWith(clearCondition: true).applyTo(items);
+  return InventoryConditionCounts(
+    total: scoped.length,
+    byCondition: {
+      for (final condition in ItemCondition.values)
+        condition: scoped.where((i) => i.condition == condition).length,
+    },
+  );
 });
 
-extension _Nullable<T> on T? {
-  R? map<R>(R Function(T) f) => this == null ? null : f(this as T);
+/// Una categoría de la hoja de filtros y cuántos artículos tiene.
+class InventoryCategoryOption {
+  final InventoryCategory category;
+  final int count;
+
+  const InventoryCategoryOption({required this.category, required this.count});
 }
+
+/// Categorías que aparecen en el inventario cargado (no depende del catálogo
+/// del servidor), con su conteo bajo la búsqueda y el estado activos. Una
+/// categoría marcada sigue visible aunque su conteo caiga a cero.
+final inventoryCategoryOptionsProvider =
+    Provider.autoDispose<List<InventoryCategoryOption>>((ref) {
+  final items = ref.watch(inventoryItemsProvider).value ?? const [];
+  final filters = ref.watch(inventoryFiltersProvider);
+  final scoped = filters.copyWith(clearCategories: true).applyTo(items);
+
+  final categories = <int, InventoryCategory>{
+    for (final item in items) item.category.id: item.category,
+  };
+  final counts = <int, int>{};
+  for (final item in scoped) {
+    counts[item.category.id] = (counts[item.category.id] ?? 0) + 1;
+  }
+
+  final options = [
+    for (final category in categories.values)
+      InventoryCategoryOption(
+        category: category,
+        count: counts[category.id] ?? 0,
+      ),
+  ]..sort((a, b) =>
+      a.category.name.toLowerCase().compareTo(b.category.name.toLowerCase()));
+  return options;
+});
 
 // ── Item form notifier ──────────────────────────────────────────────────────────
 
@@ -495,6 +539,54 @@ class InventoryItemFormNotifier extends Notifier<InventoryItemFormState> {
 final inventoryItemFormNotifierProvider = NotifierProvider.autoDispose<
     InventoryItemFormNotifier, InventoryItemFormState>(
   InventoryItemFormNotifier.new,
+);
+
+// ── Change-condition notifier ───────────────────────────────────────────────────
+
+class InventoryConditionNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  /// Cambia solo el estado de [item]. El PATCH trata un campo opcional en null
+  /// como "borrarlo", así que se reenvía el resto del artículo tal cual.
+  Future<bool> change(InventoryItem item, ItemCondition condition) =>
+      // Callers only `ref.read` this notifier (see keepAliveDuring).
+      ref.keepAliveDuring(() async {
+        state = true;
+        final result = await ref.read(updateInventoryItemUseCaseProvider)(
+          UpdateInventoryItemParams(
+            itemId: item.id,
+            name: item.name,
+            categoryId: item.category.id,
+            quantity: item.quantity,
+            condition: condition,
+            description: item.description,
+            serialNumber: item.serialNumber,
+            purchaseDate: item.purchaseDate,
+            estimatedValue: item.estimatedValue,
+            location: item.location,
+            assignedTo: item.assignedTo,
+            notes: item.notes,
+          ),
+        );
+        return result.fold<bool>(
+          (_) {
+            state = false;
+            return false;
+          },
+          (_) {
+            state = false;
+            ref.invalidate(inventoryItemsProvider);
+            ref.invalidate(inventoryItemDetailProvider(item.id));
+            return true;
+          },
+        );
+      });
+}
+
+final inventoryConditionNotifierProvider =
+    NotifierProvider.autoDispose<InventoryConditionNotifier, bool>(
+  InventoryConditionNotifier.new,
 );
 
 // ── Delete notifier ─────────────────────────────────────────────────────────────
