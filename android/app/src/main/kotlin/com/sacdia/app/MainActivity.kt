@@ -36,6 +36,11 @@ class MainActivity: FlutterActivity() {
                     if (isPrepared == true) mediaPlayer?.start()
                     result.success(null)
                 }
+                "seekTo" -> {
+                    val positionMs = call.argument<Int>("positionMs") ?: 0
+                    if (isPrepared == true) mediaPlayer?.seekTo(positionMs.coerceAtLeast(0))
+                    result.success(null)
+                }
                 "stop" -> {
                     releasePlayer()
                     result.success(null)
