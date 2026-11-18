@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../theme/app_theme.dart';
+import '../../theme/sac_colors.dart';
 import '../sac_pressable.dart';
 import 'sac_status_style.dart';
 
-/// Where an item stands right now, in one soft box tinted by [style]: the
+/// Where an item stands right now, in a card (like [SacCard]) with an icon tile tinted by [style]: the
 /// current state, one line of context and a small "Step N of M". It does not
 /// draw the whole path; tapping it opens the list of every state (see
 /// [showSacStatesSheet]). A chevron says it is tappable.
@@ -41,7 +42,7 @@ class SacStatePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ink = style.onContainer;
+    final c = context.sac;
     final message = this.message;
     final stepLabel = this.stepLabel;
 
@@ -56,63 +57,90 @@ class SacStatePanel extends StatelessWidget {
       ].join('. '),
       excludeSemantics: true,
       onTap: onTap,
-      child: Material(
-        color: style.container,
-        clipBehavior: Clip.antiAlias,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        child: SacInkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    HugeIcon(icon: style.icon, size: 20, color: ink),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: SacFontSize.titleLarge,
-                          fontWeight: FontWeight.w700,
-                          height: 1.25,
-                          color: ink,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+          border: Border.all(color: c.border),
+          boxShadow: [
+            BoxShadow(
+              color: c.shadow,
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Material(
+          color: c.surface,
+          clipBehavior: Clip.antiAlias,
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+          child: SacInkWell(
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: style.container,
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                    ),
+                    alignment: Alignment.center,
+                    child: HugeIcon(
+                      icon: style.icon,
+                      size: 22,
+                      color: style.onContainer,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: SacFontSize.titleLarge,
+                            fontWeight: FontWeight.w700,
+                            height: 1.25,
+                            color: c.text,
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedArrowRight01,
-                      size: 18,
-                      color: ink.withValues(alpha: 0.7),
-                    ),
-                  ],
-                ),
-                if (message != null) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    message,
-                    style: TextStyle(
-                      fontSize: SacFontSize.bodyMedium,
-                      height: 1.4,
-                      color: ink,
-                    ),
-                  ),
-                ],
-                if (stepLabel != null) ...[
-                  const SizedBox(height: 10),
-                  Text(
-                    stepLabel,
-                    style: TextStyle(
-                      fontSize: SacFontSize.bodySmall,
-                      fontWeight: FontWeight.w600,
-                      color: ink.withValues(alpha: 0.75),
+                        if (message != null) ...[
+                          const SizedBox(height: 3),
+                          Text(
+                            message,
+                            style: TextStyle(
+                              fontSize: SacFontSize.bodyMedium,
+                              height: 1.4,
+                              color: c.textSecondary,
+                            ),
+                          ),
+                        ],
+                        if (stepLabel != null) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            stepLabel,
+                            style: TextStyle(
+                              fontSize: SacFontSize.bodySmall,
+                              fontWeight: FontWeight.w600,
+                              color: style.onContainer,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
+                  const SizedBox(width: 8),
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowRight01,
+                    size: 18,
+                    color: c.textTertiary,
+                  ),
                 ],
-              ],
+              ),
             ),
           ),
         ),
