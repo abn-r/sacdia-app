@@ -20,6 +20,10 @@ class InventoryStateChips extends ConsumerWidget {
     final counts = ref.watch(inventoryConditionCountsProvider);
     final c = context.sac;
 
+    // No items at all (not just a filter yielding none): nothing to filter.
+    final allItems = ref.watch(inventoryItemsProvider).value;
+    if (allItems != null && allItems.isEmpty) return const SizedBox.shrink();
+
     void select(ItemCondition? condition) {
       ref.read(inventoryFiltersProvider.notifier).state = condition == null
           ? filters.copyWith(clearCondition: true)
