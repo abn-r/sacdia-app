@@ -47,6 +47,16 @@ class _CartViewState extends ConsumerState<CartView> {
   bool _submitted = false;
 
   @override
+  void initState() {
+    super.initState();
+    // The catalog's "added to cart · View cart" snackbar is moot once here.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      SacSnackBar.hideMessenger(ScaffoldMessenger.of(context));
+    });
+  }
+
+  @override
   void dispose() {
     _notesController.dispose();
     super.dispose();
