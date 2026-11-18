@@ -3528,11 +3528,6 @@
       "upload_evidence": "Error al subir la evidencia del artículo"
     },
     "detail": {
-      "title": "Detalle del Artículo",
-      "quantity": "Cantidad",
-      "serial_number": "N. de serie / código",
-      "purchase_date": "Fecha de adquisición",
-      "estimated_value": "Valor estimado",
       "location": "Ubicación",
       "assigned_to": "Asignado a",
       "notes": "Notas",
@@ -3544,15 +3539,15 @@
       "delete_error": "No se pudo eliminar el artículo",
       "no_photo": "Sin foto",
       "category": "Categoría",
-      "condition": "Estado de conservación",
-      "evidences": "Evidencias",
-      "evidence_title": "Evidencias del artículo",
-      "evidence_count_value": "{count}/3 fotos",
-      "club_type": "Tipo de club",
-      "record_status": "Estado del registro",
-      "active_status": "Activo",
-      "inactive_status": "Inactivo",
-      "registered_at": "Fecha de registro"
+      "registered_at": "Fecha de registro",
+      "total_value": "valor total {value}",
+      "details_title": "Detalles",
+      "value_each": "Valor por pieza",
+      "acquired": "Adquirido",
+      "serial_label": "Número de serie",
+      "not_recorded": "Sin registrar",
+      "photo_counter": "Foto {current} de {total}",
+      "record_title": "Registro"
     },
     "view": {
       "title": "Inventario",
@@ -3560,20 +3555,25 @@
         "one": "{count} artículo",
         "other": "{count} artículos"
       },
-      "filter_status": "Estado: {status}",
       "error_load": "Error al cargar el inventario",
       "empty_title": "No hay artículos en el inventario",
       "empty_subtitle_can_add": "Empieza registrando el primer artículo\nde tu club",
       "empty_subtitle_cannot_add": "El inventario del club está vacío.",
       "add_first_item": "Agregar primer artículo",
-      "add_button": "Agregar",
       "no_results_title": "Sin resultados",
-      "no_results_subtitle": "No hay artículos que coincidan con tu búsqueda o filtros."
+      "no_results_subtitle": "No hay artículos que coincidan con tu búsqueda o filtros.",
+      "add_item": "Agregar artículo",
+      "more_options": "Más opciones",
+      "pieces": {
+        "one": "{count} pieza",
+        "other": "{count} piezas"
+      },
+      "sort_pill": "Orden: {order}",
+      "remove_filter": "Quitar filtro: {name}"
     },
     "form": {
       "title_edit": "Editar Artículo",
       "title_new": "Nuevo Artículo",
-      "section_basic_info": "Información básica",
       "name_label": "Nombre del artículo *",
       "name_hint": "Ej: Tienda de campaña, Uniforme, etc.",
       "name_required": "El nombre es requerido",
@@ -3581,24 +3581,14 @@
       "category_hint": "Selecciona una categoría",
       "category_required": "Selecciona una categoría",
       "quantity_label": "Cantidad *",
-      "quantity_hint": "1",
-      "quantity_required": "Ingresa la cantidad",
-      "quantity_invalid": "Cantidad inválida",
       "section_condition": "Estado de conservación",
-      "section_description": "Descripción y referencia",
-      "description_label": "Descripción (opcional)",
-      "description_hint": "Describe el artículo...",
       "serial_label": "Número de serie / código (opcional)",
       "serial_hint": "SN-000123",
-      "section_value": "Valor y adquisición",
       "purchase_date_label": "Fecha de adquisición (opcional)",
       "estimated_value_label": "Valor estimado (opcional)",
       "value_hint": "0.00",
-      "section_location": "Ubicación y asignación",
       "location_label": "Ubicación / almacén (opcional)",
       "location_hint": "Ej: Bodega principal, Oficina...",
-      "assigned_to_label": "Asignado a (opcional)",
-      "assigned_to_hint": "Nombre del responsable...",
       "notes_label": "Notas (opcional)",
       "notes_hint": "Observaciones adicionales...",
       "register_button": "Registrar artículo",
@@ -3606,12 +3596,21 @@
       "registered_success": "Artículo registrado correctamente",
       "select_date": "Seleccionar fecha",
       "categories_error": "No se pudieron cargar las categorías",
-      "section_evidence": "Evidencias del artículo",
       "evidence_hint": "Agrega de 1 a 3 fotos claras del artículo.",
       "evidence_count": "{count}/3 evidencias",
       "evidence_required": "Agrega al menos una foto del artículo",
       "evidence_limit": "Puedes adjuntar máximo 3 fotos",
-      "evidence_pick_error": "No se pudo seleccionar la foto"
+      "evidence_pick_error": "No se pudo seleccionar la foto",
+      "photos_label": "Fotos",
+      "add_photo": "Agregar foto",
+      "remove_photo": "Quitar foto",
+      "category_sheet_title": "Categoría",
+      "more_details": "Más detalles",
+      "more_details_hint": "Ubicación, valor, serie, fecha y notas",
+      "discard_title": "¿Descartar cambios?",
+      "discard_body": "Si sales ahora, perderás lo que capturaste.",
+      "discard_confirm": "Descartar",
+      "keep_editing": "Seguir editando"
     },
     "filter": {
       "sort_name_asc": "Nombre A-Z",
@@ -3624,18 +3623,15 @@
       "title": "Filtros",
       "clear": "Limpiar",
       "sort_by": "Ordenar por",
-      "condition_title": "Estado de conservación",
       "condition_all": "Todos",
-      "apply": "Aplicar filtros"
-    },
-    "item_card": {
-      "edit_label": "Editar",
-      "delete_label": "Eliminar",
-      "quantity": "Cant: {count}"
+      "category_title": "Categoría",
+      "show_items": {
+        "one": "Ver {count} artículo",
+        "other": "Ver {count} artículos"
+      }
     },
     "summary_header": {
-      "search_hint": "Buscar artículos...",
-      "category_all": "Todas"
+      "search_hint": "Buscar artículos..."
     },
     "conditions": {
       "good": "Buen estado",
@@ -3643,6 +3639,13 @@
       "regular": "Regular",
       "bad": "Mal estado",
       "bad_short": "Malo"
+    },
+    "actions": {
+      "view": "Ver",
+      "change_condition": "Cambiar estado",
+      "condition_title": "Estado del artículo",
+      "condition_updated": "Estado actualizado",
+      "condition_error": "No se pudo cambiar el estado"
     }
   },
   "insurance": {
