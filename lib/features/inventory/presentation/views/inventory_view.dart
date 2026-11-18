@@ -179,7 +179,7 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
       );
     }
     return SacEmptyState(
-      icon: HugeIcons.strokeRoundedBoxingBag,
+      icon: HugeIcons.strokeRoundedPackage,
       title: 'inventory.view.empty_title'.tr(),
       body: canManage
           ? 'inventory.view.empty_subtitle_can_add'.tr()
