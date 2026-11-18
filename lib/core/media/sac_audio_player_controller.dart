@@ -55,6 +55,14 @@ class SacAudioPlayerController {
     await _channel.invokeMethod<void>('resume');
   }
 
+  /// Jumps to [position]. Native side clamps to the track; a no-op when
+  /// nothing is loaded.
+  Future<void> seekTo(Duration position) async {
+    await _channel.invokeMethod<void>('seekTo', {
+      'positionMs': position.inMilliseconds < 0 ? 0 : position.inMilliseconds,
+    });
+  }
+
   Future<void> stop() async {
     try {
       await _channel.invokeMethod<void>('stop');

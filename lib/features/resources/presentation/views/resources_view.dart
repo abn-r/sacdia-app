@@ -14,7 +14,6 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
-import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
@@ -23,7 +22,10 @@ import '../../domain/entities/resource.dart';
 import '../providers/resources_providers.dart';
 import '../widgets/resource_card.dart';
 import '../widgets/resource_detail_sheet.dart';
+import '../widgets/resource_category_bar.dart';
 import '../widgets/resource_filter_bar.dart';
+import '../widgets/resource_grid_skeleton.dart';
+import '../widgets/resources_empty_state.dart';
 
 /// Vista principal de Recursos.
 ///
@@ -32,7 +34,7 @@ import '../widgets/resource_filter_bar.dart';
 /// Layout:
 /// - AppBar con título "Recursos"
 /// - Barra de búsqueda
-/// - Filtros de tipo (chips horizontales)
+/// - Filtros de tipo (chips horizontales) y de categoría (fila discreta)
 /// - Grilla de recursos paginada (carga más al hacer scroll)
 /// - Pull-to-refresh
 class ResourcesView extends ConsumerStatefulWidget {
@@ -84,6 +86,8 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
   }
 
   Future<void> _onRefresh() async {
+    ref.invalidate(resourceFacetProvider);
+    ref.invalidate(resourceCategoriesProvider);
     await ref.read(resourcesListNotifierProvider.notifier).loadFirstPage();
   }
 
@@ -139,6 +143,12 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
                     ),
                   ),
                 ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.only(left: horizontalPadding),
+                    child: const ResourceCategoryBar(),
+                  ),
+                ),
                 if (_searchController.text.trim().isNotEmpty) ...[
                   const SliverToBoxAdapter(child: SizedBox(height: 14)),
                   SliverToBoxAdapter(
@@ -146,7 +156,7 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
                       padding:
                           EdgeInsets.symmetric(horizontal: horizontalPadding),
                       child: Text(
-                        'resources.list_label.search'.tr(),
+                        'resources.results_label'.tr(),
                         style: TextStyle(
                           fontSize: SacFontSize.bodyMedium,
                           fontWeight: FontWeight.w700,
@@ -226,12 +236,7 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
     ResourcesListState state,
   ) {
     if (state.isLoading) {
-      return SliverToBoxAdapter(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 48),
-          child: const Center(child: SacLoading()),
-        ),
-      );
+      return const SliverToBoxAdapter(child: ResourceGridSkeleton());
     }
 
     if (state.errorMessage != null) {
@@ -256,10 +261,9 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
         hasScrollBody: false,
         child: Padding(
           padding: const EdgeInsets.only(bottom: 120),
-          child: SacEmptyState(
-            icon: HugeIcons.strokeRoundedFolder02,
-            title: 'resources.empty_title'.tr(),
-            body: 'resources.empty_subtitle'.tr(),
+          child: ResourcesEmptyState(
+            onRefresh: _onRefresh,
+            onClearSearch: _clearSearch,
           ),
         ),
       );
@@ -269,12 +273,7 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
       padding: EdgeInsets.symmetric(
           horizontal: Responsive.horizontalPadding(context)),
       sliver: SliverGrid(
-        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 200,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 0.72,
-        ),
+        gridDelegate: resourceGridDelegate,
         delegate: SliverChildBuilderDelegate(
           (context, index) {
             final resource = state.items[index];

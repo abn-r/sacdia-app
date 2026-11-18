@@ -75,6 +75,18 @@ import GoogleMaps
       audioPlayer?.play()
       result(nil)
 
+    case "seekTo":
+      guard
+        let args = call.arguments as? [String: Any],
+        let positionMs = args["positionMs"] as? Int
+      else {
+        result(FlutterError(code: "invalid_position", message: "Invalid seek position", details: nil))
+        return
+      }
+      let target = CMTime(value: CMTimeValue(max(positionMs, 0)), timescale: 1000)
+      audioPlayer?.seek(to: target, toleranceBefore: .zero, toleranceAfter: .zero)
+      result(nil)
+
     case "stop":
       audioPlayer?.pause()
       audioPlayer = nil

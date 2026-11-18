@@ -43,6 +43,24 @@ void main() {
     expect(stopped, isTrue);
   });
 
+  test('seekTo sends the target in milliseconds and never a negative one',
+      () async {
+    final seeks = <int>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+      if (call.method == 'seekTo') {
+        seeks.add((call.arguments as Map)['positionMs'] as int);
+      }
+      return null;
+    });
+
+    final player = SacAudioPlayerController();
+    await player.seekTo(const Duration(seconds: 79));
+    await player.seekTo(const Duration(seconds: -5));
+
+    expect(seeks, [79000, 0]);
+  });
+
   group('hasAudioReachedEnd', () {
     SacAudioPlayerPosition playback({
       int positionMs = 0,

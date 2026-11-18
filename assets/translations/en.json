@@ -3465,20 +3465,8 @@
     },
     "title": "Resources",
     "search_hint": "Search resources...",
-    "header_title": "All resources",
     "error_loading": "Error loading resources",
-    "empty_title": "No resources available",
-    "empty_subtitle": "Try another filter or search",
     "no_more": "No more resources",
-    "list_label": {
-      "all": "All files",
-      "document": "Documentos",
-      "audio": "Audio files",
-      "image": "Images",
-      "video": "Videos",
-      "text": "Contenido de texto",
-      "files": "Files"
-    },
     "filter": {
       "all": "Todos",
       "document": "Documentos",
@@ -3492,21 +3480,28 @@
       "image": "IMG",
       "video": "VIDEO",
       "text": "TXT",
-      "document": "DOC"
+      "document": "DOC",
+      "pdf": "PDF"
     },
     "action": {
-      "watch_video": "Ver video",
-      "play_audio": "Play audio",
+      "watch_video": "Watch video",
       "view_image": "View image",
-      "view_pdf": "View PDF",
-      "download": "Descargar",
-      "opening": "Abriendo..."
+      "open_pdf": "Open PDF",
+      "open_youtube": "Open in YouTube",
+      "open_link": "Open link",
+      "download": "Download",
+      "share": "Share",
+      "opening": "Opening..."
     },
     "audio": {
-      "player_title": "Audio player",
       "loading": "Loading audio...",
+      "play": "Play",
       "pause": "Pause",
-      "resume": "Resume"
+      "resume": "Resume",
+      "back_15": "Back 15 seconds",
+      "forward_15": "Forward 15 seconds",
+      "scrubber": "Playback position",
+      "position_of": "{position} of {total}"
     },
     "error": {
       "download_url": "No se pudo obtener la URL de descarga",
@@ -3514,7 +3509,38 @@
       "audio_playback": "Could not play the audio",
       "video_url_missing": "URL de video no disponible",
       "invalid_url": "URL no válida",
-      "open_url_failed": "No se pudo abrir la URL"
+      "open_url_failed": "No se pudo abrir la URL",
+      "share_failed": "Could not share the resource"
+    },
+    "results_label": "Results",
+    "loading": "Loading resources",
+    "empty_club": {
+      "title": "No resources yet",
+      "body": "Your local field publishes manuals, hymns and videos for your club here.",
+      "action": "Refresh"
+    },
+    "no_results": {
+      "title_type": "No {type} for “{query}”",
+      "title_query": "No results for “{query}”",
+      "title_filters": "No resources match these filters",
+      "body_other_types": "There are {count} in other types.",
+      "body_none": "Try another search or remove the filters.",
+      "action_all_types": "See all types",
+      "action_clear_filters": "Remove filters",
+      "action_clear_search": "Clear search"
+    },
+    "scope": {
+      "system": "SACDIA",
+      "union": "Union",
+      "local_field": "Local field"
+    },
+    "detail": {
+      "category": "Category",
+      "for": "For",
+      "published_by": "Published by"
+    },
+    "video": {
+      "opens_outside": "Opens outside SACDIA."
     }
   },
   "inventory": {

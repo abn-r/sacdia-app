@@ -46,3 +46,22 @@ String? videoPreviewUrl(String? externalUrl) {
   if (clean.isEmpty) return null;
   return 'https://img.youtube.com/vi/$clean/hqdefault.jpg';
 }
+
+/// Whether [externalUrl] is an http(s) link, i.e. opening it leaves the app.
+bool isExternalWebUrl(String? externalUrl) {
+  final uri = Uri.tryParse(externalUrl?.trim() ?? '');
+  return uri != null &&
+      uri.host.isNotEmpty &&
+      (uri.scheme == 'http' || uri.scheme == 'https');
+}
+
+/// Whether [externalUrl] points at YouTube (any of its hosts).
+bool isYoutubeUrl(String? externalUrl) {
+  final uri = Uri.tryParse(externalUrl?.trim() ?? '');
+  if (uri == null || uri.host.isEmpty) return false;
+  final host = uri.host.toLowerCase();
+  return host == 'youtu.be' ||
+      host.endsWith('.youtu.be') ||
+      host.contains('youtube.com') ||
+      host.contains('youtube-nocookie.com');
+}
