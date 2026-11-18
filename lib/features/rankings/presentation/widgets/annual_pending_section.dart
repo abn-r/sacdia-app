@@ -338,7 +338,7 @@ class _SwatchPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final rrect = RRect.fromRectAndRadius(
       Offset.zero & size,
-      const Radius.circular(3),
+      const Radius.circular(AppTheme.radiusHairline),
     );
     if (!hatched) {
       canvas.drawRRect(rrect, Paint()..color = color);
