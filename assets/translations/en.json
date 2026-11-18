@@ -3528,11 +3528,6 @@
       "upload_evidence": "Error uploading item evidence"
     },
     "detail": {
-      "title": "Item Detail",
-      "quantity": "Quantity",
-      "serial_number": "Serial number / code",
-      "purchase_date": "Purchase date",
-      "estimated_value": "Estimated value",
       "location": "Location",
       "assigned_to": "Assigned to",
       "notes": "Notes",
@@ -3544,15 +3539,15 @@
       "delete_error": "Could not delete the item",
       "no_photo": "No photo",
       "category": "Category",
-      "condition": "Condition",
-      "evidences": "Evidence",
-      "evidence_title": "Item evidence",
-      "evidence_count_value": "{count}/3 photos",
-      "club_type": "Club type",
-      "record_status": "Record status",
-      "active_status": "Active",
-      "inactive_status": "Inactive",
-      "registered_at": "Registration date"
+      "registered_at": "Registration date",
+      "total_value": "total value {value}",
+      "details_title": "Details",
+      "value_each": "Value per piece",
+      "acquired": "Acquired",
+      "serial_label": "Serial number",
+      "not_recorded": "Not recorded",
+      "photo_counter": "Photo {current} of {total}",
+      "record_title": "Record"
     },
     "view": {
       "title": "Inventory",
@@ -3560,20 +3555,25 @@
         "one": "{count} item",
         "other": "{count} items"
       },
-      "filter_status": "Status: {status}",
       "error_load": "Error loading inventory",
       "empty_title": "No items in inventory",
       "empty_subtitle_can_add": "Start by registering the first item\nof your club",
       "empty_subtitle_cannot_add": "The club inventory is empty.",
       "add_first_item": "Add first item",
-      "add_button": "Add",
       "no_results_title": "No results",
-      "no_results_subtitle": "No items match your search or filters."
+      "no_results_subtitle": "No items match your search or filters.",
+      "add_item": "Add item",
+      "more_options": "More options",
+      "pieces": {
+        "one": "{count} piece",
+        "other": "{count} pieces"
+      },
+      "sort_pill": "Order: {order}",
+      "remove_filter": "Remove filter: {name}"
     },
     "form": {
       "title_edit": "Edit Item",
       "title_new": "New Item",
-      "section_basic_info": "Basic information",
       "name_label": "Item name *",
       "name_hint": "E.g.: Tent, Uniform, etc.",
       "name_required": "Name is required",
@@ -3581,24 +3581,14 @@
       "category_hint": "Select a category",
       "category_required": "Select a category",
       "quantity_label": "Quantity *",
-      "quantity_hint": "1",
-      "quantity_required": "Enter the quantity",
-      "quantity_invalid": "Invalid quantity",
       "section_condition": "Condition",
-      "section_description": "Description and reference",
-      "description_label": "Description (optional)",
-      "description_hint": "Describe the item...",
       "serial_label": "Serial number / code (optional)",
       "serial_hint": "SN-000123",
-      "section_value": "Value and acquisition",
       "purchase_date_label": "Purchase date (optional)",
       "estimated_value_label": "Estimated value (optional)",
       "value_hint": "0.00",
-      "section_location": "Location and assignment",
       "location_label": "Location / warehouse (optional)",
       "location_hint": "E.g.: Main warehouse, Office...",
-      "assigned_to_label": "Assigned to (optional)",
-      "assigned_to_hint": "Responsible person's name...",
       "notes_label": "Notes (optional)",
       "notes_hint": "Additional observations...",
       "register_button": "Register item",
@@ -3606,12 +3596,21 @@
       "registered_success": "Item registered successfully",
       "select_date": "Select date",
       "categories_error": "Could not load categories",
-      "section_evidence": "Item evidence",
       "evidence_hint": "Add 1 to 3 clear photos of the item.",
       "evidence_count": "{count}/3 evidences",
       "evidence_required": "Add at least one item photo",
       "evidence_limit": "You can attach up to 3 photos",
-      "evidence_pick_error": "Could not select the photo"
+      "evidence_pick_error": "Could not select the photo",
+      "photos_label": "Photos",
+      "add_photo": "Add photo",
+      "remove_photo": "Remove photo",
+      "category_sheet_title": "Category",
+      "more_details": "More details",
+      "more_details_hint": "Location, value, serial number, date and notes",
+      "discard_title": "Discard changes?",
+      "discard_body": "If you leave now, you will lose what you entered.",
+      "discard_confirm": "Discard",
+      "keep_editing": "Keep editing"
     },
     "filter": {
       "sort_name_asc": "Name A-Z",
@@ -3624,18 +3623,15 @@
       "title": "Filters",
       "clear": "Clear",
       "sort_by": "Sort by",
-      "condition_title": "Condition",
       "condition_all": "All",
-      "apply": "Apply filters"
-    },
-    "item_card": {
-      "edit_label": "Edit",
-      "delete_label": "Delete",
-      "quantity": "Qty: {count}"
+      "category_title": "Category",
+      "show_items": {
+        "one": "Show {count} item",
+        "other": "Show {count} items"
+      }
     },
     "summary_header": {
-      "search_hint": "Search items...",
-      "category_all": "All"
+      "search_hint": "Search items..."
     },
     "conditions": {
       "good": "Good condition",
@@ -3643,6 +3639,13 @@
       "regular": "Fair",
       "bad": "Poor condition",
       "bad_short": "Poor"
+    },
+    "actions": {
+      "view": "View",
+      "change_condition": "Change condition",
+      "condition_title": "Item condition",
+      "condition_updated": "Condition updated",
+      "condition_error": "Could not change the condition"
     }
   },
   "insurance": {

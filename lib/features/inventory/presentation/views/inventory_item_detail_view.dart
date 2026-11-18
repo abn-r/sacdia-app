@@ -1,33 +1,28 @@
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
-import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/utils/money_format.dart';
 import '../../../../core/widgets/sac_image_viewer.dart';
-import '../../../members/presentation/providers/members_providers.dart'
-    show ClubContext, clubContextProvider;
+import '../../../../core/widgets/sac_network_image.dart';
+import '../../../../core/widgets/sac_pressable.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
+import '../../../../core/widgets/status_progress/sac_grouped_section.dart';
 import '../../domain/entities/inventory_item.dart';
 import '../providers/inventory_providers.dart';
 import '../widgets/condition_badge.dart';
-import 'add_inventory_item_sheet.dart';
-import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
-import 'package:sacdia_app/core/widgets/sac_dialog.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_sheet.dart';
-import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import '../widgets/condition_style.dart';
+import '../widgets/inventory_item_actions.dart';
 
-/// Pantalla de detalle de un ítem del inventario.
+/// Detail of one inventory item.
 ///
-/// Botones de editar/eliminar en la zona del pulgar (barra inferior),
-/// no en el AppBar. Hero animation en la foto desde la lista.
+/// The top bar carries the item name and the "more" menu (edit, change state,
+/// delete). Below: the photos, the condition with the piece count and total
+/// value, and label-value groups. A value that was never filled in reads
+/// "Sin registrar" in gray.
 class InventoryItemDetailView extends ConsumerWidget {
   final InventoryItem item;
 
@@ -35,250 +30,51 @@ class InventoryItemDetailView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final canManageAsync = ref.watch(canManageInventoryProvider);
-    final canManage = canManageAsync.value ?? false;
-    final deleteState = ref.watch(inventoryDeleteNotifierProvider);
-    final detailAsync = ref.watch(inventoryItemDetailProvider(item.id));
-    final detailItem = detailAsync.value ?? item;
-    final clubContext = ref.watch(clubContextProvider).value;
-    final clubTypeName = _clubTypeNameForItem(detailItem, clubContext);
+    final canManage = ref.watch(canManageInventoryProvider).value ?? false;
+    final detail =
+        ref.watch(inventoryItemDetailProvider(item.id)).value ?? item;
+    final c = context.sac;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: context.sac.background,
+      backgroundColor: c.background,
       appBar: SacTopBar(
-          title: 'inventory.detail.title'.tr(),
-          backgroundColor: context.sac.background,
-          frosted: true),
-
-      // Action bar at bottom — thumb zone
-      bottomNavigationBar: canManage
-          ? _BottomActionBar(
-              isDeleting: deleteState.isLoading,
-              onEdit: () => _openEdit(context, detailItem),
-              onDelete: () => _confirmDelete(context, ref, detailItem),
-            )
-          : null,
-
+        title: detail.name,
+        backgroundColor: c.background,
+        frosted: true,
+        actions: [
+          if (canManage)
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                key: const ValueKey('inventory-detail-more'),
+                enableFeedback: false,
+                tooltip: 'inventory.view.more_options'.tr(),
+                onPressed: () => _openActions(context, ref, detail),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedMoreHorizontal,
+                  size: 22,
+                  color: c.textSecondary,
+                ),
+              ),
+            ),
+        ],
+      ),
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) => SingleChildScrollView(
             padding: SacTopBar.paddingBelowBar(
-                context, const EdgeInsets.fromLTRB(16, 8, 16, 32)),
+              context,
+              const EdgeInsets.only(top: 8, bottom: 32),
+            ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Photo hero — tag matches thumbnail tag in item card
-                Hero(
-                  tag: 'inv-photo-${detailItem.id}',
-                  child: _PhotoSection(
-                    photoUrl: detailItem.photoUrl,
-                    imageUrls: detailItem.evidences.map((e) => e.url).toList(),
-                    title: detailItem.name,
-                  ),
-                ),
-
-                if (detailItem.evidences.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  _EvidenceCard(
-                    itemName: detailItem.name,
-                    evidences: detailItem.evidences,
-                  ),
-                ],
-
-                const SizedBox(height: 20),
-
-                // Title + condition badge
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        detailItem.name,
-                        style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  color: context.sac.text,
-                                ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    ConditionBadge(condition: detailItem.condition),
-                  ],
-                ),
-
-                const SizedBox(height: 8),
-
-                // Category tag
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: SacAccent.of(context).surface,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-                  ),
-                  child: Text(
-                    detailItem.category.name,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: SacAccent.of(context).dark,
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
-                ),
-
-                if (detailItem.description != null &&
-                    detailItem.description!.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  Text(
-                    detailItem.description!,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: context.sac.textSecondary,
-                          height: 1.5,
-                        ),
-                  ),
-                ],
-
-                const SizedBox(height: 20),
-
-                // Primary info card
-                _InfoCard(
-                  children: [
-                    _InfoRow(
-                      icon: HugeIcons.strokeRoundedPackage,
-                      label: 'inventory.detail.quantity'.tr(),
-                      value: detailItem.quantity.toString(),
-                    ),
-                    _InfoRow(
-                      icon: HugeIcons.strokeRoundedTag01,
-                      label: 'inventory.detail.category'.tr(),
-                      value: detailItem.category.name,
-                    ),
-                    _InfoRow(
-                      icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                      label: 'inventory.detail.condition'.tr(),
-                      value: detailItem.condition.label,
-                      valueColor:
-                          _conditionColor(detailItem.condition, context.sac),
-                    ),
-                    _InfoRow(
-                      icon: HugeIcons.strokeRoundedImage01,
-                      label: 'inventory.detail.evidences'.tr(),
-                      value: 'inventory.detail.evidence_count_value'.tr(
-                        namedArgs: {
-                          'count': detailItem.evidences.length.toString(),
-                        },
-                      ),
-                    ),
-                    if (clubTypeName != null)
-                      _InfoRow(
-                        icon: HugeIcons.strokeRoundedHome01,
-                        label: 'inventory.detail.club_type'.tr(),
-                        value: clubTypeName,
-                      ),
-                    _InfoRow(
-                      icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                      label: 'inventory.detail.record_status'.tr(),
-                      value: detailItem.isActive
-                          ? 'inventory.detail.active_status'.tr()
-                          : 'inventory.detail.inactive_status'.tr(),
-                      valueColor: detailItem.isActive
-                          ? context.sac.onSuccessContainer
-                          : context.sac.onErrorContainer,
-                    ),
-                    if (detailItem.serialNumber != null &&
-                        detailItem.serialNumber!.isNotEmpty)
-                      _InfoRow(
-                        icon: HugeIcons.strokeRoundedTag01,
-                        label: 'inventory.detail.serial_number'.tr(),
-                        value: detailItem.serialNumber!,
-                      ),
-                    if (detailItem.purchaseDate != null)
-                      _InfoRow(
-                        icon: HugeIcons.strokeRoundedCalendar01,
-                        label: 'inventory.detail.purchase_date'.tr(),
-                        value: DateFormat('dd/MM/yyyy')
-                            .format(detailItem.purchaseDate!.toLocal()),
-                      ),
-                    if (detailItem.estimatedValue != null)
-                      _InfoRow(
-                        icon: HugeIcons.strokeRoundedMoney01,
-                        label: 'inventory.detail.estimated_value'.tr(),
-                        value: SacMoney.format(detailItem.estimatedValue!),
-                        valueColor: context.sac.onSuccessContainer,
-                      ),
-                  ],
-                ),
-
-                if (detailItem.location != null ||
-                    detailItem.assignedTo != null) ...[
-                  const SizedBox(height: 12),
-                  _InfoCard(
-                    children: [
-                      if (detailItem.location != null &&
-                          detailItem.location!.isNotEmpty)
-                        _InfoRow(
-                          icon: HugeIcons.strokeRoundedLocation01,
-                          label: 'inventory.detail.location'.tr(),
-                          value: detailItem.location!,
-                        ),
-                      if (detailItem.assignedTo != null &&
-                          detailItem.assignedTo!.isNotEmpty)
-                        _InfoRow(
-                          icon: HugeIcons.strokeRoundedUser,
-                          label: 'inventory.detail.assigned_to'.tr(),
-                          value: detailItem.assignedTo!,
-                        ),
-                    ],
-                  ),
-                ],
-
-                if (detailItem.notes != null &&
-                    detailItem.notes!.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  _InfoCard(
-                    children: [
-                      _InfoRow(
-                        icon: HugeIcons.strokeRoundedNote01,
-                        label: 'inventory.detail.notes'.tr(),
-                        value: detailItem.notes!,
-                        isMultiline: true,
-                      ),
-                    ],
-                  ),
-                ],
-
-                const SizedBox(height: 12),
-
-                // Audit trail
-                _InfoCard(
-                  children: [
-                    _InfoRow(
-                      icon: HugeIcons.strokeRoundedUser,
-                      leading: _ActorAvatar(
-                        imageUrl: detailItem.registeredByAvatarUrl,
-                      ),
-                      label: 'inventory.detail.registered_by'.tr(),
-                      value: detailItem.registeredByName,
-                    ),
-                    _InfoRow(
-                      icon: HugeIcons.strokeRoundedCalendar01,
-                      label: 'inventory.detail.registered_at'.tr(),
-                      value: _formatDateTime(detailItem.registeredAt),
-                    ),
-                    if (detailItem.modifiedAt != null ||
-                        detailItem.modifiedByName != null)
-                      _InfoRow(
-                        icon: HugeIcons.strokeRoundedEdit02,
-                        label: 'inventory.detail.last_modified'.tr(),
-                        value: _joinNonEmpty([
-                          detailItem.modifiedByName,
-                          detailItem.modifiedAt != null
-                              ? _formatDateTime(detailItem.modifiedAt!)
-                              : null,
-                        ]),
-                      ),
-                  ],
-                ),
+                _Hero(item: detail),
+                _Summary(item: detail),
+                _DetailsGroup(item: detail),
+                _NotesGroup(item: detail),
+                _RecordGroup(item: detail),
               ],
             ),
           ),
@@ -287,334 +83,165 @@ class InventoryItemDetailView extends ConsumerWidget {
     );
   }
 
-  void _openEdit(BuildContext context, InventoryItem selectedItem) {
-    showSacSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => AddInventoryItemSheet(existing: selectedItem),
-    );
-  }
-
-  Future<void> _confirmDelete(
+  Future<void> _openActions(
     BuildContext context,
     WidgetRef ref,
-    InventoryItem selectedItem,
+    InventoryItem detail,
   ) async {
-    final confirmed = await SacDialog.show(
+    final action = await showInventoryItemActionsSheet(
       context,
-      title: 'inventory.detail.delete_title'.tr(),
-      content: 'inventory.detail.delete_confirm'
-          .tr(namedArgs: {'name': selectedItem.name}),
-      confirmLabel: 'common.delete'.tr(),
-      confirmIsDestructive: true,
+      item: detail,
+      canManage: true,
+      includeView: false,
     );
-    if (confirmed != true || !context.mounted) return;
-
-    final success = await ref
-        .read(inventoryDeleteNotifierProvider.notifier)
-        .deleteItem(selectedItem.id);
-    if (success && context.mounted) {
-      SacSnackBar.show(context, 'inventory.detail.deleted_success'.tr(),
-          isSuccess: true);
-      Navigator.pop(context);
-    } else if (!success && context.mounted) {
-      SacSnackBar.show(context, 'inventory.detail.delete_error'.tr(),
-          isError: true);
-    }
-  }
-}
-
-Color _conditionColor(ItemCondition condition, SacColors c) {
-  switch (condition) {
-    case ItemCondition.bueno:
-      return c.onSuccessContainer;
-    case ItemCondition.regular:
-      return c.onWarningContainer;
-    case ItemCondition.malo:
-      return c.onErrorContainer;
-  }
-}
-
-String _formatDateTime(DateTime value) {
-  return DateFormat('dd/MM/yyyy HH:mm').format(value.toLocal());
-}
-
-String? _clubTypeNameForItem(InventoryItem item, ClubContext? context) {
-  final clubTypeName = context?.clubTypeName?.trim();
-  if (clubTypeName == null || clubTypeName.isEmpty) return null;
-  if (item.clubSectionId != null && item.clubSectionId != context?.sectionId) {
-    return null;
-  }
-  return clubTypeName;
-}
-
-String _joinNonEmpty(List<String?> values) {
-  return values
-      .where((value) => value != null && value.trim().isNotEmpty)
-      .map((value) => value!.trim())
-      .join(' · ');
-}
-
-// ── Bottom action bar ───────────────────────────────────────────────────────────
-
-class _BottomActionBar extends StatelessWidget {
-  /// Dos botones grandes comparten el ancho: el padding horizontal por defecto
-  /// del tamaño `large` (32) deja muy poco espacio para el texto a 402pt.
-  static const _actionPadding =
-      EdgeInsets.symmetric(horizontal: 16, vertical: 18);
-
-  final bool isDeleting;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _BottomActionBar({
-    required this.isDeleting,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-        decoration: BoxDecoration(
-          color: context.sac.surface,
-          border: Border(top: BorderSide(color: context.sac.border)),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: SacButton(
-                text: 'common.delete'.tr(),
-                icon: HugeIcons.strokeRoundedDelete02,
-                variant: SacButtonVariant.outline,
-                size: SacButtonSize.large,
-                padding: _actionPadding,
-                fullWidth: true,
-                isLoading: isDeleting,
-                textColor: context.sac.error,
-                borderColor: context.sac.error,
-                onPressed: isDeleting ? null : onDelete,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: SacButton(
-                text: 'common.edit'.tr(),
-                icon: HugeIcons.strokeRoundedEdit02,
-                variant: SacButtonVariant.primary,
-                size: SacButtonSize.large,
-                padding: _actionPadding,
-                fullWidth: true,
-                onPressed: onEdit,
-              ),
-            ),
-          ],
-        ),
-      ),
+    if (action == null || !context.mounted) return;
+    final deleted = await runInventoryItemAction(
+      context,
+      ref,
+      item: detail,
+      action: action,
     );
+    if (deleted && context.mounted) Navigator.pop(context);
   }
 }
 
-// ── Photo section ───────────────────────────────────────────────────────────────
+// ── Hero ────────────────────────────────────────────────────────────────────────
 
-class _PhotoSection extends StatelessWidget {
-  final String? photoUrl;
-  final List<String> imageUrls;
-  final String title;
+class _Hero extends StatefulWidget {
+  final InventoryItem item;
 
-  const _PhotoSection({
-    this.photoUrl,
-    this.imageUrls = const [],
-    required this.title,
-  });
+  const _Hero({required this.item});
+
+  static const double height = 210;
 
   @override
-  Widget build(BuildContext context) {
-    if (photoUrl != null && photoUrl!.isNotEmpty) {
-      final urls = imageUrls.isNotEmpty ? imageUrls : [photoUrl!];
-
-      return Material(
-        color: Colors.transparent,
-        child: SacInkWell(
-          onTap: () => SacImageViewer.show(
-            context,
-            imageUrl: photoUrl!,
-            imageUrls: urls,
-            title: title,
-          ),
-          borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-            child: CachedNetworkImage(
-              imageUrl: photoUrl!,
-              width: double.infinity,
-              height: 220,
-              memCacheWidth: 1200,
-              memCacheHeight: 660,
-              fit: BoxFit.cover,
-              errorWidget: (_, __, ___) => const _PhotoPlaceholder(),
-            ),
-          ),
-        ),
-      );
-    }
-    return const _PhotoPlaceholder();
-  }
+  State<_Hero> createState() => _HeroState();
 }
 
-class _EvidenceCard extends StatelessWidget {
-  final String itemName;
-  final List<InventoryEvidence> evidences;
+class _HeroState extends State<_Hero> {
+  int _page = 0;
 
-  const _EvidenceCard({
-    required this.itemName,
-    required this.evidences,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final urls = evidences.map((e) => e.url).toList();
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: context.sac.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        border: Border.all(
-          color: context.sac.border.withValues(alpha: 0.7),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedImage01,
-                size: 18,
-                color: SacAccent.of(context).color,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'inventory.detail.evidence_title'.tr(),
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: context.sac.text,
-                      ),
-                ),
-              ),
-              Text(
-                'inventory.detail.evidence_count_value'.tr(
-                  namedArgs: {'count': evidences.length.toString()},
-                ),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: context.sac.textTertiary,
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              for (var index = 0; index < evidences.length; index++)
-                _EvidenceThumb(
-                  url: evidences[index].url,
-                  onTap: () => SacImageViewer.show(
-                    context,
-                    imageUrl: evidences[index].url,
-                    imageUrls: urls,
-                    initialIndex: index,
-                    title: itemName,
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
+  List<String> get _urls {
+    final fromEvidence = widget.item.evidences
+        .map((e) => e.url)
+        .where((u) => u.isNotEmpty)
+        .toList();
+    if (fromEvidence.isNotEmpty) return fromEvidence;
+    final photo = widget.item.photoUrl;
+    return photo != null && photo.isNotEmpty ? [photo] : const [];
   }
-}
-
-class _EvidenceThumb extends StatelessWidget {
-  final String url;
-  final VoidCallback onTap;
-
-  const _EvidenceThumb({
-    required this.url,
-    required this.onTap,
-  });
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: SacInkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        child: Ink(
-          width: 82,
-          height: 82,
-          decoration: BoxDecoration(
-            color: context.sac.surfaceVariant,
-            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-            child: CachedNetworkImage(
-              imageUrl: url,
-              fit: BoxFit.cover,
-              memCacheWidth: 246,
-              memCacheHeight: 246,
-              errorWidget: (_, __, ___) => Center(
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedImageNotFound01,
-                  size: 22,
-                  color: context.sac.textTertiary,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+    final urls = _urls;
+    final c = context.sac;
 
-class _PhotoPlaceholder extends StatelessWidget {
-  const _PhotoPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: 160,
-      decoration: BoxDecoration(
-        color: SacAccent.of(context).surface,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: ClipRRect(
         borderRadius: BorderRadius.circular(AppTheme.radiusLG),
+        child: SizedBox(
+          height: _Hero.height,
+          child: urls.isEmpty
+              ? _HeroPlaceholder(condition: widget.item.condition)
+              : Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    PageView.builder(
+                      key: const ValueKey('inventory-hero-pages'),
+                      itemCount: urls.length,
+                      onPageChanged: (page) => setState(() => _page = page),
+                      itemBuilder: (context, index) => Semantics(
+                        button: true,
+                        image: true,
+                        label: widget.item.name,
+                        child: GestureDetector(
+                          onTap: () => SacImageViewer.show(
+                            context,
+                            imageUrl: urls[index],
+                            imageUrls: urls,
+                            initialIndex: index,
+                            title: widget.item.name,
+                          ),
+                          child: SacNetworkImage(
+                            imageUrl: urls[index],
+                            fit: BoxFit.cover,
+                            memCacheWidth: 1200,
+                            errorWidget: (_, __, ___) => _HeroPlaceholder(
+                              condition: widget.item.condition,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (urls.length > 1)
+                      Positioned(
+                        right: 10,
+                        bottom: 10,
+                        child: Semantics(
+                          label: 'inventory.detail.photo_counter'.tr(
+                            namedArgs: {
+                              'current': '${_page + 1}',
+                              'total': '${urls.length}',
+                            },
+                          ),
+                          excludeSemantics: true,
+                          child: Container(
+                            key: const ValueKey('inventory-hero-counter'),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              // Scrim over a photo: stays dark in both themes.
+                              color: c.barrierColor,
+                              borderRadius:
+                                  BorderRadius.circular(AppTheme.radiusFull),
+                            ),
+                            child: Text(
+                              '${_page + 1} / ${urls.length}',
+                              style: const TextStyle(
+                                fontSize: SacFontSize.bodySmall,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+        ),
       ),
+    );
+  }
+}
+
+class _HeroPlaceholder extends StatelessWidget {
+  final ItemCondition condition;
+
+  const _HeroPlaceholder({required this.condition});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return Container(
+      key: const ValueKey('inventory-hero-placeholder'),
+      color: condition.container(c),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           HugeIcon(
-            icon: HugeIcons.strokeRoundedBoxingBag,
+            icon: condition.icon,
             size: 52,
-            color: SacAccent.of(context).color.withValues(alpha: 0.4),
+            color: condition.onContainer(c),
           ),
           const SizedBox(height: 8),
           Text(
             'inventory.detail.no_photo'.tr(),
             style: TextStyle(
-              color: SacAccent.of(context).color.withValues(alpha: 0.5),
               fontSize: SacFontSize.bodyMedium,
+              color: condition.onContainer(c),
             ),
           ),
         ],
@@ -623,146 +250,240 @@ class _PhotoPlaceholder extends StatelessWidget {
   }
 }
 
-// ── Info card ───────────────────────────────────────────────────────────────────
+// ── Summary ─────────────────────────────────────────────────────────────────────
 
-class _InfoCard extends StatelessWidget {
-  final List<Widget> children;
+/// One condition badge and "N piezas · valor total $X".
+class _Summary extends StatelessWidget {
+  final InventoryItem item;
 
-  const _InfoCard({required this.children});
+  const _Summary({required this.item});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: context.sac.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        border: Border.all(
-          color: context.sac.border.withValues(alpha: 0.7),
-        ),
-      ),
-      child: Column(
-        children: List.generate(children.length * 2 - 1, (i) {
-          if (i.isOdd) {
-            return Divider(
-              height: 1,
-              thickness: 0.5,
-              indent: 16,
-              endIndent: 16,
-              color: context.sac.border.withValues(alpha: 0.5),
-            );
-          }
-          return children[i ~/ 2];
-        }),
+    final c = context.sac;
+    final pieces = 'inventory.view.pieces'.plural(item.quantity, name: 'count');
+    final value = item.estimatedValue;
+    final text = value == null
+        ? pieces
+        : '$pieces · ${'inventory.detail.total_value'.tr(
+            namedArgs: {'value': SacMoney.format(value * item.quantity)},
+          )}';
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          ConditionBadge(condition: item.condition),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: SacFontSize.titleSmall,
+              color: c.textSecondary,
+              fontFeatures: SacMoney.tabularFigures,
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-// ── Info row ────────────────────────────────────────────────────────────────────
+// ── Groups ──────────────────────────────────────────────────────────────────────
 
-class _InfoRow extends StatelessWidget {
-  final List<List<dynamic>> icon;
-  final Widget? leading;
+class _DetailsGroup extends StatelessWidget {
+  final InventoryItem item;
+
+  const _DetailsGroup({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final date = item.purchaseDate;
+    final value = item.estimatedValue;
+    final assignedTo = item.assignedTo?.trim();
+
+    return SacGroupedSection(
+      label: 'inventory.detail.details_title'.tr(),
+      dividerIndent: 16,
+      children: [
+        _LabelValueRow(
+          label: 'inventory.detail.category'.tr(),
+          value: item.category.name,
+        ),
+        _LabelValueRow(
+          label: 'inventory.detail.location'.tr(),
+          value: _text(item.location),
+        ),
+        _LabelValueRow(
+          label: 'inventory.detail.value_each'.tr(),
+          value: value == null ? null : SacMoney.format(value),
+        ),
+        _LabelValueRow(
+          label: 'inventory.detail.acquired'.tr(),
+          value: date == null
+              ? null
+              : DateFormat.yMMMd(context.locale.toString()).format(date),
+        ),
+        _LabelValueRow(
+          label: 'inventory.detail.serial_label'.tr(),
+          value: _text(item.serialNumber),
+        ),
+        if (assignedTo != null && assignedTo.isNotEmpty)
+          _LabelValueRow(
+            label: 'inventory.detail.assigned_to'.tr(),
+            value: assignedTo,
+          ),
+      ],
+    );
+  }
+}
+
+class _NotesGroup extends StatelessWidget {
+  final InventoryItem item;
+
+  const _NotesGroup({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final description = _text(item.description);
+    final notes = _text(item.notes);
+    if (description == null && notes == null) return const SizedBox.shrink();
+
+    return SacGroupedSection(
+      label: 'inventory.detail.notes'.tr(),
+      count: 0,
+      action: const SizedBox.shrink(),
+      dividerIndent: 16,
+      children: [
+        if (description != null) _TextBlock(text: description),
+        if (notes != null) _TextBlock(text: notes),
+      ],
+    );
+  }
+}
+
+/// Who registered the item and when.
+class _RecordGroup extends StatelessWidget {
+  final InventoryItem item;
+
+  const _RecordGroup({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final modifiedAt = item.modifiedAt;
+    final modifiedBy = _text(item.modifiedByName);
+
+    return SacGroupedSection(
+      label: 'inventory.detail.record_title'.tr(),
+      action: const SizedBox.shrink(),
+      dividerIndent: 16,
+      children: [
+        _LabelValueRow(
+          label: 'inventory.detail.registered_by'.tr(),
+          value: _text(item.registeredByName),
+        ),
+        _LabelValueRow(
+          label: 'inventory.detail.registered_at'.tr(),
+          value: _formatDateTime(context, item.registeredAt),
+        ),
+        if (modifiedAt != null || modifiedBy != null)
+          _LabelValueRow(
+            label: 'inventory.detail.last_modified'.tr(),
+            value: [
+              modifiedBy,
+              if (modifiedAt != null) _formatDateTime(context, modifiedAt),
+            ].whereType<String>().join(' · '),
+          ),
+      ],
+    );
+  }
+}
+
+String? _text(String? value) {
+  final trimmed = value?.trim();
+  return trimmed == null || trimmed.isEmpty ? null : trimmed;
+}
+
+String _formatDateTime(BuildContext context, DateTime value) =>
+    DateFormat.yMMMd(context.locale.toString())
+        .add_Hm()
+        .format(value.toLocal());
+
+/// Label on the left, value on the right. A null value reads "Sin registrar"
+/// in gray text (never a dash).
+class _LabelValueRow extends StatelessWidget {
   final String label;
-  final String value;
-  final Color? valueColor;
-  final bool isMultiline;
+  final String? value;
 
-  const _InfoRow({
-    required this.icon,
-    this.leading,
-    required this.label,
-    required this.value,
-    this.valueColor,
-    this.isMultiline = false,
-  });
+  const _LabelValueRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final text = value;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 4,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: SacFontSize.titleSmall,
+                color: c.textSecondary,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 5,
+            child: text == null
+                ? Text(
+                    'inventory.detail.not_recorded'.tr(),
+                    textAlign: TextAlign.end,
+                    style: TextStyle(
+                      fontSize: SacFontSize.titleSmall,
+                      color: c.textTertiary,
+                    ),
+                  )
+                : Text(
+                    text,
+                    textAlign: TextAlign.end,
+                    style: TextStyle(
+                      fontSize: SacFontSize.titleSmall,
+                      fontWeight: FontWeight.w600,
+                      color: c.text,
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TextBlock extends StatelessWidget {
+  final String text;
+
+  const _TextBlock({required this.text});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        crossAxisAlignment:
-            isMultiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
-        children: [
-          leading ??
-              HugeIcon(
-                icon: icon,
-                size: 18,
-                color: context.sac.textSecondary,
-              ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: context.sac.textTertiary,
-                        fontSize: SacFontSize.labelSmall,
-                      ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: valueColor ?? context.sac.text,
-                      ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ActorAvatar extends StatelessWidget {
-  final String? imageUrl;
-
-  const _ActorAvatar({this.imageUrl});
-
-  @override
-  Widget build(BuildContext context) {
-    final avatarUrl = imageUrl?.trim();
-    if (avatarUrl == null || avatarUrl.isEmpty) {
-      return HugeIcon(
-        icon: HugeIcons.strokeRoundedUser,
-        size: 18,
-        color: context.sac.textSecondary,
-      );
-    }
-
-    return ClipOval(
-      child: SacProfileImage(
-        imageUrl: avatarUrl,
-        width: 28,
-        height: 28,
-        memCacheWidth: 84,
-        memCacheHeight: 84,
-        fit: BoxFit.cover,
-        errorWidget: (_, __, ___) => HugeIcon(
-          icon: HugeIcons.strokeRoundedUser,
-          size: 18,
-          color: context.sac.textSecondary,
-        ),
-        placeholder: (_, __) => Container(
-          width: 28,
-          height: 28,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: context.sac.surfaceVariant,
-          ),
-          child: SizedBox(
-            width: 14,
-            height: 14,
-            child: FittedBox(
-              child: SacLoadingSmall(color: context.sac.textTertiary),
-            ),
+      padding: const EdgeInsets.all(16),
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: SacFontSize.titleSmall,
+            height: 1.45,
+            color: context.sac.text,
           ),
         ),
       ),

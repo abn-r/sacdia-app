@@ -7,6 +7,110 @@ import 'package:sacdia_app/features/inventory/domain/entities/inventory_item.dar
 
 void main() {
   group('InventoryRemoteDataSourceImpl', () {
+    group('getCategories', () {
+      Dio dioReturning(Object? data, {int statusCode = 200}) {
+        final dio = Dio();
+        dio.interceptors.add(
+          InterceptorsWrapper(
+            onRequest: (options, handler) {
+              handler.resolve(
+                Response<Object?>(
+                  requestOptions: options,
+                  statusCode: statusCode,
+                  data: data,
+                ),
+              );
+            },
+          ),
+        );
+        return dio;
+      }
+
+      InventoryRemoteDataSourceImpl sourceFor(Dio dio) =>
+          InventoryRemoteDataSourceImpl(
+            dio: dio,
+            baseUrl: 'https://api.test/api/v1',
+          );
+
+      test('reads the backend envelope with raw Prisma rows', () async {
+        // Exactly what GET /inventory/catalogs/inventory-categories returns.
+        final categories = await sourceFor(
+          dioReturning(const {
+            'status': 'success',
+            'data': [
+              {
+                'inventory_category_id': 3,
+                'name': 'Camping',
+                'icon': 0,
+                'active': true,
+                'created_at': '2026-01-01T00:00:00.000Z',
+                'modified_at': '2026-01-01T00:00:00.000Z',
+              },
+            ],
+          }),
+        ).getCategories();
+
+        expect(categories.single.id, 3);
+        expect(categories.single.name, 'Camping');
+      });
+
+      test('reads a bare list and an envelope nested once more', () async {
+        final bare = await sourceFor(
+          dioReturning(const [
+            {'inventory_category_id': 1, 'name': 'A'},
+          ]),
+        ).getCategories();
+        final nested = await sourceFor(
+          dioReturning(const {
+            'data': {
+              'data': [
+                {'inventory_category_id': 2, 'name': 'B'},
+              ],
+            },
+          }),
+        ).getCategories();
+
+        expect(bare.single.id, 1);
+        expect(nested.single.id, 2);
+      });
+
+      test('an empty or unknown body is an empty list, not an error', () async {
+        final empty = await sourceFor(
+          dioReturning(const {'status': 'success', 'data': []}),
+        ).getCategories();
+        final unknown = await sourceFor(dioReturning('nope')).getCategories();
+
+        expect(empty, isEmpty);
+        expect(unknown, isEmpty);
+      });
+
+      test('requests the catalog under /inventory', () async {
+        late RequestOptions captured;
+        final dio = Dio();
+        dio.interceptors.add(
+          InterceptorsWrapper(
+            onRequest: (options, handler) {
+              captured = options;
+              handler.resolve(
+                Response<Object?>(
+                  requestOptions: options,
+                  statusCode: 200,
+                  data: const {'status': 'success', 'data': []},
+                ),
+              );
+            },
+          ),
+        );
+
+        await sourceFor(dio).getCategories();
+
+        expect(
+          captured.path,
+          'https://api.test/api/v1/inventory/catalogs/inventory-categories',
+        );
+      });
+    });
+
     test('sends backend inventory contract when creating an item', () async {
       late RequestOptions captured;
       final dio = Dio();

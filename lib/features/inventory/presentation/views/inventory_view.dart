@@ -1,35 +1,37 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/animations/page_transitions.dart';
-import '../../../../core/animations/staggered_list_animation.dart';
-import 'package:sacdia_app/core/theme/sac_accent.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../../core/errors/user_error_message.dart';
+import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/sac_empty_state.dart';
+import '../../../../core/widgets/sac_error_state.dart';
+import '../../../../core/widgets/sac_sheet.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
+import '../../../../core/widgets/status_progress/sac_grouped_section.dart';
 import '../../domain/entities/inventory_item.dart';
 import '../providers/inventory_providers.dart';
+import '../widgets/inventory_active_pills.dart';
+import '../widgets/inventory_filter_bar.dart';
+import '../widgets/inventory_footer.dart';
+import '../widgets/inventory_item_actions.dart';
 import '../widgets/inventory_item_card.dart';
-import '../widgets/inventory_summary_header.dart';
+import '../widgets/inventory_list_skeleton.dart';
+import '../widgets/inventory_state_chips.dart';
 import 'add_inventory_item_sheet.dart';
 import 'inventory_filter_sheet.dart';
 import 'inventory_item_detail_view.dart';
-import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
-import 'package:sacdia_app/core/widgets/sac_dialog.dart';
-import 'package:sacdia_app/core/errors/user_error_message.dart';
-import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
-import 'package:sacdia_app/core/widgets/sac_error_state.dart';
-import 'package:sacdia_app/core/widgets/sac_sheet.dart';
-import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
-/// Pantalla principal del módulo de Inventario del club.
+/// Main screen of the club inventory.
 ///
-/// Muestra stats compactas, búsqueda, chips de categoría inline y la lista
-/// de artículos con SliverList.builder (no spread en Column). El alta va
-/// en IconButton Add01 del chrome, solo para roles autorizados.
+/// Top bar with the title only. Search + filter button, state chips with
+/// counts, removable pills for the sheet filters, and the items grouped by
+/// category. The one primary action ("Agregar artículo") sits in a fixed
+/// frosted footer for roles that can manage the inventory.
 class InventoryView extends ConsumerStatefulWidget {
   const InventoryView({super.key});
 
@@ -49,184 +51,67 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
   @override
   Widget build(BuildContext context) {
     final filteredAsync = ref.watch(filteredInventoryItemsProvider);
-    final canManageAsync = ref.watch(canManageInventoryProvider);
+    final allAsync = ref.watch(inventoryItemsProvider);
+    final canManage = ref.watch(canManageInventoryProvider).value ?? false;
     final filters = ref.watch(inventoryFiltersProvider);
 
-    final canManage = canManageAsync.value ?? false;
+    // With no items at all the empty state carries the action; a second
+    // button in the footer would say the same thing twice.
+    final isInventoryEmpty = allAsync.hasValue && allAsync.requireValue.isEmpty;
+    final showFooter = canManage && !isInventoryEmpty;
 
     return Scaffold(
+      extendBody: true,
       extendBodyBehindAppBar: true,
       backgroundColor: context.sac.background,
       appBar: SacTopBar(
         title: 'inventory.view.title'.tr(),
         frosted: true,
-        actions: [
-          if (canManage)
-            SacPressable(
-              listenOnly: true,
-              child: IconButton(
-                enableFeedback: false,
-                tooltip: 'inventory.view.add_button'.tr(),
-                onPressed: () => _openAddSheet(context),
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedAdd01,
-                  size: 22,
-                  color: SacAccent.of(context).color,
-                ),
-              ),
-            ),
-          SacPressable(
-            listenOnly: true,
-            child: IconButton(
-              enableFeedback: false,
-              tooltip: 'common.refresh'.tr(),
-              onPressed: () => ref.invalidate(inventoryItemsProvider),
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedRefresh,
-                size: 20,
-                color: context.sac.textSecondary,
-              ),
-            ),
-          ),
-        ],
       ),
+      bottomNavigationBar: showFooter
+          ? InventoryFooter(
+              child: SacButton.primary(
+                key: const ValueKey('inventory-add-button'),
+                text: 'inventory.view.add_item'.tr(),
+                icon: HugeIcons.strokeRoundedAdd01,
+                onPressed: _openAddSheet,
+              ),
+            )
+          : null,
       body: SacFrostedVeil(
         child: Builder(
-          builder: (context) => SafeArea(
-            top: false,
-            child: RefreshIndicator(
-              color: SacAccent.of(context).color,
-              edgeOffset: SacTopBar.frostedInset(context),
-              onRefresh: () async {
-                ref.invalidate(inventoryItemsProvider);
-              },
-              child: CustomScrollView(
-                physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: SizedBox(height: SacTopBar.frostedInset(context)),
-                  ),
-
-                  // ── Search + filter button ───────────────────────────────────
-                  SliverToBoxAdapter(
-                    child: InventoryFilterBar(
-                      searchController: _searchController,
-                      onSearchChanged: (query) {
-                        ref.read(inventoryFiltersProvider.notifier).state =
-                            filters.copyWith(searchQuery: query);
-                      },
-                      onFilterTap: () => _openFilterSheet(context),
-                      hasActiveFilters: filters.hasActiveFilters,
-                    ),
-                  ),
-
-                  // ── Category chips (inline) ──────────────────────────────────
-                  const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.only(top: 4, bottom: 8),
-                      child: InventoryCategoryChips(),
-                    ),
-                  ),
-
-                  // ── Active filter tags (condition / search) ──────────────────
-                  SliverToBoxAdapter(
-                    child: _ActiveFiltersRow(filters: filters),
-                  ),
-
-                  // ── Body (loading / error / list) ────────────────────────────
-                  filteredAsync.when(
-                    loading: () =>
-                        const SliverToBoxAdapter(child: _SkeletonBody()),
-                    error: (e, _) => SliverToBoxAdapter(
-                      child: SacErrorState(
-                        title: 'inventory.view.error_load'.tr(),
-                        message: userErrorMessage(e),
-                        onRetry: () => ref.invalidate(inventoryItemsProvider),
-                      ),
-                    ),
-                    data: (items) {
-                      if (items.isEmpty) {
-                        final canAdd = canManage && !filters.hasActiveFilters;
-                        return SliverToBoxAdapter(
-                          child: filters.hasActiveFilters
-                              ? SacEmptyState(
-                                  icon: HugeIcons.strokeRoundedSearch01,
-                                  title: 'inventory.view.no_results_title'.tr(),
-                                  body:
-                                      'inventory.view.no_results_subtitle'.tr(),
-                                )
-                              : SacEmptyState(
-                                  icon: HugeIcons.strokeRoundedBoxingBag,
-                                  title: 'inventory.view.empty_title'.tr(),
-                                  body: canAdd
-                                      ? 'inventory.view.empty_subtitle_can_add'
-                                          .tr()
-                                      : 'inventory.view.empty_subtitle_cannot_add'
-                                          .tr(),
-                                  actionLabel: canAdd
-                                      ? 'inventory.view.add_first_item'.tr()
-                                      : null,
-                                  onAction: canAdd
-                                      ? () => _openAddSheet(context)
-                                      : null,
-                                ),
-                        );
-                      }
-
-                      return SliverMainAxisGroup(
-                        slivers: [
-                          // Item count label
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
-                              child: Text(
-                                'inventory.view.item_count'.plural(
-                                  items.length,
-                                  name: 'count',
-                                ),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      color: context.sac.textSecondary,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                              ),
-                            ),
-                          ),
-
-                          // Item list — SliverList.builder instead of Column spread
-                          SliverList.builder(
-                            itemCount: items.length,
-                            itemBuilder: (context, index) {
-                              final item = items[index];
-                              return StaggeredListItem(
-                                index: index,
-                                child: InventoryItemCard(
-                                  item: item,
-                                  onTap: () => _openDetail(context, item),
-                                  onEdit: canManage
-                                      ? () => _openEdit(context, item)
-                                      : null,
-                                  onDelete: canManage
-                                      ? () => _confirmDelete(context, item)
-                                      : null,
-                                ),
-                              );
-                            },
-                          ),
-
-                          const SliverToBoxAdapter(
-                            child: SizedBox(height: 24),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
+          builder: (context) => RefreshIndicator(
+            color: SacAccent.of(context).color,
+            edgeOffset: SacTopBar.frostedInset(context),
+            onRefresh: () async => ref.invalidate(inventoryItemsProvider),
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
               ),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: SizedBox(height: SacTopBar.frostedInset(context)),
+                ),
+                SliverToBoxAdapter(
+                  child: InventoryFilterBar(
+                    searchController: _searchController,
+                    onSearchChanged: (query) {
+                      ref.read(inventoryFiltersProvider.notifier).state =
+                          filters.copyWith(searchQuery: query);
+                    },
+                    onFilterTap: _openFilterSheet,
+                    activeCount: filters.sheetFilterCount,
+                  ),
+                ),
+                const SliverToBoxAdapter(child: InventoryActivePills()),
+                const SliverToBoxAdapter(child: InventoryStateChips()),
+                ..._body(context, filteredAsync, filters, canManage),
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: showFooter ? InventoryFooter.height : 24,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -234,28 +119,80 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
     );
   }
 
-  void _openAddSheet(BuildContext context) {
-    showSacSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const AddInventoryItemSheet(),
+  List<Widget> _body(
+    BuildContext context,
+    AsyncValue<List<InventoryItem>> async,
+    InventoryFilters filters,
+    bool canManage,
+  ) {
+    return async.when(
+      loading: () => const [
+        SliverToBoxAdapter(child: InventoryListSkeleton()),
+      ],
+      error: (e, _) => [
+        SliverToBoxAdapter(
+          child: SacErrorState(
+            title: 'inventory.view.error_load'.tr(),
+            message: userErrorMessage(e),
+            onRetry: () => ref.invalidate(inventoryItemsProvider),
+          ),
+        ),
+      ],
+      data: (items) {
+        if (items.isEmpty) {
+          return [SliverToBoxAdapter(child: _emptyState(filters, canManage))];
+        }
+
+        final groups = _groupByCategory(items);
+        return [
+          SliverList.builder(
+            itemCount: groups.length,
+            itemBuilder: (context, index) {
+              final group = groups[index];
+              return SacGroupedSection(
+                key: ValueKey('inventory-group-${group.key}'),
+                label: group.name,
+                dividerIndent: 72,
+                children: [
+                  for (final item in group.items)
+                    InventoryItemCard(
+                      key: ValueKey('inventory-item-${item.id}'),
+                      item: item,
+                      onTap: () => _openDetail(item),
+                      onMore: canManage ? () => _openActions(item) : null,
+                    ),
+                ],
+              );
+            },
+          ),
+        ];
+      },
     );
   }
 
-  void _openEdit(BuildContext context, InventoryItem item) {
-    showSacSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => AddInventoryItemSheet(existing: item),
+  Widget _emptyState(InventoryFilters filters, bool canManage) {
+    if (filters.hasActiveFilters) {
+      return SacEmptyState(
+        icon: HugeIcons.strokeRoundedSearch01,
+        title: 'inventory.view.no_results_title'.tr(),
+        body: 'inventory.view.no_results_subtitle'.tr(),
+      );
+    }
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedBoxingBag,
+      title: 'inventory.view.empty_title'.tr(),
+      body: canManage
+          ? 'inventory.view.empty_subtitle_can_add'.tr()
+          : 'inventory.view.empty_subtitle_cannot_add'.tr(),
+      actionLabel: canManage ? 'inventory.view.add_first_item'.tr() : null,
+      onAction: canManage ? _openAddSheet : null,
     );
   }
 
-  void _openFilterSheet(BuildContext context) {
-    showSacSheet(
+  void _openAddSheet() => showInventoryItemForm(context);
+
+  void _openFilterSheet() {
+    showSacSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -264,231 +201,51 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
     );
   }
 
-  void _openDetail(BuildContext context, InventoryItem item) {
+  void _openDetail(InventoryItem item) {
     Navigator.push(
       context,
-      SacSharedAxisRoute(
-        builder: (_) => InventoryItemDetailView(item: item),
-      ),
+      SacSharedAxisRoute(builder: (_) => InventoryItemDetailView(item: item)),
     );
   }
 
-  Future<void> _confirmDelete(BuildContext context, InventoryItem item) async {
-    final confirmed = await SacDialog.show(
+  Future<void> _openActions(InventoryItem item) async {
+    final action = await showInventoryItemActionsSheet(
       context,
-      title: 'inventory.detail.delete_title'.tr(),
-      content:
-          'inventory.detail.delete_confirm'.tr(namedArgs: {'name': item.name}),
-      confirmLabel: 'common.delete'.tr(),
-      confirmIsDestructive: true,
+      item: item,
+      canManage: true,
     );
-    if (confirmed != true || !context.mounted) return;
-
-    final success = await ref
-        .read(inventoryDeleteNotifierProvider.notifier)
-        .deleteItem(item.id);
-    if (!context.mounted) return;
-    SacSnackBar.show(
+    if (action == null || !mounted) return;
+    await runInventoryItemAction(
       context,
-      success
-          ? 'inventory.detail.deleted_success'.tr()
-          : 'inventory.detail.delete_error'.tr(),
-      isError: !success,
+      ref,
+      item: item,
+      action: action,
+      onView: () => _openDetail(item),
     );
   }
 }
 
-// ── Active filters row ──────────────────────────────────────────────────────────
-
-class _ActiveFiltersRow extends ConsumerWidget {
-  final InventoryFilters filters;
-
-  const _ActiveFiltersRow({required this.filters});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Only show condition filter tag — category is now handled by chips
-    if (filters.condition == null) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-      child: Wrap(
-        spacing: 6,
-        runSpacing: 4,
-        children: [
-          _FilterTag(
-            label: 'inventory.view.filter_status'
-                .tr(namedArgs: {'status': filters.condition!.shortLabel}),
-            onRemove: () {
-              ref.read(inventoryFiltersProvider.notifier).state =
-                  filters.copyWith(clearCondition: true);
-            },
-          ),
-        ],
-      ),
-    );
+/// Items grouped by category. Groups go A-Z by category name; inside a group
+/// the items keep the order the active sort gave them.
+List<_CategoryGroup> _groupByCategory(List<InventoryItem> items) {
+  final byId = <int, _CategoryGroup>{};
+  for (final item in items) {
+    byId
+        .putIfAbsent(
+          item.category.id,
+          () => _CategoryGroup(item.category.id, item.category.name),
+        )
+        .items
+        .add(item);
   }
+  return byId.values.toList()
+    ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 }
 
-class _FilterTag extends StatelessWidget {
-  final String label;
-  final VoidCallback onRemove;
+class _CategoryGroup {
+  final int key;
+  final String name;
+  final List<InventoryItem> items = [];
 
-  const _FilterTag({required this.label, required this.onRemove});
-
-  @override
-  Widget build(BuildContext context) {
-    return SacPressable(
-      listenOnly: true,
-      child: Chip(
-        label: Text(
-          label,
-          style: const TextStyle(
-              fontSize: SacFontSize.labelSmall, fontWeight: FontWeight.w600),
-        ),
-        onDeleted: onRemove,
-        deleteIcon:
-            const HugeIcon(icon: HugeIcons.strokeRoundedCancel01, size: 14),
-        backgroundColor: SacAccent.of(context).surface,
-        deleteIconColor: SacAccent.of(context).dark,
-        labelStyle: TextStyle(color: SacAccent.of(context).dark),
-        side: BorderSide(color: SacAccent.of(context).color, width: 0.5),
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        padding: EdgeInsets.zero,
-        visualDensity: VisualDensity.compact,
-      ),
-    );
-  }
-}
-
-// ── Skeleton loading body ───────────────────────────────────────────────────────
-
-class _SkeletonBody extends StatelessWidget {
-  const _SkeletonBody();
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Skeleton stat chips
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-          child: Row(
-            children: [
-              _SkeletonBox(width: 110, height: 48, color: c.surfaceVariant),
-              const SizedBox(width: 8),
-              _SkeletonBox(width: 110, height: 48, color: c.surfaceVariant),
-              const SizedBox(width: 8),
-              _SkeletonBox(width: 120, height: 48, color: c.surfaceVariant),
-            ],
-          ),
-        ),
-        // Skeleton cards
-        for (int i = 0; i < 4; i++)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 5, 16, 0),
-            child: Container(
-              height: 80,
-              decoration: BoxDecoration(
-                color: c.surfaceVariant,
-                borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 14),
-                  _SkeletonBox(width: 60, height: 60, color: c.border),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _SkeletonBox(
-                            width: double.infinity,
-                            height: 14,
-                            color: c.border),
-                        const SizedBox(height: 8),
-                        _SkeletonBox(width: 120, height: 10, color: c.border),
-                        const SizedBox(height: 6),
-                        _SkeletonBox(width: 80, height: 10, color: c.border),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                ],
-              ),
-            ),
-          ),
-        const SizedBox(height: 20),
-      ],
-    );
-  }
-}
-
-class _SkeletonBox extends StatefulWidget {
-  final double width;
-  final double height;
-  final Color color;
-
-  const _SkeletonBox({
-    required this.width,
-    required this.height,
-    required this.color,
-  });
-
-  @override
-  State<_SkeletonBox> createState() => _SkeletonBoxState();
-}
-
-class _SkeletonBoxState extends State<_SkeletonBox>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-  late final Animation<double> _anim;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1100),
-    );
-    _anim = Tween<double>(begin: 0.4, end: 1.0).animate(
-      CurvedAnimation(parent: _ctrl, curve: SacMotion.easeInOut),
-    );
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final reduce = SacMotion.reduceMotionOf(context);
-    if (reduce) {
-      _ctrl.stop();
-      _ctrl.value = 0;
-    } else if (!_ctrl.isAnimating) {
-      _ctrl.repeat(reverse: true);
-    }
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _anim,
-      child: Container(
-        width: widget.width,
-        height: widget.height,
-        decoration: BoxDecoration(
-          color: widget.color,
-          borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-        ),
-      ),
-    );
-  }
+  _CategoryGroup(this.key, this.name);
 }

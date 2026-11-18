@@ -3527,11 +3527,6 @@
       "upload_evidence": "Erro ao enviar a evidência do artigo"
     },
     "detail": {
-      "title": "Detalhe do Artigo",
-      "quantity": "Quantidade",
-      "serial_number": "N. de série / código",
-      "purchase_date": "Data de aquisição",
-      "estimated_value": "Valor estimado",
       "location": "Localização",
       "assigned_to": "Atribuído a",
       "notes": "Notas",
@@ -3543,15 +3538,15 @@
       "delete_error": "Não foi possível excluir o artigo",
       "no_photo": "Sem foto",
       "category": "Categoria",
-      "condition": "Estado de conservação",
-      "evidences": "Evidências",
-      "evidence_title": "Evidências do artigo",
-      "evidence_count_value": "{count}/3 fotos",
-      "club_type": "Tipo de clube",
-      "record_status": "Status do registro",
-      "active_status": "Ativo",
-      "inactive_status": "Inativo",
-      "registered_at": "Data de registro"
+      "registered_at": "Data de registro",
+      "total_value": "valor total {value}",
+      "details_title": "Detalhes",
+      "value_each": "Valor por peça",
+      "acquired": "Adquirido em",
+      "serial_label": "Número de série",
+      "not_recorded": "Não informado",
+      "photo_counter": "Foto {current} de {total}",
+      "record_title": "Registro"
     },
     "view": {
       "title": "Inventário",
@@ -3559,20 +3554,25 @@
         "one": "{count} artigo",
         "other": "{count} artigos"
       },
-      "filter_status": "Status: {status}",
       "error_load": "Erro ao carregar o inventário",
       "empty_title": "Não há artigos no inventário",
       "empty_subtitle_can_add": "Comece registrando o primeiro artigo\ndo seu clube",
       "empty_subtitle_cannot_add": "O inventário do clube está vazio.",
       "add_first_item": "Adicionar primeiro artigo",
-      "add_button": "Adicionar",
       "no_results_title": "Sem resultados",
-      "no_results_subtitle": "Nenhum artigo corresponde à sua busca ou filtros."
+      "no_results_subtitle": "Nenhum artigo corresponde à sua busca ou filtros.",
+      "add_item": "Adicionar artigo",
+      "more_options": "Mais opções",
+      "pieces": {
+        "one": "{count} peça",
+        "other": "{count} peças"
+      },
+      "sort_pill": "Ordem: {order}",
+      "remove_filter": "Remover filtro: {name}"
     },
     "form": {
       "title_edit": "Editar Artigo",
       "title_new": "Novo Artigo",
-      "section_basic_info": "Informações básicas",
       "name_label": "Nome do artigo *",
       "name_hint": "Ex: Barraca de acampamento, Uniforme, etc.",
       "name_required": "O nome é obrigatório",
@@ -3580,24 +3580,14 @@
       "category_hint": "Selecione uma categoria",
       "category_required": "Selecione uma categoria",
       "quantity_label": "Quantidade *",
-      "quantity_hint": "1",
-      "quantity_required": "Insira a quantidade",
-      "quantity_invalid": "Quantidade inválida",
       "section_condition": "Estado de conservação",
-      "section_description": "Descrição e referência",
-      "description_label": "Descrição (opcional)",
-      "description_hint": "Descreva o artigo...",
       "serial_label": "Número de série / código (opcional)",
       "serial_hint": "SN-000123",
-      "section_value": "Valor e aquisição",
       "purchase_date_label": "Data de aquisição (opcional)",
       "estimated_value_label": "Valor estimado (opcional)",
       "value_hint": "0.00",
-      "section_location": "Localização e atribuição",
       "location_label": "Localização / armazém (opcional)",
       "location_hint": "Ex: Armazém principal, Escritório...",
-      "assigned_to_label": "Atribuído a (opcional)",
-      "assigned_to_hint": "Nome do responsável...",
       "notes_label": "Notas (opcional)",
       "notes_hint": "Observações adicionais...",
       "register_button": "Registrar artigo",
@@ -3605,12 +3595,21 @@
       "registered_success": "Artigo registrado com sucesso",
       "select_date": "Selecionar data",
       "categories_error": "Não foi possível carregar as categorias",
-      "section_evidence": "Evidências do artigo",
       "evidence_hint": "Adicione de 1 a 3 fotos claras do artigo.",
       "evidence_count": "{count}/3 evidências",
       "evidence_required": "Adicione pelo menos uma foto do artigo",
       "evidence_limit": "Você pode anexar no máximo 3 fotos",
-      "evidence_pick_error": "Não foi possível selecionar a foto"
+      "evidence_pick_error": "Não foi possível selecionar a foto",
+      "photos_label": "Fotos",
+      "add_photo": "Adicionar foto",
+      "remove_photo": "Remover foto",
+      "category_sheet_title": "Categoria",
+      "more_details": "Mais detalhes",
+      "more_details_hint": "Local, valor, série, data e observações",
+      "discard_title": "Descartar alterações?",
+      "discard_body": "Se sair agora, você perderá o que preencheu.",
+      "discard_confirm": "Descartar",
+      "keep_editing": "Continuar editando"
     },
     "filter": {
       "sort_name_asc": "Nome A-Z",
@@ -3623,18 +3622,15 @@
       "title": "Filtros",
       "clear": "Limpar",
       "sort_by": "Ordenar por",
-      "condition_title": "Estado de conservação",
       "condition_all": "Todos",
-      "apply": "Aplicar filtros"
-    },
-    "item_card": {
-      "edit_label": "Editar",
-      "delete_label": "Excluir",
-      "quantity": "Qtd: {count}"
+      "category_title": "Categoria",
+      "show_items": {
+        "one": "Ver {count} artigo",
+        "other": "Ver {count} artigos"
+      }
     },
     "summary_header": {
-      "search_hint": "Buscar itens...",
-      "category_all": "Todas"
+      "search_hint": "Buscar itens..."
     },
     "conditions": {
       "good": "Bom estado",
@@ -3642,6 +3638,13 @@
       "regular": "Regular",
       "bad": "Mau estado",
       "bad_short": "Ruim"
+    },
+    "actions": {
+      "view": "Ver",
+      "change_condition": "Alterar estado",
+      "condition_title": "Estado do artigo",
+      "condition_updated": "Estado atualizado",
+      "condition_error": "Não foi possível alterar o estado"
     }
   },
   "insurance": {

@@ -3527,11 +3527,6 @@
       "upload_evidence": "Erreur lors du téléversement de la preuve de l'article"
     },
     "detail": {
-      "title": "Détail de l'article",
-      "quantity": "Quantité",
-      "serial_number": "N. de série / code",
-      "purchase_date": "Date d'acquisition",
-      "estimated_value": "Valeur estimée",
       "location": "Emplacement",
       "assigned_to": "Attribué à",
       "notes": "Notes",
@@ -3543,15 +3538,15 @@
       "delete_error": "Impossible de supprimer l'article",
       "no_photo": "Pas de photo",
       "category": "Catégorie",
-      "condition": "État de conservation",
-      "evidences": "Preuves",
-      "evidence_title": "Preuves de l'article",
-      "evidence_count_value": "{count}/3 photos",
-      "club_type": "Type de club",
-      "record_status": "Statut de l'enregistrement",
-      "active_status": "Actif",
-      "inactive_status": "Inactif",
-      "registered_at": "Date d'enregistrement"
+      "registered_at": "Date d'enregistrement",
+      "total_value": "valeur totale {value}",
+      "details_title": "Détails",
+      "value_each": "Valeur par pièce",
+      "acquired": "Acquis le",
+      "serial_label": "Numéro de série",
+      "not_recorded": "Non renseigné",
+      "photo_counter": "Photo {current} sur {total}",
+      "record_title": "Historique"
     },
     "view": {
       "title": "Inventaire",
@@ -3559,20 +3554,25 @@
         "one": "{count} article",
         "other": "{count} articles"
       },
-      "filter_status": "Statut : {status}",
       "error_load": "Erreur lors du chargement de l'inventaire",
       "empty_title": "Aucun article dans l'inventaire",
       "empty_subtitle_can_add": "Commencez par enregistrer le premier article\nde votre club",
       "empty_subtitle_cannot_add": "L'inventaire du club est vide.",
       "add_first_item": "Ajouter le premier article",
-      "add_button": "Ajouter",
       "no_results_title": "Aucun résultat",
-      "no_results_subtitle": "Aucun article ne correspond à votre recherche ou à vos filtres."
+      "no_results_subtitle": "Aucun article ne correspond à votre recherche ou à vos filtres.",
+      "add_item": "Ajouter un article",
+      "more_options": "Plus d’options",
+      "pieces": {
+        "one": "{count} pièce",
+        "other": "{count} pièces"
+      },
+      "sort_pill": "Tri : {order}",
+      "remove_filter": "Retirer le filtre : {name}"
     },
     "form": {
       "title_edit": "Modifier l'article",
       "title_new": "Nouvel article",
-      "section_basic_info": "Informations de base",
       "name_label": "Nom de l'article *",
       "name_hint": "Ex : Tente, Uniforme, etc.",
       "name_required": "Le nom est obligatoire",
@@ -3580,24 +3580,14 @@
       "category_hint": "Sélectionnez une catégorie",
       "category_required": "Sélectionnez une catégorie",
       "quantity_label": "Quantité *",
-      "quantity_hint": "1",
-      "quantity_required": "Entrez la quantité",
-      "quantity_invalid": "Quantité invalide",
       "section_condition": "État de conservation",
-      "section_description": "Description et référence",
-      "description_label": "Description (facultatif)",
-      "description_hint": "Décrivez l'article...",
       "serial_label": "Numéro de série / code (facultatif)",
       "serial_hint": "SN-000123",
-      "section_value": "Valeur et acquisition",
       "purchase_date_label": "Date d'acquisition (facultatif)",
       "estimated_value_label": "Valeur estimée (facultatif)",
       "value_hint": "0.00",
-      "section_location": "Emplacement et attribution",
       "location_label": "Emplacement / entrepôt (facultatif)",
       "location_hint": "Ex : Entrepôt principal, Bureau...",
-      "assigned_to_label": "Attribué à (facultatif)",
-      "assigned_to_hint": "Nom du responsable...",
       "notes_label": "Notes (facultatif)",
       "notes_hint": "Observations supplémentaires...",
       "register_button": "Enregistrer l'article",
@@ -3605,12 +3595,21 @@
       "registered_success": "Article enregistré avec succès",
       "select_date": "Sélectionner une date",
       "categories_error": "Impossible de charger les catégories",
-      "section_evidence": "Preuves de l'article",
       "evidence_hint": "Ajoutez 1 à 3 photos claires de l'article.",
       "evidence_count": "{count}/3 preuves",
       "evidence_required": "Ajoutez au moins une photo de l'article",
       "evidence_limit": "Vous pouvez joindre au maximum 3 photos",
-      "evidence_pick_error": "Impossible de sélectionner la photo"
+      "evidence_pick_error": "Impossible de sélectionner la photo",
+      "photos_label": "Photos",
+      "add_photo": "Ajouter une photo",
+      "remove_photo": "Retirer la photo",
+      "category_sheet_title": "Catégorie",
+      "more_details": "Plus de détails",
+      "more_details_hint": "Emplacement, valeur, série, date et notes",
+      "discard_title": "Abandonner les modifications ?",
+      "discard_body": "Si vous quittez maintenant, vous perdrez ce que vous avez saisi.",
+      "discard_confirm": "Abandonner",
+      "keep_editing": "Continuer à modifier"
     },
     "filter": {
       "sort_name_asc": "Nom A-Z",
@@ -3623,18 +3622,15 @@
       "title": "Filtres",
       "clear": "Effacer",
       "sort_by": "Trier par",
-      "condition_title": "État de conservation",
       "condition_all": "Tous",
-      "apply": "Appliquer les filtres"
-    },
-    "item_card": {
-      "edit_label": "Modifier",
-      "delete_label": "Supprimer",
-      "quantity": "Qté : {count}"
+      "category_title": "Catégorie",
+      "show_items": {
+        "one": "Voir {count} article",
+        "other": "Voir {count} articles"
+      }
     },
     "summary_header": {
-      "search_hint": "Rechercher des articles...",
-      "category_all": "Toutes"
+      "search_hint": "Rechercher des articles..."
     },
     "conditions": {
       "good": "Bon état",
@@ -3642,6 +3638,13 @@
       "regular": "Moyen",
       "bad": "Mauvais état",
       "bad_short": "Mauvais"
+    },
+    "actions": {
+      "view": "Voir",
+      "change_condition": "Changer l’état",
+      "condition_title": "État de l’article",
+      "condition_updated": "État mis à jour",
+      "condition_error": "Impossible de changer l’état"
     }
   },
   "insurance": {
