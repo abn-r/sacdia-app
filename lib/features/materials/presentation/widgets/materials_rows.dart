@@ -42,8 +42,9 @@ class MaterialsKvRow extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
+                Flexible(
                   child: Text(
                     label,
                     style: TextStyle(
@@ -57,28 +58,36 @@ class MaterialsKvRow extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Flexible(
-                  child: Text(
-                    value,
-                    textAlign: TextAlign.end,
-                    style: TextStyle(
-                      fontSize: SacFontSize.titleMedium,
-                      fontWeight: emphasis ? FontWeight.w700 : FontWeight.w500,
-                      color: emphasis ? c.text : c.textSecondary,
-                      fontFamily: mono ? 'monospace' : null,
-                      fontFeatures: SacMoney.tabularFigures,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          value,
+                          textAlign: TextAlign.end,
+                          style: TextStyle(
+                            fontSize: SacFontSize.titleMedium,
+                            fontWeight:
+                                emphasis ? FontWeight.w700 : FontWeight.w500,
+                            color: emphasis ? c.text : c.textSecondary,
+                            fontFamily: mono ? 'monospace' : null,
+                            fontFeatures: SacMoney.tabularFigures,
+                          ),
+                        ),
+                      ),
+                      if (onTap != null) ...[
+                        const SizedBox(width: 8),
+                        ExcludeSemantics(
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedArrowRight01,
+                            size: 18,
+                            color: c.textTertiary,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
-                if (onTap != null) ...[
-                  const SizedBox(width: 8),
-                  ExcludeSemantics(
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedArrowRight01,
-                      size: 18,
-                      color: c.textTertiary,
-                    ),
-                  ),
-                ],
               ],
             ),
             if (error != null)

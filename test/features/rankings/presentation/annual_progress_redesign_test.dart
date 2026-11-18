@@ -396,6 +396,17 @@ void main() {
       expect(folder / finance, closeTo(1.5, 0.01));
     });
 
+    testWidgets('blocks fill the column width whatever their label length',
+        (tester) async {
+      await _pump(tester, _progress());
+
+      final folder = tester.getSize(
+          find.byKey(const ValueKey('annual-block-annual_evidence_folder')));
+      final finance = tester.getSize(
+          find.byKey(const ValueKey('annual-block-finance_compliance')));
+      expect(folder.width, finance.width);
+    });
+
     testWidgets('skips components worth 0 points', (tester) async {
       await _pump(tester, _progress());
 

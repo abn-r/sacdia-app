@@ -110,6 +110,25 @@ void main() {
       expect(repo.gridCalls.last.type, 'audio');
     });
 
+    testWidgets('still show when /resource-categories is forbidden',
+        (tester) async {
+      final repo = FakeResourcesRepository(
+        categoriesForbidden: true,
+        resources: _library().resources,
+      );
+      await _pumpView(tester, repo);
+
+      for (final name in ['Clases', 'Himnos']) {
+        expect(
+          find.descendant(
+            of: find.widgetWithText(SacFilterChip, name),
+            matching: find.text('2'),
+          ),
+          findsOneWidget,
+        );
+      }
+    });
+
     testWidgets('are hidden when the library has no categories',
         (tester) async {
       final repo = FakeResourcesRepository(

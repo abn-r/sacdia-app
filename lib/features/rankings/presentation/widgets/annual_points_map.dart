@@ -185,6 +185,7 @@ class _MapColumnView extends StatelessWidget {
     );
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (var i = 0; i < column.components.length; i++) ...[
           if (i > 0) const SizedBox(height: _kBlockGap),

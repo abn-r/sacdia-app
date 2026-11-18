@@ -314,6 +314,10 @@ class ResourceFacet extends Equatable {
   /// Matches per `resource_category_id`. Only trustworthy when [isComplete].
   final Map<int, int> categoryCounts;
 
+  /// Category names read off the loaded resources, by `resource_category_id`.
+  /// Lets the category filter work without `/resource-categories`.
+  final Map<int, String> categoryNames;
+
   /// True when every match came back in the single request (no more pages),
   /// so [categoryCounts] covers all of them.
   final bool isComplete;
@@ -322,10 +326,11 @@ class ResourceFacet extends Equatable {
     required this.total,
     required this.categoryCounts,
     required this.isComplete,
+    this.categoryNames = const {},
   });
 
   @override
-  List<Object?> get props => [total, categoryCounts, isComplete];
+  List<Object?> get props => [total, categoryCounts, isComplete, categoryNames];
 }
 
 /// Backend cap for `limit` (see `ResourceQueryDto`).
@@ -357,17 +362,48 @@ final resourceFacetProvider = FutureProvider.autoDispose
     (failure) => throw Exception(failure.message),
     (paginated) {
       final counts = <int, int>{};
+      final names = <int, String>{};
       for (final resource in paginated.data) {
         final id = resource.resourceCategoryId;
-        if (id != null) counts[id] = (counts[id] ?? 0) + 1;
+        if (id == null) continue;
+        counts[id] = (counts[id] ?? 0) + 1;
+        final name = resource.categoryName?.trim();
+        if (name != null && name.isNotEmpty) names.putIfAbsent(id, () => name);
       }
       return ResourceFacet(
         total: paginated.total,
         categoryCounts: counts,
+        categoryNames: names,
         isComplete: !paginated.hasMore,
       );
     },
   );
+});
+
+/// Categories for the filter bar, derived from the loaded resources so it
+/// works for roles without `resource_categories:read` (the endpoint answers
+/// 403). `/resource-categories` is optional enrichment: when it succeeds its
+/// categories come first, in server order; a failure is ignored.
+final resourceCategoryOptionsProvider =
+    Provider.autoDispose<List<ResourceCategory>>((ref) {
+  final server = ref.watch(resourceCategoriesProvider).value ?? const [];
+  final library =
+      ref.watch(resourceFacetProvider(const ResourceFacetQuery())).value;
+
+  final byId = <int, ResourceCategory>{
+    for (final category in server) category.resourceCategoryId: category,
+  };
+  if (library != null) {
+    final derived = library.categoryNames.entries
+        .where((entry) => !byId.containsKey(entry.key))
+        .toList()
+      ..sort((a, b) => a.value.compareTo(b.value));
+    for (final entry in derived) {
+      byId[entry.key] =
+          ResourceCategory(resourceCategoryId: entry.key, name: entry.value);
+    }
+  }
+  return byId.values.toList();
 });
 
 // ── Sharing ──────────────────────────────────────────────────────────────────

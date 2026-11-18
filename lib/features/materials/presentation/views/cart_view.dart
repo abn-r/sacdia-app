@@ -276,7 +276,9 @@ class _OrderForm extends ConsumerWidget {
                           ? 'materials.summary.pickup_detail'.tr()
                           : 'materials.summary.ship_detail'.tr(
                               namedArgs: {
-                                'cost': SacMoney.fromCentavos(shipping),
+                                'cost': shipping == 0
+                                    ? 'materials.summary.free'.tr()
+                                    : SacMoney.fromCentavos(shipping),
                               },
                             ),
                       selected: option == selected,
