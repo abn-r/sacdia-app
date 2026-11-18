@@ -5920,6 +5920,9 @@
       "free": "Sin costo",
       "confirm_total": "Confirmar pedido · {total}"
     },
+    "receipts": {
+      "default_name": "Comprobante"
+    },
     "order": {
       "title": "Detalle del pedido",
       "products": "Productos",

@@ -230,6 +230,7 @@ class MaterialsRepositoryImpl implements MaterialsRepository {
     required int montoCentavos,
     required String refBancariaDeclarada,
     required DateTime fechaPago,
+    String? fileName,
     void Function(double)? onProgress,
   }) async {
     try {
@@ -239,6 +240,7 @@ class MaterialsRepositoryImpl implements MaterialsRepository {
         montoCentavos: montoCentavos,
         refBancariaDeclarada: refBancariaDeclarada,
         fechaPago: fechaPago,
+        fileName: fileName,
         onProgress: onProgress,
       );
       return Right(model.toEntity());

@@ -95,6 +95,24 @@ void main() {
     expect(find.byKey(const ValueKey('order-action')), findsNothing);
   });
 
+  testWidgets('receipts with a picker temp name show a readable label',
+      (tester) async {
+    await pumpOrder(
+      tester,
+      testOrder(),
+      receipts: [
+        testReceipt(fileName: 'image_picker_9A085501-1B2C.png'),
+        testReceipt(
+          status: MaterialReceiptStatus.rechazado,
+          fileName: 'mi_pago.pdf',
+        ),
+      ],
+    );
+    expect(find.text('Comprobante 1'), findsOneWidget);
+    expect(find.text('mi_pago.pdf'), findsOneWidget);
+    expect(find.textContaining('image_picker_'), findsNothing);
+  });
+
   for (final status in [MaterialStatus.pagada, MaterialStatus.entregada]) {
     testWidgets('${status.name}: panel without action', (tester) async {
       await pumpOrder(tester, testOrder(status: status));

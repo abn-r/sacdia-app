@@ -5918,6 +5918,9 @@
       "free": "Gratuit",
       "confirm_total": "Confirmer la commande · {total}"
     },
+    "receipts": {
+      "default_name": "Justificatif"
+    },
     "order": {
       "title": "Détail de la commande",
       "products": "Produits",

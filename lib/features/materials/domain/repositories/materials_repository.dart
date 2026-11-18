@@ -79,6 +79,7 @@ abstract class MaterialsRepository {
     required int montoCentavos,
     required String refBancariaDeclarada,
     required DateTime fechaPago,
+    String? fileName,
     void Function(double)? onProgress,
   });
 

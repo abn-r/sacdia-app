@@ -67,12 +67,13 @@ Receipt testReceipt({
   MaterialReceiptStatus status = MaterialReceiptStatus.pendiente,
   String? rejectReason,
   DateTime? createdAt,
+  String fileName = 'comprobante.jpg',
 }) =>
     Receipt(
       id: 'r-${status.name}',
       orderId: 'order-1',
       r2Key: 'k',
-      fileName: 'comprobante.jpg',
+      fileName: fileName,
       mimeType: 'image/jpeg',
       sizeBytes: 1200,
       montoCentavos: 41000,

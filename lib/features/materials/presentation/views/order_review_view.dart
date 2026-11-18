@@ -30,6 +30,7 @@ import '../providers/history_provider.dart';
 import '../providers/order_detail_provider.dart';
 import '../providers/receipts_provider.dart';
 import '../utils/order_presentation.dart';
+import '../utils/receipt_file_name.dart';
 import '../widgets/material_thumbs.dart';
 import '../widgets/materials_rows.dart';
 import '../widgets/order_action_sheets.dart';
@@ -307,10 +308,12 @@ class _OrderBody extends ConsumerWidget {
                   label: 'materials.order.receipts'.tr(),
                   dividerIndent: 14 + 36 + 12,
                   children: [
-                    for (final receipt in receipts)
+                    for (var i = 0; i < receipts.length; i++)
                       _ReceiptRow(
-                        key: ValueKey('receipt-${receipt.id}'),
-                        receipt: receipt,
+                        key: ValueKey('receipt-${receipts[i].id}'),
+                        receipt: receipts[i],
+                        position: i + 1,
+                        total: receipts.length,
                       ),
                   ],
                 ),
@@ -468,9 +471,16 @@ class _LineRow extends StatelessWidget {
 }
 
 class _ReceiptRow extends StatelessWidget {
-  const _ReceiptRow({super.key, required this.receipt});
+  const _ReceiptRow({
+    super.key,
+    required this.receipt,
+    required this.position,
+    required this.total,
+  });
 
   final Receipt receipt;
+  final int position;
+  final int total;
 
   @override
   Widget build(BuildContext context) {
@@ -515,7 +525,12 @@ class _ReceiptRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    receipt.fileName,
+                    receiptDisplayName(
+                      storedName: receipt.fileName,
+                      defaultLabel: 'materials.receipts.default_name'.tr(),
+                      position: position,
+                      total: total,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
