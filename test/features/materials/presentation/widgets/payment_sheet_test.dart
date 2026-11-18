@@ -53,7 +53,11 @@ void main() {
     await tester.tap(find.bySemanticsLabel('Copiar CLABE'));
     await tester.pump();
     expect(copied.last, '012180001234567890');
-    expect(find.text('Copiado: CLABE'), findsOneWidget);
+    expect(find.byKey(const ValueKey('copied-check')), findsOneWidget);
+    expect(find.bySemanticsLabel('Copiado: CLABE'), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 1600));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byKey(const ValueKey('copied-check')), findsNothing);
 
     await tester.tap(find.bySemanticsLabel('Copiar Concepto'));
     await tester.pump();

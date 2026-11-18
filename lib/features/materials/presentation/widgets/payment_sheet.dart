@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -10,7 +13,6 @@ import '../../../../core/utils/money_format.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_pressable.dart';
 import '../../../../core/widgets/sac_sheet.dart';
-import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../domain/entities/order.dart';
 
 /// Opens the payment data over the order. Resolves to true when the user says
@@ -156,7 +158,7 @@ class PaymentSheet extends StatelessWidget {
   }
 }
 
-class _DataRow extends StatelessWidget {
+class _DataRow extends StatefulWidget {
   const _DataRow({
     super.key,
     required this.label,
@@ -175,12 +177,34 @@ class _DataRow extends StatelessWidget {
   final bool isLast;
 
   @override
+  State<_DataRow> createState() => _DataRowState();
+}
+
+class _DataRowState extends State<_DataRow> {
+  static const _feedbackDuration = Duration(milliseconds: 1500);
+
+  Timer? _resetTimer;
+  bool _justCopied = false;
+
+  @override
+  void dispose() {
+    _resetTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final hint = this.hint;
-    final copyLabel = 'materials.payment.copy_label'.tr(
-      namedArgs: {'label': label},
-    );
+    final label = widget.label;
+    final value = widget.value;
+    final mono = widget.mono;
+    final copyable = widget.copyable;
+    final isLast = widget.isLast;
+    final hint = widget.hint;
+    final reduceMotion = SacMotion.reduceMotionOf(context);
+    final copyLabel = _justCopied
+        ? 'materials.payment.copied'.tr(namedArgs: {'label': label})
+        : 'materials.payment.copy_label'.tr(namedArgs: {'label': label});
     return DecoratedBox(
       decoration: BoxDecoration(
         border: isLast ? null : Border(bottom: BorderSide(color: c.divider)),
@@ -222,6 +246,7 @@ class _DataRow extends StatelessWidget {
               if (copyable)
                 Semantics(
                   button: true,
+                  liveRegion: _justCopied,
                   label: copyLabel,
                   excludeSemantics: true,
                   onTap: () => _copy(context),
@@ -232,10 +257,23 @@ class _DataRow extends StatelessWidget {
                       width: 44,
                       height: 44,
                       child: Center(
-                        child: HugeIcon(
-                          icon: HugeIcons.strokeRoundedCopy01,
-                          size: 20,
-                          color: SacAccent.of(context).color,
+                        child: AnimatedSwitcher(
+                          duration: reduceMotion
+                              ? Duration.zero
+                              : const Duration(milliseconds: 150),
+                          child: _justCopied
+                              ? HugeIcon(
+                                  key: const ValueKey('copied-check'),
+                                  icon: HugeIcons.strokeRoundedTick02,
+                                  size: 20,
+                                  color: c.success,
+                                )
+                              : HugeIcon(
+                                  key: const ValueKey('copy-icon'),
+                                  icon: HugeIcons.strokeRoundedCopy01,
+                                  size: 20,
+                                  color: SacAccent.of(context).color,
+                                ),
                         ),
                       ),
                     ),
@@ -249,11 +287,13 @@ class _DataRow extends StatelessWidget {
   }
 
   void _copy(BuildContext context) {
-    Clipboard.setData(ClipboardData(text: value));
+    Clipboard.setData(ClipboardData(text: widget.value));
     HapticFeedback.selectionClick();
-    SacSnackBar.show(
-      context,
-      'materials.payment.copied'.tr(namedArgs: {'label': label}),
-    );
+    // The modal sheet covers any snackbar, so the feedback lives on the row.
+    setState(() => _justCopied = true);
+    _resetTimer?.cancel();
+    _resetTimer = Timer(_feedbackDuration, () {
+      if (mounted) setState(() => _justCopied = false);
+    });
   }
 }
