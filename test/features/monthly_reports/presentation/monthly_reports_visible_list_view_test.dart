@@ -1,111 +1,159 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/date_symbol_data_local.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/providers/riverpod_aliases.dart';
 import 'package:sacdia_app/features/enrollment/domain/entities/enrollment.dart';
 import 'package:sacdia_app/features/enrollment/presentation/providers/enrollment_providers.dart';
 import 'package:sacdia_app/features/members/presentation/providers/members_providers.dart';
 import 'package:sacdia_app/features/monthly_reports/domain/entities/monthly_report.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/providers/monthly_reports_providers.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_reports_visible_list_view.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../../support/riverpod_test_support.dart';
+import 'package:sacdia_app/features/monthly_reports/presentation/widgets/monthly_report_history.dart';
+import 'package:sacdia_app/features/monthly_reports/presentation/widgets/monthly_report_status_chip.dart';
+
+import '../support/monthly_reports_harness.dart';
+
+const _clubContext = ClubContext(clubId: 1, sectionId: 1, roleName: 'director');
+
+const _enrollment = Enrollment(
+  id: 1,
+  userId: 'user-1',
+  clubSectionId: 1,
+  year: 2026,
+  meetingDays: [],
+  status: EnrollmentStatus.active,
+);
+
+List<Override> _overrides(List<VisibleMonthlyReport> reports,
+        {ClubContext? club = _clubContext}) =>
+    [
+      clubContextProvider.overrideWith((ref) async => club),
+      currentEnrollmentProvider.overrideWith((ref) async => _enrollment),
+      monthlyReportsHistoryProvider.overrideWith((ref) async => reports),
+    ];
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(setUpMonthlyReportsLocalization);
 
-  setUpAll(() async {
-    SharedPreferences.setMockInitialValues({});
-    await initializeDateFormatting('es');
-    await EasyLocalization.ensureInitialized();
-  });
+  final now = DateTime.now();
+
+  VisibleMonthlyReport report(
+    String id,
+    int month,
+    int year,
+    String status, {
+    DateTime? submittedAt,
+    int? pendingSections,
+  }) =>
+      VisibleMonthlyReport(
+        id: id,
+        enrollmentId: 'enrollment-1',
+        month: month,
+        year: year,
+        status: status,
+        submittedAt: submittedAt,
+        pendingSections: pendingSections,
+      );
 
   testWidgets(
-    'should show translated copy without overflow on a narrow phone',
+    'groups the current draft under "Por atender" and the rest by year',
     (tester) async {
-      await tester.binding.setSurfaceSize(const Size(320, 700));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-
-      final now = DateTime.now();
-      await tester.pumpWidget(
-        testProviderScope(
-          overrides: [
-            // Sin contexto de club: el historial sale de la lista multi-club.
-            clubContextProvider.overrideWith((ref) async => null),
-            currentEnrollmentProvider.overrideWith(
-              (ref) async => const Enrollment(
-                id: 1,
-                userId: 'user-1',
-                clubSectionId: 1,
-                year: 2026,
-                meetingDays: [],
-                status: EnrollmentStatus.active,
-              ),
-            ),
-            visibleMonthlyReportsProvider.overrideWith(
-              (ref) async => VisibleMonthlyReportsPage(
-                total: 1,
-                page: 1,
-                limit: 20,
-                items: [
-                  VisibleMonthlyReport(
-                    id: 'report-1',
-                    enrollmentId: 'enrollment-1',
-                    month: now.month,
-                    year: now.year,
-                    status: 'draft',
-                    clubName: 'ACV',
-                    clubType: 'Conquistadores',
-                  ),
-                ],
-              ),
-            ),
-          ],
-          child: EasyLocalization(
-            supportedLocales: const [Locale('es')],
-            path: 'assets/translations',
-            assetLoader: const _FileAssetLoader(),
-            fallbackLocale: const Locale('es'),
-            startLocale: const Locale('es'),
-            child: Builder(
-              builder: (context) => MaterialApp(
-                theme: AppTheme.lightTheme,
-                locale: context.locale,
-                localizationsDelegates: context.localizationDelegates,
-                supportedLocales: context.supportedLocales,
-                home: const MonthlyReportsVisibleListView(),
-              ),
-            ),
-          ),
-        ),
+      await pumpMonthlyReportsApp(
+        tester,
+        // A narrow phone: nothing may overflow.
+        size: const Size(320, 700),
+        home: const MonthlyReportsVisibleListView(),
+        overrides: _overrides([
+          report('draft', now.month, now.year, 'draft', pendingSections: 2),
+          report('r1', 2, 2025, 'approved', submittedAt: DateTime(2025, 3, 6)),
+          report('r2', 1, 2025, 'approved', submittedAt: DateTime(2025, 2, 6)),
+          report('r3', 12, 2024, 'rejected'),
+        ]),
       );
-      await tester.pump();
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 80));
 
       expect(tester.takeException(), isNull);
-      expect(find.text('Informes'), findsOneWidget);
-      expect(find.text('Historial'), findsOneWidget);
-      expect(find.text('Continuar'), findsOneWidget);
-      expect(find.text('Borrador en curso'), findsOneWidget);
+      expect(find.text('Reportes'), findsOneWidget);
+
+      // Por atender: only the draft row.
+      expect(find.text('POR ATENDER'), findsOneWidget);
+      final attention = find.byKey(const Key('monthly-report-attention-row'));
+      expect(attention, findsOneWidget);
       expect(
-        find.textContaining('monthly_reports.visible'),
-        findsNothing,
+        find.descendant(
+          of: attention,
+          matching:
+              find.text('${monthlyReportMonthName(now.month)} ${now.year}'),
+        ),
+        findsOneWidget,
       );
+      expect(find.text('Borrador · faltan 2 secciones'), findsOneWidget);
+
+      // History: years with their count; the draft is not repeated there.
+      expect(find.text('2025'), findsOneWidget);
+      expect(find.text('2024'), findsOneWidget);
+      expect(
+          find.byKey(const ValueKey('monthly-report-row-draft')), findsNothing);
+      expect(find.byType(MonthlyReportHistoryRow), findsNWidgets(3));
+      expect(find.text('Enviado el 6 mar'), findsOneWidget);
+      expect(find.text('El campo local pidió cambios'), findsOneWidget);
+
+      // Each history row has its status chip.
+      expect(find.byType(MonthlyReportStatusChip), findsNWidgets(3));
+      expect(find.textContaining('monthly_reports.'), findsNothing);
     },
   );
-}
 
-class _FileAssetLoader extends AssetLoader {
-  const _FileAssetLoader();
+  testWidgets(
+      'a non-draft current report goes to the history, not to attention',
+      (tester) async {
+    await pumpMonthlyReportsApp(
+      tester,
+      home: const MonthlyReportsVisibleListView(),
+      overrides: _overrides([
+        report('gen', now.month, now.year, 'generated'),
+      ]),
+    );
 
-  @override
-  Future<Map<String, dynamic>?> load(String path, Locale locale) async {
-    final file = File('$path/${locale.toLanguageTag()}.json');
-    return jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
-  }
+    expect(find.text('POR ATENDER'), findsNothing);
+    expect(find.byType(MonthlyReportHistoryRow), findsOneWidget);
+    expect(find.text('Listo para enviar'), findsOneWidget);
+  });
+
+  testWidgets('without a report this month the draft row invites to start it',
+      (tester) async {
+    await pumpMonthlyReportsApp(
+      tester,
+      home: const MonthlyReportsVisibleListView(),
+      overrides: _overrides([report('old', 1, 2020, 'approved')]),
+    );
+
+    expect(find.text('POR ATENDER'), findsOneWidget);
+    expect(find.textContaining('Sin empezar'), findsOneWidget);
+  });
+
+  testWidgets('shows the empty state when there is nothing to show',
+      (tester) async {
+    await pumpMonthlyReportsApp(
+      tester,
+      home: const MonthlyReportsVisibleListView(),
+      overrides: _overrides(const [], club: null),
+    );
+
+    expect(find.text('No hay informes generados'), findsOneWidget);
+    expect(find.text('POR ATENDER'), findsNothing);
+  });
+
+  testWidgets('shows a skeleton while loading and retry on error',
+      (tester) async {
+    await pumpMonthlyReportsApp(
+      tester,
+      home: const MonthlyReportsVisibleListView(),
+      overrides: [
+        clubContextProvider.overrideWith((ref) async => null),
+        monthlyReportsHistoryProvider.overrideWith(
+            (ref) => Future<List<VisibleMonthlyReport>>.error('x')),
+      ],
+    );
+
+    expect(find.text('Reintentar'), findsOneWidget);
+  });
 }

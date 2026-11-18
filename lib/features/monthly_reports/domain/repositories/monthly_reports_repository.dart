@@ -50,6 +50,11 @@ abstract class MonthlyReportsRepository {
     RequestCancelToken? cancelToken,
   });
 
+  /// Envía un informe generado al campo local.
+  /// POST /api/v1/monthly-reports/:reportId/submit
+  Future<Either<Failure, MonthlyReport>> submitReport(String reportId,
+      {RequestCancelToken? cancelToken});
+
   /// Downloads the monthly report PDF via the authenticated HTTP client and
   /// returns the local file path of the saved temporary file.
   /// GET /api/v1/monthly-reports/:reportId/pdf

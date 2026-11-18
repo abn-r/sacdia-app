@@ -1,6 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
+import 'package:sacdia_app/core/providers/keep_alive_during.dart';
+import 'package:sacdia_app/features/dashboard/domain/entities/dashboard_pending.dart';
+import 'package:sacdia_app/features/dashboard/presentation/providers/dashboard_pending_provider.dart';
 import 'package:sacdia_app/features/enrollment/domain/entities/enrollment.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -147,6 +150,53 @@ final monthlyReportsHistoryProvider =
     });
 });
 
+/// Día del mes siguiente en que el sistema genera el informe
+/// (`reports.auto_generate_day` del servidor). Mismo valor que usa el backend
+/// si la configuración falta o es inválida.
+const int kMonthlyReportDefaultDueDay = 5;
+
+/// Día de generación automática. La app no tiene un endpoint de configuración:
+/// lo lee de la fecha límite que el servidor ya manda en los pendientes del
+/// inicio (`GET /dashboard/pending`, fila del informe mensual). Sin esa fila
+/// (informe ya enviado, sin permiso de enviar o sin red) usa
+/// [kMonthlyReportDefaultDueDay].
+final monthlyReportDueDayProvider = Provider.autoDispose<int>((ref) {
+  final pending = ref.watch(dashboardPendingProvider).value;
+  for (final item in pending?.items ?? const <PendingItem>[]) {
+    if (item.type != PendingItemType.monthlyReport) continue;
+    final due = item.dueDate;
+    if (due == null) continue;
+    final day = due.toUtc().day;
+    if (day >= 1 && day <= 28) return day;
+  }
+  return kMonthlyReportDefaultDueDay;
+});
+
+/// Mes del que se quiere el valor anterior: enrollment, mes y año del informe
+/// que se está llenando.
+typedef MonthlyReportPeriodKey = ({String enrollmentId, int month, int year});
+
+/// Datos manuales del mes anterior al informe dado, o `null` si no existe,
+/// no tiene datos o la lista no cargó. Sale de la lista por inscripción (ya
+/// trae los datos manuales de cada informe), sin pedir nada nuevo al servidor.
+final monthlyReportPreviousManualDataProvider = FutureProvider.autoDispose
+    .family<MonthlyReportManualData?, MonthlyReportPeriodKey>((ref, key) async {
+  final previousMonth = key.month == 1 ? 12 : key.month - 1;
+  final previousYear = key.month == 1 ? key.year - 1 : key.year;
+  try {
+    final reports = await ref
+        .watch(monthlyReportsByEnrollmentProvider(key.enrollmentId).future);
+    for (final report in reports) {
+      if (report.month == previousMonth && report.year == previousYear) {
+        return report.manualData;
+      }
+    }
+  } catch (_) {
+    // La pista es opcional: sin lista, el formulario no la muestra.
+  }
+  return null;
+});
+
 /// Descarga el PDF de un informe mensual y devuelve la ruta local del archivo
 /// temporal. El token JWT se envía en el header Authorization — nunca en la URL.
 final monthlyReportPdfProvider =
@@ -220,50 +270,82 @@ class MonthlyReportMutationNotifier
   @override
   MonthlyReportMutationState build() => const MonthlyReportMutationState();
 
-  Future<MonthlyReport?> getOrCreateDraft(
-      MonthlyReportDraftParams params) async {
-    state = state.copyWith(isLoading: true, clearError: true);
-    final repo = ref.read(monthlyReportsRepositoryProvider);
-    final result = await repo.getOrCreateDraft(
-      params.enrollmentId,
-      month: params.month,
-      year: params.year,
-    );
+  Future<MonthlyReport?> getOrCreateDraft(MonthlyReportDraftParams params) =>
+      ref.keepAliveDuring(() async {
+        state = state.copyWith(isLoading: true, clearError: true);
+        final repo = ref.read(monthlyReportsRepositoryProvider);
+        final result = await repo.getOrCreateDraft(
+          params.enrollmentId,
+          month: params.month,
+          year: params.year,
+        );
 
-    return result.fold(
-      (failure) {
-        state = state.copyWith(isLoading: false, errorMessage: failure.message);
-        return null;
-      },
-      (report) {
-        state = state.copyWith(isLoading: false, report: report);
-        ref.invalidate(visibleMonthlyReportsProvider);
-        ref.invalidate(monthlyReportsByEnrollmentProvider);
-        return report;
-      },
-    );
-  }
+        return result.fold(
+          (failure) {
+            state =
+                state.copyWith(isLoading: false, errorMessage: failure.message);
+            return null;
+          },
+          (report) {
+            state = state.copyWith(isLoading: false, report: report);
+            ref.invalidate(visibleMonthlyReportsProvider);
+            ref.invalidate(monthlyReportsByEnrollmentProvider);
+            return report;
+          },
+        );
+      });
 
+  /// Guarda los datos manuales. [refresh] false (autoguardado del formulario)
+  /// no invalida el detalle ni las listas: quien abrió el formulario lo hace
+  /// una sola vez al cerrarlo.
   Future<bool> saveManualData(
     String reportId,
-    MonthlyReportManualData manualData,
-  ) async {
-    state = state.copyWith(isLoading: true, clearError: true);
-    final repo = ref.read(monthlyReportsRepositoryProvider);
-    final result = await repo.updateManualData(reportId, manualData);
+    MonthlyReportManualData manualData, {
+    bool refresh = true,
+  }) =>
+      ref.keepAliveDuring(() async {
+        state = state.copyWith(isLoading: true, clearError: true);
+        final repo = ref.read(monthlyReportsRepositoryProvider);
+        final result = await repo.updateManualData(reportId, manualData);
 
-    return result.fold(
-      (failure) {
-        state = state.copyWith(isLoading: false, errorMessage: failure.message);
-        return false;
-      },
-      (report) {
-        state = state.copyWith(isLoading: false, report: report);
-        ref.invalidate(monthlyReportDetailProvider(reportId));
-        ref.invalidate(visibleMonthlyReportsProvider);
-        ref.invalidate(monthlyReportsByEnrollmentProvider);
-        return true;
-      },
-    );
-  }
+        return result.fold(
+          (failure) {
+            state =
+                state.copyWith(isLoading: false, errorMessage: failure.message);
+            return false;
+          },
+          (report) {
+            state = state.copyWith(isLoading: false, report: report);
+            if (refresh) {
+              ref.invalidate(monthlyReportDetailProvider(reportId));
+              ref.invalidate(visibleMonthlyReportsProvider);
+              ref.invalidate(monthlyReportsByEnrollmentProvider);
+            }
+            return true;
+          },
+        );
+      });
+
+  /// Envía el informe generado al campo local.
+  Future<bool> submit(String reportId) => ref.keepAliveDuring(() async {
+        state = state.copyWith(isLoading: true, clearError: true);
+        final repo = ref.read(monthlyReportsRepositoryProvider);
+        final result = await repo.submitReport(reportId);
+
+        return result.fold(
+          (failure) {
+            state =
+                state.copyWith(isLoading: false, errorMessage: failure.message);
+            return false;
+          },
+          (report) {
+            state = state.copyWith(isLoading: false, report: report);
+            ref.invalidate(monthlyReportDetailProvider(reportId));
+            ref.invalidate(visibleMonthlyReportsProvider);
+            ref.invalidate(monthlyReportsByEnrollmentProvider);
+            ref.invalidate(dashboardPendingProvider);
+            return true;
+          },
+        );
+      });
 }

@@ -137,6 +137,7 @@ class MonthlyReportModel extends Equatable {
   final DateTime? generatedAt;
   final DateTime? submittedAt;
   final DateTime? createdAt;
+  final String? reviewComment;
 
   const MonthlyReportModel({
     required this.id,
@@ -158,6 +159,7 @@ class MonthlyReportModel extends Equatable {
     this.generatedAt,
     this.submittedAt,
     this.createdAt,
+    this.reviewComment,
   });
 
   factory MonthlyReportModel.fromJson(Map<String, dynamic> json) {
@@ -198,6 +200,7 @@ class MonthlyReportModel extends Equatable {
       generatedAt: _dateValue(json['generated_at']),
       submittedAt: _dateValue(json['submitted_at']),
       createdAt: _dateValue(json['created_at']),
+      reviewComment: _stringValue(json['review_comment']),
     );
   }
 
@@ -222,6 +225,7 @@ class MonthlyReportModel extends Equatable {
       generatedAt: generatedAt,
       submittedAt: submittedAt,
       createdAt: createdAt,
+      reviewComment: reviewComment,
     );
   }
 
@@ -246,6 +250,7 @@ class MonthlyReportModel extends Equatable {
         generatedAt,
         submittedAt,
         createdAt,
+        reviewComment,
       ];
 }
 
@@ -258,6 +263,7 @@ class MonthlyReportPreviewModel extends Equatable {
   final int totalAttendance;
   final int totalMembers;
   final double attendanceRate;
+  final MonthlyReportSnapshot? snapshot;
 
   const MonthlyReportPreviewModel({
     required this.enrollmentId,
@@ -267,6 +273,7 @@ class MonthlyReportPreviewModel extends Equatable {
     required this.totalAttendance,
     required this.totalMembers,
     required this.attendanceRate,
+    this.snapshot,
   });
 
   factory MonthlyReportPreviewModel.fromJson(Map<String, dynamic> json) {
@@ -274,20 +281,29 @@ class MonthlyReportPreviewModel extends Equatable {
         ? json['activities'] as Map<String, dynamic>
         : const <String, dynamic>{};
 
+    // El servidor manda los datos calculados en vivo dentro de
+    // `auto_calculated`, con la misma forma que el snapshot del informe.
+    final snapshot = _parseSnapshot(json['auto_calculated']);
+
     return MonthlyReportPreviewModel(
-      enrollmentId:
-          (json['enrollment_id'] ?? json['club_enrollment_id'])?.toString() ??
-              '',
+      enrollmentId: (json['enrollment_id'] ??
+                  json['club_enrollment_id'] ??
+                  _mapValue(json['enrollment'])['club_enrollment_id'])
+              ?.toString() ??
+          '',
       month: _intValue(json['month']) ?? 0,
       year: _intValue(json['year']) ?? DateTime.now().year,
       totalActivities: _intValue(json['total_activities']) ??
           _intValue(activities['total']) ??
+          snapshot?.activities.total ??
           0,
       totalAttendance: _intValue(json['total_attendance']) ?? 0,
-      totalMembers: _intValue(json['total_members']) ?? 0,
+      totalMembers:
+          _intValue(json['total_members']) ?? snapshot?.memberCount ?? 0,
       attendanceRate: json['attendance_rate'] != null
           ? _doubleValue(json['attendance_rate'])
           : 0.0,
+      snapshot: snapshot,
     );
   }
 
@@ -300,6 +316,7 @@ class MonthlyReportPreviewModel extends Equatable {
       totalAttendance: totalAttendance,
       totalMembers: totalMembers,
       attendanceRate: attendanceRate,
+      snapshot: snapshot,
     );
   }
 
@@ -312,6 +329,7 @@ class MonthlyReportPreviewModel extends Equatable {
         totalAttendance,
         totalMembers,
         attendanceRate,
+        snapshot,
       ];
 }
 

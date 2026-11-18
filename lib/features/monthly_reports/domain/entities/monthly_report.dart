@@ -1,6 +1,27 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 
+/// Nombre del mes (1-12) en el idioma de la app, con mayúscula inicial.
+String monthlyReportMonthName(int month) {
+  const keys = [
+    '',
+    'january',
+    'february',
+    'march',
+    'april',
+    'may',
+    'june',
+    'july',
+    'august',
+    'september',
+    'october',
+    'november',
+    'december',
+  ];
+  if (month >= 1 && month <= 12) return tr('common.months.${keys[month]}');
+  return tr('common.months.unknown', namedArgs: {'month': '$month'});
+}
+
 /// Estado del informe mensual
 enum MonthlyReportStatus { draft, generated, submitted, approved, rejected }
 
@@ -12,7 +33,7 @@ extension MonthlyReportStatusX on MonthlyReportStatus {
       case MonthlyReportStatus.generated:
         return tr('domain.statuses.generated');
       case MonthlyReportStatus.submitted:
-        return tr('domain.statuses.submitted');
+        return tr('domain.statuses.in_review');
       case MonthlyReportStatus.approved:
         return tr('domain.statuses.approved');
       case MonthlyReportStatus.rejected:
@@ -20,6 +41,10 @@ extension MonthlyReportStatusX on MonthlyReportStatus {
     }
   }
 }
+
+/// Secciones que llena a mano quien arma el informe. Es el mismo reparto que
+/// usa el formulario de datos manuales.
+enum MonthlyReportManualSection { meetings, mission, service, materials }
 
 class MonthlyReportLeader extends Equatable {
   final String name;
@@ -173,6 +198,38 @@ class MonthlyReportManualData extends Equatable {
     this.bookletRequirementsSigned,
   });
 
+  /// Una sección cuenta como llena cuando tiene algún dato distinto del valor
+  /// por defecto (número mayor a 0, interruptor en sí o texto escrito). El
+  /// servidor no guarda si el director "terminó" una sección: un informe sin
+  /// datos y uno con todo en 0 se ven igual.
+  bool isSectionFilled(MonthlyReportManualSection section) {
+    bool positive(int? value) => (value ?? 0) > 0;
+    bool text(String? value) => value != null && value.trim().isNotEmpty;
+    switch (section) {
+      case MonthlyReportManualSection.meetings:
+        return positive(planningMeetings) ||
+            positive(parentMeetings) ||
+            positive(youthCouncilAttendance) ||
+            positive(churchBoardAttendance);
+      case MonthlyReportManualSection.mission:
+        return positive(soulTarget) ||
+            positive(unbaptizedMembers) ||
+            positive(bibleStudiesReceiving) ||
+            positive(baptizedThisMonth) ||
+            positive(totalBaptized) ||
+            hasWeeklyBibleInstruction == true ||
+            bibleStudiesGiven == true ||
+            literatureDistributed == true;
+      case MonthlyReportManualSection.service:
+        return text(clubParticipationDescription) ||
+            text(communityServiceDescription);
+      case MonthlyReportManualSection.materials:
+        return certificatesDelivered == true ||
+            membersHaveBooklet == true ||
+            bookletRequirementsSigned == true;
+    }
+  }
+
   Map<String, dynamic> toJson() => {
         if (planningMeetings != null) 'planning_meetings': planningMeetings,
         if (parentMeetings != null) 'parent_meetings': parentMeetings,
@@ -250,6 +307,10 @@ class MonthlyReport extends Equatable {
   final DateTime? submittedAt;
   final DateTime? createdAt;
 
+  /// Comentario del campo local al rechazar. El servidor todavía no lo
+  /// manda: queda vacío hasta que exista.
+  final String? reviewComment;
+
   const MonthlyReport({
     required this.id,
     required this.enrollmentId,
@@ -270,7 +331,17 @@ class MonthlyReport extends Equatable {
     this.generatedAt,
     this.submittedAt,
     this.createdAt,
+    this.reviewComment,
   });
+
+  /// Secciones manuales sin datos, en el orden del formulario.
+  List<MonthlyReportManualSection> get pendingManualSections {
+    final data = manualData;
+    return [
+      for (final section in MonthlyReportManualSection.values)
+        if (data == null || !data.isSectionFilled(section)) section,
+    ];
+  }
 
   MonthlyReportStatus get reportStatus {
     switch (status) {
@@ -294,25 +365,7 @@ class MonthlyReport extends Equatable {
       reportStatus == MonthlyReportStatus.submitted ||
       reportStatus == MonthlyReportStatus.approved;
 
-  String get monthName {
-    const keys = [
-      '',
-      'january',
-      'february',
-      'march',
-      'april',
-      'may',
-      'june',
-      'july',
-      'august',
-      'september',
-      'october',
-      'november',
-      'december',
-    ];
-    if (month >= 1 && month <= 12) return tr('common.months.${keys[month]}');
-    return tr('common.months.unknown', namedArgs: {'month': '$month'});
-  }
+  String get monthName => monthlyReportMonthName(month);
 
   @override
   List<Object?> get props => [
@@ -335,6 +388,7 @@ class MonthlyReport extends Equatable {
         generatedAt,
         submittedAt,
         createdAt,
+        reviewComment,
       ];
 }
 
@@ -348,6 +402,10 @@ class MonthlyReportPreview extends Equatable {
   final int totalMembers;
   final double attendanceRate;
 
+  /// Datos calculados en vivo (miembros, actividades, finanzas…), con la
+  /// misma forma que el snapshot que congela el informe al generarse.
+  final MonthlyReportSnapshot? snapshot;
+
   const MonthlyReportPreview({
     required this.enrollmentId,
     required this.month,
@@ -356,6 +414,7 @@ class MonthlyReportPreview extends Equatable {
     required this.totalAttendance,
     required this.totalMembers,
     required this.attendanceRate,
+    this.snapshot,
   });
 
   @override
@@ -367,6 +426,7 @@ class MonthlyReportPreview extends Equatable {
         totalAttendance,
         totalMembers,
         attendanceRate,
+        snapshot,
       ];
 }
 
@@ -385,6 +445,10 @@ class VisibleMonthlyReport extends Equatable {
   final String? submitterName;
   final int? memberCount;
 
+  /// Secciones manuales sin llenar. Solo se conoce cuando la fila sale del
+  /// informe completo (historial del club); la lista multi-club no lo trae.
+  final int? pendingSections;
+
   const VisibleMonthlyReport({
     required this.id,
     required this.enrollmentId,
@@ -398,6 +462,7 @@ class VisibleMonthlyReport extends Equatable {
     this.localField,
     this.submitterName,
     this.memberCount,
+    this.pendingSections,
   });
 
   /// Fila del historial armada desde `GET /monthly-reports/enrollment/:id`.
@@ -413,6 +478,7 @@ class VisibleMonthlyReport extends Equatable {
       clubName: report.clubName,
       clubType: report.clubType,
       memberCount: report.totalMembers,
+      pendingSections: report.pendingManualSections.length,
     );
   }
 
@@ -431,25 +497,7 @@ class VisibleMonthlyReport extends Equatable {
     }
   }
 
-  String get monthName {
-    const keys = [
-      '',
-      'january',
-      'february',
-      'march',
-      'april',
-      'may',
-      'june',
-      'july',
-      'august',
-      'september',
-      'october',
-      'november',
-      'december',
-    ];
-    if (month >= 1 && month <= 12) return tr('common.months.${keys[month]}');
-    return tr('common.months.unknown', namedArgs: {'month': '$month'});
-  }
+  String get monthName => monthlyReportMonthName(month);
 
   @override
   List<Object?> get props => [
@@ -465,6 +513,7 @@ class VisibleMonthlyReport extends Equatable {
         localField,
         submitterName,
         memberCount,
+        pendingSections,
       ];
 }
 

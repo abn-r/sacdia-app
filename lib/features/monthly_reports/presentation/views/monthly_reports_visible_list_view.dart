@@ -1,30 +1,32 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/errors/user_error_message.dart';
-import 'package:sacdia_app/core/widgets/sac_error_state.dart';
-import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/errors/failures.dart';
-import 'package:sacdia_app/features/enrollment/domain/entities/enrollment.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
+import 'package:sacdia_app/core/errors/failures.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
-import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/status_progress/sac_grouped_section.dart';
+import 'package:sacdia_app/features/enrollment/domain/entities/enrollment.dart';
 import 'package:sacdia_app/features/enrollment/presentation/providers/enrollment_providers.dart';
+import 'package:sacdia_app/features/members/presentation/providers/members_providers.dart';
 
 import '../../domain/entities/monthly_report.dart';
 import '../providers/monthly_reports_providers.dart';
 import '../utils/monthly_report_period.dart';
+import '../widgets/monthly_report_history.dart';
 import '../widgets/monthly_report_motion.dart';
 import 'monthly_report_detail_view.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
 
+/// Inicio de Reportes: arriba «Por atender» con el borrador del mes en curso,
+/// debajo el historial agrupado por año.
 class MonthlyReportsVisibleListView extends ConsumerWidget {
   const MonthlyReportsVisibleListView({super.key});
 
@@ -41,15 +43,16 @@ class MonthlyReportsVisibleListView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final reportsAsync = ref.watch(monthlyReportsHistoryProvider);
-    final c = context.sac;
+    final hasClubContext = ref.watch(clubContextProvider).value != null;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: c.background,
+      backgroundColor: context.sac.background,
       appBar: SacTopBar(
-          title: 'monthly_reports.visible.title'.tr(),
-          onBack: () => context.go(RouteNames.homeDashboard),
-          frosted: true),
+        title: 'monthly_reports.visible.title'.tr(),
+        onBack: () => context.go(RouteNames.homeDashboard),
+        frosted: true,
+      ),
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) => reportsAsync.when(
@@ -62,51 +65,9 @@ class MonthlyReportsVisibleListView extends ConsumerWidget {
             data: (reports) => RefreshIndicator(
               color: SacAccent.of(context).color,
               onRefresh: () => _refresh(ref),
-              child: ListView(
-                padding: SacTopBar.paddingBelowBar(
-                    context, const EdgeInsets.fromLTRB(20, 8, 20, 28)),
-                children: [
-                  MonthlyReportEntrance(
-                      child: _NextActionBar(reports: reports)),
-                  const SizedBox(height: 22),
-                  MonthlyReportEntrance(
-                    index: 1,
-                    child: Text(
-                      'monthly_reports.visible.history_title'.tr(),
-                      style: TextStyle(
-                        fontSize: SacFontSize.bodyMedium,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.2,
-                        color: c.textTertiary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  if (reports.isEmpty)
-                    MonthlyReportEntrance(
-                      index: 2,
-                      child: Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: c.surface,
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.radiusLG),
-                          border: Border.all(
-                              color: c.border.withValues(alpha: 0.7)),
-                        ),
-                        child: SacEmptyState.inline(
-                          icon: HugeIcons.strokeRoundedFile01,
-                          title: 'monthly_reports.visible.empty_title'.tr(),
-                          body: 'monthly_reports.visible.empty_subtitle'.tr(),
-                        ),
-                      ),
-                    )
-                  else
-                    MonthlyReportEntrance(
-                      index: 2,
-                      child: _GroupedHistoryList(reports: reports),
-                    ),
-                ],
+              child: _HomeBody(
+                reports: reports,
+                hasClubContext: hasClubContext,
               ),
             ),
           ),
@@ -116,47 +77,99 @@ class MonthlyReportsVisibleListView extends ConsumerWidget {
   }
 }
 
-enum _NextActionKind { prepare, continueDraft, allSet }
-
-class _NextActionBar extends ConsumerWidget {
+class _HomeBody extends ConsumerWidget {
   final List<VisibleMonthlyReport> reports;
+  final bool hasClubContext;
 
-  const _NextActionBar({required this.reports});
+  const _HomeBody({required this.reports, required this.hasClubContext});
 
-  VisibleMonthlyReport? _periodReport() {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final target = MonthlyReportPeriod.forPreparation();
+    VisibleMonthlyReport? current;
     for (final report in reports) {
       if (report.month == target.month && report.year == target.year) {
-        return report;
+        current = report;
       }
     }
-    return null;
-  }
+    final draft =
+        current?.reportStatus == MonthlyReportStatus.draft ? current : null;
+    // Sin informe del mes: quien tiene club puede empezarlo. Una lista
+    // multi-club (coordinación) no tiene un club propio que preparar.
+    final canStart = current == null && hasClubContext;
+    final showAttention = draft != null || canStart;
+    final history =
+        draft == null ? reports : reports.where((r) => r != draft).toList();
 
-  _NextActionKind _kind(VisibleMonthlyReport? period) {
-    if (period == null) return _NextActionKind.prepare;
-    if (period.reportStatus == MonthlyReportStatus.draft) {
-      return _NextActionKind.continueDraft;
-    }
-    return _NextActionKind.allSet;
-  }
-
-  Future<void> _prepareOrOpen(
-    BuildContext context,
-    WidgetRef ref, {
-    VisibleMonthlyReport? existing,
-  }) async {
-    if (existing != null &&
-        existing.reportStatus != MonthlyReportStatus.draft) {
-      Navigator.push(
-        context,
-        SacSharedAxisRoute(
-          builder: (_) => MonthlyReportDetailView(reportId: existing.id),
+    final children = <Widget>[
+      if (showAttention)
+        MonthlyReportEntrance(
+          child: _AttentionSection(
+            draft: draft,
+            month: target.month,
+            year: target.year,
+          ),
         ),
-      );
-      return;
-    }
+      if (history.isNotEmpty)
+        MonthlyReportEntrance(
+          index: 1,
+          child: MonthlyReportYearGroups(
+            reports: history,
+            showClub: !hasClubContext,
+            onOpen: (report) => Navigator.push(
+              context,
+              SacSharedAxisRoute(
+                builder: (_) => MonthlyReportDetailView(reportId: report.id),
+              ),
+            ),
+          ),
+        )
+      else if (!showAttention)
+        MonthlyReportEntrance(
+          index: 1,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 48),
+            child: SacEmptyState(
+              icon: HugeIcons.strokeRoundedFile01,
+              title: 'monthly_reports.visible.empty_title'.tr(),
+              body: 'monthly_reports.visible.empty_subtitle'.tr(),
+            ),
+          ),
+        ),
+    ];
 
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: SacTopBar.paddingBelowBar(
+          context, const EdgeInsets.only(top: 0, bottom: 32)),
+      children: children,
+    );
+  }
+}
+
+/// «Por atender»: solo el borrador del mes en curso. Si el informe del mes
+/// todavía no existe, la fila lo crea al tocarla.
+class _AttentionSection extends ConsumerWidget {
+  final VisibleMonthlyReport? draft;
+  final int month;
+  final int year;
+
+  const _AttentionSection({
+    required this.draft,
+    required this.month,
+    required this.year,
+  });
+
+  void _open(BuildContext context, String reportId) {
+    Navigator.push(
+      context,
+      SacSharedAxisRoute(
+        builder: (_) => MonthlyReportDetailView(reportId: reportId),
+      ),
+    );
+  }
+
+  Future<void> _start(BuildContext context, WidgetRef ref) async {
     Enrollment? enrollment;
     try {
       enrollment = await ref.read(currentEnrollmentProvider.future);
@@ -171,24 +184,12 @@ class _NextActionBar extends ConsumerWidget {
       return;
     }
 
-    if (existing != null &&
-        existing.reportStatus == MonthlyReportStatus.draft) {
-      Navigator.push(
-        context,
-        SacSharedAxisRoute(
-          builder: (_) => MonthlyReportDetailView(reportId: existing.id),
-        ),
-      );
-      return;
-    }
-
-    final target = MonthlyReportPeriod.forPreparation();
     final report =
         await ref.read(monthlyReportMutationProvider.notifier).getOrCreateDraft(
               MonthlyReportDraftParams(
                 enrollmentId: enrollmentId,
-                month: target.month,
-                year: target.year,
+                month: month,
+                year: year,
               ),
             );
     if (!context.mounted) return;
@@ -199,336 +200,41 @@ class _NextActionBar extends ConsumerWidget {
           behavior: SnackBarBehavior.fixed);
       return;
     }
-
-    Navigator.push(
-      context,
-      SacSharedAxisRoute(
-        builder: (_) => MonthlyReportDetailView(reportId: report.id),
-      ),
-    );
+    _open(context, report.id);
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.sac;
-    final mutation = ref.watch(monthlyReportMutationProvider);
-    final enrollmentAsync = ref.watch(currentEnrollmentProvider);
-    final target = MonthlyReportPeriod.forPreparation();
-    final period = _periodReport();
-    final kind = _kind(period);
-    final monthRaw = DateFormat.MMMM(
-      context.locale.toString(),
-    ).format(DateTime(target.year, target.month));
-    final monthLabel = monthRaw.isEmpty
-        ? monthRaw
-        : '${monthRaw[0].toUpperCase()}${monthRaw.substring(1)}';
-    final busy = mutation.isLoading || enrollmentAsync.isLoading;
+    final draft = this.draft;
+    final busy = ref.watch(monthlyReportMutationProvider).isLoading;
+    final monthName = monthlyReportMonthName(month);
+    final pending = draft?.pendingSections;
 
-    final String statusLabel;
-    final String? ctaLabel;
-    switch (kind) {
-      case _NextActionKind.prepare:
-        statusLabel = 'monthly_reports.visible.next_action_pending'.tr();
-        ctaLabel = busy
-            ? 'monthly_reports.visible.preparing'.tr()
-            : 'monthly_reports.visible.prepare_report'.tr();
-      case _NextActionKind.continueDraft:
-        statusLabel = 'monthly_reports.visible.next_action_continue'.tr();
-        ctaLabel = busy
-            ? 'monthly_reports.visible.preparing'.tr()
-            : 'monthly_reports.visible.continue_report'.tr();
-      case _NextActionKind.allSet:
-        statusLabel = 'monthly_reports.visible.next_action_all_set'.tr();
-        ctaLabel = null;
+    final String subtitle;
+    if (draft == null) {
+      subtitle = 'monthly_reports.attention.not_started'.tr();
+    } else if (pending != null && pending > 0) {
+      subtitle = 'monthly_reports.attention.draft_pending'.plural(pending);
+    } else {
+      subtitle = 'monthly_reports.attention.draft'.tr();
     }
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-        border: Border.all(color: c.border.withValues(alpha: 0.7)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: kind == _NextActionKind.allSet
-                      ? c.successContainer
-                      : SacAccent.of(context).color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-                ),
-                child: HugeIcon(
-                  icon: kind == _NextActionKind.allSet
-                      ? HugeIcons.strokeRoundedCheckmarkCircle02
-                      : HugeIcons.strokeRoundedNoteEdit,
-                  color: kind == _NextActionKind.allSet
-                      ? c.onSuccessContainer
-                      : SacAccent.of(context).color,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '$monthLabel ${target.year}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: SacFontSize.titleMedium,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.2,
-                        color: c.text,
-                        height: 1.1,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      statusLabel,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: SacFontSize.bodyMedium,
-                        fontWeight: FontWeight.w600,
-                        color: c.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (ctaLabel == null) ...[
-                const SizedBox(width: 8),
-                SacPressable(
-                  listenOnly: true,
-                  child: IconButton(
-                    enableFeedback: false,
-                    tooltip: 'monthly_reports.visible.view_period'.tr(),
-                    onPressed: period == null
-                        ? null
-                        : () => _prepareOrOpen(context, ref, existing: period),
-                    icon: HugeIcon(
-                      icon: HugeIcons.strokeRoundedArrowRight01,
-                      color: c.textSecondary,
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-          if (ctaLabel != null) ...[
-            const SizedBox(height: 12),
-            SacButton(
-              text: ctaLabel,
-              size: SacButtonSize.small,
-              fullWidth: true,
-              icon: kind == _NextActionKind.continueDraft
-                  ? HugeIcons.strokeRoundedArrowRight01
-                  : HugeIcons.strokeRoundedNoteEdit,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              onPressed: busy
-                  ? null
-                  : () => _prepareOrOpen(context, ref, existing: period),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _GroupedHistoryList extends StatelessWidget {
-  final List<VisibleMonthlyReport> reports;
-
-  const _GroupedHistoryList({required this.reports});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Container(
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-        border: Border.all(color: c.border.withValues(alpha: 0.7)),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          for (var i = 0; i < reports.length; i++) ...[
-            if (i > 0)
-              Divider(
-                height: 1,
-                thickness: 1,
-                indent: 16,
-                endIndent: 16,
-                color: c.border.withValues(alpha: 0.55),
-              ),
-            _VisibleReportRow(
-              report: reports[i],
-              onTap: () => Navigator.push(
-                context,
-                SacSharedAxisRoute(
-                  builder: (_) =>
-                      MonthlyReportDetailView(reportId: reports[i].id),
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _VisibleReportRow extends StatelessWidget {
-  final VisibleMonthlyReport report;
-  final VoidCallback? onTap;
-
-  const _VisibleReportRow({required this.report, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final statusCfg = _statusConfig(report.reportStatus, context.sac);
-    final generatedAt = report.generatedAt;
-    final clubContext = [
-      report.clubName,
-      report.clubType,
-    ].whereType<String>().where((value) => value.trim().isNotEmpty).join(' · ');
-
-    return SacPressable(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${report.monthName} ${report.year}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: SacFontSize.titleMedium,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.2,
-                      color: c.text,
-                      height: 1.15,
-                    ),
-                  ),
-                  if (clubContext.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      clubContext,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: SacFontSize.bodySmall,
-                        height: 1.2,
-                        fontWeight: FontWeight.w500,
-                        color: c.textTertiary,
-                      ),
-                    ),
-                  ],
-                  if (generatedAt != null) ...[
-                    const SizedBox(height: 3),
-                    Text(
-                      'monthly_reports.visible.generated_on'.tr(
-                        namedArgs: {
-                          'date': DateFormat(
-                            'd MMM yyyy',
-                            context.locale.toString(),
-                          ).format(generatedAt.toLocal()),
-                        },
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: SacFontSize.labelSmall,
-                        height: 1.2,
-                        fontWeight: FontWeight.w600,
-                        color: c.textTertiary,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            _VisibleStatusChip(
-              label: report.reportStatus.label,
-              config: statusCfg,
-            ),
-            const SizedBox(width: 6),
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedArrowRight01,
-              color: c.textTertiary,
-              size: 16,
-            ),
-          ],
+    return SacGroupedSection(
+      label: 'monthly_reports.attention.title'.tr(),
+      count: 1,
+      children: [
+        MonthlyReportAttentionRow(
+          key: const Key('monthly-report-attention-row'),
+          title: '$monthName $year',
+          subtitle: subtitle,
+          busy: busy,
+          onTap: busy
+              ? null
+              : () => draft != null
+                  ? _open(context, draft.id)
+                  : _start(context, ref),
         ),
-      ),
+      ],
     );
-  }
-}
-
-class _VisibleStatusChip extends StatelessWidget {
-  final String label;
-  final _StatusConfig config;
-
-  const _VisibleStatusChip({required this.label, required this.config});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: config.bg,
-        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-      ),
-      child: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          fontSize: SacFontSize.labelSmall,
-          height: 1,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 0.1,
-          color: config.fg,
-        ),
-      ),
-    );
-  }
-}
-
-class _StatusConfig {
-  final Color bg;
-  final Color fg;
-
-  const _StatusConfig({required this.bg, required this.fg});
-}
-
-_StatusConfig _statusConfig(MonthlyReportStatus status, SacColors c) {
-  switch (status) {
-    case MonthlyReportStatus.approved:
-    case MonthlyReportStatus.generated:
-      return _StatusConfig(bg: c.successContainer, fg: c.onSuccessContainer);
-    case MonthlyReportStatus.rejected:
-      return _StatusConfig(bg: c.errorContainer, fg: c.onErrorContainer);
-    case MonthlyReportStatus.submitted:
-      return _StatusConfig(bg: c.infoContainer, fg: c.onInfoContainer);
-    case MonthlyReportStatus.draft:
-      return _StatusConfig(bg: c.warningContainer, fg: c.onWarningContainer);
   }
 }

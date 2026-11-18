@@ -40,6 +40,7 @@ class SacSheetHeader extends StatelessWidget {
     super.key,
     required this.title,
     this.subtitle,
+    this.subtitleWidget,
     this.leading,
     this.actions = const [],
     this.showGrabber = true,
@@ -48,6 +49,10 @@ class SacSheetHeader extends StatelessWidget {
 
   final String title;
   final String? subtitle;
+
+  /// Replaces [subtitle] when the line needs more than text (an icon and a
+  /// status color, such as "Saved just now").
+  final Widget? subtitleWidget;
   final Widget? leading;
   final List<Widget> actions;
   final bool showGrabber;
@@ -98,7 +103,11 @@ class SacSheetHeader extends StatelessWidget {
                             color: c.text,
                           ),
                     ),
-                    if (subtitle != null && subtitle!.trim().isNotEmpty) ...[
+                    if (subtitleWidget != null) ...[
+                      const SizedBox(height: 2),
+                      subtitleWidget!,
+                    ] else if (subtitle != null &&
+                        subtitle!.trim().isNotEmpty) ...[
                       const SizedBox(height: 2),
                       Text(
                         subtitle!,

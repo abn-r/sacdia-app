@@ -44,6 +44,10 @@ abstract class MonthlyReportsRemoteDataSource {
     CancelToken? cancelToken,
   });
 
+  /// Envía un informe generado al campo local.
+  Future<MonthlyReportModel> submitReport(String reportId,
+      {CancelToken? cancelToken});
+
   /// Descarga el PDF del informe usando el cliente autenticado y devuelve
   /// la ruta local del archivo temporal.
   Future<String> downloadReportPdf(String reportId, {CancelToken? cancelToken});
@@ -241,6 +245,31 @@ class MonthlyReportsRemoteDataSourceImpl
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en updateManualData', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── POST /api/v1/monthly-reports/:reportId/submit ─────────────────────────
+
+  @override
+  Future<MonthlyReportModel> submitReport(String reportId,
+      {CancelToken? cancelToken}) async {
+    try {
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.monthlyReports}/$reportId/submit',
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return MonthlyReportModel.fromJson(_unwrapData(response.data));
+      }
+
+      throw ServerException(
+          message: tr('monthly_reports.errors.submit'),
+          code: response.statusCode);
+    } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
+      AppLogger.e('Error en submitReport', tag: _tag, error: e);
       _rethrow(e);
     }
   }

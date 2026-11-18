@@ -153,6 +153,22 @@ class MonthlyReportsRepositoryImpl implements MonthlyReportsRepository {
   }
 
   @override
+  Future<Either<Failure, MonthlyReport>> submitReport(String reportId,
+      {RequestCancelToken? cancelToken}) async {
+    try {
+      final model = await remoteDataSource.submitReport(reportId,
+          cancelToken: cancelToken.asDioCancelToken());
+      return Right(model.toEntity());
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> downloadReportPdf(String reportId,
       {RequestCancelToken? cancelToken}) async {
     try {
