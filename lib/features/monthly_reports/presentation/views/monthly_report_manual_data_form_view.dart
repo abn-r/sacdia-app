@@ -82,6 +82,11 @@ List<Enum> _fieldsOf(MonthlyReportManualSection section) {
   }
 }
 
+/// Month names are capitalized for titles; es, fr and pt-BR write them in
+/// lowercase mid-sentence. English keeps the capital.
+String _midSentenceMonth(String name, Locale locale) =>
+    locale.languageCode == 'en' ? name : name.toLowerCase();
+
 int? _previousCount(_Count count, MonthlyReportManualData data) {
   switch (count) {
     case _Count.planning:
@@ -431,7 +436,12 @@ class _MonthlyReportManualDataFormViewState
                             padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
                             child: Text(
                               'monthly_reports.form.month_note'.tr(
-                                namedArgs: {'month': report.monthName},
+                                namedArgs: {
+                                  'month': _midSentenceMonth(
+                                    report.monthName,
+                                    Localizations.localeOf(context),
+                                  ),
+                                },
                               ),
                               style: TextStyle(
                                 fontSize: SacFontSize.bodySmall,
