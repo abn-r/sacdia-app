@@ -76,6 +76,39 @@ class Order extends Equatable {
     required this.receipts,
   });
 
+  /// Same order with other [receipts] (the list endpoint does not embed them).
+  Order copyWith({List<Receipt>? receipts}) => Order(
+        id: id,
+        folioReferencia: folioReferencia,
+        status: status,
+        clubSectionId: clubSectionId,
+        createdBy: createdBy,
+        approvedBy: approvedBy,
+        validatedBy: validatedBy,
+        deliveredBy: deliveredBy,
+        cancelledBy: cancelledBy,
+        subtotalCentavos: subtotalCentavos,
+        envioCentavos: envioCentavos,
+        totalCentavos: totalCentavos,
+        delivery: delivery,
+        notas: notas,
+        cancelReason: cancelReason,
+        bankName: bankName,
+        bankAccountClabe: bankAccountClabe,
+        accountHolder: accountHolder,
+        pickupAddress: pickupAddress,
+        createdAt: createdAt,
+        approvedAt: approvedAt,
+        paidAt: paidAt,
+        deliveredAt: deliveredAt,
+        cancelledAt: cancelledAt,
+        lines: lines,
+        receipts: receipts ?? this.receipts,
+      );
+
+  /// Key used in routes and endpoints: the folio once it exists, else the id.
+  String get routeKey => folioReferencia ?? id;
+
   bool get isApproved => status == MaterialStatus.aprobada;
   bool get isPaid => status == MaterialStatus.pagada;
   bool get isDelivered => status == MaterialStatus.entregada;

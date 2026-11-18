@@ -3,154 +3,211 @@ import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-
-import '../../../../core/config/route_names.dart';
-import 'package:sacdia_app/core/theme/sac_accent.dart';
-import '../../../../core/theme/sac_colors.dart';
-import '../providers/receipts_provider.dart';
-import '../providers/order_detail_provider.dart';
-import '../widgets/price_input.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_tweened_bar.dart';
-import 'package:sacdia_app/core/widgets/sac_text_field.dart';
-import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
-import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
-import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_frosted_footer.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_tweened_bar.dart';
+import 'package:sacdia_app/core/widgets/status_progress/status_progress.dart';
 
-// ── Constantes de validación ──────────────────────────────────────────────────
+import '../providers/history_provider.dart';
+import '../providers/order_detail_provider.dart';
+import '../providers/receipts_provider.dart';
+import '../widgets/materials_rows.dart';
+import '../widgets/price_input.dart';
+import '../widgets/receipt_source_sheet.dart';
 
 const int _maxFileSizeBytes = 10 * 1024 * 1024; // 10 MB
 const List<String> _allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png'];
 
-/// Pantalla "Subir comprobante" — el director selecciona un archivo PDF o
-/// imagen de su comprobante bancario, rellena el monto, referencia y fecha
-/// y envía el formulario.
+/// "Subir comprobante": el monto ya trae el total del pedido, la fecha es hoy
+/// y el concepto es el folio; solo se elige el archivo y se revisa la vista
+/// previa. Los errores salen junto al campo.
 ///
-/// Ruta: /home/materiales/orden/:folio/comprobante
+/// Ruta: /home/materials/order/:folio/receipt
 class UploadReceiptView extends ConsumerStatefulWidget {
-  final String folioOrId;
-
   const UploadReceiptView({super.key, required this.folioOrId});
+
+  final String folioOrId;
 
   @override
   ConsumerState<UploadReceiptView> createState() => _UploadReceiptViewState();
 }
 
 class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
-  final _formKey = GlobalKey<FormState>();
-
-  File? _selectedFile;
-  String? _selectedFileName;
-  int? _selectedFileSizeBytes;
+  File? _file;
+  String? _fileName;
+  int _fileSize = 0;
+  bool _fileIsImage = false;
   String? _fileError;
 
-  int _montoCentavos = 0;
-  final _refController = TextEditingController();
-  DateTime? _fechaPago;
+  /// Null until the order loads; then the order total unless the user edits.
+  int? _amountCentavos;
+  String? _amountError;
+  DateTime _date = DateUtils.dateOnly(DateTime.now());
 
-  @override
-  void dispose() {
-    _refController.dispose();
-    super.dispose();
-  }
-
-  // ── File picker ─────────────────────────────────────────────────────────────
+  // ── File ────────────────────────────────────────────────────────────────────
 
   Future<void> _pickFile() async {
-    final pickedFile = await FilePicker.pickFile(
-      type: FileType.custom,
-      allowedExtensions: _allowedExtensions,
-    );
+    final source = await showReceiptSourceSheet(context);
+    if (source == null || !mounted) return;
 
-    if (pickedFile == null || pickedFile.path == null) return;
+    String? path;
+    String? name;
+    try {
+      if (source == ReceiptSource.file) {
+        final picked = await FilePicker.pickFile(
+          type: FileType.custom,
+          allowedExtensions: _allowedExtensions,
+        );
+        path = picked?.path;
+        name = picked?.name;
+      } else {
+        final image = await ImagePicker().pickImage(
+          source: source == ReceiptSource.camera
+              ? ImageSource.camera
+              : ImageSource.gallery,
+          imageQuality: 85,
+          maxWidth: 2400,
+        );
+        path = image?.path;
+        final extension = image?.name.split('.').last.toLowerCase() ?? 'jpg';
+        name = image == null ? null : 'comprobante.$extension';
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _fileError = 'materials.receipt.picker_error'.tr());
+      }
+      return;
+    }
+    if (path == null || name == null || !mounted) return;
 
-    final file = File(pickedFile.path!);
-    final sizeBytes = await pickedFile.length() ?? 0;
+    final file = File(path);
+    final size = await file.length();
     if (!mounted) return;
 
-    // Client-side size validation (mirrors backend REQ-CMP-002)
-    if (sizeBytes > _maxFileSizeBytes) {
+    // Client-side size validation (mirrors backend REQ-CMP-002).
+    if (size > _maxFileSizeBytes) {
       setState(() {
-        _selectedFile = null;
-        _selectedFileName = null;
-        _selectedFileSizeBytes = null;
+        _file = null;
+        _fileName = null;
         _fileError = 'materials.receipt.file_too_large'.tr();
       });
       return;
     }
 
+    final extension = name.split('.').last.toLowerCase();
     setState(() {
-      _selectedFile = file;
-      _selectedFileName = pickedFile.name;
-      _selectedFileSizeBytes = sizeBytes;
+      _file = file;
+      _fileName = name;
+      _fileSize = size;
+      _fileIsImage = extension != 'pdf';
       _fileError = null;
     });
   }
 
-  // ── Date picker ─────────────────────────────────────────────────────────────
+  // ── Amount and date ─────────────────────────────────────────────────────────
 
-  Future<void> _pickDate() async {
-    final now = DateTime.now();
-    final picked = await showSacDatePicker(
+  Future<void> _editAmount(int current) async {
+    final value = await showSacSheet<int>(
       context: context,
-      initialDate: _fechaPago ?? now,
-      firstDate: DateTime(now.year - 1),
-      lastDate: now, // Cannot be a future date (Mexico TZ approximation)
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _AmountSheet(initialCentavos: current),
     );
-    if (picked != null) {
-      setState(() => _fechaPago = picked);
+    if (value != null && mounted) {
+      setState(() {
+        _amountCentavos = value;
+        _amountError = null;
+      });
     }
   }
 
-  // ── Submit ───────────────────────────────────────────────────────────────────
+  Future<void> _editDate() async {
+    final now = DateTime.now();
+    final picked = await showSacDatePicker(
+      context: context,
+      initialDate: _date,
+      firstDate: DateTime(now.year - 1),
+      lastDate: now, // Cannot be a future date.
+    );
+    if (picked != null && mounted) {
+      setState(() => _date = DateUtils.dateOnly(picked));
+    }
+  }
 
-  Future<void> _submit() async {
-    // Validate file selection
-    if (_selectedFile == null) {
+  // ── Submit ──────────────────────────────────────────────────────────────────
+
+  Future<void> _submit(int amountCentavos, String concept) async {
+    var valid = true;
+    if (_file == null) {
       setState(() => _fileError = 'materials.receipt.file_required'.tr());
-      return;
+      valid = false;
     }
-
-    // Validate form fields
-    if (!_formKey.currentState!.validate()) return;
-
-    if (_fechaPago == null) {
-      SacSnackBar.show(context, 'materials.receipt.date_required'.tr());
-      return;
+    if (amountCentavos <= 0) {
+      setState(() => _amountError = 'materials.receipt.amount_min'.tr());
+      valid = false;
     }
+    if (!valid) return;
 
     await ref.read(uploadReceiptNotifierProvider.notifier).upload(
           UploadReceiptArgs(
             folioOrId: widget.folioOrId,
-            file: _selectedFile!,
-            montoCentavos: _montoCentavos,
-            refBancariaDeclarada: _refController.text.trim(),
-            fechaPago: _fechaPago!,
+            file: _file!,
+            montoCentavos: amountCentavos,
+            refBancariaDeclarada: concept,
+            fechaPago: _date,
           ),
         );
   }
 
-  // ── Build ────────────────────────────────────────────────────────────────────
+  String _dateLabel(BuildContext context) {
+    final locale = context.locale.toString();
+    final formatted = DateFormat.MMMd(locale).format(_date);
+    return DateUtils.isSameDay(_date, DateTime.now())
+        ? 'materials.receipt.today'.tr(namedArgs: {'date': formatted})
+        : DateFormat.yMMMd(locale).format(_date);
+  }
 
   @override
   Widget build(BuildContext context) {
     final uploadState = ref.watch(uploadReceiptNotifierProvider);
+    final orderAsync = ref.watch(orderDetailProvider(widget.folioOrId));
+    final c = context.sac;
 
-    // React to success
     ref.listen(uploadReceiptNotifierProvider, (prev, next) {
       if (next.result != null && prev?.result == null) {
-        // Invalidate the order detail so it refreshes
         ref.invalidate(orderDetailProvider(widget.folioOrId));
-        if (context.mounted) {
+        ref.invalidate(receiptsProvider(widget.folioOrId));
+        ref.invalidate(historyProvider);
+        if (!context.mounted) return;
+        if (context.canPop()) {
+          context.pop();
+        } else {
           context.go(RouteNames.materialsOrderDetail(widget.folioOrId));
-          SacSnackBar.show(context, 'materials.receipt.sent'.tr(),
-              isSuccess: true);
         }
+        SacSnackBar.show(
+          context,
+          'materials.receipt.sent'.tr(),
+          isSuccess: true,
+        );
       }
       if (next.errorMessage != null && prev?.errorMessage == null) {
         if (context.mounted) {
@@ -161,37 +218,413 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: SacTopBar(title: 'materials.receipt.title'.tr(), frosted: true),
+      backgroundColor: c.canvas,
+      appBar: SacTopBar(
+        title: 'materials.receipt.title'.tr(),
+        backgroundColor: c.canvas,
+        frosted: true,
+      ),
       body: SacFrostedVeil(
         child: Builder(
-          builder: (context) => uploadState.isLoading
-              ? _UploadProgress(progress: uploadState.progress)
-              : _FormBody(
-                  formKey: _formKey,
-                  selectedFileName: _selectedFileName,
-                  selectedFileSizeBytes: _selectedFileSizeBytes,
-                  fileError: _fileError,
-                  fechaPago: _fechaPago,
-                  refController: _refController,
-                  onPickFile: _pickFile,
-                  onPickDate: _pickDate,
-                  onMontoChanged: (c) => _montoCentavos = c,
-                  onSubmit: _submit,
+          builder: (context) {
+            if (uploadState.isLoading) {
+              return _UploadProgress(progress: uploadState.progress);
+            }
+            return orderAsync.when(
+              loading: () => const _FormSkeleton(),
+              error: (e, _) => SacErrorState(
+                title: 'materials.order.load_error'.tr(),
+                message: userErrorMessage(e),
+                onRetry: () =>
+                    ref.invalidate(orderDetailProvider(widget.folioOrId)),
+                padding: SacTopBar.paddingBelowBar(
+                  context,
+                  const EdgeInsets.all(24),
                 ),
+              ),
+              data: (order) {
+                final amount = _amountCentavos ?? order.totalCentavos;
+                final concept = order.folioReferencia ?? widget.folioOrId;
+                return Stack(
+                  children: [
+                    ListView(
+                      padding: SacTopBar.paddingBelowBar(
+                        context,
+                        EdgeInsets.only(
+                          top: 12,
+                          bottom: SacFrostedFooter.height +
+                              16 +
+                              MediaQuery.paddingOf(context).bottom,
+                        ),
+                      ),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: _file == null
+                              ? _EmptyFileCard(
+                                  hasError: _fileError != null,
+                                  onTap: _pickFile,
+                                )
+                              : _FilePreviewCard(
+                                  file: _file!,
+                                  name: _fileName ?? '',
+                                  isImage: _fileIsImage,
+                                  sizeBytes: _fileSize,
+                                  onChange: _pickFile,
+                                ),
+                        ),
+                        if (_fileError != null)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(24, 6, 24, 0),
+                            child: Text(
+                              _fileError!,
+                              key: const ValueKey('receipt-file-error'),
+                              style: TextStyle(
+                                fontSize: SacFontSize.bodySmall,
+                                color: c.onErrorContainer,
+                              ),
+                            ),
+                          ),
+                        SacGroupedSection(
+                          key: const ValueKey('receipt-data'),
+                          label: 'materials.receipt.data_section'.tr(),
+                          action: const SizedBox.shrink(),
+                          dividerIndent: 14,
+                          children: [
+                            MaterialsKvRow(
+                              key: const ValueKey('receipt-amount'),
+                              label: 'materials.receipt.amount'.tr(),
+                              value: SacMoney.fromCentavos(amount),
+                              error: _amountError,
+                              onTap: () => _editAmount(amount),
+                            ),
+                            MaterialsKvRow(
+                              key: const ValueKey('receipt-date'),
+                              label: 'materials.receipt.date_section'.tr(),
+                              value: _dateLabel(context),
+                              onTap: _editDate,
+                            ),
+                            MaterialsKvRow(
+                              key: const ValueKey('receipt-concept'),
+                              label: 'materials.receipt.concept'.tr(),
+                              value: concept,
+                              mono: true,
+                            ),
+                          ],
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
+                          child: Text(
+                            'materials.receipt.check_amount'.tr(),
+                            style: TextStyle(
+                              fontSize: SacFontSize.bodyMedium,
+                              height: 1.4,
+                              color: c.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: SacFrostedFooter(
+                        child: SacButton.primary(
+                          key: const ValueKey('receipt-submit'),
+                          text: 'materials.receipt.submit'.tr(),
+                          icon: HugeIcons.strokeRoundedSent,
+                          onPressed: () => _submit(amount, concept),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
         ),
       ),
     );
   }
 }
 
-// ── Upload progress view ─────────────────────────────────────────────────────
+// ── File cards ────────────────────────────────────────────────────────────────
 
-class _UploadProgress extends StatelessWidget {
-  final double progress;
-  const _UploadProgress({required this.progress});
+class _EmptyFileCard extends StatelessWidget {
+  const _EmptyFileCard({required this.hasError, required this.onTap});
+
+  final bool hasError;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+    final accent = SacAccent.of(context);
+    return Semantics(
+      button: true,
+      label:
+          '${'materials.receipt.add_file'.tr()}. ${'materials.receipt.add_file_hint'.tr()}',
+      excludeSemantics: true,
+      onTap: onTap,
+      child: Material(
+        color: c.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+          side: BorderSide(
+            color: hasError ? c.error : c.border,
+            width: hasError ? 1.5 : 1,
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: SacInkWell(
+          key: const ValueKey('receipt-add-file'),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: accent.surface,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                  ),
+                  child: buildIcon(
+                    HugeIcons.strokeRoundedFileUpload,
+                    size: 24,
+                    color: accent.color,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'materials.receipt.add_file'.tr(),
+                        style: TextStyle(
+                          fontSize: SacFontSize.titleMedium,
+                          fontWeight: FontWeight.w600,
+                          color: c.text,
+                        ),
+                      ),
+                      Text(
+                        'materials.receipt.add_file_hint'.tr(),
+                        style: TextStyle(
+                          fontSize: SacFontSize.bodySmall,
+                          height: 1.35,
+                          color: c.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FilePreviewCard extends StatelessWidget {
+  const _FilePreviewCard({
+    required this.file,
+    required this.name,
+    required this.isImage,
+    required this.sizeBytes,
+    required this.onChange,
+  });
+
+  final File file;
+  final String name;
+  final bool isImage;
+  final int sizeBytes;
+  final VoidCallback onChange;
+
+  String _size() {
+    if (sizeBytes < 1024) return '$sizeBytes B';
+    if (sizeBytes < 1024 * 1024) {
+      return '${(sizeBytes / 1024).toStringAsFixed(0)} KB';
+    }
+    return '${(sizeBytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final accent = SacAccent.of(context);
+    final kind = (isImage
+            ? 'materials.receipt.kind_photo'
+            : 'materials.receipt.kind_pdf')
+        .tr();
+    Widget icon() => buildIcon(
+          isImage
+              ? HugeIcons.strokeRoundedImage01
+              : HugeIcons.strokeRoundedPdf01,
+          size: 26,
+          color: accent.color,
+        );
+    return Container(
+      key: const ValueKey('receipt-preview'),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+        border: Border.all(color: c.border),
+      ),
+      child: Row(
+        children: [
+          ExcludeSemantics(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
+              child: Container(
+                width: 56,
+                height: 72,
+                alignment: Alignment.center,
+                color: accent.surface,
+                child: isImage
+                    ? Image.file(
+                        file,
+                        width: 56,
+                        height: 72,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => icon(),
+                      )
+                    : icon(),
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: SacFontSize.titleMedium,
+                    fontWeight: FontWeight.w600,
+                    color: c.text,
+                  ),
+                ),
+                Text(
+                  '$kind · ${_size()}',
+                  style: TextStyle(
+                    fontSize: SacFontSize.bodySmall,
+                    color: c.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Semantics(
+                  button: true,
+                  label: 'materials.receipt.change'.tr(),
+                  excludeSemantics: true,
+                  onTap: onChange,
+                  child: SacInkWell(
+                    key: const ValueKey('receipt-change'),
+                    onTap: onChange,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXS),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 44),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        widthFactor: 1,
+                        child: Text(
+                          'materials.receipt.change'.tr(),
+                          style: TextStyle(
+                            fontSize: SacFontSize.bodyMedium,
+                            fontWeight: FontWeight.w600,
+                            color: accent.color,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Amount sheet ──────────────────────────────────────────────────────────────
+
+class _AmountSheet extends StatefulWidget {
+  const _AmountSheet({required this.initialCentavos});
+
+  final int initialCentavos;
+
+  @override
+  State<_AmountSheet> createState() => _AmountSheetState();
+}
+
+class _AmountSheetState extends State<_AmountSheet> {
+  late int _centavos = widget.initialCentavos;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return AnimatedPadding(
+      duration: const Duration(milliseconds: 100),
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: Container(
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppTheme.radiusLG),
+          ),
+        ),
+        child: SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SacSheetGrabber(),
+                const SizedBox(height: 8),
+                PriceInput(
+                  label: 'materials.receipt.amount'.tr(),
+                  initialCentavos: widget.initialCentavos,
+                  onChanged: (v) => setState(() => _centavos = v),
+                ),
+                const SizedBox(height: 16),
+                SacButton.primary(
+                  key: const ValueKey('receipt-amount-done'),
+                  text: 'common.done'.tr(),
+                  isEnabled: _centavos > 0,
+                  onPressed: () => Navigator.of(context).pop(_centavos),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Progress and skeleton ─────────────────────────────────────────────────────
+
+class _UploadProgress extends StatelessWidget {
+  const _UploadProgress({required this.progress});
+
+  final double progress;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = SacAccent.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -199,9 +632,10 @@ class _UploadProgress extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             HugeIcon(
-                icon: HugeIcons.strokeRoundedCloudUpload,
-                size: 56,
-                color: SacAccent.of(context).color),
+              icon: HugeIcons.strokeRoundedCloudUpload,
+              size: 56,
+              color: accent.color,
+            ),
             const SizedBox(height: 16),
             Text(
               'materials.receipt.sending'.tr(),
@@ -212,12 +646,12 @@ class _UploadProgress extends StatelessWidget {
                 ? SacTweenedBar(
                     value: progress,
                     minHeight: 4,
-                    backgroundColor: SacAccent.of(context).surface,
-                    color: SacAccent.of(context).color,
+                    backgroundColor: accent.surface,
+                    color: accent.color,
                   )
                 : LinearProgressIndicator(
-                    backgroundColor: SacAccent.of(context).surface,
-                    color: SacAccent.of(context).color,
+                    backgroundColor: accent.surface,
+                    color: accent.color,
                   ),
             if (progress > 0) ...[
               const SizedBox(height: 8),
@@ -233,243 +667,28 @@ class _UploadProgress extends StatelessWidget {
   }
 }
 
-// ── Form body ────────────────────────────────────────────────────────────────
-
-class _FormBody extends StatelessWidget {
-  final GlobalKey<FormState> formKey;
-  final String? selectedFileName;
-  final int? selectedFileSizeBytes;
-  final String? fileError;
-  final DateTime? fechaPago;
-  final TextEditingController refController;
-  final VoidCallback onPickFile;
-  final VoidCallback onPickDate;
-  final ValueChanged<int> onMontoChanged;
-  final VoidCallback onSubmit;
-
-  const _FormBody({
-    required this.formKey,
-    required this.selectedFileName,
-    required this.selectedFileSizeBytes,
-    required this.fileError,
-    required this.fechaPago,
-    required this.refController,
-    required this.onPickFile,
-    required this.onPickDate,
-    required this.onMontoChanged,
-    required this.onSubmit,
-  });
-
-  String _formatFileSize(int bytes) {
-    if (bytes < 1024) return '${bytes}B';
-    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)}KB';
-    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)}MB';
-  }
-
-  String _formatDate(DateTime dt) =>
-      '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+class _FormSkeleton extends StatelessWidget {
+  const _FormSkeleton();
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final c = context.sac;
-
-    return Form(
-      key: formKey,
-      child: ListView(
-        padding: SacTopBar.paddingBelowBar(
-            context, const EdgeInsets.fromLTRB(16, 16, 16, 32)),
-        children: [
-          // ── File picker area ─────────────────────────────────────────────────
-          _SectionLabel(label: 'materials.receipt.file_section'.tr()),
-          const SizedBox(height: 8),
-          if (selectedFileName == null)
-            SacButton.outline(
-              text: 'materials.receipt.pick_file'.tr(),
-              icon: HugeIcons.strokeRoundedAttachment01,
-              borderColor: fileError != null
-                  ? context.sac.error
-                  : SacAccent.of(context).color,
-              labelMaxLines: 2,
-              onPressed: onPickFile,
-            )
-          else
-            _FilePreview(
-              fileName: selectedFileName!,
-              fileSize: _formatFileSize(selectedFileSizeBytes ?? 0),
-              onReplace: onPickFile,
-            ),
-          if (fileError != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              fileError!,
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: context.sac.onErrorContainer),
-            ),
+    return SacShimmer(
+      child: ExcludeSemantics(
+        child: ListView(
+          physics: const NeverScrollableScrollPhysics(),
+          padding: SacTopBar.paddingBelowBar(
+            context,
+            const EdgeInsets.fromLTRB(20, 12, 20, 32),
+          ),
+          children: const [
+            SacSkeletonBox(height: 82, radius: AppTheme.radiusMD),
+            SizedBox(height: 28),
+            SacSkeletonBox(width: 90, height: 10),
+            SizedBox(height: 12),
+            SacSkeletonBox(height: 150, radius: AppTheme.radiusMD),
           ],
-
-          const SizedBox(height: 20),
-
-          // ── Monto pagado ─────────────────────────────────────────────────────
-          PriceInput(
-            label: 'materials.receipt.amount'.tr(),
-            hint: '0.00',
-            onChanged: onMontoChanged,
-          ),
-
-          const SizedBox(height: 20),
-
-          // ── Referencia bancaria ──────────────────────────────────────────────
-          SacTextField(
-            controller: refController,
-            label: 'materials.receipt.concept'.tr(),
-            hint: 'materials.receipt.concept_hint'.tr(),
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'materials.receipt.concept_required'.tr();
-              }
-              return null;
-            },
-          ),
-
-          const SizedBox(height: 20),
-
-          // ── Fecha de pago ─────────────────────────────────────────────────────
-          _SectionLabel(label: 'materials.receipt.date_section'.tr()),
-          const SizedBox(height: 8),
-          GestureDetector(
-            onTap: onPickDate,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                border: Border.all(color: c.border),
-                borderRadius: BorderRadius.circular(AppTheme.radius2XS),
-              ),
-              child: Row(
-                children: [
-                  HugeIcon(
-                      icon: HugeIcons.strokeRoundedCalendar03,
-                      size: 18,
-                      color: SacAccent.of(context).color),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      fechaPago != null
-                          ? _formatDate(fechaPago!)
-                          : 'materials.receipt.pick_date'.tr(),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: fechaPago != null ? c.text : c.textSecondary,
-                      ),
-                    ),
-                  ),
-                  HugeIcon(
-                      icon: HugeIcons.strokeRoundedArrowRight01,
-                      color: c.textSecondary),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // ── Submit ────────────────────────────────────────────────────────────
-          SacButton.primary(
-            text: 'materials.receipt.submit'.tr(),
-            icon: HugeIcons.strokeRoundedSent,
-            onPressed: onSubmit,
-          ),
-        ],
+        ),
       ),
-    );
-  }
-}
-
-// ── File preview card ─────────────────────────────────────────────────────────
-
-class _FilePreview extends StatelessWidget {
-  final String fileName;
-  final String fileSize;
-  final VoidCallback onReplace;
-
-  const _FilePreview({
-    required this.fileName,
-    required this.fileSize,
-    required this.onReplace,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: SacAccent.of(context).surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-        border: Border.all(
-            color: SacAccent.of(context).color.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: SacAccent.of(context).color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-            ),
-            child: HugeIcon(
-                icon: HugeIcons.strokeRoundedFile01,
-                color: SacAccent.of(context).color,
-                size: 24),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  fileName,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  fileSize,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: context.sac.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SacPressable(
-            listenOnly: true,
-            child: SacButton.text(
-              text: 'materials.receipt.change'.tr(),
-              onPressed: onReplace,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Shared label ──────────────────────────────────────────────────────────────
-
-class _SectionLabel extends StatelessWidget {
-  final String label;
-  const _SectionLabel({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: context.sac.text,
-          ),
     );
   }
 }

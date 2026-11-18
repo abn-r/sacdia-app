@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 
 import '../../domain/entities/material_item.dart';
+import 'material_thumbs.dart';
 import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -46,7 +47,7 @@ class ProductCard extends StatelessWidget {
                   color: SacAccent.of(context).color.withValues(alpha: 0.08),
                   alignment: Alignment.center,
                   child: HugeIcon(
-                    icon: _categoryIcon(item.category.slug),
+                    icon: materialCategoryIcon(item.category.slug),
                     size: 36,
                     color: SacAccent.of(context).color,
                   ),
@@ -100,27 +101,6 @@ class ProductCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  static List<List<dynamic>> _categoryIcon(String slug) {
-    switch (slug.toLowerCase()) {
-      case 'insignias':
-        return HugeIcons.strokeRoundedAward01;
-      case 'uniforme':
-      case 'uniformes':
-        return HugeIcons.strokeRoundedShirt01;
-      case 'panoletas':
-      case 'pañoletas':
-        return HugeIcons.strokeRoundedTie;
-      case 'material':
-      case 'materiales':
-        return HugeIcons.strokeRoundedPackage;
-      case 'cuadernillos':
-      case 'libros':
-        return HugeIcons.strokeRoundedBook02;
-      default:
-        return HugeIcons.strokeRoundedShoppingBag01;
-    }
   }
 
   static String _stockLabel({required bool hasStock, required int stock}) {

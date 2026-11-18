@@ -19,6 +19,9 @@ class CartLine extends Equatable {
   /// Etiqueta de la opción de variante, si aplica.
   final String? variantLabel;
 
+  /// Slug de la categoría del producto: elige el ícono de la miniatura.
+  final String? categorySlug;
+
   const CartLine({
     required this.productId,
     this.variantOptionId,
@@ -27,6 +30,7 @@ class CartLine extends Equatable {
     required this.productTitle,
     required this.productSku,
     this.variantLabel,
+    this.categorySlug,
   });
 
   /// Total de esta línea en centavos.
@@ -41,6 +45,7 @@ class CartLine extends Equatable {
       productTitle: productTitle,
       productSku: productSku,
       variantLabel: variantLabel,
+      categorySlug: categorySlug,
     );
   }
 
@@ -53,6 +58,7 @@ class CartLine extends Equatable {
         productTitle,
         productSku,
         variantLabel,
+        categorySlug,
       ];
 }
 
@@ -104,8 +110,20 @@ class CartNotifier extends Notifier<CartState> {
       productTitle: item.title,
       productSku: item.sku,
       variantLabel: variantOption?.label,
+      categorySlug: item.category.slug,
     );
 
+    state = CartState(lines: [...state.lines, line]);
+  }
+
+  /// Vuelve a poner una línea quitada (deshacer). Si ya existe otra con la
+  /// misma clave, suma las cantidades.
+  void restoreLine(CartLine line) {
+    final existing = _findLine(line.productId, line.variantOptionId);
+    if (existing != null) {
+      _updateQty(line.productId, line.variantOptionId, existing.qty + line.qty);
+      return;
+    }
     state = CartState(lines: [...state.lines, line]);
   }
 

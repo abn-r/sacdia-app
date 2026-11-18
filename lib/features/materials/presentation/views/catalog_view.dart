@@ -22,14 +22,19 @@ import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import '../providers/cart_provider.dart';
 import '../providers/catalog_provider.dart';
 import '../providers/categories_provider.dart';
+import '../providers/product_detail_provider.dart';
 import '../providers/programs_provider.dart';
 import '../widgets/materials_program_field.dart';
 import '../widgets/product_card.dart';
+import '../widgets/product_sizes_sheet.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Pantalla principal del catálogo de materiales.
 class CatalogView extends ConsumerStatefulWidget {
-  const CatalogView({super.key});
+  const CatalogView({super.key, this.openProductId});
+
+  /// Opens the sheet of this product once the catalog is up (old product links).
+  final String? openProductId;
 
   @override
   ConsumerState<CatalogView> createState() => _CatalogViewState();
@@ -51,6 +56,24 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
         programaId: _selectedProgramaId,
         q: _searchQ,
       );
+
+  @override
+  void initState() {
+    super.initState();
+    final id = widget.openProductId;
+    if (id != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _openLinked(id));
+    }
+  }
+
+  Future<void> _openLinked(String id) async {
+    try {
+      final item = await ref.read(productDetailProvider(id).future);
+      if (mounted) await showProductSheet(context, item);
+    } catch (_) {
+      // The catalog stays; an unknown product is not worth an error.
+    }
+  }
 
   @override
   void dispose() {
@@ -89,19 +112,6 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
       appBar: SacTopBar(
           title: 'materials.catalog.title'.tr(),
           actions: [
-            SacPressable(
-              listenOnly: true,
-              child: IconButton(
-                enableFeedback: false,
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedInvoice03,
-                  color: c.text,
-                  size: 22,
-                ),
-                tooltip: 'materials.history.title'.tr(),
-                onPressed: () => context.push(RouteNames.materialsHistory),
-              ),
-            ),
             Stack(
               alignment: Alignment.topRight,
               children: [
@@ -344,9 +354,7 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
           final item = displayed.items[index];
           return ProductCard(
             item: item,
-            onTap: () => context.push(
-              RouteNames.materialsProductDetailPath(item.id),
-            ),
+            onTap: () => showProductSheet(context, item),
           );
         },
       ),

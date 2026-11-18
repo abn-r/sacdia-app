@@ -1,88 +1,89 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/errors/user_error_message.dart';
-import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_frosted_footer.dart';
+import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/status_progress/status_progress.dart';
 
+import '../../domain/entities/order.dart';
 import '../providers/history_provider.dart';
-import '../widgets/order_card.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
+import '../utils/order_presentation.dart';
+import '../widgets/order_row.dart';
 
-/// Historial de pedidos del director.
+/// Entrada de "Pedidos": los pedidos del director agrupados por lo que hay
+/// que hacer con ellos, y "Nuevo pedido" fijo abajo que abre el catálogo.
 class OrderHistoryView extends ConsumerWidget {
   const OrderHistoryView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final historialAsync = ref.watch(historyProvider);
+    final ordersAsync = ref.watch(historyProvider);
     final c = context.sac;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: c.background,
-      appBar: SacTopBar(title: 'materials.history.title'.tr(), frosted: true),
+      backgroundColor: c.canvas,
+      appBar: SacTopBar(
+        title: 'materials.history.title'.tr(),
+        backgroundColor: c.canvas,
+        frosted: true,
+      ),
       body: SacFrostedVeil(
-        child: Builder(
-          builder: (context) => historialAsync.when(
-            loading: () => const _HistorySkeleton(),
-            error: (e, _) => _RefreshableBody(
-              onRefresh: () => _refresh(ref),
-              child: SacErrorState(
-                title: 'materials.history.error_title'.tr(),
-                message: userErrorMessage(e),
-                onRetry: () => ref.invalidate(historyProvider),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Builder(
+                builder: (context) => ordersAsync.when(
+                  loading: () => const _OrdersSkeleton(),
+                  error: (e, _) => _RefreshableBody(
+                    onRefresh: () => _refresh(ref),
+                    child: SacErrorState(
+                      title: 'materials.history.error_title'.tr(),
+                      message: userErrorMessage(e),
+                      onRetry: () => ref.invalidate(historyProvider),
+                    ),
+                  ),
+                  data: (orders) => orders.isEmpty
+                      ? _RefreshableBody(
+                          onRefresh: () => _refresh(ref),
+                          child: SacEmptyState(
+                            icon: HugeIcons.strokeRoundedInvoice03,
+                            title: 'materials.history.empty_title'.tr(),
+                            body: 'materials.history.empty_subtitle'.tr(),
+                          ),
+                        )
+                      : _OrdersList(
+                          orders: orders,
+                          onRefresh: () => _refresh(ref),
+                        ),
+                ),
               ),
             ),
-            data: (ordenes) {
-              if (ordenes.isEmpty) {
-                return _RefreshableBody(
-                  onRefresh: () => _refresh(ref),
-                  child: SacEmptyState(
-                    icon: HugeIcons.strokeRoundedInvoice03,
-                    title: 'materials.history.empty_title'.tr(),
-                    body: 'materials.history.empty_subtitle'.tr(),
-                    actionLabel: 'materials.history.go_catalog'.tr(),
-                    onAction: () => context.go(RouteNames.homeMaterials),
-                    actionIcon: HugeIcons.strokeRoundedStoreManagement01,
-                  ),
-                );
-              }
-
-              return RefreshIndicator(
-                color: SacAccent.of(context).color,
-                edgeOffset: SacTopBar.frostedInset(context),
-                onRefresh: () => _refresh(ref),
-                child: ListView.separated(
-                  // Always scrollable: with a short list the default physics
-                  // cannot overscroll, so pull-to-refresh would never fire.
-                  physics: const BouncingScrollPhysics(
-                    parent: AlwaysScrollableScrollPhysics(),
-                  ),
-                  padding: SacTopBar.paddingBelowBar(
-                      context, const EdgeInsets.all(16)),
-                  itemCount: ordenes.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (context, index) {
-                    final order = ordenes[index];
-                    return OrderCard(
-                      order: order,
-                      onTap: () {
-                        final key = order.folioReferencia ?? order.id;
-                        context.push(RouteNames.materialsOrderDetail(key));
-                      },
-                    );
-                  },
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: SacFrostedFooter(
+                child: SacButton.primary(
+                  key: const ValueKey('orders-new'),
+                  text: 'materials.history.new_order'.tr(),
+                  icon: HugeIcons.strokeRoundedAdd01,
+                  onPressed: () => context.push(RouteNames.materialsCatalog),
                 ),
-              );
-            },
-          ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -100,12 +101,74 @@ class OrderHistoryView extends ConsumerWidget {
   }
 }
 
+class _OrdersList extends StatelessWidget {
+  const _OrdersList({required this.orders, required this.onRefresh});
+
+  final List<Order> orders;
+  final Future<void> Function() onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    final groups = groupOrders(orders);
+
+    Widget group(String key, String labelKey, List<Order> list) {
+      if (list.isEmpty) return const SizedBox.shrink();
+      return SacGroupedSection(
+        key: ValueKey(key),
+        label: labelKey.tr(),
+        dividerIndent: OrderRow.dividerIndent,
+        children: [
+          for (final order in list)
+            OrderRow(
+              key: ValueKey('order-${order.id}'),
+              order: order,
+              onTap: () =>
+                  context.push(RouteNames.materialsOrderDetail(order.routeKey)),
+            ),
+        ],
+      );
+    }
+
+    return RefreshIndicator(
+      color: SacAccent.of(context).color,
+      edgeOffset: SacTopBar.frostedInset(context),
+      onRefresh: onRefresh,
+      child: ListView(
+        // Always scrollable: with a short list the default physics cannot
+        // overscroll, so pull-to-refresh would never fire.
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        padding: SacTopBar.paddingBelowBar(
+          context,
+          EdgeInsets.only(
+            bottom: 24 +
+                SacFrostedFooter.height -
+                36 +
+                MediaQuery.paddingOf(context).bottom,
+          ),
+        ),
+        children: [
+          group('orders-attention', 'materials.history.group_attention',
+              groups.attention),
+          group('orders-in-progress', 'materials.history.group_in_progress',
+              groups.inProgress),
+          group('orders-delivered', 'materials.history.group_delivered',
+              groups.delivered),
+          group('orders-cancelled', 'materials.history.group_cancelled',
+              groups.cancelled),
+        ],
+      ),
+    );
+  }
+}
+
 /// Wraps a non-list body (empty / error) so pull-to-refresh still works.
 class _RefreshableBody extends StatelessWidget {
+  const _RefreshableBody({required this.onRefresh, required this.child});
+
   final Future<void> Function() onRefresh;
   final Widget child;
-
-  const _RefreshableBody({required this.onRefresh, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +182,9 @@ class _RefreshableBody extends StatelessWidget {
             parent: AlwaysScrollableScrollPhysics(),
           ),
           child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight - SacFrostedFooter.height,
+            ),
             child: Padding(
               padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
               child: child,
@@ -131,68 +196,51 @@ class _RefreshableBody extends StatelessWidget {
   }
 }
 
-class _HistorySkeleton extends StatelessWidget {
-  const _HistorySkeleton();
+/// Skeleton with the real shape of the screen: a group of rows.
+class _OrdersSkeleton extends StatelessWidget {
+  const _OrdersSkeleton();
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    return ListView.separated(
-      physics: const NeverScrollableScrollPhysics(),
-      padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(16)),
-      itemCount: 5,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (_, __) => Container(
-        height: 104,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: c.surface,
-          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-          border: Border.all(color: c.border.withValues(alpha: 0.7)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return SacShimmer(
+      child: ExcludeSemantics(
+        child: ListView(
+          physics: const NeverScrollableScrollPhysics(),
+          padding: SacTopBar.paddingBelowBar(
+            context,
+            const EdgeInsets.fromLTRB(20, 24, 20, 32),
+          ),
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    height: 14,
-                    decoration: BoxDecoration(
-                      color: c.border.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                    ),
+            for (var group = 0; group < 2; group++) ...[
+              const SacSkeletonBox(width: 90, height: 10),
+              const SizedBox(height: 12),
+              for (var i = 0; i < (group == 0 ? 1 : 2); i++)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10),
+                  child: Row(
+                    children: [
+                      SacSkeletonBox(
+                        width: 52,
+                        height: 34,
+                        radius: AppTheme.radiusXS,
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SacSkeletonBox(width: 130, height: 12),
+                            SizedBox(height: 8),
+                            SacSkeletonBox(width: 100, height: 10),
+                          ],
+                        ),
+                      ),
+                      SacSkeletonBox(width: 56, height: 14),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                Container(
-                  width: 72,
-                  height: 22,
-                  decoration: BoxDecoration(
-                    color: c.border.withValues(alpha: 0.35),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Container(
-              width: 120,
-              height: 11,
-              decoration: BoxDecoration(
-                color: c.border.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-              ),
-            ),
-            const Spacer(),
-            Container(
-              width: 88,
-              height: 14,
-              decoration: BoxDecoration(
-                color: c.border.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-              ),
-            ),
+              const SizedBox(height: 14),
+            ],
           ],
         ),
       ),
