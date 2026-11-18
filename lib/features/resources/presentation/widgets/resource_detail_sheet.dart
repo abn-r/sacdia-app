@@ -1,33 +1,36 @@
-import 'dart:async';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/media/sac_audio_player_controller.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/theme/club_type.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../domain/entities/resource.dart';
 import '../providers/resources_providers.dart';
+import '../utils/resource_format.dart';
 import '../utils/resource_preview.dart';
+import 'resource_audio_player.dart';
 import 'resource_card.dart';
+import 'resource_info_group.dart';
 
 /// Bottom sheet con el detalle completo de un recurso.
 ///
-/// Comportamiento según tipo:
-/// - audio: reproductor embebido + "Descargar" con signed URL
-/// - image: botón "Ver imagen" + "Descargar" con signed URL
-/// - document: botón "Ver PDF" cuando aplica + "Descargar" con signed URL
-/// - video_link: botón "Ver video" que abre [externalUrl]
-/// - text: muestra el contenido inline
+/// Portada y título, una línea "TIPO · tamaño · fecha", un grupo de
+/// etiqueta-valor (categoría, para qué club, quién lo publicó) y las acciones
+/// fijas abajo. Según el tipo:
+/// - audio: reproductor embebido; Descargar y Compartir como secundarias
+/// - image: "Ver imagen" primaria
+/// - document: "Abrir PDF" primaria cuando aplica; si no, "Descargar"
+/// - video_link: "Abrir en YouTube" con aviso de que sale de la app
+/// - text: muestra el contenido inline, sin acciones
 class ResourceDetailSheet extends ConsumerStatefulWidget {
   final Resource resource;
 
@@ -95,6 +98,30 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
     if (mounted) setState(() => _loadingAction = null);
   }
 
+  /// Shares the title and the link: the video URL, or the signed file URL
+  /// (which expires, like the one "Descargar" opens).
+  Future<void> _share() async {
+    setState(() => _loadingAction = _ResourceAction.share);
+
+    final isVideo = _resource.resourceType == 'video_link';
+    final url = isVideo ? _resource.externalUrl : await _resolveSignedUrl();
+
+    if (url != null && url.isNotEmpty && mounted) {
+      try {
+        await ref.read(resourceSharerProvider)(
+          text: '${_resource.title}\n$url',
+          subject: _resource.title,
+        );
+      } catch (_) {
+        _showError('resources.error.share_failed'.tr());
+      }
+    } else if (mounted) {
+      _showError('resources.error.media_url'.tr());
+    }
+
+    if (mounted) setState(() => _loadingAction = null);
+  }
+
   Future<String?> _resolveSignedUrl() async {
     final cachedUrl = _resource.signedUrl;
     if (cachedUrl != null && cachedUrl.isNotEmpty) return cachedUrl;
@@ -139,11 +166,49 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
     SacSnackBar.show(context, message);
   }
 
+  String _metaLine(BuildContext context) {
+    final locale = Localizations.localeOf(context).toString();
+    final size = formatResourceFileSize(_resource.fileSize);
+    return [
+      resourceLabelFor(_resource),
+      if (size.isNotEmpty) size,
+      DateFormat.yMMMd(locale).format(_resource.createdAt.toLocal()),
+    ].join(' · ');
+  }
+
+  List<ResourceInfoRow> _infoRows() {
+    final category = _resource.categoryName?.trim();
+    final club = _resource.clubTypeName?.trim();
+    final publisher = switch (_resource.scopeLevel) {
+      'system' => 'resources.scope.system'.tr(),
+      'union' => 'resources.scope.union'.tr(),
+      'local_field' => 'resources.scope.local_field'.tr(),
+      _ => null,
+    };
+    return [
+      if (category != null && category.isNotEmpty)
+        ResourceInfoRow(
+          label: 'resources.detail.category'.tr(),
+          value: category,
+        ),
+      if (club != null && club.isNotEmpty)
+        ResourceInfoRow(
+          label: 'resources.detail.for'.tr(),
+          value: club,
+          logoAsset: clubLogoAssetFromName(club),
+        ),
+      if (publisher != null)
+        ResourceInfoRow(
+          label: 'resources.detail.published_by'.tr(),
+          value: publisher,
+        ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
     final signedUrlState = ref.watch(signedUrlNotifierProvider);
-    final color = resourceTypeColor(context, _resource.resourceType);
     final cachedSigned = _resource.signedUrl;
     final shouldFetch = resourceWantsSignedPreview(_resource);
     final fetched = shouldFetch
@@ -154,11 +219,13 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
         : fetched?.value;
     final initialChildSize = switch (_resource.resourceType) {
       'text' => 0.82,
-      'image' => 0.78,
-      'audio' => 0.78,
-      'video_link' => 0.72,
-      _ => 0.62,
+      'image' => 0.8,
+      'audio' => 0.88,
+      'video_link' => 0.76,
+      _ => 0.72,
     };
+    final infoRows = _infoRows();
+    final description = _resource.description;
 
     return DraggableScrollableSheet(
       initialChildSize: initialChildSize,
@@ -178,7 +245,7 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
               Expanded(
                 child: SingleChildScrollView(
                   controller: scrollController,
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -193,6 +260,7 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
                             videoThumbUrl:
                                 videoPreviewUrl(_resource.externalUrl),
                             isImageLoading: fetched?.isLoading ?? false,
+                            showTypeBadge: false,
                             textMaxLines: 10,
                           ),
                         ),
@@ -208,38 +276,30 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
                           letterSpacing: -0.3,
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          SacBadge(
-                            label: resourceTypeLabel(_resource.resourceType),
-                            variant: SacBadgeVariant.neutral,
-                          ),
-                          if (_resource.categoryName != null)
-                            SacBadge(
-                              label: _resource.categoryName!,
-                              variant: SacBadgeVariant.neutral,
-                            ),
-                        ],
+                      const SizedBox(height: 6),
+                      Text(
+                        _metaLine(context),
+                        style: TextStyle(
+                          fontSize: SacFontSize.bodyMedium,
+                          fontWeight: FontWeight.w500,
+                          color: c.textTertiary,
+                        ),
                       ),
-                      if (_resource.fileSize != null) ...[
-                        const SizedBox(height: 10),
-                        Text(
-                          _formatFileSize(_resource.fileSize),
-                          style: TextStyle(
-                            fontSize: SacFontSize.bodyMedium,
-                            fontWeight: FontWeight.w500,
-                            color: c.textTertiary,
-                          ),
+                      if (_resource.resourceType == 'audio') ...[
+                        const SizedBox(height: 16),
+                        ResourceAudioPlayer(
+                          resolveSignedUrl: _resolveSignedUrl,
+                          onError: _showError,
                         ),
                       ],
-                      if (_resource.description != null &&
-                          _resource.description!.isNotEmpty) ...[
-                        const SizedBox(height: 14),
+                      if (infoRows.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        ResourceInfoGroup(rows: infoRows),
+                      ],
+                      if (description != null && description.isNotEmpty) ...[
+                        const SizedBox(height: 16),
                         Text(
-                          _resource.description!,
+                          description,
                           style: TextStyle(
                             fontSize: SacFontSize.titleMedium,
                             color: c.textSecondary,
@@ -270,19 +330,9 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
                           ),
                         ),
                       ],
-                      if (_resource.resourceType == 'audio') ...[
-                        const SizedBox(height: 16),
-                        _ResourceAudioPlayer(
-                          resource: _resource,
-                          accentColor: color,
-                          resolveSignedUrl: _resolveSignedUrl,
-                          onError: _showError,
-                        ),
-                      ],
-                      const SizedBox(height: 24),
                       if (signedUrlState.hasError)
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.only(top: 12),
                           child: Text(
                             userErrorMessage(signedUrlState.error),
                             style: TextStyle(
@@ -291,11 +341,11 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
                             ),
                           ),
                         ),
-                      _buildActionButtons(context),
                     ],
                   ),
                 ),
               ),
+              _buildActionBar(context),
             ],
           ),
         );
@@ -303,87 +353,133 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context) {
+  /// Fixed footer: one primary action, then Descargar / Compartir side by side.
+  Widget _buildActionBar(BuildContext context) {
     final type = _resource.resourceType;
     if (type == 'text') return const SizedBox.shrink();
 
-    if (type == 'video_link') {
-      return _ResourceActionButton(
-        text: 'resources.action.watch_video'.tr(),
-        loadingText: 'resources.action.opening'.tr(),
-        icon: HugeIcons.strokeRoundedPlayCircle,
+    final c = context.sac;
+    final isPdf = resourceIsPdf(_resource);
+    final isVideo = type == 'video_link';
+    final externalVideo = isVideo && isExternalWebUrl(_resource.externalUrl);
+    final busy = _loadingAction != null;
+
+    // Documents the app cannot open in-app have no viewer: Descargar is then
+    // the one primary action.
+    final downloadIsPrimary = type == 'document' && !isPdf;
+
+    final Widget? primary;
+    if (isVideo) {
+      primary = _ResourceActionButton(
+        text: externalVideo
+            ? (isYoutubeUrl(_resource.externalUrl)
+                ? 'resources.action.open_youtube'.tr()
+                : 'resources.action.open_link'.tr())
+            : 'resources.action.watch_video'.tr(),
+        icon: externalVideo
+            ? HugeIcons.strokeRoundedSquareArrowUpRight
+            : HugeIcons.strokeRoundedPlayCircle,
         isLoading: _loadingAction == _ResourceAction.openVideo,
-        disabled: _loadingAction != null,
+        disabled: busy,
         onPressed: _openExternalUrl,
       );
-    }
-
-    final downloadIsSecondary =
-        type == 'audio' || type == 'image' || _isPdfDocument;
-
-    final actions = <Widget>[
-      if (type == 'image')
-        _ResourceActionButton(
-          text: 'resources.action.view_image'.tr(),
-          loadingText: 'resources.action.opening'.tr(),
-          icon: HugeIcons.strokeRoundedImage01,
-          isLoading: _loadingAction == _ResourceAction.viewImage,
-          disabled: _loadingAction != null,
-          onPressed: _viewImage,
-        ),
-      if (_isPdfDocument)
-        _ResourceActionButton(
-          text: 'resources.action.view_pdf'.tr(),
-          loadingText: 'resources.action.opening'.tr(),
-          icon: HugeIcons.strokeRoundedFile01,
-          isLoading: _loadingAction == _ResourceAction.viewPdf,
-          disabled: _loadingAction != null,
-          onPressed: _viewPdf,
-        ),
-      _ResourceActionButton(
+    } else if (type == 'image') {
+      primary = _ResourceActionButton(
+        text: 'resources.action.view_image'.tr(),
+        icon: HugeIcons.strokeRoundedImage01,
+        isLoading: _loadingAction == _ResourceAction.viewImage,
+        disabled: busy,
+        onPressed: _viewImage,
+      );
+    } else if (isPdf) {
+      primary = _ResourceActionButton(
+        text: 'resources.action.open_pdf'.tr(),
+        icon: HugeIcons.strokeRoundedFile01,
+        isLoading: _loadingAction == _ResourceAction.viewPdf,
+        disabled: busy,
+        onPressed: _viewPdf,
+      );
+    } else if (downloadIsPrimary) {
+      primary = _ResourceActionButton(
         text: 'resources.action.download'.tr(),
-        loadingText: 'resources.action.opening'.tr(),
         icon: HugeIcons.strokeRoundedDownload01,
         isLoading: _loadingAction == _ResourceAction.download,
-        disabled: _loadingAction != null,
+        disabled: busy,
         onPressed: _openDownload,
-        secondary: downloadIsSecondary,
-      ),
+      );
+    } else {
+      primary = null; // audio: the large play button is the primary action
+    }
+
+    final secondary = <Widget>[
+      if (!isVideo && !downloadIsPrimary)
+        _ResourceActionButton(
+          text: 'resources.action.download'.tr(),
+          icon: HugeIcons.strokeRoundedDownload01,
+          isLoading: _loadingAction == _ResourceAction.download,
+          disabled: busy,
+          onPressed: _openDownload,
+          secondary: true,
+        ),
+      if (!isVideo)
+        _ResourceActionButton(
+          text: 'resources.action.share'.tr(),
+          icon: HugeIcons.strokeRoundedShare01,
+          isLoading: _loadingAction == _ResourceAction.share,
+          disabled: busy,
+          onPressed: _share,
+          secondary: true,
+        ),
     ];
 
-    return Column(
-      children: [
-        for (var i = 0; i < actions.length; i++) ...[
-          if (i > 0) const SizedBox(height: 10),
-          actions[i],
-        ],
-      ],
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: c.surface,
+        border: Border(top: BorderSide(color: c.divider)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (primary != null) primary,
+              if (externalVideo) ...[
+                const SizedBox(height: 8),
+                Text(
+                  'resources.video.opens_outside'.tr(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: SacFontSize.bodySmall,
+                    color: c.textTertiary,
+                  ),
+                ),
+              ],
+              if (primary != null && secondary.isNotEmpty)
+                const SizedBox(height: 10),
+              if (secondary.isNotEmpty)
+                Row(
+                  children: [
+                    for (var i = 0; i < secondary.length; i++) ...[
+                      if (i > 0) const SizedBox(width: 10),
+                      Expanded(child: secondary[i]),
+                    ],
+                  ],
+                ),
+            ],
+          ),
+        ),
+      ),
     );
-  }
-
-  String _formatFileSize(int? bytes) {
-    if (bytes == null) return '';
-    if (bytes < 1024) return '$bytes B';
-    if (bytes < 1024 * 1024) {
-      return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    }
-    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
-  }
-
-  bool get _isPdfDocument {
-    if (_resource.resourceType != 'document') return false;
-    final mime = _resource.fileMimeType?.toLowerCase() ?? '';
-    final name = _resource.fileName?.toLowerCase() ?? '';
-    return mime.contains('pdf') || name.endsWith('.pdf');
   }
 }
 
-enum _ResourceAction { viewImage, viewPdf, download, openVideo }
+enum _ResourceAction { viewImage, viewPdf, download, openVideo, share }
 
 class _ResourceActionButton extends StatelessWidget {
   final String text;
-  final String loadingText;
-  final List<List<dynamic>> icon;
+  final HugeIconData icon;
   final bool isLoading;
   final bool disabled;
   final VoidCallback onPressed;
@@ -391,7 +487,6 @@ class _ResourceActionButton extends StatelessWidget {
 
   const _ResourceActionButton({
     required this.text,
-    required this.loadingText,
     required this.icon,
     required this.isLoading,
     required this.disabled,
@@ -401,241 +496,25 @@ class _ResourceActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loadingLabel = 'resources.action.opening'.tr();
     if (secondary) {
       return SacButton.outline(
-        text: isLoading ? loadingText : text,
+        text: text,
         icon: icon,
         isLoading: isLoading,
         isEnabled: !disabled,
+        loadingSemanticLabel: loadingLabel,
         onPressed: disabled ? null : onPressed,
       );
     }
 
     return SacButton.primary(
-      text: isLoading ? loadingText : text,
+      text: text,
       icon: icon,
       isLoading: isLoading,
       isEnabled: !disabled,
+      loadingSemanticLabel: loadingLabel,
       onPressed: disabled ? null : onPressed,
     );
-  }
-}
-
-enum _AudioStatus { idle, loading, playing, paused, error }
-
-class _ResourceAudioPlayer extends StatefulWidget {
-  final Resource resource;
-  final Color accentColor;
-  final Future<String?> Function() resolveSignedUrl;
-  final ValueChanged<String> onError;
-
-  const _ResourceAudioPlayer({
-    required this.resource,
-    required this.accentColor,
-    required this.resolveSignedUrl,
-    required this.onError,
-  });
-
-  @override
-  State<_ResourceAudioPlayer> createState() => _ResourceAudioPlayerState();
-}
-
-class _ResourceAudioPlayerState extends State<_ResourceAudioPlayer> {
-  final SacAudioPlayerController _player = SacAudioPlayerController();
-  _AudioStatus _status = _AudioStatus.idle;
-  Duration _position = Duration.zero;
-  Duration _duration = Duration.zero;
-  Timer? _positionTimer;
-
-  bool get _isBusy => _status == _AudioStatus.loading;
-  bool get _isPlaying => _status == _AudioStatus.playing;
-  bool get _hasStarted =>
-      _status == _AudioStatus.playing || _status == _AudioStatus.paused;
-
-  @override
-  void dispose() {
-    _positionTimer?.cancel();
-    _player.stop();
-    super.dispose();
-  }
-
-  Future<void> _toggle() async {
-    if (_isBusy) return;
-
-    if (_isPlaying) {
-      await _pause();
-      return;
-    }
-
-    if (_hasStarted) {
-      await _resume();
-      return;
-    }
-
-    await _start();
-  }
-
-  Future<void> _start() async {
-    setState(() => _status = _AudioStatus.loading);
-
-    try {
-      final url = await widget.resolveSignedUrl();
-      if (url == null || url.isEmpty) {
-        _fail('resources.error.media_url'.tr());
-        return;
-      }
-
-      await _player.playUrl(url);
-      if (!mounted) return;
-      setState(() => _status = _AudioStatus.playing);
-      _startPositionTimer();
-    } catch (_) {
-      _fail('resources.error.audio_playback'.tr());
-    }
-  }
-
-  Future<void> _pause() async {
-    try {
-      await _player.pause();
-      if (mounted) setState(() => _status = _AudioStatus.paused);
-      _positionTimer?.cancel();
-      await _refreshPosition();
-    } catch (_) {
-      _fail('resources.error.audio_playback'.tr());
-    }
-  }
-
-  Future<void> _resume() async {
-    try {
-      await _player.resume();
-      if (mounted) setState(() => _status = _AudioStatus.playing);
-      _startPositionTimer();
-    } catch (_) {
-      _fail('resources.error.audio_playback'.tr());
-    }
-  }
-
-  void _fail(String message) {
-    if (mounted) setState(() => _status = _AudioStatus.error);
-    _positionTimer?.cancel();
-    widget.onError(message);
-  }
-
-  void _startPositionTimer() {
-    _positionTimer?.cancel();
-    _positionTimer = Timer.periodic(
-      const Duration(milliseconds: 250),
-      (_) => _refreshPosition(),
-    );
-    _refreshPosition();
-  }
-
-  Future<void> _refreshPosition() async {
-    try {
-      final playback = await _player.position();
-      if (!mounted) return;
-      setState(() {
-        _position = playback.position;
-        if (playback.duration > Duration.zero) {
-          _duration = playback.duration;
-        }
-        if (_status == _AudioStatus.playing && hasAudioReachedEnd(playback)) {
-          _status = _AudioStatus.paused;
-          _positionTimer?.cancel();
-        }
-      });
-    } catch (_) {
-      // Position polling is best-effort; do not interrupt playback UI.
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final progress = _duration.inMilliseconds <= 0
-        ? 0.0
-        : (_position.inMilliseconds / _duration.inMilliseconds).clamp(0.0, 1.0);
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        border: Border.all(color: widget.accentColor.withValues(alpha: 0.24)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'resources.audio.player_title'.tr(),
-            style: TextStyle(
-              color: c.text,
-              fontSize: SacFontSize.titleSmall,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-            child: SizedBox(
-              height: 6,
-              width: double.infinity,
-              child: ColoredBox(
-                color: c.border,
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: FractionallySizedBox(
-                    widthFactor: progress,
-                    heightFactor: 1,
-                    child: ColoredBox(color: widget.accentColor),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                _formatDuration(_position),
-                style: TextStyle(
-                    fontSize: SacFontSize.bodySmall, color: c.textTertiary),
-              ),
-              const Spacer(),
-              Text(
-                _duration == Duration.zero
-                    ? '--:--'
-                    : _formatDuration(_duration),
-                style: TextStyle(
-                    fontSize: SacFontSize.bodySmall, color: c.textTertiary),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SacButton.primary(
-            text: _buttonLabel,
-            icon: _isPlaying
-                ? HugeIcons.strokeRoundedPause
-                : HugeIcons.strokeRoundedPlayCircle,
-            isLoading: _isBusy,
-            onPressed: _isBusy ? null : _toggle,
-          ),
-        ],
-      ),
-    );
-  }
-
-  String get _buttonLabel {
-    if (_isBusy) return 'resources.audio.loading'.tr();
-    if (_isPlaying) return 'resources.audio.pause'.tr();
-    if (_hasStarted) return 'resources.audio.resume'.tr();
-    return 'resources.action.play_audio'.tr();
-  }
-
-  String _formatDuration(Duration value) {
-    final minutes = value.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = value.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$minutes:$seconds';
   }
 }

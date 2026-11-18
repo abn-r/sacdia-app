@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -288,4 +290,96 @@ final resourcePreviewSignedUrlProvider =
   final getSignedUrl = ref.read(getResourceSignedUrlProvider);
   final result = await getSignedUrl(resourceId);
   return result.fold((_) => null, (url) => url);
+});
+
+// ── Facets (category counts, matches in other types) ────────────────────────
+
+/// Query for [resourceFacetProvider]: the filters a facet is computed under.
+class ResourceFacetQuery extends Equatable {
+  final String? type;
+  final String search;
+  final int? categoryId;
+
+  const ResourceFacetQuery({this.type, this.search = '', this.categoryId});
+
+  @override
+  List<Object?> get props => [type, search, categoryId];
+}
+
+/// Aggregate of one unpaginated look at the library.
+class ResourceFacet extends Equatable {
+  /// Total matches reported by the server for the query.
+  final int total;
+
+  /// Matches per `resource_category_id`. Only trustworthy when [isComplete].
+  final Map<int, int> categoryCounts;
+
+  /// True when every match came back in the single request (no more pages),
+  /// so [categoryCounts] covers all of them.
+  final bool isComplete;
+
+  const ResourceFacet({
+    required this.total,
+    required this.categoryCounts,
+    required this.isComplete,
+  });
+
+  @override
+  List<Object?> get props => [total, categoryCounts, isComplete];
+}
+
+/// Backend cap for `limit` (see `ResourceQueryDto`).
+const int _facetPageSize = 100;
+
+/// Counts the library under [ResourceFacetQuery] without paginating the grid.
+///
+/// The API has no counts endpoint, so this reads one page of up to 100 items
+/// and tallies categories client side. When there are more than 100 matches
+/// [ResourceFacet.isComplete] is false and callers must not show counts.
+final resourceFacetProvider = FutureProvider.autoDispose
+    .family<ResourceFacet, ResourceFacetQuery>((ref, query) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
+  final getResources = ref.read(getVisibleResourcesProvider);
+  final result = await getResources(
+    GetVisibleResourcesParams(
+      page: 1,
+      limit: _facetPageSize,
+      resourceType: query.type,
+      categoryId: query.categoryId,
+      search: query.search.isEmpty ? null : query.search,
+    ),
+    cancelToken: cancelToken,
+  );
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (paginated) {
+      final counts = <int, int>{};
+      for (final resource in paginated.data) {
+        final id = resource.resourceCategoryId;
+        if (id != null) counts[id] = (counts[id] ?? 0) + 1;
+      }
+      return ResourceFacet(
+        total: paginated.total,
+        categoryCounts: counts,
+        isComplete: !paginated.hasMore,
+      );
+    },
+  );
+});
+
+// ── Sharing ──────────────────────────────────────────────────────────────────
+
+/// Opens the platform share sheet. Overridable in tests.
+typedef ResourceSharer = Future<void> Function({
+  required String text,
+  required String subject,
+});
+
+final resourceSharerProvider = Provider<ResourceSharer>((ref) {
+  return ({required String text, required String subject}) async {
+    await SharePlus.instance.share(ShareParams(text: text, subject: subject));
+  };
 });

@@ -3465,20 +3465,8 @@
     },
     "title": "Recursos",
     "search_hint": "Buscar recursos...",
-    "header_title": "Todos los recursos",
     "error_loading": "Error al cargar recursos",
-    "empty_title": "No hay recursos disponibles",
-    "empty_subtitle": "Prueba con otro filtro o búsqueda",
     "no_more": "No hay más recursos",
-    "list_label": {
-      "all": "Todos los archivos",
-      "document": "Documentos",
-      "audio": "Archivos de audio",
-      "image": "Imágenes",
-      "video": "Videos",
-      "text": "Contenido de texto",
-      "files": "Archivos"
-    },
     "filter": {
       "all": "Todos",
       "document": "Documentos",
@@ -3492,21 +3480,28 @@
       "image": "IMG",
       "video": "VIDEO",
       "text": "TXT",
-      "document": "DOC"
+      "document": "DOC",
+      "pdf": "PDF"
     },
     "action": {
       "watch_video": "Ver video",
-      "play_audio": "Reproducir audio",
       "view_image": "Ver imagen",
-      "view_pdf": "Ver PDF",
+      "open_pdf": "Abrir PDF",
+      "open_youtube": "Abrir en YouTube",
+      "open_link": "Abrir enlace",
       "download": "Descargar",
+      "share": "Compartir",
       "opening": "Abriendo..."
     },
     "audio": {
-      "player_title": "Reproductor de audio",
       "loading": "Cargando audio...",
+      "play": "Reproducir",
       "pause": "Pausar",
-      "resume": "Continuar"
+      "resume": "Continuar",
+      "back_15": "Retroceder 15 segundos",
+      "forward_15": "Adelantar 15 segundos",
+      "scrubber": "Posición de reproducción",
+      "position_of": "{position} de {total}"
     },
     "error": {
       "download_url": "No se pudo obtener la URL de descarga",
@@ -3514,7 +3509,38 @@
       "audio_playback": "No se pudo reproducir el audio",
       "video_url_missing": "URL de video no disponible",
       "invalid_url": "URL no válida",
-      "open_url_failed": "No se pudo abrir la URL"
+      "open_url_failed": "No se pudo abrir la URL",
+      "share_failed": "No se pudo compartir el recurso"
+    },
+    "results_label": "Resultados",
+    "loading": "Cargando recursos",
+    "empty_club": {
+      "title": "Aún no hay recursos",
+      "body": "El campo local publica aquí manuales, himnos y videos para tu club.",
+      "action": "Actualizar"
+    },
+    "no_results": {
+      "title_type": "No hay {type} para «{query}»",
+      "title_query": "Sin resultados para «{query}»",
+      "title_filters": "No hay recursos con estos filtros",
+      "body_other_types": "Hay {count} en otros tipos.",
+      "body_none": "Prueba con otra búsqueda o quita los filtros.",
+      "action_all_types": "Ver en todos los tipos",
+      "action_clear_filters": "Quitar filtros",
+      "action_clear_search": "Borrar búsqueda"
+    },
+    "scope": {
+      "system": "SACDIA",
+      "union": "Unión",
+      "local_field": "Campo local"
+    },
+    "detail": {
+      "category": "Categoría",
+      "for": "Para",
+      "published_by": "Publicó"
+    },
+    "video": {
+      "opens_outside": "Se abre fuera de SACDIA."
     }
   },
   "inventory": {
