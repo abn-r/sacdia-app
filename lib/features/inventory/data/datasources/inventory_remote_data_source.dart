@@ -90,13 +90,9 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final body = response.data;
-        final List<dynamic> rawList = body is List
-            ? body
-            : (body as Map<String, dynamic>)['data'] as List<dynamic>? ?? [];
-        return rawList
-            .map((e) =>
-                InventoryCategoryModel.fromJson(e as Map<String, dynamic>))
+        return _extractList(response.data)
+            .whereType<Map<String, dynamic>>()
+            .map(InventoryCategoryModel.fromJson)
             .toList();
       }
 
@@ -126,12 +122,9 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final body = response.data;
-        final List<dynamic> rawList = body is List
-            ? body
-            : (body as Map<String, dynamic>)['data'] as List<dynamic>? ?? [];
-        return rawList
-            .map((e) => InventoryItemModel.fromJson(e as Map<String, dynamic>))
+        return _extractList(response.data)
+            .whereType<Map<String, dynamic>>()
+            .map(InventoryItemModel.fromJson)
             .toList();
       }
 
@@ -359,6 +352,20 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
   }
 
   // ── Error helper ──────────────────────────────────────────────────────────
+
+  /// The list inside a response: a bare list, `{data: [...]}` (the backend
+  /// envelope) or an envelope nested once more (`{data: {data|items: [...]}}`).
+  /// Anything else is an empty list instead of a cast error, which would
+  /// surface as a generic "could not load".
+  static List<dynamic> _extractList(Object? body) {
+    if (body is List) return body;
+    if (body is Map) {
+      final inner = body['data'];
+      if (inner is List) return inner;
+      if (inner is Map) return _extractList(inner['data'] ?? inner['items']);
+    }
+    return const [];
+  }
 
   /// Fecha sin hora (`YYYY-MM-DD`), como la guarda el backend (columna DATE).
   static String _dateOnly(DateTime date) =>
