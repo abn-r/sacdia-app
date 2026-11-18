@@ -31,6 +31,7 @@ class UploadReceiptArgs extends Equatable {
   final int montoCentavos;
   final String refBancariaDeclarada;
   final DateTime fechaPago;
+  final String? fileName;
 
   const UploadReceiptArgs({
     required this.folioOrId,
@@ -38,11 +39,18 @@ class UploadReceiptArgs extends Equatable {
     required this.montoCentavos,
     required this.refBancariaDeclarada,
     required this.fechaPago,
+    this.fileName,
   });
 
   @override
-  List<Object?> get props =>
-      [folioOrId, file.path, montoCentavos, refBancariaDeclarada, fechaPago];
+  List<Object?> get props => [
+        folioOrId,
+        file.path,
+        montoCentavos,
+        refBancariaDeclarada,
+        fechaPago,
+        fileName,
+      ];
 }
 
 /// Estado del proceso de subida de comprobante.
@@ -91,6 +99,7 @@ class UploadReceiptNotifier extends Notifier<UploadReceiptState> {
       montoCentavos: args.montoCentavos,
       refBancariaDeclarada: args.refBancariaDeclarada,
       fechaPago: args.fechaPago,
+      fileName: args.fileName,
       onProgress: (fraction) {
         state = state.copyWith(progress: fraction);
       },

@@ -14,6 +14,7 @@ class UploadReceiptParams extends Equatable {
   final int montoCentavos;
   final String refBancariaDeclarada;
   final DateTime fechaPago;
+  final String? fileName;
   final void Function(double)? onProgress;
 
   const UploadReceiptParams({
@@ -22,6 +23,7 @@ class UploadReceiptParams extends Equatable {
     required this.montoCentavos,
     required this.refBancariaDeclarada,
     required this.fechaPago,
+    this.fileName,
     this.onProgress,
   });
 
@@ -43,6 +45,7 @@ class UploadReceipt implements UseCase<Receipt, UploadReceiptParams> {
         montoCentavos: params.montoCentavos,
         refBancariaDeclarada: params.refBancariaDeclarada,
         fechaPago: params.fechaPago,
+        fileName: params.fileName,
         onProgress: params.onProgress,
       );
 }

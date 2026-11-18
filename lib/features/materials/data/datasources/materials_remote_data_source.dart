@@ -60,6 +60,7 @@ abstract class MaterialsRemoteDataSource {
     required int montoCentavos,
     required String refBancariaDeclarada,
     required DateTime fechaPago,
+    String? fileName,
     void Function(double)? onProgress,
   });
 
@@ -405,6 +406,7 @@ class MaterialsRemoteDataSourceImpl implements MaterialsRemoteDataSource {
     required int montoCentavos,
     required String refBancariaDeclarada,
     required DateTime fechaPago,
+    String? fileName,
     void Function(double)? onProgress,
   }) async {
     try {
@@ -416,7 +418,9 @@ class MaterialsRemoteDataSourceImpl implements MaterialsRemoteDataSource {
       final formFields = <String, dynamic>{
         'file': await MultipartFile.fromFile(
           file.path,
-          filename: file.path.split('/').last,
+          filename: (fileName != null && fileName.trim().isNotEmpty)
+              ? fileName.trim()
+              : file.path.split('/').last,
           contentType: DioMediaType.parse(mime),
         ),
         'monto_centavos': montoCentavos.toString(),

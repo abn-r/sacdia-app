@@ -29,6 +29,7 @@ import 'package:sacdia_app/core/widgets/status_progress/status_progress.dart';
 import '../providers/history_provider.dart';
 import '../providers/order_detail_provider.dart';
 import '../providers/receipts_provider.dart';
+import '../utils/receipt_file_name.dart';
 import '../widgets/materials_rows.dart';
 import '../widgets/price_input.dart';
 import '../widgets/receipt_source_sheet.dart';
@@ -53,6 +54,7 @@ class UploadReceiptView extends ConsumerStatefulWidget {
 class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
   File? _file;
   String? _fileName;
+  String? _uploadFileName;
   int _fileSize = 0;
   bool _fileIsImage = false;
   String? _fileError;
@@ -70,6 +72,7 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
 
     String? path;
     String? name;
+    String? uploadName;
     try {
       if (source == ReceiptSource.file) {
         final picked = await FilePicker.pickFile(
@@ -78,6 +81,7 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
         );
         path = picked?.path;
         name = picked?.name;
+        uploadName = name; // keep the user's own file name
       } else {
         final image = await ImagePicker().pickImage(
           source: source == ReceiptSource.camera
@@ -89,6 +93,12 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
         path = image?.path;
         final extension = image?.name.split('.').last.toLowerCase() ?? 'jpg';
         name = image == null ? null : 'comprobante.$extension';
+        uploadName = image == null
+            ? null
+            : friendlyReceiptUploadName(
+                folio: widget.folioOrId,
+                extension: extension,
+              );
       }
     } catch (_) {
       if (mounted) {
@@ -107,6 +117,7 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
       setState(() {
         _file = null;
         _fileName = null;
+        _uploadFileName = null;
         _fileError = 'materials.receipt.file_too_large'.tr();
       });
       return;
@@ -116,6 +127,7 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
     setState(() {
       _file = file;
       _fileName = name;
+      _uploadFileName = uploadName;
       _fileSize = size;
       _fileIsImage = extension != 'pdf';
       _fileError = null;
@@ -174,6 +186,7 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
             montoCentavos: amountCentavos,
             refBancariaDeclarada: concept,
             fechaPago: _date,
+            fileName: _uploadFileName,
           ),
         );
   }

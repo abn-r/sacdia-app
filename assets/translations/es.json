@@ -4813,6 +4813,12 @@
     }
   },
   "dashboard": {
+    "greeting": {
+      "morning": "¡Buenos días,",
+      "afternoon": "¡Buenas tardes,",
+      "evening": "¡Buenas noches,"
+    },
+    "greeting_name": "{name}!",
     "errors": {
       "get_summary": "Error al obtener el resumen del dashboard",
       "get_pending": "Error al obtener los pendientes del dashboard"
@@ -5919,6 +5925,9 @@
       "ship_detail": "{cost} · el campo local coordina los datos tras aprobar",
       "free": "Sin costo",
       "confirm_total": "Confirmar pedido · {total}"
+    },
+    "receipts": {
+      "default_name": "Comprobante"
     },
     "order": {
       "title": "Detalle del pedido",

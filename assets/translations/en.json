@@ -3485,12 +3485,12 @@
     "error_loading": "Error loading resources",
     "no_more": "No more resources",
     "filter": {
-      "all": "Todos",
-      "document": "Documentos",
+      "all": "All",
+      "document": "Documents",
       "audio": "Audio",
       "image": "Images",
       "video": "Videos",
-      "text": "Texto"
+      "text": "Text"
     },
     "type_label": {
       "audio": "AUDIO",
@@ -3521,12 +3521,12 @@
       "position_of": "{position} of {total}"
     },
     "error": {
-      "download_url": "No se pudo obtener la URL de descarga",
+      "download_url": "Couldn't get the download URL",
       "media_url": "Could not get the resource URL",
       "audio_playback": "Could not play the audio",
-      "video_url_missing": "URL de video no disponible",
-      "invalid_url": "URL no válida",
-      "open_url_failed": "No se pudo abrir la URL",
+      "video_url_missing": "Video URL not available",
+      "invalid_url": "Invalid URL",
+      "open_url_failed": "Couldn't open the URL",
       "share_failed": "Could not share the resource"
     },
     "results_label": "Results",
@@ -4813,6 +4813,12 @@
     }
   },
   "dashboard": {
+    "greeting": {
+      "morning": "Good morning,",
+      "afternoon": "Good afternoon,",
+      "evening": "Good evening,"
+    },
+    "greeting_name": "{name}!",
     "errors": {
       "get_summary": "Error fetching dashboard summary",
       "get_pending": "Error fetching the dashboard pending items"
@@ -5919,6 +5925,9 @@
       "ship_detail": "{cost} · the local field arranges the details after approval",
       "free": "No cost",
       "confirm_total": "Confirm order · {total}"
+    },
+    "receipts": {
+      "default_name": "Receipt"
     },
     "order": {
       "title": "Order details",
