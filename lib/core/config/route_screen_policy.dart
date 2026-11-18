@@ -28,6 +28,7 @@ const Map<String, String> routeScreenIds = {
   RouteNames.homeUnits: 'app-units',
   RouteNames.homeClub: 'app-club',
   RouteNames.homeMaterials: 'app-materials',
+  RouteNames.materialsCatalog: 'app-materials',
   RouteNames.materialsProductDetail: 'app-materials',
   RouteNames.materialsCart: 'app-materials',
   RouteNames.materialsSummary: 'app-materials',

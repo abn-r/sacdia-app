@@ -405,6 +405,7 @@ class RouteNames {
 
   // Materials (orders)
   static const String homeMaterials = '/home/materials';
+  static const String materialsCatalog = '/home/materials/catalog';
   static const String materialsProductDetail = '/home/materials/product/:id';
   static const String materialsCart = '/home/materials/cart';
   static const String materialsSummary = '/home/materials/summary';

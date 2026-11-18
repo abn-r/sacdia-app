@@ -87,11 +87,8 @@ import 'package:sacdia_app/features/support/presentation/views/contact_view.dart
 import 'package:sacdia_app/features/support/presentation/views/report_problem_view.dart';
 import 'package:sacdia_app/features/materials/presentation/views/cart_view.dart';
 import 'package:sacdia_app/features/materials/presentation/views/catalog_view.dart';
-import 'package:sacdia_app/features/materials/presentation/views/payment_details_view.dart';
-import 'package:sacdia_app/features/materials/presentation/views/product_detail_view.dart';
 import 'package:sacdia_app/features/materials/presentation/views/order_history_view.dart';
 import 'package:sacdia_app/features/materials/presentation/views/order_review_view.dart';
-import 'package:sacdia_app/features/materials/presentation/views/order_summary_view.dart';
 import 'package:sacdia_app/features/materials/presentation/views/upload_receipt_view.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/member_breakdown_screen.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/my_ranking_screen.dart';
@@ -848,7 +845,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: RouteNames.homeMaterials,
                 pageBuilder: (context, state) =>
-                    _sharedAxisBuild(context, state, const CatalogView()),
+                    _sharedAxisBuild(context, state, const OrderHistoryView()),
               ),
               GoRoute(
                 path: RouteNames.sectionInvestiture,
@@ -1808,7 +1805,14 @@ final routerProvider = Provider<GoRouter>((ref) {
             _sharedAxisBuild(context, state, const ReportProblemView()),
       ),
 
-      // Materiales — detalle de producto (push, fuera del shell)
+      // Materiales — catálogo de "Nuevo pedido" (push, fuera del shell)
+      GoRoute(
+        path: RouteNames.materialsCatalog,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const CatalogView()),
+      ),
+
+      // Materiales — enlace antiguo a un producto: abre el catálogo con su hoja
       GoRoute(
         path: RouteNames.materialsProductDetail,
         pageBuilder: (context, state) {
@@ -1816,7 +1820,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           return _sharedAxisBuild(
             context,
             state,
-            ProductDetailView(productId: productId),
+            CatalogView(openProductId: productId),
           );
         },
       ),
@@ -1828,18 +1832,16 @@ final routerProvider = Provider<GoRouter>((ref) {
             _sharedAxisBuild(context, state, const CartView()),
       ),
 
-      // Materiales — resumen y confirmación de pedido (push, fuera del shell)
+      // Materiales — el resumen se fundió con el carrito ("Tu pedido")
       GoRoute(
         path: RouteNames.materialsSummary,
-        pageBuilder: (context, state) =>
-            _sharedAxisBuild(context, state, const OrderSummaryView()),
+        redirect: (context, state) => RouteNames.materialsCart,
       ),
 
-      // Materiales — historial de pedidos (push, fuera del shell)
+      // Materiales — el historial es ahora la entrada "Pedidos"
       GoRoute(
         path: RouteNames.materialsHistory,
-        pageBuilder: (context, state) =>
-            _sharedAxisBuild(context, state, const OrderHistoryView()),
+        redirect: (context, state) => RouteNames.homeMaterials,
       ),
 
       // Materiales — detalle de orden por folio o ID (push, fuera del shell)
@@ -1855,7 +1857,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // Materiales — datos bancarios para pago (push, fuera del shell)
+      // Materiales — enlace antiguo de pago: abre el pedido con la hoja de pago
       GoRoute(
         path: RouteNames.materialsOrderPaymentRoute,
         pageBuilder: (context, state) {
@@ -1863,7 +1865,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           return _sharedAxisBuild(
             context,
             state,
-            PaymentDetailsView(folioOrId: folioOrId),
+            OrderReviewView(folioOrId: folioOrId, showPaymentOnOpen: true),
           );
         },
       ),

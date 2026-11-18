@@ -1,81 +1,171 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/errors/user_error_message.dart';
-import 'package:sacdia_app/core/widgets/sac_error_state.dart';
-import 'package:sacdia_app/core/widgets/sac_loading.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-
-import '../../../../core/config/route_names.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
-import '../../../../core/theme/sac_colors.dart';
-import '../../domain/entities/receipt.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/utils/money_format.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_frosted_footer.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/status_progress/status_progress.dart';
+
 import '../../domain/entities/material_receipt_status.dart';
 import '../../domain/entities/material_status.dart';
 import '../../domain/entities/order.dart';
-import '../../domain/entities/order_line.dart';
+import '../../domain/entities/receipt.dart';
 import '../providers/cancel_order_provider.dart';
 import '../providers/history_provider.dart';
-import '../providers/receipts_provider.dart';
 import '../providers/order_detail_provider.dart';
-import 'package:sacdia_app/core/utils/money_format.dart';
-import '../widgets/material_status_badge.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_dialog.dart';
-import 'package:sacdia_app/core/widgets/sac_text_field.dart';
-import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
-import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
+import '../providers/receipts_provider.dart';
+import '../utils/order_presentation.dart';
+import '../widgets/material_thumbs.dart';
+import '../widgets/materials_rows.dart';
+import '../widgets/order_action_sheets.dart';
+import '../widgets/payment_sheet.dart';
 
-/// Pantalla de revisión de una orden por folio o ID.
-///
-/// Muestra el estado actual, las líneas, los totales y las acciones
-/// disponibles según el estado (cancelar, enlace a pago, etc.).
+/// Detalle de un pedido por folio o ID: solo el estado actual arriba (con
+/// "Paso N de 4"; al tocarlo, la hoja con todos los estados), los productos y
+/// el total. Una sola acción fija según el estado; cancelar vive en el menú ⋯.
 class OrderReviewView extends ConsumerStatefulWidget {
+  const OrderReviewView({
+    super.key,
+    required this.folioOrId,
+    this.showPaymentOnOpen = false,
+  });
+
   final String folioOrId;
 
-  const OrderReviewView({super.key, required this.folioOrId});
+  /// Opens the payment sheet once the order loads (the old payment link).
+  final bool showPaymentOnOpen;
 
   @override
   ConsumerState<OrderReviewView> createState() => _OrderReviewViewState();
 }
 
 class _OrderReviewViewState extends ConsumerState<OrderReviewView> {
+  bool _paymentShown = false;
+
+  Future<void> _pay(Order order) async {
+    final paid = await showPaymentSheet(context, order);
+    if (paid == true && mounted) {
+      context.push(RouteNames.materialsOrderReceipt(order.routeKey));
+    }
+  }
+
+  Future<void> _openMenu(Order order) async {
+    final folio = order.folioReferencia;
+    final action = await showOrderMenuSheet(
+      context,
+      canCopyFolio: folio != null && folio.isNotEmpty,
+      canCancel: order.isInReview,
+    );
+    if (!mounted || action == null) return;
+    switch (action) {
+      case OrderMenuAction.copyFolio:
+        await Clipboard.setData(ClipboardData(text: folio ?? ''));
+        if (!mounted) return;
+        SacSnackBar.show(context, 'materials.order.folio_copied'.tr());
+      case OrderMenuAction.cancel:
+        await _cancel(order);
+    }
+  }
+
+  Future<void> _cancel(Order order) async {
+    final reason = await showCancelOrderSheet(
+      context,
+      folio: order.folioReferencia ?? '',
+    );
+    if (reason == null || !mounted) return;
+
+    final result = await ref
+        .read(cancelOrderProvider.notifier)
+        .cancel(folioOrId: order.routeKey, reason: reason);
+    if (!mounted) return;
+
+    result.fold(
+      (failure) => SacSnackBar.show(context, failure.message, isError: true),
+      (_) {
+        ref.invalidate(orderDetailProvider(widget.folioOrId));
+        // La lista de pedidos sigue montada debajo del detalle.
+        ref.invalidate(historyProvider);
+        SacSnackBar.show(context, 'materials.order.cancelled_snackbar'.tr());
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final ordenAsync = ref.watch(orderDetailProvider(widget.folioOrId));
+    final orderAsync = ref.watch(orderDetailProvider(widget.folioOrId));
+    final cancelling = ref.watch(cancelOrderProvider).isLoading;
+    final order = orderAsync.value;
+    final c = context.sac;
+
+    if (widget.showPaymentOnOpen &&
+        !_paymentShown &&
+        order != null &&
+        order.status == MaterialStatus.aprobada) {
+      _paymentShown = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _pay(order);
+      });
+    }
 
     return Scaffold(
       extendBodyBehindAppBar: true,
+      backgroundColor: c.canvas,
       appBar: SacTopBar(
-          title: 'materials.order.title'.tr(),
-          actions: [
+        title: order?.folioReferencia ?? 'materials.order.title'.tr(),
+        backgroundColor: c.canvas,
+        frosted: true,
+        actions: [
+          if (order != null)
             SacPressable(
               listenOnly: true,
               child: IconButton(
+                key: const ValueKey('order-more'),
                 enableFeedback: false,
-                icon: const HugeIcon(icon: HugeIcons.strokeRoundedRefresh),
-                tooltip: 'materials.order.refresh'.tr(),
-                onPressed: () => ref.invalidate(
-                  orderDetailProvider(widget.folioOrId),
+                tooltip: 'materials.order.more'.tr(),
+                onPressed: cancelling ? null : () => _openMenu(order),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedMoreHorizontal,
+                  size: 22,
+                  color: c.text,
                 ),
               ),
             ),
-          ],
-          frosted: true),
+        ],
+      ),
       body: SacFrostedVeil(
         child: Builder(
-          builder: (context) => ordenAsync.when(
-            loading: () => const Center(child: SacLoading()),
+          builder: (context) => orderAsync.when(
+            loading: () => const _DetailSkeleton(),
             error: (e, _) => SacErrorState(
               title: 'materials.order.load_error'.tr(),
               message: userErrorMessage(e),
               onRetry: () =>
                   ref.invalidate(orderDetailProvider(widget.folioOrId)),
+              padding: SacTopBar.paddingBelowBar(
+                context,
+                const EdgeInsets.all(24),
+              ),
             ),
-            data: (order) => _OrdenBody(orden: order),
+            data: (order) => _OrderBody(
+              order: order,
+              folioOrId: widget.folioOrId,
+              onPay: () => _pay(order),
+            ),
           ),
         ),
       ),
@@ -83,751 +173,412 @@ class _OrderReviewViewState extends ConsumerState<OrderReviewView> {
   }
 }
 
-// ── Body when data loaded ──────────────────────────────────────────────────────
-
-class _OrdenBody extends ConsumerWidget {
-  final Order orden;
-  const _OrdenBody({required this.orden});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final c = context.sac;
-
-    return RefreshIndicator(
-      onRefresh: () async => ref
-          .invalidate(orderDetailProvider(orden.folioReferencia ?? orden.id)),
-      child: ListView(
-        padding: SacTopBar.paddingBelowBar(
-            context, const EdgeInsets.fromLTRB(16, 16, 16, 32)),
-        children: [
-          // ── Estado + folio ─────────────────────────────────────────────────
-          Row(
-            children: [
-              MaterialStatusBadge(status: orden.status),
-              const SizedBox(width: 12),
-              if (orden.folioReferencia != null)
-                _FolioPill(folio: orden.folioReferencia!)
-              else
-                _FolioPill(folio: '—'),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'materials.order.created_on'
-                .tr(namedArgs: {'date': _formatDate(orden.createdAt)}),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: c.textSecondary,
-            ),
-          ),
-
-          // ── Banner en_revision ─────────────────────────────────────────────
-          if (orden.status == MaterialStatus.enRevision) ...[
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: context.sac.infoContainer,
-                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-                border:
-                    Border.all(color: context.sac.onInfoContainer, width: 0.5),
-              ),
-              child: Row(
-                children: [
-                  HugeIcon(
-                      icon: HugeIcons.strokeRoundedInformationCircle,
-                      size: 16,
-                      color: context.sac.onInfoContainer),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'materials.order.review_banner'.tr(),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: context.sac.onInfoContainer,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-
-          const SizedBox(height: 24),
-
-          // ── Líneas ─────────────────────────────────────────────────────────
-          _SectionHeader(title: 'materials.order.products'.tr()),
-          const SizedBox(height: 8),
-          Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-              side: BorderSide(color: c.border),
-            ),
-            child: Column(
-              children: [
-                for (int i = 0; i < orden.lines.length; i++) ...[
-                  if (i > 0)
-                    const Divider(height: 1, indent: 16, endIndent: 16),
-                  _OrdenLineItem(line: orden.lines[i]),
-                ],
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // ── Totales ────────────────────────────────────────────────────────
-          _SectionHeader(title: 'materials.order.totals'.tr()),
-          const SizedBox(height: 8),
-          Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-              side: BorderSide(color: c.border),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _TotalRow(
-                    label: 'materials.cart.subtotal'.tr(),
-                    amount: orden.subtotalCentavos,
-                    isTotal: false,
-                  ),
-                  const SizedBox(height: 6),
-                  _TotalRow(
-                    label: 'materials.order.shipping'.tr(),
-                    amount: orden.envioCentavos,
-                    isTotal: false,
-                  ),
-                  const Divider(height: 16),
-                  _TotalRow(
-                    label: 'materials.summary.total'.tr(),
-                    amount: orden.totalCentavos,
-                    isTotal: true,
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // ── Comprobantes (aprobada / pagada / entregada) ───────────────────
-          if (orden.status == MaterialStatus.aprobada ||
-              orden.status == MaterialStatus.pagada ||
-              orden.status == MaterialStatus.entregada) ...[
-            _SectionHeader(title: 'materials.order.receipts'.tr()),
-            const SizedBox(height: 8),
-            _ComprobantesSection(folioOrId: orden.folioReferencia ?? orden.id),
-            const SizedBox(height: 24),
-          ],
-
-          // ── Acción según estado ────────────────────────────────────────────
-          _ActionCard(orden: orden),
-        ],
-      ),
-    );
-  }
-
-  String _formatDate(DateTime dt) {
-    return '${dt.day.toString().padLeft(2, '0')}/'
-        '${dt.month.toString().padLeft(2, '0')}/'
-        '${dt.year}';
-  }
-}
-
-// ── Action card ────────────────────────────────────────────────────────────────
-
-class _ActionCard extends ConsumerWidget {
-  final Order orden;
-  const _ActionCard({required this.orden});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final cancelState = ref.watch(cancelOrderProvider);
-
-    switch (orden.status) {
-      case MaterialStatus.enRevision:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SacButton.destructive(
-              text: 'materials.order.cancel'.tr(),
-              icon: HugeIcons.strokeRoundedCancelCircle,
-              isLoading: cancelState.isLoading,
-              onPressed: cancelState.isLoading
-                  ? null
-                  : () => _confirmCancel(context, ref),
-            ),
-          ],
-        );
-
-      case MaterialStatus.aprobada:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: context.sac.warningContainer,
-                borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                border: Border.all(
-                    color: context.sac.warning.withValues(alpha: 0.3)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      HugeIcon(
-                          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                          color: context.sac.onWarningContainer,
-                          size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        'materials.order.approved_title'.tr(),
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: context.sac.onWarningContainer,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'materials.order.approved_body'.tr(),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: context.sac.onWarningContainer,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            SacButton.outline(
-              text: 'materials.order.view_payment'.tr(),
-              icon: HugeIcons.strokeRoundedBank,
-              onPressed: () => context.push(
-                RouteNames.materialsOrderPayment(
-                    orden.folioReferencia ?? orden.id),
-              ),
-            ),
-            const SizedBox(height: 8),
-            SacButton.primary(
-              text: 'materials.order.upload_receipt'.tr(),
-              icon: HugeIcons.strokeRoundedFileUpload,
-              onPressed: () => context.push(
-                RouteNames.materialsOrderReceipt(
-                    orden.folioReferencia ?? orden.id),
-              ),
-            ),
-          ],
-        );
-
-      case MaterialStatus.pagada:
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: context.sac.successContainer,
-            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-            border:
-                Border.all(color: context.sac.success.withValues(alpha: 0.3)),
-          ),
-          child: Row(
-            children: [
-              HugeIcon(
-                  icon: HugeIcons.strokeRoundedHourglass,
-                  color: context.sac.onSuccessContainer,
-                  size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'materials.order.paid_waiting'.tr(),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: context.sac.onSuccessContainer,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-
-      case MaterialStatus.entregada:
-        return Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: context.sac.successContainer,
-            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-          ),
-          child: Column(
-            children: [
-              HugeIcon(
-                  icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                  color: context.sac.onSuccessContainer,
-                  size: 40),
-              const SizedBox(height: 8),
-              Text(
-                'materials.order.delivered_title'.tr(),
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: context.sac.onSuccessContainer,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        );
-
-      case MaterialStatus.cancelada:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (orden.cancelReason != null)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: context.sac.errorContainer,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'materials.order.cancel_reason'.tr(),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: context.sac.onErrorContainer,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      orden.cancelReason!,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: context.sac.onErrorContainer,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            const SizedBox(height: 12),
-            SacButton.outline(
-              text: 'materials.order.new_order'.tr(),
-              onPressed: () => context.go(RouteNames.homeMaterials),
-            ),
-          ],
-        );
-    }
-  }
-
-  Future<void> _confirmCancel(BuildContext context, WidgetRef ref) async {
-    final reasonController = TextEditingController();
-    try {
-      final formKey = GlobalKey<FormState>();
-      final confirmed = await SacDialog.present<bool>(
-        context,
-        builder: (ctx) => SacDialog(
-          title: 'materials.order.cancel_title'.tr(),
-          content: 'materials.order.cancel_body'.tr(),
-          body: Form(
-            key: formKey,
-            child: SacTextField(
-              controller: reasonController,
-              label: 'materials.order.reason_label'.tr(),
-              maxLines: 2,
-              validator: (value) => (value == null || value.trim().isEmpty)
-                  ? 'materials.order.reason_required'.tr()
-                  : null,
-            ),
-          ),
-          actions: [
-            SacDialogAction(
-              label: 'common.back'.tr(),
-              style: SacDialogActionStyle.cancel,
-              onPressed: () => Navigator.of(ctx).pop(false),
-            ),
-            SacDialogAction(
-              label: 'materials.order.cancel'.tr(),
-              style: SacDialogActionStyle.destructive,
-              onPressed: () {
-                if (formKey.currentState?.validate() != true) return;
-                Navigator.of(ctx).pop(true);
-              },
-            ),
-          ],
-        ),
-      );
-
-      if (confirmed != true || !context.mounted) return;
-
-      final reason = reasonController.text.trim();
-      if (reason.isEmpty) {
-        SacSnackBar.show(context, 'materials.order.reason_required'.tr());
-        return;
-      }
-
-      final result = await ref.read(cancelOrderProvider.notifier).cancel(
-            folioOrId: orden.folioReferencia ?? orden.id,
-            reason: reason,
-          );
-
-      if (!context.mounted) return;
-
-      result.fold(
-        (failure) {
-          SacSnackBar.show(context, failure.message, isError: true);
-        },
-        (_) {
-          ref.invalidate(
-            orderDetailProvider(orden.folioReferencia ?? orden.id),
-          );
-          // La lista de pedidos sigue montada debajo del detalle.
-          ref.invalidate(historyProvider);
-          SacSnackBar.show(context, 'materials.order.cancelled_snackbar'.tr());
-        },
-      );
-    } finally {
-      reasonController.dispose();
-    }
-  }
-}
-
-// ── Supporting widgets ─────────────────────────────────────────────────────────
-
-class _FolioPill extends StatelessWidget {
-  final String folio;
-  const _FolioPill({required this.folio});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: c.ink100,
-        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-      ),
-      child: Text(
-        folio,
-        style: TextStyle(
-          fontSize: SacFontSize.bodySmall,
-          fontWeight: FontWeight.w600,
-          color: c.ink600,
-          fontFamily: 'monospace',
-        ),
-      ),
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  const _SectionHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: context.sac.text,
-          ),
-    );
-  }
-}
-
-class _OrdenLineItem extends StatelessWidget {
-  final OrderLine line;
-  const _OrdenLineItem({required this.line});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final c = context.sac;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Letter placeholder
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: SacAccent.of(context).surface,
-              borderRadius: BorderRadius.circular(AppTheme.radius2XS),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              line.product.title.isNotEmpty
-                  ? line.product.title[0].toUpperCase()
-                  : '?',
-              style: TextStyle(
-                fontSize: SacFontSize.titleMedium,
-                fontWeight: FontWeight.bold,
-                color: SacAccent.of(context).color,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  line.product.title,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  line.product.sku,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: c.textTertiary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${line.qty} × ${SacMoney.fromCentavos(line.priceCentavos)}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: c.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            SacMoney.fromCentavos(line.lineTotalCentavos),
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TotalRow extends StatelessWidget {
-  final String label;
-  final int amount;
-  final bool isTotal;
-  const _TotalRow({
-    required this.label,
-    required this.amount,
-    required this.isTotal,
+class _OrderBody extends ConsumerWidget {
+  const _OrderBody({
+    required this.order,
+    required this.folioOrId,
+    required this.onPay,
   });
 
+  final Order order;
+  final String folioOrId;
+  final VoidCallback onPay;
+
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final c = context.sac;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final key = order.routeKey;
+    final needsReceipts = order.status != MaterialStatus.enRevision &&
+        order.status != MaterialStatus.cancelada;
+    final receiptsAsync =
+        needsReceipts ? ref.watch(receiptsProvider(key)) : null;
+    final receipts = receiptsAsync?.value ?? const <Receipt>[];
+
+    // The footer depends on the receipts: wait for them instead of flashing
+    // "Pagar" and then switching.
+    if (order.status == MaterialStatus.aprobada &&
+        receiptsAsync != null &&
+        receiptsAsync.isLoading &&
+        !receiptsAsync.hasValue) {
+      return const _DetailSkeleton();
+    }
+
+    final state = orderStatePresentation(context, order, receipts: receipts);
+    final attention = orderAttention(order, receipts: receipts);
+    final total = SacMoney.fromCentavos(order.totalCentavos);
+    final hasFooter = attention != OrderAttention.none;
+    final rejectedReason = state.rejectedReason;
+
+    Future<void> refresh() async {
+      ref.invalidate(orderDetailProvider(folioOrId));
+      if (needsReceipts) ref.invalidate(receiptsProvider(key));
+      try {
+        await ref.read(orderDetailProvider(folioOrId).future);
+      } catch (_) {
+        // The error state is rendered by the view.
+      }
+    }
+
+    return Stack(
       children: [
-        Text(
-          label,
-          style: isTotal
-              ? theme.textTheme.titleSmall
-                  ?.copyWith(fontWeight: FontWeight.w700)
-              : theme.textTheme.bodyMedium?.copyWith(
-                  color: c.textSecondary,
+        RefreshIndicator(
+          color: SacAccent.of(context).color,
+          edgeOffset: SacTopBar.frostedInset(context),
+          onRefresh: refresh,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: SacTopBar.paddingBelowBar(
+              context,
+              EdgeInsets.only(
+                top: 12,
+                bottom: 32 +
+                    (hasFooter
+                        ? SacFrostedFooter.height -
+                            40 +
+                            MediaQuery.paddingOf(context).bottom
+                        : 0),
+              ),
+            ),
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: SacStatePanel(
+                  key: const ValueKey('order-state-panel'),
+                  style: state.style,
+                  title: state.title,
+                  message: state.message,
+                  stepLabel: state.stepLabel,
+                  semanticsHint: 'materials.state.panel_hint'.tr(),
+                  onTap: () => showSacStatesSheet(
+                    context,
+                    title: 'materials.state.sheet_title'.tr(),
+                    subtitle: order.folioReferencia,
+                    steps: state.steps,
+                    kindLabels: orderStateKindLabels(),
+                  ),
                 ),
-        ),
-        Text(
-          SacMoney.fromCentavos(amount),
-          style: isTotal
-              ? theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: SacAccent.of(context).color,
-                )
-              : theme.textTheme.bodyMedium?.copyWith(
-                  color: c.textSecondary,
+              ),
+              if (rejectedReason != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+                  child: _RejectionQuote(reason: rejectedReason),
                 ),
+              SacGroupedSection(
+                key: const ValueKey('order-products'),
+                label: 'materials.order.products'.tr(),
+                count: order.lines.length,
+                dividerIndent: 14 + 42 + 12,
+                children: [
+                  for (final line in order.lines)
+                    _LineRow(
+                      key: ValueKey('line-${line.id}'),
+                      title: line.product.title,
+                      detail:
+                          '${line.qty} × ${SacMoney.fromCentavos(line.priceCentavos)}',
+                      amount: SacMoney.fromCentavos(line.lineTotalCentavos),
+                    ),
+                ],
+              ),
+              SacGroupedSection(
+                key: const ValueKey('order-totals'),
+                label: 'materials.order.totals'.tr(),
+                action: const SizedBox.shrink(),
+                dividerIndent: 14,
+                children: [
+                  MaterialsKvRow(
+                    label: 'materials.cart.subtotal'.tr(),
+                    value: SacMoney.fromCentavos(order.subtotalCentavos),
+                  ),
+                  MaterialsKvRow(
+                    label: 'materials.order.shipping'.tr(),
+                    value: order.envioCentavos == 0
+                        ? 'materials.summary.free'.tr()
+                        : SacMoney.fromCentavos(order.envioCentavos),
+                  ),
+                  MaterialsKvRow(
+                    label: 'materials.summary.total'.tr(),
+                    value: total,
+                    emphasis: true,
+                  ),
+                ],
+              ),
+              if (receipts.isNotEmpty)
+                SacGroupedSection(
+                  key: const ValueKey('order-receipts'),
+                  label: 'materials.order.receipts'.tr(),
+                  dividerIndent: 14 + 36 + 12,
+                  children: [
+                    for (final receipt in receipts)
+                      _ReceiptRow(
+                        key: ValueKey('receipt-${receipt.id}'),
+                        receipt: receipt,
+                      ),
+                  ],
+                ),
+            ],
+          ),
         ),
+        if (hasFooter)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: SacFrostedFooter(
+              child: attention == OrderAttention.pay
+                  ? SacButton.primary(
+                      key: const ValueKey('order-action'),
+                      text:
+                          'materials.order.pay'.tr(namedArgs: {'total': total}),
+                      icon: HugeIcons.strokeRoundedMoney01,
+                      onPressed: onPay,
+                    )
+                  : SacButton.primary(
+                      key: const ValueKey('order-action'),
+                      text: 'materials.order.upload_another'.tr(),
+                      icon: HugeIcons.strokeRoundedFileUpload,
+                      onPressed: () => context.push(
+                        RouteNames.materialsOrderReceipt(key),
+                      ),
+                    ),
+            ),
+          ),
       ],
     );
   }
 }
 
-// ── Comprobantes section ───────────────────────────────────────────────────────
+/// The reviewer's reason, quoted in a white card under the error panel.
+class _RejectionQuote extends StatelessWidget {
+  const _RejectionQuote({required this.reason});
 
-/// Sección que muestra la lista de comprobantes de una orden.
-/// Usa [receiptsProvider] para cargarlos de forma lazy.
-class _ComprobantesSection extends ConsumerWidget {
-  final String folioOrId;
-  const _ComprobantesSection({required this.folioOrId});
+  final String reason;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final comprobantesAsync = ref.watch(receiptsProvider(folioOrId));
-
-    return comprobantesAsync.when(
-      loading: () => const Center(
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: SacLoading(),
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return Semantics(
+      container: true,
+      label: '${'materials.order.reject_reason'.tr()}. $reason',
+      excludeSemantics: true,
+      child: Container(
+        key: const ValueKey('order-reject-reason'),
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+          border: Border.all(color: c.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'materials.order.reject_reason'.tr().toUpperCase(),
+              style: TextStyle(
+                fontSize: SacFontSize.labelSmall,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.8,
+                color: c.onErrorContainer,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '«$reason»',
+              style: TextStyle(
+                fontSize: SacFontSize.titleSmall,
+                height: 1.45,
+                color: c.text,
+              ),
+            ),
+          ],
         ),
       ),
-      error: (e, _) => const SizedBox.shrink(),
-      data: (receipts) {
-        if (receipts.isEmpty) {
-          return Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: context.sac.ink100,
-              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-            ),
-            child: Text(
-              'materials.order.no_receipts'.tr(),
-              style: TextStyle(color: context.sac.textSecondary),
-            ),
-          );
-        }
-        return Column(
-          children: [
-            for (int i = 0; i < receipts.length; i++)
-              Padding(
-                padding:
-                    EdgeInsets.only(bottom: i < receipts.length - 1 ? 8 : 0),
-                child: _ComprobanteCard(comprobante: receipts[i]),
-              ),
-          ],
-        );
-      },
     );
   }
 }
 
-class _ComprobanteCard extends StatelessWidget {
-  final Receipt comprobante;
-  const _ComprobanteCard({required this.comprobante});
+class _LineRow extends StatelessWidget {
+  const _LineRow({
+    super.key,
+    required this.title,
+    required this.detail,
+    required this.amount,
+  });
 
-  Color _statusColor(SacColors c) {
-    switch (comprobante.status) {
-      case MaterialReceiptStatus.aprobado:
-        return c.onSuccessContainer;
-      case MaterialReceiptStatus.rechazado:
-        return c.onErrorContainer;
-      case MaterialReceiptStatus.pendiente:
-        return c.onWarningContainer;
-    }
-  }
-
-  Color _statusBg(SacColors c) {
-    switch (comprobante.status) {
-      case MaterialReceiptStatus.aprobado:
-        return c.successContainer;
-      case MaterialReceiptStatus.rechazado:
-        return c.errorContainer;
-      case MaterialReceiptStatus.pendiente:
-        return c.warningContainer;
-    }
-  }
-
-  String get _statusLabel {
-    switch (comprobante.status) {
-      case MaterialReceiptStatus.aprobado:
-        return 'materials.order.receipt_approved'.tr();
-      case MaterialReceiptStatus.rechazado:
-        return 'materials.order.receipt_rejected'.tr();
-      case MaterialReceiptStatus.pendiente:
-        return 'materials.order.receipt_pending'.tr();
-    }
-  }
+  final String title;
+  final String detail;
+  final String amount;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final c = context.sac;
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-        side: BorderSide(color: c.border),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                HugeIcon(
-                    icon: HugeIcons.strokeRoundedFile01,
-                    size: 18,
-                    color: c.textSecondary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    comprobante.fileName,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: _statusBg(context.sac),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                  ),
-                  child: Text(
-                    _statusLabel,
-                    style: TextStyle(
-                      fontSize: SacFontSize.labelSmall,
-                      fontWeight: FontWeight.w600,
-                      color: _statusColor(context.sac),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              SacMoney.fromCentavos(comprobante.montoCentavos),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: c.textSecondary,
-              ),
-            ),
-            if (comprobante.rejectReason != null &&
-                comprobante.rejectReason!.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: context.sac.errorContainer,
-                  borderRadius: BorderRadius.circular(AppTheme.radius2XS),
-                ),
-                child: Row(
+    return Semantics(
+      container: true,
+      label: '$title, $detail, $amount',
+      excludeSemantics: true,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 64),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+          child: Row(
+            children: [
+              const ProductThumb(size: 42, radius: AppTheme.radiusSM),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    HugeIcon(
-                        icon: HugeIcons.strokeRoundedInformationCircle,
-                        size: 14,
-                        color: context.sac.onErrorContainer),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        comprobante.rejectReason!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: context.sac.onErrorContainer,
-                        ),
+                    Text(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: SacFontSize.titleMedium,
+                        fontWeight: FontWeight.w600,
+                        height: 1.25,
+                        color: c.text,
+                      ),
+                    ),
+                    Text(
+                      detail,
+                      style: TextStyle(
+                        fontSize: SacFontSize.bodySmall,
+                        color: c.textSecondary,
+                        fontFeatures: SacMoney.tabularFigures,
                       ),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
+              Text(
+                amount,
+                style: TextStyle(
+                  fontSize: SacFontSize.titleMedium,
+                  fontWeight: FontWeight.w700,
+                  color: c.text,
+                  fontFeatures: SacMoney.tabularFigures,
+                ),
+              ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ReceiptRow extends StatelessWidget {
+  const _ReceiptRow({super.key, required this.receipt});
+
+  final Receipt receipt;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final date = DateFormat.MMMd(context.locale.toString())
+        .format(receipt.createdAt.toLocal());
+    final detail =
+        [date, SacMoney.fromCentavos(receipt.montoCentavos)].join(' · ');
+    final badge = switch (receipt.status) {
+      MaterialReceiptStatus.aprobado =>
+        SacBadge.success(label: 'materials.order.receipt_approved'.tr()),
+      MaterialReceiptStatus.rechazado =>
+        SacBadge.error(label: 'materials.order.receipt_rejected'.tr()),
+      MaterialReceiptStatus.pendiente =>
+        SacBadge.info(label: 'materials.order.receipt_pending'.tr()),
+    };
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 64),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: c.surfaceVariant,
+                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
+              ),
+              child: ExcludeSemantics(
+                child: buildIcon(
+                  HugeIcons.strokeRoundedFile01,
+                  size: 18,
+                  color: c.textSecondary,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    receipt.fileName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: SacFontSize.titleSmall,
+                      fontWeight: FontWeight.w600,
+                      color: c.text,
+                    ),
+                  ),
+                  Text(
+                    detail,
+                    style: TextStyle(
+                      fontSize: SacFontSize.bodySmall,
+                      color: c.textSecondary,
+                      fontFeatures: SacMoney.tabularFigures,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            badge,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DetailSkeleton extends StatelessWidget {
+  const _DetailSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return SacShimmer(
+      child: ExcludeSemantics(
+        child: ListView(
+          physics: const NeverScrollableScrollPhysics(),
+          padding: SacTopBar.paddingBelowBar(
+            context,
+            const EdgeInsets.fromLTRB(20, 12, 20, 32),
+          ),
+          children: [
+            const SacSkeletonBox(height: 96, radius: AppTheme.radiusMD),
+            const SizedBox(height: 28),
+            const SacSkeletonBox(width: 90, height: 10),
+            const SizedBox(height: 12),
+            for (var i = 0; i < 3; i++)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 10),
+                child: Row(
+                  children: [
+                    SacSkeletonBox(
+                      width: 42,
+                      height: 42,
+                      radius: AppTheme.radiusSM,
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(child: SacSkeletonBox(height: 12)),
+                    SizedBox(width: 12),
+                    SacSkeletonBox(width: 56, height: 14),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
