@@ -31,8 +31,6 @@ void main() {
     testWidgets('renders i18n status labels instead of raw backend statuses',
         (tester) async {
       await _pumpProgress(tester);
-      await tester.drag(find.byType(ListView), const Offset(0, -520));
-      await tester.pumpAndSettle();
 
       expect(find.text('IN_PROGRESS'), findsNothing);
       expect(
@@ -99,6 +97,10 @@ void main() {
 }
 
 Future<void> _pumpProgress(WidgetTester tester) async {
+  // Tall surface: the list is lazy, so everything must fit to be built.
+  tester.view.physicalSize = const Size(800, 4200);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(

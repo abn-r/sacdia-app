@@ -5360,21 +5360,15 @@
     },
     "annual_progress": {
       "title": "Progression annuelle",
-      "header_title": "Votre section cette année",
       "header_body": "{club} · {type} · {year}",
-      "points_value": "{points} pts",
-      "points_of_total": "sur {total} points disponibles",
-      "progress_percentage": "{percent}% de l'objectif annuel",
-      "no_tier_yet": "Aucun niveau pour l'instant",
-      "next_tier": "Prochain niveau",
-      "points_to_reach": "Il manque {points} pts pour l'atteindre",
-      "top_tier_reached": "Vous êtes déjà au niveau le plus élevé configuré pour cette année.",
+      "top_tier_reached": "Félicitations ! Vous avez déjà la médaille la plus élevée de cette année.",
       "components_title": "D'où viennent vos points",
       "component_points": "{earned} / {max} pts",
       "pending": {
-        "title": "Éléments en attente pouvant ajouter des points",
         "empty": "Aucun élément critique en attente pour ce classement.",
-        "due_date": "Échéance {date}",
+        "group_title": "À livrer",
+        "overdue_since": "Échu depuis le {date}",
+        "due_delivery": "À livrer · échéance {date}",
         "status": {
           "pending_delivery": "En attente de livraison",
           "pending_validation": "En validation",
@@ -5384,7 +5378,51 @@
       },
       "errors": {
         "get_progress": "Impossible de charger votre progression annuelle"
-      }
+      },
+      "current_medal": "Médaille actuelle",
+      "current_medal_label": "Médaille actuelle",
+      "next_medal": "Prochaine médaille",
+      "points_to_reach_medal": "Il vous manque {points} pts pour l'atteindre",
+      "view_tiers": "Voir les niveaux",
+      "tiers_sheet": {
+        "title": "Niveaux de l'année",
+        "from_points": "À partir de {points} pts",
+        "current": "Actuel",
+        "reached": "Atteint"
+      },
+      "this_year": "Cette année",
+      "year_points": "Points de l'année",
+      "year_points_value": "{earned} sur {total}",
+      "no_medal_yet": "Pas encore de médaille",
+      "medal_semantics": "Médaille {tier}, {percent} pour cent",
+      "medal_semantics_full": "Médaille {tier}, obtenue",
+      "blocks_hint": "Touchez un bloc pour voir comment il se gagne",
+      "block_hint": "Voir comment il se gagne",
+      "points_to_earn": "+{points} à gagner",
+      "component_axis": "Axe : {axis}",
+      "how_it_is_earned": "Comment il se gagne",
+      "component_explain": {
+        "annual_evidence_folder": "Chaque section du dossier annuel rapporte des points une fois validée par le champ local. Livrez toutes les sections pour atteindre le maximum.",
+        "monthly_reports_timeliness": "Chaque mois de l'année rapporte des points si vous saisissez les données manuelles du rapport mensuel avant la date limite (le 5 du mois suivant, sauf modification par le champ local).",
+        "finance_compliance": "Un mois rapporte des points quand vous enregistrez au moins un mouvement financier avant la clôture automatique de ce mois. Il y a 12 mois par an.",
+        "institutional_data_completeness": "Elle se complète avec 9 informations de la section : adresse, horaire des réunions, directeur, secrétaire, trésorier, téléphone, courriel, position sur la carte et objectif d'âmes.",
+        "activities_registered": "Compte les activités enregistrées dans l'année par rapport à un objectif annuel (12 par défaut). Atteindre l'objectif donne le maximum.",
+        "attendance_participation": "C'est la moyenne de présence des membres des unités dans les relevés hebdomadaires de l'année.",
+        "camporee_events": "Ce sont les points obtenus par votre section dans les épreuves notées des camporees locaux et d'union, sur le maximum possible de ces épreuves.",
+        "class_investiture_progress": "C'est la proportion de membres actifs des unités dont l'investiture est approuvée cette année.",
+        "sacdia_operational_usage": "C'est la proportion de personnes actives de la section qui ont utilisé SACDIA cette année : saisie des présences, avancement de leur classe, envoi de rapports ou création d'activités.",
+        "generic": "Ces points sont calculés automatiquement à partir des informations que votre section enregistre dans SACDIA pendant l'année."
+      },
+      "projection": {
+        "title": "Si vous livrez le dossier annuel",
+        "reach_points": "Vous atteindriez {points} pts",
+        "reach_tier": "Vous atteindriez {tier}",
+        "missing_for": "Il vous manquerait {points} pour {tier}",
+        "semantics": "Maintenant {now} points ; avec le dossier {projected} points",
+        "legend_now": "Maintenant {points}",
+        "legend_folder": "Dossier +{points}"
+      },
+      "open_folder": "Ouvrir le dossier annuel"
     },
     "club_rankings": {
       "title": "Progression annuelle",

@@ -127,12 +127,26 @@ class _RankingSkeletonState extends State<RankingSkeleton> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Hero: puntos + track + escalera de rangos.
-            _ShimmerBox(height: 252, borderRadius: AppTheme.radiusMD),
-            const SizedBox(height: 12),
-            // Desglose por ejes.
-            _ShimmerBox(height: 296, borderRadius: AppTheme.radiusMD),
-            const SizedBox(height: 12),
+            // Hero: club, medalla, rango y botón.
+            const Center(child: SacSkeletonBox(width: 180, height: 12)),
+            const SizedBox(height: 16),
+            const Center(
+              child: SacSkeletonBox(width: 158, height: 158, radius: 79),
+            ),
+            const SizedBox(height: 16),
+            const Center(child: SacSkeletonBox(width: 140, height: 28)),
+            const SizedBox(height: 10),
+            const Center(child: SacSkeletonBox(width: 220, height: 14)),
+            const SizedBox(height: 24),
+            // Bloques por eje.
+            Row(
+              children: const [
+                Expanded(child: SacSkeletonBox(height: 220, radius: 12)),
+                SizedBox(width: 8),
+                Expanded(child: SacSkeletonBox(height: 220, radius: 12)),
+              ],
+            ),
+            const SizedBox(height: 16),
             // Pendientes.
             _ShimmerBox(height: 128, borderRadius: AppTheme.radiusMD),
           ],
