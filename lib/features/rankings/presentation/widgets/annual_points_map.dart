@@ -109,7 +109,8 @@ class AnnualPointsMap extends StatelessWidget {
                         height: 10,
                         decoration: BoxDecoration(
                           color: col.color,
-                          borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusHairline),
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -452,7 +453,8 @@ class AnnualComponentSheet extends StatelessWidget {
                           height: 10,
                           decoration: BoxDecoration(
                             color: color,
-                            borderRadius: BorderRadius.circular(AppTheme.radiusHairline),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusHairline),
                           ),
                         ),
                         const SizedBox(width: 8),
