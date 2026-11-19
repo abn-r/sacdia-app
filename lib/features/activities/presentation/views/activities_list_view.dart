@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
@@ -5,6 +7,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -105,6 +108,20 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
   bool? _cachedChronologicalView;
   _ActivitiesListDerivation? _cachedDerivation;
 
+  // M2: direction of the day change. Set while building, when the selected
+  // day differs from the one the list was last built for.
+  DateTime? _lastListDate;
+  bool _slideFromRight = true;
+  String? _slidingStamp;
+  int? _lastFilter;
+  bool _lastChrono = false;
+  bool _listBuilt = false;
+
+  // M1: list rows only stagger in the first moments of the screen. After the
+  // timer fires, rows built later (day change, scroll back) appear at once.
+  bool _animateListEntrance = true;
+  Timer? _entranceTimer;
+
   static const double _dateItemWidth = 52.0;
   static const double _dateItemHorizontalMargin = 4.0;
 
@@ -139,6 +156,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
 
   @override
   void dispose() {
+    _entranceTimer?.cancel();
     _dateScrollController.dispose();
     _chronoScrollController.dispose();
     _selectedFilter.dispose();
@@ -148,6 +166,15 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
     _showTodayButton.dispose();
     super.dispose();
   }
+
+  static const _entranceWindow = Duration(milliseconds: 800);
+
+  /// M1: stagger for the first rows while the screen is entering.
+  Widget _listEntrance(int index, Widget child) => SacEntrance(
+        index: 3 + index,
+        maxAnimated: _animateListEntrance ? 6 : 0,
+        child: child,
+      );
 
   bool _canCreateActivities() {
     final authState = ref.read(authNotifierProvider);
@@ -381,11 +408,48 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                       isChronologicalView: isChronologicalView,
                     );
                     final filtered = derivation.filtered;
+                    _entranceTimer ??= Timer(
+                      _entranceWindow,
+                      () => _animateListEntrance = false,
+                    );
+
+                    // M2: the day decides the direction the list slides in.
+                    final dayStamp = selectedDate == null
+                        ? ''
+                        : '${selectedDate.year}-${selectedDate.month}-'
+                            '${selectedDate.day}';
+                    // Mode and filter changes keep the plain fade.
+                    if (isChronologicalView || selectedFilter != _lastFilter) {
+                      _slidingStamp = null;
+                    }
+                    // Any change after the first build ends the M1 entrance:
+                    // rows built later appear at once.
+                    if (_listBuilt &&
+                        (selectedFilter != _lastFilter ||
+                            selectedDate != _lastListDate ||
+                            isChronologicalView != _lastChrono)) {
+                      _animateListEntrance = false;
+                    }
+                    _listBuilt = true;
+                    _lastChrono = isChronologicalView;
+                    _lastFilter = selectedFilter;
+                    final previousDate = _lastListDate;
+                    if (selectedDate != previousDate) {
+                      if (previousDate != null && selectedDate != null) {
+                        _slideFromRight = selectedDate.isAfter(previousDate);
+                        if (!isChronologicalView) _slidingStamp = dayStamp;
+                      }
+                      _lastListDate = selectedDate;
+                    }
 
                     late final Widget content;
                     if (filtered.isEmpty) {
                       content = RefreshIndicator(
-                        key: ValueKey('empty-$isChronologicalView'),
+                        key: ValueKey(
+                          isChronologicalView
+                              ? 'empty-true'
+                              : 'empty-false-$dayStamp',
+                        ),
                         color: SacAccent.of(context).color,
                         onRefresh: () async {
                           ref.invalidate(clubActivitiesProvider);
@@ -450,25 +514,28 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                               );
                             }
                             final activity = item as Activity;
-                            return ActivityCard(
-                              activity: activity,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  SacSharedAxisRoute(
-                                    builder: (context) => ActivityDetailView(
-                                      activityId: activity.id,
+                            return _listEntrance(
+                              index,
+                              ActivityCard(
+                                activity: activity,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    SacSharedAxisRoute(
+                                      builder: (context) => ActivityDetailView(
+                                        activityId: activity.id,
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
+                                  );
+                                },
+                              ),
                             );
                           },
                         ),
                       );
                     } else {
                       content = RefreshIndicator(
-                        key: const ValueKey('card'),
+                        key: ValueKey('card-$dayStamp'),
                         color: SacAccent.of(context).color,
                         onRefresh: () async {
                           ref.invalidate(clubActivitiesProvider);
@@ -478,32 +545,61 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                           itemCount: filtered.length,
                           itemBuilder: (context, index) {
                             final activity = filtered[index];
-                            return ActivityCard(
-                              activity: activity,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  SacSharedAxisRoute(
-                                    builder: (context) => ActivityDetailView(
-                                      activityId: activity.id,
+                            return _listEntrance(
+                              index,
+                              ActivityCard(
+                                activity: activity,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    SacSharedAxisRoute(
+                                      builder: (context) => ActivityDetailView(
+                                        activityId: activity.id,
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
+                                  );
+                                },
+                              ),
                             );
                           },
                         ),
                       );
                     }
 
+                    final reduce = SacMotion.reduceMotionOf(context);
+                    final slideNow = _slidingStamp == dayStamp;
+                    final fromRight = _slideFromRight;
+                    final width = MediaQuery.sizeOf(context).width;
                     return AnimatedSwitcher(
-                      duration: SacMotion.standard,
+                      duration: reduce
+                          ? SacMotion.reducedFade
+                          : isChronologicalView
+                              ? SacMotion.standard
+                              : SacMotion.slide,
                       switchInCurve: SacMotion.easeOut,
                       switchOutCurve: SacMotion.easeOut,
-                      transitionBuilder: (child, animation) => FadeTransition(
-                        opacity: animation,
-                        child: child,
-                      ),
+                      transitionBuilder: (child, animation) {
+                        final fade = FadeTransition(
+                          opacity: animation,
+                          child: child,
+                        );
+                        if (reduce) return fade;
+                        // Only the incoming day slides; whatever leaves
+                        // fades. The wrapper stays a SlideTransition (still at
+                        // zero) so a rebuild never remounts the list.
+                        final dx = (fromRight ? 1 : -1) *
+                            SacMotion.slideOffset /
+                            width;
+                        return SlideTransition(
+                          position: slideNow && child.key == content.key
+                              ? Tween<Offset>(
+                                  begin: Offset(dx, 0),
+                                  end: Offset.zero,
+                                ).animate(animation)
+                              : const AlwaysStoppedAnimation(Offset.zero),
+                          child: fade,
+                        );
+                      },
                       child: content,
                     );
                   },
@@ -555,559 +651,586 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(9),
-                    decoration: BoxDecoration(
-                      color: SacAccent.of(context).light,
-                      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+            SacEntrance(
+              index: 0,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(9),
+                      decoration: BoxDecoration(
+                        color: SacAccent.of(context).light,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                      ),
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedCalendar01,
+                        size: 22,
+                        color: SacAccent.of(context).color,
+                      ),
                     ),
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedCalendar01,
-                      size: 22,
-                      color: SacAccent.of(context).color,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'activities.list.title'.tr(),
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                        ValueListenableBuilder<DateTime>(
-                          valueListenable: _visibleMonth,
-                          builder: (_, month, __) => Text(
-                            _capitalizeFirst(
-                              _monthFormatter.format(month),
-                            ),
-                            style: TextStyle(
-                              fontSize: SacFontSize.bodyMedium,
-                              color: c.textSecondary,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'activities.list.title'.tr(),
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          ValueListenableBuilder<DateTime>(
+                            valueListenable: _visibleMonth,
+                            builder: (_, month, __) => Text(
+                              _capitalizeFirst(
+                                _monthFormatter.format(month),
+                              ),
+                              style: TextStyle(
+                                fontSize: SacFontSize.bodyMedium,
+                                color: c.textSecondary,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  if (_canCreateActivities())
-                    Semantics(
-                      label: 'activities.list.add'.tr(),
-                      button: true,
-                      child: Material(
-                        color: c.surface,
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.radiusSM),
-                          side: BorderSide(color: c.border),
-                        ),
-                        child: SacInkWell(
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.radiusSM),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              SacSlideUpRoute(
-                                builder: (context) => CreateActivityView(
-                                  clubId: resolvedClubId ?? 0,
-                                  clubSectionId: resolvedSectionId ?? 0,
-                                ),
-                              ),
-                            ).then((created) {
-                              // Si la actividad fue creada, refrescar la lista
-                              if (created == true && mounted) {
-                                ref.invalidate(clubActivitiesProvider);
-                              }
-                            });
-                          },
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(
-                              minHeight: 44,
-                              minWidth: 44,
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 9,
-                                vertical: 9,
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  HugeIcon(
-                                    icon: HugeIcons.strokeRoundedAdd01,
-                                    size: 20,
-                                    color: c.textSecondary,
+                    if (_canCreateActivities())
+                      Semantics(
+                        label: 'activities.list.add'.tr(),
+                        button: true,
+                        child: Material(
+                          color: c.surface,
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusSM),
+                            side: BorderSide(color: c.border),
+                          ),
+                          child: SacInkWell(
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusSM),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                SacSlideUpRoute(
+                                  builder: (context) => CreateActivityView(
+                                    clubId: resolvedClubId ?? 0,
+                                    clubSectionId: resolvedSectionId ?? 0,
                                   ),
-                                  const SizedBox(width: 5),
-                                  Text('activities.list.add'.tr()),
-                                ],
+                                ),
+                              ).then((created) {
+                                // Si la actividad fue creada, refrescar la lista
+                                if (created == true && mounted) {
+                                  ref.invalidate(clubActivitiesProvider);
+                                }
+                              });
+                            },
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                minHeight: 44,
+                                minWidth: 44,
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 9,
+                                  vertical: 9,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    HugeIcon(
+                                      icon: HugeIcons.strokeRoundedAdd01,
+                                      size: 20,
+                                      color: c.textSecondary,
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text('activities.list.add'.tr()),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  const SizedBox(width: 8),
-                  ValueListenableBuilder<bool>(
-                    valueListenable: _isChronologicalView,
-                    builder: (_, isChronologicalView, __) {
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        decoration: BoxDecoration(
-                          color: isChronologicalView
-                              ? SacAccent.of(context).color
-                              : c.surface,
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.radiusSM),
-                          border: Border.all(
+                    const SizedBox(width: 8),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: _isChronologicalView,
+                      builder: (_, isChronologicalView, __) {
+                        return AnimatedContainer(
+                          duration: SacMotion.reduceMotionOf(context)
+                              ? Duration.zero
+                              : SacMotion.standard,
+                          decoration: BoxDecoration(
                             color: isChronologicalView
                                 ? SacAccent.of(context).color
-                                : c.border,
-                          ),
-                          boxShadow: isChronologicalView
-                              ? [
-                                  BoxShadow(
-                                    color: SacAccent.of(context)
-                                        .color
-                                        .withValues(alpha: 0.3),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 3),
-                                  )
-                                ]
-                              : null,
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: SacInkWell(
+                                : c.surface,
                             borderRadius:
                                 BorderRadius.circular(AppTheme.radiusSM),
-                            splashColor: isChronologicalView
-                                ? Colors.white.withValues(alpha: 0.2)
+                            border: Border.all(
+                              color: isChronologicalView
+                                  ? SacAccent.of(context).color
+                                  : c.border,
+                            ),
+                            boxShadow: isChronologicalView
+                                ? [
+                                    BoxShadow(
+                                      color: SacAccent.of(context)
+                                          .color
+                                          .withValues(alpha: 0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3),
+                                    )
+                                  ]
                                 : null,
-                            onTap: () {
-                              final next = !_isChronologicalView.value;
-                              if (next) _shouldScrollToToday = true;
-                              _isChronologicalView.value = next;
-                            },
-                            child: Semantics(
-                              button: true,
-                              label: 'activities.list.toggle_view'.tr(),
-                              toggled: isChronologicalView,
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  minHeight: 44,
-                                  minWidth: 44,
-                                ),
-                                child: Center(
-                                  child: HugeIcon(
-                                    icon: isChronologicalView
-                                        ? HugeIcons.strokeRoundedCalendar01
-                                        : HugeIcons.strokeRoundedListView,
-                                    size: 20,
-                                    color: isChronologicalView
-                                        ? Colors.white
-                                        : c.textSecondary,
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: SacInkWell(
+                              borderRadius:
+                                  BorderRadius.circular(AppTheme.radiusSM),
+                              splashColor: isChronologicalView
+                                  ? Colors.white.withValues(alpha: 0.2)
+                                  : null,
+                              onTap: () {
+                                final next = !_isChronologicalView.value;
+                                if (next) _shouldScrollToToday = true;
+                                _isChronologicalView.value = next;
+                              },
+                              child: Semantics(
+                                button: true,
+                                label: 'activities.list.toggle_view'.tr(),
+                                toggled: isChronologicalView,
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    minHeight: 44,
+                                    minWidth: 44,
+                                  ),
+                                  child: Center(
+                                    child: HugeIcon(
+                                      icon: isChronologicalView
+                                          ? HugeIcons.strokeRoundedCalendar01
+                                          : HugeIcons.strokeRoundedListView,
+                                      size: 20,
+                                      color: isChronologicalView
+                                          ? Colors.white
+                                          : c.textSecondary,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 20),
 
             // Date strip (solo en vista de tarjetas)
-            ValueListenableBuilder<bool>(
-              valueListenable: _isChronologicalView,
-              builder: (_, isChronologicalView, __) {
-                return ClipRect(
-                  child: AnimatedSize(
-                    duration: SacMotion.reduceMotionOf(context)
-                        ? Duration.zero
-                        : SacMotion.standard,
-                    curve: SacMotion.easeInOut,
-                    child: isChronologicalView
-                        ? const SizedBox(height: 0)
-                        : ValueListenableBuilder<DateTime?>(
-                            valueListenable: _selectedDate,
-                            builder: (_, selectedDate, __) {
-                              return Column(
-                                children: [
-                                  Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Expanded(
-                                        child: SizedBox(
-                                          height: 76,
-                                          child: NotificationListener<
-                                              ScrollNotification>(
-                                            onNotification: (notification) {
-                                              if (notification
-                                                      is ScrollUpdateNotification ||
-                                                  notification
-                                                      is ScrollEndNotification) {
-                                                _onDateStripScroll();
-                                              }
-                                              return false;
-                                            },
-                                            child: ListView.builder(
-                                              controller: _dateScrollController,
-                                              scrollDirection: Axis.horizontal,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 16,
-                                              ),
-                                              itemCount: _days.length,
-                                              itemBuilder: (context, index) {
-                                                final day = _days[index];
-                                                final isToday =
-                                                    _isSameDay(day, today);
-                                                final isSelected =
-                                                    selectedDate != null &&
-                                                        _isSameDay(
-                                                          day,
-                                                          selectedDate,
-                                                        );
+            SacEntrance(
+              index: 1,
+              child: ValueListenableBuilder<bool>(
+                valueListenable: _isChronologicalView,
+                builder: (_, isChronologicalView, __) {
+                  return ClipRect(
+                    child: AnimatedSize(
+                      duration: SacMotion.reduceMotionOf(context)
+                          ? Duration.zero
+                          : SacMotion.standard,
+                      curve: SacMotion.easeInOut,
+                      child: isChronologicalView
+                          ? const SizedBox(height: 0)
+                          : ValueListenableBuilder<DateTime?>(
+                              valueListenable: _selectedDate,
+                              builder: (_, selectedDate, __) {
+                                return Column(
+                                  children: [
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Expanded(
+                                          child: SizedBox(
+                                            height: 76,
+                                            child: NotificationListener<
+                                                ScrollNotification>(
+                                              onNotification: (notification) {
+                                                if (notification
+                                                        is ScrollUpdateNotification ||
+                                                    notification
+                                                        is ScrollEndNotification) {
+                                                  _onDateStripScroll();
+                                                }
+                                                return false;
+                                              },
+                                              child: ListView.builder(
+                                                controller:
+                                                    _dateScrollController,
+                                                scrollDirection:
+                                                    Axis.horizontal,
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 16,
+                                                ),
+                                                itemCount: _days.length,
+                                                itemBuilder: (context, index) {
+                                                  final day = _days[index];
+                                                  final isToday =
+                                                      _isSameDay(day, today);
+                                                  final isSelected =
+                                                      selectedDate != null &&
+                                                          _isSameDay(
+                                                            day,
+                                                            selectedDate,
+                                                          );
 
-                                                return Semantics(
-                                                  label: _daySemanticsFormatter
-                                                      .format(day),
-                                                  button: true,
-                                                  selected: isSelected,
-                                                  child: AnimatedContainer(
-                                                    duration: const Duration(
-                                                      milliseconds: 200,
-                                                    ),
-                                                    width: 52,
-                                                    margin: const EdgeInsets
-                                                        .symmetric(
-                                                      horizontal: 4,
-                                                      vertical: 2,
-                                                    ),
-                                                    decoration: BoxDecoration(
-                                                      color: isSelected
-                                                          ? SacAccent.of(
-                                                                  context)
-                                                              .color
-                                                          : isToday
-                                                              ? AppColors
-                                                                  .primaryLight
-                                                              : c.surface,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                        16,
+                                                  return Semantics(
+                                                    label:
+                                                        _daySemanticsFormatter
+                                                            .format(day),
+                                                    button: true,
+                                                    selected: isSelected,
+                                                    child: AnimatedContainer(
+                                                      duration: SacMotion
+                                                              .reduceMotionOf(
+                                                        context,
+                                                      )
+                                                          ? Duration.zero
+                                                          : SacMotion.standard,
+                                                      width: 52,
+                                                      margin: const EdgeInsets
+                                                          .symmetric(
+                                                        horizontal: 4,
+                                                        vertical: 2,
                                                       ),
-                                                      border: Border.all(
-                                                        color: isToday &&
-                                                                !isSelected
+                                                      decoration: BoxDecoration(
+                                                        color: isSelected
                                                             ? SacAccent.of(
                                                                     context)
                                                                 .color
-                                                                .withValues(
-                                                                  alpha: 0.35,
-                                                                )
-                                                            : Colors
-                                                                .transparent,
-                                                        width: 1.5,
-                                                      ),
-                                                      boxShadow: isSelected
-                                                          ? [
-                                                              BoxShadow(
-                                                                color: AppColors
-                                                                    .primary
-                                                                    .withValues(
-                                                                  alpha: 0.28,
-                                                                ),
-                                                                blurRadius: 8,
-                                                                offset:
-                                                                    const Offset(
-                                                                  0,
-                                                                  3,
-                                                                ),
-                                                              )
-                                                            ]
-                                                          : null,
-                                                    ),
-                                                    child: Material(
-                                                      color: Colors.transparent,
-                                                      child: SacInkWell(
+                                                            : isToday
+                                                                ? AppColors
+                                                                    .primaryLight
+                                                                : c.surface,
                                                         borderRadius:
                                                             BorderRadius
-                                                                .circular(16),
-                                                        splashColor: isSelected
-                                                            ? Colors.white
-                                                                .withValues(
-                                                                alpha: 0.2,
-                                                              )
-                                                            : null,
-                                                        onTap: () {
-                                                          _selectedDate.value =
-                                                              day;
-                                                        },
-                                                        child: Column(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .center,
-                                                          children: [
-                                                            Text(
-                                                              _weekdayFormatter
-                                                                  .format(day)
-                                                                  .substring(
-                                                                    0,
-                                                                    2,
+                                                                .circular(
+                                                          16,
+                                                        ),
+                                                        border: Border.all(
+                                                          color: isToday &&
+                                                                  !isSelected
+                                                              ? SacAccent.of(
+                                                                      context)
+                                                                  .color
+                                                                  .withValues(
+                                                                    alpha: 0.35,
                                                                   )
-                                                                  .toUpperCase(),
-                                                              style: TextStyle(
-                                                                fontSize:
-                                                                    SacFontSize
-                                                                        .caption,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                color:
-                                                                    isSelected
-                                                                        ? Colors
-                                                                            .white
-                                                                            .withValues(
-                                                                            alpha:
-                                                                                0.8,
-                                                                          )
-                                                                        : c.textTertiary,
+                                                              : Colors
+                                                                  .transparent,
+                                                          width: 1.5,
+                                                        ),
+                                                        boxShadow: isSelected
+                                                            ? [
+                                                                BoxShadow(
+                                                                  color: AppColors
+                                                                      .primary
+                                                                      .withValues(
+                                                                    alpha: 0.28,
+                                                                  ),
+                                                                  blurRadius: 8,
+                                                                  offset:
+                                                                      const Offset(
+                                                                    0,
+                                                                    3,
+                                                                  ),
+                                                                )
+                                                              ]
+                                                            : null,
+                                                      ),
+                                                      child: Material(
+                                                        color:
+                                                            Colors.transparent,
+                                                        child: SacInkWell(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(16),
+                                                          splashColor:
+                                                              isSelected
+                                                                  ? Colors.white
+                                                                      .withValues(
+                                                                      alpha:
+                                                                          0.2,
+                                                                    )
+                                                                  : null,
+                                                          onTap: () {
+                                                            _selectedDate
+                                                                .value = day;
+                                                          },
+                                                          child: Column(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .center,
+                                                            children: [
+                                                              Text(
+                                                                _weekdayFormatter
+                                                                    .format(day)
+                                                                    .substring(
+                                                                      0,
+                                                                      2,
+                                                                    )
+                                                                    .toUpperCase(),
+                                                                style:
+                                                                    TextStyle(
+                                                                  fontSize:
+                                                                      SacFontSize
+                                                                          .caption,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  color: isSelected
+                                                                      ? Colors.white.withValues(
+                                                                          alpha:
+                                                                              0.8,
+                                                                        )
+                                                                      : c.textTertiary,
+                                                                ),
                                                               ),
-                                                            ),
-                                                            const SizedBox(
-                                                              height: 4,
-                                                            ),
-                                                            Text(
-                                                              _dayNumberFormatter
-                                                                  .format(day),
-                                                              style: TextStyle(
-                                                                fontSize:
-                                                                    SacFontSize
-                                                                        .headlineMedium,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w700,
-                                                                height: 1,
-                                                                color: isSelected
-                                                                    ? Colors.white
-                                                                    : isToday
-                                                                        ? SacAccent.of(context).color
-                                                                        : c.text,
+                                                              const SizedBox(
+                                                                height: 4,
                                                               ),
-                                                            ),
-                                                          ],
+                                                              Text(
+                                                                _dayNumberFormatter
+                                                                    .format(
+                                                                        day),
+                                                                style:
+                                                                    TextStyle(
+                                                                  fontSize:
+                                                                      SacFontSize
+                                                                          .headlineMedium,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
+                                                                  height: 1,
+                                                                  color: isSelected
+                                                                      ? Colors.white
+                                                                      : isToday
+                                                                          ? SacAccent.of(context).color
+                                                                          : c.text,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
                                                         ),
                                                       ),
                                                     ),
-                                                  ),
-                                                );
-                                              },
+                                                  );
+                                                },
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 12),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            SizedBox(
-                                              width: 44,
-                                              height: 44,
-                                              child: Material(
-                                                color:
-                                                    SacAccent.of(context).light,
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          AppTheme.radiusSM),
-                                                  side: BorderSide(
-                                                    color: SacAccent.of(context)
-                                                        .color
-                                                        .withValues(
-                                                          alpha: 0.25,
-                                                        ),
-                                                  ),
-                                                ),
-                                                child: SacInkWell(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          AppTheme.radiusSM),
-                                                  onTap: () =>
-                                                      _openDatePicker(context),
-                                                  child: Center(
-                                                    child: HugeIcon(
-                                                      icon: HugeIcons
-                                                          .strokeRoundedCalendar02,
-                                                      size: 20,
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(right: 12),
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              SizedBox(
+                                                width: 44,
+                                                height: 44,
+                                                child: Material(
+                                                  color: SacAccent.of(context)
+                                                      .light,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            AppTheme.radiusSM),
+                                                    side: BorderSide(
                                                       color:
                                                           SacAccent.of(context)
-                                                              .color,
+                                                              .color
+                                                              .withValues(
+                                                                alpha: 0.25,
+                                                              ),
+                                                    ),
+                                                  ),
+                                                  child: SacInkWell(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            AppTheme.radiusSM),
+                                                    onTap: () =>
+                                                        _openDatePicker(
+                                                            context),
+                                                    child: Center(
+                                                      child: HugeIcon(
+                                                        icon: HugeIcons
+                                                            .strokeRoundedCalendar02,
+                                                        size: 20,
+                                                        color: SacAccent.of(
+                                                                context)
+                                                            .color,
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
                                               ),
-                                            ),
-                                            ValueListenableBuilder<bool>(
-                                              valueListenable: _showTodayButton,
-                                              builder: (_, show, __) {
-                                                if (!show) {
-                                                  return const SizedBox
-                                                      .shrink();
-                                                }
-                                                return Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                    top: 4,
-                                                  ),
-                                                  child: SizedBox(
-                                                    width: 60,
-                                                    height: 44,
-                                                    child: Material(
-                                                      color:
-                                                          SacAccent.of(context)
-                                                              .color,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                        22,
-                                                      ),
-                                                      child: SacInkWell(
+                                              ValueListenableBuilder<bool>(
+                                                valueListenable:
+                                                    _showTodayButton,
+                                                builder: (_, show, __) {
+                                                  if (!show) {
+                                                    return const SizedBox
+                                                        .shrink();
+                                                  }
+                                                  return Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                      top: 4,
+                                                    ),
+                                                    child: SizedBox(
+                                                      width: 60,
+                                                      height: 44,
+                                                      child: Material(
+                                                        color: SacAccent.of(
+                                                                context)
+                                                            .color,
                                                         borderRadius:
                                                             BorderRadius
-                                                                .circular(22),
-                                                        splashColor: Colors
-                                                            .white
-                                                            .withValues(
-                                                          alpha: 0.2,
+                                                                .circular(
+                                                          22,
                                                         ),
-                                                        onTap: () {
-                                                          final now =
-                                                              DateTime.now();
-                                                          _selectedDate.value =
-                                                              DateTime(
-                                                            now.year,
-                                                            now.month,
-                                                            now.day,
-                                                          );
-                                                          _showTodayButton
-                                                              .value = false;
-                                                          _visibleMonth.value =
-                                                              DateTime(
-                                                            now.year,
-                                                            now.month,
-                                                          );
-                                                          _scrollToToday(
-                                                            animate: true,
-                                                          );
-                                                        },
-                                                        child: Center(
-                                                          child: Text(
-                                                            'activities.list.today_label'
-                                                                .tr(),
-                                                            style:
-                                                                const TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontSize:
-                                                                  SacFontSize
-                                                                      .labelSmall,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
+                                                        child: SacInkWell(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(22),
+                                                          splashColor: Colors
+                                                              .white
+                                                              .withValues(
+                                                            alpha: 0.2,
+                                                          ),
+                                                          onTap: () {
+                                                            final now =
+                                                                DateTime.now();
+                                                            _selectedDate
+                                                                    .value =
+                                                                DateTime(
+                                                              now.year,
+                                                              now.month,
+                                                              now.day,
+                                                            );
+                                                            _showTodayButton
+                                                                .value = false;
+                                                            _visibleMonth
+                                                                    .value =
+                                                                DateTime(
+                                                              now.year,
+                                                              now.month,
+                                                            );
+                                                            _scrollToToday(
+                                                              animate: true,
+                                                            );
+                                                          },
+                                                          child: Center(
+                                                            child: Text(
+                                                              'activities.list.today_label'
+                                                                  .tr(),
+                                                              style:
+                                                                  const TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontSize:
+                                                                    SacFontSize
+                                                                        .labelSmall,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                              ),
                                                             ),
                                                           ),
                                                         ),
                                                       ),
                                                     ),
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          ],
+                                                  );
+                                                },
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 14),
-                                ],
-                              );
-                            },
-                          ),
-                  ),
-                );
-              },
+                                      ],
+                                    ),
+                                    const SizedBox(height: 14),
+                                  ],
+                                );
+                              },
+                            ),
+                    ),
+                  );
+                },
+              ),
             ),
 
             // Filter chips - cargados dinámicamente desde el catálogo
-            SizedBox(
-              height: SacFilterChip.barHeight,
-              child: ValueListenableBuilder<int?>(
-                valueListenable: _selectedFilter,
-                builder: (_, selectedFilter, __) {
-                  return activityTypesAsync.when(
-                    loading: () => ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      itemCount: 4,
-                      separatorBuilder: (_, __) => const SizedBox(width: 8),
-                      itemBuilder: (context, index) =>
-                          _FilterChipSkeleton(c: c),
-                    ),
-                    error: (_, __) => ListView(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      children: [
-                        SacFilterChip(
-                          label: 'activities.list.all_filter'.tr(),
-                          selected: selectedFilter == null,
-                          onTap: () => _selectedFilter.value = null,
-                        ),
-                      ],
-                    ),
-                    data: (types) {
-                      final chips = <Widget>[
-                        SacFilterChip(
-                          label: 'activities.list.all_filter'.tr(),
-                          selected: selectedFilter == null,
-                          onTap: () => _selectedFilter.value = null,
-                        ),
-                        ...types.map(
-                          (t) => SacFilterChip(
-                            label: t.name,
-                            selected: selectedFilter == t.activityTypeId,
-                            onTap: () =>
-                                _selectedFilter.value = t.activityTypeId,
-                          ),
-                        ),
-                      ];
-                      return ListView.separated(
+            SacEntrance(
+              index: 2,
+              child: SizedBox(
+                height: SacFilterChip.barHeight,
+                child: ValueListenableBuilder<int?>(
+                  valueListenable: _selectedFilter,
+                  builder: (_, selectedFilter, __) {
+                    return activityTypesAsync.when(
+                      loading: () => ListView.separated(
                         scrollDirection: Axis.horizontal,
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        itemCount: chips.length,
+                        itemCount: 4,
                         separatorBuilder: (_, __) => const SizedBox(width: 8),
-                        itemBuilder: (_, i) => chips[i],
-                      );
-                    },
-                  );
-                },
+                        itemBuilder: (context, index) =>
+                            _FilterChipSkeleton(c: c),
+                      ),
+                      error: (_, __) => ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        children: [
+                          SacFilterChip(
+                            label: 'activities.list.all_filter'.tr(),
+                            selected: selectedFilter == null,
+                            onTap: () => _selectedFilter.value = null,
+                          ),
+                        ],
+                      ),
+                      data: (types) {
+                        final chips = <Widget>[
+                          SacFilterChip(
+                            label: 'activities.list.all_filter'.tr(),
+                            selected: selectedFilter == null,
+                            onTap: () => _selectedFilter.value = null,
+                          ),
+                          ...types.map(
+                            (t) => SacFilterChip(
+                              label: t.name,
+                              selected: selectedFilter == t.activityTypeId,
+                              onTap: () =>
+                                  _selectedFilter.value = t.activityTypeId,
+                            ),
+                          ),
+                        ];
+                        return ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          itemCount: chips.length,
+                          separatorBuilder: (_, __) => const SizedBox(width: 8),
+                          itemBuilder: (_, i) => chips[i],
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
             ),
             const SizedBox(height: 16),

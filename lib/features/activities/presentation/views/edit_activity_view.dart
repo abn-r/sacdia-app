@@ -432,7 +432,6 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
       backgroundColor: c.background,
       appBar: SacTopBar(
           title: 'activities.edit.title'.tr(),
-          subtitle: 'activities.edit.subtitle'.tr(),
           automaticallyImplyLeading: !isLoading,
           frosted: true),
       body: SacFrostedVeil(

@@ -31,8 +31,11 @@ class ActivityStatePanel extends StatelessWidget {
       if (date == null) return null;
       final weekday = activityWeekday(date, locale);
       if (time == null) return weekday;
-      return 'activities.detail.panel_weekday_at'
-          .tr(namedArgs: {'weekday': weekday, 'time': time});
+      // Spanish reads "a la 1:00", not "a las 1:00".
+      final key = time.startsWith('1:')
+          ? 'activities.detail.panel_weekday_at_one'
+          : 'activities.detail.panel_weekday_at';
+      return key.tr(namedArgs: {'weekday': weekday, 'time': time});
     }
 
     switch (phase) {

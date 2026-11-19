@@ -5,7 +5,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:sacdia_app/features/activities/domain/entities/activity.dart';
 import 'package:sacdia_app/features/activities/presentation/providers/activities_providers.dart';
+import 'package:sacdia_app/features/activities/presentation/views/edit_activity_view.dart';
 import 'package:sacdia_app/features/activities/presentation/views/create_activity_view.dart';
 import 'package:sacdia_app/features/members/presentation/providers/members_providers.dart';
 import 'package:sacdia_app/providers/catalogs_provider.dart';
@@ -119,9 +121,44 @@ void main() {
     );
     expect(find.text('Elige la fecha de la actividad'), findsOneWidget);
   });
+
+  testWidgets('the title is sentence case and has no subtitle', (tester) async {
+    await tester.pumpWidget(_app(translations));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Nueva actividad'), findsOneWidget);
+    expect(find.text('Completa los datos de la actividad'), findsNothing);
+  });
+
+  testWidgets('the edit title is sentence case and has no subtitle',
+      (tester) async {
+    await tester.pumpWidget(
+      _app(
+        translations,
+        home: EditActivityView(
+          activity: Activity(
+            id: 9,
+            name: 'Caminata',
+            activityPlace: 'Parque',
+            activityType: 1,
+            platform: 0,
+            active: true,
+            clubSectionId: 2,
+            clubTypeId: 3,
+            activityDate: DateTime(2026, 12, 1),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Editar actividad'), findsOneWidget);
+    expect(find.text('Modifica los datos de la actividad'), findsNothing);
+  });
 }
 
-Widget _app(Map<String, dynamic> translations) => testProviderScope(
+Widget _app(Map<String, dynamic> translations, {Widget? home}) =>
+    testProviderScope(
       overrides: [
         activityTypesProvider.overrideWith(
           (ref) async => const [
@@ -142,7 +179,7 @@ Widget _app(Map<String, dynamic> translations) => testProviderScope(
             locale: context.locale,
             localizationsDelegates: context.localizationDelegates,
             supportedLocales: context.supportedLocales,
-            home: const CreateActivityView(clubId: 1, clubSectionId: 2),
+            home: home ?? const CreateActivityView(clubId: 1, clubSectionId: 2),
           ),
         ),
       ),
