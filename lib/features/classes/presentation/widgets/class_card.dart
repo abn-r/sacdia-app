@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/animated_counter.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -108,8 +109,9 @@ class ClassCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  '$percent%',
+                AnimatedCounter(
+                  value: percent,
+                  suffix: '%',
                   style: TextStyle(
                     fontSize: SacFontSize.displaySmall,
                     fontWeight: FontWeight.w800,

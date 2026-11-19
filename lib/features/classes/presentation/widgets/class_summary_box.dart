@@ -37,12 +37,14 @@ class ClassSummaryBox extends StatelessWidget {
   Widget build(BuildContext context) {
     final counts = countRequirements(requirements).toStatusCounts();
     final missing = counts.total - counts.validated;
+    String readyText(int ready) => 'classes.grouped.ready_count'.tr(
+          namedArgs: {'ready': '$ready', 'total': '${counts.total}'},
+        );
     return GroupedSummaryBox(
       label: label,
-      value: 'classes.grouped.ready_count'.tr(namedArgs: {
-        'ready': '${counts.validated}',
-        'total': '${counts.total}',
-      }),
+      value: readyText(counts.validated),
+      valueCount: counts.validated,
+      valueText: readyText,
       valueSuffix:
           missing > 0 ? 'classes.grouped.missing'.plural(missing) : null,
       counts: counts,

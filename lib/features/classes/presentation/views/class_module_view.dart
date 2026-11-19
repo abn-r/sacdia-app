@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/errors/user_error_message.dart';
 import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -180,9 +181,12 @@ class _ModuleBody extends ConsumerWidget {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-              child: KeyedSubtree(
-                key: const ValueKey('module-summary'),
-                child: ClassSummaryBox(requirements: module.requirements),
+              child: SacEntrance(
+                index: 0,
+                child: KeyedSubtree(
+                  key: const ValueKey('module-summary'),
+                  child: ClassSummaryBox(requirements: module.requirements),
+                ),
               ),
             ),
           ),
@@ -200,40 +204,46 @@ class _ModuleBody extends ConsumerWidget {
                 ),
               ),
             ),
-          for (final (group, items) in groups)
+          for (final (i, (group, items)) in groups.indexed)
             SliverToBoxAdapter(
-              child: SacGroupedSection(
-                key: ValueKey('module-group-${group.name}'),
-                label: _label(group),
-                children: [
-                  for (final r in items)
-                    RequirementCard(
-                      requirement: r,
-                      onTap: () => openClassRequirement(
-                        context,
+              child: SacEntrance(
+                index: i + 1,
+                child: SacGroupedSection(
+                  key: ValueKey('module-group-${group.name}'),
+                  label: _label(group),
+                  children: [
+                    for (final r in items)
+                      RequirementCard(
                         requirement: r,
-                        classData: classData,
-                        classId: classId,
-                        enrollmentId: enrollmentId,
-                        targetUserId: targetUserId,
+                        onTap: () => openClassRequirement(
+                          context,
+                          requirement: r,
+                          classData: classData,
+                          classId: classId,
+                          enrollmentId: enrollmentId,
+                          targetUserId: targetUserId,
+                        ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
           if (honors.isNotEmpty)
             SliverToBoxAdapter(
-              child: SacGroupedSection(
-                key: const ValueKey('module-honors'),
-                label: 'classes.honors.module_section'.tr(),
-                dividerIndent: 14,
-                children: [
-                  for (final honor in honors)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(14, 12, 10, 2),
-                      child: ClassHonorActionsRow(honor: honor),
-                    ),
-                ],
+              child: SacEntrance(
+                index: groups.length + 1,
+                child: SacGroupedSection(
+                  key: const ValueKey('module-honors'),
+                  label: 'classes.honors.module_section'.tr(),
+                  dividerIndent: 14,
+                  children: [
+                    for (final honor in honors)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 12, 10, 2),
+                        child: ClassHonorActionsRow(honor: honor),
+                      ),
+                  ],
+                ),
               ),
             ),
           const SliverToBoxAdapter(child: SizedBox(height: 40)),

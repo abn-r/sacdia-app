@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../animations/motion_tokens.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/sac_colors.dart';
 import '../sac_pressable.dart';
@@ -50,6 +51,7 @@ class SacStatePanel extends StatelessWidget {
     final c = context.sac;
     final message = this.message;
     final stepLabel = this.stepLabel;
+    final reduceMotion = SacMotion.reduceMotionOf(context);
 
     return Semantics(
       container: true,
@@ -86,57 +88,83 @@ class SacStatePanel extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
               child: Row(
                 children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: style.container,
-                      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                    ),
-                    alignment: Alignment.center,
-                    child: HugeIcon(
-                      icon: style.icon,
-                      size: 22,
-                      color: style.onContainer,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: TextStyle(
-                            fontSize: SacFontSize.titleLarge,
-                            fontWeight: FontWeight.w700,
-                            height: 1.25,
-                            color: c.text,
-                          ),
+                    child: AnimatedSwitcher(
+                      duration:
+                          reduceMotion ? Duration.zero : SacMotion.standard,
+                      switchInCurve: SacMotion.easeOut,
+                      switchOutCurve: SacMotion.easeOut,
+                      transitionBuilder: (child, animation) => FadeTransition(
+                        opacity: animation,
+                        child: ScaleTransition(
+                          scale: Tween<double>(
+                            begin: SacMotion.enterScale,
+                            end: 1,
+                          ).animate(animation),
+                          child: child,
                         ),
-                        if (message != null) ...[
-                          const SizedBox(height: 3),
-                          Text(
-                            message,
-                            style: TextStyle(
-                              fontSize: SacFontSize.bodyMedium,
-                              height: 1.4,
-                              color: c.textSecondary,
+                      ),
+                      // Keyed by what the user reads, so a real change of
+                      // state cross-fades and a plain rebuild does not.
+                      child: Row(
+                        key: ValueKey('$title|${style.container.toARGB32()}'),
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: style.container,
+                              borderRadius:
+                                  BorderRadius.circular(AppTheme.radiusSM),
                             ),
-                          ),
-                        ],
-                        if (stepLabel != null) ...[
-                          const SizedBox(height: 8),
-                          Text(
-                            stepLabel,
-                            style: TextStyle(
-                              fontSize: SacFontSize.bodySmall,
-                              fontWeight: FontWeight.w600,
+                            alignment: Alignment.center,
+                            child: HugeIcon(
+                              icon: style.icon,
+                              size: 22,
                               color: style.onContainer,
                             ),
                           ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  title,
+                                  style: TextStyle(
+                                    fontSize: SacFontSize.titleLarge,
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.25,
+                                    color: c.text,
+                                  ),
+                                ),
+                                if (message != null) ...[
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    message,
+                                    style: TextStyle(
+                                      fontSize: SacFontSize.bodyMedium,
+                                      height: 1.4,
+                                      color: c.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                                if (stepLabel != null) ...[
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    stepLabel,
+                                    style: TextStyle(
+                                      fontSize: SacFontSize.bodySmall,
+                                      fontWeight: FontWeight.w600,
+                                      color: style.onContainer,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
                         ],
-                      ],
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),

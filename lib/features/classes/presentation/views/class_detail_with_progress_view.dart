@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/config/route_names.dart';
 import '../../../../core/errors/user_error_message.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -165,7 +166,12 @@ class _ClassBody extends StatelessWidget {
           SliverToBoxAdapter(
             child: SizedBox(height: SacTopBar.frostedInset(context)),
           ),
-          SliverToBoxAdapter(child: ClassDetailHeader(classData: classData)),
+          SliverToBoxAdapter(
+            child: SacEntrance(
+              index: 0,
+              child: ClassDetailHeader(classData: classData),
+            ),
+          ),
           if (classData.isExpired || prerequisites.isNotEmpty)
             SliverToBoxAdapter(
               child: Padding(
@@ -182,12 +188,15 @@ class _ClassBody extends StatelessWidget {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: KeyedSubtree(
-                key: const ValueKey('class-summary'),
-                child: ClassSummaryBox(
-                  label: 'classes.detail_with_progress.summary_label'.tr(),
-                  requirements: classData.allRequirements,
-                  footer: _SummaryFooter(classData: classData),
+              child: SacEntrance(
+                index: 1,
+                child: KeyedSubtree(
+                  key: const ValueKey('class-summary'),
+                  child: ClassSummaryBox(
+                    label: 'classes.detail_with_progress.summary_label'.tr(),
+                    requirements: classData.allRequirements,
+                    footer: _SummaryFooter(classData: classData),
+                  ),
                 ),
               ),
             ),
@@ -204,9 +213,12 @@ class _ClassBody extends StatelessWidget {
             ),
           ),
           SliverToBoxAdapter(
-            child: ClassAttentionSection(
-              modules: modules,
-              onOpenRequirement: (r) => _openRequirement(context, r),
+            child: SacEntrance(
+              index: 2,
+              child: ClassAttentionSection(
+                modules: modules,
+                onOpenRequirement: (r) => _openRequirement(context, r),
+              ),
             ),
           ),
           if (modules.isEmpty)
@@ -219,13 +231,19 @@ class _ClassBody extends StatelessWidget {
             )
           else
             SliverToBoxAdapter(
-              child: ClassModulesSection(
-                modules: modules,
-                onOpenModule: (m) => _openModule(context, m),
+              child: SacEntrance(
+                index: 3,
+                child: ClassModulesSection(
+                  modules: modules,
+                  onOpenModule: (m) => _openModule(context, m),
+                ),
               ),
             ),
           SliverToBoxAdapter(
-            child: ClassRecommendedHonorsSection(classId: classId),
+            child: SacEntrance(
+              index: 4,
+              child: ClassRecommendedHonorsSection(classId: classId),
+            ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 40)),
         ],

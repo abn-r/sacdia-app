@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
@@ -49,8 +50,11 @@ class ClassClubLists extends StatelessWidget {
     super.key,
     required this.sections,
     required this.enrolled,
+    this.firstIndex = 1,
   });
 
+  /// Entrance position of the first group; the next ones follow.
+  final int firstIndex;
   final List<ClassCatalogSection> sections;
   final List<ProgressiveClass> enrolled;
 
@@ -58,18 +62,21 @@ class ClassClubLists extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        for (final section in relevantClubSections(sections))
-          SacGroupedSection(
-            label: 'classes.catalog.club_${section.clubTypeId}'.tr(),
-            dividerIndent: 62,
-            action: _ages(context, section),
-            children: [
-              for (final entry in section.entries)
-                _ClubClassRow(
-                  entry: entry,
-                  enrollment: enrollmentForClass(enrolled, entry.classId),
-                ),
-            ],
+        for (final (i, section) in relevantClubSections(sections).indexed)
+          SacEntrance(
+            index: firstIndex + i,
+            child: SacGroupedSection(
+              label: 'classes.catalog.club_${section.clubTypeId}'.tr(),
+              dividerIndent: 62,
+              action: _ages(context, section),
+              children: [
+                for (final entry in section.entries)
+                  _ClubClassRow(
+                    entry: entry,
+                    enrollment: enrollmentForClass(enrolled, entry.classId),
+                  ),
+              ],
+            ),
           ),
       ],
     );

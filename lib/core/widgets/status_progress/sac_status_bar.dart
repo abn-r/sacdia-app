@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_theme.dart';
 import '../../theme/sac_colors.dart';
+import 'sac_segment_row.dart';
 import 'sac_status_style.dart';
 import 'status_counts.dart';
 
@@ -95,7 +96,8 @@ class SacStatusBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final parts = _resolve(context).where((p) => p.count > 0).toList();
+    final all = _resolve(context);
+    final parts = all.where((p) => p.count > 0).toList();
 
     if (parts.isEmpty) return const SizedBox.shrink();
 
@@ -110,18 +112,9 @@ class SacStatusBar extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppTheme.radiusFull),
             child: SizedBox(
               height: 8,
-              child: Row(
-                // Without stretch an empty ColoredBox is 0 tall.
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (var i = 0; i < parts.length; i++) ...[
-                    if (i > 0) const SizedBox(width: 3),
-                    Expanded(
-                      flex: parts[i].count,
-                      child: ColoredBox(color: parts[i].color),
-                    ),
-                  ],
-                ],
+              child: SacSegmentRow(
+                // All groups, so a segment keeps its slot when counts change.
+                parts: [for (final p in all) SacSegmentPart(p.count, p.color)],
               ),
             ),
           ),

@@ -153,12 +153,13 @@ class _ModuleBar extends StatelessWidget {
     Color solid(SacStatusKind k) =>
         SacStatusStyle.of(context, k, label: '').solid;
     final rest = total - validated - sent - toFix;
-    final parts = [
+    final all = [
       (validated, solid(SacStatusKind.validated)),
       (sent, solid(SacStatusKind.review)),
       (toFix, solid(SacStatusKind.rejected)),
       if (total > 0) (rest, c.divider),
-    ].where((p) => p.$1 > 0).toList();
+    ];
+    final parts = all.where((p) => p.$1 > 0).toList();
 
     return ExcludeSemantics(
       child: ClipRRect(
@@ -167,12 +168,9 @@ class _ModuleBar extends StatelessWidget {
           height: 4,
           child: parts.isEmpty
               ? ColoredBox(color: c.divider)
-              : Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (final p in parts)
-                      Expanded(flex: p.$1, child: ColoredBox(color: p.$2)),
-                  ],
+              : SacSegmentRow(
+                  gap: 0,
+                  parts: [for (final p in all) SacSegmentPart(p.$1, p.$2)],
                 ),
         ),
       ),

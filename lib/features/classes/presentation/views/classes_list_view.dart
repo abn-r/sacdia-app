@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
@@ -148,15 +149,24 @@ class ClassesListViewBody extends ConsumerWidget {
           padding: EdgeInsets.fromLTRB(0, listTop, 0, 32),
           children: [
             if (classes.isEmpty)
-              _EmptyHeader(
-                hasActiveClub: hasActiveClub,
-                onEnroll: () => _openEnrollSheet(context),
+              SacEntrance(
+                index: 0,
+                child: _EmptyHeader(
+                  hasActiveClub: hasActiveClub,
+                  onEnroll: () => _openEnrollSheet(context),
+                ),
               )
             else ...[
-              _CurrentSection(currentClass: currentClassOf(classes)),
+              SacEntrance(
+                index: 0,
+                child: _CurrentSection(currentClass: currentClassOf(classes)),
+              ),
               _ClubLists(enrolled: classes),
             ],
-            const _ExploreSection(),
+            SacEntrance(
+              index: classes.isEmpty ? 1 : 3,
+              child: const _ExploreSection(),
+            ),
           ],
         ),
       ),
@@ -239,7 +249,11 @@ class _ClubLists extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sections = ref.watch(classCatalogProvider).value;
     if (sections == null) return const SizedBox.shrink();
-    return ClassClubLists(sections: sections, enrolled: enrolled);
+    return ClassClubLists(
+      sections: sections,
+      enrolled: enrolled,
+      firstIndex: 1,
+    );
   }
 }
 
