@@ -2080,64 +2080,27 @@
       "pending": "Pending",
       "sent": "Sent",
       "validated": "Validated",
-      "rejected": "Rejected",
-      "completed": "Completed"
-    },
-    "progress_ring": {
-      "percent": "{percent}%"
+      "rejected": "Rejected"
     },
     "class_card": {
-      "current_badge": "Current class",
-      "expired_badge": "Expired",
-      "expired_description": "This class remains in your history, but it can no longer be completed for investiture."
-    },
-    "requirement_card": {
-      "files_label": "{count} / {max} files",
-      "sent_by": "Sent by {name}{date}",
-      "validated_by": "Validated by {name}{date}"
+      "expired_badge": "Expired"
     },
     "requirement_detail": {
       "unsaved_files_title": "Unsent files",
       "unsaved_files_body": "You have unsent files. Are you sure you want to leave?",
       "stay_button": "Stay",
       "leave_button": "Leave",
-      "requirement_title": "Requirement: {name}",
       "title": "Requirement",
-      "detail_header": "Requirement detail",
-      "status_header": "Requirement status",
-      "evidence_files_header": "Evidence files",
       "submit_success": "Requirement submitted for validation.",
-      "file_limit_label": "File limit",
-      "type_label": "Type",
-      "type_honor": "Honor",
-      "type_service": "Service",
-      "type_general": "General",
       "linked_honor_title": "Required honor",
       "honor_completed": "Completed",
       "honor_pending": "Pending",
-      "semantics_status": "Requirement status: {status}. Tap to view history.",
       "expired_banner": "Expired · This class remains in your history, but it can no longer be completed for investiture.",
       "invested_banner": "Invested · This class is closed: you can view your evidence, but not change it.",
       "honor_done_message": "It already counts toward your progress.",
       "honor_pending_message": "It validates itself when you complete the honor.",
       "honor_progress": "{done} of {total} requirements",
       "honor_go": "Go to the honor"
-    },
-    "section_detail": {
-      "title": "Section Detail",
-      "completed_subtitle": "You have completed this section",
-      "pending_subtitle": "Mark this section as completed",
-      "mark_completed_snack": "Section marked as completed",
-      "mark_pending_snack": "Section marked as pending",
-      "button_completed": "Mark as pending",
-      "button_pending": "Mark as completed"
-    },
-    "modules": {
-      "title": "Modules",
-      "empty": "No modules available",
-      "section_completed_snack": "Section completed",
-      "section_pending_snack": "Section marked as pending",
-      "error_loading": "Error loading modules"
     },
     "honors": {
       "open_pdf": "Open PDF",
@@ -2146,32 +2109,11 @@
       "no_pdf": "This specialty has no PDF material",
       "module_section": "Specialties in this module"
     },
-    "detail": {
-      "progress_label": "progress",
-      "description_header": "Description",
-      "view_modules_button": "View Modules",
-      "error_loading": "Error loading detail"
-    },
     "detail_with_progress": {
-      "modules_header": "Modules and Requirements",
       "track_basic": "Class development",
       "track_advanced": "Advanced",
       "track_extra": "Complementary activities",
       "track_unknown": "Other requirements",
-      "search_hint": "Search module or requirement...",
-      "no_results": "No results for \"{query}\"",
-      "stat_requirements": "requirements",
-      "stat_pending": "pend.",
-      "stat_sent": "sent",
-      "stat_validated": "val.",
-      "module_pending_count": {
-        "one": "{} pending",
-        "other": "{} pending"
-      },
-      "module_honors_count": {
-        "one": "{} honor",
-        "other": "{} honors"
-      },
       "empty_requirements": "No requirements in this module.",
       "empty_modules_title": "No modules yet",
       "empty_modules_body": "Modules will appear when available for this class.",
@@ -2217,89 +2159,22 @@
       "ages_open": "{min}+ years",
       "current_a11y": "{name}. {status}. {percent} percent"
     },
-    "status_history": {
-      "title": "Status history",
-      "empty_title": "No changes recorded",
-      "empty_body": "This requirement has no recorded status changes yet.",
-      "created_desc": "Requirement created, awaiting evidence.",
-      "sent_desc": "Evidence sent for validation.",
-      "validated_desc": "Requirement approved by the leader.",
-      "rejected_desc": "Requirement rejected. You can resubmit evidence."
-    },
     "enroll_sheet": {
       "title": "Enroll previous class",
-      "subtitle": "Select a class you have already completed",
-      "year_error": "Could not determine the current ecclesiastical year",
-      "year_label": "Ecclesiastical year: ",
-      "error_loading": "Error loading classes",
-      "empty_catalog": "No classes available in the catalog",
-      "select_class": "Select a class",
-      "no_auth": "You must log in to enroll a previous class",
-      "close_button": "Close",
-      "enroll_button": "Enroll",
-      "already_enrolled": "You are already enrolled in this class",
-      "enroll_success": "Enrollment in \"{className}\" registered successfully"
+      "subtitle": "Select a class you have already completed"
     },
     "teaching_scope": {
-      "title": "Assigned classes",
       "context_error_title": "We could not resolve your section",
       "no_context_title": "No active section",
-      "no_context_body": "Select a club and section to view the classes you supervise.",
-      "empty_title": "No assigned classes",
-      "empty_body": "There are no classes configured for you to supervise in this section yet.",
-      "load_error_title": "Could not load classes",
-      "section_scope_title": "Whole-section scope",
-      "section_scope_body": "You can supervise progress for every class in this section.",
-      "assigned_scope_title": "Assigned classes",
-      "assigned_scope_body": "You can supervise only the classes assigned to you.",
-      "open_members": "View members and progress"
+      "no_context_body": "Select a club and section to view the classes you supervise."
     },
     "class_assignments": {
-      "title": "Manage classes",
-      "add_button": "Assign",
-      "header_title": "Class leaders",
-      "header_body": "Assign counselors or secretaries to this section’s classes. The director keeps full-section scope.",
-      "readonly_body": "You can review who is assigned to each class in this section.",
-      "empty_title": "No leaders assigned",
-      "empty_body": "No counselors or secretaries have been assigned to classes yet.",
       "load_error_title": "Could not load assignments",
-      "create_title": "Assign class",
-      "edit_title": "Edit assignment",
-      "form_body": "The formal leader follows the yearly progress of members enrolled in that class.",
-      "class_label": "Class",
-      "responsible_label": "Leader",
-      "responsibility_label": "Responsibility type",
-      "exceptional_label": "Exceptional assignment",
-      "exceptional_hint": "Use it when the person will carry a second class or an unusual case.",
-      "reason_label": "Exception reason",
-      "class_required": "Select a class",
-      "responsible_required": "Select a leader",
-      "reason_required": "Enter the exception reason",
-      "exceptional_chip": "Exceptional",
-      "revoke_action": "Revoke",
-      "revoke_title": "Revoke assignment",
-      "revoke_body": "Do you want to revoke {name} from class {className}?",
-      "revoke_confirm": "Revoke",
-      "create_success": "Assignment created.",
-      "update_success": "Assignment updated.",
-      "revoke_success": "Assignment revoked.",
-      "no_club_type": "Could not resolve the club type.",
       "loading_catalog": "Classes and members are still loading.",
       "catalog_error": "Could not load the catalog or members.",
-      "no_classes": "No classes are available for this section.",
-      "no_candidates": "There are no active counselors or secretaries who are studying or have completed Master Guide.",
-      "responsibility": {
-        "primary": "Primary",
-        "assistant": "Assistant",
-        "substitute": "Substitute"
-      }
+      "no_candidates": "There are no active counselors or secretaries who are studying or have completed Master Guide."
     },
     "members_progress": {
-      "empty_title": "No enrolled members",
-      "empty_body": "This class does not have active members in the section yet.",
-      "load_error_title": "Could not load progress",
-      "member_count": "{count} enrolled members",
-      "completed_sections": "Completed sections: {value}",
       "cross_type_chip": "Cross-type"
     },
     "catalog": {
@@ -2405,10 +2280,6 @@
       "member_empty_body": "This class has no requirements for this member yet.",
       "member_load_error_title": "We couldn't load the member's progress",
       "req": {
-        "step_files": "Files",
-        "step_sent": "Sent",
-        "step_local": "Local field",
-        "step_semantics": "Step {current} of {total}: {label}",
         "meta_pending": "Upload the files and send it when it is ready.",
         "meta_rejected": "Returned on {date} · fix it and send it again",
         "meta_rejected_nodate": "Fix it and send it again.",
@@ -2418,13 +2289,11 @@
         "meta_closed": "This class is closed and no longer accepts changes.",
         "note_title": "Local field note",
         "files": "Files",
-        "files_count": "{count} of {max}",
         "subtitle_member": "{member} · up to {max} files",
         "subtitle": "Up to {max} files",
         "not_found_title": "We couldn't find this requirement",
         "not_found_body": "It may no longer be part of the class.",
         "load_error_title": "We couldn't load the requirement",
-        "max_files": "Maximum {max} files per requirement.",
         "step_of": "Step {step} of {total} · See every state",
         "panel_semantics": "State: {state}, step {step} of {total}",
         "panel_hint": "Shows every state",
@@ -3929,47 +3798,13 @@
       "create_folder_empty": "The folder was requested, but it is not available yet. Try refreshing."
     },
     "title": "Annual Evidence Folder",
-    "overview_label": "{name} · PROGRESS",
-    "search_hint": "Search evidence section…",
-    "no_results_body": "Try another name or description.",
-    "section_title": "Section",
     "send": "Send",
     "stay": "Stay",
     "exit": "Exit",
     "show_more": "Show more",
     "show_less": "Show less",
-    "points_label": "Points",
-    "weight_label": "Weight",
-    "limit_label": "Limit",
-    "earned_points": "Earned points",
-    "sending": "Sending...",
-    "send_to_validation": "Send for validation",
     "submit_success": "Section \"{sectionName}\" sent for validation successfully",
-    "status": {
-      "open": "Open",
-      "closed": "Closed",
-      "pending": "Pending",
-      "submitted": "Submitted",
-      "preapproved": "Pre-approved",
-      "validated": "Validated",
-      "rejected": "Rejected"
-    },
-    "stats": {
-      "pending": "Pending",
-      "submitted": "Submitted",
-      "preapproved": "Pre-approved",
-      "rejected": "Rejected",
-      "validated": "Validated"
-    },
-    "sections_title": "Sections",
     "empty_sections": "No sections available",
-    "section_detail_label": "Section detail",
-    "section_status_label": "Section status",
-    "evaluation_result_title": "Evaluation result",
-    "evidence_files_title": "Evidence files",
-    "evaluator_notes": "Evaluator notes",
-    "reviewer_comments": "Reviewer comments",
-    "status_semantics": "Section status: {label}. Tap to view history.",
     "submit_section_dialog": {
       "title": "Send section for validation",
       "message": "Are you sure you want to send section \"{sectionName}\" for validation?\n\nYou will not be able to modify files until the local field reviews it."
@@ -3977,18 +3812,6 @@
     "unsaved_files_dialog": {
       "title": "Unsent files",
       "message": "You have unsent files. Are you sure you want to exit?"
-    },
-    "evaluation_banner": {
-      "title": "Under evaluation",
-      "description": "The field evaluator is reviewing this club's evidence."
-    },
-    "evaluated_banner": {
-      "title": "Folder evaluated{date}",
-      "points": "Earned points: {earned} / {max}"
-    },
-    "closed_banner": {
-      "title": "Folder closed",
-      "description": "The annual evidence folder has been closed. To modify your evidence, please contact your local field administration."
     },
     "no_folder": {
       "title": "Folder not available",
@@ -4003,32 +3826,6 @@
       "create_success": "Folder created. You can now add evidence."
     },
     "error_load_title": "Error loading folder",
-    "status_history": {
-      "title": "Status history",
-      "empty_title": "No changes recorded",
-      "empty_description": "This section has no recorded status changes yet.",
-      "pending_desc": "Section created, waiting for evidence.",
-      "submitted_desc": "Evidence sent for validation.",
-      "rejected_desc": "Section rejected. You can resubmit evidence.",
-      "preapproved_desc": "Section pre-approved by the local field.",
-      "validated_desc": "Section validated definitively by the union."
-    },
-    "trace": {
-      "sent_by": "Sent by {name}{date}",
-      "preapproved_by": "Pre-approved by {name}{date}",
-      "validated_by": "Validated by {name}{date}"
-    },
-    "timeline": {
-      "waiting_evidence": "Waiting for evidence",
-      "waiting_send": "Waiting to be sent",
-      "rejected": "Section rejected",
-      "local_review": "Local field review",
-      "waiting_validation": "Waiting for validation"
-    },
-    "points_ratio": "{earned} / {max} pts",
-    "points_value": "{points} pts",
-    "files_count": "{count} files",
-    "files_ratio": "{current} / {max} files",
     "state": {
       "pending": "Not sent",
       "rejected": "Needs changes",
@@ -4090,7 +3887,6 @@
     "detail": {
       "subtitle": "Worth {points} pts · up to {max} files",
       "files": "Files",
-      "files_count": "{count} of {max}",
       "file_notes": "Comments per file",
       "reviewer_note": "Note from the local field",
       "evaluator_note": "Evaluator's note"
@@ -4105,11 +3901,6 @@
       "returned": "Returned for changes",
       "returned_on": "Returned on {date}",
       "fix_hint": "make the changes and send it again",
-      "step_files": "Files",
-      "step_sent": "Sent",
-      "step_local_field": "Local field",
-      "step_union": "Union",
-      "step_semantics": "Step {current} of {total}: {label}",
       "fix_full": "Make the changes and send it again.",
       "step_of": "Step {step} of {total} · See every state",
       "step_of_points": "Step {step} of {total} · {points}",
@@ -5164,9 +4955,6 @@
       },
       "submit_dialog_title": "Submit for validation",
       "upload_all_failed": "All files failed",
-      "upload_all_success": "All files uploaded",
-      "upload_partial": "{completed} of {total} uploaded, {failed} failed",
-      "uploading_progress": "Uploading {current} of {total} files...",
       "remove_file": "Remove file",
       "uploading_title": "Uploading {current} of {total}",
       "uploading_hint": "Don't close the app while they upload.",

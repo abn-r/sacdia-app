@@ -12,8 +12,6 @@ import 'package:sacdia_app/features/classes/presentation/catalog/class_catalog.d
 import 'package:sacdia_app/features/classes/presentation/catalog/class_catalog_providers.dart';
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
 import 'package:sacdia_app/features/classes/presentation/views/classes_list_view.dart';
-import 'package:sacdia_app/features/classes/presentation/widgets/mini_ring.dart';
-import 'package:sacdia_app/features/classes/presentation/widgets/progress_ring.dart';
 import '../../../../support/l10n_test_support.dart';
 import '../../../../support/riverpod_test_support.dart';
 
@@ -141,8 +139,6 @@ void main() {
     expect(find.text('Cursando · 2026'), findsWidgets);
     expect(find.byType(SacProgressBar), findsOneWidget);
     expect(find.text('28%'), findsOneWidget);
-    expect(find.byType(HeroDonut), findsNothing);
-    expect(find.byType(MiniRing), findsNothing);
     expect(find.textContaining('requisitos'), findsNothing);
     expect(find.textContaining('por corregir'), findsNothing);
   });
