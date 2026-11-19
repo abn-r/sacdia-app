@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -20,7 +21,11 @@ import 'requirement_card.dart';
 
 /// "Por atender": what was sent back first, then what is started but not
 /// sent. Nothing is drawn when there is nothing to attend.
-class ClassAttentionSection extends StatelessWidget {
+///
+/// When a requirement drops out of the group (a data refresh after resending
+/// it) its row collapses and fades ([SacMotion.standard]) instead of
+/// jumping, and the count rolls.
+class ClassAttentionSection extends StatefulWidget {
   const ClassAttentionSection({
     super.key,
     required this.modules,
@@ -31,20 +36,160 @@ class ClassAttentionSection extends StatelessWidget {
   final void Function(ClassRequirement requirement) onOpenRequirement;
 
   @override
+  State<ClassAttentionSection> createState() => _ClassAttentionSectionState();
+}
+
+class _AttentionEntry {
+  _AttentionEntry(this.requirement);
+
+  ClassRequirement requirement;
+  bool leaving = false;
+}
+
+class _ClassAttentionSectionState extends State<ClassAttentionSection> {
+  late List<_AttentionEntry> _entries;
+
+  @override
+  void initState() {
+    super.initState();
+    _entries = [
+      for (final r in attentionRequirements(widget.modules)) _AttentionEntry(r),
+    ];
+  }
+
+  @override
+  void didUpdateWidget(ClassAttentionSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final fresh = attentionRequirements(widget.modules);
+    final freshIds = {for (final r in fresh) r.id};
+    final previous = _entries;
+    final next = <_AttentionEntry>[
+      for (final r in fresh)
+        previous.firstWhere(
+          (e) => e.requirement.id == r.id,
+          orElse: () => _AttentionEntry(r),
+        )
+          ..requirement = r
+          ..leaving = false,
+    ];
+    // Rows that left stay where they were until they finish collapsing.
+    for (var i = 0; i < previous.length; i++) {
+      final e = previous[i];
+      if (freshIds.contains(e.requirement.id)) continue;
+      e.leaving = true;
+      next.insert(i < next.length ? i : next.length, e);
+    }
+    _entries = next;
+  }
+
+  void _remove(_AttentionEntry entry) {
+    if (!mounted) return;
+    setState(() => _entries.remove(entry));
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final items = attentionRequirements(modules);
-    if (items.isEmpty) return const SizedBox.shrink();
+    if (_entries.isEmpty) return const SizedBox.shrink();
     return SacGroupedSection(
       key: const ValueKey('class-attention-section'),
       label: 'classes.grouped.group_attention'.tr(),
+      count: _entries.where((e) => !e.leaving).length,
+      rollCount: true,
       children: [
-        for (final r in items)
-          RequirementCard(
-            requirement: r,
-            showUnsentFiles: true,
-            onTap: () => onOpenRequirement(r),
+        for (final e in _entries)
+          _CollapsingRow(
+            key: ValueKey('attention-${e.requirement.id}'),
+            collapsed: e.leaving,
+            onCollapsed: () => _remove(e),
+            child: RequirementCard(
+              requirement: e.requirement,
+              showUnsentFiles: true,
+              onTap: () => widget.onOpenRequirement(e.requirement),
+            ),
           ),
       ],
+    );
+  }
+}
+
+/// Collapses its child (height and opacity, [SacMotion.standard]) when
+/// [collapsed] turns true, then calls [onCollapsed]. Reduced Motion fades
+/// only.
+class _CollapsingRow extends StatefulWidget {
+  const _CollapsingRow({
+    super.key,
+    required this.collapsed,
+    required this.onCollapsed,
+    required this.child,
+  });
+
+  final bool collapsed;
+  final VoidCallback onCollapsed;
+  final Widget child;
+
+  @override
+  State<_CollapsingRow> createState() => _CollapsingRowState();
+}
+
+class _CollapsingRowState extends State<_CollapsingRow>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _curved;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: SacMotion.standard,
+      value: 1,
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.dismissed && widget.collapsed) {
+          widget.onCollapsed();
+        }
+      });
+    _curved = CurvedAnimation(parent: _controller, curve: SacMotion.easeOut);
+    if (widget.collapsed) _controller.reverse();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _controller.duration = SacMotion.reduceMotionOf(context)
+        ? SacMotion.reducedFade
+        : SacMotion.standard;
+  }
+
+  @override
+  void didUpdateWidget(_CollapsingRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.collapsed && !oldWidget.collapsed) {
+      _controller.reverse();
+    } else if (!widget.collapsed && oldWidget.collapsed) {
+      _controller.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final curved = _curved;
+    final reduce = SacMotion.reduceMotionOf(context);
+    final faded = FadeTransition(opacity: curved, child: widget.child);
+    return IgnorePointer(
+      ignoring: widget.collapsed,
+      child: reduce
+          ? faded
+          : SizeTransition(
+              sizeFactor: curved,
+              alignment: Alignment.topCenter,
+              child: faded,
+            ),
     );
   }
 }
@@ -148,6 +293,7 @@ class ClassHonorRow extends StatelessWidget {
       label: '${honor.honorName}. $detail',
       child: SacInkWell(
         onTap: onTap,
+        pressedScale: SacMotion.rowPressScale,
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 64),
           child: Padding(

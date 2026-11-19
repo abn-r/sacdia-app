@@ -30,6 +30,10 @@ enum SacButtonSize { small, medium, large }
 /// Sin splash Material. Íconos HugeIcons, loading y overrides de estilo.
 class SacButton extends StatefulWidget {
   final String text;
+
+  /// Replaces the plain [Text] label (e.g. a rolling number). [text] still
+  /// feeds the accessibility label. Only on the main and primary constructors.
+  final Widget? label;
   final VoidCallback? onPressed;
   final bool isLoading;
   final bool isEnabled;
@@ -56,6 +60,7 @@ class SacButton extends StatefulWidget {
   const SacButton({
     super.key,
     required this.text,
+    this.label,
     this.onPressed,
     this.isLoading = false,
     this.isEnabled = true,
@@ -82,6 +87,7 @@ class SacButton extends StatefulWidget {
   const SacButton.primary({
     super.key,
     required this.text,
+    this.label,
     this.onPressed,
     this.isLoading = false,
     this.isEnabled = true,
@@ -123,7 +129,8 @@ class SacButton extends StatefulWidget {
     this.labelMaxLines = 1,
     this.labelOverflow = TextOverflow.ellipsis,
     this.loadingSemanticLabel,
-  })  : variant = SacButtonVariant.outline,
+  })  : label = null,
+        variant = SacButtonVariant.outline,
         size = SacButtonSize.medium,
         fullWidth = true,
         minHeight = null;
@@ -148,7 +155,8 @@ class SacButton extends StatefulWidget {
     this.labelMaxLines = 1,
     this.labelOverflow = TextOverflow.ellipsis,
     this.loadingSemanticLabel,
-  })  : variant = SacButtonVariant.ghost,
+  })  : label = null,
+        variant = SacButtonVariant.ghost,
         size = SacButtonSize.medium,
         fullWidth = false,
         minHeight = null;
@@ -170,7 +178,8 @@ class SacButton extends StatefulWidget {
     this.isLoading = false,
     this.isEnabled = true,
     this.loadingSemanticLabel,
-  })  : variant = SacButtonVariant.ghost,
+  })  : label = null,
+        variant = SacButtonVariant.ghost,
         size = SacButtonSize.small,
         // ignore: prefer_initializing_formals
         icon = icon,
@@ -208,7 +217,8 @@ class SacButton extends StatefulWidget {
     this.labelMaxLines = 1,
     this.labelOverflow = TextOverflow.ellipsis,
     this.loadingSemanticLabel,
-  })  : variant = SacButtonVariant.destructive,
+  })  : label = null,
+        variant = SacButtonVariant.destructive,
         size = SacButtonSize.medium,
         fullWidth = true,
         minHeight = null;
@@ -233,7 +243,8 @@ class SacButton extends StatefulWidget {
     this.labelMaxLines = 1,
     this.labelOverflow = TextOverflow.ellipsis,
     this.loadingSemanticLabel,
-  })  : variant = SacButtonVariant.success,
+  })  : label = null,
+        variant = SacButtonVariant.success,
         size = SacButtonSize.medium,
         fullWidth = true,
         minHeight = null;
@@ -356,17 +367,27 @@ class _SacButtonState extends State<SacButton> {
   }
 
   Widget _labelRow(Color color, {Key? key}) {
-    final label = Text(
-      widget.text,
-      maxLines: widget.labelMaxLines,
-      overflow: widget.labelOverflow,
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        fontSize: _fontSize,
-        fontWeight: FontWeight.w600,
-        color: color,
-      ),
+    final labelStyle = TextStyle(
+      fontSize: _fontSize,
+      fontWeight: FontWeight.w600,
+      color: color,
     );
+    final custom = widget.label;
+    final label = custom != null
+        ? DefaultTextStyle(
+            style: labelStyle,
+            maxLines: widget.labelMaxLines,
+            overflow: widget.labelOverflow,
+            textAlign: TextAlign.center,
+            child: custom,
+          )
+        : Text(
+            widget.text,
+            maxLines: widget.labelMaxLines,
+            overflow: widget.labelOverflow,
+            textAlign: TextAlign.center,
+            style: labelStyle,
+          );
     return Row(
       key: key,
       mainAxisSize: widget.fullWidth ? MainAxisSize.max : MainAxisSize.min,

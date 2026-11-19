@@ -29,6 +29,9 @@ class SacCard extends StatefulWidget {
   /// Use this to create a manual stagger when wrapping multiple cards.
   final Duration animationDelay;
 
+  /// Scale while pressed (only when [onTap] is set).
+  final double pressedScale;
+
   const SacCard({
     super.key,
     required this.child,
@@ -40,6 +43,7 @@ class SacCard extends StatefulWidget {
     this.backgroundColor,
     this.animate = false,
     this.animationDelay = Duration.zero,
+    this.pressedScale = SacMotion.pressScale,
   });
 
   @override
@@ -157,7 +161,7 @@ class _SacCardState extends State<SacCard> with SingleTickerProviderStateMixin {
           onTapCancel: () => _setPressed(false),
           onTap: widget.onTap,
           child: AnimatedScale(
-            scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
+            scale: (!reduce && _pressed) ? widget.pressedScale : 1,
             duration: SacMotion.press,
             curve: SacMotion.easeOut,
             child: content,

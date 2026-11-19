@@ -80,7 +80,8 @@ void main() {
     expect(find.text('Enviar 1 archivo'), findsOneWidget);
 
     await _pump(tester, remote: 2);
-    await tester.pump();
+    // The number rolls for a moment; at rest it is one plain label again.
+    await tester.pumpAndSettle();
     expect(find.text('Enviar 2 archivos'), findsOneWidget);
     expect(find.text('2 de 3'), findsOneWidget);
   });

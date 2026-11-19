@@ -17,6 +17,7 @@ class SacPressable extends StatefulWidget {
     this.listenOnly = false,
     this.semanticLabel,
     this.semanticButton = true,
+    this.pressedScale = SacMotion.pressScale,
   }) : assert(
           !listenOnly || (onTap == null && onLongPress == null),
           'SacPressable.listenOnly cannot own onTap; the child must.',
@@ -29,6 +30,10 @@ class SacPressable extends StatefulWidget {
   final bool listenOnly;
   final String? semanticLabel;
   final bool semanticButton;
+
+  /// Scale while the pointer is down. Calmer for big surfaces (rows 0.985,
+  /// cards 0.98), stronger for small tiles (0.95).
+  final double pressedScale;
 
   @override
   State<SacPressable> createState() => _SacPressableState();
@@ -76,7 +81,7 @@ class _SacPressableState extends State<SacPressable> {
   Widget build(BuildContext context) {
     final reduce = SacMotion.reduceMotionOf(context);
     Widget child = AnimatedScale(
-      scale: (!reduce && _pressed && widget.enabled) ? SacMotion.pressScale : 1,
+      scale: (!reduce && _pressed && widget.enabled) ? widget.pressedScale : 1,
       duration: SacMotion.press,
       curve: SacMotion.easeOut,
       child: widget.child,
@@ -132,6 +137,7 @@ class SacInkWell extends StatelessWidget {
     this.customBorder,
     this.splashColor,
     this.highlightColor,
+    this.pressedScale = SacMotion.pressScale,
   });
 
   final Widget child;
@@ -141,6 +147,9 @@ class SacInkWell extends StatelessWidget {
   final ShapeBorder? customBorder;
   final Color? splashColor;
   final Color? highlightColor;
+
+  /// See [SacPressable.pressedScale].
+  final double pressedScale;
 
   @override
   Widget build(BuildContext context) {
@@ -154,6 +163,7 @@ class SacInkWell extends StatelessWidget {
         onTap: onTap,
         onLongPress: onLongPress,
         enabled: active,
+        pressedScale: pressedScale,
         child: child,
       ),
     );

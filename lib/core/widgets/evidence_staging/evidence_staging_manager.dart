@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../animations/sac_rolling_number.dart';
 import '../../errors/exceptions.dart';
 import '../../theme/sac_colors.dart';
 import '../../utils/app_logger.dart';
@@ -15,6 +16,8 @@ import '../sac_button.dart';
 import '../sac_dialog.dart';
 import '../sac_snack_bar.dart';
 import 'evidence_footer_bar.dart';
+import 'evidence_footer_presence.dart';
+import 'evidence_send_label.dart';
 import 'evidence_source_sheet.dart';
 import 'evidence_staging_layout.dart';
 import 'image_source_dialog.dart';
@@ -764,6 +767,32 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
     );
   }
 
+  /// The "2 of 10" count; the first number rolls when it changes. Read-only
+  /// screens show only the total.
+  Widget _filesCount(TextStyle style) {
+    const marker = '\u0001';
+    var prefix = '';
+    var suffix = '';
+    if (widget.canModify) {
+      final text = 'core.evidence_staging.files_of'.tr(namedArgs: {
+        'count': marker,
+        'max': '${widget.maxFiles}',
+      });
+      final at = text.indexOf(marker);
+      if (at >= 0) {
+        prefix = text.substring(0, at);
+        suffix = text.substring(at + marker.length);
+      }
+    }
+    return SacRollingNumber(
+      textKey: const ValueKey('evidence-files-count'),
+      value: _allFiles.length,
+      prefix: prefix,
+      suffix: suffix,
+      style: style,
+    );
+  }
+
   /// "FILES   2 of 10" above the grid. Read-only screens show only the total.
   Widget _buildEyebrow() {
     final c = context.sac;
@@ -783,15 +812,8 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
               ),
             ),
           ),
-          Text(
-            widget.canModify
-                ? 'core.evidence_staging.files_of'.tr(namedArgs: {
-                    'count': '${_allFiles.length}',
-                    'max': '${widget.maxFiles}',
-                  })
-                : '${_allFiles.length}',
-            key: const ValueKey('evidence-files-count'),
-            style: TextStyle(
+          _filesCount(
+            TextStyle(
               fontSize: SacFontSize.bodySmall,
               fontWeight: FontWeight.w600,
               color: _isOverLimit ? c.error : c.textSecondary,
@@ -838,7 +860,10 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildContent(),
-          if (widget.showActionBar && widget.canModify) _buildActionBar(),
+          EvidenceFooterPresence(
+            visible: widget.showActionBar && widget.canModify,
+            child: _buildActionBar(),
+          ),
         ],
       );
     }
@@ -852,7 +877,10 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
         ),
 
         // Action bar — always at the bottom, no GlobalKey needed
-        if (widget.showActionBar && widget.canModify) _buildActionBar(),
+        EvidenceFooterPresence(
+          visible: widget.showActionBar && widget.canModify,
+          child: _buildActionBar(),
+        ),
       ],
     );
   }
@@ -947,6 +975,9 @@ class EvidenceStagingActionBar extends StatelessWidget {
     );
   }
 
+  bool get _usesRollingLabel =>
+      layout != EvidenceStagingLayout.classic && !isResend;
+
   @override
   Widget build(BuildContext context) {
     final isClassic = layout == EvidenceStagingLayout.classic;
@@ -985,6 +1016,9 @@ class EvidenceStagingActionBar extends StatelessWidget {
           SacButton.primary(
             key: const ValueKey('evidence-submit'),
             text: _submitText(),
+            label: _usesRollingLabel
+                ? EvidenceSendLabel(fileCount: fileCount)
+                : null,
             icon: HugeIcons.strokeRoundedSent,
             isEnabled: canSubmit && !isLoading,
             isLoading: isLoading,

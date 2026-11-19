@@ -1,16 +1,14 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/animations/animated_counter.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
-import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
-import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
 import 'package:sacdia_app/features/dashboard/presentation/widgets/class_logo_box.dart';
 
 import '../../domain/entities/progressive_class.dart';
+import 'class_progress_line.dart';
 
 /// «Clase actual» card of Mis Clases: logo, name, «Cursando · year» and one
 /// thin accent progress bar with the big percentage. No ring, no requirement
@@ -30,7 +28,6 @@ class ClassCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final accent = SacAccent.of(context).color;
     final clamped = progress.clamp(0.0, 1.0);
     final percent = (clamped * 100).round();
     final year = _lastYear(progressiveClass.ecclesiasticalYearLabel);
@@ -52,6 +49,7 @@ class ClassCard extends StatelessWidget {
       }),
       child: SacCard(
         onTap: onTap,
+        pressedScale: SacMotion.panelPressScale,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -99,31 +97,7 @@ class ClassCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: SacProgressBar(
-                    progress: clamped,
-                    color: accent,
-                    height: 6,
-                    showShimmer: false,
-                    fillDuration: SacMotion.reveal,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                AnimatedCounter(
-                  value: percent,
-                  suffix: '%',
-                  duration: SacMotion.reveal,
-                  style: TextStyle(
-                    fontSize: SacFontSize.displaySmall,
-                    fontWeight: FontWeight.w800,
-                    height: 1,
-                    color: c.text,
-                  ),
-                ),
-              ],
-            ),
+            ClassProgressLine(percent: percent, progress: clamped),
           ],
         ),
       ),

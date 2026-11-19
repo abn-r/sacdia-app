@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
@@ -194,7 +195,11 @@ class _ClubClassRow extends StatelessWidget {
       ].join('. '),
       onTap: isOpenable ? () => _open(context) : null,
       child: isOpenable
-          ? SacInkWell(onTap: () => _open(context), child: content)
+          ? SacInkWell(
+              onTap: () => _open(context),
+              pressedScale: SacMotion.rowPressScale,
+              child: content,
+            )
           : content,
     );
   }

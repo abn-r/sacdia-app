@@ -31,6 +31,28 @@ abstract final class SacMotion {
   static const double enterScale = 0.96;
   static const double pressScale = 0.97;
 
+  /// Press scale for wide surfaces (cards, status panel): less travel so the
+  /// whole surface does not jump.
+  static const double panelPressScale = 0.98;
+
+  /// Press scale for list rows.
+  static const double rowPressScale = 0.985;
+
+  /// Press scale for small tiles (the "Agregar" tile).
+  static const double tilePressScale = 0.95;
+
+  /// One-off nudge of the "sent" icon (M4).
+  static const Duration nudge = Duration(milliseconds: 320);
+
+  /// Stroke reveal of the validated check (M6).
+  static const Duration draw = Duration(milliseconds: 300);
+
+  /// Single pulse of the class percentage at 100 % (M7).
+  static const Duration pulse = Duration(milliseconds: 420);
+
+  /// One ring on the current state dot (M5) and the sheen sweep (M7).
+  static const Duration ring = Duration(milliseconds: 700);
+
   static bool reduceMotionOf(BuildContext context) =>
       MediaQuery.maybeOf(context)?.disableAnimations ?? false;
 }

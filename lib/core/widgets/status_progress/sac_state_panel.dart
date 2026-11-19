@@ -14,7 +14,7 @@ import 'sac_status_style.dart';
 ///
 /// Unlike [SacStatusPanel] it never shows a progress path: the owner wants
 /// one state at a time and the rest one tap away.
-class SacStatePanel extends StatelessWidget {
+class SacStatePanel extends StatefulWidget {
   const SacStatePanel({
     super.key,
     required this.style,
@@ -47,10 +47,40 @@ class SacStatePanel extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<SacStatePanel> createState() => _SacStatePanelState();
+}
+
+/// One-off effect on the icon after the state changed.
+enum _IconEffect { none, nudge, draw }
+
+class _SacStatePanelState extends State<SacStatePanel> {
+  _IconEffect _effect = _IconEffect.none;
+
+  static String _keyOf(SacStatePanel w) =>
+      '${w.title}|${w.style.container.toARGB32()}';
+
+  @override
+  void didUpdateWidget(SacStatePanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_keyOf(oldWidget) == _keyOf(widget)) return;
+    // Only a real change into "sent" (nudge) or "validated" (draw).
+    _effect = switch (widget.style.kind) {
+      SacStatusKind.review => _IconEffect.nudge,
+      SacStatusKind.validated => _IconEffect.draw,
+      _ => _IconEffect.none,
+    };
+  }
+
+  @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final message = this.message;
-    final stepLabel = this.stepLabel;
+    final style = widget.style;
+    final title = widget.title;
+    final onTap = widget.onTap;
+    final message = widget.message;
+    final stepLabel = widget.stepLabel;
+    final semanticsHint = widget.semanticsHint;
+    final semanticsLabel = widget.semanticsLabel;
     final reduceMotion = SacMotion.reduceMotionOf(context);
 
     return Semantics(
@@ -84,6 +114,7 @@ class SacStatePanel extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           child: SacInkWell(
             onTap: onTap,
+            pressedScale: SacMotion.panelPressScale,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
               child: Row(
@@ -107,7 +138,7 @@ class SacStatePanel extends StatelessWidget {
                       // Keyed by what the user reads, so a real change of
                       // state cross-fades and a plain rebuild does not.
                       child: Row(
-                        key: ValueKey('$title|${style.container.toARGB32()}'),
+                        key: ValueKey(_keyOf(widget)),
                         children: [
                           Container(
                             width: 44,
@@ -118,10 +149,13 @@ class SacStatePanel extends StatelessWidget {
                                   BorderRadius.circular(AppTheme.radiusSM),
                             ),
                             alignment: Alignment.center,
-                            child: HugeIcon(
-                              icon: style.icon,
-                              size: 22,
-                              color: style.onContainer,
+                            child: _PanelIcon(
+                              effect: reduceMotion ? _IconEffect.none : _effect,
+                              child: HugeIcon(
+                                icon: style.icon,
+                                size: 22,
+                                color: style.onContainer,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -181,4 +215,93 @@ class SacStatePanel extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Plays the icon effect once, when it first builds: the "sent" icon nudges
+/// 3 px up and right and back ([SacMotion.nudge]); the validated check is
+/// revealed left to right like a stroke being drawn ([SacMotion.draw], after
+/// 80 ms). Without an effect it is just the icon.
+class _PanelIcon extends StatefulWidget {
+  const _PanelIcon({required this.effect, required this.child});
+
+  final _IconEffect effect;
+  final Widget child;
+
+  @override
+  State<_PanelIcon> createState() => _PanelIconState();
+}
+
+class _PanelIconState extends State<_PanelIcon>
+    with SingleTickerProviderStateMixin {
+  AnimationController? _controller;
+
+  static const _drawDelay = Duration(milliseconds: 80);
+
+  @override
+  void initState() {
+    super.initState();
+    switch (widget.effect) {
+      case _IconEffect.none:
+        break;
+      case _IconEffect.nudge:
+        _controller =
+            AnimationController(vsync: this, duration: SacMotion.nudge)
+              ..forward();
+      case _IconEffect.draw:
+        _controller = AnimationController(
+          vsync: this,
+          duration: SacMotion.draw + _drawDelay,
+        )..forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = _controller;
+    if (controller == null) return widget.child;
+    return AnimatedBuilder(
+      animation: controller,
+      child: widget.child,
+      builder: (context, child) {
+        if (controller.isCompleted) return child!;
+        if (widget.effect == _IconEffect.nudge) {
+          // Out to (3, -3) at 40 % of the time, then back.
+          final t = controller.value;
+          final k = t < 0.4 ? t / 0.4 : 1 - (t - 0.4) / 0.6;
+          final eased = SacMotion.easeOut.transform(k.clamp(0.0, 1.0));
+          return Transform.translate(
+            offset: Offset(3 * eased, -3 * eased),
+            child: child,
+          );
+        }
+        final start = _drawDelay.inMilliseconds /
+            (SacMotion.draw + _drawDelay).inMilliseconds;
+        final t = ((controller.value - start) / (1 - start)).clamp(0.0, 1.0);
+        return ClipRect(
+          clipper: _WipeClipper(SacMotion.easeOut.transform(t)),
+          child: child,
+        );
+      },
+    );
+  }
+}
+
+/// Keeps the left [fraction] of the box.
+class _WipeClipper extends CustomClipper<Rect> {
+  const _WipeClipper(this.fraction);
+
+  final double fraction;
+
+  @override
+  Rect getClip(Size size) =>
+      Rect.fromLTWH(0, 0, size.width * fraction, size.height);
+
+  @override
+  bool shouldReclip(_WipeClipper oldClipper) => oldClipper.fraction != fraction;
 }

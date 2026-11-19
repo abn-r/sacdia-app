@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../animations/motion_tokens.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/sac_accent.dart';
 import '../../theme/sac_colors.dart';
@@ -74,7 +75,7 @@ Future<void> showSacStatesSheet(
 ///
 /// It lives in a sheet on purpose: the screen shows only the current state
 /// and this list is one tap away.
-class SacStatesSheet extends StatelessWidget {
+class SacStatesSheet extends StatefulWidget {
   const SacStatesSheet({
     super.key,
     required this.title,
@@ -96,9 +97,97 @@ class SacStatesSheet extends StatelessWidget {
   final SacStateStep? detour;
 
   @override
+  State<SacStatesSheet> createState() => _SacStatesSheetState();
+}
+
+/// Rows enter one after another (fade + rise 8 px) and the current state dot
+/// emits a single ring. One controller, run once and never looped; with
+/// Reduced Motion it is never started.
+class _SacStatesSheetState extends State<SacStatesSheet>
+    with SingleTickerProviderStateMixin {
+  static const _rowDelay = Duration(milliseconds: 120);
+  static const _rowDuration = Duration(milliseconds: 220);
+  static const _ringDelay = Duration(milliseconds: 360);
+  static const _rise = 8.0;
+
+  late final AnimationController _controller;
+  bool _started = false;
+
+  int get _rows => widget.steps.length + (widget.detour != null ? 1 : 0);
+
+  Duration get _total {
+    final rowsEnd = _rowDelay +
+        SacMotion.stagger * (_rows > 0 ? _rows - 1 : 0) +
+        _rowDuration;
+    final ringEnd = _ringDelay + SacMotion.ring;
+    return rowsEnd > ringEnd ? rowsEnd : ringEnd;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: _total);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (SacMotion.reduceMotionOf(context)) {
+      _controller.value = 1;
+    } else {
+      _controller.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Interval _interval(Duration start, Duration length) {
+    final total = _total.inMilliseconds;
+    return Interval(
+      start.inMilliseconds / total,
+      (start + length).inMilliseconds / total,
+      curve: SacMotion.easeOut,
+    );
+  }
+
+  Widget _entering(int index, Widget child) {
+    final curve = _interval(
+      _rowDelay + SacMotion.stagger * index,
+      _rowDuration,
+    );
+    return AnimatedBuilder(
+      animation: _controller,
+      child: child,
+      builder: (context, child) {
+        final t = curve.transform(_controller.value);
+        if (t >= 1) return child!;
+        return Opacity(
+          opacity: t,
+          alwaysIncludeSemantics: true,
+          child: Transform.translate(
+            offset: Offset(0, _rise * (1 - t)),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final subtitle = this.subtitle;
+    final subtitle = widget.subtitle;
+    final steps = widget.steps;
+    final detour = widget.detour;
+    final kindLabels = widget.kindLabels;
+    final title = widget.title;
+    final ring = _interval(_ringDelay, SacMotion.ring);
     return Container(
       decoration: BoxDecoration(
         color: c.surface,
@@ -150,10 +239,15 @@ class SacStatesSheet extends StatelessWidget {
                   key: const ValueKey('states-sheet-steps'),
                   children: [
                     for (var i = 0; i < steps.length; i++)
-                      _StepRow(
-                        step: steps[i],
-                        kindLabels: kindLabels,
-                        isLast: i == steps.length - 1,
+                      _entering(
+                        i,
+                        _StepRow(
+                          step: steps[i],
+                          kindLabels: kindLabels,
+                          isLast: i == steps.length - 1,
+                          ring: ring.transform,
+                          ringListenable: _controller,
+                        ),
                       ),
                     if (detour != null) ...[
                       Padding(
@@ -164,12 +258,15 @@ class SacStatesSheet extends StatelessWidget {
                           color: c.divider,
                         ),
                       ),
-                      _StepRow(
-                        key: const ValueKey('states-sheet-detour'),
-                        step: detour!,
-                        kindLabels: kindLabels,
-                        isLast: true,
-                        isDetour: true,
+                      _entering(
+                        steps.length,
+                        _StepRow(
+                          key: const ValueKey('states-sheet-detour'),
+                          step: detour,
+                          kindLabels: kindLabels,
+                          isLast: true,
+                          isDetour: true,
+                        ),
                       ),
                     ],
                   ],
@@ -190,12 +287,19 @@ class _StepRow extends StatelessWidget {
     required this.kindLabels,
     required this.isLast,
     this.isDetour = false,
+    this.ring,
+    this.ringListenable,
   });
 
   final SacStateStep step;
   final SacStateKindLabels kindLabels;
   final bool isLast;
   final bool isDetour;
+
+  /// Maps the sheet controller value to the ring progress (0..1); only the
+  /// current state draws it.
+  final double Function(double)? ring;
+  final Animation<double>? ringListenable;
 
   @override
   Widget build(BuildContext context) {
@@ -222,7 +326,12 @@ class _StepRow extends StatelessWidget {
               width: 24,
               child: Column(
                 children: [
-                  _Dot(kind: step.kind, isDetour: isDetour),
+                  _Dot(
+                    kind: step.kind,
+                    isDetour: isDetour,
+                    ring: ring,
+                    ringListenable: ringListenable,
+                  ),
                   if (!isLast)
                     Expanded(
                       child: Container(
@@ -275,10 +384,17 @@ class _StepRow extends StatelessWidget {
 }
 
 class _Dot extends StatelessWidget {
-  const _Dot({required this.kind, this.isDetour = false});
+  const _Dot({
+    required this.kind,
+    this.isDetour = false,
+    this.ring,
+    this.ringListenable,
+  });
 
   final SacStateKind kind;
   final bool isDetour;
+  final double Function(double)? ring;
+  final Animation<double>? ringListenable;
 
   @override
   Widget build(BuildContext context) {
@@ -304,14 +420,17 @@ class _Dot extends StatelessWidget {
             color: c.onSuccessContainer,
           ),
         ),
-      SacStateKind.current => _circle(
-          background: accent.color,
-          child: Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: accent.onColor,
-              shape: BoxShape.circle,
+      SacStateKind.current => _withRing(
+          accent.color,
+          _circle(
+            background: accent.color,
+            child: Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: accent.onColor,
+                shape: BoxShape.circle,
+              ),
             ),
           ),
         ),
@@ -333,6 +452,49 @@ class _Dot extends StatelessWidget {
           ),
         ),
     };
+  }
+
+  /// One ring around the dot: scale 1 -> 1.7, opacity .45 -> 0. Nothing is
+  /// painted before it starts or after it ends.
+  Widget _withRing(Color color, Widget dot) {
+    final ring = this.ring;
+    final listenable = ringListenable;
+    if (ring == null || listenable == null) return dot;
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: IgnorePointer(
+              child: ExcludeSemantics(
+                child: AnimatedBuilder(
+                  animation: listenable,
+                  builder: (context, _) {
+                    final t = ring(listenable.value);
+                    if (t <= 0 || t >= 1) return const SizedBox.shrink();
+                    return Opacity(
+                      opacity: 0.45 * (1 - t),
+                      child: Transform.scale(
+                        scale: 1 + 0.7 * t,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: color, width: 2),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+          dot,
+        ],
+      ),
+    );
   }
 
   Widget _circle({required Color background, required Widget child}) =>

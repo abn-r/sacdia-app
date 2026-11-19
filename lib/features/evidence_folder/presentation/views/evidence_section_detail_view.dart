@@ -2,10 +2,12 @@ import 'dart:ui' as ui;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/evidence_staging/evidence_footer_presence.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
 import '../../../../core/widgets/evidence_staging/staged_file.dart';
 import '../../../../core/widgets/sac_dialog.dart';
@@ -108,21 +110,21 @@ class _EvidenceSectionDetailViewState
           backgroundColor: c.background,
           frosted: true,
         ),
-        bottomNavigationBar: canModify
-            ? EvidenceStagingActionBar(
-                isResend: isResend,
-                fileCount:
-                    _stagingManagerKey.currentState?.fileCountForActionBar ??
-                        widget.section.files.length,
-                onSubmit: () {
-                  _stagingManagerKey.currentState?.submitForValidation();
-                },
-                canSubmit: _canSubmitFromStagingManager(canModify),
-                isLoading: notifierState.isLoading ||
-                    (_stagingManagerKey.currentState?.isLoadingForActionBar ??
-                        false),
-              )
-            : null,
+        bottomNavigationBar: EvidenceFooterPresence(
+          visible: canModify,
+          child: EvidenceStagingActionBar(
+            isResend: isResend,
+            fileCount: _stagingManagerKey.currentState?.fileCountForActionBar ??
+                widget.section.files.length,
+            onSubmit: () {
+              _stagingManagerKey.currentState?.submitForValidation();
+            },
+            canSubmit: _canSubmitFromStagingManager(canModify),
+            isLoading: notifierState.isLoading ||
+                (_stagingManagerKey.currentState?.isLoadingForActionBar ??
+                    false),
+          ),
+        ),
         body: SacFrostedVeil(
           child: Builder(
             builder: (context) => Stack(
@@ -224,6 +226,7 @@ class _EvidenceSectionDetailViewState
                               .submitSection(widget.section.id);
                           if (!success) return;
                           if (!context.mounted) return;
+                          HapticFeedback.mediumImpact();
                           SacSnackBar.show(
                             context,
                             'evidence_folder.submit_success'.tr(

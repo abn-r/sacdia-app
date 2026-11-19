@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_pressable.dart';
@@ -56,6 +57,7 @@ class ClassModuleRow extends StatelessWidget {
           .tr(namedArgs: {'name': module.name, 'progress': detail}),
       child: SacInkWell(
         onTap: onTap,
+        pressedScale: SacMotion.rowPressScale,
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 64),
           child: Padding(

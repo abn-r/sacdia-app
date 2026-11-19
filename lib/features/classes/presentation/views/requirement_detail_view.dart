@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -11,6 +12,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
 import '../../../../core/widgets/evidence_staging/staged_file.dart';
 import '../../../../core/widgets/evidence_staging/evidence_footer_bar.dart';
+import '../../../../core/widgets/evidence_staging/evidence_footer_presence.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_dialog.dart';
 import '../../../../core/widgets/sac_pressable.dart';
@@ -206,24 +208,24 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                     ),
                   )
                 : null)
-            : canModify
-                ? EvidenceStagingActionBar(
-                    isResend: isSentBack,
-                    fileCount: _stagingManagerKey
-                            .currentState?.fileCountForActionBar ??
-                        requirement.files.length,
-                    onSubmit: () =>
-                        _stagingManagerKey.currentState?.submitForValidation(),
-                    canSubmit: _canSubmitFromStagingManager(
-                      requirement: requirement,
-                      canModify: canModify,
-                    ),
-                    isLoading: isLoading ||
-                        (_stagingManagerKey
-                                .currentState?.isLoadingForActionBar ??
-                            false),
-                  )
-                : null,
+            : EvidenceFooterPresence(
+                visible: canModify,
+                child: EvidenceStagingActionBar(
+                  isResend: isSentBack,
+                  fileCount:
+                      _stagingManagerKey.currentState?.fileCountForActionBar ??
+                          requirement.files.length,
+                  onSubmit: () =>
+                      _stagingManagerKey.currentState?.submitForValidation(),
+                  canSubmit: _canSubmitFromStagingManager(
+                    requirement: requirement,
+                    canModify: canModify,
+                  ),
+                  isLoading: isLoading ||
+                      (_stagingManagerKey.currentState?.isLoadingForActionBar ??
+                          false),
+                ),
+              ),
         body: SacFrostedVeil(
           child: Builder(
             builder: (context) => Stack(
@@ -357,6 +359,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                                 .submit(requirement.id);
                             if (!success) return;
                             if (!context.mounted) return;
+                            HapticFeedback.mediumImpact();
                             SacSnackBar.show(
                               context,
                               'classes.requirement_detail.submit_success'.tr(),

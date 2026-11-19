@@ -27,6 +27,30 @@ void main() {
       await gesture.up();
     });
 
+    testWidgets('should scale to a custom pressedScale on pointer down',
+        (tester) async {
+      await tester.pumpWidget(
+        _MotionHarness(
+          reduceMotion: false,
+          child: SacPressable(
+            onTap: () {},
+            pressedScale: SacMotion.tilePressScale,
+            child: const Text('press'),
+          ),
+        ),
+      );
+
+      final gesture = await tester.press(find.text('press'));
+      await tester.pump();
+
+      expect(
+        tester.widget<AnimatedScale>(find.byType(AnimatedScale)).scale,
+        SacMotion.tilePressScale,
+      );
+
+      await gesture.up();
+    });
+
     testWidgets('should stay at scale 1 when motion is reduced',
         (tester) async {
       await tester.pumpWidget(

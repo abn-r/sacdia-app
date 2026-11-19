@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../animations/sac_rolling_number.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/sac_colors.dart';
 
@@ -13,6 +14,7 @@ class SacGroupedSection extends StatelessWidget {
     this.count,
     this.action,
     this.dividerIndent = 58,
+    this.rollCount = false,
   });
 
   /// Already translated; shown uppercase.
@@ -29,6 +31,13 @@ class SacGroupedSection extends StatelessWidget {
   /// Left inset of the dividers: 58 clears a status icon; use less for rows
   /// without one (label and value pairs).
   final double dividerIndent;
+
+  /// Rolls the count when it changes (see [SacRollingNumber]).
+  final bool rollCount;
+
+  Widget _countText(int value, TextStyle style) => rollCount
+      ? SacRollingNumber(value: value, style: style)
+      : Text('$value', style: style);
 
   @override
   Widget build(BuildContext context) {
@@ -54,9 +63,9 @@ class SacGroupedSection extends StatelessWidget {
                   ),
                 ),
                 action ??
-                    Text(
-                      '${count ?? children.length}',
-                      style: TextStyle(
+                    _countText(
+                      count ?? children.length,
+                      TextStyle(
                         fontSize: SacFontSize.labelSmall,
                         fontWeight: FontWeight.w600,
                         color: c.textTertiary,
