@@ -1,68 +1,33 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
-import 'package:sacdia_app/core/widgets/sac_error_state.dart';
-import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/animations/motion_tokens.dart';
-import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/config/route_names.dart';
-import 'package:sacdia_app/core/utils/responsive.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/status_progress/sac_grouped_section.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+
 import '../../domain/entities/progressive_class.dart';
+import '../catalog/class_catalog.dart';
+import '../catalog/class_catalog_providers.dart';
 import '../providers/classes_providers.dart';
 import '../sheets/enroll_previous_class_sheet.dart';
 import '../widgets/class_card.dart';
+import '../widgets/class_club_lists.dart';
 import 'class_detail_with_progress_view.dart';
-import 'package:sacdia_app/core/animations/page_transitions.dart';
-import 'package:sacdia_app/core/widgets/sac_sheet.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
-import 'package:sacdia_app/core/theme/class_tone.dart';
-import 'package:sacdia_app/core/utils/icon_helper.dart';
-import '../catalog/class_catalog.dart';
-
-// ── Top-level helper — reachable from AppBar and from ClassesListViewBody ───────
-
-class _ClassesListDerivation {
-  final ProgressiveClass? currentClass;
-  final List<ProgressiveClass> otherClasses;
-
-  const _ClassesListDerivation({
-    required this.currentClass,
-    required this.otherClasses,
-  });
-}
-
-_ClassesListDerivation _deriveClassesList(List<ProgressiveClass> classes) {
-  final activeClasses = <ProgressiveClass>[];
-  final expiredClasses = <ProgressiveClass>[];
-
-  for (final progressiveClass in classes) {
-    if (progressiveClass.isExpired) {
-      expiredClasses.add(progressiveClass);
-    } else {
-      activeClasses.add(progressiveClass);
-    }
-  }
-
-  return _ClassesListDerivation(
-    // Same rule as «Clases por club» (`currentClassOf`).
-    currentClass: currentClassOf(classes),
-    otherClasses: [
-      if (activeClasses.length > 1) ...activeClasses.skip(1),
-      ...expiredClasses,
-    ],
-  );
-}
 
 void _openEnrollSheet(BuildContext context) {
   showSacSheet(
@@ -79,11 +44,11 @@ void _openEnrollSheet(BuildContext context) {
 /// Vista de lista de clases — tab principal del bottom nav.
 ///
 /// Layout (top → bottom):
-///   1. AppBar "Clases" con acción "Inscribirme" (solo si tiene club activo)
-///   2. Atajos: Clases por club y, para Guías Mayores investidos,
-///      Certificaciones (en una fila tipo bento)
-///   3. Sección "Clase actual" (primer elemento de la lista)
-///   4. Sección "Otras clases" (resto de elementos)
+///   1. Barra «Mis clases» con ⋯ «Inscribir clase anterior» (solo con club
+///      activo)
+///   2. «CLASE ACTUAL»: una tarjeta con logo, nombre, estado y avance
+///   3. Una lista agrupada por tipo de club con las clases del usuario
+///   4. «EXPLORAR»: Clases por club y Certificaciones
 ///
 /// Internamente delega el cuerpo a [ClassesListViewBody] para que también
 /// pueda ser embebido en otro Scaffold sin doble Scaffold.
@@ -109,24 +74,48 @@ class ClassesListView extends ConsumerWidget {
         automaticallyImplyLeading: false,
         actions: [
           if (hasActiveClub)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: SacButton(
-                onPressed: () => _openEnrollSheet(context),
-                text: 'classes.list.enroll_cta_short'.tr(),
-                icon: HugeIcons.strokeRoundedBookmarkAdd02,
-                variant: SacButtonVariant.outline,
-                fullWidth: false,
-                size: SacButtonSize.small,
-                textColor: Theme.of(context).colorScheme.onSurface,
-                borderColor: Theme.of(context).colorScheme.outlineVariant,
-              ),
-            ),
+            _OverflowMenu(onEnroll: () => _openEnrollSheet(context)),
         ],
       ),
       body: const SacFrostedVeil(
         child: ClassesListViewBody(frostedBar: true),
       ),
+    );
+  }
+}
+
+class _OverflowMenu extends StatelessWidget {
+  const _OverflowMenu({required this.onEnroll});
+
+  final VoidCallback onEnroll;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return PopupMenuButton<void>(
+      tooltip: 'nav.more_options'.tr(),
+      icon: HugeIcon(
+        icon: HugeIcons.strokeRoundedMoreHorizontal,
+        size: 22,
+        color: c.text,
+      ),
+      onSelected: (_) => onEnroll(),
+      itemBuilder: (_) => [
+        PopupMenuItem<void>(
+          height: 48,
+          child: Row(
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedBookmarkAdd02,
+                size: 18,
+                color: c.text,
+              ),
+              const SizedBox(width: 10),
+              Flexible(child: Text('classes.list.enroll_tooltip'.tr())),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -141,412 +130,259 @@ class ClassesListViewBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final classesAsync = ref.watch(userClassesProvider);
-    final hPad = Responsive.horizontalPadding(context);
-    final c = context.sac;
-    final theme = Theme.of(context);
-
-    final user = ref.watch(
-      authNotifierProvider.select((v) => v.value),
-    );
-    final hasActiveClub = user?.authorization?.activeGrant?.sectionId != null;
-    final listTop = (frostedBar ? SacTopBar.frostedInset(context) : 0.0) + 12;
+    final hasActiveClub = ref
+            .watch(authNotifierProvider.select((v) => v.value))
+            ?.authorization
+            ?.activeGrant
+            ?.sectionId !=
+        null;
+    final listTop = (frostedBar ? SacTopBar.frostedInset(context) : 0.0) + 4;
 
     return classesAsync.when(
-      data: (classes) {
-        if (classes.isEmpty) {
-          return _EmptyBody(
-            hPad: hPad,
-            listTop: listTop,
-            hasActiveClub: hasActiveClub,
-            onEnroll: () => _openEnrollSheet(context),
-            c: c,
-          );
-        }
-
-        final derivation = _deriveClassesList(classes);
-        final currentClass = derivation.currentClass;
-        final otherClasses = derivation.otherClasses;
-
-        return RefreshIndicator(
-          color: SacAccent.of(context).color,
-          onRefresh: () async {
-            ref.invalidate(userClassesProvider);
-          },
-          child: ListView(
-            padding: EdgeInsets.fromLTRB(hPad, listTop, hPad, 32),
-            children: [
-              _EntryShortcuts(
-                showCertifications: classes.any((c) => c.isInvestedMasterGuide),
-              ),
-              const SizedBox(height: 20),
-
-              if (currentClass != null) ...[
-                // ── Section: Clase actual ────────────────────────────────────
-                Text(
-                  'classes.list.section_current'.tr(),
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: c.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                StaggeredListItem(
-                  index: 0,
-                  initialDelay: const Duration(milliseconds: 80),
-                  staggerDelay: SacMotion.stagger,
-                  child: Consumer(
-                    builder: (context, progressRef, _) {
-                      final progressQuery =
-                          ClassProgressQuery.fromClass(currentClass);
-                      final progressAsync = progressRef
-                          .watch(classWithProgressProvider(progressQuery));
-                      final progress = progressAsync.whenOrNull(
-                            data: (cwp) => cwp.completionRatio,
-                          ) ??
-                          0.0;
-                      return ClassCard(
-                        progressiveClass: currentClass,
-                        progress: progress,
-                        isCurrent: true,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            SacSharedAxisRoute(
-                              builder: (context) => ClassDetailWithProgressView(
-                                classId: currentClass.id,
-                                enrollmentId: currentClass.enrollmentId,
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-
-              // ── Section: Otras clases ──────────────────────────────────────
-              if (otherClasses.isNotEmpty) ...[
-                SizedBox(height: currentClass == null ? 0 : 16),
-                Text(
-                  'classes.list.section_others'.tr(),
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: c.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                for (int i = 0; i < otherClasses.length; i++)
-                  StaggeredListItem(
-                    index: i + 1,
-                    initialDelay: const Duration(milliseconds: 80),
-                    staggerDelay: SacMotion.stagger,
-                    child: Consumer(
-                      builder: (context, progressRef, _) {
-                        final progressiveClass = otherClasses[i];
-                        final progressQuery =
-                            ClassProgressQuery.fromClass(progressiveClass);
-                        final progressAsync = progressRef
-                            .watch(classWithProgressProvider(progressQuery));
-                        final progress = progressAsync.whenOrNull(
-                              data: (cwp) => cwp.completionRatio,
-                            ) ??
-                            0.0;
-                        return ClassCard(
-                          progressiveClass: progressiveClass,
-                          progress: progress,
-                          isCurrent: false,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              SacSharedAxisRoute(
-                                builder: (context) =>
-                                    ClassDetailWithProgressView(
-                                  classId: progressiveClass.id,
-                                  enrollmentId: progressiveClass.enrollmentId,
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ),
-              ],
+      data: (classes) => RefreshIndicator(
+        color: SacAccent.of(context).color,
+        edgeOffset: listTop,
+        onRefresh: () => refreshClassCatalog(ref),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(0, listTop, 0, 32),
+          children: [
+            if (classes.isEmpty)
+              _EmptyHeader(
+                hasActiveClub: hasActiveClub,
+                onEnroll: () => _openEnrollSheet(context),
+              )
+            else ...[
+              _CurrentSection(currentClass: currentClassOf(classes)),
+              _ClubLists(enrolled: classes),
             ],
-          ),
-        );
-      },
+            const _ExploreSection(),
+          ],
+        ),
+      ),
       loading: () => const Center(child: SacLoading()),
       error: (error, stack) => SacErrorState(
         title: 'classes.list.error_loading'.tr(),
         message: userErrorMessage(error),
-        onRetry: () {
-          ref.invalidate(userClassesProvider);
-        },
+        onRetry: () => ref.invalidate(userClassesProvider),
       ),
     );
   }
 }
 
-// ── Entry shortcuts ───────────────────────────────────────────────────────────
+// ── Clase actual ──────────────────────────────────────────────────────────────
 
-/// A screen opened from the top of Mis Clases.
-class _Shortcut {
-  const _Shortcut({
+class _CurrentSection extends ConsumerWidget {
+  const _CurrentSection({required this.currentClass});
+
+  final ProgressiveClass? currentClass;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = currentClass;
+    if (current == null) return const SizedBox.shrink();
+
+    final progress = ref
+            .watch(
+              classWithProgressProvider(ClassProgressQuery.fromClass(current)),
+            )
+            .whenOrNull(data: (cwp) => cwp.completionRatio) ??
+        0.0;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 8),
+            child: Text(
+              'classes.list.section_current'.tr().toUpperCase(),
+              style: TextStyle(
+                fontSize: SacFontSize.labelSmall,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.8,
+                color: context.sac.textTertiary,
+              ),
+            ),
+          ),
+          ClassCard(
+            progressiveClass: current,
+            progress: progress,
+            onTap: () => Navigator.push(
+              context,
+              SacSharedAxisRoute(
+                builder: (_) => ClassDetailWithProgressView(
+                  classId: current.id,
+                  enrollmentId: current.enrollmentId,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Listas por club ───────────────────────────────────────────────────────────
+
+/// Same data as «Clases por club» (`classCatalogProvider`). While it loads or
+/// if it fails the lists are simply absent; the current class and «Explorar»
+/// still work and pull-to-refresh retries it.
+class _ClubLists extends ConsumerWidget {
+  const _ClubLists({required this.enrolled});
+
+  final List<ProgressiveClass> enrolled;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final sections = ref.watch(classCatalogProvider).value;
+    if (sections == null) return const SizedBox.shrink();
+    return ClassClubLists(sections: sections, enrolled: enrolled);
+  }
+}
+
+// ── Explorar ──────────────────────────────────────────────────────────────────
+
+class _ExploreSection extends StatelessWidget {
+  const _ExploreSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return SacGroupedSection(
+      label: 'classes.list.section_explore'.tr(),
+      count: 0,
+      action: const SizedBox.shrink(),
+      children: [
+        _ExploreRow(
+          icon: HugeIcons.strokeRoundedLeftToRightListBullet,
+          title: 'classes.list.catalog_chip_title'.tr(),
+          subtitle: 'classes.list.catalog_chip_subtitle'.tr(),
+          onTap: () => context.push(RouteNames.homeClassesCatalog),
+        ),
+        _ExploreRow(
+          icon: HugeIcons.strokeRoundedCertificate01,
+          title: 'classes.list.certifications_chip_title'.tr(),
+          subtitle: 'classes.list.certifications_chip_subtitle'.tr(),
+          onTap: () => context.push(RouteNames.homeCertifications),
+        ),
+      ],
+    );
+  }
+}
+
+class _ExploreRow extends StatelessWidget {
+  const _ExploreRow({
+    required this.icon,
     required this.title,
     required this.subtitle,
-    required this.icon,
-    required this.iconColor,
-    required this.wellColor,
     required this.onTap,
   });
 
+  final HugeIconData icon;
   final String title;
   final String subtitle;
-  final HugeIconData icon;
-  final Color iconColor;
-  final Color wellColor;
   final VoidCallback onTap;
-}
-
-/// Shortcuts at the top of Mis Clases: «Clases por club» always, and
-/// «Certificaciones» for invested Master Guides. Two shortcuts share one row
-/// as bento tiles; a single one spans the width as a row.
-class _EntryShortcuts extends StatelessWidget {
-  const _EntryShortcuts({required this.showCertifications});
-
-  final bool showCertifications;
 
   @override
   Widget build(BuildContext context) {
-    final tone = ClassTone.of(context, AppColors.colorViajero);
-    final catalog = _Shortcut(
-      title: 'classes.list.catalog_chip_title'.tr(),
-      subtitle: 'classes.list.catalog_chip_subtitle'.tr(),
-      icon: HugeIcons.strokeRoundedLeftToRightListBullet,
-      iconColor: tone.onContainer,
-      wellColor: tone.container,
-      onTap: () => context.push(RouteNames.homeClassesCatalog),
-    );
-    if (!showCertifications) return _ShortcutRow(shortcut: catalog);
-
-    final certifications = _Shortcut(
-      title: 'classes.list.certifications_chip_title'.tr(),
-      subtitle: 'classes.list.certifications_chip_subtitle'.tr(),
-      icon: HugeIcons.strokeRoundedCertificate01,
-      iconColor: context.sac.onSuccessContainer,
-      wellColor: context.sac.successContainer,
-      onTap: () => context.push(RouteNames.homeCertifications),
-    );
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(child: _ShortcutTile(shortcut: catalog)),
-          const SizedBox(width: 12),
-          Expanded(child: _ShortcutTile(shortcut: certifications)),
-        ],
-      ),
-    );
-  }
-}
-
-class _ShortcutSurface extends StatelessWidget {
-  const _ShortcutSurface({required this.onTap, required this.child});
-
-  final VoidCallback onTap;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(AppTheme.radiusMD);
-    // Outlined like the class cards below, so the tiles read as a bento row.
-    return Material(
-      color: context.sac.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: radius,
-        side: BorderSide(color: context.sac.border),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: SacInkWell(onTap: onTap, borderRadius: radius, child: child),
-    );
-  }
-}
-
-class _ShortcutWell extends StatelessWidget {
-  const _ShortcutWell({required this.shortcut});
-
-  final _Shortcut shortcut;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 44,
-      height: 44,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: shortcut.wellColor,
-        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-      ),
-      child: HugeIcon(icon: shortcut.icon, size: 22, color: shortcut.iconColor),
-    );
-  }
-}
-
-/// Full-width shortcut: well, title and subtitle, arrow.
-class _ShortcutRow extends StatelessWidget {
-  const _ShortcutRow({required this.shortcut});
-
-  final _Shortcut shortcut;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return _ShortcutSurface(
-      onTap: shortcut.onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          children: [
-            _ShortcutWell(shortcut: shortcut),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    shortcut.title,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    shortcut.subtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedArrowRight01,
-              size: 20,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Half-width bento tile: well and arrow on top, title and subtitle below.
-class _ShortcutTile extends StatelessWidget {
-  const _ShortcutTile({required this.shortcut});
-
-  final _Shortcut shortcut;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return _ShortcutSurface(
-      onTap: shortcut.onTap,
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    final c = context.sac;
+    final accent = SacAccent.of(context).color;
+    return Semantics(
+      container: true,
+      button: true,
+      excludeSemantics: true,
+      label: '$title. $subtitle',
+      onTap: onTap,
+      child: SacInkWell(
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 64),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
+            child: Row(
               children: [
-                _ShortcutWell(shortcut: shortcut),
-                const Spacer(),
+                Container(
+                  width: 36,
+                  height: 36,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                  ),
+                  child: HugeIcon(icon: icon, size: 20, color: accent),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: SacFontSize.titleMedium,
+                          fontWeight: FontWeight.w600,
+                          color: c.text,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: SacFontSize.bodySmall,
+                          color: c.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
                 HugeIcon(
                   icon: HugeIcons.strokeRoundedArrowRight01,
                   size: 18,
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color: c.textTertiary,
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              shortcut.title,
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 2),
-            Text(
-              shortcut.subtitle,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-// ── Inline enroll button ──────────────────────────────────────────────────────
+// ── Empty ─────────────────────────────────────────────────────────────────────
 
-class _EnrollButton extends StatelessWidget {
-  final VoidCallback onPressed;
+class _EmptyHeader extends StatelessWidget {
+  const _EmptyHeader({required this.hasActiveClub, required this.onEnroll});
 
-  const _EnrollButton({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return SacButton.primary(
-      text: 'classes.list.enroll_cta'.tr(),
-      icon: HugeIcons.strokeRoundedAdd01,
-      onPressed: onPressed,
-    );
-  }
-}
-
-// ── Empty body ────────────────────────────────────────────────────────────────
-
-class _EmptyBody extends StatelessWidget {
-  final double hPad;
-  final double listTop;
   final bool hasActiveClub;
   final VoidCallback onEnroll;
-  final SacColors c;
-
-  const _EmptyBody({
-    required this.hPad,
-    required this.listTop,
-    required this.hasActiveClub,
-    required this.onEnroll,
-    required this.c,
-  });
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: EdgeInsets.fromLTRB(hPad, listTop, hPad, 32),
-      children: [
-        const _EntryShortcuts(showCertifications: false),
-        const SizedBox(height: 40),
-        SacEmptyState(
-          icon: HugeIcons.strokeRoundedSchool,
-          title: 'classes.list.empty'.tr(),
-        ),
-        if (hasActiveClub) ...[
-          const SizedBox(height: 32),
-          _EnrollButton(onPressed: onEnroll),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+      child: Column(
+        children: [
+          SacEmptyState(
+            icon: HugeIcons.strokeRoundedSchool,
+            title: 'classes.list.empty'.tr(),
+          ),
+          if (hasActiveClub) ...[
+            const SizedBox(height: 24),
+            SacButton.primary(
+              text: 'classes.list.enroll_cta'.tr(),
+              icon: HugeIcons.strokeRoundedAdd01,
+              onPressed: onEnroll,
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }

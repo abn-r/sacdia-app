@@ -343,7 +343,7 @@ class _RowContent extends StatelessWidget {
         if (label != null) label!,
         entry.name,
         if (ages != null) ages,
-        _statusLabel(entry),
+        classCatalogStatusLabel(entry),
       ].join('. '),
       excludeSemantics: true,
       child: Row(
@@ -390,14 +390,14 @@ class _RowContent extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          _StatusBadge(entry: entry, background: badgeBackground),
+          ClassCatalogStatusBadge(entry: entry, background: badgeBackground),
         ],
       ),
     );
   }
 }
 
-String _statusLabel(ClassCatalogEntry entry) {
+String classCatalogStatusLabel(ClassCatalogEntry entry) {
   final year = entry.year;
   String withYear(String key) => year == null
       ? 'classes.catalog.status.$key'.tr()
@@ -414,15 +414,16 @@ String _statusLabel(ClassCatalogEntry entry) {
 
 /// Invested, expired and not invested use the app-wide status colors; in
 /// progress speaks the class tone, like the class card on the home.
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.entry, this.background});
+class ClassCatalogStatusBadge extends StatelessWidget {
+  const ClassCatalogStatusBadge(
+      {super.key, required this.entry, this.background});
 
   final ClassCatalogEntry entry;
   final Color? background;
 
   @override
   Widget build(BuildContext context) {
-    final label = _statusLabel(entry);
+    final label = classCatalogStatusLabel(entry);
 
     switch (entry.status) {
       case ClassCatalogStatus.invested:

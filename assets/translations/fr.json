@@ -2183,13 +2183,14 @@
       "enroll_tooltip": "Inscrire une classe antérieure",
       "error_loading": "Erreur lors du chargement des classes",
       "certifications_chip_title": "Certifications",
-      "certifications_chip_subtitle": "Découvrez et inscrivez-vous aux certifications",
+      "certifications_chip_subtitle": "Découvrez et inscrivez-vous",
       "section_current": "Classe actuelle",
-      "section_others": "Autres classes",
       "enroll_cta": "M'inscrire à une autre classe",
-      "enroll_cta_short": "S'inscrire",
       "catalog_chip_title": "Classes par club",
-      "catalog_chip_subtitle": "Âges et ton avancement dans chaque classe"
+      "catalog_chip_subtitle": "Tous les clubs et les âges",
+      "section_explore": "Explorer",
+      "ages_open": "{min}+ ans",
+      "current_a11y": "{name}. {status}. {percent} pour cent"
     },
     "status_history": {
       "title": "Historique des statuts",

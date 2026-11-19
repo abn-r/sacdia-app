@@ -2179,17 +2179,18 @@
     },
     "list": {
       "empty": "You have no assigned classes",
-      "title": "My Classes",
+      "title": "My classes",
       "enroll_tooltip": "Enroll previous class",
       "error_loading": "Error loading classes",
       "certifications_chip_title": "Certifications",
-      "certifications_chip_subtitle": "Browse and enroll in certifications",
+      "certifications_chip_subtitle": "Browse and enroll",
       "section_current": "Current class",
-      "section_others": "Other classes",
       "enroll_cta": "Enroll in another class",
-      "enroll_cta_short": "Enroll",
       "catalog_chip_title": "Classes by club",
-      "catalog_chip_subtitle": "Ages and your progress in each class"
+      "catalog_chip_subtitle": "All clubs and ages",
+      "section_explore": "Explore",
+      "ages_open": "{min}+ years",
+      "current_a11y": "{name}. {status}. {percent} percent"
     },
     "status_history": {
       "title": "Status history",

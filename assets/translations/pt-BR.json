@@ -2179,17 +2179,18 @@
     },
     "list": {
       "empty": "Você não tem classes atribuídas",
-      "title": "Minhas Classes",
+      "title": "Minhas classes",
       "enroll_tooltip": "Inscrever classe anterior",
       "error_loading": "Erro ao carregar classes",
       "certifications_chip_title": "Certificações",
-      "certifications_chip_subtitle": "Explore e inscreva-se em certificações",
+      "certifications_chip_subtitle": "Explore e inscreva-se",
       "section_current": "Classe atual",
-      "section_others": "Outras classes",
       "enroll_cta": "Inscrever-me em outra classe",
-      "enroll_cta_short": "Inscrever-me",
       "catalog_chip_title": "Classes por clube",
-      "catalog_chip_subtitle": "Idades e seu progresso em cada classe"
+      "catalog_chip_subtitle": "Todos os clubes e idades",
+      "section_explore": "Explorar",
+      "ages_open": "{min}+ anos",
+      "current_a11y": "{name}. {status}. {percent} por cento"
     },
     "status_history": {
       "title": "Histórico de status",
