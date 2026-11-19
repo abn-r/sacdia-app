@@ -31,10 +31,6 @@ class ActiveSession extends Equatable {
     required this.expiresAt,
   });
 
-  /// Nombre para mostrar: deviceName o fallback "Dispositivo desconocido".
-  String get displayName =>
-      deviceName?.isNotEmpty == true ? deviceName! : 'Dispositivo desconocido';
-
   @override
   List<Object?> get props => [
         sessionId,

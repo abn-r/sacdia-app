@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/providers/keep_alive_during.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/dio_provider.dart';
@@ -75,74 +76,75 @@ class ActiveSessionsNotifier extends AsyncNotifier<List<ActiveSession>> {
   /// Revoca una sesión por ID con optimistic remove.
   ///
   /// Retorna null en éxito o un mensaje de error localizado.
-  Future<String?> revoke(String sessionId) async {
-    final previous = state.value;
-    if (previous == null) {
-      return 'profile.active_sessions.errors.no_sessions_loaded'.tr();
-    }
+  Future<String?> revoke(String sessionId) => ref.keepAliveDuring(() async {
+        final previous = state.value;
+        if (previous == null) {
+          return 'profile.active_sessions.errors.no_sessions_loaded'.tr();
+        }
 
-    // Optimistic remove — quitar de la lista localmente de inmediato.
-    state = AsyncData(
-      previous.where((s) => s.sessionId != sessionId).toList(),
-    );
-
-    final result =
-        await ref.read(activeSessionsRepositoryProvider).revoke(sessionId);
-
-    return result.fold(
-      (failure) {
-        // Rollback al estado anterior si el backend falla.
-        state = AsyncData(previous);
-        AppLogger.w(
-          'Rollback de revoke $sessionId tras error: ${failure.message}',
-          tag: _tag,
+        // Optimistic remove — quitar de la lista localmente de inmediato.
+        state = AsyncData(
+          previous.where((s) => s.sessionId != sessionId).toList(),
         );
-        return failure.message;
-      },
-      (_) {
-        AppLogger.i('Sesión $sessionId revocada', tag: _tag);
-        return null;
-      },
-    );
-  }
+
+        final result =
+            await ref.read(activeSessionsRepositoryProvider).revoke(sessionId);
+
+        return result.fold(
+          (failure) {
+            // Rollback al estado anterior si el backend falla.
+            state = AsyncData(previous);
+            AppLogger.w(
+              'Rollback de revoke $sessionId tras error: ${failure.message}',
+              tag: _tag,
+            );
+            return failure.message;
+          },
+          (_) {
+            AppLogger.i('Sesión $sessionId revocada', tag: _tag);
+            return null;
+          },
+        );
+      });
 
   /// Revoca todas las sesiones excepto la actual.
   ///
   /// Retorna el número de sesiones revocadas, o un mensaje de error.
-  Future<({int count, String? error})> revokeAllOthers() async {
-    final previous = state.value;
-    if (previous == null) {
-      return (
-        count: 0,
-        error: 'profile.active_sessions.errors.no_sessions_loaded'.tr()
-      );
-    }
+  Future<({int count, String? error})> revokeAllOthers() =>
+      ref.keepAliveDuring(() async {
+        final previous = state.value;
+        if (previous == null) {
+          return (
+            count: 0,
+            error: 'profile.active_sessions.errors.no_sessions_loaded'.tr()
+          );
+        }
 
-    final othersCount = previous.where((s) => !s.isCurrent).length;
+        final othersCount = previous.where((s) => !s.isCurrent).length;
 
-    // Optimistic remove — dejar solo la sesión actual.
-    state = AsyncData(previous.where((s) => s.isCurrent).toList());
+        // Optimistic remove — dejar solo la sesión actual.
+        state = AsyncData(previous.where((s) => s.isCurrent).toList());
 
-    final result =
-        await ref.read(activeSessionsRepositoryProvider).revokeAllOthers();
+        final result =
+            await ref.read(activeSessionsRepositoryProvider).revokeAllOthers();
 
-    return result.fold(
-      (failure) {
-        // Rollback.
-        state = AsyncData(previous);
-        AppLogger.w(
-          'Rollback de revokeAll tras error: ${failure.message}',
-          tag: _tag,
+        return result.fold(
+          (failure) {
+            // Rollback.
+            state = AsyncData(previous);
+            AppLogger.w(
+              'Rollback de revokeAll tras error: ${failure.message}',
+              tag: _tag,
+            );
+            return (count: 0, error: failure.message);
+          },
+          (count) {
+            AppLogger.i('$count sesiones revocadas', tag: _tag);
+            // El count del servidor puede diferir del estimado local — preferir el del server.
+            return (count: count > 0 ? count : othersCount, error: null);
+          },
         );
-        return (count: 0, error: failure.message);
-      },
-      (count) {
-        AppLogger.i('$count sesiones revocadas', tag: _tag);
-        // El count del servidor puede diferir del estimado local — preferir el del server.
-        return (count: count > 0 ? count : othersCount, error: null);
-      },
-    );
-  }
+      });
 }
 
 /// Provider singleton de sesiones activas.

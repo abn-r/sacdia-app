@@ -1,36 +1,31 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_loading.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'package:sacdia_app/core/utils/app_logger.dart';
-import 'package:sacdia_app/core/widgets/sac_card.dart';
-
-import '../../../../core/theme/app_colors.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
-import '../../../../core/utils/icon_helper.dart';
-import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/utils/responsive.dart';
-import '../../../../core/widgets/sac_button.dart';
-import '../../../../core/widgets/sac_profile_image.dart';
-import '../../../../core/widgets/sac_snack_bar.dart';
-import '../../../../core/widgets/sac_text_field.dart';
-import '../../../../core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/app_logger.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/status_progress/sac_grouped_section.dart';
+
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../post_registration/presentation/providers/post_registration_providers.dart';
+import '../../domain/entities/user_detail.dart';
 import '../providers/profile_providers.dart';
-import '../widgets/gender_selector.dart';
 import '../utils/profile_update_payload.dart';
-import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
+import '../widgets/edit_profile_avatar.dart';
+import '../widgets/edit_profile_row.dart';
+import '../widgets/gender_selector.dart';
+import '../widgets/profile_edit_sheets.dart';
+import '../widgets/profile_photo_sheet.dart';
 
-/// Vista para editar el perfil del usuario.
-///
-/// Diseño mobile-first: secciones agrupadas al estilo iOS Settings,
-/// avatar en el header, CTA "Guardar" en zona pulgar.
+/// Edit profile: grouped rows like Settings. Each row opens a bottom sheet (or
+/// the date picker) that edits and saves only that value.
 class EditProfileView extends ConsumerStatefulWidget {
   const EditProfileView({super.key});
 
@@ -38,218 +33,187 @@ class EditProfileView extends ConsumerStatefulWidget {
   ConsumerState<EditProfileView> createState() => _EditProfileViewState();
 }
 
+enum _PhotoBusy { none, uploading, removing }
+
+/// Editable snapshot of the saved profile: the current values plus the one
+/// field being changed make up the payload of a single-field save.
+class _ProfileFields {
+  _ProfileFields.from(UserDetail p)
+      : name = p.name,
+        paternal = p.paternalSurname ?? '',
+        maternal = p.maternalSurname ?? '',
+        gender = Gender.fromApiKey(p.gender),
+        birthdate = p.birthDate,
+        baptized = p.baptized,
+        baptismDate = p.baptismDate;
+
+  String name;
+  String paternal;
+  String maternal;
+  Gender? gender;
+  DateTime? birthdate;
+  bool baptized;
+  DateTime? baptismDate;
+
+  Map<String, dynamic> toPayload() => buildProfileUpdatePayload(
+        name: name,
+        paternalLastName: paternal,
+        maternalLastName: maternal,
+        gender: gender?.apiKey,
+        birthday: birthdate,
+        baptism: baptized,
+        baptismDate: baptismDate,
+      );
+
+  /// Date rules: the birthdate is not in the future; when baptized the
+  /// baptism date is required and not before the birthdate.
+  String? validateDates() {
+    final birth = birthdate;
+    if (birth != null && birth.isAfter(DateTime.now())) {
+      return tr('profile.edit.birthdate_error_future');
+    }
+    if (baptized) {
+      final baptism = baptismDate;
+      if (baptism == null) return tr('profile.edit.baptism_date_error_null');
+      if (birth != null && baptism.isBefore(birth)) {
+        return tr('profile.edit.baptism_date_error_before_birth');
+      }
+    }
+    return null;
+  }
+}
+
 class _EditProfileViewState extends ConsumerState<EditProfileView> {
   static const _tag = 'EditProfileView';
 
-  final _formKey = GlobalKey<FormState>();
+  _PhotoBusy _photoBusy = _PhotoBusy.none;
 
-  // Controllers — basic profile fields
-  final _nameController = TextEditingController();
-  final _paternalSurnameController = TextEditingController();
-  final _maternalSurnameController = TextEditingController();
+  /// A date or switch save is running: further taps are ignored.
+  bool _isSavingInline = false;
 
-  // State — personal info fields (F3)
-  Gender? _selectedGender;
-  DateTime? _birthdate;
-  bool _baptized = false;
-  DateTime? _baptismDate;
+  /// Value of the "Baptized" switch while its save is in flight.
+  bool? _pendingBaptized;
 
-  // State — loading flags
-  bool _isLoading = false;
-  bool _isUploadingPhoto = false;
+  /// Last loaded profile: a failed save leaves the provider in error state,
+  /// the rows keep showing the saved values.
+  UserDetail? _lastProfile;
 
-  // Inline validation error messages
-  String? _birthdateError;
-  String? _baptismDateError;
+  UserDetail? get _profile =>
+      ref.read(profileNotifierProvider).value ?? _lastProfile;
 
-  bool _dataLoaded = false;
+  // ── Saving one field ──────────────────────────────────────────────────────
 
-  @override
-  void initState() {
-    super.initState();
-    // Try loading immediately in case data is already cached
-    _loadProfileData();
-  }
+  /// Applies [change] to the saved profile and sends the full payload.
+  ///
+  /// Returns null on success (snackbar shown) or the error message.
+  Future<String?> _commit(
+    void Function(_ProfileFields fields) change, {
+    bool validateDates = false,
+  }) async {
+    final profile = _profile;
+    if (profile == null) return tr('profile.edit.save_error');
 
-  void _loadProfileData() {
-    if (_dataLoaded) return;
-    final profile = ref.read(profileNotifierProvider).value;
-    if (profile != null) {
-      _dataLoaded = true;
-      _nameController.text = profile.name;
-      _paternalSurnameController.text = profile.paternalSurname ?? '';
-      _maternalSurnameController.text = profile.maternalSurname ?? '';
-
-      // Pre-populate personal info fields (F3)
-      setState(() {
-        _selectedGender = Gender.fromApiKey(profile.gender);
-        _birthdate = profile.birthDate;
-        _baptized = profile.baptized;
-        _baptismDate = profile.baptismDate;
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _paternalSurnameController.dispose();
-    _maternalSurnameController.dispose();
-    super.dispose();
-  }
-
-  // ── F4: Photo change logic ────────────────────────────────────────────────
-
-  Future<void> _changePhoto() async {
-    final user = ref.read(authNotifierProvider).value;
-    if (user == null) return;
-
-    try {
-      final XFile? photo = await ImagePicker().pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 70,
-        maxWidth: 1024,
-        maxHeight: 1024,
-      );
-
-      if (photo == null) return; // User cancelled at picker
-
-      final toolbarColor = SacAccent.of(context).color;
-      final croppedFile = await ImageCropper().cropImage(
-        sourcePath: photo.path,
-        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
-        compressQuality: 70,
-        uiSettings: [
-          AndroidUiSettings(
-            toolbarTitle: tr('profile.edit.crop_photo_title'),
-            toolbarColor: toolbarColor,
-            toolbarWidgetColor: Colors.white,
-            lockAspectRatio: true,
-            hideBottomControls: false,
-          ),
-          IOSUiSettings(
-            title: tr('profile.edit.crop_photo_title'),
-            doneButtonTitle: tr('common.done'),
-            cancelButtonTitle: tr('common.cancel'),
-            aspectRatioLockEnabled: true,
-            resetAspectRatioEnabled: false,
-          ),
-        ],
-      );
-
-      if (croppedFile == null) return; // User cancelled at cropper
-
-      setState(() => _isUploadingPhoto = true);
-
-      try {
-        final success =
-            await ref.read(profilePhotoUploadNotifierProvider.notifier).upload(
-                  userId: user.id,
-                  filePath: croppedFile.path,
-                );
-
-        if (!mounted) return;
-
-        if (!success) {
-          _showSnackbar(tr('profile.edit.photo_upload_error'), isError: true);
-        } else {
-          ref.invalidate(profileNotifierProvider);
-          ref.invalidate(authNotifierProvider);
-          _showSnackbar(tr('profile.edit.photo_upload_success'));
-        }
-      } finally {
-        if (mounted) {
-          setState(() => _isUploadingPhoto = false);
-        }
-      }
-    } catch (e) {
-      AppLogger.e('Error al cambiar foto de perfil', tag: _tag, error: e);
-      if (mounted) {
-        setState(() => _isUploadingPhoto = false);
-        _showSnackbar(tr('profile.edit.photo_upload_error'), isError: true);
-      }
-    }
-  }
-
-  // ── F3 + basic: Save profile ──────────────────────────────────────────────
-
-  /// Validates personal info fields (F3). Returns true if valid.
-  bool _validatePersonalInfo() {
-    bool valid = true;
-    String? newBirthdateError;
-    String? newBaptismDateError;
-
-    if (_birthdate != null && _birthdate!.isAfter(DateTime.now())) {
-      newBirthdateError = tr('profile.edit.birthdate_error_future');
-      valid = false;
+    final fields = _ProfileFields.from(profile);
+    change(fields);
+    if (validateDates) {
+      final error = fields.validateDates();
+      if (error != null) return error;
     }
 
-    if (_baptized) {
-      if (_baptismDate == null) {
-        newBaptismDateError = tr('profile.edit.baptism_date_error_null');
-        valid = false;
-      } else if (_birthdate != null && _baptismDate!.isBefore(_birthdate!)) {
-        newBaptismDateError =
-            tr('profile.edit.baptism_date_error_before_birth');
-        valid = false;
-      }
-    }
+    final saved = await ref
+        .read(profileNotifierProvider.notifier)
+        .updateProfile(fields.toPayload());
+    if (!mounted) return null;
+    if (!saved) return tr('profile.edit.save_error');
 
-    setState(() {
-      _birthdateError = newBirthdateError;
-      _baptismDateError = newBaptismDateError;
-    });
-
-    return valid;
+    ref.invalidate(profileNotifierProvider);
+    // Navbars and greetings read the auth user: refresh it without waiting for
+    // the next /auth/me call. Refresh in place: invalidating would put auth in
+    // loading and the router would send the user back to Home.
+    ref
+        .read(authNotifierProvider.notifier)
+        .refreshCurrentUser(keepCurrentOnFailure: true);
+    SacSnackBar.show(context, tr('profile.edit.save_success'), isSuccess: true);
+    return null;
   }
 
-  Future<void> _saveProfile() async {
-    final formState = _formKey.currentState;
-    if (formState == null || !formState.validate()) return;
-    if (!_validatePersonalInfo()) return;
+  /// [_commit] for the rows that have no sheet (dates, switch): an error goes
+  /// to a snackbar. Returns true when saved.
+  Future<bool> _commitInline(
+    void Function(_ProfileFields fields) change,
+  ) async {
+    setState(() => _isSavingInline = true);
+    final error = await _commit(change, validateDates: true);
+    if (!mounted) return error == null;
+    setState(() => _isSavingInline = false);
+    if (error != null) {
+      SacSnackBar.show(context, error, isError: true);
+    }
+    return error == null;
+  }
 
-    setState(() => _isLoading = true);
+  // ── Text and gender rows (sheets) ─────────────────────────────────────────
 
-    bool success = false;
-
-    // Unified update: only fields backed by the effective users contract.
-    final data = buildProfileUpdatePayload(
-      name: _nameController.text,
-      paternalLastName: _paternalSurnameController.text,
-      maternalLastName: _maternalSurnameController.text,
-      gender: _selectedGender?.apiKey,
-      birthday: _birthdate,
-      baptism: _baptized,
-      baptismDate: _baptismDate,
+  Future<void> _editName() {
+    final profile = _profile;
+    if (profile == null) return Future.value();
+    return showProfileTextSheet(
+      context,
+      title: tr('profile.edit.field_name_label'),
+      helper: tr('profile.edit.field_name_helper'),
+      hint: tr('profile.edit.field_name_placeholder'),
+      initialValue: profile.name,
+      requiredMessage: tr('profile.edit.field_name_required'),
+      onSave: (value) => _commit((f) => f.name = value),
     );
-
-    success =
-        await ref.read(profileNotifierProvider.notifier).updateProfile(data);
-
-    setState(() => _isLoading = false);
-
-    if (!mounted) return;
-
-    if (success) {
-      ref.invalidate(profileNotifierProvider);
-      // Invalidate auth state so any widget reading authNotifierProvider
-      // (navbars, dashboard greetings, etc.) reflects the updated name/avatar
-      // without waiting for the next /auth/me call on app restart.
-      ref.invalidate(authNotifierProvider);
-      _showSnackbar(tr('profile.edit.save_success'));
-      Navigator.pop(context);
-    } else {
-      _showSnackbar(tr('profile.edit.save_error'), isError: true);
-    }
   }
 
-  // ── Date pickers (F3) ────────────────────────────────────────────────────
+  Future<void> _editPaternal() {
+    final profile = _profile;
+    if (profile == null) return Future.value();
+    return showProfileTextSheet(
+      context,
+      title: tr('profile.edit.field_paternal_label'),
+      helper: tr('profile.edit.field_paternal_helper'),
+      hint: tr('profile.edit.field_paternal_placeholder'),
+      initialValue: profile.paternalSurname ?? '',
+      onSave: (value) => _commit((f) => f.paternal = value),
+    );
+  }
 
-  Future<void> _selectBirthdate() async {
+  Future<void> _editMaternal() {
+    final profile = _profile;
+    if (profile == null) return Future.value();
+    return showProfileTextSheet(
+      context,
+      title: tr('profile.edit.field_maternal_label'),
+      helper: tr('profile.edit.field_maternal_helper'),
+      hint: tr('profile.edit.field_maternal_placeholder'),
+      initialValue: profile.maternalSurname ?? '',
+      onSave: (value) => _commit((f) => f.maternal = value),
+    );
+  }
+
+  Future<void> _editGender() {
+    final profile = _profile;
+    if (profile == null) return Future.value();
+    return showGenderSheet(
+      context,
+      current: Gender.fromApiKey(profile.gender),
+      onSave: (value) => _commit((f) => f.gender = value),
+    );
+  }
+
+  // ── Date rows (picker straight from the row) ──────────────────────────────
+
+  Future<void> _editBirthdate() async {
+    final profile = _profile;
+    if (profile == null || _isSavingInline) return;
+
     final now = DateTime.now();
     final minDate = DateTime(now.year - 99, now.month, now.day);
     final maxDate = DateTime(now.year - 3, now.month, now.day);
-    final initialDate = _birthdate ?? maxDate;
+    final initialDate = profile.birthDate ?? maxDate;
 
     final picked = await showSacDatePicker(
       context: context,
@@ -262,26 +226,17 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
       cancelText: tr('profile.edit.date_picker_cancel'),
       confirmText: tr('profile.edit.date_picker_confirm'),
     );
+    if (picked == null || !mounted) return;
 
-    if (picked != null) {
-      setState(() {
-        _birthdate = picked;
-        _birthdateError = null;
-        // Reset baptism date if it becomes invalid
-        if (_baptismDate != null && _baptismDate!.isBefore(picked)) {
-          _baptismDate = null;
-          _baptismDateError = null;
-        }
-      });
-    }
+    await _commitInline((f) => f.birthdate = picked);
   }
 
-  Future<void> _selectBaptismDate() async {
+  Future<DateTime?> _pickBaptismDate() {
     final now = DateTime.now();
-    final firstDate = _birthdate ?? DateTime(1900);
-    final initialDate = _baptismDate ?? now;
+    final firstDate = _profile?.birthDate ?? DateTime(1900);
+    final initialDate = _profile?.baptismDate ?? now;
 
-    final picked = await showSacDatePicker(
+    return showSacDatePicker(
       context: context,
       initialDate: initialDate.isBefore(firstDate) ? firstDate : initialDate,
       firstDate: firstDate,
@@ -290,16 +245,169 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
       cancelText: tr('profile.edit.date_picker_cancel'),
       confirmText: tr('profile.edit.date_picker_confirm'),
     );
+  }
 
-    if (picked != null) {
-      setState(() {
-        _baptismDate = picked;
-        _baptismDateError = null;
-      });
+  Future<void> _editBaptismDate() async {
+    if (_isSavingInline) return;
+    final picked = await _pickBaptismDate();
+    if (picked == null || !mounted) return;
+    await _commitInline((f) => f.baptismDate = picked);
+  }
+
+  /// ON needs a baptism date: cancelling the picker leaves the switch off and
+  /// saves nothing. OFF saves `baptism: false`.
+  Future<void> _toggleBaptized(bool value) async {
+    if (_isSavingInline) return;
+
+    DateTime? baptismDate;
+    if (value) {
+      baptismDate = await _pickBaptismDate();
+      if (baptismDate == null || !mounted) return;
+    }
+
+    setState(() => _pendingBaptized = value);
+    await _commitInline((f) {
+      f.baptized = value;
+      f.baptismDate = value ? baptismDate : null;
+    });
+    if (mounted) setState(() => _pendingBaptized = null);
+  }
+
+  // ── Photo ─────────────────────────────────────────────────────────────────
+
+  Future<void> _openPhotoSheet() async {
+    if (_photoBusy != _PhotoBusy.none) return;
+
+    final avatar = _profile?.avatar;
+    final action = await showProfilePhotoSheet(
+      context,
+      hasPhoto: avatar != null && avatar.isNotEmpty,
+    );
+    if (action == null || !mounted) return;
+
+    switch (action) {
+      case ProfilePhotoAction.camera:
+        await _pickAndUpload(ImageSource.camera);
+      case ProfilePhotoAction.gallery:
+        await _pickAndUpload(ImageSource.gallery);
+      case ProfilePhotoAction.remove:
+        await _confirmAndRemove();
     }
   }
 
-  // ── Helpers ──────────────────────────────────────────────────────────────
+  Future<void> _pickAndUpload(ImageSource source) async {
+    final user = await ref.read(authNotifierProvider.future);
+    if (!mounted) return;
+    if (user == null) return;
+
+    try {
+      final XFile? photo = await ImagePicker().pickImage(
+        source: source,
+        imageQuality: 70,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      );
+      if (photo == null || !mounted) return; // cancelled at the picker
+
+      final accent = SacAccent.of(context);
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: photo.path,
+        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+        compressQuality: 70,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: tr('profile.edit.crop_photo_title'),
+            toolbarColor: accent.color,
+            toolbarWidgetColor: accent.onColor,
+            lockAspectRatio: true,
+            hideBottomControls: false,
+          ),
+          IOSUiSettings(
+            title: tr('profile.edit.crop_photo_title'),
+            doneButtonTitle: tr('common.done'),
+            cancelButtonTitle: tr('common.cancel'),
+            aspectRatioLockEnabled: true,
+            resetAspectRatioEnabled: false,
+          ),
+        ],
+      );
+      if (croppedFile == null || !mounted) return; // cancelled at the cropper
+
+      setState(() => _photoBusy = _PhotoBusy.uploading);
+      try {
+        final success =
+            await ref.read(profilePhotoUploadNotifierProvider.notifier).upload(
+                  userId: user.id,
+                  filePath: croppedFile.path,
+                );
+        if (!mounted) return;
+
+        if (!success) {
+          _showSnackbar(tr('profile.edit.photo_upload_error'), isError: true);
+        } else {
+          await _refreshAfterPhotoChange();
+          if (!mounted) return;
+          _showSnackbar(tr('profile.edit.photo_upload_success'));
+        }
+      } finally {
+        if (mounted) setState(() => _photoBusy = _PhotoBusy.none);
+      }
+    } catch (e) {
+      AppLogger.e('Error al cambiar foto de perfil', tag: _tag, error: e);
+      if (mounted) {
+        setState(() => _photoBusy = _PhotoBusy.none);
+        _showSnackbar(tr('profile.edit.photo_upload_error'), isError: true);
+      }
+    }
+  }
+
+  Future<void> _confirmAndRemove() async {
+    final user = await ref.read(authNotifierProvider.future);
+    if (!mounted) return;
+    if (user == null) return;
+
+    final confirmed = await SacDialog.show(
+      context,
+      title: tr('profile.edit.photo_remove_confirm_title'),
+      content: tr('profile.edit.photo_remove_confirm_body'),
+      confirmLabel: tr('profile.edit.photo_remove'),
+      confirmIsDestructive: true,
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _photoBusy = _PhotoBusy.removing);
+    try {
+      final success = await ref
+          .read(profilePhotoUploadNotifierProvider.notifier)
+          .remove(userId: user.id);
+      if (!mounted) return;
+
+      if (!success) {
+        _showSnackbar(tr('profile.edit.photo_remove_error'), isError: true);
+      } else {
+        await _refreshAfterPhotoChange();
+        if (!mounted) return;
+        _showSnackbar(tr('profile.edit.photo_removed'));
+      }
+    } finally {
+      if (mounted) setState(() => _photoBusy = _PhotoBusy.none);
+    }
+  }
+
+  /// Reloads profile and auth user and waits for the profile, so the avatar
+  /// crossfades to the new photo before the ring goes away.
+  Future<void> _refreshAfterPhotoChange() async {
+    ref.invalidate(profileNotifierProvider);
+    // Refresh in place (see [_commit]).
+    ref
+        .read(authNotifierProvider.notifier)
+        .refreshCurrentUser(keepCurrentOnFailure: true);
+    try {
+      await ref.read(profileNotifierProvider.future);
+    } catch (e) {
+      AppLogger.e('No se pudo recargar el perfil', tag: _tag, error: e);
+    }
+  }
 
   void _showSnackbar(String message, {bool isError = false}) {
     SacSnackBar.show(
@@ -310,579 +418,113 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     );
   }
 
+  // ── Build ─────────────────────────────────────────────────────────────────
+
+  String? _formatDate(DateTime? date) => date == null
+      ? null
+      : DateFormat.yMMMd(context.locale.toString()).format(date);
+
   @override
   Widget build(BuildContext context) {
-    final profileState = ref.watch(profileNotifierProvider);
-    final profile = profileState.value;
-    final hPad = Responsive.horizontalPadding(context);
+    final profile = ref.watch(profileNotifierProvider).value ?? _lastProfile;
+    if (profile != null) _lastProfile = profile;
 
-    // Load data when provider resolves (handles async timing)
-    if (!_dataLoaded && profile != null) {
-      _loadProfileData();
-    }
+    final baptized = _pendingBaptized ?? profile?.baptized ?? false;
+    final addLabel = tr('profile.edit.add_value');
+    final gender = Gender.fromApiKey(profile?.gender);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: context.sac.background,
-      appBar: SacTopBar(
-        title: tr('profile.edit.title'),
-        frosted: true,
-      ),
+      appBar: SacTopBar(title: tr('profile.edit.title'), frosted: true),
       body: SacFrostedVeil(
-        child: Builder(
-          builder: (context) {
-            return Form(
-              key: _formKey,
-              child: SingleChildScrollView(
-                padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: profile == null
+              ? const Padding(
+                  padding: EdgeInsets.only(top: 80),
+                  child: Center(child: SacLoading()),
+                )
+              : Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // ── 1. Header: avatar + nombre actual ───────────────────
-                    _AvatarHeader(
-                      name: profile?.fullName ?? '',
-                      avatar: profile?.avatar,
-                      isUploading: _isUploadingPhoto,
-                      onChangeTap: _isUploadingPhoto ? null : _changePhoto,
+                    EditProfileAvatar(
+                      name: profile.fullName,
+                      avatarUrl: (profile.avatar?.isNotEmpty ?? false)
+                          ? profile.avatar
+                          : null,
+                      isBusy: _photoBusy != _PhotoBusy.none,
+                      busyLabel: _photoBusy == _PhotoBusy.removing
+                          ? tr('profile.edit.photo_removing')
+                          : tr('profile.edit.photo_uploading'),
+                      onTap: _openPhotoSheet,
                     ),
-
-                    const SizedBox(height: 24),
-
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: hPad),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // ── 2. Sección: Nombre ────────────────────────────────
-                          _SectionHeader(
-                            icon: HugeIcons.strokeRoundedUser,
-                            label: tr('profile.edit.section_name'),
-                          ),
-                          const SizedBox(height: 6),
-                          SacTextField(
-                            controller: _nameController,
-                            label: tr('profile.edit.field_name_label'),
-                            hint: tr('profile.edit.field_name_placeholder'),
-                            prefixIcon: HugeIcons.strokeRoundedUser,
-                            textCapitalization: TextCapitalization.words,
-                            textInputAction: TextInputAction.next,
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return tr('profile.edit.field_name_required');
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: SacTextField(
-                                  controller: _paternalSurnameController,
-                                  label:
-                                      tr('profile.edit.field_paternal_label'),
-                                  hint: tr(
-                                      'profile.edit.field_paternal_placeholder'),
-                                  prefixIcon: HugeIcons.strokeRoundedUser,
-                                  textCapitalization: TextCapitalization.words,
-                                  textInputAction: TextInputAction.next,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: SacTextField(
-                                  controller: _maternalSurnameController,
-                                  label:
-                                      tr('profile.edit.field_maternal_label'),
-                                  hint: tr(
-                                      'profile.edit.field_maternal_placeholder'),
-                                  prefixIcon: HugeIcons.strokeRoundedUser,
-                                  textCapitalization: TextCapitalization.words,
-                                  textInputAction: TextInputAction.next,
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // ── 5. Sección: Información Personal (F3) ─────
-                          _SectionHeader(
-                            icon: HugeIcons.strokeRoundedUser,
-                            label: tr('profile.edit.section_personal_info'),
-                          ),
-                          const SizedBox(height: 12),
-
-                          // Gender — bottomsheet selector (matches blood type pattern)
-                          _GenderPickerField(
-                            label: tr('profile.edit.gender_label'),
-                            selected: _selectedGender,
-                            onTap: () async {
-                              final picked = await showGenderSelector(
-                                context,
-                                current: _selectedGender,
-                              );
-                              if (picked != null) {
-                                setState(() => _selectedGender = picked);
-                              }
-                            },
-                          ),
-
-                          const SizedBox(height: 16),
-
-                          // Birthdate picker
-                          _DatePickerField(
-                            label: tr('profile.edit.birthdate_label'),
-                            icon: HugeIcons.strokeRoundedBirthdayCake,
-                            date: _birthdate,
-                            errorText: _birthdateError,
-                            onTap: _selectBirthdate,
-                          ),
-
-                          const SizedBox(height: 12),
-
-                          // Baptism toggle
-                          SacCard(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            child: SacPressable(
-                              listenOnly: true,
-                              child: Material(
-                                  type: MaterialType.transparency,
-                                  child: SwitchListTile(
-                                    enableFeedback: false,
-                                    title: Text(
-                                      tr('profile.edit.baptism_toggle'),
-                                      style: const TextStyle(
-                                        fontSize: SacFontSize.titleMedium,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    value: _baptized,
-                                    activeTrackColor:
-                                        SacAccent.of(context).light,
-                                    thumbColor: WidgetStatePropertyAll(
-                                        SacAccent.of(context).color),
-                                    contentPadding: EdgeInsets.zero,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _baptized = value;
-                                        if (!value) {
-                                          _baptismDate = null;
-                                          _baptismDateError = null;
-                                        }
-                                      });
-                                    },
-                                  )),
-                            ),
-                          ),
-
-                          // Conditional baptism date picker
-                          if (_baptized) ...[
-                            const SizedBox(height: 12),
-                            _DatePickerField(
-                              label: tr('profile.edit.baptism_date_label'),
-                              icon: HugeIcons.strokeRoundedBlood,
-                              date: _baptismDate,
-                              errorText: _baptismDateError,
-                              onTap: _selectBaptismDate,
-                            ),
-                          ],
-
-                          const SizedBox(height: 32),
-
-                          // ── 6. CTA Guardar (thumb zone) ───────────────
-                          SacButton.primary(
-                            text: tr('profile.edit.save_changes'),
-                            icon: HugeIcons.strokeRoundedFloppyDisk,
-                            isLoading: _isLoading,
-                            onPressed: (_isLoading || _isUploadingPhoto)
-                                ? null
-                                : _saveProfile,
-                          ),
-
-                          const SizedBox(height: 32),
-                        ],
-                      ),
+                    SacGroupedSection(
+                      label: tr('profile.edit.group_name'),
+                      dividerIndent: 16,
+                      children: [
+                        EditProfileRow(
+                          label: tr('profile.edit.field_name_label'),
+                          value: profile.name,
+                          emptyLabel: addLabel,
+                          onTap: _editName,
+                        ),
+                        EditProfileRow(
+                          label: tr('profile.edit.field_paternal_label'),
+                          value: profile.paternalSurname,
+                          emptyLabel: addLabel,
+                          onTap: _editPaternal,
+                        ),
+                        EditProfileRow(
+                          label: tr('profile.edit.field_maternal_label'),
+                          value: profile.maternalSurname,
+                          emptyLabel: addLabel,
+                          onTap: _editMaternal,
+                        ),
+                      ],
                     ),
+                    SacGroupedSection(
+                      label: tr('profile.edit.group_personal'),
+                      dividerIndent: 16,
+                      children: [
+                        EditProfileRow(
+                          label: tr('profile.edit.gender_label'),
+                          value: gender?.display(context),
+                          emptyLabel: addLabel,
+                          onTap: _editGender,
+                        ),
+                        EditProfileRow(
+                          label: tr('profile.edit.birthdate_label'),
+                          value: _formatDate(profile.birthDate),
+                          emptyLabel: addLabel,
+                          onTap: _editBirthdate,
+                        ),
+                      ],
+                    ),
+                    SacGroupedSection(
+                      label: tr('profile.edit.group_church'),
+                      dividerIndent: 16,
+                      children: [
+                        EditProfileSwitchRow(
+                          label: tr('profile.edit.baptism_toggle'),
+                          value: baptized,
+                          onChanged: _isSavingInline ? null : _toggleBaptized,
+                        ),
+                        if (baptized)
+                          EditProfileRow(
+                            label: tr('profile.edit.baptism_date_label'),
+                            value: _formatDate(profile.baptismDate),
+                            emptyLabel: addLabel,
+                            onTap: _editBaptismDate,
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 40),
                   ],
                 ),
-              ),
-            );
-          },
         ),
       ),
-    );
-  }
-}
-
-// ─── Private Widgets ────────────────────────────────────────────────────────
-
-/// Header con avatar circular y nombre actual del usuario.
-/// Muestra indicador de carga durante la subida de foto (F4).
-class _AvatarHeader extends StatelessWidget {
-  final String name;
-  final String? avatar;
-  final bool isUploading;
-  final VoidCallback? onChangeTap;
-
-  const _AvatarHeader({
-    required this.name,
-    this.avatar,
-    this.isUploading = false,
-    this.onChangeTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    const double radius = 48.0;
-
-    return Container(
-      color: context.sac.background,
-      padding: const EdgeInsets.symmetric(vertical: 28),
-      child: Column(
-        children: [
-          GestureDetector(
-            onTap: onChangeTap,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: SacAccent.of(context).light,
-                      width: 3,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color:
-                            SacAccent.of(context).color.withValues(alpha: 0.15),
-                        blurRadius: 16,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      CircleAvatar(
-                        radius: radius,
-                        backgroundColor: SacAccent.of(context).surface,
-                        backgroundImage: avatar != null
-                            ? sacProfileImageProvider(avatar!)
-                            : null,
-                        child: avatar == null
-                            ? Text(
-                                name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                                style: TextStyle(
-                                  fontSize: SacFontSize.metricSmall,
-                                  fontWeight: FontWeight.w700,
-                                  color: SacAccent.of(context).color,
-                                ),
-                              )
-                            : null,
-                      ),
-                      if (isUploading)
-                        Container(
-                          width: radius * 2,
-                          height: radius * 2,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.black.withValues(alpha: 0.5),
-                          ),
-                          child: const Center(
-                            child: SizedBox(
-                              width: 28,
-                              height: 28,
-                              child: SacLoadingSmall(color: Colors.white),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                if (!isUploading)
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: SacAccent.of(context).color,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: context.sac.background,
-                          width: 2,
-                        ),
-                      ),
-                      child: const Center(
-                        child: HugeIcon(
-                          icon: HugeIcons.strokeRoundedCamera01,
-                          color: Colors.white,
-                          size: 15,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          if (name.isNotEmpty)
-            Text(
-              name,
-              style: TextStyle(
-                fontSize: SacFontSize.headlineSmall,
-                fontWeight: FontWeight.w700,
-                color: context.sac.text,
-                letterSpacing: -0.3,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          const SizedBox(height: 4),
-          GestureDetector(
-            onTap: onChangeTap,
-            child: Text(
-              isUploading
-                  ? tr('profile.edit.photo_uploading')
-                  : tr('profile.edit.change_photo'),
-              style: TextStyle(
-                fontSize: SacFontSize.bodyMedium,
-                fontWeight: FontWeight.w500,
-                color: isUploading
-                    ? context.sac.textTertiary
-                    : SacAccent.of(context).color,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Encabezado de sección con icono y etiqueta uppercase.
-class _SectionHeader extends StatelessWidget {
-  final HugeIconData icon;
-  final String label;
-
-  const _SectionHeader({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 28,
-          height: 28,
-          decoration: BoxDecoration(
-            color: SacAccent.of(context).light,
-            borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-          ),
-          child: Center(
-            child: HugeIcon(
-              icon: icon,
-              color: SacAccent.of(context).dark,
-              size: 15,
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          label.toUpperCase(),
-          style: TextStyle(
-            fontSize: SacFontSize.labelSmall,
-            fontWeight: FontWeight.w700,
-            color: context.sac.textSecondary,
-            letterSpacing: 0.8,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// Campo tappable que muestra el género seleccionado y abre el bottomsheet
-/// selector al ser presionado (F3 — patrón bottomsheet de grupo sanguíneo).
-class _GenderPickerField extends StatelessWidget {
-  final String label;
-  final Gender? selected;
-  final VoidCallback onTap;
-
-  const _GenderPickerField({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final hasValue = selected != null;
-
-    return SacCard(
-      onTap: onTap,
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: hasValue
-                  ? SacAccent.of(context).light
-                  : context.sac.surfaceVariant,
-              borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-            ),
-            child: Center(
-              child: HugeIcon(
-                icon: hasValue ? selected!.icon : HugeIcons.strokeRoundedUser,
-                size: 20,
-                color: hasValue
-                    ? SacAccent.of(context).color
-                    : context.sac.textTertiary,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: SacFontSize.bodySmall,
-                    color: context.sac.textTertiary,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  hasValue
-                      ? selected!.display(context)
-                      : 'profile.edit.gender_unset'.tr(),
-                  style: TextStyle(
-                    fontSize: SacFontSize.titleMedium,
-                    fontWeight: FontWeight.w500,
-                    color:
-                        hasValue ? context.sac.text : context.sac.textTertiary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowRight01,
-            size: 18,
-            color: context.sac.textTertiary,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Campo de selección de fecha con indicador de error inline (F3).
-class _DatePickerField extends StatelessWidget {
-  final String label;
-  final HugeIconData icon;
-  final DateTime? date;
-  final String? errorText;
-  final VoidCallback onTap;
-
-  const _DatePickerField({
-    required this.label,
-    required this.icon,
-    required this.date,
-    required this.onTap,
-    this.errorText,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SacCard(
-          onTap: onTap,
-          borderColor: errorText != null ? AppColors.error : null,
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: errorText != null
-                      ? context.sac.errorContainer
-                      : (date != null
-                          ? SacAccent.of(context).light
-                          : context.sac.surfaceVariant),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-                ),
-                child: Center(
-                  child: HugeIcon(
-                    icon: icon,
-                    size: 20,
-                    color: errorText != null
-                        ? AppColors.error
-                        : (date != null
-                            ? SacAccent.of(context).color
-                            : context.sac.textTertiary),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: SacFontSize.bodySmall,
-                        color: context.sac.textTertiary,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      date != null
-                          ? DateFormat.yMMMd(context.locale.toString())
-                              .format(date!)
-                          : tr('profile.edit.date_placeholder'),
-                      style: TextStyle(
-                        fontSize: SacFontSize.titleMedium,
-                        fontWeight: FontWeight.w500,
-                        color: date != null
-                            ? context.sac.text
-                            : context.sac.textTertiary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedCalendar01,
-                size: 18,
-                color: context.sac.textTertiary,
-              ),
-            ],
-          ),
-        ),
-        if (errorText != null) ...[
-          const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.only(left: 4),
-            child: Text(
-              errorText!,
-              style: const TextStyle(
-                fontSize: SacFontSize.bodySmall,
-                color: AppColors.error,
-              ),
-            ),
-          ),
-        ],
-      ],
     );
   }
 }

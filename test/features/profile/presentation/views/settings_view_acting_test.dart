@@ -13,8 +13,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../family/family_test_harness.dart';
 
-/// FP-56: mientras se actúa por un menor, Ajustes no ofrece sesiones activas,
-/// exportación de datos, cambio de contraseña ni borrado de cuenta.
+/// FP-56: mientras se actúa por un menor, Ajustes no ofrece Mis datos
+/// (exportación y borrado de cuenta); Seguridad se queda con lo que es del
+/// teléfono (la contraseña y las sesiones se ocultan dentro de la pantalla).
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -59,28 +60,29 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  final guardianOnly = [
-    'settings.active_sessions',
-    'settings.download_my_data',
-    'settings.change_password',
-    'profile.settings.delete_account_tile',
-  ];
+  // «Mis datos» (copia y borrado de cuenta) es del tutor. «Seguridad» siempre
+  // está: el desbloqueo biométrico es de este teléfono; la contraseña y las
+  // sesiones se deciden dentro de la pantalla (security_view_test).
+  const guardianOnly = 'settings.my_data_title';
+  const security = 'settings.security_title';
 
-  testWidgets('the guardian sees sessions, data export, password and delete',
-      (tester) async {
+  testWidgets('the guardian sees Seguridad and Mis datos', (tester) async {
     await pump(tester, acting: false);
 
-    for (final key in guardianOnly) {
-      expect(find.text(key.tr()), findsOneWidget, reason: key);
-    }
+    expect(find.text(security.tr()), findsOneWidget);
+    expect(find.text(guardianOnly.tr()), findsOneWidget);
   });
 
-  testWidgets('while acting those four entries are gone', (tester) async {
+  testWidgets('while acting Mis datos is gone but Seguridad stays (biometrics)',
+      (tester) async {
     await pump(tester, acting: true);
 
-    for (final key in guardianOnly) {
-      expect(find.text(key.tr()), findsNothing, reason: key);
-    }
+    expect(find.text(guardianOnly.tr()), findsNothing);
+    expect(find.text(security.tr()), findsOneWidget);
+    expect(
+      find.text('settings.section_security_privacy'.tr().toUpperCase()),
+      findsOneWidget,
+    );
     // El resto de Ajustes sigue disponible.
     expect(find.text('profile.settings.logout_tile'.tr()), findsOneWidget);
     expect(find.text('settings.member_qr'.tr()), findsOneWidget);
@@ -94,20 +96,13 @@ void main() {
       serverMode: AccountMode.teenSupervised,
     );
 
-    testWidgets(
-        'no sessions, data export, delete account or club change; the '
-        'password stays', (tester) async {
+    testWidgets('Seguridad stays; no Mis datos or club change', (tester) async {
       await pump(tester, acting: false, user: teen);
 
-      for (final key in [
-        'settings.active_sessions',
-        'settings.download_my_data',
-        'profile.settings.delete_account_tile',
-        'profile.settings.change_club_tile',
-      ]) {
+      expect(find.text(security.tr()), findsOneWidget);
+      for (final key in [guardianOnly, 'profile.settings.change_club_tile']) {
         expect(find.text(key.tr()), findsNothing, reason: key);
       }
-      expect(find.text('settings.change_password'.tr()), findsOneWidget);
       expect(find.text('profile.settings.logout_tile'.tr()), findsOneWidget);
     });
 

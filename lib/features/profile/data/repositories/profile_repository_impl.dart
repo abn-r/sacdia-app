@@ -69,4 +69,18 @@ class ProfileRepositoryImpl implements ProfileRepository {
       return Left(UnexpectedFailure(message: e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, Unit>> deleteProfilePicture(String userId) async {
+    try {
+      await remoteDataSource.deleteProfilePicture(userId);
+      return const Right(unit);
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
 }

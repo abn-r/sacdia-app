@@ -5,12 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
-import '../../../profile/presentation/widgets/setting_tile.dart';
 import '../providers/biometric_provider.dart';
 
-/// Toggle de biometría expuesto para insertar en `settings_view`.
+/// Toggle de biometría de la pantalla Seguridad (`SecurityView`).
 ///
-/// Renderiza un [SettingTile] con un [Switch] que:
+/// Renderiza un [SacSettingsSwitchTile] (en Seguridad) con un [Switch] que:
 /// - OFF → ON: dispara prompt biométrico para "enrolar" y persiste opt-in.
 /// - ON  → OFF: desactiva y limpia settings.
 ///
@@ -67,6 +66,9 @@ class BiometricSettingsSection extends ConsumerWidget {
         subtitle = 'biometric.no_biometric_enrolled'.tr();
       }
     }
+
+    // Without a problem to report, say what the switch does.
+    subtitle ??= 'biometric.tile_subtitle'.tr();
 
     final switchEnabled = canEnable || state.enabled;
 

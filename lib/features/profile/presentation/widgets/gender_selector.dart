@@ -1,13 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/sac_accent.dart';
-import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
-import 'package:sacdia_app/core/widgets/sac_sheet.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Género soportado por el backend (`gender` en `UpdateUserDto`).
+///
+/// El selector vive en `profile_edit_sheets.dart` (`showGenderSheet`).
 ///
 /// - [display] es el label visible al usuario.
 /// - [apiKey] es el valor que el backend espera en `PATCH /users/:id`
@@ -44,128 +42,5 @@ enum Gender {
       if (g.apiKey == value) return g;
     }
     return null;
-  }
-}
-
-/// Bottomsheet para seleccionar género.
-///
-/// Devuelve el [Gender] seleccionado, o `null` si el usuario cancela.
-Future<Gender?> showGenderSelector(
-  BuildContext context, {
-  Gender? current,
-}) {
-  return showSacSheet<Gender>(
-    context: context,
-    isScrollControlled: false,
-    showDragHandle: true,
-    builder: (ctx) => _GenderSheet(current: current),
-  );
-}
-
-class _GenderSheet extends StatelessWidget {
-  const _GenderSheet({this.current});
-
-  final Gender? current;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'profile.edit.gender_select_title'.tr(),
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'profile.edit.gender_select_subtitle'.tr(),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: Gender.values
-                  .map(
-                    (g) => _GenderChip(
-                      gender: g,
-                      selected: current == g,
-                      onTap: () => Navigator.of(context).pop(g),
-                    ),
-                  )
-                  .toList(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _GenderChip extends StatelessWidget {
-  const _GenderChip({
-    required this.gender,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final Gender gender;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6),
-        child: GestureDetector(
-          onTap: onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            decoration: BoxDecoration(
-              color:
-                  selected ? SacAccent.of(context).light : context.sac.surface,
-              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-              border: Border.all(
-                color:
-                    selected ? SacAccent.of(context).color : context.sac.border,
-                width: selected ? 2 : 1,
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                HugeIcon(
-                  icon: gender.icon,
-                  size: 28,
-                  color: selected
-                      ? SacAccent.of(context).color
-                      : context.sac.textSecondary,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  gender.display(context),
-                  style: TextStyle(
-                    fontSize: SacFontSize.titleSmall,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                    color: selected
-                        ? SacAccent.of(context).color
-                        : context.sac.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }

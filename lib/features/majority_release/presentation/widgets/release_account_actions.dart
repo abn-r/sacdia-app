@@ -8,13 +8,13 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../profile/presentation/utils/run_delete_account_flow.dart';
-import '../../../profile/presentation/views/data_export_view.dart';
+import '../../../profile/presentation/views/my_data_view.dart';
 
 /// Salidas de la persona liberada: exportar sus datos, borrar su cuenta y
 /// cerrar sesión. Siempre disponibles, también congelada (la compuerta del
 /// servidor deja pasar `data:export` y `account:manage`).
 ///
-/// Las dos primeras reutilizan los flujos de Ajustes (`DataExportView` y
+/// Las dos primeras reutilizan los flujos de Ajustes (`MyDataView` y
 /// `runDeleteAccountFlow`). Aquí nunca se dice que la cuenta se borrará sola:
 /// no es así (R6), solo la borra la propia persona.
 class ReleaseAccountActions extends ConsumerWidget {
@@ -33,7 +33,7 @@ class ReleaseAccountActions extends ConsumerWidget {
           icon: HugeIcons.strokeRoundedDownload02,
           isEnabled: enabled,
           onPressed: () => Navigator.of(context).push(
-            SacSharedAxisRoute(builder: (_) => const DataExportView()),
+            SacSharedAxisRoute(builder: (_) => const MyDataView()),
           ),
         ),
         const SizedBox(height: 4),

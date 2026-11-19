@@ -21,4 +21,7 @@ abstract class ProfileRepository {
     String userId,
     String filePath,
   );
+
+  /// Elimina la foto de perfil del usuario
+  Future<Either<Failure, Unit>> deleteProfilePicture(String userId);
 }
