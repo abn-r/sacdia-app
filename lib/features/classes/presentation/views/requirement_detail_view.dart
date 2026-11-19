@@ -365,7 +365,9 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                               'classes.requirement_detail.submit_success'.tr(),
                               isSuccess: true,
                             );
-                            Navigator.pop(context);
+                            // Stay on the screen: the live requirement turns
+                            // "Enviado" and the panel, grid and footer animate
+                            // into the read-only state.
                           },
                           fileNameBuilder: _buildFileNameWithIndex,
                           sectionTitle: 'classes.grouped.req.files'.tr(),
