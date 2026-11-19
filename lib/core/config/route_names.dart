@@ -22,6 +22,7 @@ class RouteNames {
   static const String profile = 'profile';
   static const String clubDetail = '/club/:clubId';
   static const String classDetail = '/class/:classId';
+  static const String classModule = '/class/:classId/module/:moduleId';
   static const String honorDetail = '/honor/:honorId';
   static const String activityDetail = '/activity/:activityId';
 
@@ -141,6 +142,24 @@ class RouteNames {
     };
     final query = Uri(queryParameters: queryParameters).query;
     return query.isEmpty ? '/class/$classId' : '/class/$classId?$query';
+  }
+
+  /// One module of a class: its requirements grouped by state. Resolved by
+  /// id from the class progress, so the route can be deep-linked.
+  static String classModulePath(
+    String classId,
+    String moduleId, {
+    int? enrollmentId,
+    String? targetUserId,
+  }) {
+    final queryParameters = <String, String>{
+      if (enrollmentId != null) 'enrollmentId': enrollmentId.toString(),
+      if (targetUserId != null && targetUserId.isNotEmpty)
+        'targetUserId': targetUserId,
+    };
+    final query = Uri(queryParameters: queryParameters).query;
+    final path = '/class/$classId/module/$moduleId';
+    return query.isEmpty ? path : '$path?$query';
   }
 
   static String _withQuery(String path, Map<String, Object?> query) {

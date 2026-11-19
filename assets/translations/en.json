@@ -2175,7 +2175,32 @@
       "empty_requirements": "No requirements in this module.",
       "empty_modules_title": "No modules yet",
       "empty_modules_body": "Modules will appear when available for this class.",
-      "error_loading": "Error loading class"
+      "error_loading": "Error loading class",
+      "title": "Class",
+      "requires_label": "Requires:",
+      "summary_label": "Validated requirements",
+      "legend_sent": {
+        "one": "1 sent",
+        "other": "{} sent"
+      },
+      "advanced_progress": "Advanced section",
+      "modules_title": "Modules",
+      "recommended_title": "Recommended honors",
+      "module_progress": "{done} of {total}",
+      "module_not_started": "not started",
+      "module_not_found_title": "We couldn't find this module",
+      "module_not_found_body": "It may no longer be part of the class.",
+      "module_subtitle": "{done} of {total} validated",
+      "group_sent": "Sent",
+      "files_unsent_one": "1 file not sent",
+      "files_unsent_other": "{count} files not sent",
+      "honor_linked": "Honor: {name}",
+      "requirement_semantics": "{title}. {state}. {detail}",
+      "module_semantics": "{name}. {progress}",
+      "honor_relation_required": "Required",
+      "honor_relation_elective": "Elective",
+      "honor_relation_recommended": "Recommended",
+      "returned_on": "Returned on {date}"
     },
     "list": {
       "empty": "You have no assigned classes",

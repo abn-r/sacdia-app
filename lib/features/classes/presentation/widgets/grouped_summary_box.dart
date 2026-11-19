@@ -14,17 +14,22 @@ import '../utils/grouped_class_status.dart';
 class GroupedSummaryBox extends StatelessWidget {
   const GroupedSummaryBox({
     super.key,
-    required this.label,
+    this.label,
     required this.value,
     required this.counts,
+    this.countLabels,
     this.valueSuffix,
     this.leading,
     this.footer,
     this.footerDivider = true,
   });
 
-  final String label;
+  /// Small text above [value]; the module screen leaves it out.
+  final String? label;
   final String value;
+
+  /// Legend text of the bar; defaults to [groupedCountLabels].
+  final SacStatusCountLabels? countLabels;
 
   /// Small text next to [value] ("· 9 members").
   final String? valueSuffix;
@@ -46,15 +51,17 @@ class GroupedSummaryBox extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (leading != null) ...[leading, const SizedBox(height: 14)],
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: SacFontSize.bodySmall,
-              fontWeight: FontWeight.w600,
-              color: c.textSecondary,
+          if (label != null) ...[
+            Text(
+              label!,
+              style: TextStyle(
+                fontSize: SacFontSize.bodySmall,
+                fontWeight: FontWeight.w600,
+                color: c.textSecondary,
+              ),
             ),
-          ),
-          const SizedBox(height: 2),
+            const SizedBox(height: 2),
+          ],
           Text.rich(
             TextSpan(
               children: [
@@ -82,7 +89,7 @@ class GroupedSummaryBox extends StatelessWidget {
             const SizedBox(height: 12),
             SacStatusBar.counts(
               counts: counts,
-              countLabels: groupedCountLabels(counts),
+              countLabels: countLabels ?? groupedCountLabels(counts),
             ),
           ],
           if (footer != null) ...[

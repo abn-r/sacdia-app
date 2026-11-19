@@ -152,6 +152,7 @@ import '../../features/classes/presentation/views/class_members_progress_view.da
 import '../../features/classes/presentation/views/grouped_class_assign_route_view.dart';
 import '../../features/classes/presentation/views/grouped_class_context_gate.dart';
 import '../../features/classes/presentation/views/member_progress_view.dart';
+import '../../features/classes/presentation/views/class_module_view.dart';
 import '../../features/classes/presentation/views/requirement_detail_route_view.dart';
 import '../../features/members/presentation/utils/member_requests_notification_route.dart';
 import '../../features/members/presentation/views/members_view.dart';
@@ -1034,6 +1035,22 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           );
         },
+      ),
+
+      // Módulo de una clase: sus requisitos agrupados por estado.
+      GoRoute(
+        path: RouteNames.classModule,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          ClassModuleView(
+            classId: int.tryParse(state.pathParameters['classId'] ?? '') ?? 0,
+            moduleId: int.tryParse(state.pathParameters['moduleId'] ?? '') ?? 0,
+            enrollmentId:
+                int.tryParse(state.uri.queryParameters['enrollmentId'] ?? ''),
+            targetUserId: state.uri.queryParameters['targetUserId'],
+          ),
+        ),
       ),
 
       // Clase agrupada: del listado de clases a un requisito de un miembro.

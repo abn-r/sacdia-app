@@ -2175,7 +2175,32 @@
       "empty_requirements": "Aucune exigence dans ce module.",
       "empty_modules_title": "Pas encore de modules",
       "empty_modules_body": "Les modules apparaîtront lorsqu'ils seront disponibles pour cette classe.",
-      "error_loading": "Erreur lors du chargement de la classe"
+      "error_loading": "Erreur lors du chargement de la classe",
+      "title": "Classe",
+      "requires_label": "Requiert :",
+      "summary_label": "Exigences validées",
+      "legend_sent": {
+        "one": "1 envoyée",
+        "other": "{} envoyées"
+      },
+      "advanced_progress": "Section avancée",
+      "modules_title": "Modules",
+      "recommended_title": "Spécialités recommandées",
+      "module_progress": "{done} sur {total}",
+      "module_not_started": "pas commencé",
+      "module_not_found_title": "Nous n'avons pas trouvé ce module",
+      "module_not_found_body": "Il ne fait peut-être plus partie de la classe.",
+      "module_subtitle": "{done} sur {total} validées",
+      "group_sent": "Envoyées",
+      "files_unsent_one": "1 fichier non envoyé",
+      "files_unsent_other": "{count} fichiers non envoyés",
+      "honor_linked": "Spécialité : {name}",
+      "requirement_semantics": "{title}. {state}. {detail}",
+      "module_semantics": "{name}. {progress}",
+      "honor_relation_required": "Obligatoire",
+      "honor_relation_elective": "Optionnelle",
+      "honor_relation_recommended": "Recommandée",
+      "returned_on": "Renvoyée le {date}"
     },
     "list": {
       "empty": "Vous n'avez pas de classes assignées",

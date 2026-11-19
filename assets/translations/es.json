@@ -2175,7 +2175,32 @@
       "empty_requirements": "No hay requisitos en este módulo.",
       "empty_modules_title": "Sin módulos aún",
       "empty_modules_body": "Los módulos aparecerán cuando estén disponibles para esta clase.",
-      "error_loading": "Error al cargar la clase"
+      "error_loading": "Error al cargar la clase",
+      "title": "Clase",
+      "requires_label": "Requiere:",
+      "summary_label": "Requisitos validados",
+      "legend_sent": {
+        "one": "1 enviado",
+        "other": "{} enviados"
+      },
+      "advanced_progress": "Sección avanzada",
+      "modules_title": "Módulos",
+      "recommended_title": "Especialidades recomendadas",
+      "module_progress": "{done} de {total}",
+      "module_not_started": "sin empezar",
+      "module_not_found_title": "No encontramos este módulo",
+      "module_not_found_body": "Puede que ya no forme parte de la clase.",
+      "module_subtitle": "{done} de {total} validados",
+      "group_sent": "Enviados",
+      "files_unsent_one": "1 archivo sin enviar",
+      "files_unsent_other": "{count} archivos sin enviar",
+      "honor_linked": "Especialidad: {name}",
+      "requirement_semantics": "{title}. {state}. {detail}",
+      "module_semantics": "{name}. {progress}",
+      "honor_relation_required": "Requerida",
+      "honor_relation_elective": "Electiva",
+      "honor_relation_recommended": "Recomendada",
+      "returned_on": "Devuelto el {date}"
     },
     "list": {
       "empty": "No tienes clases asignadas",
