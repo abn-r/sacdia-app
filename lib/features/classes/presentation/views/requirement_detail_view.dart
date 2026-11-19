@@ -123,7 +123,11 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
     final isReadOnly = isClassExpired || isClassInvested;
     final canModify = requirement.canUploadForClass(isClassExpired: isReadOnly);
     final isLoading = notifierState.isLoading;
-    final description = requirement.description?.trim() ?? '';
+    // The app bar truncates long titles, so without a description the full
+    // requirement text is shown here instead.
+    final rawDescription = requirement.description?.trim() ?? '';
+    final description =
+        rawDescription.isNotEmpty ? rawDescription : requirement.name.trim();
     final linkedHonorId = requirement.linkedHonorId;
     final isHonorLinked = linkedHonorId != null;
     final isOwn = widget.targetUserId == null;

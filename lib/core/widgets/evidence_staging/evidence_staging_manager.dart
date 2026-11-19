@@ -760,6 +760,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
       onRemoveLocal: _removeLocalFile,
       onDeleteRemote: _deleteRemoteFile,
       onAdd: showsAdd ? () => _addFiles(context) : null,
+      showCounter: !_usesAddTile,
     );
   }
 

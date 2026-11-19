@@ -36,6 +36,10 @@ class StagedFileGrid extends StatelessWidget {
   /// Opens the source sheet. Null keeps the grid without an add tile.
   final VoidCallback? onAdd;
 
+  /// Shows the "N of M files" caption under the grid. Screens that print the
+  /// count in their section title (the add-tile layout) turn it off.
+  final bool showCounter;
+
   const StagedFileGrid({
     super.key,
     required this.files,
@@ -44,6 +48,7 @@ class StagedFileGrid extends StatelessWidget {
     required this.onRemoveLocal,
     required this.onDeleteRemote,
     this.onAdd,
+    this.showCounter = true,
   });
 
   @override
@@ -97,7 +102,7 @@ class StagedFileGrid extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         // File counter (the add-tile layout shows it in the section title)
-        if (onAdd == null)
+        if (showCounter)
           Center(
             child: Text(
               'core.evidence_staging.files_count'.tr(namedArgs: {
