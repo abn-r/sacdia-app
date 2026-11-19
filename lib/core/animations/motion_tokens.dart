@@ -14,6 +14,16 @@ abstract final class SacMotion {
   static const Duration modal = Duration(milliseconds: 240);
   static const Duration stagger = Duration(milliseconds: 40);
 
+  /// Data reveal on screen open: progress bars filling and counters counting
+  /// up together. Long enough to read as "progress", only on first build or
+  /// when the value changes.
+  static const Duration reveal = Duration(milliseconds: 600);
+
+  /// Section entrance on content screens (fade + slide up).
+  static const Duration entrance = Duration(milliseconds: 320);
+  static const Duration entranceStagger = Duration(milliseconds: 60);
+  static const double entranceOffset = 12;
+
   /// Decorative idle drift on rare surfaces (login constellation).
   /// 3200ms ≈ 0.31 Hz — keep away from ~0.2 Hz / 5000ms.
   static const Duration idleDrift = Duration(milliseconds: 3200);

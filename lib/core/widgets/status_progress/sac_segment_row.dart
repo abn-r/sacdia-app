@@ -39,8 +39,7 @@ class _SacSegmentRowState extends State<SacSegmentRow>
   @override
   void initState() {
     super.initState();
-    _controller =
-        AnimationController(vsync: this, duration: SacMotion.standard);
+    _controller = AnimationController(vsync: this, duration: SacMotion.reveal);
     _curve = CurvedAnimation(parent: _controller, curve: SacMotion.easeOut);
     _to = _fractions(widget.parts);
     _from = List<double>.filled(_to.length, 0);

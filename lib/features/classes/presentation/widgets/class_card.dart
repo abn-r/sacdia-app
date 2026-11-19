@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/animated_counter.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -106,12 +107,14 @@ class ClassCard extends StatelessWidget {
                     color: accent,
                     height: 6,
                     showShimmer: false,
+                    fillDuration: SacMotion.reveal,
                   ),
                 ),
                 const SizedBox(width: 12),
                 AnimatedCounter(
                   value: percent,
                   suffix: '%',
+                  duration: SacMotion.reveal,
                   style: TextStyle(
                     fontSize: SacFontSize.displaySmall,
                     fontWeight: FontWeight.w800,

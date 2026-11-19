@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/animations/animated_counter.dart';
+import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/status_progress/status_progress.dart';
@@ -131,6 +132,7 @@ class GroupedSummaryBox extends StatelessWidget {
       excludeSemantics: true,
       child: AnimatedCounter(
         value: count,
+        duration: SacMotion.reveal,
         builder: (context, n) => _richValue(context, text(n)),
       ),
     );

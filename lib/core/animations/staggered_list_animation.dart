@@ -159,6 +159,9 @@ class SacEntrance extends StatelessWidget {
   Widget build(BuildContext context) {
     return StaggeredListItem(
       index: index,
+      duration: SacMotion.entrance,
+      staggerDelay: SacMotion.entranceStagger,
+      slideOffset: SacMotion.entranceOffset,
       animate: index < maxAnimated && !SacMotion.reduceMotionOf(context),
       child: child,
     );
