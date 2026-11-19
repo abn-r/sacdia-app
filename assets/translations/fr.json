@@ -2080,64 +2080,27 @@
       "pending": "En attente",
       "sent": "Envoyé",
       "validated": "Validé",
-      "rejected": "Rejeté",
-      "completed": "Terminée"
-    },
-    "progress_ring": {
-      "percent": "{percent}%"
+      "rejected": "Rejeté"
     },
     "class_card": {
-      "current_badge": "Classe actuelle",
-      "expired_badge": "Expirée",
-      "expired_description": "Cette classe reste dans votre parcours, mais elle ne peut plus être terminée pour l’investiture."
-    },
-    "requirement_card": {
-      "files_label": "{count} / {max} fichiers",
-      "sent_by": "Envoyé par {name}{date}",
-      "validated_by": "Validé par {name}{date}"
+      "expired_badge": "Expirée"
     },
     "requirement_detail": {
       "unsaved_files_title": "Fichiers non envoyés",
       "unsaved_files_body": "Vous avez des fichiers non envoyés. Êtes-vous sûr de vouloir quitter ?",
       "stay_button": "Rester",
       "leave_button": "Quitter",
-      "requirement_title": "Exigence : {name}",
       "title": "Exigence",
-      "detail_header": "Détail de l'exigence",
-      "status_header": "Statut de l'exigence",
-      "evidence_files_header": "Fichiers de preuve",
       "submit_success": "Exigence soumise pour validation.",
-      "file_limit_label": "Limite de fichiers",
-      "type_label": "Type",
-      "type_honor": "Spécialité",
-      "type_service": "Service",
-      "type_general": "Général",
       "linked_honor_title": "Spécialité requise",
       "honor_completed": "Terminée",
       "honor_pending": "En attente",
-      "semantics_status": "Statut de l'exigence : {status}. Appuyez pour voir l'historique.",
       "expired_banner": "Expirée · Cette classe reste dans votre parcours, mais elle ne peut plus être terminée pour l’investiture.",
       "invested_banner": "Investie · Cette classe est clôturée : vous pouvez consulter vos preuves, mais pas les modifier.",
       "honor_done_message": "Elle compte déjà dans votre progression.",
       "honor_pending_message": "Elle se valide d’elle-même quand vous terminez la spécialité.",
       "honor_progress": "{done} sur {total} exigences",
       "honor_go": "Aller à la spécialité"
-    },
-    "section_detail": {
-      "title": "Détail de la section",
-      "completed_subtitle": "Vous avez terminé cette section",
-      "pending_subtitle": "Marquez cette section comme terminée",
-      "mark_completed_snack": "Section marquée comme terminée",
-      "mark_pending_snack": "Section marquée comme en attente",
-      "button_completed": "Marquer comme en attente",
-      "button_pending": "Marquer comme terminée"
-    },
-    "modules": {
-      "title": "Modules",
-      "empty": "Aucun module disponible",
-      "section_completed_snack": "Section terminée",
-      "section_pending_snack": "Section marquée comme en attente",
-      "error_loading": "Erreur lors du chargement des modules"
     },
     "honors": {
       "open_pdf": "Ouvrir le PDF",
@@ -2146,32 +2109,11 @@
       "no_pdf": "Cette spécialité n'a pas de matériel PDF",
       "module_section": "Spécialités de ce module"
     },
-    "detail": {
-      "progress_label": "progression",
-      "description_header": "Description",
-      "view_modules_button": "Voir les modules",
-      "error_loading": "Erreur lors du chargement des détails"
-    },
     "detail_with_progress": {
-      "modules_header": "Modules et exigences",
       "track_basic": "Développement de la classe",
       "track_advanced": "Avancé",
       "track_extra": "Activités complémentaires",
       "track_unknown": "Autres exigences",
-      "search_hint": "Rechercher un module ou une exigence...",
-      "no_results": "Aucun résultat pour \"{query}\"",
-      "stat_requirements": "exigences",
-      "stat_pending": "en att.",
-      "stat_sent": "env.",
-      "stat_validated": "valid.",
-      "module_pending_count": {
-        "one": "{} en attente",
-        "other": "{} en attente"
-      },
-      "module_honors_count": {
-        "one": "{} spécialité",
-        "other": "{} spécialités"
-      },
       "empty_requirements": "Aucune exigence dans ce module.",
       "empty_modules_title": "Pas encore de modules",
       "empty_modules_body": "Les modules apparaîtront lorsqu'ils seront disponibles pour cette classe.",
@@ -2217,89 +2159,22 @@
       "ages_open": "{min}+ ans",
       "current_a11y": "{name}. {status}. {percent} pour cent"
     },
-    "status_history": {
-      "title": "Historique des statuts",
-      "empty_title": "Aucun changement enregistré",
-      "empty_body": "Cette exigence n'a pas encore de changements de statut enregistrés.",
-      "created_desc": "Exigence créée, en attente de preuves.",
-      "sent_desc": "Preuves envoyées pour validation.",
-      "validated_desc": "Exigence approuvée par le leader.",
-      "rejected_desc": "Exigence rejetée. Vous pouvez renvoyer des preuves."
-    },
     "enroll_sheet": {
       "title": "Inscrire une classe antérieure",
-      "subtitle": "Sélectionnez une classe que vous avez déjà terminée",
-      "year_error": "Impossible de déterminer l'année ecclésiastique en cours",
-      "year_label": "Année ecclésiastique : ",
-      "error_loading": "Erreur lors du chargement des classes",
-      "empty_catalog": "Aucune classe disponible dans le catalogue",
-      "select_class": "Sélectionnez une classe",
-      "no_auth": "Vous devez vous connecter pour inscrire une classe antérieure",
-      "close_button": "Fermer",
-      "enroll_button": "S'inscrire",
-      "already_enrolled": "Vous êtes déjà inscrit dans cette classe",
-      "enroll_success": "Inscription à \"{className}\" enregistrée avec succès"
+      "subtitle": "Sélectionnez une classe que vous avez déjà terminée"
     },
     "teaching_scope": {
-      "title": "Classes assignées",
       "context_error_title": "Impossible de résoudre votre section",
       "no_context_title": "Aucune section active",
-      "no_context_body": "Sélectionnez un club et une section pour voir les classes supervisées.",
-      "empty_title": "Aucune classe assignée",
-      "empty_body": "Aucune classe n’est encore configurée pour votre supervision dans cette section.",
-      "load_error_title": "Impossible de charger les classes",
-      "section_scope_title": "Portée de toute la section",
-      "section_scope_body": "Vous pouvez superviser la progression de toutes les classes de cette section.",
-      "assigned_scope_title": "Classes assignées",
-      "assigned_scope_body": "Vous pouvez superviser uniquement les classes qui vous sont assignées.",
-      "open_members": "Voir les membres et la progression"
+      "no_context_body": "Sélectionnez un club et une section pour voir les classes supervisées."
     },
     "class_assignments": {
-      "title": "Gérer les classes",
-      "add_button": "Assigner",
-      "header_title": "Responsables par classe",
-      "header_body": "Assignez des conseillers ou le secrétariat aux classes de cette section. Le directeur conserve la portée complète.",
-      "readonly_body": "Vous pouvez consulter qui accompagne chaque classe de cette section.",
-      "empty_title": "Aucun responsable assigné",
-      "empty_body": "Aucun conseiller ou membre du secrétariat n’est encore assigné aux classes.",
       "load_error_title": "Impossible de charger les assignations",
-      "create_title": "Assigner une classe",
-      "edit_title": "Modifier l’assignation",
-      "form_body": "Le responsable formel suit la progression annuelle des membres inscrits dans cette classe.",
-      "class_label": "Classe",
-      "responsible_label": "Responsable",
-      "responsibility_label": "Type de responsabilité",
-      "exceptional_label": "Assignation exceptionnelle",
-      "exceptional_hint": "Utilisez-la si la personne aura une deuxième classe ou un cas inhabituel.",
-      "reason_label": "Motif de l’exception",
-      "class_required": "Sélectionnez une classe",
-      "responsible_required": "Sélectionnez un responsable",
-      "reason_required": "Indiquez le motif de l’exception",
-      "exceptional_chip": "Exceptionnelle",
-      "revoke_action": "Révoquer",
-      "revoke_title": "Révoquer l’assignation",
-      "revoke_body": "Voulez-vous révoquer {name} de la classe {className} ?",
-      "revoke_confirm": "Révoquer",
-      "create_success": "Assignation créée.",
-      "update_success": "Assignation mise à jour.",
-      "revoke_success": "Assignation révoquée.",
-      "no_club_type": "Impossible de résoudre le type de club.",
       "loading_catalog": "Chargement des classes et des membres.",
       "catalog_error": "Impossible de charger le catalogue ou les membres.",
-      "no_classes": "Aucune classe disponible pour cette section.",
-      "no_candidates": "Aucun conseiller ou membre du secrétariat actif ne suit ou n’a terminé Guide majeur.",
-      "responsibility": {
-        "primary": "Principal",
-        "assistant": "Soutien",
-        "substitute": "Remplaçant"
-      }
+      "no_candidates": "Aucun conseiller ou membre du secrétariat actif ne suit ou n’a terminé Guide majeur."
     },
     "members_progress": {
-      "empty_title": "Aucun membre inscrit",
-      "empty_body": "Cette classe n’a pas encore de membres actifs dans la section.",
-      "load_error_title": "Impossible de charger la progression",
-      "member_count": "{count} membres inscrits",
-      "completed_sections": "Sections terminées : {value}",
       "cross_type_chip": "Cursus croisé"
     },
     "catalog": {
@@ -2405,10 +2280,6 @@
       "member_empty_body": "Cette classe n'a pas encore d'exigences pour ce membre.",
       "member_load_error_title": "Impossible de charger la progression du membre",
       "req": {
-        "step_files": "Fichiers",
-        "step_sent": "Envoyée",
-        "step_local": "Champ local",
-        "step_semantics": "Étape {current} sur {total} : {label}",
         "meta_pending": "Ajoutez les fichiers et envoyez l'exigence quand elle est prête.",
         "meta_rejected": "Renvoyée le {date} · corrigez et renvoyez",
         "meta_rejected_nodate": "Corrigez et renvoyez.",
@@ -2418,13 +2289,11 @@
         "meta_closed": "Cette classe est fermée et n'accepte plus de modifications.",
         "note_title": "Note du champ local",
         "files": "Fichiers",
-        "files_count": "{count} sur {max}",
         "subtitle_member": "{member} · jusqu'à {max} fichiers",
         "subtitle": "Jusqu'à {max} fichiers",
         "not_found_title": "Exigence introuvable",
         "not_found_body": "Elle ne fait peut-être plus partie de la classe.",
         "load_error_title": "Impossible de charger l'exigence",
-        "max_files": "Maximum {max} fichiers par exigence.",
         "step_of": "Étape {step} sur {total} · Voir tous les états",
         "panel_semantics": "État : {state}, étape {step} sur {total}",
         "panel_hint": "Affiche tous les états",
@@ -3928,47 +3797,13 @@
       "create_folder_empty": "Le dossier a été demandé, mais il n'est pas encore disponible. Essayez d'actualiser."
     },
     "title": "Dossier Annuel de Preuves",
-    "overview_label": "{name} · PROGRESSION",
-    "search_hint": "Rechercher une section de preuves…",
-    "no_results_body": "Essayez un autre nom ou une autre description.",
-    "section_title": "Section",
     "send": "Envoyer",
     "stay": "Rester",
     "exit": "Quitter",
     "show_more": "Voir plus",
     "show_less": "Voir moins",
-    "points_label": "Points",
-    "weight_label": "Poids",
-    "limit_label": "Limite",
-    "earned_points": "Points obtenus",
-    "sending": "Envoi en cours...",
-    "send_to_validation": "Envoyer pour validation",
     "submit_success": "Section \"{sectionName}\" envoyée pour validation avec succès",
-    "status": {
-      "open": "Ouverte",
-      "closed": "Fermée",
-      "pending": "En attente",
-      "submitted": "Envoyé",
-      "preapproved": "Pré-approuvé",
-      "validated": "Validé",
-      "rejected": "Rejeté"
-    },
-    "stats": {
-      "pending": "En attente",
-      "submitted": "Envoyées",
-      "preapproved": "Pré-approuvées",
-      "rejected": "Rejetées",
-      "validated": "Validées"
-    },
-    "sections_title": "Sections",
     "empty_sections": "Aucune section disponible",
-    "section_detail_label": "Détail de la section",
-    "section_status_label": "État de la section",
-    "evaluation_result_title": "Résultat de l'évaluation",
-    "evidence_files_title": "Fichiers de preuve",
-    "evaluator_notes": "Notes de l'évaluateur",
-    "reviewer_comments": "Commentaires du réviseur",
-    "status_semantics": "État de la section : {label}. Appuyez pour voir l'historique.",
     "submit_section_dialog": {
       "title": "Envoyer la section pour validation",
       "message": "Êtes-vous sûr de vouloir envoyer la section \"{sectionName}\" pour validation ?\n\nVous ne pourrez pas modifier les fichiers tant que le terrain local ne l'aura pas révisée."
@@ -3976,18 +3811,6 @@
     "unsaved_files_dialog": {
       "title": "Fichiers non envoyés",
       "message": "Vous avez des fichiers non envoyés. Êtes-vous sûr de vouloir quitter ?"
-    },
-    "evaluation_banner": {
-      "title": "En cours d'évaluation",
-      "description": "L'évaluateur du terrain examine les preuves de ce club."
-    },
-    "evaluated_banner": {
-      "title": "Dossier évalué{date}",
-      "points": "Points obtenus : {earned} / {max}"
-    },
-    "closed_banner": {
-      "title": "Dossier fermé",
-      "description": "Le dossier annuel de preuves a été fermé. Pour modifier vos preuves, veuillez contacter l'administration du terrain local."
     },
     "no_folder": {
       "title": "Dossier non disponible",
@@ -4002,32 +3825,6 @@
       "create_success": "Dossier créé. Vous pouvez maintenant ajouter des preuves."
     },
     "error_load_title": "Erreur lors du chargement du dossier",
-    "status_history": {
-      "title": "Historique des états",
-      "empty_title": "Aucun changement enregistré",
-      "empty_description": "Cette section n'a pas encore d'historique d'états enregistrés.",
-      "pending_desc": "Section créée, en attente de preuves.",
-      "submitted_desc": "Preuves envoyées pour validation.",
-      "rejected_desc": "Section rejetée. Vous pouvez renvoyer des preuves.",
-      "preapproved_desc": "Section pré-approuvée par le terrain local.",
-      "validated_desc": "Section validée définitivement par l'union."
-    },
-    "trace": {
-      "sent_by": "Envoyé par {name}{date}",
-      "preapproved_by": "Pré-approuvé par {name}{date}",
-      "validated_by": "Validé par {name}{date}"
-    },
-    "timeline": {
-      "waiting_evidence": "En attente de preuves",
-      "waiting_send": "En attente d'envoi",
-      "rejected": "Section rejetée",
-      "local_review": "Examen du terrain local",
-      "waiting_validation": "En attente de validation"
-    },
-    "points_ratio": "{earned} / {max} pts",
-    "points_value": "{points} pts",
-    "files_count": "{count} fichiers",
-    "files_ratio": "{current} / {max} fichiers",
     "state": {
       "pending": "Non envoyée",
       "rejected": "À corriger",
@@ -4089,7 +3886,6 @@
     "detail": {
       "subtitle": "Vaut {points} pts · jusqu'à {max} fichiers",
       "files": "Fichiers",
-      "files_count": "{count} sur {max}",
       "file_notes": "Commentaires par fichier",
       "reviewer_note": "Note du champ local",
       "evaluator_note": "Note de l'évaluateur"
@@ -4104,11 +3900,6 @@
       "returned": "Renvoyée pour correction",
       "returned_on": "Renvoyée le {date}",
       "fix_hint": "corrigez et renvoyez",
-      "step_files": "Fichiers",
-      "step_sent": "Envoyée",
-      "step_local_field": "Champ local",
-      "step_union": "Union",
-      "step_semantics": "Étape {current} sur {total} : {label}",
       "fix_full": "Corrigez et renvoyez.",
       "step_of": "Étape {step} sur {total} · Voir tous les états",
       "step_of_points": "Étape {step} sur {total} · {points}",
@@ -5162,9 +4953,6 @@
       },
       "submit_dialog_title": "Envoyer pour validation",
       "upload_all_failed": "Tous les fichiers ont échoué",
-      "upload_all_success": "Tous les fichiers ont été téléversés",
-      "upload_partial": "{completed} sur {total} téléversés, {failed} ont échoué",
-      "uploading_progress": "Envoi {current} sur {total} fichiers...",
       "remove_file": "Retirer le fichier",
       "uploading_title": "Envoi {current} sur {total}",
       "uploading_hint": "Ne fermez pas l'app pendant l'envoi.",

@@ -2080,64 +2080,27 @@
       "pending": "Pendiente",
       "sent": "Enviado",
       "validated": "Validado",
-      "rejected": "Rechazado",
-      "completed": "Completada"
-    },
-    "progress_ring": {
-      "percent": "{percent}%"
+      "rejected": "Rechazado"
     },
     "class_card": {
-      "current_badge": "Clase actual",
-      "expired_badge": "Vencida",
-      "expired_description": "Esta clase se conserva en tu trayectoria, pero ya no puede completarse para investidura."
-    },
-    "requirement_card": {
-      "files_label": "{count} / {max} archivos",
-      "sent_by": "Enviado por {name}{date}",
-      "validated_by": "Validado por {name}{date}"
+      "expired_badge": "Vencida"
     },
     "requirement_detail": {
       "unsaved_files_title": "Archivos sin enviar",
       "unsaved_files_body": "Tienes archivos sin enviar. ¿Seguro que quieres salir?",
       "stay_button": "Quedarme",
       "leave_button": "Salir",
-      "requirement_title": "Requisito: {name}",
       "title": "Requisito",
-      "detail_header": "Detalle del requisito",
-      "status_header": "Estado del requisito",
-      "evidence_files_header": "Archivos de evidencia",
       "submit_success": "Requisito enviado a validación.",
-      "file_limit_label": "Limite archivos",
-      "type_label": "Tipo",
-      "type_honor": "Especialidad",
-      "type_service": "Servicio",
-      "type_general": "General",
       "linked_honor_title": "Especialidad requerida",
       "honor_completed": "Completada",
       "honor_pending": "Pendiente",
-      "semantics_status": "Estado del requisito: {status}. Tocar para ver historial.",
       "expired_banner": "Vencida · Esta clase se conserva en tu trayectoria, pero ya no puede completarse para investidura.",
       "invested_banner": "Investida · Esta clase ya está cerrada: puedes ver tus evidencias, pero no cambiarlas.",
       "honor_done_message": "Ya cuenta para tu avance.",
       "honor_pending_message": "Se valida solo cuando completes la especialidad.",
       "honor_progress": "{done} de {total} requisitos",
       "honor_go": "Ir a la especialidad"
-    },
-    "section_detail": {
-      "title": "Detalle de Sección",
-      "completed_subtitle": "Has completado esta sección",
-      "pending_subtitle": "Marca esta sección como completada",
-      "mark_completed_snack": "Sección marcada como completada",
-      "mark_pending_snack": "Sección marcada como pendiente",
-      "button_completed": "Marcar como pendiente",
-      "button_pending": "Marcar como completada"
-    },
-    "modules": {
-      "title": "Módulos",
-      "empty": "No hay módulos disponibles",
-      "section_completed_snack": "Sección completada",
-      "section_pending_snack": "Sección marcada como pendiente",
-      "error_loading": "Error al cargar módulos"
     },
     "honors": {
       "open_pdf": "Abrir PDF",
@@ -2146,32 +2109,11 @@
       "no_pdf": "Esta especialidad no tiene material en PDF",
       "module_section": "Especialidades de este módulo"
     },
-    "detail": {
-      "progress_label": "progreso",
-      "description_header": "Descripción",
-      "view_modules_button": "Ver Módulos",
-      "error_loading": "Error al cargar detalle"
-    },
     "detail_with_progress": {
-      "modules_header": "Módulos y requisitos",
       "track_basic": "Desarrollo de clase",
       "track_advanced": "Avanzado",
       "track_extra": "Actividades complementarias",
       "track_unknown": "Otros requisitos",
-      "search_hint": "Buscar módulo o requisito...",
-      "no_results": "Sin resultados para \"{query}\"",
-      "stat_requirements": "requisitos",
-      "stat_pending": "pend.",
-      "stat_sent": "env.",
-      "stat_validated": "val.",
-      "module_pending_count": {
-        "one": "{} pendiente",
-        "other": "{} pendientes"
-      },
-      "module_honors_count": {
-        "one": "{} especialidad",
-        "other": "{} especialidades"
-      },
       "empty_requirements": "No hay requisitos en este módulo.",
       "empty_modules_title": "Sin módulos aún",
       "empty_modules_body": "Los módulos aparecerán cuando estén disponibles para esta clase.",
@@ -2217,89 +2159,22 @@
       "ages_open": "{min}+ años",
       "current_a11y": "{name}. {status}. {percent} por ciento"
     },
-    "status_history": {
-      "title": "Historial de estados",
-      "empty_title": "Sin cambios registrados",
-      "empty_body": "Este requisito aún no tiene cambios de estado registrados.",
-      "created_desc": "Requisito creado, esperando evidencias.",
-      "sent_desc": "Evidencias enviadas a validación.",
-      "validated_desc": "Requisito aprobado por el líder.",
-      "rejected_desc": "Requisito rechazado. Puedes reenviar evidencias."
-    },
     "enroll_sheet": {
       "title": "Inscribir clase anterior",
-      "subtitle": "Selecciona una clase que ya completaste",
-      "year_error": "No se pudo determinar el año eclesiástico actual",
-      "year_label": "Año eclesiástico: ",
-      "error_loading": "Error al cargar clases",
-      "empty_catalog": "No hay clases disponibles en el catálogo",
-      "select_class": "Selecciona una clase",
-      "no_auth": "Debes iniciar sesión para inscribir una clase anterior",
-      "close_button": "Cerrar",
-      "enroll_button": "Inscribirse",
-      "already_enrolled": "Ya estás inscrito en esta clase",
-      "enroll_success": "Inscripción en \"{className}\" registrada exitosamente"
+      "subtitle": "Selecciona una clase que ya completaste"
     },
     "teaching_scope": {
-      "title": "Clases a cargo",
       "context_error_title": "No pudimos resolver tu sección",
       "no_context_title": "No hay sección activa",
-      "no_context_body": "Selecciona un club y una sección para ver las clases a tu cargo.",
-      "empty_title": "No hay clases asignadas",
-      "empty_body": "Aún no tienes clases configuradas para supervisar en esta sección.",
-      "load_error_title": "No se pudieron cargar las clases",
-      "section_scope_title": "Alcance de toda la sección",
-      "section_scope_body": "Puedes supervisar el avance de todas las clases de esta sección.",
-      "assigned_scope_title": "Clases asignadas",
-      "assigned_scope_body": "Puedes supervisar sólo las clases que te fueron asignadas.",
-      "open_members": "Ver miembros y progreso"
+      "no_context_body": "Selecciona un club y una sección para ver las clases a tu cargo."
     },
     "class_assignments": {
-      "title": "Gestionar clases",
-      "add_button": "Asignar",
-      "header_title": "Responsables por clase",
-      "header_body": "Asigna consejeros o secretaría a las clases de esta sección. El director conserva alcance total.",
-      "readonly_body": "Puedes revisar quién acompaña cada clase de esta sección.",
-      "empty_title": "No hay responsables asignados",
-      "empty_body": "Aún no hay consejeros o secretaría asignados a clases.",
       "load_error_title": "No se pudieron cargar las asignaciones",
-      "create_title": "Asignar clase",
-      "edit_title": "Editar asignación",
-      "form_body": "El responsable formal acompaña el progreso anual de los miembros inscritos en esa clase.",
-      "class_label": "Clase",
-      "responsible_label": "Responsable",
-      "responsibility_label": "Tipo de responsabilidad",
-      "exceptional_label": "Asignación excepcional",
-      "exceptional_hint": "Úsala si la persona tendrá una segunda clase o un caso fuera de lo normal.",
-      "reason_label": "Motivo de la excepción",
-      "class_required": "Selecciona una clase",
-      "responsible_required": "Selecciona un responsable",
-      "reason_required": "Indica el motivo de la excepción",
-      "exceptional_chip": "Excepcional",
-      "revoke_action": "Revocar",
-      "revoke_title": "Revocar asignación",
-      "revoke_body": "¿Quieres revocar a {name} de la clase {className}?",
-      "revoke_confirm": "Revocar",
-      "create_success": "Asignación creada.",
-      "update_success": "Asignación actualizada.",
-      "revoke_success": "Asignación revocada.",
-      "no_club_type": "No se pudo resolver el tipo de club.",
       "loading_catalog": "Estamos cargando clases y miembros.",
       "catalog_error": "No se pudo cargar el catálogo o los miembros.",
-      "no_classes": "No hay clases disponibles para esta sección.",
-      "no_candidates": "No hay consejeros o secretaría activos que estén cursando o hayan completado Guía Mayor.",
-      "responsibility": {
-        "primary": "Principal",
-        "assistant": "Apoyo",
-        "substitute": "Suplente"
-      }
+      "no_candidates": "No hay consejeros o secretaría activos que estén cursando o hayan completado Guía Mayor."
     },
     "members_progress": {
-      "empty_title": "No hay miembros inscritos",
-      "empty_body": "Esta clase todavía no tiene miembros activos en la sección.",
-      "load_error_title": "No se pudo cargar el progreso",
-      "member_count": "{count} miembros inscritos",
-      "completed_sections": "Secciones completadas: {value}",
       "cross_type_chip": "Cursado cruzado"
     },
     "catalog": {
@@ -2405,10 +2280,6 @@
       "member_empty_body": "Esta clase todavía no tiene requisitos para este miembro.",
       "member_load_error_title": "No pudimos cargar el avance del miembro",
       "req": {
-        "step_files": "Archivos",
-        "step_sent": "Enviado",
-        "step_local": "Campo local",
-        "step_semantics": "Paso {current} de {total}: {label}",
         "meta_pending": "Sube los archivos y envíalo cuando esté listo.",
         "meta_rejected": "Devuelto el {date} · corrige y vuelve a enviar",
         "meta_rejected_nodate": "Corrige y vuelve a enviar.",
@@ -2418,13 +2289,11 @@
         "meta_closed": "Esta clase está cerrada y ya no admite cambios.",
         "note_title": "Nota del campo local",
         "files": "Archivos",
-        "files_count": "{count} de {max}",
         "subtitle_member": "{member} · hasta {max} archivos",
         "subtitle": "Hasta {max} archivos",
         "not_found_title": "No encontramos este requisito",
         "not_found_body": "Puede que ya no forme parte de la clase.",
         "load_error_title": "No pudimos cargar el requisito",
-        "max_files": "Máximo {max} archivos por requisito.",
         "step_of": "Paso {step} de {total} · Ver todos los estados",
         "panel_semantics": "Estado: {state}, paso {step} de {total}",
         "panel_hint": "Muestra todos los estados",
@@ -3929,47 +3798,13 @@
       "create_folder_empty": "La carpeta fue solicitada, pero aún no está disponible. Intenta actualizar."
     },
     "title": "Carpeta Anual de Evidencias",
-    "overview_label": "{name} · AVANCE",
-    "search_hint": "Buscar sección de evidencia…",
-    "no_results_body": "Intenta con otro nombre o descripción.",
-    "section_title": "Sección",
     "send": "Enviar",
     "stay": "Quedarme",
     "exit": "Salir",
     "show_more": "Ver más",
     "show_less": "Ver menos",
-    "points_label": "Puntos",
-    "weight_label": "Peso",
-    "limit_label": "Límite",
-    "earned_points": "Puntos obtenidos",
-    "sending": "Enviando...",
-    "send_to_validation": "Enviar a validación",
     "submit_success": "Sección \"{sectionName}\" enviada a validación exitosamente",
-    "status": {
-      "open": "Abierta",
-      "closed": "Cerrada",
-      "pending": "Pendiente",
-      "submitted": "Enviado",
-      "preapproved": "Preaprobado",
-      "validated": "Validado",
-      "rejected": "Rechazado"
-    },
-    "stats": {
-      "pending": "Pendientes",
-      "submitted": "Enviadas",
-      "preapproved": "Preaprobadas",
-      "rejected": "Rechazadas",
-      "validated": "Validadas"
-    },
-    "sections_title": "Secciones",
     "empty_sections": "No hay secciones disponibles",
-    "section_detail_label": "Detalle de la sección",
-    "section_status_label": "Estado de la sección",
-    "evaluation_result_title": "Resultado de evaluación",
-    "evidence_files_title": "Archivos de evidencia",
-    "evaluator_notes": "Notas del evaluador",
-    "reviewer_comments": "Comentarios del revisor",
-    "status_semantics": "Estado de la sección: {label}. Tocar para ver historial.",
     "submit_section_dialog": {
       "title": "Enviar sección a validación",
       "message": "¿Confirmas que quieres enviar la sección \"{sectionName}\" a validación?\n\nNo podrás modificar los archivos hasta que el campo local la revise."
@@ -3977,18 +3812,6 @@
     "unsaved_files_dialog": {
       "title": "Archivos sin enviar",
       "message": "Tienes archivos sin enviar. ¿Seguro que quieres salir?"
-    },
-    "evaluation_banner": {
-      "title": "En proceso de evaluación",
-      "description": "El evaluador del campo está revisando las evidencias de este club."
-    },
-    "evaluated_banner": {
-      "title": "Carpeta evaluada{date}",
-      "points": "Puntos obtenidos: {earned} / {max}"
-    },
-    "closed_banner": {
-      "title": "Carpeta cerrada",
-      "description": "La Carpeta Anual de Evidencias ha sido cerrada. Para modificar tus evidencias, contacta a la administración del campo local."
     },
     "no_folder": {
       "title": "Carpeta no disponible",
@@ -4003,32 +3826,6 @@
       "create_success": "Carpeta creada. Ya puedes agregar evidencias."
     },
     "error_load_title": "Error al cargar la carpeta",
-    "status_history": {
-      "title": "Historial de estados",
-      "empty_title": "Sin cambios registrados",
-      "empty_description": "Esta sección aún no tiene cambios de estado registrados.",
-      "pending_desc": "Sección creada, esperando evidencias.",
-      "submitted_desc": "Evidencias enviadas a validación.",
-      "rejected_desc": "Sección rechazada. Puedes reenviar evidencias.",
-      "preapproved_desc": "Sección pre-aprobada por el campo local.",
-      "validated_desc": "Sección validada definitivamente por la unión."
-    },
-    "trace": {
-      "sent_by": "Enviado por {name}{date}",
-      "preapproved_by": "Preaprobado por {name}{date}",
-      "validated_by": "Validado por {name}{date}"
-    },
-    "timeline": {
-      "waiting_evidence": "En espera de evidencias",
-      "waiting_send": "Esperando envío",
-      "rejected": "Sección rechazada",
-      "local_review": "Revisión de campo local",
-      "waiting_validation": "Esperando validación"
-    },
-    "points_ratio": "{earned} / {max} pts",
-    "points_value": "{points} pts",
-    "files_count": "{count} archivos",
-    "files_ratio": "{current} / {max} archivos",
     "state": {
       "pending": "Sin enviar",
       "rejected": "Por corregir",
@@ -4090,7 +3887,6 @@
     "detail": {
       "subtitle": "Vale {points} pts · hasta {max} archivos",
       "files": "Archivos",
-      "files_count": "{count} de {max}",
       "file_notes": "Comentarios por archivo",
       "reviewer_note": "Nota del campo local",
       "evaluator_note": "Nota del evaluador"
@@ -4105,11 +3901,6 @@
       "returned": "Devuelta para corregir",
       "returned_on": "Devuelta el {date}",
       "fix_hint": "corrige y vuelve a enviar",
-      "step_files": "Archivos",
-      "step_sent": "Enviada",
-      "step_local_field": "Campo local",
-      "step_union": "Unión",
-      "step_semantics": "Paso {current} de {total}: {label}",
       "fix_full": "Corrige y vuelve a enviar.",
       "step_of": "Paso {step} de {total} · Ver todos los estados",
       "step_of_points": "Paso {step} de {total} · {points}",
@@ -5164,9 +4955,6 @@
       },
       "submit_dialog_title": "Enviar a validación",
       "upload_all_failed": "Todos los archivos fallaron",
-      "upload_all_success": "Todos los archivos subidos",
-      "upload_partial": "{completed} de {total} subidos, {failed} fallaron",
-      "uploading_progress": "Subiendo {current} de {total} archivos...",
       "remove_file": "Quitar archivo",
       "uploading_title": "Subiendo {current} de {total}",
       "uploading_hint": "No cierres la app mientras se suben.",

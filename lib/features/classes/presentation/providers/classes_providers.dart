@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../../../core/providers/keep_alive_during.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../../providers/json_file_cache_provider.dart';
 import '../../../../core/storage/cache_first.dart';
@@ -15,7 +14,6 @@ import '../../data/datasources/classes_remote_data_source.dart';
 import '../../data/repositories/classes_repository_impl.dart';
 import '../../domain/entities/progressive_class.dart';
 import '../../domain/entities/class_module.dart';
-import '../../domain/entities/class_progress.dart';
 import '../../domain/entities/class_with_progress.dart';
 import '../../domain/entities/class_members_progress.dart';
 import '../../domain/entities/progress_scope.dart';
@@ -25,7 +23,6 @@ import '../../domain/repositories/classes_repository.dart';
 import '../../domain/usecases/get_user_classes.dart';
 import '../../domain/usecases/get_class_detail.dart';
 import '../../domain/usecases/get_class_modules.dart';
-import '../../domain/usecases/update_class_progress.dart';
 import '../../domain/usecases/get_class_with_progress.dart';
 import '../../domain/usecases/submit_requirement.dart';
 import '../../domain/usecases/upload_requirement_file.dart';
@@ -63,10 +60,6 @@ final getClassDetailProvider = Provider<GetClassDetail>((ref) {
 
 final getClassModulesProvider = Provider<GetClassModules>((ref) {
   return GetClassModules(ref.read(classesRepositoryProvider));
-});
-
-final updateClassProgressProvider = Provider<UpdateClassProgress>((ref) {
-  return UpdateClassProgress(ref.read(classesRepositoryProvider));
 });
 
 final getClassWithProgressUseCaseProvider =
@@ -808,44 +801,3 @@ final requirementNotifierProvider = NotifierProvider.autoDispose
     .family<RequirementNotifier, RequirementOperationState, ClassProgressQuery>(
   RequirementNotifier.new,
 );
-
-// ── Class progress notifier (legacy) ──────────────────────────────────────────
-
-/// Notifier para manejar actualizaciones de progreso
-// Legacy: superseded by RequirementNotifier for new flows. Kept for
-// section_detail_view and class_modules_view which still use this directly.
-class ClassProgressNotifier extends AsyncNotifier<ClassProgress?> {
-  @override
-  Future<ClassProgress?> build() async => null;
-
-  /// Actualizar progreso de una seccion
-  Future<void> updateProgress(
-          String userId, int classId, Map<String, dynamic> progressData,
-          {int? enrollmentId}) =>
-      // Callers only `ref.read` this notifier: keep it alive until the update
-      // settles (see keepAliveDuring).
-      ref.keepAliveDuring(() async {
-        state = const AsyncValue.loading();
-
-        final result = await ref.read(updateClassProgressProvider)(
-          UpdateClassProgressParams(
-            userId: userId,
-            classId: classId,
-            progressData: progressData,
-            enrollmentId: enrollmentId,
-          ),
-        );
-
-        state = result.fold(
-          (failure) => AsyncValue.error(failure.message, StackTrace.current),
-          (progress) => AsyncValue.data(progress),
-        );
-      });
-}
-
-/// Provider para el notifier de progreso de clase
-final classProgressNotifierProvider =
-    AsyncNotifierProvider.autoDispose<ClassProgressNotifier, ClassProgress?>(
-        () {
-  return ClassProgressNotifier();
-});
