@@ -2,13 +2,10 @@ import '../../../majority_release/presentation/widgets/majority_notice_banner.da
 import 'package:easy_localization/easy_localization.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_cropper/image_cropper.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:go_router/go_router.dart';
@@ -16,15 +13,12 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/utils/app_logger.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
-import 'package:sacdia_app/features/post_registration/presentation/providers/post_registration_providers.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../family/presentation/widgets/family_profile_entry.dart';
@@ -51,93 +45,11 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 
-class ProfileView extends ConsumerStatefulWidget {
+class ProfileView extends ConsumerWidget {
   const ProfileView({super.key});
 
   @override
-  ConsumerState<ProfileView> createState() => _ProfileViewState();
-}
-
-class _ProfileViewState extends ConsumerState<ProfileView> {
-  static const _tag = 'ProfileView';
-  bool _isUploadingPhoto = false;
-
-  Future<void> _changePhoto() async {
-    final user = ref.read(authNotifierProvider).value;
-    if (user == null) return;
-
-    try {
-      final XFile? photo = await ImagePicker().pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 70,
-        maxWidth: 1024,
-        maxHeight: 1024,
-      );
-
-      if (photo == null) return;
-
-      final toolbarColor = SacAccent.of(context).color;
-      final croppedFile = await ImageCropper().cropImage(
-        sourcePath: photo.path,
-        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
-        compressQuality: 70,
-        uiSettings: [
-          AndroidUiSettings(
-            toolbarTitle: 'profile.view.crop_photo_title'.tr(),
-            toolbarColor: toolbarColor,
-            toolbarWidgetColor: Colors.white,
-            lockAspectRatio: true,
-            hideBottomControls: false,
-          ),
-          IOSUiSettings(
-            title: 'profile.view.crop_photo_title'.tr(),
-            doneButtonTitle: 'common.done'.tr(),
-            cancelButtonTitle: 'common.cancel'.tr(),
-            aspectRatioLockEnabled: true,
-            resetAspectRatioEnabled: false,
-          ),
-        ],
-      );
-
-      if (croppedFile == null) return;
-
-      setState(() => _isUploadingPhoto = true);
-
-      try {
-        final success =
-            await ref.read(profilePhotoUploadNotifierProvider.notifier).upload(
-                  userId: user.id,
-                  filePath: croppedFile.path,
-                );
-
-        if (!mounted) return;
-
-        if (!success) {
-          SacSnackBar.show(context, 'profile.view.photo_upload_error'.tr(),
-              isError: true);
-        } else {
-          ref.invalidate(profileNotifierProvider);
-          ref.invalidate(authNotifierProvider);
-          SacSnackBar.show(context, 'profile.view.photo_upload_success'.tr(),
-              isSuccess: true);
-        }
-      } finally {
-        if (mounted) {
-          setState(() => _isUploadingPhoto = false);
-        }
-      }
-    } catch (e) {
-      AppLogger.e('Error al cambiar foto de perfil', tag: _tag, error: e);
-      if (mounted) {
-        setState(() => _isUploadingPhoto = false);
-        SacSnackBar.show(context, 'profile.view.photo_upload_error'.tr(),
-            isError: true);
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final profileState = ref.watch(profileNotifierProvider);
     final hPad = Responsive.horizontalPadding(context);
 
@@ -182,9 +94,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               activeRoleName: activeRoleName,
               resolvedClubType: resolvedClubType,
               showCertifications: showCertifications,
-              isUploadingPhoto: _isUploadingPhoto,
               hPad: hPad,
-              onChangePhoto: _isUploadingPhoto ? null : _changePhoto,
               onSettings: () => Navigator.push(
                 context,
                 SacSharedAxisRoute(builder: (_) => const SettingsView()),
@@ -285,9 +195,7 @@ class _ProfileScrollBody extends StatelessWidget {
   /// Certifications are exclusive to invested Master Guides.
   final bool showCertifications;
 
-  final bool isUploadingPhoto;
   final double hPad;
-  final VoidCallback? onChangePhoto;
   final Future<void> Function() onRefresh;
   final VoidCallback onRefreshClasses;
   final VoidCallback onRefreshCertifications;
@@ -300,7 +208,6 @@ class _ProfileScrollBody extends StatelessWidget {
     required this.activeRoleName,
     required this.resolvedClubType,
     required this.showCertifications,
-    required this.isUploadingPhoto,
     required this.hPad,
     required this.onRefresh,
     required this.onRefreshClasses,
@@ -308,7 +215,6 @@ class _ProfileScrollBody extends StatelessWidget {
     required this.onRefreshHonors,
     required this.onSettings,
     required this.onQr,
-    this.onChangePhoto,
   });
 
   @override
@@ -403,8 +309,6 @@ class _ProfileScrollBody extends StatelessWidget {
                 clubName: profile.clubName,
                 clubType: resolvedClubType,
                 currentClass: profile.currentClass,
-                isUploadingPhoto: isUploadingPhoto,
-                onEditPhoto: onChangePhoto,
                 onEditProfile: () {
                   Navigator.push(
                     context,
@@ -733,8 +637,8 @@ class _ProfileFirstLoadSkeleton extends StatelessWidget {
 
 /// Header card with a two-column layout:
 /// LEFT  — name (large, bold) + meta rows (club, cargo, clase)
-/// RIGHT — circular avatar with camera edit overlay
-/// BELOW — full-width "Actualizar perfil" button
+/// RIGHT — circular avatar with an edit badge; avatar and badge both open
+///         the edit screen.
 ///
 /// White card with a solid 6px primary top strip. No gradients.
 class _ProfileHeaderCard extends StatelessWidget {
@@ -748,8 +652,6 @@ class _ProfileHeaderCard extends StatelessWidget {
   final String? clubName;
   final String? clubType;
   final String? currentClass;
-  final bool isUploadingPhoto;
-  final VoidCallback? onEditPhoto;
   final VoidCallback? onEditProfile;
 
   const _ProfileHeaderCard({
@@ -760,8 +662,6 @@ class _ProfileHeaderCard extends StatelessWidget {
     this.clubName,
     this.clubType,
     this.currentClass,
-    this.isUploadingPhoto = false,
-    this.onEditPhoto,
     this.onEditProfile,
   });
 
@@ -857,13 +757,14 @@ class _ProfileHeaderCard extends StatelessWidget {
 
                     const SizedBox(width: 16),
 
-                    // ── Right: circular avatar with camera button ──
+                    // ── Right: avatar + edit badge (opens EditProfileView) ──
                     Semantics(
-                      label: 'profile.view.crop_photo_title'.tr(),
+                      label: 'profile.view.edit_profile_label'.tr(),
                       button: true,
-                      child: SacInkWell(
-                        customBorder: const CircleBorder(),
-                        onTap: onEditPhoto,
+                      onTap: onEditProfile,
+                      excludeSemantics: true,
+                      child: SacPressable(
+                        onTap: onEditProfile,
                         child: Stack(
                           clipBehavior: Clip.none,
                           children: [
@@ -884,110 +785,64 @@ class _ProfileHeaderCard extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  ClipOval(
-                                    child: SizedBox(
-                                      width: avatarRadius * 2,
-                                      height: avatarRadius * 2,
-                                      child: avatar != null
-                                          ? SacProfileImage(
-                                              imageUrl: avatar!,
-                                              fit: BoxFit.cover,
-                                              memCacheWidth: 176,
-                                              memCacheHeight: 176,
-                                              placeholder: (_, __) =>
-                                                  _AvatarInitials(
-                                                name: name,
-                                                fontSize: fallbackFontSize,
-                                              ),
-                                              errorWidget: (_, __, ___) =>
-                                                  _AvatarInitials(
-                                                name: name,
-                                                fontSize: fallbackFontSize,
-                                              ),
-                                            )
-                                          : _AvatarInitials(
-                                              name: name,
-                                              fontSize: fallbackFontSize,
-                                            ),
-                                    ),
-                                  ),
-                                  if (isUploadingPhoto)
-                                    Container(
-                                      width: avatarRadius * 2,
-                                      height: avatarRadius * 2,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color:
-                                            Colors.black.withValues(alpha: 0.5),
-                                      ),
-                                      child: const Center(
-                                        child: SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: SacLoadingSmall(
-                                              color: Colors.white),
+                              child: ClipOval(
+                                child: SizedBox(
+                                  width: avatarRadius * 2,
+                                  height: avatarRadius * 2,
+                                  child: avatar != null
+                                      ? SacProfileImage(
+                                          imageUrl: avatar!,
+                                          fit: BoxFit.cover,
+                                          memCacheWidth: 176,
+                                          memCacheHeight: 176,
+                                          placeholder: (_, __) =>
+                                              _AvatarInitials(
+                                            name: name,
+                                            fontSize: fallbackFontSize,
+                                          ),
+                                          errorWidget: (_, __, ___) =>
+                                              _AvatarInitials(
+                                            name: name,
+                                            fontSize: fallbackFontSize,
+                                          ),
+                                        )
+                                      : _AvatarInitials(
+                                          name: name,
+                                          fontSize: fallbackFontSize,
                                         ),
-                                      ),
-                                    ),
-                                ],
+                                ),
                               ),
                             ),
-                            if (!isUploadingPhoto)
-                              Positioned(
-                                bottom: 2,
-                                right: 2,
-                                child: Container(
-                                  width: 28,
-                                  height: 28,
-                                  decoration: BoxDecoration(
+                            Positioned(
+                              bottom: 2,
+                              right: 2,
+                              child: Container(
+                                key:
+                                    const ValueKey('profile-avatar-edit-badge'),
+                                width: 28,
+                                height: 28,
+                                decoration: BoxDecoration(
+                                  color: SacAccent.of(context).color,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
                                     color: c.background,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: c.border,
-                                      width: 1.5,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: context.sac.shadow,
-                                        blurRadius: 4,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
+                                    width: 2,
                                   ),
-                                  child: Center(
-                                    child: HugeIcon(
-                                      icon: HugeIcons.strokeRoundedCamera01,
-                                      color: c.textSecondary,
-                                      size: 14,
-                                    ),
+                                ),
+                                child: Center(
+                                  child: HugeIcon(
+                                    icon: HugeIcons.strokeRoundedEdit02,
+                                    color: SacAccent.of(context).onColor,
+                                    size: 14,
                                   ),
                                 ),
                               ),
+                            ),
                           ],
                         ),
                       ),
                     ),
                   ],
-                ),
-
-                const SizedBox(height: 20),
-
-                // ── Full-width CTA button ──────────────────────────
-                SizedBox(
-                  width: double.infinity,
-                  child: SacButton.primary(
-                    text: 'profile.view.update_profile'.tr(),
-                    icon: HugeIcons.strokeRoundedPencilEdit01,
-                    onPressed: onEditProfile,
-                    minHeight: 40.8,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 11,
-                    ),
-                  ),
                 ),
               ],
             ),

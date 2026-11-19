@@ -13,6 +13,7 @@ abstract class ProfileRemoteDataSource {
   Future<UserDetailModel> updateUserProfile(
       String userId, Map<String, dynamic> data);
   Future<String> updateProfilePicture(String userId, String filePath);
+  Future<void> deleteProfilePicture(String userId);
 }
 
 /// Implementación de la fuente de datos remota del perfil
@@ -141,6 +142,35 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     } catch (e) {
       if (e is AuthException || e is ServerException) rethrow;
       AppLogger.e('Error inesperado al actualizar foto', tag: _tag, error: e);
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<void> deleteProfilePicture(String userId) async {
+    try {
+      final response = await _dio.delete(
+        '$_baseUrl${ApiEndpoints.users}/$userId/profile-picture',
+      );
+
+      if (response.statusCode != 200 &&
+          response.statusCode != 201 &&
+          response.statusCode != 204) {
+        throw ServerException(
+          message: tr('profile.errors.update_picture'),
+          code: response.statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      AppLogger.e('Error al eliminar foto de perfil',
+          tag: _tag, error: e.message);
+      throw ServerException(
+        message: e.response?.data?['message'] ?? tr('common.error_network'),
+        code: e.response?.statusCode,
+      );
+    } catch (e) {
+      if (e is AuthException || e is ServerException) rethrow;
+      AppLogger.e('Error inesperado al eliminar foto', tag: _tag, error: e);
       throw ServerException(message: e.toString());
     }
   }

@@ -11,6 +11,7 @@ import '../../data/repositories/post_registration_repository_impl.dart';
 import '../../domain/entities/completion_status.dart';
 import '../../domain/repositories/post_registration_repository.dart';
 import '../../domain/usecases/upload_profile_picture.dart';
+import '../../../profile/presentation/providers/profile_providers.dart';
 
 /// Provider para el repositorio de post-registro
 final postRegistrationRepositoryProvider =
@@ -67,6 +68,30 @@ class ProfilePhotoUploadNotifier extends AsyncNotifier<String?> {
           // Always clear the flag: a stuck `true` leaves the spinner on.
           ref.read(isUploadingPhotoProvider.notifier).state = false;
         }
+      });
+
+  /// Deletes the profile photo (`DELETE /users/:id/profile-picture`).
+  ///
+  /// Lives next to [upload] so the edit screen drives both from one notifier.
+  Future<bool> remove({required String userId}) =>
+      ref.keepAliveDuring(() async {
+        state = const AsyncValue.loading();
+
+        final result =
+            await ref.read(profileRepositoryProvider).deleteProfilePicture(
+                  userId,
+                );
+
+        return result.fold<bool>(
+          (failure) {
+            state = AsyncValue.error(failure.message, StackTrace.current);
+            return false;
+          },
+          (_) {
+            state = const AsyncValue.data(null);
+            return true;
+          },
+        );
       });
 }
 
