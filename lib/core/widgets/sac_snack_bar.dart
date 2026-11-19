@@ -10,7 +10,8 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 /// icon; [isError] paints the bar red with white text.
 ///
 /// Default [behavior] is floating. Use [SnackBarBehavior.fixed] when the
-/// toast must sit above a shell [NavigationBar] (monthly reports).
+/// toast must sit above a shell [NavigationBar] (monthly reports). [margin]
+/// lifts a floating toast clear of a custom footer.
 abstract final class SacSnackBar {
   static const Duration display = Duration(seconds: 4);
 
@@ -24,6 +25,7 @@ abstract final class SacSnackBar {
     Widget? leading,
     SnackBarAction? action,
     SnackBarBehavior behavior = SnackBarBehavior.floating,
+    EdgeInsetsGeometry? margin,
   }) {
     showMessenger(
       ScaffoldMessenger.of(context),
@@ -35,6 +37,7 @@ abstract final class SacSnackBar {
       leading: leading,
       action: action,
       behavior: behavior,
+      margin: margin,
       reduceMotion: SacMotion.reduceMotionOf(context),
     );
   }
@@ -50,6 +53,7 @@ abstract final class SacSnackBar {
     Widget? leading,
     SnackBarAction? action,
     SnackBarBehavior behavior = SnackBarBehavior.floating,
+    EdgeInsetsGeometry? margin,
     bool? reduceMotion,
   }) {
     assert(!(isError && isSuccess), 'isError and isSuccess are exclusive');
@@ -83,6 +87,7 @@ abstract final class SacSnackBar {
           backgroundColor: bg,
           duration: duration ?? display,
           behavior: behavior,
+          margin: behavior == SnackBarBehavior.floating ? margin : null,
           dismissDirection: behavior == SnackBarBehavior.floating
               ? DismissDirection.down
               : DismissDirection.horizontal,

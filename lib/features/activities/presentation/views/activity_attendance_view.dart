@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/animations/sac_rolling_number.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
@@ -251,7 +252,7 @@ class _Summary extends StatelessWidget {
                 height: 8,
                 child: SacSegmentRow(
                   parts: [
-                    SacSegmentPart(confirmed, c.success),
+                    SacSegmentPart(confirmed, SacAccent.of(context).color),
                     SacSegmentPart(missing, c.border),
                   ],
                 ),

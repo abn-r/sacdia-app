@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/status_progress/sac_grouped_section.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/features/activities/domain/entities/activity.dart';
 import 'package:sacdia_app/features/activities/domain/entities/activity_rsvp.dart';
@@ -195,8 +194,7 @@ void main() {
   });
 
   group('D · marcar a mano', () {
-    testWidgets('moves rows between groups and saves the full list',
-        (tester) async {
+    Future<_FakeRepo> pumpManual(WidgetTester tester) async {
       final repo = _FakeRepo(roster);
       await pumpScreen(
         tester,
@@ -207,41 +205,107 @@ void main() {
         repo: repo,
         pushed: true,
       );
+      return repo;
+    }
 
-      expect(find.text('FALTAN'), findsOneWidget);
-      expect(find.text('PRESENTES'), findsOneWidget);
+    Finder row(String id) => find.byKey(ValueKey('manual-$id'));
+
+    testWidgets('tapping a row marks it without moving it, then saves',
+        (tester) async {
+      final repo = await pumpManual(tester);
+
+      expect(find.text('MIEMBROS'), findsOneWidget);
       expect(find.text('1 de 3 presentes'), findsOneWidget);
-
       final save = find.byKey(const ValueKey('manual-save'));
       expect(tester.widget<SacButton>(save).onPressed, isNull);
 
-      // Ana goes from "Faltan" to "Presentes".
-      final anaSwitch = find.descendant(
-        of: find.byKey(const ValueKey('manual-u1')),
-        matching: find.byType(Switch),
-      );
-      await tester.tap(anaSwitch);
+      final before = tester.getTopLeft(row('u1'));
+      final order = [
+        tester.getTopLeft(row('u1')).dy,
+        tester.getTopLeft(row('u2')).dy,
+        tester.getTopLeft(row('u3')).dy,
+      ];
+      expect(order, orderedEquals([...order]..sort()));
+
+      await tester.tap(find.text('Ana Ruiz'));
       await tester.pumpAndSettle();
 
+      expect(tester.getTopLeft(row('u1')), before);
       expect(find.text('2 de 3 presentes'), findsOneWidget);
-      final presentSection = find.ancestor(
-        of: find.text('PRESENTES'),
-        matching: find.byType(SacGroupedSection),
-      );
-      expect(
-        find.descendant(
-          of: presentSection,
-          matching: find.byKey(const ValueKey('manual-u1')),
-        ),
-        findsOneWidget,
-      );
       expect(tester.widget<SacButton>(save).onPressed, isNotNull);
+      expect(find.text('Ana Ruiz marcado como presente'), findsOneWidget);
 
       await tester.tap(save);
       await tester.pumpAndSettle();
 
       expect(repo.saved, unorderedEquals(['u1', 'u2']));
       expect(find.text('Asistencia guardada'), findsOneWidget);
+    });
+
+    testWidgets('the notice offers Deshacer, which reverts the toggle',
+        (tester) async {
+      await pumpManual(tester);
+
+      await tester.tap(find.text('Ana Ruiz'));
+      await tester.pumpAndSettle();
+      expect(find.text('2 de 3 presentes'), findsOneWidget);
+
+      // A second toggle replaces the first notice instead of stacking.
+      await tester.tap(find.text('Bruno Méndez'));
+      await tester.pumpAndSettle();
+      expect(find.text('Ana Ruiz marcado como presente'), findsNothing);
+      expect(find.text('Bruno Méndez quitado de presentes'), findsOneWidget);
+      expect(find.text('Deshacer'), findsOneWidget);
+
+      await tester.tap(find.text('Deshacer'));
+      await tester.pumpAndSettle();
+      expect(find.text('2 de 3 presentes'), findsOneWidget);
+      expect(
+        tester
+            .widget<Switch>(
+              find.descendant(of: row('u2'), matching: find.byType(Switch)),
+            )
+            .value,
+        isTrue,
+      );
+    });
+
+    testWidgets('Faltan view collapses a row once it is marked',
+        (tester) async {
+      await pumpManual(tester);
+
+      await tester.tap(find.byKey(const ValueKey('manual-filter-missing')));
+      await tester.pumpAndSettle();
+      expect(row('u2'), findsNothing);
+      expect(row('u1'), findsOneWidget);
+
+      await tester.tap(find.text('Ana Ruiz'));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(row('u1'), findsOneWidget); // still collapsing
+      await tester.pumpAndSettle();
+      expect(row('u1'), findsNothing);
+      expect(row('u3'), findsOneWidget);
+    });
+
+    testWidgets('asks before leaving with unsaved changes', (tester) async {
+      await pumpManual(tester);
+
+      await tester.tap(find.text('Ana Ruiz'));
+      await tester.pumpAndSettle();
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.text('Tienes cambios sin guardar'), findsOneWidget);
+
+      await tester.tap(find.text('Seguir marcando'));
+      await tester.pumpAndSettle();
+      expect(find.text('Marcar a mano'), findsOneWidget);
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Salir'));
+      await tester.pumpAndSettle();
+      expect(find.text('Marcar a mano'), findsNothing);
     });
 
     testWidgets('shows the RSVP answer only when asked to', (tester) async {
