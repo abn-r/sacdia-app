@@ -207,7 +207,8 @@ class _AchievementBadgeState extends State<AchievementBadge>
         imageUrl: effectiveUrl,
         width: widget.size,
         height: widget.size,
-        memCacheWidth: imageCacheSize,
+        // Solo el alto: fijar ancho y alto decodifica la imagen a la fuerza en
+        // un cuadrado y deforma cualquier arte que no lo sea.
         memCacheHeight: imageCacheSize,
         fit: BoxFit.contain,
         placeholder: (context, url) => Container(

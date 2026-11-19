@@ -24,7 +24,7 @@ void main() {
     codec.dispose();
 
     final provider = ResizeImage.resizeIfNeeded(
-      _badgeCacheSize,
+      null,
       _badgeCacheSize,
       const CachedNetworkImageProvider(_badgeImageUrl),
     );
@@ -39,6 +39,26 @@ void main() {
 
   tearDownAll(() {
     PaintingBinding.instance.imageCache.evict(imageCacheKey);
+  });
+
+  group('AchievementBadge artwork', () {
+    testWidgets(
+      'decodes by height only so the artwork keeps its own shape',
+      (tester) async {
+        await tester.pumpWidget(
+          _badgeApp(reduceMotion: true, tier: AchievementTier.gold),
+        );
+        await _finishImageDecode(tester);
+
+        final image = tester.widget<CachedNetworkImage>(
+          find.byType(CachedNetworkImage),
+        );
+
+        expect(image.memCacheWidth, isNull);
+        expect(image.memCacheHeight, _badgeCacheSize);
+        expect(image.fit, BoxFit.contain);
+      },
+    );
   });
 
   group('AchievementBadge motion accessibility', () {
