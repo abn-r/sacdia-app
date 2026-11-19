@@ -14,7 +14,6 @@ import 'package:sacdia_app/core/widgets/sac_frosted_footer.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_member_avatar.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
-import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/status_progress/sac_grouped_section.dart';
@@ -22,8 +21,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../../qr/presentation/views/qr_scanner_view.dart';
-import '../../../virtual_card/presentation/views/virtual_card_view.dart';
 import '../../domain/entities/activity.dart';
 import '../providers/activities_providers.dart';
 import '../widgets/activity_attendees_section.dart';
@@ -39,6 +36,9 @@ import '../widgets/activity_more_sheet.dart';
 import '../widgets/activity_state_panel.dart';
 import '../widgets/activity_type_style.dart';
 import '../widgets/activity_virtual_attendance.dart';
+import 'activity_attendance_view.dart';
+import 'activity_manual_attendance_view.dart';
+import 'activity_my_qr_view.dart';
 import 'edit_activity_view.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 
@@ -140,32 +140,48 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     }
   }
 
-  /// Staff attendance entry for in-person and hybrid activities. Block 2
-  /// replaces the scanner with the new attendance screen: change it here only.
+  /// Staff attendance panel (QR and manual marking) for every platform.
   void _openAttendance() {
+    final activity = ref.read(activityDetailProvider(widget.activityId)).value;
     Navigator.of(context).push(
       SacSharedAxisRoute(
-        builder: (_) => QrScannerView(activityId: widget.activityId),
+        builder: (_) => ActivityAttendanceView(
+          activityId: widget.activityId,
+          activityName: activity?.name ?? '',
+          isVirtual: activity?.platform == 1,
+        ),
       ),
     );
   }
 
   void _openMyQr() {
+    final activity = ref.read(activityDetailProvider(widget.activityId)).value;
     Navigator.of(context).push(
-      SacSharedAxisRoute(builder: (_) => const VirtualCardView()),
+      SacSharedAxisRoute(
+        builder: (_) => ActivityMyQrView(
+          activityId: widget.activityId,
+          activityName: activity?.name ?? '',
+          sectionName: activity?.clubTypeName,
+        ),
+      ),
     );
   }
 
+  /// Virtual activities: staff marks who actually attended.
   Future<void> _openRoster() async {
-    final saved = await showSacSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (_) => VirtualAttendanceSheet(activityId: widget.activityId),
+    final activity = ref.read(activityDetailProvider(widget.activityId)).value;
+    final saved = await Navigator.of(context).push<bool>(
+      SacSharedAxisRoute(
+        builder: (_) => ActivityManualAttendanceView(
+          activityId: widget.activityId,
+          activityName: activity?.name ?? '',
+          showRsvp: true,
+        ),
+      ),
     );
     if (saved != true || !mounted) return;
     ref.invalidate(activityDetailProvider(widget.activityId));
-    SacSnackBar.show(context, 'activities.widgets.rsvp_saved'.tr());
+    ref.invalidate(attendanceRosterProvider(widget.activityId));
   }
 
   // ── helpers ─────────────────────────────────────────────────────────────────
@@ -466,8 +482,6 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: ActivityVirtualAttendance(
                 activityId: activity.id,
-                canConfirm: canManage,
-                showStaffEntry: false,
                 eyebrow: 'activities.widgets.rsvp_title'.tr(),
               ),
             ),

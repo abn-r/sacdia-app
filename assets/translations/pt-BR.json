@@ -372,7 +372,7 @@
     "scan_hint_lookup": "Aponte a câmera para o QR do membro",
     "scan_another": "Escanear outro",
     "scan_success_registered": "Presença registrada",
-    "scan_success_already_present": "Já estava marcado como presente",
+    "scan_success_already_present": "Já estava registrado",
     "scan_error_title": "Não foi possível validar o QR",
     "torch_tooltip": "Lanterna",
     "switch_camera_tooltip": "Alternar câmera",
@@ -389,7 +389,8 @@
       "empty_qr_response": "Resposta vazia do servidor QR",
       "empty_response": "Resposta vazia do servidor",
       "scan_failed": "Não foi possível processar a leitura do QR."
-    }
+    },
+    "scan_success_registered_count": "Presença registrada · {count} de {total}"
   },
   "support": {
     "title": "Ajuda e suporte",
@@ -1227,6 +1228,29 @@
       "weekday_7": "Dom",
       "first_date": "Primeira sessão",
       "preview_error": "Não foi possível calcular as datas. Revise a primeira sessão e a data final."
+    },
+    "attendance": {
+      "title": "Presença",
+      "registered": "Registrados",
+      "of_total": " de {total}",
+      "missing": "faltam {count}",
+      "empty_title": "Ninguém registrado ainda",
+      "empty_body": "Escaneie um QR ou marque à mão para começar.",
+      "scan_qr": "Escanear QR",
+      "manual": "Marcar à mão",
+      "present_count": "{count} de {total} presentes",
+      "group_missing": "Faltam",
+      "group_present": "Presentes",
+      "save": "Salvar",
+      "saved": "Presença salva",
+      "my_title": "Minha presença",
+      "code_title": "Mostre este código",
+      "code_body": "Um líder o escaneia para registrar você.",
+      "done_title": "Presença registrada",
+      "done_body": "Você já está na lista.",
+      "load_error": "Não foi possível carregar a lista de presença.",
+      "save_error": "Não foi possível salvar a presença. Tente de novo.",
+      "no_match": "Ninguém corresponde à busca."
     }
   },
   "post_registration": {

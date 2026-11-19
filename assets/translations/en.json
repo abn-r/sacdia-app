@@ -372,7 +372,7 @@
     "scan_hint_lookup": "Point the camera at the member's QR",
     "scan_another": "Scan another",
     "scan_success_registered": "Attendance registered",
-    "scan_success_already_present": "Already marked as attending",
+    "scan_success_already_present": "Already registered",
     "scan_error_title": "Could not validate QR",
     "torch_tooltip": "Torch",
     "switch_camera_tooltip": "Switch camera",
@@ -389,7 +389,8 @@
       "empty_qr_response": "Empty response from QR server",
       "empty_response": "Empty response from server",
       "scan_failed": "We could not process the QR scan."
-    }
+    },
+    "scan_success_registered_count": "Attendance registered · {count} of {total}"
   },
   "support": {
     "title": "Help and support",
@@ -1227,6 +1228,29 @@
       "weekday_7": "Sun",
       "first_date": "First session",
       "preview_error": "Could not calculate the dates. Check the first session and the end date."
+    },
+    "attendance": {
+      "title": "Attendance",
+      "registered": "Registered",
+      "of_total": " of {total}",
+      "missing": "{count} missing",
+      "empty_title": "Nobody registered yet",
+      "empty_body": "Scan a QR or mark by hand to get started.",
+      "scan_qr": "Scan QR",
+      "manual": "Mark by hand",
+      "present_count": "{count} of {total} present",
+      "group_missing": "Missing",
+      "group_present": "Present",
+      "save": "Save",
+      "saved": "Attendance saved",
+      "my_title": "My attendance",
+      "code_title": "Show this code",
+      "code_body": "A leader scans it to register you.",
+      "done_title": "Attendance registered",
+      "done_body": "You are on the list.",
+      "load_error": "Could not load the attendance list.",
+      "save_error": "Could not save attendance. Try again.",
+      "no_match": "Nobody matches your search."
     }
   },
   "post_registration": {

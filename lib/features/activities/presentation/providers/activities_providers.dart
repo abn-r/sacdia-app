@@ -13,6 +13,7 @@ import '../../domain/entities/activity_club_section.dart';
 import '../../domain/entities/activity_series.dart';
 import '../../data/repositories/activities_repository_impl.dart';
 import '../../domain/entities/activity.dart';
+import '../../domain/entities/activity_rsvp.dart';
 import '../../domain/repositories/activities_repository.dart';
 import '../../domain/usecases/create_activity.dart';
 import '../../domain/usecases/get_club_activities.dart';
@@ -161,6 +162,21 @@ final activityDetailProvider =
   return result.fold(
     (failure) => throw Exception(failure.message),
     (activity) => activity,
+  );
+});
+
+/// Roster of the activity's sections with who is confirmed (all platforms).
+/// Auto-disposed; screens invalidate it when they come back from scanning or
+/// marking by hand.
+final attendanceRosterProvider = FutureProvider.autoDispose
+    .family<List<AttendanceRosterMember>, int>((ref, activityId) async {
+  final result =
+      await ref.read(activitiesRepositoryProvider).getAttendanceRoster(
+            activityId,
+          );
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (members) => members,
   );
 });
 

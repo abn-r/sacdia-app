@@ -1,33 +1,22 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
-import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
-import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../domain/entities/activity_rsvp.dart';
 import '../providers/activities_providers.dart';
 import 'activity_detail_row.dart';
-import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
-/// Virtual activities: members mark intention. Staff confirms real attendance
-/// among every section member.
+/// Virtual activities: members mark their intention (going / not going). Staff
+/// confirms real attendance from the manual attendance screen.
 class ActivityVirtualAttendance extends ConsumerStatefulWidget {
   final int activityId;
-  final bool canConfirm;
-
-  /// Shows the staff "Confirm attendance" card. The activity detail turns it
-  /// off and lists that entry as a row of its attendance group instead.
-  final bool showStaffEntry;
 
   /// Label above the intention card ("TU ASISTENCIA"). Shown only when the
   /// member can answer, so it never sits over an empty block.
@@ -36,8 +25,6 @@ class ActivityVirtualAttendance extends ConsumerStatefulWidget {
   const ActivityVirtualAttendance({
     super.key,
     required this.activityId,
-    required this.canConfirm,
-    this.showStaffEntry = true,
     this.eyebrow,
   });
 
@@ -117,18 +104,6 @@ class _ActivityVirtualAttendanceState
     );
   }
 
-  Future<void> _openRoster() async {
-    final saved = await showSacSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (_) => VirtualAttendanceSheet(activityId: widget.activityId),
-    );
-    if (saved != true || !mounted) return;
-    ref.invalidate(activityDetailProvider(widget.activityId));
-    SacSnackBar.show(context, 'activities.widgets.rsvp_saved'.tr());
-  }
-
   @override
   Widget build(BuildContext context) {
     final eligible = _rsvp?.eligible ?? false;
@@ -165,53 +140,6 @@ class _ActivityVirtualAttendanceState
             child: SacButton.text(
               text: 'common.retry'.tr(),
               onPressed: _load,
-            ),
-          ),
-        ],
-        if (widget.canConfirm && widget.showStaffEntry) ...[
-          if (eligible || _error != null) const SizedBox(height: 12),
-          SacCard(
-            onTap: _openRoster,
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: SacAccent.of(context).color,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedUserCheck01,
-                    size: 20,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'activities.widgets.rsvp_confirm_title'.tr(),
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'activities.widgets.rsvp_confirm_body'.tr(),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: context.sac.textSecondary,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowRight01,
-                  size: 18,
-                  color: context.sac.textTertiary,
-                ),
-              ],
             ),
           ),
         ],
@@ -320,284 +248,6 @@ class _IntentionButton extends StatelessWidget {
       text: text,
       isLoading: loading,
       onPressed: onPressed,
-    );
-  }
-}
-
-class VirtualAttendanceSheet extends ConsumerStatefulWidget {
-  final int activityId;
-
-  const VirtualAttendanceSheet({super.key, required this.activityId});
-
-  @override
-  ConsumerState<VirtualAttendanceSheet> createState() =>
-      _VirtualAttendanceSheetState();
-}
-
-class _VirtualAttendanceSheetState
-    extends ConsumerState<VirtualAttendanceSheet> {
-  List<AttendanceRosterMember> _members = const [];
-  final Set<String> _selected = {};
-  bool _loading = true;
-  bool _saving = false;
-  String? _error;
-  String _query = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    final result = await ref
-        .read(activitiesRepositoryProvider)
-        .getAttendanceRoster(widget.activityId);
-    if (!mounted) return;
-    result.fold(
-      (failure) => setState(() {
-        _loading = false;
-        _error = failure.message;
-      }),
-      (members) => setState(() {
-        _loading = false;
-        _members = members;
-        _selected
-          ..clear()
-          ..addAll(
-            members.where((member) => member.confirmed).map((m) => m.userId),
-          );
-      }),
-    );
-  }
-
-  Future<void> _save() async {
-    setState(() => _saving = true);
-    final result =
-        await ref.read(activitiesRepositoryProvider).registerAttendance(
-              widget.activityId,
-              _selected.toList(),
-            );
-    if (!mounted) return;
-    result.fold(
-      (failure) => setState(() {
-        _saving = false;
-        _error = failure.message;
-      }),
-      (_) => Navigator.of(context).pop(true),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final query = _query.trim().toLowerCase();
-    final visible = query.isEmpty
-        ? _members
-        : _members
-            .where((member) => member.name.toLowerCase().contains(query))
-            .toList();
-    final bottom = MediaQuery.viewInsetsOf(context).bottom;
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottom),
-      child: DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.85,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        builder: (context, scrollController) {
-          return Material(
-            color: context.sac.surface,
-            borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(AppTheme.radiusLG)),
-            child: Column(
-              children: [
-                const SizedBox(height: 8),
-                Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: context.sac.border,
-                    borderRadius: BorderRadius.circular(AppTheme.radius2XS),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'activities.widgets.rsvp_confirm_title'.tr(),
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'activities.widgets.rsvp_selected'.tr(
-                          namedArgs: {'count': '${_selected.length}'},
-                        ),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: context.sac.textSecondary,
-                            ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        onChanged: (value) => setState(() => _query = value),
-                        decoration: InputDecoration(
-                          hintText: 'activities.widgets.rsvp_search'.tr(),
-                          // HugeIcon stretches to the 48px prefix slot unless
-                          // the slot centers it at a fixed size.
-                          prefixIcon: FixedInputIconSlot(
-                            icon: HugeIcons.strokeRoundedSearch01,
-                            color: context.sac.textSecondary,
-                          ),
-                          prefixIconConstraints: FixedInputIconSlot.constraints,
-                          isDense: true,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (_error != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(
-                      _error!,
-                      style: TextStyle(color: context.sac.error),
-                    ),
-                  ),
-                Expanded(
-                  child: _loading
-                      ? Center(
-                          child: SacLoadingSmall(
-                            color: SacAccent.of(context).color,
-                          ),
-                        )
-                      : visible.isEmpty
-                          ? Center(
-                              child: Text(
-                                'activities.widgets.rsvp_empty'.tr(),
-                                textAlign: TextAlign.center,
-                              ),
-                            )
-                          : ListView.builder(
-                              controller: scrollController,
-                              itemCount: visible.length,
-                              itemBuilder: (context, index) {
-                                final member = visible[index];
-                                final checked =
-                                    _selected.contains(member.userId);
-                                return SacPressable(
-                                  listenOnly: true,
-                                  child: CheckboxListTile(
-                                    enableFeedback: false,
-                                    value: checked,
-                                    onChanged: _saving
-                                        ? null
-                                        : (value) {
-                                            setState(() {
-                                              if (value == true) {
-                                                _selected.add(member.userId);
-                                              } else {
-                                                _selected.remove(member.userId);
-                                              }
-                                            });
-                                          },
-                                    secondary: _MemberAvatar(member: member),
-                                    title: Text(member.name),
-                                    subtitle: Text(_badge(member.rsvp)),
-                                    controlAffinity:
-                                        ListTileControlAffinity.trailing,
-                                    activeColor: SacAccent.of(context).color,
-                                  ),
-                                );
-                              },
-                            ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      if (_saving) ...[
-                        Row(
-                          children: [
-                            SacLoadingSmall(color: SacAccent.of(context).color),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'activities.widgets.rsvp_confirm_saving'.tr(),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                      SacButton.primary(
-                        text: 'activities.widgets.rsvp_save'.tr(),
-                        onPressed: _loading || _saving ? null : _save,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  String _badge(String? rsvp) {
-    if (rsvp == 'going') return 'activities.widgets.rsvp_badge_going'.tr();
-    if (rsvp == 'not_going') {
-      return 'activities.widgets.rsvp_badge_not_going'.tr();
-    }
-    return 'activities.widgets.rsvp_badge_none'.tr();
-  }
-}
-
-class _MemberAvatar extends StatelessWidget {
-  final AttendanceRosterMember member;
-
-  const _MemberAvatar({required this.member});
-
-  @override
-  Widget build(BuildContext context) {
-    final image = member.imageUrl;
-    if (image != null && image.isNotEmpty) {
-      return ClipOval(
-        child: SacProfileImage(
-          imageUrl: image,
-          width: 36,
-          height: 36,
-          fit: BoxFit.cover,
-        ),
-      );
-    }
-    final initial = member.name.isNotEmpty ? member.name[0].toUpperCase() : '?';
-    return CircleAvatar(
-      radius: 18,
-      backgroundColor: SacAccent.of(context).light,
-      child: Text(
-        initial,
-        style: TextStyle(
-          color: SacAccent.of(context).dark,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
     );
   }
 }

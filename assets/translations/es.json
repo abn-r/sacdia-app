@@ -372,7 +372,7 @@
     "scan_hint_lookup": "Apunta la cámara al QR del miembro",
     "scan_another": "Escanear otro",
     "scan_success_registered": "Asistencia registrada",
-    "scan_success_already_present": "Ya estaba marcado como asistente",
+    "scan_success_already_present": "Ya estaba registrado",
     "scan_error_title": "No se pudo validar el QR",
     "torch_tooltip": "Linterna",
     "switch_camera_tooltip": "Cambiar cámara",
@@ -389,7 +389,8 @@
       "empty_qr_response": "Respuesta vacía del servidor QR",
       "empty_response": "Respuesta vacía del servidor",
       "scan_failed": "No pudimos procesar el escaneo del QR."
-    }
+    },
+    "scan_success_registered_count": "Asistencia registrada · {count} de {total}"
   },
   "support": {
     "title": "Ayuda y soporte",
@@ -1227,6 +1228,29 @@
       "weekday_7": "Dom",
       "first_date": "Primera sesión",
       "preview_error": "No se pudieron calcular las fechas. Revisa la primera sesión y el cierre."
+    },
+    "attendance": {
+      "title": "Asistencia",
+      "registered": "Registrados",
+      "of_total": " de {total}",
+      "missing": "faltan {count}",
+      "empty_title": "Aún no hay nadie registrado",
+      "empty_body": "Escanea un QR o marca a mano para empezar.",
+      "scan_qr": "Escanear QR",
+      "manual": "Marcar a mano",
+      "present_count": "{count} de {total} presentes",
+      "group_missing": "Faltan",
+      "group_present": "Presentes",
+      "save": "Guardar",
+      "saved": "Asistencia guardada",
+      "my_title": "Mi asistencia",
+      "code_title": "Muestra este código",
+      "code_body": "Un líder lo escanea para registrarte.",
+      "done_title": "Asistencia registrada",
+      "done_body": "Ya quedaste en la lista.",
+      "load_error": "No se pudo cargar la lista de asistencia.",
+      "save_error": "No se pudo guardar la asistencia. Intenta de nuevo.",
+      "no_match": "Nadie coincide con la búsqueda."
     }
   },
   "post_registration": {
