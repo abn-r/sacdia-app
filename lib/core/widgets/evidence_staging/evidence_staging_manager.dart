@@ -4,15 +4,22 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../animations/sac_rolling_number.dart';
 import '../../errors/exceptions.dart';
 import '../../theme/sac_colors.dart';
 import '../../utils/app_logger.dart';
 import '../sac_button.dart';
 import '../sac_dialog.dart';
 import '../sac_snack_bar.dart';
+import 'evidence_footer_bar.dart';
+import 'evidence_footer_presence.dart';
+import 'evidence_send_label.dart';
+import 'evidence_source_sheet.dart';
+import 'evidence_staging_layout.dart';
 import 'image_source_dialog.dart';
 import 'staged_file.dart';
 import 'staged_file_grid.dart';
@@ -89,6 +96,20 @@ class EvidenceStagingManager extends StatefulWidget {
   /// [EvidenceStagingActionBar] outside this widget.
   final VoidCallback? onActionStateChanged;
 
+  /// Grid and footer layout. Defaults to the add-tile layout; certifications
+  /// pass [EvidenceStagingLayout.classic] to keep their "Image" / "PDF"
+  /// buttons.
+  final EvidenceStagingLayout layout;
+
+  /// Already translated name of the files section ("Files"). In the add-tile
+  /// layout the manager draws it as an eyebrow with the live "N of M" count
+  /// above the grid. Null draws no eyebrow.
+  final String? sectionTitle;
+
+  /// The footer action re-sends a returned item ("Resend") instead of
+  /// "Send N files".
+  final bool isResend;
+
   const EvidenceStagingManager({
     super.key,
     required this.existingFiles,
@@ -103,6 +124,9 @@ class EvidenceStagingManager extends StatefulWidget {
     this.embeddedMode = false,
     this.showActionBar = true,
     this.onActionStateChanged,
+    this.layout = EvidenceStagingLayout.addTile,
+    this.sectionTitle,
+    this.isResend = false,
   });
 
   @override
@@ -120,6 +144,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
   bool _isUploading = false;
   bool? _lastNotifiedCanSubmit;
   bool? _lastNotifiedIsLoading;
+  int? _lastNotifiedFileCount;
 
   @override
   void initState() {
@@ -183,6 +208,15 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
   /// Public view of busy state for externally pinned action bars.
   bool get isLoadingForActionBar => widget.isLoading || _isUploading;
 
+  /// Files the footer action will send (already uploaded plus staged).
+  int get fileCountForActionBar => _allFiles.length;
+
+  bool get _usesAddTile => widget.layout == EvidenceStagingLayout.addTile;
+
+  /// Opens the source sheet (camera, gallery or PDF) and stages what is
+  /// picked. This is what the add tile does.
+  Future<void> addFiles() => _addFiles(context);
+
   /// Triggers image picking from an externally rendered action bar.
   Future<void> pickImages() => _pickImages(context);
 
@@ -202,12 +236,15 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
   void _notifyActionStateChanged() {
     final canSubmit = _canSubmit;
     final isLoading = isLoadingForActionBar;
+    final fileCount = fileCountForActionBar;
     if (_lastNotifiedCanSubmit == canSubmit &&
-        _lastNotifiedIsLoading == isLoading) {
+        _lastNotifiedIsLoading == isLoading &&
+        _lastNotifiedFileCount == fileCount) {
       return;
     }
     _lastNotifiedCanSubmit = canSubmit;
     _lastNotifiedIsLoading = isLoading;
+    _lastNotifiedFileCount = fileCount;
     widget.onActionStateChanged?.call();
   }
 
@@ -233,10 +270,34 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
 
   // ── File picking ──────────────────────────────────────────────────────────
 
+  Future<void> _addFiles(BuildContext context) async {
+    final source = await showEvidenceSourceSheet(context);
+    if (source == null || !mounted) return;
+    switch (source) {
+      case EvidenceSource.camera:
+        // ignore: use_build_context_synchronously
+        await _pickImagesFrom(context, ImageSource.camera);
+      case EvidenceSource.gallery:
+        // ignore: use_build_context_synchronously
+        await _pickImagesFrom(context, ImageSource.gallery);
+      case EvidenceSource.pdf:
+        // ignore: use_build_context_synchronously
+        await _pickPdfs(context);
+    }
+  }
+
   Future<void> _pickImages(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
     final source = await showImageSourceDialog(context);
     if (source == null || !mounted) return;
+    // ignore: use_build_context_synchronously
+    await _pickImagesFrom(context, source);
+  }
+
+  Future<void> _pickImagesFrom(
+    BuildContext context,
+    ImageSource source,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
 
     try {
       final List<XFile> pickedFiles;
@@ -397,6 +458,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
   // ── Upload + Submit flow ──────────────────────────────────────────────────
 
   Future<void> _submitForValidation(BuildContext context) async {
+    HapticFeedback.lightImpact();
     // If no local files, skip upload and go straight to submit
     if (!_hasLocalFiles) {
       await _confirmAndSubmit(context);
@@ -688,18 +750,104 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
   // providers are not invalidated during batch uploads. A single invalidation
   // happens after the full batch via the onSubmit callback.
 
-  Widget _buildContent() {
+  /// The files grid, or the empty message when there is nothing to show.
+  Widget _buildGrid() {
+    final showsAdd = _usesAddTile && widget.canModify;
+    if (_allFiles.isEmpty && !showsAdd) {
+      return _EmptyFiles(canModify: widget.canModify);
+    }
+    return StagedFileGrid(
+      files: _allFiles,
+      maxFiles: widget.maxFiles,
+      canModify: widget.canModify,
+      onRemoveLocal: _removeLocalFile,
+      onDeleteRemote: _deleteRemoteFile,
+      onAdd: showsAdd ? () => _addFiles(context) : null,
+      showCounter: !_usesAddTile,
+    );
+  }
+
+  /// The "2 of 10" count; the first number rolls when it changes. Read-only
+  /// screens show only the total.
+  Widget _filesCount(TextStyle style) {
+    const marker = '\u0001';
+    var prefix = '';
+    var suffix = '';
+    if (widget.canModify) {
+      final text = 'core.evidence_staging.files_of'.tr(namedArgs: {
+        'count': marker,
+        'max': '${widget.maxFiles}',
+      });
+      final at = text.indexOf(marker);
+      if (at >= 0) {
+        prefix = text.substring(0, at);
+        suffix = text.substring(at + marker.length);
+      }
+    }
+    return SacRollingNumber(
+      textKey: const ValueKey('evidence-files-count'),
+      value: _allFiles.length,
+      prefix: prefix,
+      suffix: suffix,
+      style: style,
+    );
+  }
+
+  /// "FILES   2 of 10" above the grid. Read-only screens show only the total.
+  Widget _buildEyebrow() {
+    final c = context.sac;
+    final title = widget.sectionTitle;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: _allFiles.isEmpty
-          ? _EmptyFiles(canModify: widget.canModify)
-          : StagedFileGrid(
-              files: _allFiles,
-              maxFiles: widget.maxFiles,
-              canModify: widget.canModify,
-              onRemoveLocal: _removeLocalFile,
-              onDeleteRemote: _deleteRemoteFile,
+      padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title!.toUpperCase(),
+              style: TextStyle(
+                fontSize: SacFontSize.labelSmall,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.8,
+                color: c.textTertiary,
+              ),
             ),
+          ),
+          _filesCount(
+            TextStyle(
+              fontSize: SacFontSize.bodySmall,
+              fontWeight: FontWeight.w600,
+              color: _isOverLimit ? c.error : c.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    final hasEyebrow = _usesAddTile && widget.sectionTitle != null;
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: _usesAddTile ? 20 : 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (hasEyebrow) _buildEyebrow(),
+          _buildGrid(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionBar() {
+    return EvidenceStagingActionBar(
+      layout: widget.layout,
+      isResend: widget.isResend,
+      fileCount: _allFiles.length,
+      onPickImages: () => _pickImages(context),
+      onPickPdfs: () => _pickPdfs(context),
+      onSubmit: () => _submitForValidation(context),
+      canSubmit: _canSubmit,
+      isLoading: widget.isLoading || _isUploading,
     );
   }
 
@@ -712,14 +860,10 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildContent(),
-          if (widget.showActionBar && widget.canModify)
-            EvidenceStagingActionBar(
-              onPickImages: () => _pickImages(context),
-              onPickPdfs: () => _pickPdfs(context),
-              onSubmit: () => _submitForValidation(context),
-              canSubmit: _canSubmit,
-              isLoading: widget.isLoading || _isUploading,
-            ),
+          EvidenceFooterPresence(
+            visible: widget.showActionBar && widget.canModify,
+            child: _buildActionBar(),
+          ),
         ],
       );
     }
@@ -729,29 +873,14 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
       children: [
         // Scrollable content area
         Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: _allFiles.isEmpty
-                ? _EmptyFiles(canModify: widget.canModify)
-                : StagedFileGrid(
-                    files: _allFiles,
-                    maxFiles: widget.maxFiles,
-                    canModify: widget.canModify,
-                    onRemoveLocal: _removeLocalFile,
-                    onDeleteRemote: _deleteRemoteFile,
-                  ),
-          ),
+          child: SingleChildScrollView(child: _buildContent()),
         ),
 
         // Action bar — always at the bottom, no GlobalKey needed
-        if (widget.showActionBar && widget.canModify)
-          EvidenceStagingActionBar(
-            onPickImages: () => _pickImages(context),
-            onPickPdfs: () => _pickPdfs(context),
-            onSubmit: () => _submitForValidation(context),
-            canSubmit: _canSubmit,
-            isLoading: widget.isLoading || _isUploading,
-          ),
+        EvidenceFooterPresence(
+          visible: widget.showActionBar && widget.canModify,
+          child: _buildActionBar(),
+        ),
       ],
     );
   }
@@ -799,74 +928,97 @@ class _EmptyFiles extends StatelessWidget {
 /// The manager renders this internally by default. Screens that need fixed
 /// placement can render it in [Scaffold.bottomNavigationBar] and delegate the
 /// callbacks back to [EvidenceStagingManagerState].
+///
+/// With [EvidenceStagingLayout.addTile] (default) it holds one primary action,
+/// "Send N files" (or "Resend"), disabled while nothing can be sent. With
+/// [EvidenceStagingLayout.classic] it also shows the "Image" and "PDF"
+/// buttons.
 class EvidenceStagingActionBar extends StatelessWidget {
-  final VoidCallback onPickImages;
-  final VoidCallback onPickPdfs;
   final VoidCallback onSubmit;
   final bool canSubmit;
   final bool isLoading;
 
+  /// Files that the action sends; fills "Send N files".
+  final int fileCount;
+
+  /// Shows "Resend" instead of "Send N files".
+  final bool isResend;
+
+  final EvidenceStagingLayout layout;
+
+  /// Only used by [EvidenceStagingLayout.classic].
+  final VoidCallback? onPickImages;
+  final VoidCallback? onPickPdfs;
+
   const EvidenceStagingActionBar({
     super.key,
-    required this.onPickImages,
-    required this.onPickPdfs,
     required this.onSubmit,
     required this.canSubmit,
     required this.isLoading,
+    this.fileCount = 0,
+    this.isResend = false,
+    this.layout = EvidenceStagingLayout.addTile,
+    this.onPickImages,
+    this.onPickPdfs,
   });
+
+  String _submitText() {
+    if (layout == EvidenceStagingLayout.classic) {
+      return tr('core.evidence_staging.btn_submit');
+    }
+    if (isResend) return tr('core.evidence_staging.btn_resend');
+    if (fileCount <= 0) return tr('core.evidence_staging.btn_send_none');
+    if (fileCount == 1) return tr('core.evidence_staging.btn_send_one');
+    return tr(
+      'core.evidence_staging.btn_send_many',
+      namedArgs: {'count': '$fileCount'},
+    );
+  }
+
+  bool get _usesRollingLabel =>
+      layout != EvidenceStagingLayout.classic && !isResend;
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
+    final isClassic = layout == EvidenceStagingLayout.classic;
 
-    return Container(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 12,
-        bottom: MediaQuery.of(context).padding.bottom + 12,
-      ),
-      decoration: BoxDecoration(
-        color: c.surface,
-        border: Border(top: BorderSide(color: c.border)),
-        boxShadow: [
-          BoxShadow(
-            color: c.shadow,
-            blurRadius: 12,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
+    return EvidenceFooterBar(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Upload buttons row
-          Row(
-            children: [
-              Expanded(
-                child: SacButton.outline(
-                  text: tr('core.evidence_staging.btn_image'),
-                  icon: HugeIcons.strokeRoundedCamera01,
-                  isEnabled: !isLoading,
-                  onPressed: !isLoading ? onPickImages : null,
+          if (isClassic) ...[
+            // Upload buttons row
+            Row(
+              children: [
+                Expanded(
+                  child: SacButton.outline(
+                    text: tr('core.evidence_staging.btn_image'),
+                    icon: HugeIcons.strokeRoundedCamera01,
+                    isEnabled: !isLoading,
+                    onPressed: !isLoading ? onPickImages : null,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: SacButton.outline(
-                  text: 'PDF',
-                  icon: HugeIcons.strokeRoundedPdf01,
-                  isEnabled: !isLoading,
-                  onPressed: !isLoading ? onPickPdfs : null,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: SacButton.outline(
+                    text: 'PDF',
+                    icon: HugeIcons.strokeRoundedPdf01,
+                    isEnabled: !isLoading,
+                    onPressed: !isLoading ? onPickPdfs : null,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
+              ],
+            ),
+            const SizedBox(height: 10),
+          ],
 
           // Submit button
           SacButton.primary(
-            text: tr('core.evidence_staging.btn_submit'),
+            key: const ValueKey('evidence-submit'),
+            text: _submitText(),
+            label: _usesRollingLabel
+                ? EvidenceSendLabel(fileCount: fileCount)
+                : null,
             icon: HugeIcons.strokeRoundedSent,
             isEnabled: canSubmit && !isLoading,
             isLoading: isLoading,

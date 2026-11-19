@@ -217,6 +217,9 @@ class _DeviceRequirementViewState extends ConsumerState<DeviceRequirementView> {
                 .map(StagedFile.fromRequirementEvidence)
                 .toList(),
             maxFiles: requirement.maxFiles,
+            sectionTitle: 'classes.grouped.req.files'.tr(),
+            isResend: requirement.status == RequirementStatus.rechazado ||
+                requirement.status == RequirementStatus.observado,
             isLoading: notifier.isLoading,
             canModify: canModify,
             fileNameBuilder: _fileName,

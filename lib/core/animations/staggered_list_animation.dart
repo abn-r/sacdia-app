@@ -140,6 +140,34 @@ class _StaggeredListItemState extends State<StaggeredListItem>
   }
 }
 
+/// Entrance for a screen section: [StaggeredListItem] that only animates the
+/// first [maxAnimated] positions, so long lists never wait to appear.
+/// Items past the cap (and Reduced Motion) show at once.
+class SacEntrance extends StatelessWidget {
+  const SacEntrance({
+    super.key,
+    required this.index,
+    required this.child,
+    this.maxAnimated = 6,
+  });
+
+  final int index;
+  final int maxAnimated;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return StaggeredListItem(
+      index: index,
+      duration: SacMotion.entrance,
+      staggerDelay: SacMotion.entranceStagger,
+      slideOffset: SacMotion.entranceOffset,
+      animate: index < maxAnimated && !SacMotion.reduceMotionOf(context),
+      child: child,
+    );
+  }
+}
+
 /// Convenience widget that wraps an entire list of children with staggered
 /// entrance animations. Suitable for Column-based layouts (e.g. dashboard cards).
 ///

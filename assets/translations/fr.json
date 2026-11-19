@@ -2117,7 +2117,11 @@
       "honor_pending": "En attente",
       "semantics_status": "Statut de l'exigence : {status}. Appuyez pour voir l'historique.",
       "expired_banner": "Expirée · Cette classe reste dans votre parcours, mais elle ne peut plus être terminée pour l’investiture.",
-      "invested_banner": "Investie · Cette classe est clôturée : vous pouvez consulter vos preuves, mais pas les modifier."
+      "invested_banner": "Investie · Cette classe est clôturée : vous pouvez consulter vos preuves, mais pas les modifier.",
+      "honor_done_message": "Elle compte déjà dans votre progression.",
+      "honor_pending_message": "Elle se valide d’elle-même quand vous terminez la spécialité.",
+      "honor_progress": "{done} sur {total} exigences",
+      "honor_go": "Aller à la spécialité"
     },
     "section_detail": {
       "title": "Détail de la section",
@@ -2171,7 +2175,32 @@
       "empty_requirements": "Aucune exigence dans ce module.",
       "empty_modules_title": "Pas encore de modules",
       "empty_modules_body": "Les modules apparaîtront lorsqu'ils seront disponibles pour cette classe.",
-      "error_loading": "Erreur lors du chargement de la classe"
+      "error_loading": "Erreur lors du chargement de la classe",
+      "title": "Classe",
+      "requires_label": "Requiert :",
+      "summary_label": "Exigences validées",
+      "legend_sent": {
+        "one": "1 envoyée",
+        "other": "{} envoyées"
+      },
+      "advanced_progress": "Section avancée",
+      "modules_title": "Modules",
+      "recommended_title": "Spécialités recommandées",
+      "module_progress": "{done} sur {total}",
+      "module_not_started": "pas commencé",
+      "module_not_found_title": "Nous n'avons pas trouvé ce module",
+      "module_not_found_body": "Il ne fait peut-être plus partie de la classe.",
+      "module_subtitle": "{done} sur {total} validées",
+      "group_sent": "Envoyées",
+      "files_unsent_one": "1 fichier non envoyé",
+      "files_unsent_other": "{count} fichiers non envoyés",
+      "honor_linked": "Spécialité : {name}",
+      "requirement_semantics": "{title}. {state}. {detail}",
+      "module_semantics": "{name}. {progress}",
+      "honor_relation_required": "Obligatoire",
+      "honor_relation_elective": "Optionnelle",
+      "honor_relation_recommended": "Recommandée",
+      "returned_on": "Renvoyée le {date}"
     },
     "list": {
       "empty": "Vous n'avez pas de classes assignées",
@@ -2179,13 +2208,14 @@
       "enroll_tooltip": "Inscrire une classe antérieure",
       "error_loading": "Erreur lors du chargement des classes",
       "certifications_chip_title": "Certifications",
-      "certifications_chip_subtitle": "Découvrez et inscrivez-vous aux certifications",
+      "certifications_chip_subtitle": "Découvrez et inscrivez-vous",
       "section_current": "Classe actuelle",
-      "section_others": "Autres classes",
       "enroll_cta": "M'inscrire à une autre classe",
-      "enroll_cta_short": "S'inscrire",
       "catalog_chip_title": "Classes par club",
-      "catalog_chip_subtitle": "Âges et ton avancement dans chaque classe"
+      "catalog_chip_subtitle": "Tous les clubs et les âges",
+      "section_explore": "Explorer",
+      "ages_open": "{min}+ ans",
+      "current_a11y": "{name}. {status}. {percent} pour cent"
     },
     "status_history": {
       "title": "Historique des statuts",
@@ -2394,7 +2424,25 @@
         "not_found_title": "Exigence introuvable",
         "not_found_body": "Elle ne fait peut-être plus partie de la classe.",
         "load_error_title": "Impossible de charger l'exigence",
-        "max_files": "Maximum {max} fichiers par exigence."
+        "max_files": "Maximum {max} fichiers par exigence.",
+        "step_of": "Étape {step} sur {total} · Voir tous les états",
+        "panel_semantics": "État : {state}, étape {step} sur {total}",
+        "panel_hint": "Affiche tous les états",
+        "sheet_title": "États de l’exigence",
+        "sheet_uploaded": {
+          "one": "Vous avez ajouté 1 fichier",
+          "other": "Vous avez ajouté {} fichiers"
+        },
+        "sheet_sent_current": "{date} · en révision par le champ local",
+        "sheet_sent_current_nodate": "En révision par le champ local",
+        "sheet_sent_next": "Le champ local la révise",
+        "sheet_validated_next": "Compte pour votre progression d’investiture",
+        "sheet_fix_hint": "Si le champ local demande des changements ou signale quelque chose, elle revient ici avec sa note et vous pouvez la renvoyer.",
+        "kind_done": "Terminé",
+        "kind_current": "État actuel",
+        "kind_rejected": "À corriger",
+        "kind_pending": "En attente",
+        "files_hint": "Images ou PDF · jusqu’à {max} fichiers de 10 Mo"
       },
       "assign": {
         "title": "Conseillers par classe",
@@ -4061,7 +4109,27 @@
       "step_local_field": "Champ local",
       "step_union": "Union",
       "step_semantics": "Étape {current} sur {total} : {label}",
-      "fix_full": "Corrigez et renvoyez."
+      "fix_full": "Corrigez et renvoyez.",
+      "step_of": "Étape {step} sur {total} · Voir tous les états",
+      "step_of_points": "Étape {step} sur {total} · {points}",
+      "panel_semantics": "État : {state}, étape {step} sur {total}",
+      "panel_hint": "Affiche tous les états",
+      "sheet_title": "États de la section",
+      "sheet_uploaded": {
+        "one": "Vous avez ajouté 1 fichier",
+        "other": "Vous avez ajouté {} fichiers"
+      },
+      "sheet_sent_current": "{date} · en révision par le champ local",
+      "sheet_sent_current_nodate": "En révision par le champ local",
+      "sheet_sent_next": "Le champ local la révise",
+      "sheet_approved_on": "Approuvée le {date}",
+      "sheet_union_next": "L’union la valide",
+      "sheet_validated_next": "Ajoute ses points au dossier",
+      "sheet_fix_hint": "Si le champ local demande des changements, elle revient ici avec sa note et vous pouvez la renvoyer.",
+      "kind_done": "Terminé",
+      "kind_current": "État actuel",
+      "kind_rejected": "À corriger",
+      "kind_pending": "En attente"
     }
   },
   "investiture": {
@@ -5116,7 +5184,21 @@
       "waiting": "En attente",
       "uploaded": "Envoyé",
       "upload_failed": "Échec",
-      "saving": "Enregistrement…"
+      "saving": "Enregistrement…",
+      "source_title": "Ajouter une preuve",
+      "source_subtitle": "Images ou PDF, 10 Mo maximum chacun",
+      "source_camera": "Prendre une photo",
+      "source_gallery": "Choisir dans la galerie",
+      "source_pdf": "Choisir un PDF",
+      "source_pdf_hint": "Document PDF",
+      "add_tile": "Ajouter",
+      "add_tile_semantics": "Ajouter un fichier de preuve",
+      "files_count": "{count} sur {max} fichiers",
+      "files_of": "{count} sur {max}",
+      "btn_resend": "Renvoyer",
+      "btn_send_none": "Envoyer les fichiers",
+      "btn_send_one": "Envoyer 1 fichier",
+      "btn_send_many": "Envoyer {count} fichiers"
     },
     "image_viewer": {
       "error_load": "Impossible de charger l'image"

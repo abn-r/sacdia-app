@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../animations/motion_tokens.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/sac_colors.dart';
 import '../sac_pressable.dart';
@@ -40,6 +41,7 @@ class SacStatusRow extends StatelessWidget {
     final c = context.sac;
     return SacInkWell(
       onTap: onTap,
+      pressedScale: SacMotion.rowPressScale,
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 64),
         child: Padding(

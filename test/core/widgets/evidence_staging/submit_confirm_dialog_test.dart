@@ -39,7 +39,7 @@ void main() {
     await tester.pump();
 
     // No translations are loaded: the labels are the raw keys.
-    await tester.tap(find.text('core.evidence_staging.btn_submit'));
+    await tester.tap(find.text('core.evidence_staging.btn_send_one'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
 

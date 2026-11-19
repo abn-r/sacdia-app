@@ -2117,7 +2117,11 @@
       "honor_pending": "Pendente",
       "semantics_status": "Status do requisito: {status}. Toque para ver o histórico.",
       "expired_banner": "Expirada · Esta classe permanece no seu histórico, mas não pode mais ser concluída para investidura.",
-      "invested_banner": "Investida · Esta classe está encerrada: você pode ver suas evidências, mas não alterá-las."
+      "invested_banner": "Investida · Esta classe está encerrada: você pode ver suas evidências, mas não alterá-las.",
+      "honor_done_message": "Já conta para o seu avanço.",
+      "honor_pending_message": "Valida sozinho quando você concluir a especialidade.",
+      "honor_progress": "{done} de {total} requisitos",
+      "honor_go": "Ir para a especialidade"
     },
     "section_detail": {
       "title": "Detalhe da Seção",
@@ -2171,21 +2175,47 @@
       "empty_requirements": "Não há requisitos neste módulo.",
       "empty_modules_title": "Sem módulos ainda",
       "empty_modules_body": "Os módulos aparecerão quando estiverem disponíveis para esta classe.",
-      "error_loading": "Erro ao carregar a classe"
+      "error_loading": "Erro ao carregar a classe",
+      "title": "Classe",
+      "requires_label": "Requer:",
+      "summary_label": "Requisitos validados",
+      "legend_sent": {
+        "one": "1 enviado",
+        "other": "{} enviados"
+      },
+      "advanced_progress": "Seção avançada",
+      "modules_title": "Módulos",
+      "recommended_title": "Especialidades recomendadas",
+      "module_progress": "{done} de {total}",
+      "module_not_started": "não iniciado",
+      "module_not_found_title": "Não encontramos este módulo",
+      "module_not_found_body": "Ele pode não fazer mais parte da classe.",
+      "module_subtitle": "{done} de {total} validados",
+      "group_sent": "Enviados",
+      "files_unsent_one": "1 arquivo não enviado",
+      "files_unsent_other": "{count} arquivos não enviados",
+      "honor_linked": "Especialidade: {name}",
+      "requirement_semantics": "{title}. {state}. {detail}",
+      "module_semantics": "{name}. {progress}",
+      "honor_relation_required": "Obrigatória",
+      "honor_relation_elective": "Eletiva",
+      "honor_relation_recommended": "Recomendada",
+      "returned_on": "Devolvido em {date}"
     },
     "list": {
       "empty": "Você não tem classes atribuídas",
-      "title": "Minhas Classes",
+      "title": "Minhas classes",
       "enroll_tooltip": "Inscrever classe anterior",
       "error_loading": "Erro ao carregar classes",
       "certifications_chip_title": "Certificações",
-      "certifications_chip_subtitle": "Explore e inscreva-se em certificações",
+      "certifications_chip_subtitle": "Explore e inscreva-se",
       "section_current": "Classe atual",
-      "section_others": "Outras classes",
       "enroll_cta": "Inscrever-me em outra classe",
-      "enroll_cta_short": "Inscrever-me",
       "catalog_chip_title": "Classes por clube",
-      "catalog_chip_subtitle": "Idades e seu progresso em cada classe"
+      "catalog_chip_subtitle": "Todos os clubes e idades",
+      "section_explore": "Explorar",
+      "ages_open": "{min}+ anos",
+      "current_a11y": "{name}. {status}. {percent} por cento"
     },
     "status_history": {
       "title": "Histórico de status",
@@ -2394,7 +2424,25 @@
         "not_found_title": "Não encontramos este requisito",
         "not_found_body": "Ele pode não fazer mais parte da classe.",
         "load_error_title": "Não foi possível carregar o requisito",
-        "max_files": "Máximo de {max} arquivos por requisito."
+        "max_files": "Máximo de {max} arquivos por requisito.",
+        "step_of": "Etapa {step} de {total} · Ver todos os estados",
+        "panel_semantics": "Estado: {state}, etapa {step} de {total}",
+        "panel_hint": "Mostra todos os estados",
+        "sheet_title": "Estados do requisito",
+        "sheet_uploaded": {
+          "one": "Você enviou 1 arquivo",
+          "other": "Você enviou {} arquivos"
+        },
+        "sheet_sent_current": "{date} · em revisão do campo local",
+        "sheet_sent_current_nodate": "Em revisão do campo local",
+        "sheet_sent_next": "O campo local revisa",
+        "sheet_validated_next": "Conta para o seu avanço de investidura",
+        "sheet_fix_hint": "Se o campo local pedir mudanças ou observar algo, volta aqui com a nota dele e você pode reenviar.",
+        "kind_done": "Feito",
+        "kind_current": "Estado atual",
+        "kind_rejected": "Para corrigir",
+        "kind_pending": "Pendente",
+        "files_hint": "Imagens ou PDF · até {max} arquivos de 10 MB"
       },
       "assign": {
         "title": "Conselheiros por classe",
@@ -4061,7 +4109,27 @@
       "step_local_field": "Campo local",
       "step_union": "União",
       "step_semantics": "Etapa {current} de {total}: {label}",
-      "fix_full": "Corrija e envie de novo."
+      "fix_full": "Corrija e envie de novo.",
+      "step_of": "Etapa {step} de {total} · Ver todos os estados",
+      "step_of_points": "Etapa {step} de {total} · {points}",
+      "panel_semantics": "Estado: {state}, etapa {step} de {total}",
+      "panel_hint": "Mostra todos os estados",
+      "sheet_title": "Estados da seção",
+      "sheet_uploaded": {
+        "one": "Você enviou 1 arquivo",
+        "other": "Você enviou {} arquivos"
+      },
+      "sheet_sent_current": "{date} · em revisão do campo local",
+      "sheet_sent_current_nodate": "Em revisão do campo local",
+      "sheet_sent_next": "O campo local revisa",
+      "sheet_approved_on": "Aprovada em {date}",
+      "sheet_union_next": "A união valida",
+      "sheet_validated_next": "Soma os pontos dela à pasta",
+      "sheet_fix_hint": "Se o campo local pedir mudanças, volta aqui com a nota dele e você pode reenviar.",
+      "kind_done": "Feito",
+      "kind_current": "Estado atual",
+      "kind_rejected": "Para corrigir",
+      "kind_pending": "Pendente"
     }
   },
   "investiture": {
@@ -5116,7 +5184,21 @@
       "waiting": "Aguardando",
       "uploaded": "Enviado",
       "upload_failed": "Não enviado",
-      "saving": "Salvando…"
+      "saving": "Salvando…",
+      "source_title": "Adicionar evidência",
+      "source_subtitle": "Imagens ou PDF, até 10 MB cada",
+      "source_camera": "Tirar foto",
+      "source_gallery": "Escolher da galeria",
+      "source_pdf": "Escolher PDF",
+      "source_pdf_hint": "Documento em PDF",
+      "add_tile": "Adicionar",
+      "add_tile_semantics": "Adicionar um arquivo de evidência",
+      "files_count": "{count} de {max} arquivos",
+      "files_of": "{count} de {max}",
+      "btn_resend": "Reenviar",
+      "btn_send_none": "Enviar arquivos",
+      "btn_send_one": "Enviar 1 arquivo",
+      "btn_send_many": "Enviar {count} arquivos"
     },
     "image_viewer": {
       "error_load": "Não foi possível carregar a imagem"

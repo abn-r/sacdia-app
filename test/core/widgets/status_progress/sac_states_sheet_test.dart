@@ -174,4 +174,45 @@ void main() {
     );
     handle.dispose();
   });
+
+  testWidgets('a detour sits apart under a divider, off the step line',
+      (tester) async {
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(
+      _app(
+        const SacStatesSheet(
+          title: 'Estados',
+          kindLabels: _labels,
+          steps: _steps,
+          detour: SacStateStep(
+            kind: SacStateKind.rejected,
+            title: 'Por corregir',
+            detail: 'Devuelto el 15 nov',
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byKey(const ValueKey('states-sheet-detour-divider')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('states-sheet-detour')), findsOneWidget);
+    expect(find.text('Por corregir'), findsOneWidget);
+    expect(
+      find.bySemanticsLabel('Por corregir. Devuelto el 15 nov. Rechazado'),
+      findsOneWidget,
+    );
+    handle.dispose();
+  });
+
+  testWidgets('without a detour there is no divider', (tester) async {
+    await tester.pumpWidget(
+      _app(const SacStatesSheet(
+        title: 'Estados',
+        kindLabels: _labels,
+        steps: _steps,
+      )),
+    );
+    expect(find.byKey(const ValueKey('states-sheet-detour-divider')),
+        findsNothing);
+  });
 }

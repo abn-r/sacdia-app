@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -11,8 +12,10 @@ import '../../theme/sac_colors.dart';
 import '../sac_image_viewer.dart';
 import '../sac_pdf_viewer.dart';
 import '../sac_dialog.dart';
+import '../sac_pressable.dart';
 import '../sac_top_bar.dart';
 import 'staged_file.dart';
+import '../../animations/motion_tokens.dart';
 import '../../animations/page_transitions.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -21,12 +24,30 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 /// Delete behavior differs by status:
 /// - Local files: instant remove (no confirmation).
 /// - Remote files: confirmation dialog before calling [onDeleteRemote].
-class StagedFileGrid extends StatelessWidget {
+///
+/// When [onAdd] is set and [canModify] is true the grid ends with an "Add"
+/// tile (hidden once [maxFiles] is reached) and the "N of M files" caption is
+/// left to the screen, which shows it in its section title.
+///
+/// Motion: a file the user just picked scales 0.96 -> 1 and fades in; the ×
+/// scales and fades it out ([SacMotion.press]) before the owner removes it;
+/// the tiles after it then slide to their new cells. Files that arrive or
+/// leave without the user doing it (a refresh, the upload finishing) just
+/// swap. When the screen turns read-only the "Add" tile leaves the same way
+/// and the × and "New" badges fade.
+class StagedFileGrid extends StatefulWidget {
   final List<StagedFile> files;
   final int maxFiles;
   final bool canModify;
   final void Function(StagedFile file) onRemoveLocal;
-  final void Function(StagedFile file) onDeleteRemote;
+  final FutureOr<void> Function(StagedFile file) onDeleteRemote;
+
+  /// Opens the source sheet. Null keeps the grid without an add tile.
+  final VoidCallback? onAdd;
+
+  /// Shows the "N of M files" caption under the grid. Screens that print the
+  /// count in their section title (the add-tile layout) turn it off.
+  final bool showCounter;
 
   const StagedFileGrid({
     super.key,
@@ -35,67 +56,203 @@ class StagedFileGrid extends StatelessWidget {
     required this.canModify,
     required this.onRemoveLocal,
     required this.onDeleteRemote,
+    this.onAdd,
+    this.showCounter = true,
   });
 
   @override
+  State<StagedFileGrid> createState() => _StagedFileGridState();
+}
+
+class _StagedFileGridState extends State<StagedFileGrid> {
+  static const _columns = 3;
+  static const _spacing = 10.0;
+  static const _aspect = 0.82;
+
+  /// Ids whose exit animation is running (or whose delete is in flight).
+  final Set<String> _exiting = {};
+  final Map<String, FutureOr<void> Function()> _pendingActions = {};
+
+  /// Ids of files the user just picked: they animate in once.
+  final Set<String> _enterIds = {};
+
+  bool _addExiting = false;
+  int _addSlot = 0;
+
+  bool _showAdd(StagedFileGrid w) =>
+      w.canModify && w.onAdd != null && w.files.length < w.maxFiles;
+
+  @override
+  void didUpdateWidget(StagedFileGrid oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final oldIds = {for (final f in oldWidget.files) f.id};
+    final ids = {for (final f in widget.files) f.id};
+    for (final f in widget.files) {
+      if (f.isLocal && !oldIds.contains(f.id)) _enterIds.add(f.id);
+    }
+    _exiting.removeWhere((id) => !ids.contains(id));
+    _enterIds.removeWhere((id) => !ids.contains(id));
+    _pendingActions.removeWhere((id, _) => !ids.contains(id));
+
+    final wasAdd = _showAdd(oldWidget);
+    final isAdd = _showAdd(widget);
+    if (wasAdd && !isAdd && !widget.canModify) {
+      _addExiting = true;
+      _addSlot = oldWidget.files.length;
+    }
+    if (isAdd) _addExiting = false;
+  }
+
+  void _beginExit(StagedFile file, FutureOr<void> Function() action) {
+    if (_exiting.contains(file.id)) return;
+    setState(() {
+      _exiting.add(file.id);
+      _pendingActions[file.id] = action;
+    });
+  }
+
+  Future<void> _finishExit(StagedFile file) async {
+    final action = _pendingActions.remove(file.id);
+    await action?.call();
+    // Still here (the delete failed): bring the tile back.
+    if (mounted && _exiting.contains(file.id)) {
+      setState(() => _exiting.remove(file.id));
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (files.isEmpty) return const SizedBox.shrink();
+    final w = widget;
+    final files = w.files;
+    final showAdd = _showAdd(w);
+    final addVisible = showAdd || _addExiting;
+    if (files.isEmpty && !addVisible) return const SizedBox.shrink();
 
     final c = context.sac;
     final totalFiles = files.length;
-    final excess = totalFiles - maxFiles;
+    final excess = totalFiles - w.maxFiles;
     final remoteImageFiles = files
         .where(
           (file) => file.isRemote && file.isImage && file.remoteUrl != null,
         )
         .toList();
+    final reduce = SacMotion.reduceMotionOf(context);
+    final slots = _addExiting && !showAdd
+        ? (files.length > _addSlot ? files.length : _addSlot + 1)
+        : files.length + (showAdd ? 1 : 0);
+    final rows = (slots + _columns - 1) ~/ _columns;
+
+    // Two files can share an id in odd flows; keep every key unique.
+    final seen = <String, int>{};
+    String keyOf(StagedFile f) {
+      final n = seen.update(f.id, (v) => v + 1, ifAbsent: () => 0);
+      return n == 0 ? f.id : '${f.id}#$n';
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        GridView.builder(
-          // shrinkWrap OK: bounded to maxFiles items max; lives inside a
-          // Column (non-scrollable), so height must be intrinsically defined.
-          // Zero padding: a GridView with null padding insets itself by
-          // MediaQuery.padding. Under a frosted bar that padding is the full
-          // bar height, so the files drop far below the section title.
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: EdgeInsets.zero,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 0.82,
-          ),
-          itemCount: files.length,
-          itemBuilder: (context, index) {
-            final file = files[index];
-            // A local file is "excess" if its position is beyond maxFiles
-            final isExcess = file.isLocal && index >= maxFiles;
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            final cellW = (width - _spacing * (_columns - 1)) / _columns;
+            final cellH = cellW / _aspect;
+            final height = rows * cellH + (rows - 1) * _spacing;
+            Offset at(int slot) => Offset(
+                  (slot % _columns) * (cellW + _spacing),
+                  (slot ~/ _columns) * (cellH + _spacing),
+                );
 
-            return _StagedFileCell(
-              file: file,
-              remoteImageFiles: remoteImageFiles,
-              isExcess: isExcess,
-              canModify: canModify,
-              onRemoveLocal: () => onRemoveLocal(file),
-              onDeleteRemote: () => _confirmRemoteDelete(context, file),
+            Widget place(String key, int slot, Widget child) {
+              final o = at(slot);
+              return AnimatedPositioned(
+                key: ValueKey('tile-$key'),
+                duration: reduce ? Duration.zero : SacMotion.standard,
+                curve: SacMotion.easeOut,
+                left: o.dx,
+                top: o.dy,
+                width: cellW,
+                height: cellH,
+                child: child,
+              );
+            }
+
+            return AnimatedSize(
+              duration: reduce ? Duration.zero : SacMotion.standard,
+              curve: SacMotion.easeOut,
+              alignment: Alignment.topCenter,
+              child: SizedBox(
+                width: width,
+                height: height,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    for (var index = 0; index < files.length; index++)
+                      () {
+                        final file = files[index];
+                        final key = keyOf(file);
+                        // A local file is "excess" if its position is beyond
+                        // maxFiles
+                        final isExcess = file.isLocal && index >= w.maxFiles;
+                        return place(
+                          key,
+                          index,
+                          _TileMotion(
+                            animateIn: _enterIds.contains(file.id),
+                            exiting: _exiting.contains(file.id),
+                            onExited: () => _finishExit(file),
+                            child: _StagedFileCell(
+                              file: file,
+                              remoteImageFiles: remoteImageFiles,
+                              isExcess: isExcess,
+                              canModify: w.canModify,
+                              onRemoveLocal: () => _beginExit(
+                                file,
+                                () => w.onRemoveLocal(file),
+                              ),
+                              onDeleteRemote: () => _confirmRemoteDelete(
+                                context,
+                                file,
+                              ),
+                            ),
+                          ),
+                        );
+                      }(),
+                    if (addVisible)
+                      place(
+                        'add',
+                        showAdd ? files.length : _addSlot,
+                        _TileMotion(
+                          animateIn: false,
+                          exiting: !showAdd,
+                          onExited: () {
+                            if (mounted) setState(() => _addExiting = false);
+                          },
+                          child: _AddTile(onTap: w.onAdd ?? () {}),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             );
           },
         ),
         const SizedBox(height: 10),
-        // File counter
-        Center(
-          child: Text(
-            '$totalFiles de $maxFiles archivos',
-            style: TextStyle(
-              fontSize: SacFontSize.bodySmall,
-              fontWeight: FontWeight.w500,
-              color: excess > 0 ? AppColors.error : c.textSecondary,
+        // File counter (the add-tile layout shows it in the section title)
+        if (w.showCounter)
+          Center(
+            child: Text(
+              'core.evidence_staging.files_count'.tr(namedArgs: {
+                'count': '$totalFiles',
+                'max': '${w.maxFiles}',
+              }),
+              style: TextStyle(
+                fontSize: SacFontSize.bodySmall,
+                fontWeight: FontWeight.w500,
+                color: excess > 0 ? AppColors.error : c.textSecondary,
+              ),
             ),
           ),
-        ),
         // Excess warning
         if (excess > 0) ...[
           const SizedBox(height: 4),
@@ -118,6 +275,7 @@ class StagedFileGrid extends StatelessWidget {
     );
   }
 
+  /// Asks first; the tile only animates out once the user confirms.
   Future<void> _confirmRemoteDelete(
       BuildContext context, StagedFile file) async {
     final confirm = await SacDialog.show(
@@ -132,9 +290,184 @@ class StagedFileGrid extends StatelessWidget {
       confirmLabel: tr('core.evidence_staging.delete'),
     );
 
-    if (confirm == true) {
-      onDeleteRemote(file);
+    if (confirm == true && mounted) {
+      _beginExit(file, () => widget.onDeleteRemote(file));
     }
+  }
+}
+
+/// Enter / exit of one tile: scale 0.96 <-> 1 plus fade. Enters when
+/// [animateIn] is set on mount ([SacMotion.standard]); leaves when [exiting]
+/// turns true ([SacMotion.press]) and then calls [onExited]. Back to false
+/// brings it back. Reduced Motion keeps a short fade without the scale.
+class _TileMotion extends StatefulWidget {
+  const _TileMotion({
+    required this.child,
+    required this.animateIn,
+    required this.exiting,
+    required this.onExited,
+  });
+
+  final Widget child;
+  final bool animateIn;
+  final bool exiting;
+  final VoidCallback onExited;
+
+  @override
+  State<_TileMotion> createState() => _TileMotionState();
+}
+
+class _TileMotionState extends State<_TileMotion>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  bool _started = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: SacMotion.standard,
+      reverseDuration: SacMotion.press,
+      value: widget.animateIn ? 0 : 1,
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.dismissed && widget.exiting && mounted) {
+          widget.onExited();
+        }
+      });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduce = SacMotion.reduceMotionOf(context);
+    _controller.duration = reduce ? SacMotion.reducedFade : SacMotion.standard;
+    _controller.reverseDuration =
+        reduce ? SacMotion.reducedFade : SacMotion.press;
+    if (!_started) {
+      _started = true;
+      if (widget.animateIn) _controller.forward();
+    }
+  }
+
+  @override
+  void didUpdateWidget(_TileMotion oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.exiting == oldWidget.exiting) return;
+    if (widget.exiting) {
+      _controller.reverse();
+    } else {
+      _controller.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reduce = SacMotion.reduceMotionOf(context);
+    return IgnorePointer(
+      ignoring: widget.exiting,
+      child: AnimatedBuilder(
+        animation: _controller,
+        child: widget.child,
+        builder: (context, child) {
+          final v = SacMotion.easeOut.transform(_controller.value);
+          if (v >= 1) return child!;
+          return Opacity(
+            opacity: v,
+            alwaysIncludeSemantics: true,
+            child: Transform.scale(
+              scale: reduce
+                  ? 1
+                  : SacMotion.enterScale + (1 - SacMotion.enterScale) * v,
+              child: child,
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ── Add tile ──────────────────────────────────────────────────────────────────
+
+/// Last cell of the grid: dashed border, a plus and "Add".
+class _AddTile extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _AddTile({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = SacAccent.of(context);
+    final label = 'core.evidence_staging.add_tile'.tr();
+    return Semantics(
+      button: true,
+      label: 'core.evidence_staging.add_tile_semantics'.tr(),
+      excludeSemantics: true,
+      onTap: onTap,
+      child: SacPressable(
+        key: const ValueKey('evidence-add-tile'),
+        pressedScale: SacMotion.tilePressScale,
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            color: accent.surface,
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+          ),
+          foregroundDecoration: _DashedBorderDecoration(
+            color: accent.color,
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+            strokeWidth: 1.5,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedAdd01,
+                size: 22,
+                color: accent.color,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: SacFontSize.bodySmall,
+                  fontWeight: FontWeight.w600,
+                  color: accent.color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Fades its child in and out (instead of popping) when [visible] changes.
+class _FadePresence extends StatelessWidget {
+  const _FadePresence({required this.visible, required this.child});
+
+  final bool visible;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final reduce = SacMotion.reduceMotionOf(context);
+    return AnimatedSwitcher(
+      duration: reduce ? SacMotion.reducedFade : SacMotion.standard,
+      switchInCurve: SacMotion.easeOut,
+      switchOutCurve: SacMotion.easeOut,
+      child: visible
+          ? KeyedSubtree(key: const ValueKey('on'), child: child)
+          : const SizedBox.shrink(key: ValueKey('off')),
+    );
   }
 }
 
@@ -247,10 +580,11 @@ class _StagedFileCell extends StatelessWidget {
           // ── Badges ────────────────────────────────────────────────────────
 
           // Local: "Nuevo" / "Extra" badge (top-right)
-          if (file.isLocal)
-            Positioned(
-              top: 4,
-              right: 4,
+          Positioned(
+            top: 4,
+            right: 4,
+            child: _FadePresence(
+              visible: file.isLocal,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
@@ -276,15 +610,17 @@ class _StagedFileCell extends StatelessWidget {
                 ),
               ),
             ),
+          ),
 
           // ── Delete buttons ────────────────────────────────────────────────
 
           // Local: instant remove. Remote: delete with confirmation.
           // The visible circle is 24pt; the tap area is 44pt.
-          if (canModify && (file.isLocal || file.isRemote))
-            Positioned(
-              top: 0,
-              left: 0,
+          Positioned(
+            top: 0,
+            left: 0,
+            child: _FadePresence(
+              visible: canModify && (file.isLocal || file.isRemote),
               child: Semantics(
                 button: true,
                 label: tr('core.evidence_staging.remove_file'),
@@ -315,6 +651,7 @@ class _StagedFileCell extends StatelessWidget {
                 ),
               ),
             ),
+          ),
         ],
       ),
     );

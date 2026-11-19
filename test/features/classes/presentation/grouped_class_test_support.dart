@@ -141,11 +141,15 @@ ClassRequirement requirement(
   String? rejectionReason,
   DateTime? submittedAt,
   DateTime? validatedAt,
+  DateTime? rejectedAt,
+  String? description,
 }) =>
     ClassRequirement(
       id: id,
       name: name,
       moduleId: 1,
+      description: description,
+      rejectedAt: rejectedAt,
       status: status,
       rejectionReason: rejectionReason,
       submittedAt: submittedAt,

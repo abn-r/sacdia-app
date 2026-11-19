@@ -46,6 +46,11 @@ class AnimatedCounter extends StatefulWidget {
   /// When null the raw integer is shown.
   final String Function(int value)? formatter;
 
+  /// Replaces the default [Text] with custom content built from the counted
+  /// value (e.g. a `Text.rich` with a styled suffix). [formatter], [prefix],
+  /// [suffix] and [style] are ignored when set.
+  final Widget Function(BuildContext context, int value)? builder;
+
   const AnimatedCounter({
     super.key,
     required this.value,
@@ -57,6 +62,7 @@ class AnimatedCounter extends StatefulWidget {
     this.prefix = '',
     this.animate = true,
     this.formatter,
+    this.builder,
   });
 
   @override
@@ -140,6 +146,8 @@ class _AnimatedCounterState extends State<AnimatedCounter>
       animation: _animation,
       builder: (context, _) {
         final displayed = _animation.value.round();
+        final builder = widget.builder;
+        if (builder != null) return builder(context, displayed);
         final text = widget.formatter?.call(displayed) ?? '$displayed';
         return Text(
           '${widget.prefix}$text${widget.suffix}',

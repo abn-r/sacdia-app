@@ -53,4 +53,32 @@ void main() {
     expect(find.text('En revisión'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('semanticsLabel replaces the joined label', (tester) async {
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.lightTheme,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => SacStatePanel(
+              style: SacStatusStyle.of(
+                context,
+                SacStatusKind.review,
+                label: 'Enviado',
+              ),
+              title: 'Enviado',
+              message: 'El 19 nov.',
+              stepLabel: 'Paso 2 de 3',
+              semanticsLabel: 'Estado: Enviado, paso 2 de 3',
+              onTap: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    final node = tester.getSemantics(find.byType(SacStatePanel));
+    expect(node.label, 'Estado: Enviado, paso 2 de 3');
+    handle.dispose();
+  });
 }

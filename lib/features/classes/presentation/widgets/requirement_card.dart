@@ -1,164 +1,101 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
-import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/status_progress/status_progress.dart';
 import '../../domain/entities/class_requirement.dart';
-import '../utils/status_meta.dart';
-import 'status_glyph.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
+import '../utils/grouped_class_status.dart';
 
-/// Fila compacta de un requerimiento dentro de un módulo expandido.
+/// One requirement in any class list: the same status icon, tone and label
+/// everywhere (not sent folder, sent plane, validated check, to fix alert),
+/// the title on up to two lines and the one line that matters in its state.
 ///
-/// Layout: StatusGlyph 22×22 · título · meta (label + archivos) · chevron.
-/// Tap → abre pantalla de detalle.
-///
-/// Handoff §5.10: padding 12v·16r·20l·12b, borderBottom ink100, gap 12.
+/// A requirement linked to an honor says so on the line when there is
+/// nothing else to say (not sent, no files yet).
 class RequirementCard extends StatelessWidget {
-  final ClassRequirement requirement;
-  final VoidCallback onTap;
-
   const RequirementCard({
     super.key,
     required this.requirement,
     required this.onTap,
+    this.showUnsentFiles = false,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    final meta = StatusMeta.of(requirement.status);
-    final c = context.sac;
+  final ClassRequirement requirement;
+  final VoidCallback onTap;
 
-    return SacInkWell(
-      onTap: onTap,
-      splashColor: AppColors.coral200.withValues(alpha: 0.4),
-      highlightColor: AppColors.coral50.withValues(alpha: 0.5),
-      child: Container(
-        padding: const EdgeInsets.only(
-          top: 12,
-          bottom: 12,
-          left: 20,
-          right: 16,
-        ),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: c.ink100, width: 1),
-          ),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Leading: StatusGlyph 22×22
-            Padding(
-              padding: const EdgeInsets.only(top: 1),
-              child: StatusGlyph(status: requirement.status),
-            ),
+  /// "2 files not sent" for a requirement started but not sent (the
+  /// "Por atender" list). Otherwise the line reads "2 de 10 archivos".
+  final bool showUnsentFiles;
 
-            const SizedBox(width: 12),
+  String _date(DateTime? date) =>
+      date == null ? '' : DateFormat('d MMM').format(date.toLocal());
 
-            // Middle: title + meta
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    requirement.name,
-                    style: TextStyle(
-                      fontSize: SacFontSize.bodyMedium,
-                      fontWeight: FontWeight.w500,
-                      color: c.ink800,
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  _ReqMetaRow(
-                    meta: meta,
-                    filesUploaded: requirement.files.length,
-                    filesRequired: requirement.maxFiles,
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(width: 8),
-
-            // Trailing: chevron right
-            Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowRight01,
-                size: 14,
-                color: c.ink300,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  String _detail() {
+    final r = requirement;
+    switch (r.status) {
+      case RequirementStatus.pendiente:
+        if (r.files.isEmpty) {
+          final honor = r.linkedHonorName?.trim() ?? '';
+          return honor.isEmpty
+              ? 'classes.grouped.no_files'.tr()
+              : 'classes.detail_with_progress.honor_linked'
+                  .tr(namedArgs: {'name': honor});
+        }
+        if (showUnsentFiles) {
+          return r.files.length == 1
+              ? 'classes.detail_with_progress.files_unsent_one'.tr()
+              : 'classes.detail_with_progress.files_unsent_other'
+                  .tr(namedArgs: {'count': '${r.files.length}'});
+        }
+        return 'classes.grouped.files_of'.tr(namedArgs: {
+          'count': '${r.files.length}',
+          'max': '${r.maxFiles}',
+        });
+      case RequirementStatus.rechazado:
+      case RequirementStatus.observado:
+        final date = r.rejectedAt ?? r.observedAt;
+        if (date != null) {
+          return 'classes.detail_with_progress.returned_on'
+              .tr(namedArgs: {'date': _date(date)});
+        }
+        final note = (r.rejectionReason ?? r.observationComment ?? '').trim();
+        return note.isEmpty
+            ? 'classes.grouped.returned_default'.tr()
+            : '«$note»';
+      case RequirementStatus.enviado:
+        return r.submittedAt == null
+            ? 'classes.grouped.state_review'.tr()
+            : 'classes.grouped.sent_on'
+                .tr(namedArgs: {'date': _date(r.submittedAt)});
+      case RequirementStatus.validado:
+        return r.validatedAt == null
+            ? 'classes.grouped.state_validated'.tr()
+            : 'classes.grouped.validated_on'
+                .tr(namedArgs: {'date': _date(r.validatedAt)});
+    }
   }
-}
-
-// ── Meta row ──────────────────────────────────────────────────────────────────
-
-class _ReqMetaRow extends StatelessWidget {
-  final StatusMeta meta;
-  final int filesUploaded;
-  final int filesRequired;
-
-  const _ReqMetaRow({
-    required this.meta,
-    required this.filesUploaded,
-    required this.filesRequired,
-  });
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Status label
-        Text(
-          meta.label,
-          style: TextStyle(
-            fontSize: SacFontSize.labelSmall,
-            fontWeight: FontWeight.w600,
-            color: meta.dark,
-          ),
-        ),
-
-        // Dot separator
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6),
-          child: Text(
-            '·',
-            style: TextStyle(
-              fontSize: SacFontSize.labelSmall,
-              color: c.ink300,
-            ),
-          ),
-        ),
-
-        // Files count: "X/Y archivos"
-        Text(
-          '$filesUploaded',
-          style: TextStyle(
-            fontSize: SacFontSize.labelSmall,
-            fontWeight: FontWeight.w700,
-            color: c.ink800,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
-        ),
-        Text(
-          '/$filesRequired archivos',
-          style: TextStyle(
-            fontSize: SacFontSize.labelSmall,
-            color: c.ink400,
-          ),
-        ),
-      ],
+    final r = requirement;
+    final style = requirementStatusStyle(context, r.status);
+    final detail = _detail();
+    return Semantics(
+      container: true,
+      button: true,
+      excludeSemantics: true,
+      onTap: onTap,
+      label: 'classes.detail_with_progress.requirement_semantics'.tr(
+        namedArgs: {'title': r.name, 'state': style.label, 'detail': detail},
+      ),
+      child: SacStatusRow(
+        key: ValueKey('grouped-requirement-${r.id}'),
+        style: style,
+        title: r.name,
+        detail: detail,
+        detailIsError:
+            requirementStatusKind(r.status) == SacStatusKind.rejected,
+        onTap: onTap,
+      ),
     );
   }
 }

@@ -2,10 +2,12 @@ import 'dart:ui' as ui;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/evidence_staging/evidence_footer_presence.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
 import '../../../../core/widgets/evidence_staging/staged_file.dart';
 import '../../../../core/widgets/sac_dialog.dart';
@@ -22,7 +24,7 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 /// Vista de detalle de una sección de evidencias.
 ///
 /// Permite al usuario:
-/// - Ver el estado actual y la línea de tiempo de la sección.
+/// - Ver el estado actual de la sección y, al tocarlo, todos los estados.
 /// - Ver los archivos subidos en un grid de miniaturas.
 /// - Subir nuevos archivos (imagen desde cámara/galería o PDF) cuando
 ///   la sección está pendiente y la carpeta está abierta.
@@ -78,6 +80,7 @@ class _EvidenceSectionDetailViewState
     });
 
     final isLoading = notifierState.isLoading;
+    final isResend = widget.section.status == EvidenceSectionStatus.rejected;
 
     return PopScope(
       canPop: !_hasUnsavedFiles,
@@ -107,23 +110,21 @@ class _EvidenceSectionDetailViewState
           backgroundColor: c.background,
           frosted: true,
         ),
-        bottomNavigationBar: canModify
-            ? EvidenceStagingActionBar(
-                onPickImages: () {
-                  _stagingManagerKey.currentState?.pickImages();
-                },
-                onPickPdfs: () {
-                  _stagingManagerKey.currentState?.pickPdfs();
-                },
-                onSubmit: () {
-                  _stagingManagerKey.currentState?.submitForValidation();
-                },
-                canSubmit: _canSubmitFromStagingManager(canModify),
-                isLoading: notifierState.isLoading ||
-                    (_stagingManagerKey.currentState?.isLoadingForActionBar ??
-                        false),
-              )
-            : null,
+        bottomNavigationBar: EvidenceFooterPresence(
+          visible: canModify,
+          child: EvidenceStagingActionBar(
+            isResend: isResend,
+            fileCount: _stagingManagerKey.currentState?.fileCountForActionBar ??
+                widget.section.files.length,
+            onSubmit: () {
+              _stagingManagerKey.currentState?.submitForValidation();
+            },
+            canSubmit: _canSubmitFromStagingManager(canModify),
+            isLoading: notifierState.isLoading ||
+                (_stagingManagerKey.currentState?.isLoadingForActionBar ??
+                    false),
+          ),
+        ),
         body: SacFrostedVeil(
           child: Builder(
             builder: (context) => Stack(
@@ -155,18 +156,7 @@ class _EvidenceSectionDetailViewState
                           requiresUnion: widget.requiresUnion,
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-                        child: Text(
-                          'evidence_folder.detail.files'.tr().toUpperCase(),
-                          style: TextStyle(
-                            fontSize: SacFontSize.labelSmall,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.8,
-                            color: c.textTertiary,
-                          ),
-                        ),
-                      ),
+                      const SizedBox(height: 24),
 
                       // Notas del revisor por archivo — solo si existen
                       _ReviewerNotesBlock(files: widget.section.files),
@@ -181,6 +171,8 @@ class _EvidenceSectionDetailViewState
                             .map(StagedFile.fromEvidenceFile)
                             .toList(),
                         maxFiles: widget.section.maxFiles,
+                        sectionTitle: 'evidence_folder.detail.files'.tr(),
+                        isResend: isResend,
                         isLoading: isLoading,
                         canModify: canModify,
                         onLocalFilesChanged: (hasLocal) {
@@ -234,6 +226,7 @@ class _EvidenceSectionDetailViewState
                               .submitSection(widget.section.id);
                           if (!success) return;
                           if (!context.mounted) return;
+                          HapticFeedback.mediumImpact();
                           SacSnackBar.show(
                             context,
                             'evidence_folder.submit_success'.tr(

@@ -1,199 +1,113 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
-import 'package:sacdia_app/core/widgets/sac_network_image.dart';
-import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
+import 'package:sacdia_app/features/dashboard/presentation/widgets/class_logo_box.dart';
 
 import '../../domain/entities/progressive_class.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'class_progress_line.dart';
 
-/// Card de clase progresiva - Estilo "Scout Vibrante"
-///
-/// SacCard con barra de progreso del color de la clase y badge de estado.
+/// «Clase actual» card of Mis Clases: logo, name, «Cursando · year» and one
+/// thin accent progress bar with the big percentage. No ring, no requirement
+/// counts and no colored border: it uses the standard card surface.
 class ClassCard extends StatelessWidget {
-  final ProgressiveClass progressiveClass;
-  final double progress;
-  final bool isCurrent;
-  final VoidCallback onTap;
-
   const ClassCard({
     super.key,
     required this.progressiveClass,
-    this.progress = 0.0,
-    this.isCurrent = false,
     required this.onTap,
+    this.progress = 0.0,
   });
+
+  final ProgressiveClass progressiveClass;
+  final double progress;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final clampedProgress = progress.clamp(0.0, 1.0);
-    final progressPercent = (clampedProgress * 100).round();
-    final classColor = AppColors.classColor(progressiveClass.name);
-    final logoAsset = AppColors.classLogoAsset(progressiveClass.name);
-    final isExpired = progressiveClass.isExpired;
+    final c = context.sac;
+    final clamped = progress.clamp(0.0, 1.0);
+    final percent = (clamped * 100).round();
+    final year = _lastYear(progressiveClass.ecclesiasticalYearLabel);
+    final status = year == null
+        ? 'classes.catalog.status.in_progress'.tr()
+        : 'classes.catalog.status.in_progress_year'.tr(
+            namedArgs: {'year': year},
+          );
 
     return Semantics(
       container: true,
+      button: true,
+      excludeSemantics: true,
+      onTap: onTap,
+      label: 'classes.list.current_a11y'.tr(namedArgs: {
+        'name': progressiveClass.name,
+        'status': status,
+        'percent': '$percent',
+      }),
       child: SacCard(
         onTap: onTap,
-        borderColor: isExpired
-            ? AppColors.error.withValues(alpha: 0.45)
-            : isCurrent
-                ? classColor
-                : null,
-        margin: const EdgeInsets.only(bottom: 12),
+        pressedScale: SacMotion.panelPressScale,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               children: [
-                // Class icon
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: classColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                  ),
-                  child: progressiveClass.imageUrl != null
-                      ? ClipRRect(
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.radiusSM),
-                          child: SacNetworkImage(
-                            imageUrl: progressiveClass.imageUrl!,
-                            memCacheWidth:
-                                132, // 44 * 3 (max device pixel ratio)
-                            memCacheHeight: 132, // 44 * 3
-                            fit: BoxFit.cover,
-                            errorWidget: (_, __, ___) => logoAsset != null
-                                ? Padding(
-                                    padding: const EdgeInsets.all(6),
-                                    child: Image.asset(
-                                      logoAsset,
-                                      fit: BoxFit.contain,
-                                      cacheWidth: 132,
-                                      cacheHeight: 132,
-                                    ),
-                                  )
-                                : Center(
-                                    child: HugeIcon(
-                                      icon: HugeIcons.strokeRoundedSchool,
-                                      color: classColor,
-                                      size: 24,
-                                    ),
-                                  ),
-                          ),
-                        )
-                      : logoAsset != null
-                          ? Padding(
-                              padding: const EdgeInsets.all(6),
-                              child: Image.asset(
-                                logoAsset,
-                                fit: BoxFit.contain,
-                                cacheWidth: 132,
-                                cacheHeight: 132,
-                              ),
-                            )
-                          : Center(
-                              child: HugeIcon(
-                                icon: HugeIcons.strokeRoundedSchool,
-                                color: classColor,
-                                size: 24,
-                              ),
-                            ),
+                ClassLogoBox(
+                  className: progressiveClass.name,
+                  imageUrl: progressiveClass.imageUrl,
+                  size: 52,
+                  padding: 6,
+                  radius: AppTheme.radiusSM,
                 ),
                 const SizedBox(width: 14),
-
-                // Class info
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              progressiveClass.name,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w700),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (isExpired)
-                            SacBadge(
-                              label: 'classes.class_card.expired_badge'.tr(),
-                            )
-                          else if (isCurrent)
-                            SacBadge(
-                              label: 'classes.class_card.current_badge'.tr(),
-                            ),
-                        ],
+                      Text(
+                        progressiveClass.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: SacFontSize.titleLarge,
+                          fontWeight: FontWeight.w700,
+                          color: c.text,
+                        ),
                       ),
-                      if (isExpired) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          'classes.class_card.expired_description'.tr(),
-                          style: TextStyle(
-                            fontSize: SacFontSize.bodySmall,
-                            color: AppColors.errorDark,
-                            height: 1.25,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                      const SizedBox(height: 2),
+                      Text(
+                        status,
+                        style: TextStyle(
+                          fontSize: SacFontSize.bodyMedium,
+                          color: c.textSecondary,
                         ),
-                      ],
-                      if (progressiveClass.description != null) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          progressiveClass.description!,
-                          style: TextStyle(
-                            fontSize: SacFontSize.bodyMedium,
-                            color: context.sac.textSecondary,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                      ),
                     ],
                   ),
+                ),
+                const SizedBox(width: 8),
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowRight01,
+                  size: 18,
+                  color: c.textTertiary,
                 ),
               ],
             ),
             const SizedBox(height: 14),
-
-            // Progress bar
-            Row(
-              children: [
-                Expanded(
-                  child: SacProgressBar(
-                    progress: clampedProgress,
-                    color: classColor,
-                    height: 8,
-                    useGradient: false,
-                    showShimmer: false,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  '$progressPercent%',
-                  style: TextStyle(
-                    fontSize: SacFontSize.displaySmall,
-                    fontWeight: FontWeight.w800,
-                    height: 1,
-                    color: classColor,
-                  ),
-                ),
-              ],
-            ),
+            ClassProgressLine(percent: percent, progress: clamped),
           ],
         ),
       ),
     );
   }
+}
+
+/// «2025–2026» → «2026»: a class is invested at the end of its year.
+String? _lastYear(String? label) {
+  if (label == null) return null;
+  final years = RegExp(r'\d{4}').allMatches(label).toList();
+  return years.isEmpty ? null : years.last.group(0);
 }
