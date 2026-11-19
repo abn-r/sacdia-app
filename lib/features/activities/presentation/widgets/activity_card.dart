@@ -13,6 +13,7 @@ import 'package:sacdia_app/core/widgets/sac_card.dart';
 
 import '../../domain/entities/activity.dart';
 import 'activity_audience_line.dart';
+import 'activity_type_style.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Card de actividad - Estilo moderno inspirado en task management
@@ -40,37 +41,6 @@ class ActivityCard extends StatelessWidget {
     return formatter.format(date.toLocal());
   }
 
-  String _getTypeText(int type, [String? typeName]) {
-    final normalizedName = typeName?.trim();
-    if (normalizedName != null && normalizedName.isNotEmpty) {
-      return normalizedName;
-    }
-
-    switch (type) {
-      case 1:
-        return 'activities.detail.type_regular'.tr();
-      case 2:
-        return 'activities.detail.type_special'.tr();
-      case 3:
-        return 'activities.detail.type_camporee'.tr();
-      default:
-        return 'activities.detail.type_activity'.tr();
-    }
-  }
-
-  SacBadgeVariant _getTypeBadgeVariant(int type) {
-    switch (type) {
-      case 1:
-        return SacBadgeVariant.primary;
-      case 2:
-        return SacBadgeVariant.accent;
-      case 3:
-        return SacBadgeVariant.secondary;
-      default:
-        return SacBadgeVariant.neutral;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
@@ -91,11 +61,11 @@ class ActivityCard extends StatelessWidget {
                 spacing: 6,
                 children: [
                   SacBadge(
-                    label: _getTypeText(
+                    label: activityTypeLabel(
                       activity.activityType,
                       activity.activityTypeName,
                     ),
-                    variant: _getTypeBadgeVariant(activity.activityType),
+                    variant: activityTypeBadgeVariant(activity.activityType),
                   ),
                   if (activity.isJoint)
                     SacBadge(

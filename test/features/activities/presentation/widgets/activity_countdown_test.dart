@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sacdia_app/features/activities/presentation/widgets/activity_info_strip.dart';
+import 'package:sacdia_app/features/activities/presentation/widgets/activity_countdown.dart';
 
 void main() {
   // Thursday 15 Oct 2026, 10:15 local.

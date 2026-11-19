@@ -19,7 +19,7 @@ class SacStatePanel extends StatefulWidget {
     super.key,
     required this.style,
     required this.title,
-    required this.onTap,
+    this.onTap,
     this.message,
     this.stepLabel,
     this.semanticsHint,
@@ -44,7 +44,8 @@ class SacStatePanel extends StatefulWidget {
   /// "State: Sent, step 2 of 3". Already translated.
   final String? semanticsLabel;
 
-  final VoidCallback onTap;
+  /// Null: a read-only panel (no ripple, no chevron, not a button).
+  final VoidCallback? onTap;
 
   @override
   State<SacStatePanel> createState() => _SacStatePanelState();
@@ -85,7 +86,7 @@ class _SacStatePanelState extends State<SacStatePanel> {
 
     return Semantics(
       container: true,
-      button: true,
+      button: onTap != null,
       hint: semanticsHint,
       label: semanticsLabel ??
           [
@@ -201,12 +202,14 @@ class _SacStatePanelState extends State<SacStatePanel> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedArrowRight01,
-                    size: 18,
-                    color: c.textTertiary,
-                  ),
+                  if (onTap != null) ...[
+                    const SizedBox(width: 8),
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowRight01,
+                      size: 18,
+                      color: c.textTertiary,
+                    ),
+                  ],
                 ],
               ),
             ),

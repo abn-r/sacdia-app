@@ -14,6 +14,7 @@ import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../domain/entities/activity_rsvp.dart';
 import '../providers/activities_providers.dart';
+import 'activity_detail_row.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -24,10 +25,20 @@ class ActivityVirtualAttendance extends ConsumerStatefulWidget {
   final int activityId;
   final bool canConfirm;
 
+  /// Shows the staff "Confirm attendance" card. The activity detail turns it
+  /// off and lists that entry as a row of its attendance group instead.
+  final bool showStaffEntry;
+
+  /// Label above the intention card ("TU ASISTENCIA"). Shown only when the
+  /// member can answer, so it never sits over an empty block.
+  final String? eyebrow;
+
   const ActivityVirtualAttendance({
     super.key,
     required this.activityId,
     required this.canConfirm,
+    this.showStaffEntry = true,
+    this.eyebrow,
   });
 
   @override
@@ -131,13 +142,16 @@ class _ActivityVirtualAttendanceState
               child: SacLoadingSmall(color: SacAccent.of(context).color),
             ),
           )
-        else if (eligible)
+        else if (eligible) ...[
+          if (widget.eyebrow != null) ActivityEyebrow(widget.eyebrow!),
           _IntentionCard(
+            showTitle: widget.eyebrow == null,
             status: _rsvp?.status,
             pendingStatus: _pendingStatus,
             onGoing: () => _setStatus('going'),
             onNotGoing: () => _setStatus('not_going'),
           ),
+        ],
         if (_error != null) ...[
           const SizedBox(height: 8),
           Text(
@@ -154,7 +168,7 @@ class _ActivityVirtualAttendanceState
             ),
           ),
         ],
-        if (widget.canConfirm) ...[
+        if (widget.canConfirm && widget.showStaffEntry) ...[
           if (eligible || _error != null) const SizedBox(height: 12),
           SacCard(
             onTap: _openRoster,
@@ -211,8 +225,10 @@ class _IntentionCard extends StatelessWidget {
   final String? pendingStatus;
   final VoidCallback onGoing;
   final VoidCallback onNotGoing;
+  final bool showTitle;
 
   const _IntentionCard({
+    this.showTitle = true,
     required this.status,
     required this.pendingStatus,
     required this.onGoing,
@@ -234,11 +250,13 @@ class _IntentionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'activities.widgets.rsvp_title'.tr(),
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 4),
+          if (showTitle) ...[
+            Text(
+              'activities.widgets.rsvp_title'.tr(),
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 4),
+          ],
           SacStateSwap(
             child: Text(
               body,

@@ -1,6 +1,9 @@
 import 'package:equatable/equatable.dart';
 import 'activity_instance.dart';
 
+/// Where an activity stands at a given moment, from date AND time.
+enum ActivityPhase { upcoming, inProgress, finished }
+
 /// Clase incluida cuando la actividad es solo para algunas clases.
 class ActivityAudienceClass extends Equatable {
   final int classId;
@@ -128,7 +131,44 @@ class Activity extends Equatable {
     this.audienceClasses = const [],
   });
 
-  /// Returns true if the activity is in the past (based on activityDate or createdAt).
+  /// Local start: [activityDate] (date only) plus the "HH:mm" [activityTime].
+  /// Without a parsable time it is the start of the day. Null without a date.
+  DateTime? get startDateTime {
+    final date = activityDate?.toLocal();
+    if (date == null) return null;
+    final parts = (activityTime ?? '').split(':');
+    final hour = parts.length >= 2 ? int.tryParse(parts[0].trim()) : null;
+    final minute = parts.length >= 2 ? int.tryParse(parts[1].trim()) : null;
+    return DateTime(date.year, date.month, date.day, hour ?? 0, minute ?? 0);
+  }
+
+  /// Local last day (date only): [activityEndDate] when it is not before the
+  /// start, else the start day. Null without a date.
+  DateTime? get lastDay {
+    final start = activityDate?.toLocal();
+    if (start == null) return null;
+    final end = activityEndDate?.toLocal();
+    final day = (end != null && !end.isBefore(start)) ? end : start;
+    return DateTime(day.year, day.month, day.day);
+  }
+
+  /// Phase at [now] (local). The backend has no end time, so the activity
+  /// runs from its start until the end of its last day. Without a date it is
+  /// treated as upcoming.
+  ActivityPhase phaseAt(DateTime now) {
+    final start = startDateTime;
+    final last = lastDay;
+    if (start == null || last == null) return ActivityPhase.upcoming;
+    if (now.isBefore(start)) return ActivityPhase.upcoming;
+    final endOfLastDay = DateTime(last.year, last.month, last.day + 1);
+    return now.isBefore(endOfLastDay)
+        ? ActivityPhase.inProgress
+        : ActivityPhase.finished;
+  }
+
+  /// Date-only comparison (activityDate is midnight): an activity happening
+  /// today already counts as past after 00:00. Use [phaseAt] to decide state
+  /// by date AND time.
   bool get isPast {
     final reference = activityDate ?? activityEndDate;
     if (reference == null) return false;
