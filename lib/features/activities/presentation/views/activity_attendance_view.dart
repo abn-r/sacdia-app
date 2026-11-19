@@ -112,6 +112,7 @@ class _ActivityAttendanceViewState
           text: 'activities.attendance.manual'.tr(),
           variant: SacButtonVariant.secondary,
           icon: HugeIcons.strokeRoundedUserCheck01,
+          fullWidth: true,
           onPressed: _markByHand,
         ),
       ],
