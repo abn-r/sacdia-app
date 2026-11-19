@@ -233,7 +233,7 @@ void main() {
       expect(tester.getTopLeft(row('u1')), before);
       expect(find.text('2 de 3 presentes'), findsOneWidget);
       expect(tester.widget<SacButton>(save).onPressed, isNotNull);
-      expect(find.text('Ana Ruiz marcado como presente'), findsOneWidget);
+      expect(find.text('Asistencia marcada: Ana Ruiz'), findsOneWidget);
 
       await tester.tap(save);
       await tester.pumpAndSettle();
@@ -253,8 +253,8 @@ void main() {
       // A second toggle replaces the first notice instead of stacking.
       await tester.tap(find.text('Bruno Méndez'));
       await tester.pumpAndSettle();
-      expect(find.text('Ana Ruiz marcado como presente'), findsNothing);
-      expect(find.text('Bruno Méndez quitado de presentes'), findsOneWidget);
+      expect(find.text('Asistencia marcada: Ana Ruiz'), findsNothing);
+      expect(find.text('Asistencia quitada: Bruno Méndez'), findsOneWidget);
       expect(find.text('Deshacer'), findsOneWidget);
 
       await tester.tap(find.text('Deshacer'));

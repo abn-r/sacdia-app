@@ -141,7 +141,7 @@ class _ActivityManualAttendanceViewState
               ? 'activities.attendance.marked_present'
               : 'activities.attendance.unmarked_present')
           .tr(namedArgs: {'name': member.name}),
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 4),
       margin: EdgeInsets.fromLTRB(
         16,
         0,
