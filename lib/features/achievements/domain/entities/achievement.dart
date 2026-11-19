@@ -1,26 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 
-/// Base URL for achievement badge images stored in Cloudflare R2 via backend.
-///
-/// The backend stores only the key (e.g. "badges/achievement-42.svg").
-/// Supported formats: svg, png, webp, jpg. This prefix is prepended when the
-/// key doesn't already start with "http".
-const String _achievementBadgeBase =
-    'https://sacdia-files.r2.dev/achievements/';
-
 /// Default badge image shown for locked achievements or when the admin has not
 /// yet uploaded a custom badge for an achievement.
 ///
 /// Hosted in the public R2 bucket under achievements/achievements_default.png.
 const String kDefaultLockedAchievementBadgeUrl =
     'https://pub-c8aa231ae66c46ff96fc5e811994d9d2.r2.dev/achievements/achievements_default.png';
-
-String? _buildBadgeImageUrl(String? key) {
-  if (key == null || key.isEmpty) return null;
-  if (key.startsWith('http')) return key;
-  return '$_achievementBadgeBase$key';
-}
 
 /// Tipos de logro
 enum AchievementType {
@@ -99,7 +85,10 @@ class Achievement extends Equatable {
   final int categoryId;
   final String name;
   final String? description;
-  final String? badgeImageKey;
+
+  /// URL pública de la insignia, ya resuelta por el backend
+  /// (`badge_image_url`). El storage puede cambiar de host sin tocar la app.
+  final String? badgeImageUrl;
   final AchievementType type;
   final String? scope;
   final AchievementTier tier;
@@ -115,7 +104,7 @@ class Achievement extends Equatable {
     required this.categoryId,
     required this.name,
     this.description,
-    this.badgeImageKey,
+    this.badgeImageUrl,
     this.type = AchievementType.milestone,
     this.scope,
     this.tier = AchievementTier.bronze,
@@ -127,17 +116,13 @@ class Achievement extends Equatable {
     this.active = true,
   });
 
-  /// Computed getter: full URL of the badge image.
-  /// Returns null when [badgeImageKey] is null or empty.
-  String? get badgeImageUrl => _buildBadgeImageUrl(badgeImageKey);
-
   @override
   List<Object?> get props => [
         achievementId,
         categoryId,
         name,
         description,
-        badgeImageKey,
+        badgeImageUrl,
         type,
         scope,
         tier,

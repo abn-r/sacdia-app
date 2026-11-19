@@ -9,6 +9,7 @@ class AchievementModel extends Equatable {
   final String name;
   final String? description;
   final String? badgeImageKey;
+  final String? badgeImageUrl;
   final String? typeRaw;
   final String? scope;
   final String? tierRaw;
@@ -25,6 +26,7 @@ class AchievementModel extends Equatable {
     required this.name,
     this.description,
     this.badgeImageKey,
+    this.badgeImageUrl,
     this.typeRaw,
     this.scope,
     this.tierRaw,
@@ -44,6 +46,9 @@ class AchievementModel extends Equatable {
       criteria = rawCriteria;
     }
 
+    final badgeImageKey =
+        safeStringOrNull(json['badge_image_key'] ?? json['badge_image']);
+
     return AchievementModel(
       achievementId: safeInt(
         json['achievement_id'] ?? json['id'],
@@ -53,8 +58,11 @@ class AchievementModel extends Equatable {
       ),
       name: safeString(json['name']),
       description: safeStringOrNull(json['description']),
-      badgeImageKey:
-          safeStringOrNull(json['badge_image_key'] ?? json['badge_image']),
+      badgeImageKey: badgeImageKey,
+      badgeImageUrl: _resolveBadgeImageUrl(
+        safeStringOrNull(json['badge_image_url']),
+        badgeImageKey,
+      ),
       typeRaw: safeStringOrNull(json['type']),
       scope: safeStringOrNull(json['scope']),
       tierRaw: safeStringOrNull(json['tier']),
@@ -67,6 +75,14 @@ class AchievementModel extends Equatable {
     );
   }
 
+  /// El backend resuelve la URL pública (`badge_image_url`); la app no arma
+  /// hosts de storage. Una key que ya es URL absoluta sirve de respaldo.
+  static String? _resolveBadgeImageUrl(String? url, String? key) {
+    if (url != null && url.trim().isNotEmpty) return url.trim();
+    if (key != null && key.startsWith('http')) return key;
+    return null;
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'achievement_id': achievementId,
@@ -74,6 +90,7 @@ class AchievementModel extends Equatable {
       'name': name,
       'description': description,
       'badge_image_key': badgeImageKey,
+      'badge_image_url': badgeImageUrl,
       'type': typeRaw,
       'scope': scope,
       'tier': tierRaw,
@@ -92,7 +109,7 @@ class AchievementModel extends Equatable {
       categoryId: categoryId,
       name: name,
       description: description,
-      badgeImageKey: badgeImageKey,
+      badgeImageUrl: badgeImageUrl,
       type: AchievementType.fromString(typeRaw),
       scope: scope,
       tier: AchievementTier.fromString(tierRaw),
@@ -112,6 +129,7 @@ class AchievementModel extends Equatable {
         name,
         description,
         badgeImageKey,
+        badgeImageUrl,
         typeRaw,
         scope,
         tierRaw,
