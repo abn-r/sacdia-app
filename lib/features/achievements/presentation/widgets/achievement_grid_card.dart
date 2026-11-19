@@ -266,7 +266,8 @@ class _AchievementArt extends StatelessWidget {
           width: _kArtWidth,
           height: _kArtSize,
           fit: BoxFit.contain,
-          memCacheWidth: (_kArtWidth * 3).round(),
+          // Solo el alto: la caja es 5:4 y fijar ambos lados achataba las
+          // insignias cuadradas. Con un lado, el arte conserva su forma.
           memCacheHeight: (_kArtSize * 3).round(),
           errorWidget: (_, __, ___) =>
               _InitialsMark(initials: _initials(name), color: color),
