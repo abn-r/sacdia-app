@@ -2117,7 +2117,11 @@
       "honor_pending": "Pending",
       "semantics_status": "Requirement status: {status}. Tap to view history.",
       "expired_banner": "Expired · This class remains in your history, but it can no longer be completed for investiture.",
-      "invested_banner": "Invested · This class is closed: you can view your evidence, but not change it."
+      "invested_banner": "Invested · This class is closed: you can view your evidence, but not change it.",
+      "honor_done_message": "It already counts toward your progress.",
+      "honor_pending_message": "It validates itself when you complete the honor.",
+      "honor_progress": "{done} of {total} requirements",
+      "honor_go": "Go to the honor"
     },
     "section_detail": {
       "title": "Section Detail",
@@ -2394,7 +2398,25 @@
         "not_found_title": "We couldn't find this requirement",
         "not_found_body": "It may no longer be part of the class.",
         "load_error_title": "We couldn't load the requirement",
-        "max_files": "Maximum {max} files per requirement."
+        "max_files": "Maximum {max} files per requirement.",
+        "step_of": "Step {step} of {total} · See every state",
+        "panel_semantics": "State: {state}, step {step} of {total}",
+        "panel_hint": "Shows every state",
+        "sheet_title": "Requirement states",
+        "sheet_uploaded": {
+          "one": "You uploaded 1 file",
+          "other": "You uploaded {} files"
+        },
+        "sheet_sent_current": "{date} · under local field review",
+        "sheet_sent_current_nodate": "Under local field review",
+        "sheet_sent_next": "The local field reviews it",
+        "sheet_validated_next": "Counts toward your investiture progress",
+        "sheet_fix_hint": "If the local field asks for changes or flags something, it comes back here with its note and you can resend.",
+        "kind_done": "Done",
+        "kind_current": "Current state",
+        "kind_rejected": "To fix",
+        "kind_pending": "Pending",
+        "files_hint": "Images or PDF · up to {max} files of 10 MB"
       },
       "assign": {
         "title": "Counselors by class",
@@ -4062,7 +4084,27 @@
       "step_local_field": "Local field",
       "step_union": "Union",
       "step_semantics": "Step {current} of {total}: {label}",
-      "fix_full": "Make the changes and send it again."
+      "fix_full": "Make the changes and send it again.",
+      "step_of": "Step {step} of {total} · See every state",
+      "step_of_points": "Step {step} of {total} · {points}",
+      "panel_semantics": "State: {state}, step {step} of {total}",
+      "panel_hint": "Shows every state",
+      "sheet_title": "Section states",
+      "sheet_uploaded": {
+        "one": "You uploaded 1 file",
+        "other": "You uploaded {} files"
+      },
+      "sheet_sent_current": "{date} · under local field review",
+      "sheet_sent_current_nodate": "Under local field review",
+      "sheet_sent_next": "The local field reviews it",
+      "sheet_approved_on": "Approved on {date}",
+      "sheet_union_next": "The union validates it",
+      "sheet_validated_next": "Adds its points to the folder",
+      "sheet_fix_hint": "If the local field asks for changes, it comes back here with its note and you can resend.",
+      "kind_done": "Done",
+      "kind_current": "Current state",
+      "kind_rejected": "To fix",
+      "kind_pending": "Pending"
     }
   },
   "investiture": {
@@ -5118,7 +5160,21 @@
       "waiting": "Waiting",
       "uploaded": "Uploaded",
       "upload_failed": "Didn't upload",
-      "saving": "Saving…"
+      "saving": "Saving…",
+      "source_title": "Add evidence",
+      "source_subtitle": "Images or PDF, up to 10 MB each",
+      "source_camera": "Take a photo",
+      "source_gallery": "Choose from gallery",
+      "source_pdf": "Choose PDF",
+      "source_pdf_hint": "PDF document",
+      "add_tile": "Add",
+      "add_tile_semantics": "Add an evidence file",
+      "files_count": "{count} of {max} files",
+      "files_of": "{count} of {max}",
+      "btn_resend": "Resend",
+      "btn_send_none": "Send files",
+      "btn_send_one": "Send 1 file",
+      "btn_send_many": "Send {count} files"
     },
     "image_viewer": {
       "error_load": "Could not load the image"

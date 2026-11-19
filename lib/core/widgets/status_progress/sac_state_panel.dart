@@ -22,6 +22,7 @@ class SacStatePanel extends StatelessWidget {
     this.message,
     this.stepLabel,
     this.semanticsHint,
+    this.semanticsLabel,
   });
 
   final SacStatusStyle style;
@@ -38,6 +39,10 @@ class SacStatePanel extends StatelessWidget {
   /// Screen reader hint for the tap ("Shows every state").
   final String? semanticsHint;
 
+  /// Replaces the default spoken label (title, message and step joined), e.g.
+  /// "State: Sent, step 2 of 3". Already translated.
+  final String? semanticsLabel;
+
   final VoidCallback onTap;
 
   @override
@@ -50,11 +55,12 @@ class SacStatePanel extends StatelessWidget {
       container: true,
       button: true,
       hint: semanticsHint,
-      label: [
-        title,
-        if (message != null) message,
-        if (stepLabel != null) stepLabel
-      ].join('. '),
+      label: semanticsLabel ??
+          [
+            title,
+            if (message != null) message,
+            if (stepLabel != null) stepLabel
+          ].join('. '),
       excludeSemantics: true,
       onTap: onTap,
       child: DecoratedBox(

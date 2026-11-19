@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/evidence_staging/evidence_staging_layout.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
 import '../../domain/entities/certification_requirement_component.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
@@ -362,6 +363,8 @@ class _FileEvidenceField extends StatelessWidget {
       // embeddedMode integra el manager en el scroll de la pantalla
       // contenedora en vez de reservar su propio Expanded/scroll interno.
       child: EvidenceStagingManager(
+        // Certifications keep the "Image" / "PDF" buttons on purpose.
+        layout: EvidenceStagingLayout.classic,
         embeddedMode: true,
         showActionBar: canEdit,
         canModify: canEdit,

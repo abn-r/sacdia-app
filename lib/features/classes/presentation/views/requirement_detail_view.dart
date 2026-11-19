@@ -1,13 +1,17 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/config/route_names.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
 import '../../../../core/widgets/evidence_staging/staged_file.dart';
+import '../../../../core/widgets/evidence_staging/evidence_footer_bar.dart';
+import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_dialog.dart';
 import '../../../../core/widgets/sac_pressable.dart';
 import '../../../../core/widgets/sac_snack_bar.dart';
@@ -15,12 +19,14 @@ import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../../core/widgets/status_progress/status_progress.dart';
 import '../../domain/entities/class_requirement.dart';
 import '../providers/classes_providers.dart';
-import '../sheets/requirement_status_history_sheet.dart';
+import '../widgets/linked_honor_card.dart';
 import '../widgets/requirement_status_panel.dart';
 
-/// Detail of one requirement of a class: its state, the local field's note
-/// when it was sent back, and the evidence files. Pending and sent-back
-/// requirements show a fixed bar to add images or PDFs and send.
+/// Detail of one requirement of a class: its state in a card (tap it for every
+/// state), the local field's note when it was sent back, its description and
+/// the evidence files. Pending and sent-back requirements end the file grid
+/// with an "Add" tile and show a fixed bar with one action, "Send N files".
+/// A requirement linked to an honor shows that honor instead of the files.
 ///
 /// Opened by the member from their own class (`Navigator.push`) and by the
 /// coach from the member's progress (route
@@ -118,6 +124,11 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
     final canModify = requirement.canUploadForClass(isClassExpired: isReadOnly);
     final isLoading = notifierState.isLoading;
     final description = requirement.description?.trim() ?? '';
+    final linkedHonorId = requirement.linkedHonorId;
+    final isHonorLinked = linkedHonorId != null;
+    final isOwn = widget.targetUserId == null;
+    final isSentBack = requirement.status == RequirementStatus.rechazado ||
+        requirement.status == RequirementStatus.observado;
     final memberName = widget.memberName?.trim() ?? '';
 
     ref.listen(
@@ -164,10 +175,11 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
               listenOnly: true,
               child: IconButton(
                 enableFeedback: false,
-                tooltip: 'classes.status_history.title'.tr(),
-                onPressed: () => showRequirementStatusHistorySheet(
+                tooltip: 'classes.grouped.req.sheet_title'.tr(),
+                onPressed: () => showRequirementStatesSheet(
                   context,
                   requirement: requirement,
+                  isReadOnly: isReadOnly,
                 ),
                 icon: HugeIcon(
                   icon: HugeIcons.strokeRoundedMoreHorizontal,
@@ -178,22 +190,36 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
             ),
           ],
         ),
-        bottomNavigationBar: canModify
-            ? EvidenceStagingActionBar(
-                onPickImages: () =>
-                    _stagingManagerKey.currentState?.pickImages(),
-                onPickPdfs: () => _stagingManagerKey.currentState?.pickPdfs(),
-                onSubmit: () =>
-                    _stagingManagerKey.currentState?.submitForValidation(),
-                canSubmit: _canSubmitFromStagingManager(
-                  requirement: requirement,
-                  canModify: canModify,
-                ),
-                isLoading: isLoading ||
-                    (_stagingManagerKey.currentState?.isLoadingForActionBar ??
-                        false),
-              )
-            : null,
+        bottomNavigationBar: isHonorLinked
+            ? (isOwn
+                ? EvidenceFooterBar(
+                    child: SacButton.primary(
+                      key: const ValueKey('requirement-go-honor'),
+                      text: 'classes.requirement_detail.honor_go'.tr(),
+                      icon: HugeIcons.strokeRoundedArrowRight01,
+                      onPressed: () => context
+                          .push(RouteNames.honorDetailPath('$linkedHonorId')),
+                    ),
+                  )
+                : null)
+            : canModify
+                ? EvidenceStagingActionBar(
+                    isResend: isSentBack,
+                    fileCount: _stagingManagerKey
+                            .currentState?.fileCountForActionBar ??
+                        requirement.files.length,
+                    onSubmit: () =>
+                        _stagingManagerKey.currentState?.submitForValidation(),
+                    canSubmit: _canSubmitFromStagingManager(
+                      requirement: requirement,
+                      canModify: canModify,
+                    ),
+                    isLoading: isLoading ||
+                        (_stagingManagerKey
+                                .currentState?.isLoadingForActionBar ??
+                            false),
+                  )
+                : null,
         body: SacFrostedVeil(
           child: Builder(
             builder: (context) => Stack(
@@ -205,115 +231,150 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (description.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                          child: Text(
-                            description,
-                            style: TextStyle(
-                              fontSize: SacFontSize.titleMedium,
-                              height: 1.45,
-                              color: c.text,
-                            ),
-                          ),
-                        ),
                       if (isReadOnly)
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
                           child: _ClosedBanner(isExpired: isClassExpired),
                         ),
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                        padding:
+                            EdgeInsets.fromLTRB(20, isReadOnly ? 12 : 8, 20, 0),
                         child: RequirementStatusPanel(
                           requirement: requirement,
                           isReadOnly: isReadOnly,
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-                        child: Text(
-                          'classes.grouped.req.files'.tr().toUpperCase(),
-                          style: TextStyle(
-                            fontSize: SacFontSize.labelSmall,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.8,
-                            color: c.textTertiary,
+                      if (description.isNotEmpty ||
+                          (canModify && !isHonorLinked))
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (description.isNotEmpty)
+                                Text(
+                                  description,
+                                  key:
+                                      const ValueKey('requirement-description'),
+                                  style: TextStyle(
+                                    fontSize: SacFontSize.titleMedium,
+                                    height: 1.45,
+                                    color: c.text,
+                                  ),
+                                ),
+                              if (canModify && !isHonorLinked) ...[
+                                if (description.isNotEmpty)
+                                  const SizedBox(height: 6),
+                                Text(
+                                  'classes.grouped.req.files_hint'.tr(
+                                    namedArgs: {
+                                      'max': '${requirement.maxFiles}'
+                                    },
+                                  ),
+                                  key: const ValueKey('requirement-files-hint'),
+                                  style: TextStyle(
+                                    fontSize: SacFontSize.bodySmall,
+                                    height: 1.4,
+                                    color: c.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
-                      ),
-                      EvidenceStagingManager(
-                        key: _stagingManagerKey,
-                        embeddedMode: true,
-                        showActionBar: false,
-                        existingFiles: requirement.files
-                            .map(StagedFile.fromRequirementEvidence)
-                            .toList(),
-                        maxFiles: requirement.maxFiles,
-                        isLoading: isLoading,
-                        onUpload: (xFile, mimeType, onProgress) async {
-                          if (isReadOnly) {
-                            throw AppException(
-                              message: tr('classes.errors.progress_locked'),
-                            );
-                          }
-                          final success = await ref
-                              .read(requirementNotifierProvider(_progressQuery)
-                                  .notifier)
-                              .uploadFile(
-                                requirementId: requirement.id,
-                                pickedFile: xFile,
-                                mimeType: mimeType,
-                                onProgress: onProgress,
-                                skipInvalidation: true,
+                      if (isHonorLinked)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                          child: LinkedHonorCard(
+                            honorId: linkedHonorId,
+                            honorName: requirement.linkedHonorName,
+                            isCompleted: requirement.linkedHonorCompleted ??
+                                requirement.status ==
+                                    RequirementStatus.validado,
+                            isOwn: isOwn,
+                          ),
+                        )
+                      else ...[
+                        const SizedBox(height: 24),
+                        EvidenceStagingManager(
+                          key: _stagingManagerKey,
+                          embeddedMode: true,
+                          showActionBar: false,
+                          existingFiles: requirement.files
+                              .map(StagedFile.fromRequirementEvidence)
+                              .toList(),
+                          maxFiles: requirement.maxFiles,
+                          isLoading: isLoading,
+                          onUpload: (xFile, mimeType, onProgress) async {
+                            if (isReadOnly) {
+                              throw AppException(
+                                message: tr('classes.errors.progress_locked'),
                               );
-                          if (!success) {
-                            throw AppException(
-                              message: _uploadErrorMessage(
-                                ref.read(
-                                  requirementNotifierProvider(_progressQuery),
+                            }
+                            final success = await ref
+                                .read(
+                                    requirementNotifierProvider(_progressQuery)
+                                        .notifier)
+                                .uploadFile(
+                                  requirementId: requirement.id,
+                                  pickedFile: xFile,
+                                  mimeType: mimeType,
+                                  onProgress: onProgress,
+                                  skipInvalidation: true,
+                                );
+                            if (!success) {
+                              throw AppException(
+                                message: _uploadErrorMessage(
+                                  ref.read(
+                                    requirementNotifierProvider(_progressQuery),
+                                  ),
+                                  requirement,
                                 ),
-                                requirement,
-                              ),
-                            );
-                          }
-                        },
-                        onDeleteRemote: (fileId) async {
-                          if (isReadOnly) return;
-                          await ref
-                              .read(requirementNotifierProvider(_progressQuery)
-                                  .notifier)
-                              .deleteFile(
-                                requirementId: requirement.id,
-                                fileId: fileId,
                               );
-                        },
-                        onSubmit: () async {
-                          if (isReadOnly) return;
-                          final success = await ref
-                              .read(requirementNotifierProvider(_progressQuery)
-                                  .notifier)
-                              .submit(requirement.id);
-                          if (!success) return;
-                          if (!context.mounted) return;
-                          SacSnackBar.show(
-                            context,
-                            'classes.requirement_detail.submit_success'.tr(),
-                            isSuccess: true,
-                          );
-                          Navigator.pop(context);
-                        },
-                        fileNameBuilder: _buildFileNameWithIndex,
-                        canModify: canModify,
-                        onLocalFilesChanged: (hasLocal) {
-                          if (_hasUnsavedFiles != hasLocal) {
-                            setState(() => _hasUnsavedFiles = hasLocal);
-                          }
-                        },
-                        onActionStateChanged: () {
-                          if (mounted) setState(() {});
-                        },
-                      ),
-                      SizedBox(height: requirement.files.isEmpty ? 8 : 16),
+                            }
+                          },
+                          onDeleteRemote: (fileId) async {
+                            if (isReadOnly) return;
+                            await ref
+                                .read(
+                                    requirementNotifierProvider(_progressQuery)
+                                        .notifier)
+                                .deleteFile(
+                                  requirementId: requirement.id,
+                                  fileId: fileId,
+                                );
+                          },
+                          onSubmit: () async {
+                            if (isReadOnly) return;
+                            final success = await ref
+                                .read(
+                                    requirementNotifierProvider(_progressQuery)
+                                        .notifier)
+                                .submit(requirement.id);
+                            if (!success) return;
+                            if (!context.mounted) return;
+                            SacSnackBar.show(
+                              context,
+                              'classes.requirement_detail.submit_success'.tr(),
+                              isSuccess: true,
+                            );
+                            Navigator.pop(context);
+                          },
+                          fileNameBuilder: _buildFileNameWithIndex,
+                          sectionTitle: 'classes.grouped.req.files'.tr(),
+                          isResend: isSentBack,
+                          canModify: canModify,
+                          onLocalFilesChanged: (hasLocal) {
+                            if (_hasUnsavedFiles != hasLocal) {
+                              setState(() => _hasUnsavedFiles = hasLocal);
+                            }
+                          },
+                          onActionStateChanged: () {
+                            if (mounted) setState(() {});
+                          },
+                        ),
+                      ],
+                      const SizedBox(height: 16),
                     ],
                   ),
                 ),

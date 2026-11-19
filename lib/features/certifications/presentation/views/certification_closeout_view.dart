@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/evidence_staging/evidence_staging_layout.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../providers/certification_requirement_providers.dart';
@@ -117,6 +118,8 @@ class CertificationCloseoutView extends ConsumerWidget {
                 ),
                 Expanded(
                   child: EvidenceStagingManager(
+                    // Certifications keep the "Image" / "PDF" buttons on purpose.
+                    layout: EvidenceStagingLayout.classic,
                     existingFiles: const [],
                     maxFiles: 1,
                     canModify: !state.submitSuccess,

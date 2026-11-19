@@ -2117,7 +2117,11 @@
       "honor_pending": "En attente",
       "semantics_status": "Statut de l'exigence : {status}. Appuyez pour voir l'historique.",
       "expired_banner": "Expirée · Cette classe reste dans votre parcours, mais elle ne peut plus être terminée pour l’investiture.",
-      "invested_banner": "Investie · Cette classe est clôturée : vous pouvez consulter vos preuves, mais pas les modifier."
+      "invested_banner": "Investie · Cette classe est clôturée : vous pouvez consulter vos preuves, mais pas les modifier.",
+      "honor_done_message": "Elle compte déjà dans votre progression.",
+      "honor_pending_message": "Elle se valide d’elle-même quand vous terminez la spécialité.",
+      "honor_progress": "{done} sur {total} exigences",
+      "honor_go": "Aller à la spécialité"
     },
     "section_detail": {
       "title": "Détail de la section",
@@ -2394,7 +2398,25 @@
         "not_found_title": "Exigence introuvable",
         "not_found_body": "Elle ne fait peut-être plus partie de la classe.",
         "load_error_title": "Impossible de charger l'exigence",
-        "max_files": "Maximum {max} fichiers par exigence."
+        "max_files": "Maximum {max} fichiers par exigence.",
+        "step_of": "Étape {step} sur {total} · Voir tous les états",
+        "panel_semantics": "État : {state}, étape {step} sur {total}",
+        "panel_hint": "Affiche tous les états",
+        "sheet_title": "États de l’exigence",
+        "sheet_uploaded": {
+          "one": "Vous avez ajouté 1 fichier",
+          "other": "Vous avez ajouté {} fichiers"
+        },
+        "sheet_sent_current": "{date} · en révision par le champ local",
+        "sheet_sent_current_nodate": "En révision par le champ local",
+        "sheet_sent_next": "Le champ local la révise",
+        "sheet_validated_next": "Compte pour votre progression d’investiture",
+        "sheet_fix_hint": "Si le champ local demande des changements ou signale quelque chose, elle revient ici avec sa note et vous pouvez la renvoyer.",
+        "kind_done": "Terminé",
+        "kind_current": "État actuel",
+        "kind_rejected": "À corriger",
+        "kind_pending": "En attente",
+        "files_hint": "Images ou PDF · jusqu’à {max} fichiers de 10 Mo"
       },
       "assign": {
         "title": "Conseillers par classe",
@@ -4061,7 +4083,27 @@
       "step_local_field": "Champ local",
       "step_union": "Union",
       "step_semantics": "Étape {current} sur {total} : {label}",
-      "fix_full": "Corrigez et renvoyez."
+      "fix_full": "Corrigez et renvoyez.",
+      "step_of": "Étape {step} sur {total} · Voir tous les états",
+      "step_of_points": "Étape {step} sur {total} · {points}",
+      "panel_semantics": "État : {state}, étape {step} sur {total}",
+      "panel_hint": "Affiche tous les états",
+      "sheet_title": "États de la section",
+      "sheet_uploaded": {
+        "one": "Vous avez ajouté 1 fichier",
+        "other": "Vous avez ajouté {} fichiers"
+      },
+      "sheet_sent_current": "{date} · en révision par le champ local",
+      "sheet_sent_current_nodate": "En révision par le champ local",
+      "sheet_sent_next": "Le champ local la révise",
+      "sheet_approved_on": "Approuvée le {date}",
+      "sheet_union_next": "L’union la valide",
+      "sheet_validated_next": "Ajoute ses points au dossier",
+      "sheet_fix_hint": "Si le champ local demande des changements, elle revient ici avec sa note et vous pouvez la renvoyer.",
+      "kind_done": "Terminé",
+      "kind_current": "État actuel",
+      "kind_rejected": "À corriger",
+      "kind_pending": "En attente"
     }
   },
   "investiture": {
@@ -5116,7 +5158,21 @@
       "waiting": "En attente",
       "uploaded": "Envoyé",
       "upload_failed": "Échec",
-      "saving": "Enregistrement…"
+      "saving": "Enregistrement…",
+      "source_title": "Ajouter une preuve",
+      "source_subtitle": "Images ou PDF, 10 Mo maximum chacun",
+      "source_camera": "Prendre une photo",
+      "source_gallery": "Choisir dans la galerie",
+      "source_pdf": "Choisir un PDF",
+      "source_pdf_hint": "Document PDF",
+      "add_tile": "Ajouter",
+      "add_tile_semantics": "Ajouter un fichier de preuve",
+      "files_count": "{count} sur {max} fichiers",
+      "files_of": "{count} sur {max}",
+      "btn_resend": "Renvoyer",
+      "btn_send_none": "Envoyer les fichiers",
+      "btn_send_one": "Envoyer 1 fichier",
+      "btn_send_many": "Envoyer {count} fichiers"
     },
     "image_viewer": {
       "error_load": "Impossible de charger l'image"

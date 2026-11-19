@@ -2117,7 +2117,11 @@
       "honor_pending": "Pendiente",
       "semantics_status": "Estado del requisito: {status}. Tocar para ver historial.",
       "expired_banner": "Vencida · Esta clase se conserva en tu trayectoria, pero ya no puede completarse para investidura.",
-      "invested_banner": "Investida · Esta clase ya está cerrada: puedes ver tus evidencias, pero no cambiarlas."
+      "invested_banner": "Investida · Esta clase ya está cerrada: puedes ver tus evidencias, pero no cambiarlas.",
+      "honor_done_message": "Ya cuenta para tu avance.",
+      "honor_pending_message": "Se valida solo cuando completes la especialidad.",
+      "honor_progress": "{done} de {total} requisitos",
+      "honor_go": "Ir a la especialidad"
     },
     "section_detail": {
       "title": "Detalle de Sección",
@@ -2394,7 +2398,25 @@
         "not_found_title": "No encontramos este requisito",
         "not_found_body": "Puede que ya no forme parte de la clase.",
         "load_error_title": "No pudimos cargar el requisito",
-        "max_files": "Máximo {max} archivos por requisito."
+        "max_files": "Máximo {max} archivos por requisito.",
+        "step_of": "Paso {step} de {total} · Ver todos los estados",
+        "panel_semantics": "Estado: {state}, paso {step} de {total}",
+        "panel_hint": "Muestra todos los estados",
+        "sheet_title": "Estados del requisito",
+        "sheet_uploaded": {
+          "one": "Subiste 1 archivo",
+          "other": "Subiste {} archivos"
+        },
+        "sheet_sent_current": "{date} · en revisión del campo local",
+        "sheet_sent_current_nodate": "En revisión del campo local",
+        "sheet_sent_next": "El campo local lo revisa",
+        "sheet_validated_next": "Cuenta para tu avance de investidura",
+        "sheet_fix_hint": "Si el campo local pide cambios u observa algo, vuelve aquí con su nota y puedes reenviar.",
+        "kind_done": "Hecho",
+        "kind_current": "Estado actual",
+        "kind_rejected": "Por corregir",
+        "kind_pending": "Pendiente",
+        "files_hint": "Imágenes o PDF · hasta {max} archivos de 10 MB"
       },
       "assign": {
         "title": "Consejeros por clase",
@@ -4062,7 +4084,27 @@
       "step_local_field": "Campo local",
       "step_union": "Unión",
       "step_semantics": "Paso {current} de {total}: {label}",
-      "fix_full": "Corrige y vuelve a enviar."
+      "fix_full": "Corrige y vuelve a enviar.",
+      "step_of": "Paso {step} de {total} · Ver todos los estados",
+      "step_of_points": "Paso {step} de {total} · {points}",
+      "panel_semantics": "Estado: {state}, paso {step} de {total}",
+      "panel_hint": "Muestra todos los estados",
+      "sheet_title": "Estados de la sección",
+      "sheet_uploaded": {
+        "one": "Subiste 1 archivo",
+        "other": "Subiste {} archivos"
+      },
+      "sheet_sent_current": "{date} · en revisión del campo local",
+      "sheet_sent_current_nodate": "En revisión del campo local",
+      "sheet_sent_next": "El campo local la revisa",
+      "sheet_approved_on": "Aprobada el {date}",
+      "sheet_union_next": "La unión la valida",
+      "sheet_validated_next": "Suma sus puntos a la carpeta",
+      "sheet_fix_hint": "Si el campo local pide cambios, vuelve aquí con su nota y puedes reenviar.",
+      "kind_done": "Hecho",
+      "kind_current": "Estado actual",
+      "kind_rejected": "Por corregir",
+      "kind_pending": "Pendiente"
     }
   },
   "investiture": {
@@ -5118,7 +5160,21 @@
       "waiting": "En espera",
       "uploaded": "Subido",
       "upload_failed": "No se subió",
-      "saving": "Guardando…"
+      "saving": "Guardando…",
+      "source_title": "Agregar evidencia",
+      "source_subtitle": "Imágenes o PDF, hasta 10 MB cada uno",
+      "source_camera": "Tomar foto",
+      "source_gallery": "Elegir de la galería",
+      "source_pdf": "Elegir PDF",
+      "source_pdf_hint": "Documento en PDF",
+      "add_tile": "Agregar",
+      "add_tile_semantics": "Agregar un archivo de evidencia",
+      "files_count": "{count} de {max} archivos",
+      "files_of": "{count} de {max}",
+      "btn_resend": "Reenviar",
+      "btn_send_none": "Enviar archivos",
+      "btn_send_one": "Enviar 1 archivo",
+      "btn_send_many": "Enviar {count} archivos"
     },
     "image_viewer": {
       "error_load": "No se pudo cargar la imagen"

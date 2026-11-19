@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../theme/app_colors.dart';
@@ -21,12 +22,19 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 /// Delete behavior differs by status:
 /// - Local files: instant remove (no confirmation).
 /// - Remote files: confirmation dialog before calling [onDeleteRemote].
+///
+/// When [onAdd] is set and [canModify] is true the grid ends with an "Add"
+/// tile (hidden once [maxFiles] is reached) and the "N of M files" caption is
+/// left to the screen, which shows it in its section title.
 class StagedFileGrid extends StatelessWidget {
   final List<StagedFile> files;
   final int maxFiles;
   final bool canModify;
   final void Function(StagedFile file) onRemoveLocal;
   final void Function(StagedFile file) onDeleteRemote;
+
+  /// Opens the source sheet. Null keeps the grid without an add tile.
+  final VoidCallback? onAdd;
 
   const StagedFileGrid({
     super.key,
@@ -35,11 +43,13 @@ class StagedFileGrid extends StatelessWidget {
     required this.canModify,
     required this.onRemoveLocal,
     required this.onDeleteRemote,
+    this.onAdd,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (files.isEmpty) return const SizedBox.shrink();
+    final showAdd = canModify && onAdd != null && files.length < maxFiles;
+    if (files.isEmpty && !showAdd) return const SizedBox.shrink();
 
     final c = context.sac;
     final totalFiles = files.length;
@@ -68,8 +78,9 @@ class StagedFileGrid extends StatelessWidget {
             mainAxisSpacing: 10,
             childAspectRatio: 0.82,
           ),
-          itemCount: files.length,
+          itemCount: files.length + (showAdd ? 1 : 0),
           itemBuilder: (context, index) {
+            if (index == files.length) return _AddTile(onTap: onAdd!);
             final file = files[index];
             // A local file is "excess" if its position is beyond maxFiles
             final isExcess = file.isLocal && index >= maxFiles;
@@ -85,17 +96,21 @@ class StagedFileGrid extends StatelessWidget {
           },
         ),
         const SizedBox(height: 10),
-        // File counter
-        Center(
-          child: Text(
-            '$totalFiles de $maxFiles archivos',
-            style: TextStyle(
-              fontSize: SacFontSize.bodySmall,
-              fontWeight: FontWeight.w500,
-              color: excess > 0 ? AppColors.error : c.textSecondary,
+        // File counter (the add-tile layout shows it in the section title)
+        if (onAdd == null)
+          Center(
+            child: Text(
+              'core.evidence_staging.files_count'.tr(namedArgs: {
+                'count': '$totalFiles',
+                'max': '$maxFiles',
+              }),
+              style: TextStyle(
+                fontSize: SacFontSize.bodySmall,
+                fontWeight: FontWeight.w500,
+                color: excess > 0 ? AppColors.error : c.textSecondary,
+              ),
             ),
           ),
-        ),
         // Excess warning
         if (excess > 0) ...[
           const SizedBox(height: 4),
@@ -135,6 +150,65 @@ class StagedFileGrid extends StatelessWidget {
     if (confirm == true) {
       onDeleteRemote(file);
     }
+  }
+}
+
+// ── Add tile ──────────────────────────────────────────────────────────────────
+
+/// Last cell of the grid: dashed border, a plus and "Add".
+class _AddTile extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _AddTile({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = SacAccent.of(context);
+    final label = 'core.evidence_staging.add_tile'.tr();
+    return Semantics(
+      button: true,
+      label: 'core.evidence_staging.add_tile_semantics'.tr(),
+      excludeSemantics: true,
+      onTap: onTap,
+      child: GestureDetector(
+        key: const ValueKey('evidence-add-tile'),
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap();
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: accent.surface,
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+          ),
+          foregroundDecoration: _DashedBorderDecoration(
+            color: accent.color,
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+            strokeWidth: 1.5,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedAdd01,
+                size: 22,
+                color: accent.color,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: SacFontSize.bodySmall,
+                  fontWeight: FontWeight.w600,
+                  color: accent.color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

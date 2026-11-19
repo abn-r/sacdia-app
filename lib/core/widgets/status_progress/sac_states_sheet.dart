@@ -51,6 +51,7 @@ Future<void> showSacStatesSheet(
   required List<SacStateStep> steps,
   required SacStateKindLabels kindLabels,
   String? subtitle,
+  SacStateStep? detour,
 }) {
   return showSacSheet<void>(
     context: context,
@@ -62,6 +63,7 @@ Future<void> showSacStatesSheet(
       subtitle: subtitle,
       steps: steps,
       kindLabels: kindLabels,
+      detour: detour,
     ),
   );
 }
@@ -79,12 +81,19 @@ class SacStatesSheet extends StatelessWidget {
     required this.steps,
     required this.kindLabels,
     this.subtitle,
+    this.detour,
   });
 
   final String title;
   final String? subtitle;
   final List<SacStateStep> steps;
   final SacStateKindLabels kindLabels;
+
+  /// A way out of the path (for example "To fix"), set apart under a
+  /// divider and not joined to the steps by the line. Use
+  /// [SacStateKind.rejected] when the item is in it right now and
+  /// [SacStateKind.pending] when it is only explained.
+  final SacStateStep? detour;
 
   @override
   Widget build(BuildContext context) {
@@ -146,6 +155,23 @@ class SacStatesSheet extends StatelessWidget {
                         kindLabels: kindLabels,
                         isLast: i == steps.length - 1,
                       ),
+                    if (detour != null) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Divider(
+                          key: const ValueKey('states-sheet-detour-divider'),
+                          height: 1,
+                          color: c.divider,
+                        ),
+                      ),
+                      _StepRow(
+                        key: const ValueKey('states-sheet-detour'),
+                        step: detour!,
+                        kindLabels: kindLabels,
+                        isLast: true,
+                        isDetour: true,
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -159,14 +185,17 @@ class SacStatesSheet extends StatelessWidget {
 
 class _StepRow extends StatelessWidget {
   const _StepRow({
+    super.key,
     required this.step,
     required this.kindLabels,
     required this.isLast,
+    this.isDetour = false,
   });
 
   final SacStateStep step;
   final SacStateKindLabels kindLabels;
   final bool isLast;
+  final bool isDetour;
 
   @override
   Widget build(BuildContext context) {
@@ -193,7 +222,7 @@ class _StepRow extends StatelessWidget {
               width: 24,
               child: Column(
                 children: [
-                  _Dot(kind: step.kind),
+                  _Dot(kind: step.kind, isDetour: isDetour),
                   if (!isLast)
                     Expanded(
                       child: Container(
@@ -246,14 +275,26 @@ class _StepRow extends StatelessWidget {
 }
 
 class _Dot extends StatelessWidget {
-  const _Dot({required this.kind});
+  const _Dot({required this.kind, this.isDetour = false});
 
   final SacStateKind kind;
+  final bool isDetour;
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
     final accent = SacAccent.of(context);
+    if (isDetour) {
+      final active = kind == SacStateKind.rejected;
+      return _circle(
+        background: active ? c.errorContainer : c.surfaceVariant,
+        child: HugeIcon(
+          icon: HugeIcons.strokeRoundedAlertCircle,
+          size: 14,
+          color: active ? c.onErrorContainer : c.textSecondary,
+        ),
+      );
+    }
     return switch (kind) {
       SacStateKind.done => _circle(
           background: c.successContainer,

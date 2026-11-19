@@ -22,7 +22,7 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 /// Vista de detalle de una sección de evidencias.
 ///
 /// Permite al usuario:
-/// - Ver el estado actual y la línea de tiempo de la sección.
+/// - Ver el estado actual de la sección y, al tocarlo, todos los estados.
 /// - Ver los archivos subidos en un grid de miniaturas.
 /// - Subir nuevos archivos (imagen desde cámara/galería o PDF) cuando
 ///   la sección está pendiente y la carpeta está abierta.
@@ -78,6 +78,7 @@ class _EvidenceSectionDetailViewState
     });
 
     final isLoading = notifierState.isLoading;
+    final isResend = widget.section.status == EvidenceSectionStatus.rejected;
 
     return PopScope(
       canPop: !_hasUnsavedFiles,
@@ -109,12 +110,10 @@ class _EvidenceSectionDetailViewState
         ),
         bottomNavigationBar: canModify
             ? EvidenceStagingActionBar(
-                onPickImages: () {
-                  _stagingManagerKey.currentState?.pickImages();
-                },
-                onPickPdfs: () {
-                  _stagingManagerKey.currentState?.pickPdfs();
-                },
+                isResend: isResend,
+                fileCount:
+                    _stagingManagerKey.currentState?.fileCountForActionBar ??
+                        widget.section.files.length,
                 onSubmit: () {
                   _stagingManagerKey.currentState?.submitForValidation();
                 },
@@ -155,18 +154,7 @@ class _EvidenceSectionDetailViewState
                           requiresUnion: widget.requiresUnion,
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-                        child: Text(
-                          'evidence_folder.detail.files'.tr().toUpperCase(),
-                          style: TextStyle(
-                            fontSize: SacFontSize.labelSmall,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.8,
-                            color: c.textTertiary,
-                          ),
-                        ),
-                      ),
+                      const SizedBox(height: 24),
 
                       // Notas del revisor por archivo — solo si existen
                       _ReviewerNotesBlock(files: widget.section.files),
@@ -181,6 +169,8 @@ class _EvidenceSectionDetailViewState
                             .map(StagedFile.fromEvidenceFile)
                             .toList(),
                         maxFiles: widget.section.maxFiles,
+                        sectionTitle: 'evidence_folder.detail.files'.tr(),
+                        isResend: isResend,
                         isLoading: isLoading,
                         canModify: canModify,
                         onLocalFilesChanged: (hasLocal) {
