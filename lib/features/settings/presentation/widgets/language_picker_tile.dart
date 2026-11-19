@@ -34,7 +34,11 @@ class LanguagePickerTile extends StatelessWidget {
     );
   }
 
-  Future<void> _showPicker(BuildContext context) async {
+  /// Name of the language in use ("Español"), for rows that show it as value.
+  static String labelOf(Locale current) => _currentOption(current).label;
+
+  /// Opens the language sheet and applies the choice.
+  static Future<void> showPicker(BuildContext context) async {
     final current = context.locale;
     final picked = await showSacSheet<Locale>(
       context: context,
@@ -77,7 +81,7 @@ class LanguagePickerTile extends StatelessWidget {
         ),
       ),
       iconColor: SacAccent.of(context).color,
-      onTap: () => _showPicker(context),
+      onTap: () => showPicker(context),
     );
   }
 }

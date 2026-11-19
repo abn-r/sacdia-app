@@ -1,232 +1,32 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/utils/validators.dart';
-import '../../../../core/theme/sac_accent.dart';
-import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/sac_sheet.dart';
 import '../../../../core/widgets/sac_snack_bar.dart';
-import '../../../../core/widgets/sac_text_field.dart';
-import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../../biometric/presentation/providers/biometric_provider.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
+import '../widgets/change_password_sheet.dart';
 
-/// Diálogo de cambio de contraseña con su flujo completo: pide la actual y la
-/// nueva, confirma con biometría si está activada y llama a
-/// `POST /auth/update-password`.
+/// Opens the change-password bottom sheet ([ChangePasswordSheet]) and, once the
+/// password changed, shows the success message.
 ///
-/// Lo usan Ajustes y la pantalla del adolescente sin tutor verificado (que
-/// puede cambiar su contraseña: `self:password`).
+/// Lo usan Seguridad (Ajustes) y la pantalla del adolescente sin tutor
+/// verificado (que puede cambiar su contraseña: `self:password`). The sheet
+/// reads its own `ref`; [ref] is kept so existing callers do not change.
 Future<void> runChangePasswordFlow(
   BuildContext context,
   WidgetRef ref,
 ) async {
-  final currentCtrl = TextEditingController();
-  final newCtrl = TextEditingController();
-  final confirmCtrl = TextEditingController();
-  String? errorText;
-
-  final submitted = await showDialog<bool>(
+  final messenger = ScaffoldMessenger.of(context);
+  final changed = await showSacSheet<bool>(
     context: context,
-    barrierColor: context.sac.barrierColor,
-    barrierDismissible: false,
-    builder: (ctx) {
-      return StatefulBuilder(
-        builder: (ctx, setDialogState) {
-          void submit() {
-            final current = currentCtrl.text.trim();
-            final next = newCtrl.text.trim();
-            final confirm = confirmCtrl.text.trim();
-
-            if (current.isEmpty || next.isEmpty || confirm.isEmpty) {
-              setDialogState(
-                  () => errorText = 'profile.settings.error_fill_all'.tr());
-              return;
-            }
-            if (next != confirm) {
-              setDialogState(() =>
-                  errorText = 'profile.settings.error_passwords_mismatch'.tr());
-              return;
-            }
-            // Misma política que el registro y el backend (12+, mayúscula,
-            // minúscula, número y carácter especial).
-            final policyError = Validators.validatePassword(next);
-            if (policyError != null) {
-              setDialogState(() => errorText = policyError);
-              return;
-            }
-            setDialogState(() => errorText = null);
-            Navigator.pop(ctx, true);
-          }
-
-          return Dialog(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-              decoration: BoxDecoration(
-                color: ctx.sac.surface,
-                borderRadius: BorderRadius.circular(AppTheme.radiusXL),
-                border: Border.all(color: ctx.sac.border),
-                boxShadow: [
-                  BoxShadow(
-                    color: ctx.sac.shadow,
-                    blurRadius: 28,
-                    offset: const Offset(0, 14),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Align(
-                    alignment: Alignment.center,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 9,
-                      ),
-                      decoration: BoxDecoration(
-                        color: ctx.sac.surfaceVariant,
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.radiusFull),
-                        border: Border.all(color: ctx.sac.border),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedLockPassword,
-                            color: SacAccent.of(context).color,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'profile.settings.change_password_dialog_title'
-                                .tr(),
-                            style: TextStyle(
-                              color: ctx.sac.text,
-                              fontWeight: FontWeight.w700,
-                              fontSize: SacFontSize.titleSmall,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  SacTextField(
-                    controller: currentCtrl,
-                    label: 'profile.settings.field_current_password'.tr(),
-                    obscureText: true,
-                    prefixIcon: HugeIcons.strokeRoundedLockKey,
-                    textInputAction: TextInputAction.next,
-                  ),
-                  const SizedBox(height: 12),
-                  SacTextField(
-                    controller: newCtrl,
-                    label: 'profile.settings.field_new_password'.tr(),
-                    obscureText: true,
-                    prefixIcon: HugeIcons.strokeRoundedLockPassword,
-                    textInputAction: TextInputAction.next,
-                  ),
-                  const SizedBox(height: 12),
-                  SacTextField(
-                    controller: confirmCtrl,
-                    label: 'profile.settings.field_confirm_password'.tr(),
-                    obscureText: true,
-                    prefixIcon: HugeIcons.strokeRoundedShieldKey,
-                    textInputAction: TextInputAction.done,
-                    onSubmitted: (_) => submit(),
-                  ),
-                  if (errorText != null) ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: ctx.sac.errorContainer,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-                      ),
-                      child: Text(
-                        errorText!,
-                        style: TextStyle(
-                          color: ctx.sac.onErrorContainer,
-                          fontSize: SacFontSize.bodyMedium,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 16),
-                  SacButton.primary(
-                    text: 'profile.settings.action_change'.tr(),
-                    icon: HugeIcons.strokeRoundedTick02,
-                    borderRadius: 999,
-                    onPressed: submit,
-                  ),
-                  const SizedBox(height: 8),
-                  SacButton.text(
-                    text: 'common.cancel'.tr(),
-                    onPressed: () => Navigator.pop(ctx, false),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    },
+    isScrollControlled: true,
+    builder: (_) => const ChangePasswordSheet(),
   );
-
-  if (submitted != true || !context.mounted) {
-    currentCtrl.dispose();
-    newCtrl.dispose();
-    confirmCtrl.dispose();
-    return;
+  if (changed == true) {
+    SacSnackBar.showMessenger(
+      messenger,
+      'profile.settings.password_updated'.tr(),
+      isSuccess: true,
+    );
   }
-
-  // Confirmación biométrica antes de cambiar la contraseña
-  // (no-op si el usuario no tiene biometría habilitada).
-  final bioOk = await requireBiometricConfirmation(
-    context,
-    ref,
-    reason: 'biometric.confirm_sensitive_action'.tr(),
-  );
-  if (!context.mounted) {
-    currentCtrl.dispose();
-    newCtrl.dispose();
-    confirmCtrl.dispose();
-    return;
-  }
-  if (!bioOk) {
-    currentCtrl.dispose();
-    newCtrl.dispose();
-    confirmCtrl.dispose();
-    SacSnackBar.show(context, 'profile.settings.operation_cancelled'.tr(),
-        isError: true);
-    return;
-  }
-
-  final error = await ref.read(authNotifierProvider.notifier).updatePassword(
-        currentPassword: currentCtrl.text.trim(),
-        newPassword: newCtrl.text.trim(),
-      );
-
-  currentCtrl.dispose();
-  newCtrl.dispose();
-  confirmCtrl.dispose();
-
-  if (!context.mounted) return;
-  SacSnackBar.show(
-    context,
-    error ?? 'profile.settings.password_updated'.tr(),
-    isError: error != null,
-  );
 }

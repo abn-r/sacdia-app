@@ -108,6 +108,7 @@ class SacSettingsTile extends StatelessWidget {
     required this.icon,
     required this.title,
     this.subtitle,
+    this.value,
     this.trailing,
     this.onTap,
     this.destructive = false,
@@ -116,6 +117,10 @@ class SacSettingsTile extends StatelessWidget {
   final HugeIconData icon;
   final String title;
   final String? subtitle;
+
+  /// Current value shown at the right, before the chevron ("Sistema").
+  /// Ignored when [trailing] is set.
+  final String? value;
   final Widget? trailing;
   final VoidCallback? onTap;
   final bool destructive;
@@ -161,13 +166,37 @@ class SacSettingsTile extends StatelessWidget {
               ),
               if (trailing != null)
                 trailing!
-              else if (onTap != null)
-                ExcludeSemantics(
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedArrowRight01,
-                    color: c.textTertiary,
-                    size: 16,
-                  ),
+              else if (value != null || onTap != null)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (value != null)
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.sizeOf(context).width * 0.38,
+                        ),
+                        child: Text(
+                          value!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.end,
+                          style: TextStyle(
+                            fontSize: SacFontSize.bodyMedium,
+                            color: c.textSecondary,
+                          ),
+                        ),
+                      ),
+                    if (value != null && onTap != null)
+                      const SizedBox(width: 6),
+                    if (onTap != null)
+                      ExcludeSemantics(
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedArrowRight01,
+                          color: c.textTertiary,
+                          size: 16,
+                        ),
+                      ),
+                  ],
                 ),
             ],
           ),

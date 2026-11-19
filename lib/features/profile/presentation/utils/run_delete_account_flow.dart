@@ -12,6 +12,15 @@ import '../widgets/delete_account_confirm_dialog.dart';
 import 'delete_account_dependents_gate.dart';
 import 'delete_account_flow.dart';
 
+/// Signature of [runDeleteAccountFlow]; screens take it as a parameter so tests
+/// can tell whether "Continuar" started the flow.
+typedef DeleteAccountRunner = Future<void> Function(
+  BuildContext context,
+  WidgetRef ref, {
+  bool skipFirstConfirm,
+  DependentsAck? initialDependentsAck,
+});
+
 /// Flujo completo de «Eliminar cuenta»: primera confirmación, aviso de menores
 /// a cargo (FP-66), reautenticación (contraseña o proveedor) y `DELETE
 /// /auth/me`.
@@ -21,25 +30,39 @@ import 'delete_account_flow.dart';
 /// terminar el registro). Si el borrado sale bien, la sesión pasa a nula y el
 /// router lleva al login; el aviso de éxito se muestra con el mensajero que se
 /// capturó antes, porque la pantalla de origen puede desmontarse.
-Future<void> runDeleteAccountFlow(BuildContext context, WidgetRef ref) async {
+///
+/// «Mis datos» ya mostró la hoja de consecuencias (qué se pierde y qué pasa con
+/// cada menor), así que pasa [skipFirstConfirm] (se omite el primer diálogo) y
+/// [initialDependentsAck] (el resultado de esa hoja: `acknowledged` si listó
+/// menores y se continuó, `none` si no había). Con eso el aviso de menores no se
+/// muestra dos veces. Tras un 409 el aviso vuelve a mostrarse igual.
+Future<void> runDeleteAccountFlow(
+  BuildContext context,
+  WidgetRef ref, {
+  bool skipFirstConfirm = false,
+  DependentsAck? initialDependentsAck,
+}) async {
   final messenger = ScaffoldMessenger.of(context);
   final confirmationWord =
       'profile.settings.delete_account_confirmation_word'.tr();
 
-  final firstConfirmed = await SacDialog.show(
-    context,
-    title: 'profile.settings.delete_account_title'.tr(),
-    content: 'profile.settings.delete_account_first_confirm_body'.tr(),
-    confirmLabel: 'profile.settings.delete_account_first_confirm_action'.tr(),
-    confirmIsDestructive: true,
-  );
+  if (!skipFirstConfirm) {
+    final firstConfirmed = await SacDialog.show(
+      context,
+      title: 'profile.settings.delete_account_title'.tr(),
+      content: 'profile.settings.delete_account_first_confirm_body'.tr(),
+      confirmLabel: 'profile.settings.delete_account_first_confirm_action'.tr(),
+      confirmIsDestructive: true,
+    );
 
-  if (firstConfirmed != true || !context.mounted) return;
+    if (firstConfirmed != true || !context.mounted) return;
+  }
 
   // Un tutor con menores a cargo los ve (y acepta qué pasará con cada uno)
   // ANTES de pedir la contraseña; sin menores no hay pasos extra (FP-66).
   final flow = DeleteAccountFlow(
     confirmDependents: ({required bool refresh}) async {
+      if (!refresh && initialDependentsAck != null) return initialDependentsAck;
       if (!context.mounted) return DependentsAck.cancelled;
       return confirmDeletionDependents(context, ref, refresh: refresh);
     },

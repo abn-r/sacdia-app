@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/providers/keep_alive_during.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/dio_provider.dart';
@@ -74,30 +75,30 @@ class DataExportNotifier extends AsyncNotifier<List<DataExport>> {
   ///
   /// Retorna null en éxito o un mensaje de error localizado.
   /// En 429 el mensaje ya incluye el tiempo de espera.
-  Future<String?> requestExport() async {
-    final result = await ref.read(dataExportRepositoryProvider).request();
+  Future<String?> requestExport() => ref.keepAliveDuring(() async {
+        final result = await ref.read(dataExportRepositoryProvider).request();
 
-    return result.fold(
-      (failure) {
-        AppLogger.w(
-          'Error al solicitar exportación: ${failure.message}',
-          tag: _tag,
+        return result.fold(
+          (failure) {
+            AppLogger.w(
+              'Error al solicitar exportación: ${failure.message}',
+              tag: _tag,
+            );
+            return failure.message;
+          },
+          (newExport) {
+            AppLogger.i(
+              'Exportación ${newExport.exportId} solicitada — status: ${newExport.status}',
+              tag: _tag,
+            );
+            // Insertar al frente de la lista (más reciente primero).
+            final current = state.value ?? [];
+            final updated = [newExport, ...current];
+            state = AsyncData(updated);
+            return null;
+          },
         );
-        return failure.message;
-      },
-      (newExport) {
-        AppLogger.i(
-          'Exportación ${newExport.exportId} solicitada — status: ${newExport.status}',
-          tag: _tag,
-        );
-        // Insertar al frente de la lista (más reciente primero).
-        final current = state.value ?? [];
-        final updated = [newExport, ...current];
-        state = AsyncData(updated);
-        return null;
-      },
-    );
-  }
+      });
 
   /// Obtiene la URL presignada para descargar una exportación lista.
   ///
