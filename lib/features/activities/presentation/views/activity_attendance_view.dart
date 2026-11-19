@@ -96,6 +96,8 @@ class _ActivityAttendanceViewState
         onPressed: _markByHand,
       );
     }
+    // Two buttons of the same width and height, stacked so the labels never
+    // get cut: the main action (scan) first, marking by hand under it.
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -106,7 +108,7 @@ class _ActivityAttendanceViewState
           icon: HugeIcons.strokeRoundedQrCode01,
           onPressed: _scan,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         SacButton(
           key: const ValueKey('attendance-manual'),
           text: 'activities.attendance.manual'.tr(),
