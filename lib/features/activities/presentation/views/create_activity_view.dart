@@ -517,7 +517,6 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
       backgroundColor: c.background,
       appBar: SacTopBar(
           title: 'activities.create.title'.tr(),
-          subtitle: 'activities.create.subtitle'.tr(),
           automaticallyImplyLeading: !isLoading,
           frosted: true),
       body: SacFrostedVeil(

@@ -405,10 +405,19 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en registerAttendance', tag: _tag, error: e);
       if (e is DioException) {
+        // Validation errors come back with `message` as a list of strings.
+        final raw =
+            e.response?.data is Map ? e.response?.data['message'] : null;
+        final message = raw is List
+            ? raw.join('\n')
+            : raw is String
+                ? raw
+                : null;
         throw ServerException(
-          message: e.response?.data?['message'] ??
-              e.message ??
-              tr('common.error_network'),
+          message: message ??
+              (e.response == null
+                  ? tr('common.error_network')
+                  : tr('activities.errors.register_attendance')),
           code: e.response?.statusCode,
         );
       }

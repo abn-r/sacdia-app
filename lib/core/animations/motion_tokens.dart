@@ -12,6 +12,11 @@ abstract final class SacMotion {
   static const Duration routeEnter = Duration(milliseconds: 240);
   static const Duration routeExit = Duration(milliseconds: 200);
   static const Duration modal = Duration(milliseconds: 240);
+
+  /// Horizontal slide of a swapped content (day change in the agenda) and of
+  /// the segmented control thumb.
+  static const Duration slide = Duration(milliseconds: 220);
+  static const double slideOffset = 24;
   static const Duration stagger = Duration(milliseconds: 40);
 
   /// Data reveal on screen open: progress bars filling and counters counting

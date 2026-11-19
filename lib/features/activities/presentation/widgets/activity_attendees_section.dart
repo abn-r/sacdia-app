@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/features/activities/presentation/theme/activities_tokens.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 
 import '../../domain/entities/activity.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
 
-/// Attendees section — read-only display of activity participants.
+/// Attendees row — read-only display of activity participants. The detail
+/// puts it inside a grouped section ("ASISTENCIA") that owns the eyebrow and
+/// the count.
 ///
 /// Shows stacked circular avatars with warm, distinct colors for initials.
 /// The list comes from the `attendees` JSON field on the activity; display
@@ -34,63 +34,27 @@ class ActivityAttendeesSection extends StatelessWidget {
     final sac = context.sac;
     final count = attendees.length;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Section header
-        Row(
-          children: [
-            Container(
-              width: 6,
-              height: 6,
-              decoration: BoxDecoration(
-                color: SacAccent.of(context).color,
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'activities.widgets.attendees_title'.tr(),
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            const SizedBox(width: 8),
-            // Count badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: SacAccent.of(context).light,
-                borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-              ),
-              child: Text(
-                '$count',
-                style: TextStyle(
-                  fontSize: SacFontSize.labelSmall,
-                  fontWeight: FontWeight.w700,
-                  color: SacAccent.of(context).dark,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 56),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+        child: Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: count == 0
+              ? Text(
+                  emptyMessage ?? 'activities.widgets.attendees_all'.tr(),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: sac.textSecondary,
+                      ),
+                )
+              : _StackedAvatars(
+                  attendees: _resolve(),
+                  maxVisible: _maxVisible,
+                  warmPalette: ActivitiesTokens.attendeeAvatarPalette,
+                  warmPaletteDark: ActivitiesTokens.attendeeAvatarPaletteDark,
                 ),
-              ),
-            ),
-          ],
         ),
-        const SizedBox(height: 12),
-
-        if (count == 0)
-          Text(
-            emptyMessage ?? 'activities.widgets.attendees_all'.tr(),
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: sac.textSecondary,
-                ),
-          )
-        else
-          _StackedAvatars(
-            attendees: _resolve(),
-            maxVisible: _maxVisible,
-            warmPalette: ActivitiesTokens.attendeeAvatarPalette,
-            warmPaletteDark: ActivitiesTokens.attendeeAvatarPaletteDark,
-          ),
-      ],
+      ),
     );
   }
 
@@ -206,7 +170,7 @@ class _AvatarCircle extends StatelessWidget {
           color: _bgColor(),
           shape: BoxShape.circle,
           border: Border.all(
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: context.sac.surface,
             width: 2,
           ),
         ),
@@ -251,7 +215,7 @@ class _OverflowCircle extends StatelessWidget {
         color: sac.surfaceVariant,
         shape: BoxShape.circle,
         border: Border.all(
-          color: Theme.of(context).scaffoldBackgroundColor,
+          color: context.sac.surface,
           width: 2,
         ),
       ),

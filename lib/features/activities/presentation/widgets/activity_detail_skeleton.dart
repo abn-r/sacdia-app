@@ -1,128 +1,90 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
-import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 
-/// Skeleton that mirrors the ActivityDetailView layout structure.
-///
-/// Uses the shared [SacShimmer] around the content blocks (the app bar stays
-/// outside so the back button is not tinted).
+import 'activity_date_tile.dart';
+import 'activity_map_card.dart';
+
+/// Skeleton that mirrors the ActivityDetailView layout: date tile + name +
+/// chip, map card, state panel, grouped DETAILS block, description and
+/// attendance. The top bar belongs to the screen, so it is not drawn here.
 class ActivityDetailSkeleton extends StatelessWidget {
   const ActivityDetailSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      slivers: [
-        // AppBar placeholder (back button + title)
-        SliverAppBar(
-          automaticallyImplyLeading: false,
-          leading: sacAutoBackButton(context),
-          pinned: true,
-          expandedHeight: 0,
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          foregroundColor: context.sac.text,
-        ),
-
-        SliverToBoxAdapter(
-          child: SacShimmer(
-            child: ExcludeSemantics(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Hero block
-                  SacSkeletonBox(height: 220, radius: AppTheme.radiusMD),
-                  const SizedBox(height: 16),
-
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Title line
-                        SacSkeletonBox(width: 240, height: 22),
-                        const SizedBox(height: 8),
-                        // Type chip + platform badge — grouped left
-                        Row(
-                          children: [
-                            SacSkeletonBox(
-                                width: 68,
-                                height: 22,
-                                radius: AppTheme.radiusXS),
-                            const SizedBox(width: 6),
-                            SacSkeletonBox(
-                                width: 80,
-                                height: 22,
-                                radius: AppTheme.radiusXS),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-
-                        // Meta line (countdown · section)
-                        SacSkeletonBox(width: 180, height: 14),
-                        const SizedBox(height: 16),
-
-                        // Info strip (single card, fecha + hora)
-                        SacSkeletonBox(height: 68, radius: AppTheme.radiusMD),
-                        const SizedBox(height: 10),
-
-                        // Location row
-                        SacSkeletonBox(height: 56, radius: AppTheme.radiusMD),
-                        const SizedBox(height: 24),
-
-                        // Description header
-                        SacSkeletonBox(width: 120, height: 18),
-                        const SizedBox(height: 10),
-                        // Description lines
-                        SacSkeletonBox(height: 14),
-                        const SizedBox(height: 6),
-                        SacSkeletonBox(height: 14),
-                        const SizedBox(height: 6),
-                        SacSkeletonBox(width: 180, height: 14),
-                        const SizedBox(height: 24),
-
-                        // Attendees header
-                        SacSkeletonBox(width: 140, height: 18),
-                        const SizedBox(height: 12),
-                        // Avatar row
-                        Row(
-                          children: List.generate(
-                            5,
-                            (i) => Padding(
-                              padding: EdgeInsets.only(left: i == 0 ? 0 : 4),
-                              child: SacSkeletonBox(
-                                  width: 36,
-                                  height: 36,
-                                  radius: AppTheme.radiusFull),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Creator footer
-                        Row(
-                          children: [
-                            SacSkeletonBox(
-                                width: 24,
-                                height: 24,
-                                radius: AppTheme.radiusFull),
-                            const SizedBox(width: 8),
-                            SacSkeletonBox(width: 160, height: 12),
-                          ],
-                        ),
-
-                        // Bottom spacing for the fixed action bar
-                        const SizedBox(height: 100),
-                      ],
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: SacShimmer(
+        child: ExcludeSemantics(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Date tile + name + type chip
+                Row(
+                  children: [
+                    SacSkeletonBox(
+                      width: ActivityDateTile.size,
+                      height: ActivityDateTile.size,
+                      radius: AppTheme.radiusMD,
                     ),
-                  ),
-                ],
-              ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SacSkeletonBox(height: 20),
+                          const SizedBox(height: 6),
+                          SacSkeletonBox(
+                            width: 96,
+                            height: 22,
+                            radius: AppTheme.radiusLG,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+
+                // Map card + place line
+                SacSkeletonBox(
+                  height: ActivityMapCard.mapHeight,
+                  radius: AppTheme.radiusMD,
+                ),
+                const SizedBox(height: 8),
+                SacSkeletonBox(width: 200, height: 14),
+                const SizedBox(height: 16),
+
+                // State panel
+                SacSkeletonBox(height: 76, radius: AppTheme.radiusMD),
+                const SizedBox(height: 24),
+
+                // DETAILS eyebrow + grouped rows
+                SacSkeletonBox(width: 64, height: 12),
+                const SizedBox(height: 8),
+                SacSkeletonBox(height: 112, radius: AppTheme.radiusMD),
+                const SizedBox(height: 24),
+
+                // Description
+                SacSkeletonBox(width: 90, height: 12),
+                const SizedBox(height: 8),
+                SacSkeletonBox(height: 14),
+                const SizedBox(height: 6),
+                SacSkeletonBox(width: 220, height: 14),
+                const SizedBox(height: 24),
+
+                // Attendance
+                SacSkeletonBox(width: 80, height: 12),
+                const SizedBox(height: 8),
+                SacSkeletonBox(height: 56, radius: AppTheme.radiusMD),
+              ],
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 }

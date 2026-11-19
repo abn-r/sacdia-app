@@ -1,64 +1,63 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
-import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/utils/icon_helper.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/animations/sac_state_swap.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
-import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_frosted_footer.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_member_avatar.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/status_progress/sac_grouped_section.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:easy_localization/easy_localization.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../../qr/presentation/views/qr_scanner_view.dart';
-import '../../../virtual_card/presentation/views/virtual_card_view.dart';
 import '../../domain/entities/activity.dart';
 import '../providers/activities_providers.dart';
 import '../widgets/activity_attendees_section.dart';
+import '../widgets/activity_audience_line.dart';
+import '../widgets/activity_date_format.dart';
+import '../widgets/activity_date_tile.dart';
+import '../widgets/activity_description_block.dart';
+import '../widgets/activity_detail_actions.dart';
+import '../widgets/activity_detail_row.dart';
 import '../widgets/activity_detail_skeleton.dart';
-import '../widgets/activity_hero_section.dart';
-import '../widgets/activity_info_strip.dart';
-import '../widgets/activity_location_row.dart';
+import '../widgets/activity_map_card.dart';
+import '../widgets/activity_more_sheet.dart';
+import '../widgets/activity_state_panel.dart';
+import '../widgets/activity_type_style.dart';
 import '../widgets/activity_virtual_attendance.dart';
-import '../widgets/activity_virtual_banner.dart';
+import 'activity_attendance_view.dart';
+import 'activity_manual_attendance_view.dart';
+import 'activity_my_qr_view.dart';
 import 'edit_activity_view.dart';
-import 'package:sacdia_app/core/animations/page_transitions.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
 
-/// Activity detail screen — consolidated layout (revised 2026-04).
+/// Activity detail screen.
 ///
-/// Layout:
-///   A) Adaptive hero — 220px map (presencial), 300px gradient banner (virtual),
-///      220px image hero (híbrido) — behind a transparent SliverAppBar.
-///   B) Title + type chip (left) + platform badge (right).
-///   C) ActivityInfoStrip — countdown pill + passive section pill + fecha/hora row.
-///   D) ActivityLocationRow — tap-able address (presencial / híbrido only).
-///   E) Meet CTA full-width — SacButton.primary "Unirse a la reunión" (virtual / híbrido).
-///   F) Description (expandable).
-///   G) Attendance action (permission-gated).
-///   H) Participants section.
-///   I) Creator footer card.
-///
-/// Tipo and Modalidad are not duplicated in a metadata grid — they are
-/// communicated solely by the chip row above (and the CTA's presence for
-/// virtual activities).
+/// Layout: standard top bar (back, "⋯" with Edit / Delete) → header (date
+/// tile, name, type chip) → map card (in-person / hybrid) → state panel
+/// (countdown, in progress, finished) → DETAILS → description → attendance →
+/// organizer, with one primary action in a frosted footer.
 class ActivityDetailView extends ConsumerStatefulWidget {
   final int activityId;
+
+  /// Replaces the Google map in tests (a real one needs a platform view).
+  final ActivityMapBuilder? mapBuilder;
 
   const ActivityDetailView({
     super.key,
     required this.activityId,
+    this.mapBuilder,
   });
 
   @override
@@ -66,83 +65,6 @@ class ActivityDetailView extends ConsumerStatefulWidget {
 }
 
 class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
-  bool _descriptionExpanded = false;
-
-  // ── hero height (platform-aware) ───────────────────────────────────────────
-
-  double _heroHeightFor(int platform) {
-    // 1 = Virtual. 0/2 = Presencial/Híbrido.
-    return platform == 1 ? 150.0 : 220.0;
-  }
-
-  Widget _buildHeroContent(Activity activity) {
-    if (activity.platform == 1) {
-      return ActivityVirtualBanner(activity: activity);
-    }
-    return ActivityHeroSection(activity: activity);
-  }
-
-  // ── type helpers ────────────────────────────────────────────────────────────
-
-  /// Text-safe variant of a status color used on its own 10-12% tint.
-  Color _statusTextFor(Color color) {
-    final c = context.sac;
-    if (color == AppColors.info) return c.onInfoContainer;
-    if (color == AppColors.accent) return c.onWarningContainer;
-    if (color == AppColors.secondary) return c.onSuccessContainer;
-    return color;
-  }
-
-  Color _typeColor(int type) {
-    switch (type) {
-      case 1:
-        return AppColors.info;
-      case 2:
-        return AppColors.accent;
-      case 3:
-        return AppColors.secondary;
-      default:
-        return SacAccent.of(context).color;
-    }
-  }
-
-  String _typeLabel(int type, String? typeName) {
-    final name = typeName?.trim();
-    if (name != null && name.isNotEmpty) return name;
-    switch (type) {
-      case 1:
-        return 'activities.detail.type_regular'.tr();
-      case 2:
-        return 'activities.detail.type_special'.tr();
-      case 3:
-        return 'activities.detail.type_camporee'.tr();
-      default:
-        return 'activities.detail.type_activity'.tr();
-    }
-  }
-
-  String _platformLabel(int platform) {
-    switch (platform) {
-      case 1:
-        return 'activities.detail.platform_virtual'.tr();
-      case 2:
-        return 'activities.detail.platform_hybrid'.tr();
-      default:
-        return 'activities.detail.platform_in_person'.tr();
-    }
-  }
-
-  Color _platformColor(int platform) {
-    switch (platform) {
-      case 1:
-        return AppColors.info;
-      case 2:
-        return AppColors.accent;
-      default:
-        return AppColors.secondary;
-    }
-  }
-
   // ── navigation ──────────────────────────────────────────────────────────────
 
   Future<void> _navigateToEdit(Activity activity) async {
@@ -152,6 +74,25 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     );
     if (result == true && mounted) {
       ref.invalidate(activityDetailProvider(widget.activityId));
+    }
+  }
+
+  Future<void> _openMoreSheet(
+    Activity activity, {
+    required bool canEdit,
+    required bool canDelete,
+  }) async {
+    final action = await showActivityMoreSheet(
+      context,
+      canEdit: canEdit,
+      canDelete: canDelete,
+    );
+    if (!mounted || action == null) return;
+    switch (action) {
+      case ActivityMoreAction.edit:
+        await _navigateToEdit(activity);
+      case ActivityMoreAction.delete:
+        await _confirmDelete();
     }
   }
 
@@ -176,8 +117,11 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     if (!mounted) return;
 
     if (success) {
-      SacSnackBar.showMessenger(messenger, 'activities.detail.deleted_ok'.tr(),
-          isError: true);
+      SacSnackBar.showMessenger(
+        messenger,
+        'activities.detail.deleted_ok'.tr(),
+        isSuccess: true,
+      );
       navigator.pop();
     } else {
       final deleteState = ref.read(deleteActivityNotifierProvider);
@@ -189,8 +133,6 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     }
   }
 
-  // ── meet link ───────────────────────────────────────────────────────────────
-
   Future<void> _openMeetLink(String url) async {
     final uri = Uri.tryParse(url);
     if (uri != null && await canLaunchUrl(uri)) {
@@ -198,13 +140,55 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     }
   }
 
-  // ── relative date ───────────────────────────────────────────────────────────
+  /// Staff attendance panel (QR and manual marking) for every platform.
+  void _openAttendance() {
+    final activity = ref.read(activityDetailProvider(widget.activityId)).value;
+    Navigator.of(context).push(
+      SacSharedAxisRoute(
+        builder: (_) => ActivityAttendanceView(
+          activityId: widget.activityId,
+          activityName: activity?.name ?? '',
+          isVirtual: activity?.platform == 1,
+        ),
+      ),
+    );
+  }
 
-  String _relativeDate(DateTime? date) {
-    if (date == null) return '';
-    final now = DateTime.now();
-    final diff = now.difference(date.toLocal()).inDays;
-    if (diff == 0) return 'activities.detail.relative_today'.tr();
+  void _openMyQr() {
+    final activity = ref.read(activityDetailProvider(widget.activityId)).value;
+    Navigator.of(context).push(
+      SacSharedAxisRoute(
+        builder: (_) => ActivityMyQrView(
+          activityId: widget.activityId,
+          activityName: activity?.name ?? '',
+          sectionName: activity?.clubTypeName,
+        ),
+      ),
+    );
+  }
+
+  /// Virtual activities: staff marks who actually attended.
+  Future<void> _openRoster() async {
+    final activity = ref.read(activityDetailProvider(widget.activityId)).value;
+    final saved = await Navigator.of(context).push<bool>(
+      SacSharedAxisRoute(
+        builder: (_) => ActivityManualAttendanceView(
+          activityId: widget.activityId,
+          activityName: activity?.name ?? '',
+          showRsvp: true,
+        ),
+      ),
+    );
+    if (saved != true || !mounted) return;
+    ref.invalidate(activityDetailProvider(widget.activityId));
+    ref.invalidate(attendanceRosterProvider(widget.activityId));
+  }
+
+  // ── helpers ─────────────────────────────────────────────────────────────────
+
+  String _relativeDate(DateTime date) {
+    final diff = DateTime.now().difference(date.toLocal()).inDays;
+    if (diff <= 0) return 'activities.detail.relative_today'.tr();
     if (diff == 1) return 'activities.detail.relative_yesterday'.tr();
     if (diff < 7) {
       return 'activities.detail.relative_days'
@@ -214,216 +198,61 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
       return 'activities.detail.relative_weeks'
           .tr(namedArgs: {'count': (diff / 7).floor().toString()});
     }
-    return DateFormat('d MMM yyyy').format(date.toLocal());
+    return DateFormat.yMMMd(context.locale.toString()).format(date.toLocal());
+  }
+
+  /// "meet.google.com/abc-defg" from a full link (scheme and query dropped).
+  String _linkDisplay(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri == null || uri.host.isEmpty) return url;
+    final path = uri.path == '/' ? '' : uri.path;
+    return '${uri.host}$path';
   }
 
   // ── sections ────────────────────────────────────────────────────────────────
 
-  Widget _buildTitleSection(BuildContext context, Activity activity) {
-    final typeColor = _typeColor(activity.activityType);
-    final typeText =
-        _typeLabel(activity.activityType, activity.activityTypeName);
-    final platColor = _platformColor(activity.platform);
-    final platText = _platformLabel(activity.platform);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          activity.name,
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.3,
-              ),
-        ),
-        const SizedBox(height: 8),
-        // Identity chips — grouped together on the left (no Spacer).
-        // Wrap allows graceful fallback on very narrow widths.
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-              decoration: BoxDecoration(
-                color: typeColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-              ),
-              child: Text(
-                typeText,
-                style: TextStyle(
-                  fontSize: SacFontSize.bodySmall,
-                  fontWeight: FontWeight.w700,
-                  color: _statusTextFor(typeColor),
-                  height: 1.2,
-                ),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-              decoration: BoxDecoration(
-                color: platColor.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-                border: Border.all(
-                  color: platColor.withValues(alpha: 0.35),
-                  width: 1,
-                ),
-              ),
-              child: Text(
-                platText,
-                style: TextStyle(
-                  fontSize: SacFontSize.bodySmall,
-                  fontWeight: FontWeight.w700,
-                  color: _statusTextFor(platColor),
-                  height: 1.2,
-                ),
-              ),
-            ),
-            if (activity.activitySeriesId != null)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-                decoration: BoxDecoration(
-                  color: context.sac.successContainer,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-                ),
-                child: Text(
-                  'activities.series.badge'.tr(),
-                  style: TextStyle(
-                    fontSize: SacFontSize.bodySmall,
-                    fontWeight: FontWeight.w700,
-                    color: context.sac.onSuccessContainer,
-                    height: 1.2,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSectionHeader(BuildContext context, String title) {
-    return Row(
-      children: [
-        Container(
-          width: 6,
-          height: 6,
-          decoration: BoxDecoration(
-            color: SacAccent.of(context).color,
-            shape: BoxShape.circle,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDescriptionSection(BuildContext context, String description) {
-    final warmGray = context.sac.textSecondary;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionHeader(
-            context, 'activities.detail.section_description'.tr()),
-        const SizedBox(height: 10),
-        AnimatedCrossFade(
-          duration: const Duration(milliseconds: 200),
-          crossFadeState: _descriptionExpanded
-              ? CrossFadeState.showSecond
-              : CrossFadeState.showFirst,
-          firstChild: Text(
-            description,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: warmGray,
-                  height: 1.6,
-                ),
-            maxLines: 4,
-            overflow: TextOverflow.ellipsis,
-          ),
-          secondChild: Text(
-            description,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: warmGray,
-                  height: 1.6,
-                ),
-          ),
-        ),
-        if (description.length > 200)
-          GestureDetector(
-            onTap: () =>
-                setState(() => _descriptionExpanded = !_descriptionExpanded),
-            child: Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Text(
-                _descriptionExpanded
-                    ? 'activities.detail.see_less'.tr()
-                    : 'activities.detail.see_more'.tr(),
-                style: TextStyle(
-                  fontSize: SacFontSize.bodyMedium,
-                  fontWeight: FontWeight.w600,
-                  color: SacAccent.of(context).color,
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildCreatorFooter(BuildContext context, Activity activity) {
-    final sac = context.sac;
-    final createdDate = activity.createdAt;
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: sac.surfaceVariant,
-        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-        border: Border.all(color: sac.border),
-      ),
+  Widget _buildHeader(Activity activity, String locale) {
+    final date = activity.activityDate;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
       child: Row(
         children: [
-          _CreatorAvatar(
-            imageUrl: activity.creatorImage,
-            name: activity.creatorName,
-            size: 36,
-          ),
-          const SizedBox(width: 12),
+          if (date != null) ...[
+            ActivityDateTile(date: date, locale: locale),
+            const SizedBox(width: 14),
+          ],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'activities.detail.organizer'.tr(),
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: sac.textTertiary,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.4,
+                  activity.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        height: 1.2,
                       ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  activity.creatorName ??
-                      'activities.detail.creator_system'.tr(),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    SacBadge(
+                      label: activityTypeLabel(
+                        activity.activityType,
+                        activity.activityTypeName,
                       ),
+                      variant: activityTypeBadgeVariant(activity.activityType),
+                    ),
+                    if (activity.activitySeriesId != null)
+                      SacBadge.success(
+                        label: 'activities.series.badge'.tr(),
+                        icon: HugeIcons.strokeRoundedRefresh,
+                      ),
+                  ],
                 ),
-                if (createdDate != null)
-                  Text(
-                    _relativeDate(createdDate),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: sac.textTertiary,
-                        ),
-                  ),
               ],
             ),
           ),
@@ -432,67 +261,247 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     );
   }
 
-  Widget _buildAttendanceAction(
-    BuildContext context, {
-    required bool canScanAttendance,
-  }) {
-    return _ActivityActionCard(
-      icon: canScanAttendance
-          ? HugeIcons.strokeRoundedQrCode01
-          : HugeIcons.strokeRoundedQrCode,
-      title: canScanAttendance
-          ? 'qr.scan_attendance_title'.tr()
-          : 'activities.widgets.show_my_qr_title'.tr(),
-      body: canScanAttendance
-          ? 'qr.scan_hint_attendance'.tr()
-          : 'activities.widgets.show_my_qr_body'.tr(),
-      onTap: canScanAttendance ? _openQrScanner : _openMyQr,
-    );
-  }
+  Widget _buildDetails(Activity activity, String locale) {
+    final date = activity.activityDate;
+    final time = activityTimeLabel(activity.activityTime);
+    final end = activity.lastDay;
+    final isMultiDay = date != null &&
+        end != null &&
+        DateTime(date.year, date.month, date.day) != end;
+    final dateDetail = [
+      if (time != null) time,
+      if (isMultiDay)
+        'activities.detail.until_date'
+            .tr(namedArgs: {'date': activityDayMonth(end, locale)}),
+    ].join(' · ');
 
-  // ── AppBar action button (circular, white, with dark scrim) ─────────────────
+    final sectionName = (activity.clubTypeName?.trim().isNotEmpty ?? false)
+        ? activity.clubTypeName!.trim()
+        : 'activities.widgets.section_fallback'
+            .tr(namedArgs: {'section': '${activity.clubSectionId}'});
+    final isClasses =
+        activity.audience == 'classes' && activity.audienceClasses.isNotEmpty;
 
-  Widget _buildHeroAction({
-    Key? key,
-    required BuildContext context,
-    required Widget child,
-    required VoidCallback? onPressed,
-  }) {
-    return GestureDetector(
-      key: key,
-      onTap: onPressed,
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.55),
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.25),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+    final link = activity.linkMeet?.trim();
+    final hasLink = link != null && link.isNotEmpty;
+    final showModality = activity.platform == 1 || hasLink;
+    final isMeet = hasLink && Uri.tryParse(link)?.host == 'meet.google.com';
+
+    return SacGroupedSection(
+      label: 'activities.detail.section_details'.tr(),
+      action: const SizedBox.shrink(),
+      children: [
+        if (date != null)
+          ActivityDetailRow(
+            icon: HugeIcons.strokeRoundedCalendar01,
+            title: activityFullDate(date, locale),
+            detail: dateDetail,
+          ),
+        ActivityDetailRow(
+          icon: HugeIcons.strokeRoundedUserGroup,
+          title: isClasses
+              ? 'activities.form.audience_classes'.tr()
+              : activityAudienceText(activity),
+          detail: sectionName,
+          extra: isClasses ? ActivityAudienceClasses(activity: activity) : null,
         ),
-        child: Center(child: child),
+        if (showModality)
+          ActivityDetailRow(
+            icon: HugeIcons.strokeRoundedComputerVideoCall,
+            title: hasLink
+                ? (isMeet
+                    ? 'activities.detail.modality_meet'.tr()
+                    : 'activities.detail.modality_link'.tr())
+                : 'activities.detail.platform_virtual'.tr(),
+            detail: hasLink ? _linkDisplay(link) : null,
+            onTap: hasLink ? () => _openMeetLink(link) : null,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildAttendance(Activity activity, {required bool canManage}) {
+    final attendees = activity.attendees ?? const <String>[];
+    final isVirtual = activity.platform == 1;
+    return SacGroupedSection(
+      label: 'activities.detail.section_attendance'.tr(),
+      count: attendees.length,
+      children: [
+        ActivityAttendeesSection(
+          attendees: attendees,
+          profiles: activity.attendeeProfiles,
+          emptyMessage:
+              isVirtual ? 'activities.widgets.rsvp_none_confirmed'.tr() : null,
+        ),
+        if (isVirtual && canManage)
+          ActivityDetailRow(
+            icon: HugeIcons.strokeRoundedUserCheck01,
+            title: 'activities.widgets.rsvp_confirm_title'.tr(),
+            detail: 'activities.widgets.rsvp_confirm_body'.tr(),
+            onTap: _openRoster,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildOrganizer(Activity activity) {
+    final created = activity.createdAt;
+    final name =
+        activity.creatorName ?? 'activities.detail.creator_system'.tr();
+    return SacGroupedSection(
+      label: 'activities.detail.section_organizer'.tr(),
+      action: const SizedBox.shrink(),
+      children: [
+        ActivityDetailRow(
+          leading: SacMemberAvatar(
+            imageUrl: activity.creatorImage,
+            name: name,
+            size: 32,
+          ),
+          title: name,
+          detail: created == null
+              ? null
+              : 'activities.detail.created_ago'
+                  .tr(namedArgs: {'when': _relativeDate(created)}),
+        ),
+      ],
+    );
+  }
+
+  Widget? _buildFooter(Activity activity, ActivityPhase phase,
+      {required bool canManage}) {
+    final action = activityFooterAction(
+      activity,
+      phase,
+      canManageAttendance: canManage,
+    );
+    switch (action) {
+      case ActivityFooterAction.none:
+        return null;
+      case ActivityFooterAction.showMyQr:
+        return SacButton.primary(
+          key: const ValueKey('activity-footer-qr'),
+          text: 'activities.widgets.show_my_qr_title'.tr(),
+          icon: HugeIcons.strokeRoundedQrCode,
+          onPressed: _openMyQr,
+        );
+      case ActivityFooterAction.manageAttendance:
+        return SacButton.primary(
+          key: const ValueKey('activity-footer-attendance'),
+          text: 'activities.detail.footer_attendance'.tr(),
+          icon: HugeIcons.strokeRoundedQrCode01,
+          onPressed: _openAttendance,
+        );
+      case ActivityFooterAction.joinMeeting:
+        return SacButton.primary(
+          key: const ValueKey('activity-footer-join'),
+          text: 'activities.detail.join_meeting'.tr(),
+          icon: HugeIcons.strokeRoundedComputerVideoCall,
+          onPressed: () => _openMeetLink(activity.linkMeet!),
+        );
+    }
+  }
+
+  Widget? _buildMoreAction(
+    Activity activity, {
+    required bool canEdit,
+    required bool canDelete,
+    required bool isDeleting,
+  }) {
+    if (!canEdit && !canDelete) return null;
+    final c = context.sac;
+    return SacPressable(
+      listenOnly: true,
+      child: IconButton(
+        key: const ValueKey('activity-more-action'),
+        enableFeedback: false,
+        tooltip: 'nav.more_options'.tr(),
+        constraints: const BoxConstraints(
+          minWidth: SacTopBar.touchTarget,
+          minHeight: SacTopBar.touchTarget,
+        ),
+        onPressed: isDeleting
+            ? null
+            : () => _openMoreSheet(
+                  activity,
+                  canEdit: canEdit,
+                  canDelete: canDelete,
+                ),
+        icon: SacStateSwap(
+          child: isDeleting
+              ? SacLoadingSmall(
+                  key: const ValueKey('activity-delete-loading'),
+                  color: c.text,
+                )
+              : HugeIcon(
+                  key: const ValueKey('activity-more-idle'),
+                  icon: HugeIcons.strokeRoundedMoreHorizontal,
+                  size: 22,
+                  color: c.text,
+                ),
+        ),
       ),
     );
   }
 
-  // ── main build ──────────────────────────────────────────────────────────────
+  Widget _buildBody(
+    Activity activity, {
+    required bool canManage,
+    required Widget? footer,
+  }) {
+    final locale = context.locale.toString();
+    final description = activity.description?.trim() ?? '';
 
-  void _openQrScanner() {
-    Navigator.of(context).push(
-      SacSharedAxisRoute(
-        builder: (_) => QrScannerView(activityId: widget.activityId),
+    final list = RefreshIndicator(
+      color: SacAccent.of(context).color,
+      onRefresh: () async {
+        ref.invalidate(activityDetailProvider(widget.activityId));
+        await ref.read(activityDetailProvider(widget.activityId).future);
+      },
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.only(
+          bottom: footer == null ? 40 : SacFrostedFooter.height + 16,
+        ),
+        children: [
+          _buildHeader(activity, locale),
+          if (activityHasMapCard(activity))
+            ActivityMapCard(activity: activity, mapBuilder: widget.mapBuilder),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            child: ActivityStatePanel(activity: activity),
+          ),
+          _buildDetails(activity, locale),
+          if (description.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: ActivityDescriptionBlock(description: description),
+            ),
+          if (activity.platform == 1)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: ActivityVirtualAttendance(
+                activityId: activity.id,
+                eyebrow: 'activities.widgets.rsvp_title'.tr(),
+              ),
+            ),
+          _buildAttendance(activity, canManage: canManage),
+          _buildOrganizer(activity),
+        ],
       ),
     );
-  }
 
-  void _openMyQr() {
-    Navigator.of(context).push(
-      SacSharedAxisRoute(builder: (_) => const VirtualCardView()),
+    if (footer == null) return list;
+    return Stack(
+      children: [
+        Positioned.fill(child: list),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: SacFrostedFooter(child: footer),
+        ),
+      ],
     );
   }
 
@@ -504,386 +513,41 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
       authNotifierProvider.select((v) => v.value),
     );
 
-    final canScanAttendance = activityAsync.hasValue &&
-        (hasAnyPermission(user, const {'attendance:manage'}) ||
-            hasCapability(user, 'club.operational_staff'));
-    final canEditActivity = canUpdateActivities(user);
-    final canDeleteActivity = canDeleteActivities(user);
+    final canManage = hasAnyPermission(user, const {'attendance:manage'}) ||
+        hasCapability(user, 'club.operational_staff');
+    final canEdit = canUpdateActivities(user);
+    final canDelete = canDeleteActivities(user);
+    final activity = activityAsync.value;
+    final moreAction = activity == null
+        ? null
+        : _buildMoreAction(
+            activity,
+            canEdit: canEdit,
+            canDelete: canDelete,
+            isDeleting: deleteState.isLoading,
+          );
 
-    // Light icons only over the dark photo hero; loading/error sit on the
-    // themed background.
-    final overlayStyle = activityAsync.hasValue
-        ? SystemUiOverlayStyle.light
-        : (Theme.of(context).brightness == Brightness.dark
-            ? SystemUiOverlayStyle.light
-            : SystemUiOverlayStyle.dark);
-
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: overlayStyle,
-      child: Scaffold(
-        backgroundColor: context.sac.background,
-        body: activityAsync.when(
-          loading: () => const ActivityDetailSkeleton(),
-          error: (error, _) => Column(
-            children: [
-              AppBar(
-                automaticallyImplyLeading: false,
-                leading: sacAutoBackButton(context),
-                backgroundColor: context.sac.background,
-                foregroundColor: context.sac.text,
-                elevation: 0,
-              ),
-              Expanded(
-                child: SacErrorState(
-                  title: 'activities.detail.error_load'.tr(),
-                  message: userErrorMessage(error),
-                  onRetry: () =>
-                      ref.invalidate(activityDetailProvider(widget.activityId)),
-                ),
-              ),
-            ],
-          ),
-          data: (activity) {
-            final heroHeight = _heroHeightFor(activity.platform);
-            final hasLocation = activity.platform != 1 &&
-                activity.activityPlace.trim().isNotEmpty;
-            final topPadding = MediaQuery.of(context).padding.top;
-
-            return Stack(
-              children: [
-                CustomScrollView(
-                  slivers: [
-                    // A) Fixed-size hero.
-                    //
-                    // Keep the native GoogleMap out of a collapsing
-                    // SliverAppBar. Platform views are expensive to resize
-                    // every scroll tick; moving the hero as a fixed-size sliver
-                    // lets the compositor translate it instead of relaying it
-                    // out continuously.
-                    SliverToBoxAdapter(
-                      child: SizedBox(
-                        height: heroHeight,
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            RepaintBoundary(
-                              child: _buildHeroContent(activity),
-                            ),
-                            Positioned(
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              height: topPadding + kToolbarHeight + 16,
-                              child: IgnorePointer(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [
-                                        Colors.black.withValues(alpha: 0.38),
-                                        Colors.transparent,
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // ── Scrollable content ───────────────────────────────
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 20),
-
-                            // B) Title + type chip + platform badge
-                            _buildTitleSection(context, activity),
-
-                            const SizedBox(height: 6),
-
-                            // C) Primary info strip (meta line + fecha/hora card)
-                            ActivityInfoStrip(activity: activity),
-
-                            // D) Location row (presencial / híbrido)
-                            if (hasLocation) ...[
-                              const SizedBox(height: 10),
-                              ActivityLocationRow(activity: activity),
-                            ],
-
-                            // E) Meet CTA (virtual / híbrido)
-                            if (activity.hasVirtualLink) ...[
-                              const SizedBox(height: 12),
-                              SacButton.primary(
-                                text: 'activities.detail.join_meeting'.tr(),
-                                icon: HugeIcons.strokeRoundedComputerVideoCall,
-                                onPressed: () =>
-                                    _openMeetLink(activity.linkMeet!),
-                              ),
-                            ],
-
-                            // F) Description
-                            if (activity.description != null &&
-                                activity.description!.isNotEmpty) ...[
-                              const SizedBox(height: 24),
-                              _buildDescriptionSection(
-                                  context, activity.description!),
-                            ],
-
-                            // G) Attendance action
-                            const SizedBox(height: 24),
-                            if (activity.platform == 1)
-                              ActivityVirtualAttendance(
-                                activityId: activity.id,
-                                canConfirm: canScanAttendance,
-                              )
-                            else
-                              _buildAttendanceAction(
-                                context,
-                                canScanAttendance: canScanAttendance,
-                              ),
-
-                            // H) Participants
-                            const SizedBox(height: 24),
-                            ActivityAttendeesSection(
-                              attendees: activity.attendees ?? [],
-                              profiles: activity.attendeeProfiles,
-                              emptyMessage: activity.platform == 1
-                                  ? 'activities.widgets.rsvp_none_confirmed'
-                                      .tr()
-                                  : null,
-                            ),
-
-                            // I) Creator footer
-                            const SizedBox(height: 20),
-                            _buildCreatorFooter(context, activity),
-
-                            const SizedBox(height: 40),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Positioned(
-                  top: topPadding + 8,
-                  left: 12,
-                  child: _buildHeroAction(
-                    context: context,
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const HugeIcon(
-                      icon: HugeIcons.strokeRoundedArrowLeft01,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                  ),
-                ),
-                if (canEditActivity || canDeleteActivity)
-                  Positioned(
-                    top: topPadding + 8,
-                    right: 12,
-                    child: Row(
-                      children: [
-                        if (canEditActivity)
-                          _buildHeroAction(
-                            key: const ValueKey('activity-edit-action'),
-                            context: context,
-                            onPressed: deleteState.isLoading
-                                ? null
-                                : () => _navigateToEdit(activity),
-                            child: HugeIcon(
-                              icon: HugeIcons.strokeRoundedEdit02,
-                              size: 18,
-                              color: Colors.white,
-                            ),
-                          ),
-                        if (canEditActivity && canDeleteActivity)
-                          const SizedBox(width: 8),
-                        if (canDeleteActivity)
-                          _buildHeroAction(
-                            key: const ValueKey('activity-delete-action'),
-                            context: context,
-                            onPressed:
-                                deleteState.isLoading ? null : _confirmDelete,
-                            child: SacStateSwap(
-                              child: deleteState.isLoading
-                                  ? const SacLoadingSmall(
-                                      key: ValueKey('activity-delete-loading'),
-                                      color: Colors.white,
-                                    )
-                                  : const HugeIcon(
-                                      key: ValueKey('activity-delete-idle'),
-                                      icon: HugeIcons.strokeRoundedDelete02,
-                                      color: Colors.white,
-                                      size: 18,
-                                    ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-              ],
-            );
-          },
-        ),
+    return Scaffold(
+      backgroundColor: context.sac.background,
+      appBar: SacTopBar(
+        title: 'activities.detail.title'.tr(),
+        actions: [if (moreAction != null) moreAction],
       ),
-    );
-  }
-}
-
-enum _ActionTone { primary, danger }
-
-class _ActivityActionCard extends StatelessWidget {
-  final HugeIconData icon;
-  final String title;
-  final String body;
-  final VoidCallback onTap;
-  final _ActionTone tone;
-
-  const _ActivityActionCard({
-    required this.icon,
-    required this.title,
-    required this.body,
-    required this.onTap,
-    this.tone = _ActionTone.primary,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final sac = context.sac;
-    final Color fill;
-    final Color border;
-    final Color iconBg;
-    switch (tone) {
-      case _ActionTone.danger:
-        fill = sac.errorContainer;
-        border = AppColors.error.withValues(alpha: 0.22);
-        iconBg = AppColors.error;
-      case _ActionTone.primary:
-        fill = SacAccent.of(context).light.withValues(alpha: 0.55);
-        border = SacAccent.of(context).color.withValues(alpha: 0.16);
-        iconBg = SacAccent.of(context).color;
-    }
-
-    return Material(
-      color: Colors.transparent,
-      child: SacInkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: fill,
-            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-            border: Border.all(color: border),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: iconBg,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: HugeIcon(
-                    icon: icon,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: sac.text,
-                            fontWeight: FontWeight.w800,
-                          ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      body,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: sac.textSecondary,
-                            height: 1.3,
-                          ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowRight01,
-                size: 18,
-                color: sac.textTertiary,
-              ),
-            ],
-          ),
+      body: activityAsync.when(
+        loading: () => const ActivityDetailSkeleton(),
+        error: (error, _) => SacErrorState(
+          title: 'activities.detail.error_load'.tr(),
+          message: userErrorMessage(error),
+          onRetry: () =>
+              ref.invalidate(activityDetailProvider(widget.activityId)),
         ),
-      ),
-    );
-  }
-}
-
-// ── _CreatorAvatar ─────────────────────────────────────────────────────────────
-
-class _CreatorAvatar extends StatelessWidget {
-  final String? imageUrl;
-  final String? name;
-  final double size;
-
-  const _CreatorAvatar({this.imageUrl, this.name, required this.size});
-
-  @override
-  Widget build(BuildContext context) {
-    final hasImage = imageUrl != null && imageUrl!.isNotEmpty;
-    final initial =
-        name != null && name!.isNotEmpty ? name![0].toUpperCase() : '?';
-
-    if (hasImage) {
-      return ClipOval(
-        child: SacProfileImage(
-          imageUrl: imageUrl!,
-          width: size,
-          height: size,
-          fit: BoxFit.cover,
-          memCacheWidth: 108,
-          memCacheHeight: 108,
-          errorWidget: (_, __, ___) => _buildInitials(context, initial),
-        ),
-      );
-    }
-
-    return _buildInitials(context, initial);
-  }
-
-  Widget _buildInitials(BuildContext context, String initial) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: SacAccent.of(context).light,
-        shape: BoxShape.circle,
-      ),
-      child: Center(
-        child: Text(
-          initial,
-          style: TextStyle(
-            fontSize: size * 0.4,
-            fontWeight: FontWeight.w700,
-            color: SacAccent.of(context).dark,
+        data: (data) => _buildBody(
+          data,
+          canManage: canManage,
+          footer: _buildFooter(
+            data,
+            data.phaseAt(DateTime.now()),
+            canManage: canManage,
           ),
         ),
       ),
