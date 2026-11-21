@@ -9,19 +9,25 @@ class MasterHonorLogo extends StatelessWidget {
     required this.name,
     required this.size,
     required this.color,
+    this.width,
   });
 
   final String? imageUrl;
   final String name;
+
+  /// Height of the box.
   final double size;
+
+  /// Box width; defaults to 5:4. The patch keeps its own oval inside it.
+  final double? width;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
     final image = imageUrl?.trim() ?? '';
-    final width = size * 1.25;
+    final boxWidth = width ?? size * 1.25;
     final fallback = SizedBox(
-      width: width,
+      width: boxWidth,
       height: size,
       child: MasterHonorInitialsBox(
         initials: masterHonorInitials(name),
@@ -32,12 +38,13 @@ class MasterHonorLogo extends StatelessWidget {
     if (image.isEmpty) return fallback;
 
     return SizedBox(
-      width: width,
+      width: boxWidth,
       height: size,
       child: SacNetworkImage(
         imageUrl: image,
         fit: BoxFit.contain,
-        memCacheWidth: (width * 3).round(),
+        // Height only: giving the cache both sides decodes the patch into the
+        // box and squashes its oval.
         memCacheHeight: (size * 3).round(),
         placeholder: (_, __) => fallback,
         errorWidget: (_, __, ___) => fallback,

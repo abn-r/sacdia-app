@@ -4204,20 +4204,35 @@
       "summary_of": "de {total}",
       "summary_points": "{points} pts",
       "filter_all": "Todos",
-      "filter_unlocked": "Obtidos",
-      "filter_in_progress": "Em curso",
-      "filter_locked": "Bloqueados",
       "filter_empty": "Nada neste filtro",
       "unlock_tap_to_close": "Toque para fechar",
       "detail_repeatable": "Repetível",
       "detail_times_completed": "Vezes concluído",
-      "detail_completed_on": "Concluído em",
       "detail_progress": "Progresso",
       "detail_collection": "Coleção",
       "detail_streak": "Sequência",
-      "detail_prerequisite": "Requer: Conquista #{id}",
-      "detail_streak_unit": "dias",
-      "detail_secret_hint": "Continue participando para descobrir esta conquista."
+      "detail_points": "{points} pontos",
+      "detail_locked": "Bloqueado",
+      "detail_locked_requires": "Conquiste “{name}” primeiro.",
+      "detail_locked_generic": "Desbloqueie outra conquista primeiro.",
+      "detail_not_obtained": "Ainda não conquistado",
+      "detail_secret_hint": "Revela-se quando você conseguir. Continue participando do seu clube.",
+      "secret_name": "Conquista secreta",
+      "obtained": "Obtido",
+      "progress_fraction": "{current} de {total}",
+      "detail_obtained_on": "Obtido em {date}",
+      "unit_day": {
+        "one": "dia",
+        "other": "dias"
+      },
+      "unit_week": {
+        "one": "semana",
+        "other": "semanas"
+      },
+      "unit_month": {
+        "one": "mês",
+        "other": "meses"
+      }
     },
     "tiers": {
       "bronze": "Bronze",
@@ -6329,7 +6344,45 @@
     "load_error_title": "Não conseguimos carregar as maestrias",
     "load_error_body": "Tente novamente em alguns segundos.",
     "title": "Maestrias",
-    "empty_title": "Não há maestrias disponíveis"
+    "empty_title": "Não há maestrias disponíveis",
+    "card": {
+      "obtained": "Obtida",
+      "lapsed": "Não vigente",
+      "progress_fraction": "{current} de {total}"
+    },
+    "detail": {
+      "status_in_progress": "Em andamento",
+      "status_obtained": "Obtida",
+      "status_lapsed": "Não vigente",
+      "status_none": "Sem progresso",
+      "msg_in_progress_category": {
+        "one": "Falta {} especialidade da categoria {category}.",
+        "other": "Faltam {} especialidades da categoria {category}."
+      },
+      "msg_in_progress": {
+        "one": "Falta {} especialidade para completar os requisitos.",
+        "other": "Faltam {} especialidades para completar os requisitos."
+      },
+      "msg_obtained": "Você cumpre todos os requisitos desta maestria.",
+      "msg_lapsed": {
+        "one": "Você não cumpre mais os requisitos atuais. Falta {} especialidade para recuperá-la.",
+        "other": "Você não cumpre mais os requisitos atuais. Faltam {} especialidades para recuperá-la."
+      },
+      "msg_lapsed_plain": "Você não cumpre mais os requisitos atuais.",
+      "msg_none": {
+        "one": "Cumpra o requisito para obtê-la.",
+        "other": "Cumpra os {} requisitos para obtê-la."
+      },
+      "requirement_title": "Requisito",
+      "requirements_progress": "Requisitos · {done} de {total}",
+      "specialties_count": {
+        "one": "{current} de {} especialidade",
+        "other": "{current} de {} especialidades"
+      },
+      "choose_of": "Escolha {min} de {total}",
+      "requirement_fallback": "Requisito da maestria",
+      "no_requirements": "Ainda não há requisitos configurados para esta maestria."
+    }
   },
   "investiture_requests": {
     "section": {

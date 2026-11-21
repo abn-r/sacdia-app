@@ -30,6 +30,9 @@ class MasterHonorsView extends ConsumerWidget {
           builder: (context) {
             final top = SacTopBar.frostedInset(context);
             return roadmapAsync.when(
+              // A refresh keeps the grid on screen so a mastery that was just
+              // obtained can play its transition instead of being rebuilt.
+              skipLoadingOnReload: true,
               loading: () => Padding(
                 padding: EdgeInsets.only(top: top),
                 child: const Center(child: SacLoading()),

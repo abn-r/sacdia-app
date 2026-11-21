@@ -29,11 +29,4 @@ abstract final class AchievementTokens {
   static const Color chipLightPlatinum = Color(0xFFE2E6EC);
   static const Color chipLightDiamond = Color(0xFFC9EEF8);
   static const Color chipLightUnknown = Color(0xFFE5E5E5);
-
-  // Base del tier en la hoja de detalle.
-  static const Color detailBronze = Color(0xFFB87333);
-  static const Color detailSilver = Color(0xFF8E959D);
-  static const Color detailGold = Color(0xFFE0B400);
-  static const Color detailPlatinum = Color(0xFF9BA3AE);
-  static const Color detailDiamond = Color(0xFF5EC8E8);
 }

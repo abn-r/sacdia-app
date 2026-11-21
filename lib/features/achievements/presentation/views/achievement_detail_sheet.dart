@@ -1,21 +1,36 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/badge_grid/sac_badge_tint.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet_header.dart';
+import 'package:sacdia_app/core/widgets/status_progress/sac_state_panel.dart';
+import 'package:sacdia_app/core/widgets/status_progress/sac_status_style.dart';
 
 import '../../domain/entities/achievement.dart';
 import '../../domain/entities/user_achievement.dart';
 import '../../domain/repositories/achievements_repository.dart';
+import '../providers/achievements_providers.dart';
+import '../utils/achievement_dates.dart';
+import '../utils/achievement_progress_unit.dart';
+import '../widgets/achievement_art.dart';
 import '../widgets/achievement_badge.dart';
-import '../widgets/achievement_progress_bar.dart';
+import '../widgets/achievement_detail_parts.dart';
+import '../widgets/achievement_hero_glow.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
-import '../theme/achievement_tokens.dart';
 
-/// Detail sheet v2 — badge hero, status meta, inset groups, SacMotion enter.
-class AchievementDetailSheet extends StatefulWidget {
+const double _kHeroSize = 252;
+
+/// Detail sheet: the badge itself (grey until obtained), name, tier and
+/// points, the description and ONE block that says where the user stands:
+/// progress, the date it was obtained, or the secret hint.
+///
+/// It follows [userAchievementsProvider], so progress that changes while the
+/// sheet is open rolls the number and grows the bar.
+class AchievementDetailSheet extends ConsumerStatefulWidget {
   final AchievementWithProgress achievementWithProgress;
 
   const AchievementDetailSheet({
@@ -24,10 +39,11 @@ class AchievementDetailSheet extends StatefulWidget {
   });
 
   @override
-  State<AchievementDetailSheet> createState() => _AchievementDetailSheetState();
+  ConsumerState<AchievementDetailSheet> createState() =>
+      _AchievementDetailSheetState();
 }
 
-class _AchievementDetailSheetState extends State<AchievementDetailSheet>
+class _AchievementDetailSheetState extends ConsumerState<AchievementDetailSheet>
     with SingleTickerProviderStateMixin {
   late final AnimationController _enter;
   late final Animation<double> _fade;
@@ -59,717 +75,354 @@ class _AchievementDetailSheetState extends State<AchievementDetailSheet>
     super.dispose();
   }
 
+  /// The freshest copy of the achievement the sheet was opened for.
+  AchievementWithProgress _current() {
+    final opened = widget.achievementWithProgress;
+    final response = ref.watch(userAchievementsProvider).value;
+    if (response == null) return opened;
+    final id = opened.achievement.achievementId;
+    for (final group in response.categories) {
+      for (final item in group.achievements) {
+        if (item.achievement.achievementId == id) return item;
+      }
+    }
+    return opened;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final achievement = widget.achievementWithProgress.achievement;
-    final userAchievement = widget.achievementWithProgress.userAchievement;
+    final current = _current();
+    final achievement = current.achievement;
+    final userAchievement = current.userAchievement;
 
     final isCompleted = userAchievement?.isCompleted ?? false;
     final isSecret = achievement.secret && !isCompleted;
-    final visualState =
-        userAchievement?.visualState ?? AchievementVisualState.locked;
-    final tierInk = achievementTierInkColor(achievement.tier);
-    final tierChipBg = achievementTierChipBackground(
-      achievement.tier,
-      Theme.of(context).brightness,
-    );
     final c = context.sac;
+    final accent = SacAccent.of(context).color;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final prerequisite = _prerequisiteOf(achievement);
 
-    final wash = _tierSheetWash(
-      tier: achievement.tier,
-      unlocked: isCompleted,
-      isSecret: isSecret,
-      surface: c.surface,
-    );
+    final description = isSecret
+        ? 'achievements.views.detail_secret_hint'.tr()
+        : achievement.description;
 
-    return DraggableScrollableSheet(
-      initialChildSize: 0.72,
-      minChildSize: 0.45,
-      maxChildSize: 0.94,
-      builder: (context, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: c.surface,
-            borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(AppTheme.radiusXL)),
-            boxShadow: [
-              BoxShadow(
-                color: c.shadow,
-                blurRadius: 24,
-                offset: const Offset(0, -4),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(AppTheme.radiusXL)),
-            child: Stack(
-              children: [
-                // Tier wash — reads bronze/silver/gold/… without fighting content.
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 320,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          wash,
-                          wash.withValues(alpha: 0.45),
-                          c.surface.withValues(alpha: 0),
+    // The sheet is as tall as what it shows: a one-off achievement is a short
+    // card, not a screen of white. Long content (a collection) scrolls once it
+    // reaches the cap.
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.92;
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      child: Container(
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppTheme.radiusXL)),
+          boxShadow: [
+            BoxShadow(
+              color: c.shadow,
+              blurRadius: 24,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppTheme.radiusXL)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SacSheetGrabber(),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(20, 16, 20, 28 + bottomInset),
+                  child: FadeTransition(
+                    opacity: _fade,
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: Column(
+                        children: [
+                          ScaleTransition(
+                            scale: _scale,
+                            child: _BadgeHero(
+                              achievement: achievement,
+                              isObtained: isCompleted,
+                              isSecret: isSecret,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            isSecret
+                                ? 'achievements.views.secret_name'.tr()
+                                : achievement.name,
+                            style: TextStyle(
+                              fontSize: SacFontSize.headlineLarge,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.3,
+                              height: 1.15,
+                              color: c.text,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 10),
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: [
+                              if (achievement.tier != AchievementTier.unknown)
+                                AchievementDetailChip(
+                                  leading: AchievementTierDot(
+                                    color:
+                                        achievementTierColor(achievement.tier),
+                                  ),
+                                  label: achievement.tier.displayName,
+                                  foreground: c.textSecondary,
+                                  background: c.surfaceVariant,
+                                ),
+                              if (!isSecret) ...[
+                                AchievementDetailChip(
+                                  label: 'achievements.views.detail_points'
+                                      .tr(namedArgs: {
+                                    'points': '${achievement.points}',
+                                  }),
+                                  foreground: accent,
+                                  background: accent.withValues(alpha: 0.12),
+                                ),
+                                if (achievement.repeatable)
+                                  AchievementDetailChip(
+                                    leading: HugeIcon(
+                                      icon: HugeIcons.strokeRoundedRefresh,
+                                      size: 13,
+                                      color: c.textSecondary,
+                                    ),
+                                    label:
+                                        'achievements.views.detail_repeatable'
+                                            .tr(),
+                                    foreground: c.textSecondary,
+                                    background: c.surfaceVariant,
+                                  ),
+                              ],
+                            ],
+                          ),
+                          if (description != null &&
+                              description.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: Text(
+                                description,
+                                style: TextStyle(
+                                  fontSize: SacFontSize.titleMedium,
+                                  height: 1.45,
+                                  color: c.textSecondary,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                          if (!isSecret) ...[
+                            const SizedBox(height: 20),
+                            _StatusBlock(
+                              achievement: achievement,
+                              userAchievement: userAchievement,
+                              prerequisite: prerequisite,
+                            ),
+                            if (achievement.type ==
+                                AchievementType.collection) ...[
+                              const SizedBox(height: 12),
+                              AchievementCollectionContent(
+                                achievement: achievement,
+                                userAchievement: userAchievement,
+                              ),
+                            ],
+                          ],
                         ],
-                        stops: const [0.0, 0.45, 1.0],
                       ),
                     ),
                   ),
                 ),
-                Column(
-                  children: [
-                    const SizedBox(height: 10),
-                    Container(
-                      width: 36,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: c.border.withValues(alpha: 0.9),
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.radiusHairline),
-                      ),
-                    ),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        controller: scrollController,
-                        padding:
-                            EdgeInsets.fromLTRB(20, 16, 20, 28 + bottomInset),
-                        child: FadeTransition(
-                          opacity: _fade,
-                          // Full-width column so Wrap/text always center in the sheet.
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Center(
-                                  child: ScaleTransition(
-                                    scale: _scale,
-                                    child: _BadgeHero(
-                                      achievement: achievement,
-                                      visualState: visualState,
-                                      isSecret: isSecret,
-                                      tier: achievement.tier,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 18),
-                                Text(
-                                  isSecret ? '???' : achievement.name,
-                                  style: TextStyle(
-                                    fontSize: SacFontSize.displaySmall,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: -0.4,
-                                    height: 1.15,
-                                    color: c.text,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 12),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: Wrap(
-                                    alignment: WrapAlignment.center,
-                                    crossAxisAlignment:
-                                        WrapCrossAlignment.center,
-                                    spacing: 8,
-                                    runSpacing: 8,
-                                    children: [
-                                      _StatusChip(visualState: visualState),
-                                      if (!isSecret) ...[
-                                        _MetaChip(
-                                          icon: HugeIcons.strokeRoundedAward01,
-                                          label: achievement.tier.displayName,
-                                          foreground: tierInk,
-                                          background: tierChipBg,
-                                        ),
-                                        _MetaChip(
-                                          icon: HugeIcons.strokeRoundedFlash,
-                                          label: '${achievement.points} pts',
-                                          foreground:
-                                              SacAccent.of(context).color,
-                                          background: SacAccent.of(context)
-                                              .color
-                                              .withValues(alpha: 0.12),
-                                        ),
-                                        if (achievement.repeatable)
-                                          _MetaChip(
-                                            icon:
-                                                HugeIcons.strokeRoundedRefresh,
-                                            label:
-                                                'achievements.views.detail_repeatable'
-                                                    .tr(),
-                                            foreground: c.textSecondary,
-                                            background: c.surfaceVariant,
-                                          ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                                if (isSecret) ...[
-                                  const SizedBox(height: 16),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: Text(
-                                      'achievements.views.detail_secret_hint'
-                                          .tr(),
-                                      style: TextStyle(
-                                        fontSize: SacFontSize.titleMedium,
-                                        height: 1.45,
-                                        color: c.textSecondary,
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ] else if (achievement
-                                        .description?.isNotEmpty ==
-                                    true) ...[
-                                  const SizedBox(height: 16),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: Text(
-                                      achievement.description!,
-                                      style: TextStyle(
-                                        fontSize: SacFontSize.titleMedium,
-                                        height: 1.45,
-                                        color: c.textSecondary,
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ],
-                                if (isCompleted &&
-                                    (userAchievement?.completedAt != null ||
-                                        (achievement.repeatable &&
-                                            (userAchievement?.timesCompleted ??
-                                                    0) >
-                                                0))) ...[
-                                  const SizedBox(height: 14),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: _CompletedCaption(
-                                      completedAt: userAchievement?.completedAt,
-                                      timesCompleted: achievement.repeatable
-                                          ? userAchievement?.timesCompleted
-                                          : null,
-                                    ),
-                                  ),
-                                ],
-                                if (!isSecret &&
-                                    userAchievement != null &&
-                                    !isCompleted) ...[
-                                  const SizedBox(height: 20),
-                                  _InsetCard(
-                                    child: _ProgressSection(
-                                      userAchievement: userAchievement,
-                                      achievement: achievement,
-                                    ),
-                                  ),
-                                ],
-                                if (!isSecret) ...[
-                                  const SizedBox(height: 12),
-                                  _TypeSpecificContent(
-                                    achievement: achievement,
-                                    userAchievement: userAchievement,
-                                  ),
-                                ],
-                                if (achievement.prerequisiteId != null) ...[
-                                  const SizedBox(height: 4),
-                                  _PrerequisiteCard(
-                                    prerequisiteId: achievement.prerequisiteId!,
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
-}
 
-/// Soft sheet wash keyed to achievement tier.
-Color _tierSheetWash({
-  required AchievementTier tier,
-  required bool unlocked,
-  required bool isSecret,
-  required Color surface,
-}) {
-  if (isSecret) {
-    return Colors.black.withValues(alpha: 0.04);
+  /// The prerequisite of [achievement] as the list knows it; null when it has
+  /// none. An id the list does not have yet comes back as
+  /// [_Prerequisite.unknown].
+  _Prerequisite? _prerequisiteOf(Achievement achievement) {
+    final id = achievement.prerequisiteId;
+    if (id == null) return null;
+    final response = ref.watch(userAchievementsProvider).value;
+    for (final group in response?.categories ?? const []) {
+      for (final item in group.achievements) {
+        if (item.achievement.achievementId == id) {
+          return _Prerequisite(
+            name: item.achievement.name,
+            isCompleted: item.userAchievement?.isCompleted ?? false,
+          );
+        }
+      }
+    }
+    return _Prerequisite.unknown;
   }
-
-  final base = switch (tier) {
-    AchievementTier.bronze => AchievementTokens.detailBronze,
-    AchievementTier.silver => AchievementTokens.detailSilver,
-    AchievementTier.gold => AchievementTokens.detailGold,
-    AchievementTier.platinum => AchievementTokens.detailPlatinum,
-    AchievementTier.diamond => AchievementTokens.detailDiamond,
-    AchievementTier.unknown => Colors.grey,
-  };
-
-  final alpha = unlocked ? 0.22 : 0.10;
-  return Color.alphaBlend(base.withValues(alpha: alpha), surface);
 }
 
-// ── Badge hero ─────────────────────────────────────────────────────────────────
+/// What the sheet needs to know about the achievement that unlocks this one.
+class _Prerequisite {
+  const _Prerequisite({required this.name, required this.isCompleted});
 
+  static const unknown = _Prerequisite(name: null, isCompleted: false);
+
+  /// Null when the list does not have it.
+  final String? name;
+  final bool isCompleted;
+}
+
+// -- Badge hero ---------------------------------------------------------------
+
+/// The achievement's own badge: grey while it is not obtained, full colour
+/// (with the platinum/diamond shimmer) once it is. A secret one that is not
+/// obtained shows its own drawing, the same as in the grid.
 class _BadgeHero extends StatelessWidget {
   final Achievement achievement;
-  final AchievementVisualState visualState;
+  final bool isObtained;
   final bool isSecret;
-  final AchievementTier tier;
 
   const _BadgeHero({
     required this.achievement,
-    required this.visualState,
+    required this.isObtained,
     required this.isSecret,
-    required this.tier,
   });
 
   @override
   Widget build(BuildContext context) {
-    return AchievementBadge(
-      badgeImageUrl: achievement.badgeImageUrl,
-      tier: tier,
-      visualState: visualState,
-      isSecret: isSecret,
-      size: 203,
-    );
-  }
-}
+    if (isSecret) return const SecretBadgeArt(height: _kHeroSize);
 
-// ── Status / meta chips ────────────────────────────────────────────────────────
-
-class _StatusChip extends StatelessWidget {
-  final AchievementVisualState visualState;
-
-  const _StatusChip({required this.visualState});
-
-  @override
-  Widget build(BuildContext context) {
-    final (label, fg, bg, icon) = switch (visualState) {
-      AchievementVisualState.unlocked => (
-          'achievements.views.filter_unlocked'.tr(),
-          context.sac.onSuccessContainer,
-          context.sac.successContainer,
-          HugeIcons.strokeRoundedCheckmarkCircle02,
+    if (isObtained) {
+      final tier = achievement.tier;
+      return AchievementHeroGlow(
+        color: tier == AchievementTier.unknown
+            ? SacAccent.of(context).color
+            : achievementTierColor(tier),
+        size: _kHeroSize,
+        child: AchievementBadge(
+          badgeImageUrl: achievement.badgeImageUrl,
+          tier: tier,
+          visualState: AchievementVisualState.unlocked,
+          size: _kHeroSize,
         ),
-      AchievementVisualState.inProgress => (
-          'achievements.views.filter_in_progress'.tr(),
-          SacAccent.of(context).dark,
-          SacAccent.of(context).light,
-          HugeIcons.strokeRoundedLoading03,
-        ),
-      AchievementVisualState.locked => (
-          'achievements.views.filter_locked'.tr(),
-          context.sac.textSecondary,
-          context.sac.surfaceVariant,
-          HugeIcons.strokeRoundedLock,
-        ),
-    };
-
-    return _MetaChip(
-      icon: icon,
-      label: label,
-      foreground: fg,
-      background: bg,
-    );
-  }
-}
-
-class _MetaChip extends StatelessWidget {
-  final dynamic icon;
-  final String label;
-  final Color foreground;
-  final Color background;
-
-  const _MetaChip({
-    required this.icon,
-    required this.label,
-    required this.foreground,
-    required this.background,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          HugeIcon(icon: icon, size: 13, color: foreground),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: SacFontSize.bodySmall,
-              fontWeight: FontWeight.w700,
-              color: foreground,
-              height: 1.1,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Inset card shell ───────────────────────────────────────────────────────────
-
-class _InsetCard extends StatelessWidget {
-  final Widget child;
-
-  const _InsetCard({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: c.surfaceVariant.withValues(alpha: 0.65),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        border: Border.all(color: c.border.withValues(alpha: 0.55)),
-      ),
-      child: child,
-    );
-  }
-}
-
-// ── Completed caption (quiet metadata) ─────────────────────────────────────────
-
-class _CompletedCaption extends StatelessWidget {
-  final DateTime? completedAt;
-  final int? timesCompleted;
-
-  const _CompletedCaption({
-    required this.completedAt,
-    required this.timesCompleted,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final parts = <String>[];
-    if (completedAt != null) {
-      parts.add(
-        '${'achievements.views.detail_completed_on'.tr()} ${_formatDate(completedAt!)}',
       );
     }
-    if (timesCompleted != null && timesCompleted! > 0) {
-      parts.add(
-        '${'achievements.views.detail_times_completed'.tr()} · $timesCompleted',
-      );
-    }
-    if (parts.isEmpty) return const SizedBox.shrink();
 
-    return Text(
-      parts.join('  ·  '),
-      style: TextStyle(
-        fontSize: SacFontSize.bodyMedium,
-        fontWeight: FontWeight.w500,
-        color: c.textTertiary,
-        height: 1.3,
-        letterSpacing: 0.1,
+    return SacBadgeTint.tone(
+      tone: SacBadgeTone.muted,
+      child: AchievementArt(
+        imageUrl: achievement.badgeImageUrl,
+        name: achievement.name,
+        height: _kHeroSize,
+        width: _kHeroSize,
+        fallbackColor: SacAccent.of(context).color,
       ),
-      textAlign: TextAlign.center,
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/'
-        '${date.month.toString().padLeft(2, '0')}/'
-        '${date.year}';
   }
 }
 
-// ── Progress Section ───────────────────────────────────────────────────────────
+// -- Status block -------------------------------------------------------------
 
-class _ProgressSection extends StatelessWidget {
-  final UserAchievement userAchievement;
-  final Achievement achievement;
-
-  const _ProgressSection({
+/// Where the user stands, always ONE block: obtained, locked behind another
+/// achievement, the progress block, or "not obtained yet".
+class _StatusBlock extends StatelessWidget {
+  const _StatusBlock({
+    required this.achievement,
     required this.userAchievement,
-    required this.achievement,
+    required this.prerequisite,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    final tierColor = achievementTierColor(achievement.tier);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              'achievements.views.detail_progress'.tr(),
-              style: TextStyle(
-                fontSize: SacFontSize.bodyMedium,
-                fontWeight: FontWeight.w700,
-                color: context.sac.text,
-              ),
-            ),
-            const Spacer(),
-            Text(
-              '${userAchievement.progressValue}/${userAchievement.progressTarget}',
-              style: TextStyle(
-                fontSize: SacFontSize.bodyMedium,
-                fontWeight: FontWeight.w700,
-                color: tierColor,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        AchievementProgressBar(
-          progress: userAchievement.progressPercentage,
-          tier: achievement.tier,
-          height: 7,
-        ),
-      ],
-    );
-  }
-}
-
-// ── Type-Specific Content ──────────────────────────────────────────────────────
-
-class _TypeSpecificContent extends StatelessWidget {
   final Achievement achievement;
   final UserAchievement? userAchievement;
-
-  const _TypeSpecificContent({
-    required this.achievement,
-    this.userAchievement,
-  });
+  final _Prerequisite? prerequisite;
 
   @override
   Widget build(BuildContext context) {
-    switch (achievement.type) {
-      case AchievementType.collection:
-        return _CollectionContent(
-          achievement: achievement,
-          userAchievement: userAchievement,
-        );
-      case AchievementType.streak:
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: _InsetCard(
-            child: _StreakContent(
-              achievement: achievement,
-              userAchievement: userAchievement,
-            ),
-          ),
-        );
-      default:
-        return const SizedBox.shrink();
+    final user = userAchievement;
+    if (user != null && user.isCompleted) {
+      final completedAt = user.completedAt;
+      final title = completedAt == null
+          ? 'achievements.views.obtained'.tr()
+          : 'achievements.views.detail_obtained_on'.tr(
+              namedArgs: {'date': achievementLongDate(completedAt)},
+            );
+      final times = achievement.repeatable && user.timesCompleted > 0
+          ? '${'achievements.views.detail_times_completed'.tr()} · '
+              '${user.timesCompleted}'
+          : null;
+      return _panel(
+        SacStatusStyle.of(context, SacStatusKind.validated, label: title),
+        title,
+        times,
+      );
     }
-  }
-}
 
-class _CollectionContent extends StatelessWidget {
-  final Achievement achievement;
-  final UserAchievement? userAchievement;
-
-  const _CollectionContent({
-    required this.achievement,
-    this.userAchievement,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final requiredItems =
-        (achievement.criteria['items'] as List<dynamic>?)?.cast<String>() ?? [];
-    final collectedItems =
-        (userAchievement?.progressMetadata?['collected'] as List<dynamic>?)
-                ?.cast<String>() ??
-            [];
-
-    if (requiredItems.isEmpty) return const SizedBox.shrink();
-
-    final c = context.sac;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: _InsetCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'achievements.views.detail_collection'.tr(),
-              style: TextStyle(
-                fontSize: SacFontSize.bodyMedium,
-                fontWeight: FontWeight.w700,
-                color: c.text,
-              ),
-            ),
-            const SizedBox(height: 10),
-            ...requiredItems.map((item) {
-              final isCollected = collectedItems.contains(item);
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    HugeIcon(
-                      icon: isCollected
-                          ? HugeIcons.strokeRoundedCheckmarkCircle02
-                          : HugeIcons.strokeRoundedCircle,
-                      size: 18,
-                      color: isCollected ? AppColors.secondary : c.textTertiary,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        item,
-                        style: TextStyle(
-                          fontSize: SacFontSize.titleSmall,
-                          fontWeight:
-                              isCollected ? FontWeight.w600 : FontWeight.w400,
-                          color: isCollected ? c.text : c.textSecondary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
-          ],
+    final lock = prerequisite;
+    if (lock != null && !lock.isCompleted) {
+      final title = 'achievements.views.detail_locked'.tr();
+      final name = lock.name;
+      return _panel(
+        SacStatusStyle.of(
+          context,
+          SacStatusKind.pending,
+          label: title,
+          icon: HugeIcons.strokeRoundedSquareLock02,
         ),
-      ),
+        title,
+        name == null
+            ? 'achievements.views.detail_locked_generic'.tr()
+            : 'achievements.views.detail_locked_requires'
+                .tr(namedArgs: {'name': name}),
+      );
+    }
+
+    final hasRecord = user != null && user.progressTarget > 0;
+    final target = hasRecord
+        ? user.progressTarget
+        : achievementCriteriaTarget(achievement);
+    // A one-off achievement (target 1) is yes or no: "0 de 1" says nothing.
+    if (target <= 1) {
+      final title = 'achievements.views.detail_not_obtained'.tr();
+      return _panel(
+        SacStatusStyle.of(
+          context,
+          SacStatusKind.pending,
+          label: title,
+          icon: HugeIcons.strokeRoundedInformationCircle,
+        ),
+        title,
+        null,
+      );
+    }
+
+    final current = user?.progressValue ?? 0;
+    final isStreak = achievement.type == AchievementType.streak;
+
+    return AchievementProgressBlock(
+      label: isStreak
+          ? 'achievements.views.detail_streak'.tr()
+          : 'achievements.views.detail_progress'.tr(),
+      current: current,
+      target: target,
+      unit: achievementUnitLabel(achievement, target),
     );
   }
-}
 
-class _StreakContent extends StatelessWidget {
-  final Achievement achievement;
-  final UserAchievement? userAchievement;
-
-  const _StreakContent({
-    required this.achievement,
-    this.userAchievement,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final currentStreak = userAchievement?.progressValue ?? 0;
-    final requiredStreak = userAchievement?.progressTarget ??
-        (achievement.criteria['streak'] as int? ?? 0);
-    final tierColor = achievementTierColor(achievement.tier);
-    final c = context.sac;
-
-    return Column(
-      children: [
-        Text(
-          'achievements.views.detail_streak'.tr(),
-          style: TextStyle(
-            fontSize: SacFontSize.bodyMedium,
-            fontWeight: FontWeight.w700,
-            color: c.text,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
-          children: [
-            Text(
-              '$currentStreak',
-              style: TextStyle(
-                fontSize: SacFontSize.metricSmall,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -1.2,
-                height: 1,
-                color: tierColor,
-              ),
-            ),
-            if (requiredStreak > 0) ...[
-              Text(
-                ' / $requiredStreak',
-                style: TextStyle(
-                  fontSize: SacFontSize.headlineSmall,
-                  fontWeight: FontWeight.w600,
-                  color: c.textSecondary,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                'achievements.views.detail_streak_unit'.tr(),
-                style: TextStyle(
-                  fontSize: SacFontSize.bodyMedium,
-                  fontWeight: FontWeight.w500,
-                  color: c.textTertiary,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-// ── Prerequisite ───────────────────────────────────────────────────────────────
-
-class _PrerequisiteCard extends StatelessWidget {
-  final int prerequisiteId;
-
-  const _PrerequisiteCard({required this.prerequisiteId});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return _InsetCard(
-      child: Row(
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedLink01,
-            size: 16,
-            color: SacAccent.of(context).color,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'achievements.views.detail_prerequisite'.tr(
-                namedArgs: {'id': '$prerequisiteId'},
-              ),
-              style: TextStyle(
-                fontSize: SacFontSize.bodyMedium,
-                fontWeight: FontWeight.w500,
-                color: c.text,
-              ),
-            ),
-          ),
-        ],
-      ),
+  Widget _panel(SacStatusStyle style, String title, String? message) {
+    return SizedBox(
+      width: double.infinity,
+      child: SacStatePanel(style: style, title: title, message: message),
     );
   }
 }
