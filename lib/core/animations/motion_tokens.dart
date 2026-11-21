@@ -46,6 +46,14 @@ abstract final class SacMotion {
   /// Press scale for small tiles (the "Agregar" tile).
   static const double tilePressScale = 0.95;
 
+  /// Grey/dimmed -> colour of a badge that was just obtained, with a small
+  /// overshoot ([unlockOvershoot]).
+  static const Duration unlock = Duration(milliseconds: 500);
+  static const double unlockOvershoot = 1.08;
+
+  /// One-shot accent halo that fades around a badge that was just obtained.
+  static const Duration halo = Duration(milliseconds: 1200);
+
   /// One-off nudge of the "sent" icon (M4).
   static const Duration nudge = Duration(milliseconds: 320);
 
