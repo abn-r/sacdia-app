@@ -3,9 +3,9 @@ import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/badge_grid/sac_badge_grid.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
@@ -38,6 +38,9 @@ class AchievementsView extends ConsumerWidget {
           builder: (context) {
             final top = SacTopBar.frostedInset(context);
             return responseAsync.when(
+              // A refresh keeps the grid on screen so a card that was just
+              // obtained can play its transition instead of being rebuilt.
+              skipLoadingOnReload: true,
               loading: () => Padding(
                 padding: EdgeInsets.only(top: top),
                 child: const Center(child: SacLoading()),
@@ -52,7 +55,7 @@ class AchievementsView extends ConsumerWidget {
                 ),
               ),
               data: (response) {
-                final items = _flattenSorted(response);
+                final items = flattenSortedAchievements(response);
                 if (items.isEmpty) {
                   return Padding(
                     padding: EdgeInsets.only(top: top),
@@ -68,27 +71,19 @@ class AchievementsView extends ConsumerWidget {
                     ref.invalidate(userAchievementsProvider);
                     await ref.read(userAchievementsProvider.future);
                   },
-                  child: GridView.builder(
+                  child: SacBadgeGrid(
+                    artHeight: kAchievementGridArtHeight,
                     physics: const AlwaysScrollableScrollPhysics(
                       parent: BouncingScrollPhysics(),
                     ),
                     padding: EdgeInsets.fromLTRB(16, top, 16, 24),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      childAspectRatio: 0.62,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                    ),
                     itemCount: items.length,
+                    keyOf: (index) =>
+                        ValueKey(items[index].achievement.achievementId),
                     itemBuilder: (context, index) {
                       final item = items[index];
-                      final delayMs =
-                          index.clamp(0, 11) * SacMotion.stagger.inMilliseconds;
                       return AchievementGridCard(
-                        key: ValueKey(item.achievement.achievementId),
                         achievementWithProgress: item,
-                        animationDelay: Duration(milliseconds: delayMs),
                         onTap: () => _showDetail(context, item),
                       );
                     },
@@ -103,7 +98,9 @@ class AchievementsView extends ConsumerWidget {
   }
 }
 
-List<AchievementWithProgress> _flattenSorted(
+/// Every achievement in one list: obtained first, then in progress, then the
+/// rest. The API order is kept inside each group.
+List<AchievementWithProgress> flattenSortedAchievements(
     UserAchievementsResponse response) {
   final all =
       response.categories.expand((group) => group.achievements).toList();
@@ -118,7 +115,12 @@ List<AchievementWithProgress> _flattenSorted(
     };
   }
 
-  all.sort((a, b) => rank(a).compareTo(rank(b)));
+  // Dart's sort is not guaranteed stable: break ties with the API position.
+  final position = {for (var i = 0; i < all.length; i++) all[i]: i};
+  all.sort((a, b) {
+    final byRank = rank(a).compareTo(rank(b));
+    return byRank != 0 ? byRank : position[a]!.compareTo(position[b]!);
+  });
   return all;
 }
 

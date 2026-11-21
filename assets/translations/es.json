@@ -4205,20 +4205,35 @@
       "summary_of": "de {total}",
       "summary_points": "{points} pts",
       "filter_all": "Todos",
-      "filter_unlocked": "Obtenidos",
-      "filter_in_progress": "En curso",
-      "filter_locked": "Bloqueados",
       "filter_empty": "Nada en este filtro",
       "unlock_tap_to_close": "Toca para cerrar",
       "detail_repeatable": "Repetible",
       "detail_times_completed": "Veces completado",
-      "detail_completed_on": "Completado el",
       "detail_progress": "Progreso",
       "detail_collection": "Colección",
       "detail_streak": "Racha",
-      "detail_prerequisite": "Requiere: Logro #{id}",
-      "detail_streak_unit": "días",
-      "detail_secret_hint": "Sigue participando para descubrir este logro."
+      "detail_points": "{points} puntos",
+      "detail_locked": "Bloqueado",
+      "detail_locked_requires": "Primero obtén «{name}».",
+      "detail_locked_generic": "Primero obtén otro logro.",
+      "detail_not_obtained": "Aún no lo obtienes",
+      "detail_secret_hint": "Se revela cuando lo consigas. Sigue participando en tu club.",
+      "secret_name": "Logro secreto",
+      "obtained": "Obtenido",
+      "progress_fraction": "{current} de {total}",
+      "detail_obtained_on": "Obtenido el {date}",
+      "unit_day": {
+        "one": "día",
+        "other": "días"
+      },
+      "unit_week": {
+        "one": "semana",
+        "other": "semanas"
+      },
+      "unit_month": {
+        "one": "mes",
+        "other": "meses"
+      }
     },
     "tiers": {
       "bronze": "Bronce",
@@ -6331,7 +6346,45 @@
     "load_error_title": "No pudimos cargar las maestrías",
     "load_error_body": "Intenta nuevamente en unos segundos.",
     "title": "Maestrías",
-    "empty_title": "No hay maestrías disponibles"
+    "empty_title": "No hay maestrías disponibles",
+    "card": {
+      "obtained": "Obtenida",
+      "lapsed": "No vigente",
+      "progress_fraction": "{current} de {total}"
+    },
+    "detail": {
+      "status_in_progress": "En progreso",
+      "status_obtained": "Obtenida",
+      "status_lapsed": "No vigente",
+      "status_none": "Sin avance",
+      "msg_in_progress_category": {
+        "one": "Te falta {} especialidad de la categoría {category}.",
+        "other": "Te faltan {} especialidades de la categoría {category}."
+      },
+      "msg_in_progress": {
+        "one": "Te falta {} especialidad para completar los requisitos.",
+        "other": "Te faltan {} especialidades para completar los requisitos."
+      },
+      "msg_obtained": "Cumples todos los requisitos de esta maestría.",
+      "msg_lapsed": {
+        "one": "Ya no cumples los requisitos actuales. Te falta {} especialidad para recuperarla.",
+        "other": "Ya no cumples los requisitos actuales. Te faltan {} especialidades para recuperarla."
+      },
+      "msg_lapsed_plain": "Ya no cumples los requisitos actuales.",
+      "msg_none": {
+        "one": "Cumple el requisito para obtenerla.",
+        "other": "Cumple los {} requisitos para obtenerla."
+      },
+      "requirement_title": "Requisito",
+      "requirements_progress": "Requisitos · {done} de {total}",
+      "specialties_count": {
+        "one": "{current} de {} especialidad",
+        "other": "{current} de {} especialidades"
+      },
+      "choose_of": "Elige {min} de {total}",
+      "requirement_fallback": "Requisito de maestría",
+      "no_requirements": "Aún no hay requisitos configurados para esta maestría."
+    }
   },
   "investiture_requests": {
     "section": {
