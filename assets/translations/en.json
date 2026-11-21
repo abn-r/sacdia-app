@@ -4205,20 +4205,35 @@
       "summary_of": "of {total}",
       "summary_points": "{points} pts",
       "filter_all": "All",
-      "filter_unlocked": "Earned",
-      "filter_in_progress": "In progress",
-      "filter_locked": "Locked",
       "filter_empty": "Nothing in this filter",
       "unlock_tap_to_close": "Tap to close",
       "detail_repeatable": "Repeatable",
       "detail_times_completed": "Times completed",
-      "detail_completed_on": "Completed on",
       "detail_progress": "Progress",
       "detail_collection": "Collection",
       "detail_streak": "Streak",
-      "detail_prerequisite": "Requires: Achievement #{id}",
-      "detail_streak_unit": "days",
-      "detail_secret_hint": "Keep participating to discover this achievement."
+      "detail_points": "{points} points",
+      "detail_locked": "Locked",
+      "detail_locked_requires": "Earn “{name}” first.",
+      "detail_locked_generic": "Earn another achievement first.",
+      "detail_not_obtained": "Not earned yet",
+      "detail_secret_hint": "Revealed when you earn it. Keep taking part in your club.",
+      "secret_name": "Secret achievement",
+      "obtained": "Earned",
+      "progress_fraction": "{current} of {total}",
+      "detail_obtained_on": "Earned on {date}",
+      "unit_day": {
+        "one": "day",
+        "other": "days"
+      },
+      "unit_week": {
+        "one": "week",
+        "other": "weeks"
+      },
+      "unit_month": {
+        "one": "month",
+        "other": "months"
+      }
     },
     "tiers": {
       "bronze": "Bronze",
@@ -6331,7 +6346,45 @@
     "load_error_title": "We couldn't load the master honors",
     "load_error_body": "Please try again in a few seconds.",
     "title": "Master honors",
-    "empty_title": "No master honors available"
+    "empty_title": "No master honors available",
+    "card": {
+      "obtained": "Earned",
+      "lapsed": "No longer valid",
+      "progress_fraction": "{current} of {total}"
+    },
+    "detail": {
+      "status_in_progress": "In progress",
+      "status_obtained": "Earned",
+      "status_lapsed": "No longer valid",
+      "status_none": "No progress",
+      "msg_in_progress_category": {
+        "one": "You need {} more honor in the {category} category.",
+        "other": "You need {} more honors in the {category} category."
+      },
+      "msg_in_progress": {
+        "one": "You need {} more honor to complete the requirements.",
+        "other": "You need {} more honors to complete the requirements."
+      },
+      "msg_obtained": "You meet every requirement of this mastery.",
+      "msg_lapsed": {
+        "one": "You no longer meet the current requirements. You need {} more honor to regain it.",
+        "other": "You no longer meet the current requirements. You need {} more honors to regain it."
+      },
+      "msg_lapsed_plain": "You no longer meet the current requirements.",
+      "msg_none": {
+        "one": "Meet the requirement to earn it.",
+        "other": "Meet the {} requirements to earn it."
+      },
+      "requirement_title": "Requirement",
+      "requirements_progress": "Requirements · {done} of {total}",
+      "specialties_count": {
+        "one": "{current} of {} honor",
+        "other": "{current} of {} honors"
+      },
+      "choose_of": "Choose {min} of {total}",
+      "requirement_fallback": "Mastery requirement",
+      "no_requirements": "No requirements have been set for this mastery yet."
+    }
   },
   "investiture_requests": {
     "section": {

@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/widgets/badge_grid/sac_badge_tint.dart';
 import 'package:sacdia_app/features/master_honors/domain/entities/master_honor_roadmap.dart';
 
 enum MasterHonorGridVisual { awarded, inactive, inProgress, locked }
@@ -18,50 +18,34 @@ MasterHonorGridVisual masterHonorGridVisual(MasterHonorRoadmap item) {
   return MasterHonorGridVisual.locked;
 }
 
-class MasterHonorDetailStatus {
-  const MasterHonorDetailStatus({
-    required this.label,
-    required this.background,
-    required this.foreground,
-  });
+/// How the patch is drawn: colour when obtained (also when it is no longer
+/// valid, it was earned once), dimmed while in progress, grey without
+/// progress.
+SacBadgeTone masterHonorTone(MasterHonorGridVisual visual) {
+  return switch (visual) {
+    MasterHonorGridVisual.awarded => SacBadgeTone.color,
+    MasterHonorGridVisual.inactive => SacBadgeTone.color,
+    MasterHonorGridVisual.inProgress => SacBadgeTone.dimmed,
+    MasterHonorGridVisual.locked => SacBadgeTone.muted,
+  };
+}
 
-  final String label;
-  final Color background;
-  final Color foreground;
+final RegExp _masterHonorPrefix = RegExp(
+  r"^\s*(?:maestr[ií]a|maestria|mestria|mestrado|master(?:'s)?|mastery|ma[iî]trise)"
+  r"\s+(?:(?:en|de|del|in|of|em|do|da|dos|das)\s+|d')",
+  caseSensitive: false,
+  unicode: true,
+);
 
-  factory MasterHonorDetailStatus.of(MasterHonorRoadmap item) {
-    final visual = masterHonorGridVisual(item);
-    switch (visual) {
-      case MasterHonorGridVisual.awarded:
-        return MasterHonorDetailStatus(
-          label: item.displayStatusLabel?.trim().isNotEmpty == true
-              ? item.displayStatusLabel!.trim()
-              : 'Obtenida',
-          background: AppColors.validatedBg,
-          foreground: AppColors.validatedDark,
-        );
-      case MasterHonorGridVisual.inactive:
-        return MasterHonorDetailStatus(
-          label: item.displayStatusLabel?.trim().isNotEmpty == true
-              ? item.displayStatusLabel!.trim()
-              : 'No vigente',
-          background: AppColors.pendingBg,
-          foreground: AppColors.pendingDark,
-        );
-      case MasterHonorGridVisual.inProgress:
-        return const MasterHonorDetailStatus(
-          label: 'En progreso',
-          background: AppColors.observedBg,
-          foreground: AppColors.observedDark,
-        );
-      case MasterHonorGridVisual.locked:
-        return const MasterHonorDetailStatus(
-          label: 'Sin avance',
-          background: AppColors.pendingBg,
-          foreground: AppColors.pendingDark,
-        );
-    }
-  }
+/// The name without the "Maestría en" / "Master in" / "Maîtrise de" prefix:
+/// the title of the screen already says it. The API sends one name per
+/// language, so the prefix is matched in every supported language. A name
+/// that is only the prefix (or has none) is returned as is.
+String masterHonorShortName(String name) {
+  final trimmed = name.trim();
+  final stripped = trimmed.replaceFirst(_masterHonorPrefix, '').trim();
+  if (stripped.isEmpty || stripped == trimmed) return trimmed;
+  return '${stripped[0].toUpperCase()}${stripped.substring(1)}';
 }
 
 String humanizeMasterHonorLabel(String raw) {
@@ -95,7 +79,7 @@ String masterHonorRequirementLabel(MasterHonorRoadmapGroup group) {
     return humanizeMasterHonorLabel(category);
   }
 
-  return 'Requisito de maestría';
+  return 'master_honors.detail.requirement_fallback'.tr();
 }
 
 bool masterHonorShowsRequirementDescription(MasterHonorRoadmapGroup group) {
@@ -107,50 +91,101 @@ bool masterHonorShowsRequirementDescription(MasterHonorRoadmapGroup group) {
   return description != title && description != category;
 }
 
-double masterHonorGroupProgress(MasterHonorRoadmap item) {
-  if (item.totalGroups <= 0) return 0;
-  return (item.completedGroups / item.totalGroups).clamp(0.0, 1.0);
+/// Specialties still missing in one requirement group.
+int masterHonorGroupMissing(MasterHonorRoadmapGroup group) {
+  if (group.passed) return 0;
+  final missing = group.minimumRequired - group.currentCount;
+  return missing > 0 ? missing : 0;
 }
 
-Color masterHonorDetailAccent(MasterHonorRoadmap item) {
-  switch (masterHonorGridVisual(item)) {
-    case MasterHonorGridVisual.awarded:
-      return AppColors.secondary;
-    case MasterHonorGridVisual.inProgress:
-      return AppColors.accent;
-    case MasterHonorGridVisual.inactive:
-      return AppColors.pendingDark;
-    case MasterHonorGridVisual.locked:
-      // Gris neutro legible en ambos modos (misma familia que pendingDark).
-      return AppColors.pendingDark.withValues(alpha: 0.7);
+/// Specialties still missing across every requirement group.
+int masterHonorMissingCount(MasterHonorRoadmap item) {
+  return item.requirementGroups
+      .fold<int>(0, (total, group) => total + masterHonorGroupMissing(group));
+}
+
+/// Requirement groups already met.
+int masterHonorPassedGroups(MasterHonorRoadmap item) =>
+    item.requirementGroups.where((group) => group.passed).length;
+
+/// What the grid card counts: specialties done of specialties required
+/// ("3 de 7"), over every requirement group. Without groups it falls back to
+/// the group totals the API reports.
+({int current, int total}) masterHonorProgressCount(MasterHonorRoadmap item) {
+  if (item.requirementGroups.isEmpty) {
+    return (current: item.completedGroups, total: item.totalGroups);
   }
+  var current = 0;
+  var total = 0;
+  for (final group in item.requirementGroups) {
+    final required = group.minimumRequired;
+    total += required;
+    current += group.currentCount > required ? required : group.currentCount;
+  }
+  return (current: current, total: total);
 }
 
-bool masterHonorShowsPercentCaption(MasterHonorRoadmap item) {
-  if (item.totalGroups <= 0) return false;
-  if (masterHonorGridVisual(item) != MasterHonorGridVisual.inProgress) {
-    return false;
+/// "3 de 7 especialidades": the count of one requirement group.
+String masterHonorSpecialtiesCount(MasterHonorRoadmapGroup group) {
+  final total = group.minimumRequired;
+  return 'master_honors.detail.specialties_count'.plural(
+    total,
+    namedArgs: {'current': '${group.currentCount}'},
+  );
+}
+
+/// Title and one line of context for the status panel of the detail sheet.
+class MasterHonorStatusCopy {
+  const MasterHonorStatusCopy({required this.title, this.message});
+
+  final String title;
+  final String? message;
+
+  factory MasterHonorStatusCopy.of(MasterHonorRoadmap item) {
+    final missing = masterHonorMissingCount(item);
+
+    switch (masterHonorGridVisual(item)) {
+      case MasterHonorGridVisual.awarded:
+        return MasterHonorStatusCopy(
+          title: 'master_honors.detail.status_obtained'.tr(),
+          message: 'master_honors.detail.msg_obtained'.tr(),
+        );
+      case MasterHonorGridVisual.inactive:
+        return MasterHonorStatusCopy(
+          title: 'master_honors.detail.status_lapsed'.tr(),
+          message: missing > 0
+              ? 'master_honors.detail.msg_lapsed'.plural(missing)
+              : 'master_honors.detail.msg_lapsed_plain'.tr(),
+        );
+      case MasterHonorGridVisual.inProgress:
+        return MasterHonorStatusCopy(
+          title: 'master_honors.detail.status_in_progress'.tr(),
+          message: _inProgressMessage(item, missing),
+        );
+      case MasterHonorGridVisual.locked:
+        final requirements = item.totalGroups > 0
+            ? item.totalGroups
+            : item.requirementGroups.length;
+        return MasterHonorStatusCopy(
+          title: 'master_honors.detail.status_none'.tr(),
+          message: requirements > 0
+              ? 'master_honors.detail.msg_none'.plural(requirements)
+              : null,
+        );
+    }
   }
 
-  final fromGroups = ((item.completedGroups / item.totalGroups) * 100).round();
-  return item.progressPercent.clamp(0, 100) != fromGroups;
-}
+  static String? _inProgressMessage(MasterHonorRoadmap item, int missing) {
+    if (missing <= 0) return null;
 
-String masterHonorProgressCaption(MasterHonorRoadmap item) {
-  if (item.totalGroups <= 0) {
-    return 'Aún no hay requisitos configurados.';
+    final open = item.requirementGroups.where((g) => !g.passed).toList();
+    final category = open.length == 1 ? open.first.categoryName?.trim() : null;
+    if (category != null && category.isNotEmpty) {
+      return 'master_honors.detail.msg_in_progress_category'.plural(
+        missing,
+        namedArgs: {'category': humanizeMasterHonorLabel(category)},
+      );
+    }
+    return 'master_honors.detail.msg_in_progress'.plural(missing);
   }
-  return '${item.completedGroups} de ${item.totalGroups} requisitos';
-}
-
-String masterHonorPercentCaption(MasterHonorRoadmap item) {
-  return '${item.progressPercent.clamp(0, 100)}% del total';
-}
-
-const int kMasterHonorCollapsedOptionThreshold = 3;
-
-bool masterHonorCollapsesIncompleteOptions(MasterHonorRoadmapGroup group) {
-  final incompleteCount =
-      group.options.where((option) => !option.completed).length;
-  return incompleteCount > kMasterHonorCollapsedOptionThreshold;
 }

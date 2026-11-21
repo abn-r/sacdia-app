@@ -4204,20 +4204,35 @@
       "summary_of": "sur {total}",
       "summary_points": "{points} pts",
       "filter_all": "Tous",
-      "filter_unlocked": "Obtenus",
-      "filter_in_progress": "En cours",
-      "filter_locked": "Verrouillés",
       "filter_empty": "Rien dans ce filtre",
       "unlock_tap_to_close": "Appuyer pour fermer",
       "detail_repeatable": "Répétable",
       "detail_times_completed": "Fois complété",
-      "detail_completed_on": "Complété le",
       "detail_progress": "Progression",
       "detail_collection": "Collection",
       "detail_streak": "Série",
-      "detail_prerequisite": "Nécessite : Réalisation #{id}",
-      "detail_streak_unit": "jours",
-      "detail_secret_hint": "Continuez à participer pour découvrir cette réalisation."
+      "detail_points": "{points} points",
+      "detail_locked": "Verrouillé",
+      "detail_locked_requires": "Obtiens d’abord « {name} ».",
+      "detail_locked_generic": "Obtiens d’abord une autre réalisation.",
+      "detail_not_obtained": "Pas encore obtenu",
+      "detail_secret_hint": "Elle se révèle quand vous l'obtenez. Continuez à participer à votre club.",
+      "secret_name": "Réalisation secrète",
+      "obtained": "Obtenu",
+      "progress_fraction": "{current} sur {total}",
+      "detail_obtained_on": "Obtenu le {date}",
+      "unit_day": {
+        "one": "jour",
+        "other": "jours"
+      },
+      "unit_week": {
+        "one": "semaine",
+        "other": "semaines"
+      },
+      "unit_month": {
+        "one": "mois",
+        "other": "mois"
+      }
     },
     "tiers": {
       "bronze": "Bronze",
@@ -6329,7 +6344,45 @@
     "load_error_title": "Impossible de charger les maîtrises",
     "load_error_body": "Réessayez dans quelques secondes.",
     "title": "Maîtrises",
-    "empty_title": "Aucune maîtrise disponible"
+    "empty_title": "Aucune maîtrise disponible",
+    "card": {
+      "obtained": "Obtenue",
+      "lapsed": "Plus valide",
+      "progress_fraction": "{current} sur {total}"
+    },
+    "detail": {
+      "status_in_progress": "En cours",
+      "status_obtained": "Obtenue",
+      "status_lapsed": "Plus valide",
+      "status_none": "Aucune progression",
+      "msg_in_progress_category": {
+        "one": "Il vous manque {} spécialité de la catégorie {category}.",
+        "other": "Il vous manque {} spécialités de la catégorie {category}."
+      },
+      "msg_in_progress": {
+        "one": "Il vous manque {} spécialité pour remplir les exigences.",
+        "other": "Il vous manque {} spécialités pour remplir les exigences."
+      },
+      "msg_obtained": "Vous remplissez toutes les exigences de cette maîtrise.",
+      "msg_lapsed": {
+        "one": "Vous ne remplissez plus les exigences actuelles. Il vous manque {} spécialité pour la retrouver.",
+        "other": "Vous ne remplissez plus les exigences actuelles. Il vous manque {} spécialités pour la retrouver."
+      },
+      "msg_lapsed_plain": "Vous ne remplissez plus les exigences actuelles.",
+      "msg_none": {
+        "one": "Remplissez l'exigence pour l'obtenir.",
+        "other": "Remplissez les {} exigences pour l'obtenir."
+      },
+      "requirement_title": "Exigence",
+      "requirements_progress": "Exigences · {done} sur {total}",
+      "specialties_count": {
+        "one": "{current} sur {} spécialité",
+        "other": "{current} sur {} spécialités"
+      },
+      "choose_of": "Choisissez {min} sur {total}",
+      "requirement_fallback": "Exigence de la maîtrise",
+      "no_requirements": "Aucune exigence n'est encore configurée pour cette maîtrise."
+    }
   },
   "investiture_requests": {
     "section": {
