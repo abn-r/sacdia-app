@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../models/certification_eligibility_model.dart';
 import '../models/certification_model.dart';
 import '../models/certification_detail_model.dart';
 import '../models/certification_evidence_model.dart';
@@ -42,6 +43,14 @@ abstract class CertificationsRemoteDataSource {
     CancelToken? cancelToken,
   });
 
+  /// Evalúa si un usuario puede inscribirse en una certificación.
+  /// GET /certifications/users/:userId/certifications/:certificationId/eligibility
+  Future<CertificationEligibilityModel> getEligibility(
+    String userId,
+    int certificationId, {
+    CancelToken? cancelToken,
+  });
+
   /// Inscribe a un usuario en una certificación.
   /// POST /certifications/users/:userId/certifications/enroll
   Future<void> enrollCertification(String userId, int certificationId);
@@ -68,6 +77,16 @@ abstract class CertificationsRemoteDataSource {
     String userId,
     int enrollmentId,
     int requirementId, {
+    CancelToken? cancelToken,
+  });
+
+  /// Actividades que se pueden enlazar a un componente `LINKED_ACTIVITY`.
+  /// GET .../requirements/:requirementId/components/:componentId/activity-options
+  Future<List<CertificationActivityOptionModel>> getActivityOptions(
+    String userId,
+    int enrollmentId,
+    int requirementId,
+    int componentId, {
     CancelToken? cancelToken,
   });
 
@@ -239,6 +258,12 @@ class CertificationsRemoteDataSourceImpl
         return tr('certifications.errors.cert_closeout_incomplete');
       case 'CERT_CONCURRENT_UPDATE':
         return tr('certifications.errors.cert_concurrent_update');
+      case 'CERT_ELIGIBILITY_REQUIRED':
+        return tr('certifications.errors.cert_eligibility_required');
+      case 'CERT_ALREADY_ENROLLED':
+        return tr('certifications.errors.cert_already_enrolled');
+      case 'CERT_ENROLLMENT_NOT_ABANDONABLE':
+        return tr('certifications.errors.cert_enrollment_not_abandonable');
       default:
         return null;
     }
@@ -380,6 +405,38 @@ class CertificationsRemoteDataSourceImpl
     }
   }
 
+  // ── GET .../certifications/:certificationId/eligibility ─────────────────────
+
+  @override
+  Future<CertificationEligibilityModel> getEligibility(
+    String userId,
+    int certificationId, {
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.certifications}/users/$userId/certifications/$certificationId/eligibility',
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return CertificationEligibilityModel.fromJson(
+          _unwrapMap(response.data),
+        );
+      }
+
+      throw ServerException(
+          message: tr('certifications.errors.get_eligibility'),
+          code: response.statusCode);
+    } on DioException catch (e) {
+      AppLogger.e('Error en getEligibility', tag: _tag, error: e);
+      _rethrowCertError(e);
+    } catch (e) {
+      AppLogger.e('Error en getEligibility', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
   // ── POST /certifications/users/:userId/certifications/enroll ────────────────
 
   @override
@@ -399,6 +456,9 @@ class CertificationsRemoteDataSourceImpl
       throw ServerException(
           message: tr('certifications.errors.enroll_certification'),
           code: response.statusCode);
+    } on DioException catch (e) {
+      AppLogger.e('Error en enrollCertification', tag: _tag, error: e);
+      _rethrowCertError(e);
     } catch (e) {
       AppLogger.e('Error en enrollCertification', tag: _tag, error: e);
       _rethrow(e);
@@ -456,6 +516,9 @@ class CertificationsRemoteDataSourceImpl
       throw ServerException(
           message: tr('certifications.errors.unenroll_certification'),
           code: response.statusCode);
+    } on DioException catch (e) {
+      AppLogger.e('Error en unenrollCertification', tag: _tag, error: e);
+      _rethrowCertError(e);
     } catch (e) {
       AppLogger.e('Error en unenrollCertification', tag: _tag, error: e);
       _rethrow(e);
@@ -497,6 +560,41 @@ class CertificationsRemoteDataSourceImpl
       _rethrowCertError(e);
     } catch (e) {
       AppLogger.e('Error en getRequirement', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET .../components/:componentId/activity-options ─────────────────────
+
+  @override
+  Future<List<CertificationActivityOptionModel>> getActivityOptions(
+    String userId,
+    int enrollmentId,
+    int requirementId,
+    int componentId, {
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '${_enrollmentBase(userId, enrollmentId)}/requirements/$requirementId/components/$componentId/activity-options',
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return _unwrapList(response.data)
+            .map((json) => CertificationActivityOptionModel.fromJson(
+                _asStringKeyedMap(json)))
+            .toList();
+      }
+
+      throw ServerException(
+          message: tr('certifications.errors.get_activity_options'),
+          code: response.statusCode);
+    } on DioException catch (e) {
+      AppLogger.e('Error en getActivityOptions', tag: _tag, error: e);
+      _rethrowCertError(e);
+    } catch (e) {
+      AppLogger.e('Error en getActivityOptions', tag: _tag, error: e);
       _rethrow(e);
     }
   }

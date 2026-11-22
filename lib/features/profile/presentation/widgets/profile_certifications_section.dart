@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/features/certifications/domain/entities/certification_status.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/user_certification.dart';
 import 'package:sacdia_app/features/certifications/presentation/providers/certifications_providers.dart';
 import 'profile_quiet_add_chip.dart';
@@ -40,7 +41,12 @@ class ProfileCertificationsSection extends ConsumerWidget {
             ),
           ),
         ),
-        data: (certifications) {
+        data: (allEnrollments) {
+          // A withdrawn enrollment no longer counts.
+          final certifications = [
+            for (final e in allEnrollments)
+              if (e.isEnrolled) e,
+          ];
           if (certifications.isEmpty) {
             return Padding(
               key: const ValueKey('certifications-data'),
@@ -117,7 +123,7 @@ class _CertificationGridItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final uc = userCertification;
-    final isComplete = uc.completionStatus.toLowerCase() == 'completed';
+    final isComplete = uc.status.isCertified;
     final color =
         isComplete ? AppColors.secondary : SacAccent.of(context).color;
     final progress = uc.progressPercentage.round();
@@ -128,10 +134,7 @@ class _CertificationGridItem extends StatelessWidget {
           child: GestureDetector(
             onTap: () {
               context.push(
-                RouteNames.certificationProgressPath(
-                  '${uc.certificationId}',
-                  '${uc.enrollmentId}',
-                ),
+                RouteNames.certificationDetailPath('${uc.certificationId}'),
               );
             },
             child: Stack(

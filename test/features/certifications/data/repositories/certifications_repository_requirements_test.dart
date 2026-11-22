@@ -5,6 +5,7 @@ import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/network/network_info.dart';
 import 'package:sacdia_app/features/certifications/data/datasources/certifications_remote_data_source.dart';
 import 'package:sacdia_app/features/certifications/data/models/certification_detail_model.dart';
+import 'package:sacdia_app/features/certifications/data/models/certification_eligibility_model.dart';
 import 'package:sacdia_app/features/certifications/data/models/certification_evidence_model.dart';
 import 'package:sacdia_app/features/certifications/data/models/certification_model.dart';
 import 'package:sacdia_app/features/certifications/data/models/certification_progress_model.dart';
@@ -185,6 +186,24 @@ class _RemoteDataSource implements CertificationsRemoteDataSource {
   Future<CertificationProgressModel> getCertificationProgress(
     String userId,
     int certificationId, {
+    CancelToken? cancelToken,
+  }) =>
+      throw UnimplementedError();
+
+  @override
+  Future<CertificationEligibilityModel> getEligibility(
+    String userId,
+    int certificationId, {
+    CancelToken? cancelToken,
+  }) =>
+      throw UnimplementedError();
+
+  @override
+  Future<List<CertificationActivityOptionModel>> getActivityOptions(
+    String userId,
+    int enrollmentId,
+    int requirementId,
+    int componentId, {
     CancelToken? cancelToken,
   }) =>
       throw UnimplementedError();

@@ -8,6 +8,7 @@ class CertificationModel extends Equatable {
   final String? description;
   final bool active;
   final int modulesCount;
+  final int? requirementsCount;
 
   const CertificationModel({
     required this.certificationId,
@@ -15,6 +16,7 @@ class CertificationModel extends Equatable {
     this.description,
     required this.active,
     required this.modulesCount,
+    this.requirementsCount,
   });
 
   /// Crea una instancia desde JSON
@@ -25,6 +27,10 @@ class CertificationModel extends Equatable {
       description: json['description'] as String?,
       active: json['active'] as bool? ?? true,
       modulesCount: (json['modules_count'] ?? json['modulesCount'] ?? 0) as int,
+      requirementsCount: ((json['requirements_count'] ??
+              json['requirementsCount'] ??
+              json['sections_count']) as num?)
+          ?.toInt(),
     );
   }
 
@@ -36,6 +42,7 @@ class CertificationModel extends Equatable {
       'description': description,
       'active': active,
       'modules_count': modulesCount,
+      if (requirementsCount != null) 'requirements_count': requirementsCount,
     };
   }
 
@@ -47,6 +54,7 @@ class CertificationModel extends Equatable {
       description: description,
       active: active,
       modulesCount: modulesCount,
+      requirementsCount: requirementsCount,
     );
   }
 
@@ -57,6 +65,7 @@ class CertificationModel extends Equatable {
     String? description,
     bool? active,
     int? modulesCount,
+    int? requirementsCount,
   }) {
     return CertificationModel(
       certificationId: certificationId ?? this.certificationId,
@@ -64,6 +73,7 @@ class CertificationModel extends Equatable {
       description: description ?? this.description,
       active: active ?? this.active,
       modulesCount: modulesCount ?? this.modulesCount,
+      requirementsCount: requirementsCount ?? this.requirementsCount,
     );
   }
 
@@ -74,5 +84,6 @@ class CertificationModel extends Equatable {
         description,
         active,
         modulesCount,
+        requirementsCount,
       ];
 }

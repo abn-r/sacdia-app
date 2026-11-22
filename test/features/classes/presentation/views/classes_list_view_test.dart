@@ -6,6 +6,9 @@ import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/features/certifications/domain/entities/certification_status.dart';
+import 'package:sacdia_app/features/certifications/domain/entities/user_certification.dart';
+import 'package:sacdia_app/features/certifications/presentation/providers/certifications_providers.dart';
 import 'package:sacdia_app/features/classes/domain/entities/class_with_progress.dart';
 import 'package:sacdia_app/features/classes/domain/entities/progressive_class.dart';
 import 'package:sacdia_app/features/classes/presentation/catalog/class_catalog.dart';
@@ -84,10 +87,25 @@ class _FakeAuth extends AuthNotifier {
       );
 }
 
+final _enrollment = UserCertification(
+  enrollmentId: 70,
+  certificationId: 7,
+  certificationName: 'Instructor de Conquistadores',
+  enrollmentDate: DateTime(2026, 2, 1),
+  completionStatus: 'in_progress',
+  progressPercentage: 20,
+  modulesCompleted: 0,
+  modulesTotal: 8,
+  active: true,
+  status: CertificationEnrollmentStatus.inProgress,
+);
+
 Future<void> _pump(
   WidgetTester tester, {
   List<ProgressiveClass> classes = _enrolled,
   bool asScreen = false,
+  bool eligibleForCertifications = true,
+  List<UserCertification> certificationEnrollments = const [],
 }) async {
   final router = GoRouter(
     routes: [
@@ -105,12 +123,25 @@ Future<void> _pump(
         path: RouteNames.homeCertifications,
         builder: (_, __) => const Text('CERTIFICATIONS ROUTE'),
       ),
+      GoRoute(
+        path: RouteNames.certificationDetail,
+        builder: (_, state) => Text(
+          'CERTIFICATION ${state.pathParameters['certificationId']}',
+        ),
+      ),
     ],
   );
   await tester.pumpWidget(
     testProviderScope(
       overrides: [
         authNotifierProvider.overrideWith(_FakeAuth.new),
+        certificationsAccessProvider.overrideWith(
+          (ref) async =>
+              eligibleForCertifications || certificationEnrollments.isNotEmpty,
+        ),
+        userCertificationsProvider.overrideWith(
+          (ref) async => certificationEnrollments,
+        ),
         userClassesProvider.overrideWith((ref) async => classes),
         classCatalogProvider.overrideWith((ref) async => _sections),
         classWithProgressProvider.overrideWith(
@@ -172,13 +203,51 @@ void main() {
     tester.element(find.text('CATALOG ROUTE')).pop();
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
-      find.text('Explora e inscríbete'),
+      find.text('Todas las certificaciones'),
       200,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.tap(find.text('Certificaciones'));
     await tester.pumpAndSettle();
     expect(find.text('CERTIFICATIONS ROUTE'), findsOneWidget);
+  });
+
+  testWidgets('Explorar hides Certificaciones when the user is not eligible',
+      (tester) async {
+    await _pump(tester, eligibleForCertifications: false);
+
+    expect(find.text('EXPLORAR'), findsOneWidget);
+    expect(find.text('Clases por club'), findsOneWidget);
+    expect(find.text('Todas las certificaciones'), findsNothing);
+    expect(find.text('CERTIFICACIONES'), findsNothing);
+  });
+
+  testWidgets(
+      'enrolled users get a Certificaciones group before Explorar, with the '
+      'same row as the club classes', (tester) async {
+    await _pump(
+      tester,
+      eligibleForCertifications: false,
+      certificationEnrollments: [_enrollment],
+    );
+
+    await tester.scrollUntilVisible(
+      find.text('Instructor de Conquistadores'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('CERTIFICACIONES'), findsOneWidget);
+    expect(find.text('8 módulos'), findsOneWidget);
+    expect(find.text('En curso · 2026'), findsOneWidget);
+    // Enrolled users always see the Explorar row too.
+    expect(find.text('Todas las certificaciones'), findsOneWidget);
+    final group = tester.getTopLeft(find.text('CERTIFICACIONES')).dy;
+    final explore = tester.getTopLeft(find.text('EXPLORAR')).dy;
+    expect(group, lessThan(explore));
+
+    await tester.tap(find.text('Instructor de Conquistadores'));
+    await tester.pumpAndSettle();
+    expect(find.text('CERTIFICATION 7'), findsOneWidget);
   });
 
   testWidgets('the ⋯ menu offers "Inscribir clase anterior"', (tester) async {

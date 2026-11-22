@@ -21,6 +21,8 @@ import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/status_progress/sac_grouped_section.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/features/certifications/presentation/providers/certifications_providers.dart';
+import 'package:sacdia_app/features/certifications/presentation/widgets/certification_enrollment_rows.dart';
 
 import '../../domain/entities/progressive_class.dart';
 import '../catalog/class_catalog.dart';
@@ -132,6 +134,12 @@ class ClassesListViewBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final classesAsync = ref.watch(userClassesProvider);
+    // Certifications only show for someone eligible for one (or already
+    // enrolled): the access provider asks the server once per session.
+    final showCertifications =
+        ref.watch(certificationsAccessProvider).value ?? false;
+    final certificationEnrollments =
+        ref.watch(userCertificationsProvider).value ?? const [];
     final hasActiveClub = ref
             .watch(authNotifierProvider.select((v) => v.value))
             ?.authorization
@@ -144,7 +152,11 @@ class ClassesListViewBody extends ConsumerWidget {
       data: (classes) => RefreshIndicator(
         color: SacAccent.of(context).color,
         edgeOffset: listTop,
-        onRefresh: () => refreshClassCatalog(ref),
+        onRefresh: () {
+          ref.invalidate(userCertificationsProvider);
+          ref.invalidate(certificationsAccessProvider);
+          return refreshClassCatalog(ref);
+        },
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.fromLTRB(0, listTop, 0, 32),
@@ -164,9 +176,13 @@ class ClassesListViewBody extends ConsumerWidget {
               ),
               _ClubLists(enrolled: classes),
             ],
-            SacEntrance(
+            CertificationEnrollmentRows(
+              enrollments: certificationEnrollments,
               index: classes.isEmpty ? 1 : 3,
-              child: const _ExploreSection(),
+            ),
+            SacEntrance(
+              index: classes.isEmpty ? 2 : 4,
+              child: _ExploreSection(showCertifications: showCertifications),
             ),
           ],
         ),
@@ -261,7 +277,9 @@ class _ClubLists extends ConsumerWidget {
 // ── Explorar ──────────────────────────────────────────────────────────────────
 
 class _ExploreSection extends StatelessWidget {
-  const _ExploreSection();
+  const _ExploreSection({required this.showCertifications});
+
+  final bool showCertifications;
 
   @override
   Widget build(BuildContext context) {
@@ -276,12 +294,13 @@ class _ExploreSection extends StatelessWidget {
           subtitle: 'classes.list.catalog_chip_subtitle'.tr(),
           onTap: () => context.push(RouteNames.homeClassesCatalog),
         ),
-        _ExploreRow(
-          icon: HugeIcons.strokeRoundedCertificate01,
-          title: 'classes.list.certifications_chip_title'.tr(),
-          subtitle: 'classes.list.certifications_chip_subtitle'.tr(),
-          onTap: () => context.push(RouteNames.homeCertifications),
-        ),
+        if (showCertifications)
+          _ExploreRow(
+            icon: HugeIcons.strokeRoundedCertificate01,
+            title: 'classes.list.certifications_chip_title'.tr(),
+            subtitle: 'classes.list.certifications_chip_subtitle'.tr(),
+            onTap: () => context.push(RouteNames.homeCertifications),
+          ),
       ],
     );
   }

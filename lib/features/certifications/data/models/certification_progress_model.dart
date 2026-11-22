@@ -1,5 +1,9 @@
 import 'package:equatable/equatable.dart';
+import 'completion_status_json.dart';
+import 'certification_status_json.dart';
 import '../../domain/entities/certification_progress.dart';
+import '../../domain/entities/certification_requirement.dart';
+import '../../domain/entities/certification_status.dart';
 
 /// Modelo de progreso de sección para la capa de datos
 class SectionProgressModel extends Equatable {
@@ -7,23 +11,46 @@ class SectionProgressModel extends Equatable {
   final String sectionName;
   final bool completed;
   final DateTime? completionDate;
+  final CertificationRequirementStatus status;
+  final DateTime? submittedAt;
+  final DateTime? reviewedAt;
+  final String? lastReviewComment;
+  final bool required;
+  final bool hasDraft;
 
   const SectionProgressModel({
     required this.sectionId,
     required this.sectionName,
     required this.completed,
     this.completionDate,
+    this.status = CertificationRequirementStatus.draft,
+    this.submittedAt,
+    this.reviewedAt,
+    this.lastReviewComment,
+    this.required = true,
+    this.hasDraft = false,
   });
 
   /// Crea una instancia desde JSON
   factory SectionProgressModel.fromJson(Map<String, dynamic> json) {
+    // Un servidor anterior al rediseño solo manda `completed`.
+    final rawStatus = json['status'] as String?;
+    final completed = json['completed'] as bool? ?? rawStatus == 'APPROVED';
     return SectionProgressModel(
       sectionId: (json['section_id'] ?? json['id']) as int,
       sectionName: json['section_name'] as String? ?? json['name'] as String,
-      completed: json['completed'] as bool? ?? false,
+      completed: completed,
       completionDate: json['completion_date'] != null
           ? DateTime.parse(json['completion_date'] as String)
           : null,
+      status: rawStatus == null && completed
+          ? CertificationRequirementStatus.approved
+          : certificationRequirementStatusFromWire(rawStatus),
+      submittedAt: certificationDateFromJson(json['submitted_at']),
+      reviewedAt: certificationDateFromJson(json['reviewed_at']),
+      lastReviewComment: json['last_review_comment'] as String?,
+      required: json['required'] as bool? ?? true,
+      hasDraft: rawStatus == 'DRAFT',
     );
   }
 
@@ -44,12 +71,28 @@ class SectionProgressModel extends Equatable {
       sectionName: sectionName,
       completed: completed,
       completionDate: completionDate,
+      status: status,
+      submittedAt: submittedAt,
+      reviewedAt: reviewedAt,
+      lastReviewComment: lastReviewComment,
+      required: required,
+      hasDraft: hasDraft,
     );
   }
 
   @override
-  List<Object?> get props =>
-      [sectionId, sectionName, completed, completionDate];
+  List<Object?> get props => [
+        sectionId,
+        sectionName,
+        completed,
+        completionDate,
+        status,
+        submittedAt,
+        reviewedAt,
+        lastReviewComment,
+        required,
+        hasDraft,
+      ];
 }
 
 /// Modelo de progreso de módulo para la capa de datos
@@ -108,6 +151,10 @@ class CertificationProgressModel extends Equatable {
   final String completionStatus;
   final DateTime enrollmentDate;
   final List<ModuleProgressModel> modules;
+  final CertificationEnrollmentStatus status;
+  final DateTime? certifiedAt;
+  final CertificationSummary? summary;
+  final String? certificateUrl;
 
   const CertificationProgressModel({
     required this.enrollmentId,
@@ -117,6 +164,10 @@ class CertificationProgressModel extends Equatable {
     required this.completionStatus,
     required this.enrollmentDate,
     this.modules = const [],
+    this.status = CertificationEnrollmentStatus.inProgress,
+    this.certifiedAt,
+    this.summary,
+    this.certificateUrl,
   });
 
   /// Crea una instancia desde JSON
@@ -131,13 +182,17 @@ class CertificationProgressModel extends Equatable {
               json['progressPercentage'] ??
               0) as num)
           .toDouble(),
-      completionStatus: json['completion_status'] as String? ?? 'in_progress',
+      completionStatus: completionStatusFromJson(json['completion_status']),
       enrollmentDate: DateTime.parse(json['enrollment_date'] as String),
       modules: (json['modules'] as List<dynamic>?)
               ?.map((m) =>
                   ModuleProgressModel.fromJson(m as Map<String, dynamic>))
               .toList() ??
           [],
+      status: certificationEnrollmentStatusFromJson(json),
+      certifiedAt: certificationDateFromJson(json['certified_at']),
+      summary: certificationSummaryFromJson(json['summary']),
+      certificateUrl: json['certificate_url'] as String?,
     );
   }
 
@@ -164,6 +219,10 @@ class CertificationProgressModel extends Equatable {
       completionStatus: completionStatus,
       enrollmentDate: enrollmentDate,
       modules: modules.map((m) => m.toEntity()).toList(),
+      status: status,
+      certifiedAt: certifiedAt,
+      summary: summary,
+      certificateUrl: certificateUrl,
     );
   }
 
@@ -176,6 +235,7 @@ class CertificationProgressModel extends Equatable {
     String? completionStatus,
     DateTime? enrollmentDate,
     List<ModuleProgressModel>? modules,
+    CertificationEnrollmentStatus? status,
   }) {
     return CertificationProgressModel(
       enrollmentId: enrollmentId ?? this.enrollmentId,
@@ -185,6 +245,10 @@ class CertificationProgressModel extends Equatable {
       completionStatus: completionStatus ?? this.completionStatus,
       enrollmentDate: enrollmentDate ?? this.enrollmentDate,
       modules: modules ?? this.modules,
+      status: status ?? this.status,
+      certifiedAt: certifiedAt,
+      summary: summary,
+      certificateUrl: certificateUrl,
     );
   }
 
@@ -197,5 +261,9 @@ class CertificationProgressModel extends Equatable {
         completionStatus,
         enrollmentDate,
         modules,
+        status,
+        certifiedAt,
+        summary,
+        certificateUrl,
       ];
 }

@@ -44,6 +44,52 @@ class CertificationComponentResponseModel extends Equatable {
       ];
 }
 
+/// Archivo ya subido de un componente `FILE_EVIDENCE`.
+class CertificationComponentEvidenceModel extends Equatable {
+  final int evidenceId;
+  final String originalFilename;
+  final String mimeType;
+  final int sizeBytes;
+  final DateTime? confirmedAt;
+  final String? url;
+
+  const CertificationComponentEvidenceModel({
+    required this.evidenceId,
+    required this.originalFilename,
+    required this.mimeType,
+    this.sizeBytes = 0,
+    this.confirmedAt,
+    this.url,
+  });
+
+  factory CertificationComponentEvidenceModel.fromJson(
+    Map<String, dynamic> json,
+  ) {
+    final confirmed = json['confirmed_at'];
+    return CertificationComponentEvidenceModel(
+      evidenceId: (json['evidence_id'] as num).toInt(),
+      originalFilename: json['original_filename'] as String? ?? '',
+      mimeType: json['mime_type'] as String? ?? 'application/octet-stream',
+      sizeBytes: (json['size_bytes'] as num?)?.toInt() ?? 0,
+      confirmedAt: confirmed is String ? DateTime.tryParse(confirmed) : null,
+      url: json['url'] as String?,
+    );
+  }
+
+  CertificationComponentEvidence toEntity() => CertificationComponentEvidence(
+        evidenceId: evidenceId,
+        originalFilename: originalFilename,
+        mimeType: mimeType,
+        sizeBytes: sizeBytes,
+        confirmedAt: confirmedAt,
+        url: url,
+      );
+
+  @override
+  List<Object?> get props =>
+      [evidenceId, originalFilename, mimeType, sizeBytes, confirmedAt, url];
+}
+
 /// Modelo de un componente de requisito.
 class CertificationRequirementComponentModel extends Equatable {
   final int componentId;
@@ -51,6 +97,9 @@ class CertificationRequirementComponentModel extends Equatable {
   final String label;
   final bool required;
   final CertificationComponentResponseModel? response;
+  final String? instructions;
+  final Map<String, dynamic> configuration;
+  final List<CertificationComponentEvidenceModel> evidences;
 
   const CertificationRequirementComponentModel({
     required this.componentId,
@@ -58,6 +107,9 @@ class CertificationRequirementComponentModel extends Equatable {
     required this.label,
     required this.required,
     this.response,
+    this.instructions,
+    this.configuration = const {},
+    this.evidences = const [],
   });
 
   factory CertificationRequirementComponentModel.fromJson(
@@ -72,6 +124,18 @@ class CertificationRequirementComponentModel extends Equatable {
       response: responseJson != null
           ? CertificationComponentResponseModel.fromJson(responseJson)
           : null,
+      instructions: json['instructions'] as String?,
+      configuration: json['configuration'] is Map
+          ? Map<String, dynamic>.from(json['configuration'] as Map)
+          : const {},
+      evidences: [
+        if (json['evidences'] is List)
+          for (final e in json['evidences'] as List)
+            if (e is Map)
+              CertificationComponentEvidenceModel.fromJson(
+                Map<String, dynamic>.from(e),
+              ),
+      ],
     );
   }
 
@@ -82,11 +146,22 @@ class CertificationRequirementComponentModel extends Equatable {
         label: label,
         required: required,
         response: response?.toEntity(),
+        instructions: instructions,
+        configuration: configuration,
+        evidences: evidences.map((e) => e.toEntity()).toList(),
       );
 
   @override
-  List<Object?> get props =>
-      [componentId, componentType, label, required, response];
+  List<Object?> get props => [
+        componentId,
+        componentType,
+        label,
+        required,
+        response,
+        instructions,
+        configuration,
+        evidences,
+      ];
 }
 
 /// Modelo de `RequirementView` (backend) — requisito con sus componentes.
@@ -100,6 +175,7 @@ class CertificationRequirementModel extends Equatable {
   final DateTime? reviewedAt;
   final String? lastReviewComment;
   final List<CertificationRequirementComponentModel> components;
+  final int? lockVersion;
 
   const CertificationRequirementModel({
     required this.sectionId,
@@ -111,6 +187,7 @@ class CertificationRequirementModel extends Equatable {
     this.reviewedAt,
     this.lastReviewComment,
     this.components = const [],
+    this.lockVersion,
   });
 
   factory CertificationRequirementModel.fromJson(Map<String, dynamic> json) {
@@ -127,6 +204,7 @@ class CertificationRequirementModel extends Equatable {
           ? DateTime.tryParse(json['reviewed_at'] as String)
           : null,
       lastReviewComment: json['last_review_comment'] as String?,
+      lockVersion: (json['lock_version'] as num?)?.toInt(),
       components: (json['components'] as List<dynamic>?)
               ?.map((c) => CertificationRequirementComponentModel.fromJson(
                     c as Map<String, dynamic>,
@@ -146,6 +224,7 @@ class CertificationRequirementModel extends Equatable {
         reviewedAt: reviewedAt,
         lastReviewComment: lastReviewComment,
         components: components.map((c) => c.toEntity()).toList(),
+        lockVersion: lockVersion,
       );
 
   @override
@@ -159,6 +238,7 @@ class CertificationRequirementModel extends Equatable {
         reviewedAt,
         lastReviewComment,
         components,
+        lockVersion,
       ];
 }
 

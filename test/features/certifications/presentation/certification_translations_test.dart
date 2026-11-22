@@ -8,18 +8,20 @@ void main() {
 
   group('Certification translations', () {
     for (final locale in ['es', 'en', 'fr', 'pt-BR']) {
-      test('defines section count plural keys for $locale', () async {
+      test('defines module and requirement plural keys for $locale', () async {
         final raw = await rootBundle.loadString(
           'assets/translations/$locale.json',
         );
         final json = jsonDecode(raw) as Map<String, dynamic>;
         final certifications = json['certifications'] as Map<String, dynamic>;
-        final detail = certifications['detail'] as Map<String, dynamic>;
-        final sectionsCount = detail['sections_count'] as Map<String, dynamic>;
+        final common = certifications['common'] as Map<String, dynamic>;
 
-        expect(sectionsCount['one'], contains('{count}'));
-        expect(sectionsCount['other'], contains('{count}'));
-        expect(sectionsCount['one'], isNot(sectionsCount['other']));
+        for (final key in ['modules', 'requirements']) {
+          final plural = common[key] as Map<String, dynamic>;
+          expect(plural['one'], isNotEmpty);
+          expect(plural['other'], contains('{}'));
+          expect(plural['one'], isNot(plural['other']));
+        }
       });
     }
   });

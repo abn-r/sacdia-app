@@ -2,6 +2,8 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/certification.dart';
+import '../entities/certification_activity_option.dart';
+import '../entities/certification_eligibility.dart';
 import '../entities/certification_detail.dart';
 import '../entities/certification_evidence.dart';
 import '../entities/certification_requirement.dart';
@@ -35,6 +37,13 @@ abstract class CertificationsRepository {
     RequestCancelToken? cancelToken,
   });
 
+  /// Evalúa si un usuario puede inscribirse en una certificación.
+  Future<Either<Failure, CertificationEligibility>> getEligibility(
+    String userId,
+    int certificationId, {
+    RequestCancelToken? cancelToken,
+  });
+
   /// Inscribe a un usuario en una certificación.
   Future<Either<Failure, void>> enrollCertification(
       String userId, int certificationId);
@@ -59,6 +68,15 @@ abstract class CertificationsRepository {
     String userId,
     int enrollmentId,
     int requirementId, {
+    RequestCancelToken? cancelToken,
+  });
+
+  /// Actividades que se pueden enlazar a un componente `LINKED_ACTIVITY`.
+  Future<Either<Failure, List<CertificationActivityOption>>> getActivityOptions(
+    String userId,
+    int enrollmentId,
+    int requirementId,
+    int componentId, {
     RequestCancelToken? cancelToken,
   });
 

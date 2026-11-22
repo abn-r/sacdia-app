@@ -8,6 +8,7 @@ import '../../data/datasources/certifications_remote_data_source.dart';
 import '../../data/repositories/certifications_repository_impl.dart';
 import '../../domain/entities/certification.dart';
 import '../../domain/entities/certification_detail.dart';
+import '../../domain/entities/certification_eligibility.dart';
 import '../../domain/entities/user_certification.dart';
 import '../../domain/entities/certification_progress.dart';
 import '../../domain/repositories/certifications_repository.dart';
@@ -129,6 +130,77 @@ final certificationProgressProvider = FutureProvider.autoDispose
   );
 });
 
+/// Elegibilidad de la persona para inscribirse en una certificación.
+///
+/// Family por [certificationId]. Sin caché entre pantallas: la pantalla de una
+/// certificación disponible siempre muestra lo que dice el servidor ahora.
+final certificationEligibilityProvider = FutureProvider.autoDispose
+    .family<CertificationEligibility, int>((ref, certificationId) async {
+  final userId = await ref.watch(
+    authNotifierProvider.selectAsync((user) => user?.id),
+  );
+  if (userId == null) {
+    throw Exception(tr('errors.user_not_authenticated'));
+  }
+
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result =
+      await ref.read(certificationsRepositoryProvider).getEligibility(
+            userId,
+            certificationId,
+            cancelToken: cancelToken,
+          );
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (eligibility) => eligibility,
+  );
+});
+
+/// ¿Debe verse la feature de certificaciones? Sí cuando la persona ya tiene
+/// una inscripción activa o es elegible para alguna certificación publicada.
+///
+/// Se calcula una vez por sesión (keepAlive) porque pide la elegibilidad de
+/// cada certificación del catálogo; Mis clases y el perfil la comparten. Un
+/// fallo de red NO es un «no»: si no hay ninguna elegible y alguna consulta
+/// falló, el provider queda en error (la UI lo oculta) y se reintenta al
+/// refrescar en lugar de recordar un falso negativo toda la sesión.
+final certificationsAccessProvider =
+    FutureProvider.autoDispose<bool>((ref) async {
+  ref.keepAlive();
+  final userId = await ref.watch(
+    authNotifierProvider.selectAsync((user) => user?.id),
+  );
+  if (userId == null) return false;
+
+  try {
+    final enrollments = await ref.watch(userCertificationsProvider.future);
+    if (enrollments.any((e) => e.isEnrolled)) return true;
+  } catch (_) {
+    // Sin inscripciones legibles: se decide por la elegibilidad.
+  }
+
+  final catalog = await ref.watch(certificationsProvider.future);
+  final published = catalog.where((c) => c.active).toList();
+  if (published.isEmpty) return false;
+
+  final repository = ref.read(certificationsRepositoryProvider);
+  final results = await Future.wait([
+    for (final c in published)
+      repository.getEligibility(userId, c.certificationId),
+  ]);
+  var anyFailed = false;
+  for (final result in results) {
+    final eligible = result.fold<bool?>((_) => null, (e) => e.eligible);
+    if (eligible == true) return true;
+    if (eligible == null) anyFailed = true;
+  }
+  if (anyFailed) {
+    throw Exception(tr('certifications.errors.get_eligibility'));
+  }
+  return false;
+});
+
 // ── Mutation notifiers ────────────────────────────────────────────────────────
 
 /// Estado para operaciones de inscripción/desinscripción en certificaciones.
@@ -199,6 +271,7 @@ class CertificationEnrollmentNotifier
             state = state.copyWith(isLoading: false, success: true);
             ref.invalidate(userCertificationsProvider);
             ref.invalidate(certificationProgressProvider(_certificationId));
+            ref.invalidate(certificationsAccessProvider);
             return true;
           },
         );
@@ -225,6 +298,7 @@ class CertificationEnrollmentNotifier
             state = state.copyWith(isLoading: false, success: true);
             ref.invalidate(userCertificationsProvider);
             ref.invalidate(certificationProgressProvider(_certificationId));
+            ref.invalidate(certificationsAccessProvider);
             return true;
           },
         );
@@ -240,71 +314,4 @@ class CertificationEnrollmentNotifier
 final certificationEnrollmentNotifierProvider = NotifierProvider.autoDispose
     .family<CertificationEnrollmentNotifier, CertificationEnrollmentState, int>(
   CertificationEnrollmentNotifier.new,
-);
-
-/// Notifier para actualizar el progreso de secciones en una certificación.
-///
-/// Family por [certificationId].
-class SectionProgressNotifier extends Notifier<CertificationEnrollmentState> {
-  SectionProgressNotifier(this.arg);
-
-  final int arg;
-
-  @override
-  CertificationEnrollmentState build() => const CertificationEnrollmentState();
-
-  String get _userId {
-    final authState = ref.read(authNotifierProvider);
-    return authState.value?.id ?? '';
-  }
-
-  int get _certificationId => arg;
-
-  /// Marca o desmarca una sección como completada.
-  Future<bool> updateSection({
-    required int moduleId,
-    required int sectionId,
-    required bool completed,
-  }) =>
-      ref.keepAliveDuring(() async {
-        state =
-            state.copyWith(isLoading: true, errorMessage: null, success: false);
-
-        final result = await ref
-            .read(certificationsRepositoryProvider)
-            .updateSectionProgress(
-              _userId,
-              _certificationId,
-              moduleId,
-              sectionId,
-              completed,
-            );
-
-        return result.fold<bool>(
-          (failure) {
-            state = state.copyWith(
-              isLoading: false,
-              errorMessage: failure.message,
-            );
-            return false;
-          },
-          (_) {
-            state = state.copyWith(isLoading: false, success: true);
-            ref.invalidate(certificationProgressProvider(_certificationId));
-            ref.invalidate(userCertificationsProvider);
-            return true;
-          },
-        );
-      });
-
-  /// Limpia el estado de error / éxito.
-  void reset() => state = const CertificationEnrollmentState();
-}
-
-/// Provider para el notifier de progreso de sección.
-///
-/// Family por [certificationId].
-final sectionProgressNotifierProvider = NotifierProvider.autoDispose
-    .family<SectionProgressNotifier, CertificationEnrollmentState, int>(
-  SectionProgressNotifier.new,
 );

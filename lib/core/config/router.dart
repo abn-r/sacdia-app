@@ -11,8 +11,8 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/features/activities/presentation/views/activities_list_view.dart';
 import 'package:sacdia_app/features/activities/presentation/views/activity_detail_view.dart';
 import 'package:sacdia_app/features/certifications/presentation/views/certifications_list_view.dart';
-import 'package:sacdia_app/features/certifications/presentation/views/certification_detail_view.dart';
-import 'package:sacdia_app/features/certifications/presentation/views/certification_progress_view.dart';
+import 'package:sacdia_app/features/certifications/presentation/views/certification_module_view.dart';
+import 'package:sacdia_app/features/certifications/presentation/views/certification_view.dart';
 import 'package:sacdia_app/features/certifications/presentation/views/requirement_detail_view.dart';
 import 'package:sacdia_app/features/certifications/presentation/views/certification_closeout_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_review_view.dart';
@@ -1192,37 +1192,42 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // Detalle de certificación
+      // Pantalla de la certificación: inscrita (clon de la clase) o disponible.
       GoRoute(
         path: RouteNames.certificationDetail,
         pageBuilder: (context, state) {
-          final certificationIdStr = state.pathParameters['certificationId']!;
-          final certificationId = int.tryParse(certificationIdStr) ?? 0;
+          final certificationId =
+              int.tryParse(state.pathParameters['certificationId'] ?? '') ?? 0;
           return _sharedAxisBuild(
             context,
             state,
-            CertificationDetailView(certificationId: certificationId),
+            CertificationView(certificationId: certificationId),
           );
         },
       ),
 
-      // Progreso de certificación
+      // Enlaces viejos al progreso de una certificación: la pantalla de la
+      // certificación ya muestra el progreso.
       GoRoute(
         path: RouteNames.certificationProgress,
-        pageBuilder: (context, state) {
-          final certificationIdStr = state.pathParameters['certificationId']!;
-          final enrollmentIdStr = state.pathParameters['enrollmentId']!;
-          final certificationId = int.tryParse(certificationIdStr) ?? 0;
-          final enrollmentId = int.tryParse(enrollmentIdStr) ?? 0;
-          return _sharedAxisBuild(
-            context,
-            state,
-            CertificationProgressView(
-              enrollmentId: enrollmentId,
-              certificationId: certificationId,
-            ),
-          );
-        },
+        redirect: (context, state) => RouteNames.certificationDetailPath(
+          state.pathParameters['certificationId'] ?? '',
+        ),
+      ),
+
+      // Módulo de una certificación: sus requisitos agrupados por estado.
+      GoRoute(
+        path: RouteNames.certificationModule,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          CertificationModuleView(
+            certificationId:
+                int.tryParse(state.pathParameters['certificationId'] ?? '') ??
+                    0,
+            moduleId: int.tryParse(state.pathParameters['moduleId'] ?? '') ?? 0,
+          ),
+        ),
       ),
 
       // Detalle de requisito (sección) de certificación — ejecución (Fase 5)

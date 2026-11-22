@@ -57,6 +57,7 @@ final Map<String, ProviderOrFamily> profileScopedKeepAliveEntries = {
   'currentClubSectionProvider': currentClubSectionProvider,
   // Certificaciones, validación y carpeta de evidencias
   'certificationsProvider': certificationsProvider,
+  'certificationsAccessProvider': certificationsAccessProvider,
   'eligibilityProvider': eligibilityProvider,
   'evidenceFolderProvider': evidenceFolderProvider,
   // Clases

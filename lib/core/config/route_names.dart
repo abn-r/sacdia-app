@@ -83,8 +83,14 @@ class RouteNames {
 
   // Rutas de detalle fuera del shell
   static const String certificationDetail = '/certification/:certificationId';
+  // Ruta heredada: enlaces viejos a `/progress/:enrollmentId` redirigen a
+  // `certificationDetail`.
   static const String certificationProgress =
       '/certification/:certificationId/progress/:enrollmentId';
+
+  /// Un módulo de la certificación: sus requisitos agrupados por estado.
+  static const String certificationModule =
+      '/certification/:certificationId/module/:moduleId';
 
   // Ejecución de requisitos y cierre de certificación (Fase 5)
   static const String certificationRequirementDetail =
@@ -244,11 +250,11 @@ class RouteNames {
   static String activityDetailPath(int activityId) => '/activity/$activityId';
   static String certificationDetailPath(String certificationId) =>
       '/certification/$certificationId';
-  static String certificationProgressPath(
+  static String certificationModulePath(
     String certificationId,
-    String enrollmentId,
+    String moduleId,
   ) =>
-      '/certification/$certificationId/progress/$enrollmentId';
+      '/certification/$certificationId/module/$moduleId';
   static String certificationRequirementDetailPath(
     int certificationId,
     int sectionId, {

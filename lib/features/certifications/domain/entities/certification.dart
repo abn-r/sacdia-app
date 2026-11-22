@@ -8,12 +8,16 @@ class Certification extends Equatable {
   final bool active;
   final int modulesCount;
 
+  /// Total de requisitos; nulo cuando el backend no lo envía en el catálogo.
+  final int? requirementsCount;
+
   const Certification({
     required this.certificationId,
     required this.name,
     this.description,
     required this.active,
     required this.modulesCount,
+    this.requirementsCount,
   });
 
   @override
@@ -23,5 +27,6 @@ class Certification extends Equatable {
         description,
         active,
         modulesCount,
+        requirementsCount,
       ];
 }
