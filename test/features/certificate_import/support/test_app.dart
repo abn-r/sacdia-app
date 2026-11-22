@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/providers/riverpod_aliases.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../support/riverpod_test_support.dart';
 
@@ -25,6 +26,7 @@ class FileAssetLoader extends AssetLoader {
 Future<void> initTestLocalization() async {
   SharedPreferences.setMockInitialValues({});
   await EasyLocalization.ensureInitialized();
+  await initializeDateFormatting('es');
 }
 
 /// [child] in a Spanish app. With [proofRoutes] the app has a router whose

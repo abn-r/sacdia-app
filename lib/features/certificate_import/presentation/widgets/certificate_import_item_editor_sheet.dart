@@ -10,15 +10,12 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/instructor_field.dart';
 import 'package:sacdia_app/core/widgets/instructor_selection.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_dialog.dart';
-import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 import 'package:sacdia_app/core/widgets/sac_picker_field.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
-import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/profile/presentation/views/edit_profile_view.dart';
-import 'package:sacdia_app/features/honors/presentation/widgets/honor_badge_image.dart';
 import 'package:sacdia_app/providers/catalogs_provider.dart';
 
 import '../../domain/entities/certificate_import_class_option.dart';
@@ -29,6 +26,8 @@ import 'detected_text_quote.dart';
 import 'honor_picker_sheet.dart';
 import 'import_class_section.dart';
 import 'import_date_field.dart';
+import 'import_catalog_images.dart';
+import 'import_confirm_sheet.dart';
 import 'import_error_banner.dart';
 import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
@@ -95,14 +94,11 @@ class _CertificateImportItemEditorSheetState
   final _instructorKey = GlobalKey();
   late final TextEditingController _name;
   late CertificateImportItemType _type;
-  late final bool _typeIsOpen;
 
   // Honor selection. The id survives even if the API sent no names (R6).
   int? _honorId;
   CertificateImportHonorRef? _honor;
-  int? _honorClubTypeId;
-  int? _categoryId;
-  String? _categoryName;
+  String? _honorImageUrl;
   bool _suggested = false;
 
   // Class selection.
@@ -133,16 +129,13 @@ class _CertificateImportItemEditorSheetState
   void initState() {
     super.initState();
     final item = widget.item;
-    _typeIsOpen =
-        widget.isNew || item.type == CertificateImportItemType.unknown;
     _type = item.type == CertificateImportItemType.clazz
         ? CertificateImportItemType.clazz
         : CertificateImportItemType.honor;
     _name = TextEditingController(text: item.detectedName ?? '');
     _honorId = item.honorId;
     _honor = item.honor;
-    _categoryId = item.honor?.categoryId;
-    _categoryName = item.honor?.categoryName;
+    _honorImageUrl = item.honor?.imageUrl;
     _classId = item.classId;
     _clubTypeId = item.classRef?.clubTypeId;
     final ref = item.classRef;
@@ -159,9 +152,13 @@ class _CertificateImportItemEditorSheetState
         ? _selectionOf(item.instructor)
         : const InstructorSelection.none();
     _instructor = _initialInstructor;
-    // An OCR proposal waits for the member's confirmation ("Sugerida").
-    _suggested = item.status == CertificateImportItemStatus.needsReview &&
-        (item.honorId != null || item.classId != null);
+    // An OCR proposal waits for the member's confirmation ("Sugerida"). For
+    // a honor the backend says so (`honor_suggested`); a class keeps the
+    // proposal-not-yet-reviewed rule.
+    _suggested = item.type == CertificateImportItemType.clazz
+        ? item.status == CertificateImportItemStatus.needsReview &&
+            item.classId != null
+        : item.honorSuggested && item.honorId != null;
 
     final read = item.detectedDate;
     final readIssue = CertificateDateRule.check(read, now: _today);
@@ -282,47 +279,21 @@ class _CertificateImportItemEditorSheetState
     final honor = await HonorPickerSheet.show(
       context,
       initialQuery: _name.text.trim(),
-      categoryId: _categoryId,
+      suggestedHonorId: _suggested ? _honorId : null,
     );
     if (honor == null || !mounted) return;
     _touch(() {
       _honorId = honor.id;
-      _honorClubTypeId = honor.clubTypeId;
+      _honorImageUrl = honor.imageUrl;
       _honor = CertificateImportHonorRef(
         id: honor.id,
         name: honor.name,
         categoryId: honor.categoryId,
         categoryName: honor.categoryName,
+        imageUrl: honor.imageUrl,
       );
-      _categoryId = honor.categoryId;
-      _categoryName = honor.categoryName;
       _suggested = false;
       _honorError = null;
-    });
-  }
-
-  Future<void> _pickCategory() async {
-    final categories = ref.read(honorCategoriesProvider).value ?? [];
-    final choice = await showHonorCategoryPicker(
-      context,
-      categories: categories,
-      selectedId: _categoryId,
-    );
-    if (choice == null || !mounted) return;
-    final category = categories.where((c) => c.id == choice.id).firstOrNull;
-    _touch(() {
-      _categoryId = category?.id;
-      _categoryName = category?.name;
-      // A honor of another category no longer fits the filter.
-      if (category != null &&
-          _honor != null &&
-          _honor!.categoryId != category.id) {
-        _honorId = null;
-        _honor = null;
-        _honorError = 'certificate_import.editor.honor_category_mismatch'.tr(
-          namedArgs: {'category': category.name},
-        );
-      }
     });
   }
 
@@ -497,12 +468,11 @@ class _CertificateImportItemEditorSheetState
   }
 
   Future<void> _confirmDiscard() async {
-    final discard = await SacDialog.show(
+    final discard = await showImportConfirmSheet(
       context,
       title: 'certificate_import.editor.discard_title'.tr(),
       confirmLabel: 'certificate_import.editor.discard_confirm'.tr(),
       cancelLabel: 'certificate_import.editor.discard_keep'.tr(),
-      confirmIsDestructive: true,
     );
     if (discard == true && mounted) {
       _dirty = false;
@@ -552,12 +522,10 @@ class _CertificateImportItemEditorSheetState
     final item = widget.item;
     final draft = _draft;
     final reduce = SacMotion.reduceMotionOf(context);
-    final title = widget.isNew
-        ? 'certificate_import.editor.add_title'.tr()
-        : (_isHonor
-                ? 'certificate_import.editor.title_honor'
-                : 'certificate_import.editor.title_class')
-            .tr();
+    final title = (widget.isNew
+            ? 'certificate_import.editor.add_title'
+            : 'certificate_import.editor.title')
+        .tr();
     final read = item.detectedName?.trim() ?? '';
     final rejection = widget.resubmit ? _rejectionText(item) : null;
 
@@ -568,31 +536,6 @@ class _CertificateImportItemEditorSheetState
           _RejectionNotice(reason: rejection),
           const SizedBox(height: 16),
         ],
-        if (_typeIsOpen) ...[
-          Row(
-            children: [
-              for (final (type, key) in [
-                (CertificateImportItemType.honor, 'honor'),
-                (CertificateImportItemType.clazz, 'class'),
-              ]) ...[
-                SacFilterChip(
-                  label: 'certificate_import.editor.$key'.tr(),
-                  selected: _type == type,
-                  onTap: () => _setType(type),
-                ),
-                const SizedBox(width: 8),
-              ],
-            ],
-          ),
-          const SizedBox(height: 8),
-        ] else if (_isHonor)
-          Align(
-            alignment: Alignment.centerLeft,
-            child: SacButton.ghost(
-              text: 'certificate_import.editor.switch_to_class'.tr(),
-              onPressed: () => _setType(CertificateImportItemType.clazz),
-            ),
-          ),
         if (_fixingText || widget.isNew || read.isEmpty)
           SacTextField(
             label: widget.isNew
@@ -606,14 +549,17 @@ class _CertificateImportItemEditorSheetState
         else
           DetectedTextQuote(
             text: read,
+            date: item.detectedDate,
             onViewProof: widget.onViewProof,
             proofLabel: widget.proofPage == null
                 ? null
-                : 'certificate_import.item.view_proof_page'.tr(
+                : 'certificate_import.editor.view_page'.tr(
                     namedArgs: {'page': '${widget.proofPage}'},
                   ),
             onFix: () => setState(() => _fixingText = true),
           ),
+        const SizedBox(height: 16),
+        _TypeSwitch(type: _type, onChanged: _setType),
         const SizedBox(height: 16),
         if (_isHonor) ..._honorFields() else ..._classFields(),
       ],
@@ -688,11 +634,15 @@ class _CertificateImportItemEditorSheetState
                               ? null
                               : _save,
                     ),
-                    if (widget.onRemove != null && !widget.resubmit)
-                      SacButton.ghost(
+                    if (widget.onRemove != null && !widget.resubmit) ...[
+                      const SizedBox(height: 8),
+                      SacButton.outline(
                         text: 'certificate_import.editor.remove'.tr(),
+                        textColor: c.error,
+                        borderColor: c.error,
                         onPressed: _saving ? null : widget.onRemove,
                       ),
+                    ],
                   ],
                 ),
               ),
@@ -704,24 +654,9 @@ class _CertificateImportItemEditorSheetState
   }
 
   List<Widget> _honorFields() {
-    final categories = ref.watch(honorCategoriesProvider);
-    // Adventurer honors have no categories (H14): hide the filter for them.
-    final noCategories = _honor != null &&
-        (isAdventurerHonorClubType(_honorClubTypeId) ||
-            _honor!.categoryName == null);
     final name =
         _honor?.name ?? (_honorId != null ? widget.item.detectedName : null);
     return [
-      if (categories.hasValue && !noCategories) ...[
-        SacPickerField(
-          label: 'certificate_import.editor.category'.tr(),
-          hint: 'certificate_import.editor.category_hint'.tr(),
-          icon: HugeIcons.strokeRoundedFolder01,
-          selectedName: _categoryName,
-          onTap: _pickCategory,
-        ),
-        const SizedBox(height: 16),
-      ],
       KeyedSubtree(
         key: _honorKey,
         child: SacPickerField(
@@ -729,14 +664,9 @@ class _CertificateImportItemEditorSheetState
           hint: 'certificate_import.editor.honor_hint'.tr(),
           icon: HugeIcons.strokeRoundedMedal05,
           selectedName: name,
-          selectedSubtitle: _honor?.categoryName,
-          leading: HonorBadgeImage(
-            imageUrl: null,
-            width: 28,
-            height: 28,
-            fallbackColor: context.sac.textSecondary,
-            fallbackBackgroundColor: context.sac.surfaceVariant,
-            fallbackIconSize: 16,
+          leading: ImportHonorBadge(
+            imageUrl: _honorImageUrl,
+            size: 28,
           ),
           badge: _suggested ? 'certificate_import.editor.suggested'.tr() : null,
           errorText: _honorError,
@@ -751,6 +681,8 @@ class _CertificateImportItemEditorSheetState
         child: InstructorField(
           selection: _instructor,
           errorText: _instructorError,
+          label: 'certificate_import.editor.instructor'.tr(),
+          hint: 'certificate_import.editor.instructor_hint'.tr(),
           onChanged: (value) => _touch(() {
             _instructor = value;
             _instructorError = null;
@@ -829,6 +761,60 @@ Future<void> showCertificateImportItemEditor(
       resubmit: resubmit,
     ),
   );
+}
+
+/// "Especialidad | Clase": what the row is. Segmented, so both options are
+/// always visible and the current one is marked by more than color.
+class _TypeSwitch extends StatelessWidget {
+  const _TypeSwitch({required this.type, required this.onChanged});
+
+  final CertificateImportItemType type;
+  final ValueChanged<CertificateImportItemType> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = SacAccent.of(context);
+    final c = context.sac;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'certificate_import.editor.type_label'.tr(),
+          style: Theme.of(context)
+              .textTheme
+              .titleMedium
+              ?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 6),
+        SizedBox(
+          width: double.infinity,
+          child: SegmentedButton<CertificateImportItemType>(
+            key: const ValueKey('import-type-switch'),
+            showSelectedIcon: false,
+            style: SegmentedButton.styleFrom(
+              minimumSize: const Size(0, 44),
+              backgroundColor: c.surface,
+              foregroundColor: c.textSecondary,
+              selectedBackgroundColor: accent.light,
+              selectedForegroundColor: accent.dark,
+            ),
+            segments: [
+              ButtonSegment(
+                value: CertificateImportItemType.honor,
+                label: Text('certificate_import.editor.honor'.tr()),
+              ),
+              ButtonSegment(
+                value: CertificateImportItemType.clazz,
+                label: Text('certificate_import.editor.class'.tr()),
+              ),
+            ],
+            selected: {type},
+            onSelectionChanged: (selection) => onChanged(selection.first),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 /// The reviewer's reason for rejecting the row, above the fields.

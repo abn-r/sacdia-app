@@ -25,6 +25,8 @@ class InstructorField extends StatelessWidget {
     this.showHelp = true,
     this.readOnly = false,
     this.isLoading = false,
+    this.label,
+    this.hint,
   });
 
   final InstructorSelection selection;
@@ -42,6 +44,14 @@ class InstructorField extends StatelessWidget {
   /// A save is in flight: the field cannot be tapped.
   final bool isLoading;
 
+  /// Replaces the default title ("Instructor o instructora"), already
+  /// translated.
+  final String? label;
+
+  /// Replaces the default empty text ("Agregar instructor (opcional)"),
+  /// already translated.
+  final String? hint;
+
   Future<void> _pick(BuildContext context) async {
     final picked = await InstructorPicker.show(context);
     if (picked != null) onChanged(picked);
@@ -51,7 +61,7 @@ class InstructorField extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final theme = Theme.of(context).textTheme;
-    final label = 'instructor.title'.tr();
+    final label = this.label ?? 'instructor.title'.tr();
     final name = selection.isNone ? null : selection.displayName;
     final subtitle = switch (selection.kind) {
       InstructorKind.user => 'instructor.local_field_person'.tr(),
@@ -73,7 +83,7 @@ class InstructorField extends StatelessWidget {
       children: [
         SacPickerField(
           label: label,
-          hint:
+          hint: hint ??
               (readOnly ? 'instructor.none_registered' : 'instructor.add_hint')
                   .tr(),
           icon: selection.isExternal

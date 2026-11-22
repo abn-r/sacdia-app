@@ -36,6 +36,9 @@ abstract final class CertificateImportErrorCode {
 
   /// Resubmit of a row that is no longer rejected (already resent).
   static const itemNotRejected = 'CERTIFICATE_IMPORT_ITEM_NOT_REJECTED';
+
+  /// Submit with a row the server does not consider ready yet.
+  static const itemsIncomplete = 'CERTIFICATE_IMPORT_ITEMS_INCOMPLETE';
   static const batchNotDeletable = 'CERTIFICATE_IMPORT_BATCH_NOT_DELETABLE';
   static const ocrInProgress = 'CERTIFICATE_IMPORT_OCR_IN_PROGRESS';
 

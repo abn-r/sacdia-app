@@ -138,7 +138,8 @@ Future<({_Api api, _FakeResubmit resubmit, _FakeUpdate update})> _show(
 }
 
 Future<void> _openEditor(WidgetTester tester) async {
-  await tester.tap(find.text('Corregir y reenviar'));
+  // The row of the group "Por corregir" opens the editor (resubmit mode).
+  await tester.tap(find.text('Corregir'));
   await tester.pumpAndSettle();
 }
 
@@ -148,7 +149,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(initTestLocalization);
 
-  testWidgets('"Corregir y reenviar" opens the editor with the reason', (
+  testWidgets('tapping a row to fix opens the editor with the reason', (
     tester,
   ) async {
     final env = await _show(tester);
@@ -156,12 +157,12 @@ void main() {
     await _openEditor(tester);
 
     expect(find.byType(CertificateImportItemEditorSheet), findsOneWidget);
-    // The reason is on the card and, now, at the top of the sheet.
+    // The reason is on the row and, now, at the top of the sheet.
     expect(find.text('Motivo del rechazo'), findsOneWidget);
     expect(find.text(_reason), findsNWidgets(2));
     // Prefilled with the rejected row.
     expect(find.text('Primeros Auxilios'), findsWidgets);
-    expect(find.text('Corregir especialidad'), findsOneWidget);
+    expect(find.text('Corregir fila'), findsOneWidget);
     expect(_resubmitButton, findsOneWidget);
     // Nothing was sent just by opening it, and no way to remove the row.
     expect(env.resubmit.calls, isEmpty);
@@ -199,14 +200,12 @@ void main() {
     // The sheet closed, the batch was reloaded and the row reads "Reenviada".
     expect(find.byType(CertificateImportItemEditorSheet), findsNothing);
     expect(env.api.gets, 2);
-    expect(find.text('Reenviada'), findsOneWidget);
-    expect(find.text('Rechazada'), findsNothing);
-    expect(find.text('Corregir y reenviar'), findsNothing);
+    expect(find.textContaining('Reenviada'), findsOneWidget);
+    expect(find.text('POR CORREGIR'), findsNothing);
+    expect(find.text('Corregir'), findsNothing);
     expect(find.text('Fila reenviada a revisión.'), findsOneWidget);
-    expect(
-      find.text('Aprobadas: 0 · Rechazadas: 0 · Pendientes: 1'),
-      findsOneWidget,
-    );
+    // Nothing is left to fix: the whole batch is back in review.
+    expect(find.text('En revisión'), findsOneWidget);
   });
 
   testWidgets('a row that was already resent says so and refreshes', (
@@ -233,8 +232,8 @@ void main() {
     // Nothing left to fix: the sheet closes and the screen shows the new state.
     expect(find.byType(CertificateImportItemEditorSheet), findsNothing);
     expect(env.api.gets, 2);
-    expect(find.text('Reenviada'), findsOneWidget);
-    expect(find.text('Corregir y reenviar'), findsNothing);
+    expect(find.textContaining('Reenviada'), findsOneWidget);
+    expect(find.text('Corregir'), findsNothing);
   });
 
   testWidgets('another failure keeps the sheet open and says what happened', (

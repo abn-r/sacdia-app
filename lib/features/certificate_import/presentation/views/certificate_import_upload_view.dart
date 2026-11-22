@@ -10,19 +10,15 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
-import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_card.dart';
-import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
-import 'package:sacdia_app/core/widgets/sac_tweened_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../../domain/entities/certificate_import_payloads.dart';
@@ -31,13 +27,17 @@ import '../error/certificate_import_error_mapper.dart';
 import '../providers/certificate_import_providers.dart';
 import '../widgets/certificate_import_back_button.dart';
 import '../widgets/import_recent_batches.dart';
+import '../widgets/import_proof_preview.dart';
 import '../widgets/import_status_card.dart';
-import '../widgets/import_steps.dart';
+import '../widgets/import_upload_progress.dart';
 
 typedef CertificateImportSubmit = Future<void> Function(
     CertificateImportLocalProof proof);
 typedef CertificateImportProofPicker = Future<CertificateImportLocalProof?>
     Function();
+
+/// Pages a PDF proof may have (matches the backend limit); a photo is one.
+const int certificateImportMaxProofPages = 5;
 
 /// Maximum proof size accepted client-side (matches the backend limit).
 const int certificateImportMaxProofBytes = 10 * 1024 * 1024;
@@ -148,6 +148,18 @@ class _CertificateImportUploadRouteViewState
     super.dispose();
   }
 
+  /// Pull to refresh: reloads "Tus envíos" to see what the reviewer decided.
+  Future<void> _refreshBatches() async {
+    ref.invalidate(certificateImportBatchListProvider);
+    try {
+      await ref.read(
+        certificateImportBatchListProvider(ImportRecentBatches.page).future,
+      );
+    } catch (_) {
+      // The list hides itself on error; nothing to show here.
+    }
+  }
+
   Future<void> _submit(CertificateImportLocalProof proof) async {
     final messenger = ScaffoldMessenger.of(context);
     final outcome = await _controller.run(proof);
@@ -184,6 +196,7 @@ class _CertificateImportUploadRouteViewState
       onPickGallery: CertificateImportUploadRouteView._pickGalleryProof,
       onPickFile: CertificateImportUploadRouteView._pickFileProof,
       recentBatches: const ImportRecentBatches(),
+      onRefresh: _refreshBatches,
     );
   }
 }
@@ -201,6 +214,7 @@ class CertificateImportUploadView extends StatefulWidget {
     this.onCancel,
     this.onSkipWait,
     this.recentBatches,
+    this.onRefresh,
   });
 
   final CertificateImportSubmit? onSubmitProofs;
@@ -227,6 +241,9 @@ class CertificateImportUploadView extends StatefulWidget {
   /// route so this view stays free of providers.
   final Widget? recentBatches;
 
+  /// Reloads [recentBatches]; without it there is no pull to refresh.
+  final Future<void> Function()? onRefresh;
+
   @override
   State<CertificateImportUploadView> createState() =>
       _CertificateImportUploadViewState();
@@ -246,9 +263,23 @@ class _CertificateImportUploadViewState
 
   bool get _hasFilesToAnalyze => _selectedProof != null;
 
+  /// Pull to refresh under the frosted bar, never while uploading.
+  Widget _maybeRefresh(BuildContext context, Widget child) {
+    final reload = widget.onRefresh;
+    if (reload == null || _loading) return child;
+    return RefreshIndicator(
+      edgeOffset: SacTopBar.frostedInset(context),
+      onRefresh: reload,
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final hasIssue = _localError != null || _uploadError != null;
+    // An upload failure takes the place of the selected-file card.
+    final showPreview = _hasFilesToAnalyze && _uploadError == null;
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: c.background,
@@ -264,102 +295,95 @@ class _CertificateImportUploadViewState
             children: [
               AbsorbPointer(
                 absorbing: _loading,
-                child: ListView(
-                  padding: SacTopBar.paddingBelowBar(
-                      context, const EdgeInsets.fromLTRB(18, 8, 18, 190)),
-                  children: [
-                    _UploadHero(),
-                    // Right under the hero so it stays above the dock.
-                    if (_localError != null || _uploadError != null) ...[
-                      const SizedBox(height: 12),
-                      SacStateSwap(child: _buildIssueCard()),
-                    ],
-                    const SizedBox(height: 14),
-                    SacCard(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          HugeIcon(
-                              icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                              color: c.success),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'certificate_import.upload.hint'.tr(),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                    color: c.textSecondary,
-                                  ),
-                            ),
+                child: _maybeRefresh(
+                  context,
+                  ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: SacTopBar.paddingBelowBar(
+                        context, const EdgeInsets.fromLTRB(0, 8, 0, 130)),
+                    children: [
+                      if (_loading)
+                        ImportUploadProgress(
+                          phase: widget.phase,
+                          progress: widget.progress,
+                          slow: widget.slow,
+                        )
+                      else ...[
+                        _Lead(showHint: !_hasFilesToAnalyze),
+                        if (hasIssue) ...[
+                          const SizedBox(height: 12),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: SacStateSwap(child: _buildIssueCard()),
                           ),
                         ],
-                      ),
-                    ),
-                    // An upload failure takes the place of the selected-file card.
-                    if (_hasFilesToAnalyze && _uploadError == null) ...[
-                      const SizedBox(height: 12),
-                      AnimatedOpacity(
-                        opacity: _loading ? 0.6 : 1,
-                        duration: SacMotion.reduceMotionOf(context)
-                            ? SacMotion.reducedFade
-                            : SacMotion.standard,
-                        curve: SacMotion.easeOut,
-                        child: _SelectedProofCard(proof: _selectedProof!),
-                      ),
+                        if (showPreview)
+                          ImportProofPreview(
+                            proof: _selectedProof!,
+                            onChange: _picking ? null : _chooseSource,
+                          ),
+                        if (widget.recentBatches != null) widget.recentBatches!,
+                      ],
                     ],
-                    if (widget.recentBatches != null) widget.recentBatches!,
-                  ],
+                  ),
                 ),
               ),
               Positioned(
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: c.background,
-                    border: Border(top: BorderSide(color: c.border)),
-                  ),
-                  child: SafeArea(
-                    top: false,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (_loading)
-                            _UploadProgressPanel(
-                              phase: widget.phase,
-                              progress: widget.progress,
-                              slow: widget.slow,
-                              onCancel: widget.onCancel,
-                              onSkipWait: widget.onSkipWait,
-                            )
-                          else ...[
-                            SacButton.primary(
-                              text: 'certificate_import.upload.submit'.tr(),
-                              icon: HugeIcons.strokeRoundedFileUpload,
-                              isEnabled: _hasFilesToAnalyze,
-                              onPressed: !_hasFilesToAnalyze ? null : _submit,
-                            ),
-                            const SizedBox(height: 8),
-                            SacButton.outline(
-                              text: 'certificate_import.upload.choose'.tr(),
-                              icon: HugeIcons.strokeRoundedImageUpload,
-                              isLoading: _picking,
-                              onPressed: _picking ? null : _chooseSource,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                child: _buildDock(context),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// ONE fixed action: "Agregar comprobante" until a proof is chosen, then
+  /// "Leer comprobante". While the proof is sent and read the dock only
+  /// offers the way out ("Cancelar" while uploading, "Seguir sin esperar"
+  /// when the reading is slow) and takes no space when there is none.
+  Widget _buildDock(BuildContext context) {
+    if (_loading) {
+      return _WaitActions(
+        phase: widget.phase,
+        slow: widget.slow,
+        onCancel: widget.onCancel,
+        onSkipWait: widget.onSkipWait,
+        dock: _dock,
+      );
+    }
+    return _dock(
+      _hasFilesToAnalyze
+          ? SacButton.primary(
+              text: 'certificate_import.upload.submit'.tr(),
+              icon: HugeIcons.strokeRoundedFileUpload,
+              onPressed: _submit,
+            )
+          : SacButton.primary(
+              text: 'certificate_import.upload.choose'.tr(),
+              icon: HugeIcons.strokeRoundedImageUpload,
+              isLoading: _picking,
+              onPressed: _picking ? null : _chooseSource,
+            ),
+    );
+  }
+
+  /// The fixed bar at the bottom that holds the one action.
+  Widget _dock(Widget action) {
+    final c = context.sac;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: c.background,
+        border: Border(top: BorderSide(color: c.border)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: action,
         ),
       ),
     );
@@ -563,282 +587,109 @@ class _ProofSourceTile extends StatelessWidget {
   }
 }
 
-/// Busy state shown in place of the buttons while a proof is sent and read.
-///
-/// Steps, a three-dot [SacLoadingSmall] (static under Reduced Motion) with a
-/// message announced as a live region, the real upload bar while uploading,
-/// and the way out: "Cancelar" while uploading, "Seguir sin esperar" when the
-/// reading is slow.
-class _UploadProgressPanel extends StatelessWidget {
-  const _UploadProgressPanel({
+/// The two-line lead and, before a proof is chosen, what is accepted.
+class _Lead extends StatelessWidget {
+  const _Lead({required this.showHint});
+
+  final bool showHint;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'certificate_import.upload.lead'.tr(),
+            style: TextStyle(
+              fontSize: SacFontSize.titleMedium,
+              height: 1.45,
+              color: c.text,
+            ),
+          ),
+          if (showHint) ...[
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 1),
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedInformationCircle,
+                    size: 16,
+                    color: c.textTertiary,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'certificate_import.upload.hint'.tr(namedArgs: {
+                      'pages': '$certificateImportMaxProofPages',
+                      'mb':
+                          '${certificateImportMaxProofBytes ~/ (1024 * 1024)}',
+                    }),
+                    style: TextStyle(
+                      fontSize: SacFontSize.bodyMedium,
+                      height: 1.4,
+                      color: c.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// The way out while the proof is sent and read: "Cancelar" while uploading,
+/// "Seguir sin esperar" when the reading is slow. Nothing otherwise.
+class _WaitActions extends StatelessWidget {
+  const _WaitActions({
     this.phase,
-    this.progress,
     this.slow,
     this.onCancel,
     this.onSkipWait,
+    required this.dock,
   });
 
   final ValueListenable<CertificateImportUploadPhase>? phase;
-  final ValueListenable<double>? progress;
   final ValueListenable<bool>? slow;
   final VoidCallback? onCancel;
   final VoidCallback? onSkipWait;
+
+  /// Wraps the action in the fixed bottom bar.
+  final Widget Function(Widget action) dock;
 
   @override
   Widget build(BuildContext context) {
     final listenables = [
       if (phase != null) phase!,
-      if (progress != null) progress!,
       if (slow != null) slow!,
     ];
     return ListenableBuilder(
       listenable: Listenable.merge(listenables),
-      builder: (context, _) => _body(context),
-    );
-  }
-
-  Widget _body(BuildContext context) {
-    final c = context.sac;
-    final reading = phase?.value == CertificateImportUploadPhase.reading;
-    final percent = ((progress?.value ?? 0) * 100).round().clamp(0, 100);
-    // Screen readers hear 0, 25, 50, 75 and 100 % so they are not flooded.
-    final announced = percent ~/ 25 * 25;
-    String uploadingText(int value) => value > 0
-        ? 'certificate_import.upload.uploading_pct'
-            .tr(namedArgs: {'percent': '$value'})
-        : 'certificate_import.upload.uploading'.tr();
-    final message = reading
-        ? (slow?.value ?? false
-            ? 'certificate_import.upload.reading_slow'.tr()
-            : 'certificate_import.upload.reading'.tr())
-        : uploadingText(percent);
-    final reduce = SacMotion.reduceMotionOf(context);
-    final accent = SacAccent.of(context).color;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ImportSteps(current: reading ? 1 : 0),
-        const SizedBox(height: 12),
-        Semantics(
-          liveRegion: true,
-          container: true,
-          label: reading ? message : uploadingText(announced),
-          child: ExcludeSemantics(
-            child: Container(
-              key: const ValueKey('certificate-import-upload-progress'),
-              constraints: const BoxConstraints(minHeight: 52),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: c.surfaceVariant,
-                borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                border: Border.all(color: c.border),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SacLoadingSmall(),
-                      const SizedBox(width: 12),
-                      Flexible(
-                        // Only the text fades; the loader never restarts.
-                        child: AnimatedSwitcher(
-                          duration: reduce
-                              ? SacMotion.reducedFade
-                              : SacMotion.switcher,
-                          switchInCurve: SacMotion.easeOut,
-                          switchOutCurve: SacMotion.easeOut,
-                          child: Text(
-                            message,
-                            key: ValueKey(reading ? message : 'uploading'),
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
-                                ?.copyWith(
-                                  color: c.text,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  // Vision reports no progress, so no bar while reading.
-                  if (!reading && progress != null) ...[
-                    const SizedBox(height: 8),
-                    SacTweenedBar(
-                      value: progress!.value,
-                      color: accent,
-                      backgroundColor: c.border,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ),
-        if (!reading && onCancel != null)
-          SacButton.ghost(
+      builder: (context, _) {
+        final reading = phase?.value == CertificateImportUploadPhase.reading;
+        if (!reading && onCancel != null) {
+          return dock(SacButton.outline(
             text: 'certificate_import.upload.cancel'.tr(),
             onPressed: onCancel,
-          ),
-        if (reading && (slow?.value ?? false) && onSkipWait != null)
-          SacButton.ghost(
+          ));
+        }
+        if (reading && (slow?.value ?? false) && onSkipWait != null) {
+          return dock(SacButton.outline(
             text: 'certificate_import.upload.skip_wait'.tr(),
             onPressed: onSkipWait,
-          ),
-      ],
-    );
-  }
-}
-
-class _UploadHero extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return SacCard(
-      backgroundColor: c.surfaceVariant,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: SizedBox(
-              height: 150,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Transform.rotate(
-                    angle: -0.12,
-                    child: const _ReceiptThumb(label: 'CMP-01'),
-                  ),
-                  Positioned(
-                    left: 100,
-                    child: Transform.rotate(
-                      angle: 0.08,
-                      child:
-                          const _ReceiptThumb(label: 'CMP-02', compact: true),
-                    ),
-                  ),
-                  Positioned(
-                    top: 12,
-                    right: 42,
-                    child: HugeIcon(
-                        icon: HugeIcons.strokeRoundedMagicWand01,
-                        color: c.warning),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'certificate_import.upload.hero_title'.tr(),
-            style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                  color: c.text,
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'certificate_import.upload.hero_body'.tr(),
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: c.textSecondary,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SelectedProofCard extends StatelessWidget {
-  const _SelectedProofCard({required this.proof});
-
-  final CertificateImportLocalProof proof;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return SacCard(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedFile01,
-            color: c.success,
-            size: 22,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'certificate_import.upload.selected_one'.tr(),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: c.text,
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  proof.fileName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: c.textSecondary,
-                      ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ReceiptThumb extends StatelessWidget {
-  const _ReceiptThumb({required this.label, this.compact = false});
-
-  final String label;
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Container(
-      width: compact ? 88 : 110,
-      height: compact ? 118 : 140,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-        border: Border.all(color: c.border),
-        boxShadow: [BoxShadow(color: c.shadow, blurRadius: 10)],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: Theme.of(context).textTheme.labelMedium),
-          const SizedBox(height: 14),
-          for (var i = 0; i < (compact ? 3 : 5); i++) ...[
-            Container(
-              height: compact ? 3 : 4,
-              width: i.isEven ? 64 : 44,
-              decoration: BoxDecoration(
-                color: c.border,
-                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-              ),
-            ),
-            SizedBox(height: compact ? 6 : 8),
-          ],
-        ],
-      ),
+          ));
+        }
+        // Nothing to offer: no empty bar.
+        return const SizedBox.shrink();
+      },
     );
   }
 }

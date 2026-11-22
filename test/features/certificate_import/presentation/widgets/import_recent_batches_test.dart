@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/status_progress/status_progress.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_batch_list.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/providers/certificate_import_providers.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_upload_view.dart';
@@ -16,6 +17,7 @@ CertificateImportBatchSummary _batch(
   String id,
   String status, {
   int items = 3,
+  int rejected = 0,
   DateTime? modifiedAt,
 }) =>
     CertificateImportBatchSummary(
@@ -23,6 +25,7 @@ CertificateImportBatchSummary _batch(
       status: status,
       modifiedAt: modifiedAt ?? DateTime(2026, 10, 12, 12),
       itemCount: items,
+      rejectedCount: rejected,
     );
 
 CertificateImportBatchList _list(List<CertificateImportBatchSummary> items) =>
@@ -101,8 +104,30 @@ void main() {
     });
   });
 
+  group('importSummaryStageOf', () {
+    test('a sent batch with a rejected row needs a correction', () {
+      expect(importSummaryStageOf(_batch('a', 'SUBMITTED', rejected: 1)),
+          ImportBatchStage.corrections);
+      expect(
+          importSummaryStageOf(_batch('b', 'PARTIALLY_APPROVED', rejected: 2)),
+          ImportBatchStage.corrections);
+    });
+
+    test('without rejected rows it follows the batch status', () {
+      expect(importSummaryStageOf(_batch('a', 'SUBMITTED')),
+          ImportBatchStage.inReview);
+      expect(importSummaryStageOf(_batch('b', 'PARTIALLY_APPROVED')),
+          ImportBatchStage.partial);
+      expect(importSummaryStageOf(_batch('c', 'DRAFT', rejected: 1)),
+          ImportBatchStage.draft);
+      expect(importSummaryStageOf(_batch('d', 'APPROVED', rejected: 1)),
+          ImportBatchStage.approved);
+    });
+  });
+
   group('ImportRecentBatches', () {
-    testWidgets('lists corrections first with a status chip, without approved',
+    testWidgets(
+        'lists corrections first as rows with a state, without approved',
         (tester) async {
       await _pump(
         tester,
@@ -110,20 +135,60 @@ void main() {
         batches: () async => _list([
           _batch('sent', 'SUBMITTED'),
           _batch('done', 'APPROVED'),
-          _batch('fix', 'REJECTED', items: 4),
+          _batch('fix', 'REJECTED', items: 4, rejected: 1),
         ]),
       );
 
-      expect(find.text('Tus envíos recientes'), findsOneWidget);
-      expect(find.text('Corrección'), findsOneWidget);
-      expect(find.text('En revisión'), findsOneWidget);
-      expect(find.text('Aprobado'), findsNothing);
-      expect(find.text('12/10/2026 · Filas: 4'), findsOneWidget);
+      expect(find.text('TUS ENVÍOS'), findsOneWidget);
+      expect(find.byType(SacStatusRow), findsNWidgets(2));
+      expect(find.text('Hay 1 fila por corregir'), findsOneWidget);
+      expect(find.text('En revisión · 3 filas'), findsOneWidget);
+      expect(find.text('Envío del 12 oct 2026'), findsNWidgets(2));
       // The batch that needs a correction is above the one in review.
       expect(
-        tester.getTopLeft(find.text('Corrección')).dy,
-        lessThan(tester.getTopLeft(find.text('En revisión')).dy),
+        tester.getTopLeft(find.text('Hay 1 fila por corregir')).dy,
+        lessThan(tester.getTopLeft(find.text('En revisión · 3 filas')).dy),
       );
+    });
+
+    testWidgets(
+        'a batch still in review with a rejected row reads as a correction',
+        (tester) async {
+      await _pump(
+        tester,
+        const ImportRecentBatches(),
+        batches: () async => _list([
+          _batch('sent', 'SUBMITTED'),
+          _batch('half', 'SUBMITTED', items: 5, rejected: 1),
+        ]),
+      );
+
+      expect(find.text('Hay 1 fila por corregir'), findsOneWidget);
+      expect(find.text('En revisión · 3 filas'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('Hay 1 fila por corregir')).dy,
+        lessThan(tester.getTopLeft(find.text('En revisión · 3 filas')).dy),
+      );
+
+      await tester.tap(find.text('Hay 1 fila por corregir'));
+      await tester.pumpAndSettle();
+      expect(find.text('STATUS half'), findsOneWidget);
+    });
+
+    testWidgets('says how many rows need a correction, with the plural',
+        (tester) async {
+      await _pump(
+        tester,
+        const ImportRecentBatches(),
+        batches: () async => _list([
+          _batch('a', 'REJECTED', rejected: 2),
+          _batch('b', 'REJECTED'),
+        ]),
+      );
+
+      expect(find.text('Hay 2 filas por corregir'), findsOneWidget);
+      // The list carries no row statuses: still says it needs a fix.
+      expect(find.text('Hay filas por corregir'), findsOneWidget);
     });
 
     testWidgets('opens the status screen of a batch that needs a correction',
@@ -131,10 +196,10 @@ void main() {
       await _pump(
         tester,
         const ImportRecentBatches(),
-        batches: () async => _list([_batch('fix', 'REJECTED')]),
+        batches: () async => _list([_batch('fix', 'REJECTED', rejected: 2)]),
       );
 
-      await tester.tap(find.text('Corrección'));
+      await tester.tap(find.text('Hay 2 filas por corregir'));
       await tester.pumpAndSettle();
 
       expect(find.text('STATUS fix'), findsOneWidget);
@@ -147,7 +212,7 @@ void main() {
         batches: () async => _list([_batch('wip', 'DRAFT')]),
       );
 
-      await tester.tap(find.text('Borrador'));
+      await tester.tap(find.text('Borrador · 3 filas'));
       await tester.pumpAndSettle();
 
       expect(find.text('REVIEW wip'), findsOneWidget);
@@ -162,7 +227,7 @@ void main() {
         ]),
       );
 
-      expect(find.text('En revisión'), findsNWidgets(5));
+      expect(find.text('En revisión · 3 filas'), findsNWidgets(5));
     });
 
     testWidgets('takes no space when there is nothing to show', (tester) async {
@@ -171,7 +236,7 @@ void main() {
         const ImportRecentBatches(),
         batches: () async => _list([_batch('done', 'APPROVED')]),
       );
-      expect(find.text('Tus envíos recientes'), findsNothing);
+      expect(find.text('TUS ENVÍOS'), findsNothing);
     });
 
     testWidgets('stays out of the way when the list fails to load',
@@ -181,7 +246,7 @@ void main() {
         const ImportRecentBatches(),
         batches: () async => throw Exception('offline'),
       );
-      expect(find.text('Tus envíos recientes'), findsNothing);
+      expect(find.text('TUS ENVÍOS'), findsNothing);
     });
   });
 
@@ -190,7 +255,7 @@ void main() {
     await tester.pumpWidget(testProviderScope(
       overrides: [
         certificateImportBatchListProvider.overrideWith(
-          (ref, args) async => _list([_batch('fix', 'REJECTED')]),
+          (ref, args) async => _list([_batch('fix', 'REJECTED', rejected: 1)]),
         ),
       ],
       child: wrapTestApp(
@@ -201,7 +266,12 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    expect(find.text('Carga tu comprobante'), findsOneWidget);
-    expect(find.text('Corrección'), findsOneWidget);
+    // The hero is gone: a two-line lead, what is accepted and the envíos.
+    expect(find.text('Carga tu comprobante'), findsNothing);
+    expect(find.textContaining('Sube un certificado o constancia'),
+        findsOneWidget);
+    expect(find.text('PDF de hasta 5 páginas o foto · máx. 10 MB'),
+        findsOneWidget);
+    expect(find.text('Hay 1 fila por corregir'), findsOneWidget);
   });
 }

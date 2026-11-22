@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_tweened_bar.dart';
 
 import 'import_error_banner.dart';
 
-/// Bottom dock of the review: progress, the send error and ONE main action.
+/// Bottom dock of the review: the send error and ONE main action.
 ///
 /// The action always leads somewhere: "Completar N filas" while rows are
 /// incomplete, "Enviar a revisión" once everything is ready.
@@ -51,23 +50,6 @@ class ImportReviewDock extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               ImportErrorBanner(message: error),
-              Text(
-                'certificate_import.review.progress'.tr(namedArgs: {
-                  'ready': '$readyCount',
-                  'total': '$total',
-                }),
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: c.textSecondary),
-              ),
-              const SizedBox(height: 6),
-              SacTweenedBar(
-                value: total == 0 ? 0 : readyCount / total,
-                color: c.success,
-                backgroundColor: c.surfaceVariant,
-              ),
-              const SizedBox(height: 12),
               SacStateSwap(
                 child: SacButton.primary(
                   key: ValueKey(canSend),

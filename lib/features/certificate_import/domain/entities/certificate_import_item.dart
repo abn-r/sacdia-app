@@ -60,6 +60,11 @@ class CertificateImportItem extends Equatable {
   /// above 0 the member saved it, so the date was seen and confirmed.
   final int revision;
 
+  /// The backend picked [honor] itself (an exact name match) and the member
+  /// has not saved the row yet: the UI marks it "Sugerida". Absent in the
+  /// payload means false.
+  final bool honorSuggested;
+
   const CertificateImportItem({
     required this.id,
     this.batchId,
@@ -83,6 +88,7 @@ class CertificateImportItem extends Equatable {
     this.instructor,
     this.active = true,
     this.revision = 0,
+    this.honorSuggested = false,
   });
 
   /// Everything the row still needs, in the order the member should see it.
@@ -101,6 +107,13 @@ class CertificateImportItem extends Equatable {
   }
 
   bool get isComplete => missing.isEmpty;
+
+  /// Complete and nothing left to confirm: the row can go to the Campo Local.
+  /// A row the backend filled in itself (`honorSuggested`) counts only once
+  /// the server marked it ready; otherwise (doubtful date) the member opens it
+  /// and saves it, like any row whose date was read with low confidence.
+  bool get isReadyToSend =>
+      isComplete && !needsDateReview && !(honorSuggested && needsReview);
 
   /// Catalog name when chosen, otherwise what the OCR read.
   String? get displayName =>
@@ -180,5 +193,6 @@ class CertificateImportItem extends Equatable {
         instructor,
         active,
         revision,
+        honorSuggested,
       ];
 }

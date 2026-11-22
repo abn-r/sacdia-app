@@ -14,6 +14,8 @@ import 'package:sacdia_app/features/certificate_import/domain/usecases/submit_ce
 import 'package:sacdia_app/features/certificate_import/presentation/providers/certificate_import_providers.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_review_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_status_view.dart';
+import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_import_back_button.dart';
+import 'package:sacdia_app/features/certificate_import/presentation/widgets/import_item_row.dart';
 
 import '../../support/catalog_fakes.dart';
 import '../../support/test_app.dart';
@@ -76,6 +78,27 @@ void main() {
       (tester) async {
     phoneSurface(tester);
     final api = _Api();
+    final router = GoRouter(
+      initialLocation: RouteNames.certificateImportUpload,
+      routes: [
+        GoRoute(
+          path: RouteNames.certificateImportUpload,
+          builder: (_, __) => const Scaffold(body: Text('UPLOAD HOME')),
+        ),
+        GoRoute(
+          path: RouteNames.certificateImportReview,
+          builder: (_, state) => CertificateImportReviewRouteView(
+            batchId: state.pathParameters['batchId']!,
+          ),
+        ),
+        GoRoute(
+          path: RouteNames.certificateImportStatus,
+          builder: (_, state) => CertificateImportStatusRouteView(
+            batchId: state.pathParameters['batchId']!,
+          ),
+        ),
+      ],
+    );
     await tester.pumpWidget(testProviderScope(
       overrides: [
         ...catalogOverrides(),
@@ -95,28 +118,12 @@ void main() {
             locale: context.locale,
             localizationsDelegates: context.localizationDelegates,
             supportedLocales: context.supportedLocales,
-            routerConfig: GoRouter(
-              initialLocation:
-                  RouteNames.certificateImportReviewPath('batch-1'),
-              routes: [
-                GoRoute(
-                  path: RouteNames.certificateImportReview,
-                  builder: (_, state) => CertificateImportReviewRouteView(
-                    batchId: state.pathParameters['batchId']!,
-                  ),
-                ),
-                GoRoute(
-                  path: RouteNames.certificateImportStatus,
-                  builder: (_, state) => CertificateImportStatusRouteView(
-                    batchId: state.pathParameters['batchId']!,
-                  ),
-                ),
-              ],
-            ),
+            routerConfig: router,
           ),
         ),
       ),
     ));
+    router.push(RouteNames.certificateImportReviewPath('batch-1'));
     await tester.pumpAndSettle();
 
     final review = tester.widget<CertificateImportReviewView>(
@@ -126,9 +133,16 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(CertificateImportStatusView), findsOneWidget);
-    expect(
-      find.text('Aprobadas: 0 · Rechazadas: 0 · Pendientes: 3'),
-      findsOneWidget,
-    );
+    // Three rows are in review: the removed one is not counted.
+    expect(find.text('EN REVISIÓN'), findsOneWidget);
+    expect(find.byType(ImportItemRow), findsNWidgets(3));
+    expect(find.byType(CertificateImportReviewView), findsNothing);
+
+    // Back from the status lands on "Carga por certificado", not on the
+    // review that was already sent.
+    await tester.tap(find.byType(CertificateImportBackButton));
+    await tester.pumpAndSettle();
+    expect(find.text('UPLOAD HOME'), findsOneWidget);
+    expect(find.byType(CertificateImportReviewView), findsNothing);
   });
 }

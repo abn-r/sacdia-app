@@ -81,4 +81,56 @@ void main() {
     expect(node.label, 'Estado: Enviado, paso 2 de 3');
     handle.dispose();
   });
+
+  group('stateKey', () {
+    Widget panel(String title, {String? stateKey}) => MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => SacStatePanel(
+                style: SacStatusStyle.of(
+                  context,
+                  SacStatusKind.review,
+                  label: 'Subiendo',
+                ),
+                title: title,
+                stateKey: stateKey,
+              ),
+            ),
+          ),
+        );
+
+    testWidgets('a live number in the title updates without a cross-fade',
+        (tester) async {
+      await tester.pumpWidget(panel('Subiendo 10 %', stateKey: 'uploading'));
+      await tester.pumpWidget(panel('Subiendo 11 %', stateKey: 'uploading'));
+      await tester.pump(const Duration(milliseconds: 20));
+
+      // Same state: the old title is not kept alive by the switcher.
+      expect(find.text('Subiendo 10 %'), findsNothing);
+      expect(find.text('Subiendo 11 %'), findsOneWidget);
+    });
+
+    testWidgets('a new stateKey still animates the change of state',
+        (tester) async {
+      await tester.pumpWidget(panel('Subiendo 100 %', stateKey: 'uploading'));
+      await tester.pumpWidget(panel('Leyendo', stateKey: 'reading'));
+      await tester.pump(const Duration(milliseconds: 20));
+
+      // Mid-transition both states are on screen.
+      expect(find.text('Subiendo 100 %'), findsOneWidget);
+      expect(find.text('Leyendo'), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text('Subiendo 100 %'), findsNothing);
+    });
+
+    testWidgets('without a stateKey the title keys the change (as before)',
+        (tester) async {
+      await tester.pumpWidget(panel('Enviado'));
+      await tester.pumpWidget(panel('Validado'));
+      await tester.pump(const Duration(milliseconds: 20));
+      expect(find.text('Enviado'), findsOneWidget);
+      expect(find.text('Validado'), findsOneWidget);
+    });
+  });
 }

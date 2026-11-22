@@ -8,6 +8,10 @@ class CertificateImportBatchSummary extends Equatable {
   final int fileCount;
   final int itemCount;
 
+  /// Rows the reviewer sent back (status REJECTED). 0 when the list payload
+  /// carries no row statuses.
+  final int rejectedCount;
+
   const CertificateImportBatchSummary({
     required this.id,
     required this.status,
@@ -15,11 +19,12 @@ class CertificateImportBatchSummary extends Equatable {
     this.modifiedAt,
     this.fileCount = 0,
     this.itemCount = 0,
+    this.rejectedCount = 0,
   });
 
   @override
   List<Object?> get props =>
-      [id, status, createdAt, modifiedAt, fileCount, itemCount];
+      [id, status, createdAt, modifiedAt, fileCount, itemCount, rejectedCount];
 }
 
 class CertificateImportBatchList extends Equatable {

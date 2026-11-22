@@ -3,6 +3,7 @@ export '../../domain/entities/certificate_import_item.dart';
 import 'package:equatable/equatable.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/utils/json_helpers.dart';
+import '../../../honors/data/models/honor_model.dart' show honorImageUrlFrom;
 import '../../domain/entities/certificate_import_item.dart';
 
 class CertificateImportItemModel extends Equatable {
@@ -28,6 +29,7 @@ class CertificateImportItemModel extends Equatable {
   final CertificateImportInstructorRef? instructor;
   final bool active;
   final int revision;
+  final bool honorSuggested;
 
   const CertificateImportItemModel({
     required this.id,
@@ -52,6 +54,7 @@ class CertificateImportItemModel extends Equatable {
     this.instructor,
     this.active = true,
     this.revision = 0,
+    this.honorSuggested = false,
   });
 
   factory CertificateImportItemModel.fromJson(Map<String, dynamic> json) {
@@ -89,6 +92,8 @@ class CertificateImportItemModel extends Equatable {
       // Both are tolerant: an API without them means an active, unsaved row.
       active: json['active'] is bool ? json['active'] as bool : true,
       revision: _positive(json['revision']) ?? 0,
+      // Only the member's response sends it; absent means "not suggested".
+      honorSuggested: json['honor_suggested'] == true,
     );
   }
 
@@ -105,6 +110,7 @@ class CertificateImportItemModel extends Equatable {
       categoryId:
           category is Map ? safeIntOrNull(category['honor_category_id']) : null,
       categoryName: category is Map ? safeStringOrNull(category['name']) : null,
+      imageUrl: honorImageUrlFrom(safeStringOrNull(raw['honor_image'])),
     );
   }
 
@@ -198,6 +204,7 @@ class CertificateImportItemModel extends Equatable {
         'source_file_id': sourceFileId,
         'active': active,
         'revision': revision,
+        'honor_suggested': honorSuggested,
       };
 
   CertificateImportItem toEntity() => CertificateImportItem(
@@ -223,6 +230,7 @@ class CertificateImportItemModel extends Equatable {
         instructor: instructor,
         active: active,
         revision: revision,
+        honorSuggested: honorSuggested,
       );
 
   /// `completed_at` and `detected_date` are calendar days. Read them as that
@@ -263,5 +271,6 @@ class CertificateImportItemModel extends Equatable {
         instructor,
         active,
         revision,
+        honorSuggested,
       ];
 }
