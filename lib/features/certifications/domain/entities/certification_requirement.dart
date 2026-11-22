@@ -60,6 +60,10 @@ class CertificationRequirement extends Equatable {
   final String? lastReviewComment;
   final List<CertificationRequirementComponent> components;
 
+  /// `lock_version` vigente de la inscripción (concurrencia optimista). El
+  /// participante lo devuelve al enviar. Null si el servidor no lo manda.
+  final int? lockVersion;
+
   const CertificationRequirement({
     required this.sectionId,
     required this.moduleId,
@@ -70,6 +74,7 @@ class CertificationRequirement extends Equatable {
     this.reviewedAt,
     this.lastReviewComment,
     this.components = const [],
+    this.lockVersion,
   });
 
   /// Solo se puede editar (guardar borrador / adjuntar evidencia) en DRAFT
@@ -102,6 +107,7 @@ class CertificationRequirement extends Equatable {
         reviewedAt,
         lastReviewComment,
         components,
+        lockVersion,
       ];
 }
 

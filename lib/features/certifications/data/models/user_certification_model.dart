@@ -1,4 +1,7 @@
 import 'package:equatable/equatable.dart';
+import 'completion_status_json.dart';
+import 'certification_status_json.dart';
+import '../../domain/entities/certification_status.dart';
 import '../../domain/entities/user_certification.dart';
 
 /// Modelo de inscripción de usuario en una certificación para la capa de datos
@@ -12,6 +15,10 @@ class UserCertificationModel extends Equatable {
   final int modulesCompleted;
   final int modulesTotal;
   final bool active;
+  final CertificationEnrollmentStatus status;
+  final DateTime? certifiedAt;
+  final CertificationSummary? summary;
+  final String? certificateUrl;
 
   const UserCertificationModel({
     required this.enrollmentId,
@@ -23,6 +30,10 @@ class UserCertificationModel extends Equatable {
     required this.modulesCompleted,
     required this.modulesTotal,
     required this.active,
+    this.status = CertificationEnrollmentStatus.inProgress,
+    this.certifiedAt,
+    this.summary,
+    this.certificateUrl,
   });
 
   /// Crea una instancia desde JSON
@@ -39,7 +50,7 @@ class UserCertificationModel extends Equatable {
               : null) ??
           '') as String,
       enrollmentDate: DateTime.parse(json['enrollment_date'] as String),
-      completionStatus: json['completion_status'] as String? ?? 'in_progress',
+      completionStatus: completionStatusFromJson(json['completion_status']),
       progressPercentage: ((json['progress_percentage'] ??
               json['progressPercentage'] ??
               0) as num)
@@ -48,6 +59,10 @@ class UserCertificationModel extends Equatable {
           (json['modules_completed'] ?? json['modulesCompleted'] ?? 0) as int,
       modulesTotal: (json['modules_total'] ?? json['modulesTotal'] ?? 0) as int,
       active: json['active'] as bool? ?? true,
+      status: certificationEnrollmentStatusFromJson(json),
+      certifiedAt: certificationDateFromJson(json['certified_at']),
+      summary: certificationSummaryFromJson(json['summary']),
+      certificateUrl: json['certificate_url'] as String?,
     );
   }
 
@@ -78,6 +93,10 @@ class UserCertificationModel extends Equatable {
       modulesCompleted: modulesCompleted,
       modulesTotal: modulesTotal,
       active: active,
+      status: status,
+      certifiedAt: certifiedAt,
+      summary: summary,
+      certificateUrl: certificateUrl,
     );
   }
 
@@ -117,5 +136,9 @@ class UserCertificationModel extends Equatable {
         modulesCompleted,
         modulesTotal,
         active,
+        status,
+        certifiedAt,
+        summary,
+        certificateUrl,
       ];
 }

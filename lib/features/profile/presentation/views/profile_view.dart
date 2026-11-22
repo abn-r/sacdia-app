@@ -87,7 +87,10 @@ class ProfileView extends ConsumerWidget {
               profileClubType: profile.clubType,
               activeClubTypeName: activeGrant?.clubTypeName,
             );
-            final showCertifications = ref.watch(isInvestedMasterGuideProvider);
+            // Same rule as Mis clases: only for someone eligible for a
+            // certification or already enrolled in one.
+            final showCertifications =
+                ref.watch(certificationsAccessProvider).value ?? false;
 
             return _ProfileScrollBody(
               profile: profile,

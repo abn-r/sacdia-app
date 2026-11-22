@@ -88,6 +88,38 @@ class CertificationComponentResponse extends Equatable {
       ];
 }
 
+/// Archivo ya subido y confirmado de un componente `FILE_EVIDENCE`.
+///
+/// [url] es una URL firmada de corta vida (900 s): sirve para la miniatura y
+/// para abrir el archivo, nunca para guardarla.
+class CertificationComponentEvidence extends Equatable {
+  final int evidenceId;
+  final String originalFilename;
+  final String mimeType;
+  final int sizeBytes;
+  final DateTime? confirmedAt;
+  final String? url;
+
+  const CertificationComponentEvidence({
+    required this.evidenceId,
+    required this.originalFilename,
+    required this.mimeType,
+    this.sizeBytes = 0,
+    this.confirmedAt,
+    this.url,
+  });
+
+  bool get isImage => mimeType.startsWith('image/');
+
+  @override
+  List<Object?> get props =>
+      [evidenceId, originalFilename, mimeType, sizeBytes, confirmedAt, url];
+}
+
+/// Máximo de archivos por defecto de un componente `FILE_EVIDENCE` cuando la
+/// configuración no lo indica.
+const int kCertificationDefaultMaxFiles = 3;
+
 /// Componente de un requisito (sección) de certificación.
 class CertificationRequirementComponent extends Equatable {
   final int componentId;
@@ -96,13 +128,32 @@ class CertificationRequirementComponent extends Equatable {
   final bool required;
   final CertificationComponentResponse? response;
 
+  /// Texto de ayuda del componente (`instructions`); nulo si no hay.
+  final String? instructions;
+
+  /// Configuración del componente (`configuration`), p. ej. `max_files`.
+  final Map<String, dynamic> configuration;
+
+  /// Archivos ya subidos (solo `FILE_EVIDENCE`).
+  final List<CertificationComponentEvidence> evidences;
+
   const CertificationRequirementComponent({
     required this.componentId,
     required this.type,
     required this.label,
     required this.required,
     this.response,
+    this.instructions,
+    this.configuration = const {},
+    this.evidences = const [],
   });
+
+  /// Máximo de archivos que admite el componente.
+  int get maxFiles {
+    final raw = configuration['max_files'] ?? configuration['maxFiles'];
+    if (raw is num && raw.toInt() > 0) return raw.toInt();
+    return kCertificationDefaultMaxFiles;
+  }
 
   /// Replica `isComponentResponseComplete` del backend para dar feedback
   /// inmediato en la UI antes de intentar el envío (el backend sigue siendo
@@ -120,14 +171,23 @@ class CertificationRequirementComponent extends Equatable {
       case CertificationComponentType.linkedActivity:
         return response?.linkedActivityId != null;
       case CertificationComponentType.fileEvidence:
-        return response != null;
+        return response != null || evidences.isNotEmpty;
       case CertificationComponentType.unknown:
         return false;
     }
   }
 
   @override
-  List<Object?> get props => [componentId, type, label, required, response];
+  List<Object?> get props => [
+        componentId,
+        type,
+        label,
+        required,
+        response,
+        instructions,
+        configuration,
+        evidences,
+      ];
 }
 
 /// Entrada de borrador para `PUT .../requirements/:sectionId/draft`.

@@ -1,378 +1,182 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:sacdia_app/core/widgets/sac_badge.dart';
-import 'package:sacdia_app/core/widgets/sac_error_state.dart';
-import 'package:sacdia_app/core/errors/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/animations/motion_tokens.dart';
-import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
-import 'package:sacdia_app/core/theme/sac_accent.dart';
-import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/utils/responsive.dart';
-import 'package:sacdia_app/core/widgets/sac_dialog.dart';
-import 'package:sacdia_app/core/widgets/sac_loading.dart';
-import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
-import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
-import 'package:sacdia_app/features/certifications/domain/entities/certification.dart';
 
+import '../../../../core/animations/staggered_list_animation.dart';
+import '../../../../core/config/route_names.dart';
+import '../../../../core/errors/user_error_message.dart';
+import '../../../../core/theme/sac_accent.dart';
+import '../../../../core/widgets/sac_empty_state.dart';
+import '../../../../core/widgets/sac_error_state.dart';
+import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
+import '../../../../core/widgets/status_progress/status_progress.dart';
+import '../../domain/entities/certification.dart';
+import '../../domain/entities/certification_status.dart';
+import '../../domain/entities/user_certification.dart';
 import '../providers/certifications_providers.dart';
-import 'certification_detail_view.dart';
-import 'package:sacdia_app/core/animations/page_transitions.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
+import '../utils/certification_status_view.dart';
+import '../widgets/certification_row.dart';
 
-/// Vista de lista de certificaciones (catálogo completo).
-///
-/// Muestra todas las certificaciones como tarjetas.
-/// Si el usuario ya está inscrito, muestra un badge "inscrito".
-/// Si no está inscrito, muestra el botón "Inscribirme".
-/// Solo los Guías Mayores investidos pueden inscribirse.
+/// Catalog of certifications, built like «Clases por club»: grouped lists
+/// («En curso», «Disponibles», «Certificadas») with their count and each
+/// certification as a row with its status on the right. Enrolling happens
+/// inside the certification, not from here.
 class CertificationsListView extends ConsumerWidget {
   const CertificationsListView({super.key});
 
+  void _refresh(WidgetRef ref) {
+    ref.invalidate(certificationsProvider);
+    ref.invalidate(userCertificationsProvider);
+    ref.invalidate(certificationsAccessProvider);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final certificationsAsync = ref.watch(certificationsProvider);
-    final userCertificationsAsync = ref.watch(userCertificationsProvider);
-    final hPad = Responsive.horizontalPadding(context);
-    final c = context.sac;
+    final catalogAsync = ref.watch(certificationsProvider);
+    final enrollmentsAsync = ref.watch(userCertificationsProvider);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: c.background,
-      appBar: SacTopBar(
-          title: 'certifications.list.title'.tr(),
-          onBack: () => Navigator.of(context).maybePop(),
-          frosted: true),
+      appBar: SacTopBar(title: 'certifications.list.title'.tr(), frosted: true),
       body: SacFrostedVeil(
         child: Builder(
-          builder: (context) => SafeArea(
-            top: false,
-            child: certificationsAsync.when(
-              data: (certifications) {
-                if (certifications.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        HugeIcon(
-                          icon: HugeIcons.strokeRoundedCertificate01,
-                          size: 56,
-                          color: c.textTertiary,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'certifications.list.no_certifications'.tr(),
-                          style: TextStyle(
-                            fontSize: SacFontSize.titleMedium,
-                            color: c.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                return RefreshIndicator(
-                  color: SacAccent.of(context).color,
-                  onRefresh: () async {
-                    ref.invalidate(certificationsProvider);
-                    ref.invalidate(userCertificationsProvider);
-                  },
-                  child: ListView.builder(
-                    padding: SacTopBar.paddingBelowBar(
-                        context, EdgeInsets.fromLTRB(hPad, 16, hPad, 24)),
-                    itemCount: certifications.length,
-                    itemBuilder: (context, index) {
-                      final certification = certifications[index];
-
-                      return userCertificationsAsync.when(
-                        data: (userCertifications) {
-                          final isEnrolled = userCertifications.any(
-                            (uc) =>
-                                uc.certificationId ==
-                                certification.certificationId,
-                          );
-                          return StaggeredListItem(
-                            index: index,
-                            staggerDelay: SacMotion.stagger,
-                            child: _CertificationCard(
-                              certification: certification,
-                              isEnrolled: isEnrolled,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  SacSharedAxisRoute(
-                                    builder: (context) =>
-                                        CertificationDetailView(
-                                      certificationId:
-                                          certification.certificationId,
-                                    ),
-                                  ),
-                                );
-                              },
-                              onEnroll: isEnrolled
-                                  ? null
-                                  : () => _enroll(context, ref, certification),
-                            ),
-                          );
-                        },
-                        loading: () => StaggeredListItem(
-                          index: index,
-                          child: _CertificationCard(
-                            certification: certification,
-                            isEnrolled: false,
-                            onTap: () {},
-                            onEnroll: null,
-                          ),
-                        ),
-                        error: (_, __) => StaggeredListItem(
-                          index: index,
-                          child: _CertificationCard(
-                            certification: certification,
-                            isEnrolled: false,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                SacSharedAxisRoute(
-                                  builder: (context) => CertificationDetailView(
-                                    certificationId:
-                                        certification.certificationId,
-                                  ),
-                                ),
-                              );
-                            },
-                            onEnroll: () =>
-                                _enroll(context, ref, certification),
-                          ),
-                        ),
-                      );
-                    },
+          builder: (context) {
+            final top = SacTopBar.frostedInset(context);
+            final catalog = catalogAsync.value;
+            if (catalog == null) {
+              if (catalogAsync.hasError) {
+                return Padding(
+                  padding: EdgeInsets.only(top: top),
+                  child: SacErrorState(
+                    title: 'certifications.list.load_error'.tr(),
+                    message: userErrorMessage(catalogAsync.error ?? ''),
+                    onRetry: () => _refresh(ref),
                   ),
                 );
-              },
-              loading: () => const Center(child: SacLoading()),
-              error: (error, stack) => SacErrorState(
-                title: 'certifications.list.load_error'.tr(),
-                message: userErrorMessage(error),
-                onRetry: () {
-                  ref.invalidate(certificationsProvider);
-                },
+              }
+              return const Center(child: SacLoading());
+            }
+            final published = [
+              for (final c in catalog)
+                if (c.active) c,
+            ];
+            if (published.isEmpty) {
+              return Padding(
+                padding: EdgeInsets.only(top: top),
+                child: SacEmptyState(
+                  icon: HugeIcons.strokeRoundedCertificate01,
+                  title: 'certifications.list.no_certifications'.tr(),
+                ),
+              );
+            }
+            if (enrollmentsAsync.value == null && enrollmentsAsync.isLoading) {
+              return const Center(child: SacLoading());
+            }
+            return RefreshIndicator(
+              color: SacAccent.of(context).color,
+              edgeOffset: top,
+              onRefresh: () async => _refresh(ref),
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(0, top + 4, 0, 32),
+                children: _groups(
+                  context,
+                  published,
+                  enrollmentsAsync.value ?? const [],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );
   }
 
-  Future<void> _enroll(
+  List<Widget> _groups(
     BuildContext context,
-    WidgetRef ref,
-    Certification certification,
-  ) async {
-    final confirmed = await SacDialog.show(
-      context,
-      title: 'certifications.list.enroll_dialog_title'.tr(),
-      content: 'certifications.list.enroll_dialog_content'.tr(namedArgs: {
-        'name': certification.name,
-      }),
-      confirmLabel: 'certifications.list.enroll_button'.tr(),
-    );
-
-    if (confirmed != true) return;
-
-    try {
-      await ref
-          .read(certificationEnrollmentNotifierProvider(
-                  certification.certificationId)
-              .notifier)
-          .enroll();
-      ref.invalidate(userCertificationsProvider);
-
-      if (context.mounted) {
-        SacSnackBar.show(
-            context,
-            'certifications.list.enroll_success'.tr(namedArgs: {
-              'name': certification.name,
-            }),
-            isSuccess: true);
-      }
-    } catch (e) {
-      if (context.mounted) {
-        SacSnackBar.show(context, userErrorMessage(e), isError: true);
+    List<Certification> catalog,
+    List<UserCertification> enrollments,
+  ) {
+    final inProgress = <(Certification, UserCertification)>[];
+    final certified = <(Certification, UserCertification)>[];
+    final available = <Certification>[];
+    for (final c in catalog) {
+      final enrollment = activeEnrollmentFor(enrollments, c.certificationId);
+      if (enrollment == null) {
+        available.add(c);
+      } else if (enrollment.status.isCertified) {
+        certified.add((c, enrollment));
+      } else {
+        inProgress.add((c, enrollment));
       }
     }
-  }
-}
 
-// ── Certification Card ─────────────────────────────────────────────────────────
+    void open(Certification c) => context.push(
+          RouteNames.certificationDetailPath('${c.certificationId}'),
+        );
+    String meta(Certification c) => certificationMetaLine(
+          modules: c.modulesCount,
+          requirements: c.requirementsCount,
+        );
 
-class _CertificationCard extends StatelessWidget {
-  final Certification certification;
-  final bool isEnrolled;
-  final VoidCallback onTap;
-  final VoidCallback? onEnroll;
-
-  const _CertificationCard({
-    required this.certification,
-    required this.isEnrolled,
-    required this.onTap,
-    required this.onEnroll,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: c.surface,
-          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-          border: Border.all(color: c.border),
-          boxShadow: [
-            BoxShadow(
-              color: c.shadow,
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final groups = <Widget>[
+      if (inProgress.isNotEmpty)
+        SacGroupedSection(
+          key: const ValueKey('certifications-in-progress'),
+          label: 'certifications.list.section_in_progress'.tr(),
+          dividerIndent: 62,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Icono de certificación
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: SacAccent.of(context).light,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                  ),
-                  child: Center(
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedCertificate01,
-                      size: 22,
-                      color: SacAccent.of(context).color,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        certification.name,
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: c.text,
-                            ),
-                      ),
-                      if (certification.description != null &&
-                          certification.description!.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          certification.description!,
-                          style: TextStyle(
-                            fontSize: SacFontSize.bodySmall,
-                            color: c.textSecondary,
-                            height: 1.4,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                // Badge de inscrito
-                if (isEnrolled) ...[
-                  const SizedBox(width: 8),
-                  SacBadge.success(
-                    label: 'certifications.list.enrolled_badge'.tr(),
-                  ),
-                ],
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            // Módulos count
-            Row(
-              children: [
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedCheckList,
-                  size: 14,
-                  color: c.textTertiary,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  'certifications.list.modules_count'.tr(namedArgs: {
-                    'count': '${certification.modulesCount}',
-                  }),
-                  style: TextStyle(
-                    fontSize: SacFontSize.bodySmall,
-                    color: c.textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const Spacer(),
-                // Botón inscribirse (solo si no está inscrito)
-                if (!isEnrolled && onEnroll != null)
-                  GestureDetector(
-                    onTap: onEnroll,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: SacAccent.of(context).color,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-                      ),
-                      child: Text(
-                        'certifications.list.enroll_button'.tr(),
-                        style: const TextStyle(
-                          fontSize: SacFontSize.bodySmall,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                if (isEnrolled)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'certifications.list.view_progress'.tr(),
-                        style: TextStyle(
-                          fontSize: SacFontSize.bodySmall,
-                          fontWeight: FontWeight.w600,
-                          color: SacAccent.of(context).color,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedArrowRight01,
-                        size: 14,
-                        color: SacAccent.of(context).color,
-                      ),
-                    ],
-                  ),
-              ],
-            ),
+            for (final (c, e) in inProgress)
+              CertificationRow(
+                key: ValueKey('certification-${c.certificationId}'),
+                name: c.name,
+                meta: meta(c),
+                chipLabel: certificationEnrollmentLabel(e),
+                chipTone: certificationChipTone(e.status),
+                onTap: () => open(c),
+              ),
           ],
         ),
-      ),
-    );
+      if (available.isNotEmpty)
+        SacGroupedSection(
+          key: const ValueKey('certifications-available'),
+          label: 'certifications.list.section_available'.tr(),
+          dividerIndent: 62,
+          children: [
+            for (final c in available)
+              CertificationRow(
+                key: ValueKey('certification-${c.certificationId}'),
+                name: c.name,
+                meta: meta(c),
+                chipLabel: 'certifications.enrollment.available'.tr(),
+                chipTone: CertificationChipTone.available,
+                onTap: () => open(c),
+              ),
+          ],
+        ),
+      if (certified.isNotEmpty)
+        SacGroupedSection(
+          key: const ValueKey('certifications-certified'),
+          label: 'certifications.list.section_certified'.tr(),
+          dividerIndent: 62,
+          children: [
+            for (final (c, e) in certified)
+              CertificationRow(
+                key: ValueKey('certification-${c.certificationId}'),
+                name: c.name,
+                meta: meta(c),
+                chipLabel: certificationEnrollmentLabel(e),
+                chipTone: certificationChipTone(e.status),
+                onTap: () => open(c),
+              ),
+          ],
+        ),
+    ];
+    return [
+      for (final (i, g) in groups.indexed) SacEntrance(index: i, child: g),
+    ];
   }
 }

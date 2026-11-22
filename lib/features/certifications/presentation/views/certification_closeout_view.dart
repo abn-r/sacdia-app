@@ -1,31 +1,37 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
-import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/widgets/evidence_staging/evidence_staging_layout.dart';
+import '../../../../core/theme/sac_font_size.dart';
+import '../../../../core/widgets/evidence_staging/evidence_footer_bar.dart';
+import '../../../../core/widgets/evidence_staging/evidence_footer_presence.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
+import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/sac_dialog.dart';
+import '../../../../core/widgets/sac_pressable.dart';
+import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
+import '../../domain/entities/certification_requirement.dart';
+import '../../domain/entities/certification_status.dart';
 import '../providers/certification_requirement_providers.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
+import '../providers/certifications_providers.dart';
+import '../widgets/certification_status_panel.dart';
 
-/// Vista de cierre de una certificación (Task 12): sube el comprobante de
-/// junta (board proof) y envía la inscripción a revisión final.
+/// Closeout of a certification: the board record («Acta de la junta»). It
+/// looks exactly like a requirement: status panel in a card, the description,
+/// «Archivo · 0 de 1» with the «Agregar» tile and one action, «Enviar acta».
+/// After sending it shows «En revisión final» and, once approved,
+/// «Certificada».
 ///
-/// LIMITACIÓN CONOCIDA: el backend no expone el comprobante ya subido en un
-/// endpoint de lectura, así que esta vista siempre arranca sin archivos
-/// "existentes" — igual que los componentes FILE_EVIDENCE (ver
-/// `certification_component_field.dart`). El botón "Enviar" de
-/// [EvidenceStagingManager] sube el archivo (presign → PUT → confirm) y,
-/// al completarse, dispara `submit-final`.
-class CertificationCloseoutView extends ConsumerWidget {
-  final int certificationId;
-  final int enrollmentId;
-  final String? certificationName;
-
+/// LIMITACIÓN CONOCIDA: el backend no expone el acta ya subida en un endpoint
+/// de lectura, así que la cuadrícula siempre arranca sin archivos existentes.
+///
+/// Route: `/certification/:certificationId/closeout?enrollmentId=`.
+class CertificationCloseoutView extends ConsumerStatefulWidget {
   const CertificationCloseoutView({
     super.key,
     required this.certificationId,
@@ -33,119 +39,232 @@ class CertificationCloseoutView extends ConsumerWidget {
     this.certificationName,
   });
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final query = CertificationCloseoutQuery(
-      certificationId: certificationId,
-      enrollmentId: enrollmentId,
-    );
-    final state = ref.watch(certificationCloseoutNotifierProvider(query));
-    final notifier =
-        ref.read(certificationCloseoutNotifierProvider(query).notifier);
-    final c = context.sac;
+  final int certificationId;
+  final int enrollmentId;
+  final String? certificationName;
 
-    ref.listen(certificationCloseoutNotifierProvider(query), (prev, next) {
-      if (next.errorMessage != null && next.errorMessage!.isNotEmpty) {
-        SacSnackBar.show(context, next.errorMessage!, isError: true);
+  @override
+  ConsumerState<CertificationCloseoutView> createState() =>
+      _CertificationCloseoutViewState();
+}
+
+class _CertificationCloseoutViewState
+    extends ConsumerState<CertificationCloseoutView> {
+  final _managerKey = GlobalKey<EvidenceStagingManagerState>();
+  bool _hasLocalFile = false;
+
+  CertificationCloseoutQuery get _query => CertificationCloseoutQuery(
+        certificationId: widget.certificationId,
+        enrollmentId: widget.enrollmentId,
+      );
+
+  CertificationCloseoutNotifier get _notifier =>
+      ref.read(certificationCloseoutNotifierProvider(_query).notifier);
+
+  /// The closeout as a requirement: not sent, sent back, in final review or
+  /// certified.
+  CertificationStepInfo _info(CertificationEnrollmentStatus status) {
+    final CertificationRequirementStatus mapped;
+    if (status.isCertified) {
+      mapped = CertificationRequirementStatus.approved;
+    } else if (status.isUnderFinalReview) {
+      mapped = CertificationRequirementStatus.submitted;
+    } else if (status == CertificationEnrollmentStatus.changesRequested) {
+      mapped = CertificationRequirementStatus.changesRequested;
+    } else {
+      mapped = CertificationRequirementStatus.draft;
+    }
+    return CertificationStepInfo(
+      name: 'certifications.closeout.title'.tr(),
+      status: mapped,
+      reviewTitle: 'certifications.closeout.state_review'.tr(),
+      validatedTitle: 'certifications.closeout.state_certified'.tr(),
+    );
+  }
+
+  Future<bool> _confirmLeave() async {
+    final confirm = await SacDialog.show(
+      context,
+      title: 'certifications.requirement_detail.unsaved_files_title'.tr(),
+      content: 'certifications.requirement_detail.unsaved_files_body'.tr(),
+      confirmIsDestructive: true,
+      cancelLabel: 'certifications.requirement_detail.stay_button'.tr(),
+      confirmLabel: 'certifications.requirement_detail.leave_button'.tr(),
+    );
+    return confirm == true;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final state = ref.watch(certificationCloseoutNotifierProvider(_query));
+    final status = ref
+            .watch(certificationProgressProvider(widget.certificationId))
+            .value
+            ?.status ??
+        CertificationEnrollmentStatus.readyForCloseout;
+    final canEdit = status.isCloseoutOpen && !state.submitSuccess;
+    final isResend = status == CertificationEnrollmentStatus.changesRequested;
+    final isBusy = state.isUploading || state.isSubmitting;
+    final info = _info(status);
+    final manager = _managerKey.currentState;
+
+    ref.listen(certificationCloseoutNotifierProvider(_query), (prev, next) {
+      final message = next.errorMessage;
+      if (message != null && message.isNotEmpty) {
+        SacSnackBar.show(context, message, isError: true);
+        _notifier.clearError();
       }
       if (next.submitSuccess && prev?.submitSuccess != true) {
-        SacSnackBar.show(context, 'certifications.closeout.submit_success'.tr(),
-            isSuccess: true);
-        Navigator.of(context).pop();
+        HapticFeedback.mediumImpact();
+        setState(() => _hasLocalFile = false);
+        SacSnackBar.show(
+          context,
+          'certifications.closeout.submit_success'.tr(),
+          isSuccess: true,
+        );
+        // Stay on the screen: it turns «En revisión final» in place.
       }
     });
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: c.background,
-      appBar: SacTopBar(
+    final canSend =
+        canEdit && !isBusy && (manager?.canSubmitForActionBar ?? false);
+
+    return PopScope(
+      canPop: !_hasLocalFile,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final leave = await _confirmLeave();
+        if (leave && context.mounted) context.pop();
+      },
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        backgroundColor: c.background,
+        appBar: SacTopBar(
           title: 'certifications.closeout.title'.tr(),
+          subtitle: 'certifications.closeout.subtitle'.tr(),
           backgroundColor: c.background,
-          frosted: true),
-      body: SacFrostedVeil(
-        child: Builder(
-          builder: (context) => SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          frosted: true,
+          actions: [
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                key: const ValueKey('certification-closeout-menu'),
+                enableFeedback: false,
+                tooltip: 'certifications.req.menu_states'.tr(),
+                onPressed: () => showCertificationStatesSheet(
+                  context,
+                  info: info,
+                  isReadOnly: !canEdit &&
+                      !status.isUnderFinalReview &&
+                      !status.isCertified,
+                ),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedMoreHorizontal,
+                  size: 20,
+                  color: c.textSecondary,
+                ),
+              ),
+            ),
+          ],
+        ),
+        bottomNavigationBar: EvidenceFooterPresence(
+          visible: canEdit,
+          child: EvidenceFooterBar(
+            child: SacButton.primary(
+              key: const ValueKey('certification-closeout-send'),
+              text: isResend
+                  ? 'core.evidence_staging.btn_resend'.tr()
+                  : 'certifications.closeout.send'.tr(),
+              icon: HugeIcons.strokeRoundedSent,
+              isEnabled: canSend,
+              isLoading: isBusy,
+              onPressed: canSend
+                  ? () => _managerKey.currentState?.submitForValidation()
+                  : null,
+            ),
+          ),
+        ),
+        body: SacFrostedVeil(
+          child: Builder(
+            builder: (context) => Stack(
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                SingleChildScrollView(
+                  padding:
+                      EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+                  physics: const BouncingScrollPhysics(),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (certificationName != null) ...[
-                        Text(
-                          certificationName!,
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                        child: CertificationStatusPanel(info: info),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                        child: Text(
+                          'certifications.closeout.description'.tr(),
+                          key: const ValueKey('certification-closeout-text'),
                           style: TextStyle(
-                            fontSize: SacFontSize.bodyMedium,
-                            fontWeight: FontWeight.w700,
-                            color: c.textSecondary,
+                            fontSize: SacFontSize.titleMedium,
+                            height: 1.45,
+                            color: c.text,
                           ),
                         ),
-                        const SizedBox(height: 6),
-                      ],
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: c.surfaceVariant,
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.radiusMD),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            HugeIcon(
-                              icon: HugeIcons.strokeRoundedInformationCircle,
-                              size: 18,
-                              color: SacAccent.of(context).color,
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                'certifications.closeout.description'.tr(),
-                                style: TextStyle(
-                                  fontSize: SacFontSize.bodySmall,
-                                  color: c.textSecondary,
-                                  height: 1.45,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
                       ),
+                      if (canEdit) ...[
+                        const SizedBox(height: 24),
+                        EvidenceStagingManager(
+                          key: _managerKey,
+                          embeddedMode: true,
+                          showActionBar: false,
+                          existingFiles: const [],
+                          maxFiles: 1,
+                          canModify: canEdit,
+                          isLoading: isBusy,
+                          isResend: isResend,
+                          sectionTitle:
+                              'certifications.closeout.file_title'.tr(),
+                          fileNameBuilder: (originalName, index) =>
+                              originalName,
+                          onUpload: (xFile, mimeType, onProgress) async {
+                            final size = await xFile.length();
+                            final success =
+                                await _notifier.uploadCloseoutEvidence(
+                              filePath: xFile.path,
+                              fileName: xFile.name,
+                              mimeType: mimeType,
+                              fileSize: size,
+                              onProgress: onProgress,
+                            );
+                            if (!success) {
+                              throw Exception(
+                                'certifications.closeout.upload_failed'.tr(),
+                              );
+                            }
+                          },
+                          onDeleteRemote: (_) async {},
+                          onSubmit: () async {
+                            await _notifier.submitFinal();
+                          },
+                          onLocalFilesChanged: (hasLocal) {
+                            if (_hasLocalFile != hasLocal) {
+                              setState(() => _hasLocalFile = hasLocal);
+                            }
+                          },
+                          onActionStateChanged: () {
+                            if (mounted) setState(() {});
+                          },
+                        ),
+                      ],
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
-                Expanded(
-                  child: EvidenceStagingManager(
-                    // Certifications keep the "Image" / "PDF" buttons on purpose.
-                    layout: EvidenceStagingLayout.classic,
-                    existingFiles: const [],
-                    maxFiles: 1,
-                    canModify: !state.submitSuccess,
-                    isLoading: state.isUploading || state.isSubmitting,
-                    fileNameBuilder: (originalName, index) => originalName,
-                    onUpload: (xFile, mimeType, onProgress) async {
-                      final size = await xFile.length();
-                      final success = await notifier.uploadCloseoutEvidence(
-                        filePath: xFile.path,
-                        fileName: xFile.name,
-                        mimeType: mimeType,
-                        fileSize: size,
-                        onProgress: onProgress,
-                      );
-                      if (!success) {
-                        throw Exception(
-                          'certifications.closeout.upload_failed'.tr(),
-                        );
-                      }
-                    },
-                    onDeleteRemote: (_) async {},
-                    onSubmit: () async {
-                      await notifier.submitFinal();
-                    },
+                if (isBusy)
+                  const Positioned.fill(
+                    child: AbsorbPointer(child: SizedBox.expand()),
                   ),
-                ),
               ],
             ),
           ),

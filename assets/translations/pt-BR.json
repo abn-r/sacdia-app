@@ -2299,7 +2299,7 @@
       "enroll_tooltip": "Inscrever classe anterior",
       "error_loading": "Erro ao carregar classes",
       "certifications_chip_title": "Certificações",
-      "certifications_chip_subtitle": "Explore e inscreva-se",
+      "certifications_chip_subtitle": "Todas as certificações",
       "section_current": "Classe atual",
       "enroll_cta": "Inscrever-me em outra classe",
       "catalog_chip_title": "Classes por clube",
@@ -3426,107 +3426,218 @@
       "cert_evidence_invalid_type": "O tipo de arquivo não é válido para esta evidência",
       "cert_evidence_too_large": "O arquivo excede o tamanho máximo permitido",
       "cert_closeout_incomplete": "Ainda faltam requisitos aprovados antes de encerrar a certificação",
-      "cert_concurrent_update": "As informações mudaram enquanto você editava; recarregue e tente novamente"
+      "cert_concurrent_update": "As informações mudaram enquanto você editava; recarregue e tente novamente",
+      "get_eligibility": "Erro ao verificar sua elegibilidade",
+      "get_activity_options": "Erro ao carregar suas atividades",
+      "cert_eligibility_required": "Você ainda não cumpre os requisitos para se inscrever nesta certificação",
+      "cert_already_enrolled": "Você já está inscrito nesta certificação",
+      "cert_enrollment_not_abandonable": "Você não pode mais deixar esta certificação"
     },
     "common": {
-      "module": "módulo"
-    },
-    "detail": {
-      "description": "Descrição",
-      "modules_and_sections": "Módulos e Seções",
-      "no_modules": "Não há módulos disponíveis para esta certificação.",
-      "modules": "Módulos",
-      "sections": "Seções",
-      "curriculum_meta": "{modules} módulos · {sections} seções",
-      "sections_count": {
-        "one": "{count} seção",
-        "other": "{count} seções"
+      "modules": {
+        "one": "1 módulo",
+        "other": "{} módulos"
       },
-      "enrolled": "Você está inscrito",
-      "enrolled_meta": "Inscrito · {percentage}%",
-      "progress_percent": "Progresso: {percentage}%",
-      "view_progress": "Ver meu progresso",
-      "enroll_cta": "Inscrever-me",
-      "enroll_dialog_title": "Inscrever-se",
-      "enroll_dialog_content": "Confirmar inscrição nesta certificação?",
-      "enroll_success": "Inscrição realizada com sucesso!",
-      "no_sections_module": "Não há seções neste módulo.",
-      "load_error": "Erro ao carregar a certificação"
+      "requirements": {
+        "one": "1 requisito",
+        "other": "{} requisitos"
+      }
     },
     "list": {
-      "no_certifications": "Não há certificações disponíveis",
       "title": "Certificações",
+      "no_certifications": "Nenhuma certificação disponível",
       "load_error": "Erro ao carregar certificações",
-      "enroll_dialog_title": "Inscrever-se",
-      "enroll_dialog_content": "Quer se inscrever em « {name} »?",
-      "enroll_button": "Inscrever-me",
-      "enroll_success": "Você se inscreveu em « {name} »",
-      "enrolled_badge": "inscrito",
-      "modules_count": "{count} módulos",
-      "view_progress": "Ver progresso"
+      "section_in_progress": "Em andamento",
+      "section_available": "Disponíveis",
+      "section_certified": "Certificadas"
     },
-    "progress": {
+    "mine": {
+      "group": "Certificações"
+    },
+    "status": {
+      "pending": "Não enviado",
+      "review": "Enviado",
+      "validated": "Validado",
+      "rejected": "A corrigir",
+      "legend_validated": {
+        "one": "1 validado",
+        "other": "{} validados"
+      },
+      "legend_review": {
+        "one": "1 enviado",
+        "other": "{} enviados"
+      },
+      "legend_rejected": {
+        "one": "1 a corrigir",
+        "other": "{} a corrigir"
+      },
+      "legend_pending": {
+        "one": "1 não enviado",
+        "other": "{} não enviados"
+      }
+    },
+    "enrollment": {
+      "available": "Disponível",
+      "in_progress": {
+        "base": "Em andamento",
+        "with_year": "Em andamento · {year}"
+      },
+      "ready_for_closeout": "Pronta para o encerramento",
+      "under_review": "Revisão final",
+      "certified": {
+        "base": "Certificada",
+        "with_year": "Certificada · {year}"
+      },
+      "certified_on": "Certificada · {date}",
+      "changes_requested": "A corrigir",
+      "withdrawn": "Desistida",
+      "expired": "Vencida"
+    },
+    "summary": {
+      "label": "Requisitos validados",
+      "ready_count": "{ready} de {total}",
+      "missing": {
+        "one": "falta 1",
+        "other": "faltam {}"
+      },
+      "progress": "Avanço da certificação",
+      "modules": "Módulos",
+      "requirements": "Requisitos",
+      "reviewer": "Revisa",
+      "reviewer_value": "Seu Campo Local"
+    },
+    "view": {
+      "title": "Certificação",
+      "error_loading": "Erro ao carregar a certificação",
+      "menu_about": "Sobre esta certificação",
+      "menu_leave": "Deixar a certificação",
+      "about_title": "Sobre esta certificação",
+      "about_empty": "Esta certificação não tem descrição.",
+      "more": "Ver mais",
+      "group_attention": "Para atender",
       "modules_title": "Módulos",
-      "no_modules": "Não há módulos nesta certificação.",
-      "completed": "Certificação concluída",
-      "in_progress": "Em andamento",
-      "modules_completed": "{completed} / {total} módulos concluídos",
-      "no_sections_module": "Não há seções neste módulo.",
-      "load_error": "Erro ao carregar o progresso",
-      "closeout_cta": "Encerrar certificação",
-      "open_requirement": "Ver requisito"
+      "module_progress": "{done} de {total}",
+      "module_not_started": "não iniciado",
+      "module_semantics": "{name}. {progress}",
+      "empty_modules_title": "Ainda sem módulos",
+      "empty_modules_body": "Os módulos aparecerão quando estiverem disponíveis para esta certificação.",
+      "closeout_group": "Encerramento",
+      "closeout_ready": "Não enviado · envie a ata da diretoria",
+      "closeout_changes": "A corrigir · corrija a ata e envie de novo",
+      "closeout_locked": {
+        "one": "Abre quando você validar o requisito",
+        "other": "Abre quando você validar os {} requisitos"
+      },
+      "closeout_locked_label": "Bloqueado",
+      "certificate_group": "Certificado",
+      "download_certificate": "Baixar certificado",
+      "download_hint": "Abre no seu navegador",
+      "enroll_cta": "Inscrever-me",
+      "enroll_title": "Inscrever-se nesta certificação",
+      "enroll_body": "Você ficará inscrito. Terá de cumprir os requisitos e o seu Campo Local os revisará.",
+      "enroll_confirm": "Inscrever-me",
+      "cancel": "Cancelar",
+      "enroll_success": "Você se inscreveu em « {name} »",
+      "leave_title": "Deixar a certificação?",
+      "leave_body": "Seu avanço será perdido. Você poderá se inscrever de novo mais tarde.",
+      "leave_confirm": "Deixar a certificação",
+      "leave_success": "Você deixou « {name} »"
     },
-    "my": {
-      "empty_title": "Você não está inscrito em nenhuma certificação",
-      "empty_subtitle": "Explore o catálogo de certificações",
-      "title": "Minhas Certificações",
-      "stat_total": "Total",
-      "stat_active": "Em andamento",
-      "stat_completed": "Concluídas",
-      "section_active": "Em andamento",
-      "section_completed": "Concluídas",
-      "load_error": "Erro ao carregar minhas certificações",
-      "unenroll_dialog_title": "Cancelar inscrição",
-      "unenroll_dialog_content": "Tem certeza de que deseja cancelar a inscrição em « {name} »? Seu progresso será perdido.",
-      "unenroll_dialog_confirm": "Cancelar inscrição",
-      "unenroll_success": "Você cancelou a inscrição em « {name} »",
-      "enrolled_date": "inscrito em {date}",
-      "status_completed": "Concluída",
-      "status_in_progress": "Em andamento",
-      "progress_label": "Progresso",
-      "progress_modules": "{percentage}% · {completed}/{total} módulos",
-      "unenroll_button": "Cancelar inscrição"
+    "eligibility": {
+      "title": "Requisitos de inscrição",
+      "met": "Você cumpre este requisito",
+      "not_met": "Você ainda não cumpre este requisito",
+      "min_age": "Ter a idade mínima",
+      "baptized": "Ser batizado",
+      "invested_class": "Ter a classe exigida investida",
+      "active_club_type": "Estar no tipo de clube exigido",
+      "active_role": "Ter o cargo exigido",
+      "unknown": "Outro requisito de inscrição"
     },
-    "requirement_status": {
-      "draft": "Rascunho",
-      "submitted": "Enviado",
-      "changes_requested": "Alterações solicitadas",
-      "approved": "Aprovado"
+    "module": {
+      "subtitle": "{done} de {total} validados",
+      "group_sent": "Enviados",
+      "group_validated": "Validados",
+      "group_requirements": "Requisitos",
+      "empty": "Não há requisitos neste módulo.",
+      "not_found_title": "Não encontramos este módulo",
+      "not_found_body": "Ele pode não fazer mais parte da certificação."
+    },
+    "row": {
+      "not_started": "Não iniciado",
+      "draft": "Rascunho salvo",
+      "returned_on": "Devolvido em {date}",
+      "returned_default": "Devolvido para correção",
+      "sent_on": "Enviado em {date}",
+      "validated_on": "Validado em {date}",
+      "requirement_semantics": "{title}. {state}. {detail}"
+    },
+    "req": {
+      "subtitle_files": "Até {max} arquivos",
+      "menu_states": "Ver todos os estados",
+      "step_of": "Etapa {step} de {total} · Ver todos os estados",
+      "panel_semantics": "Estado: {state}, etapa {step} de {total}",
+      "panel_hint": "Mostra todos os estados",
+      "sheet_title": "Estados do requisito",
+      "sheet_filled": "Você completou o que era pedido",
+      "meta_pending": "Complete o que é pedido e envie quando estiver pronto.",
+      "meta_rejected": "Devolvido em {date} · corrija e envie de novo",
+      "meta_rejected_nodate": "Corrija e envie de novo.",
+      "meta_sent": "Enviado em {date} · aguardando a revisão do campo local",
+      "meta_sent_nodate": "Aguardando a revisão do campo local.",
+      "meta_validated": "Validado em {date}",
+      "meta_closed": "Esta certificação está fechada e não aceita mais alterações.",
+      "sheet_sent_current": "{date} · em revisão do campo local",
+      "sheet_sent_current_nodate": "Em revisão do campo local",
+      "sheet_sent_next": "O campo local revisa",
+      "sheet_validated_next": "Conta para o seu avanço na certificação",
+      "sheet_fix_hint": "Se o campo local pedir mudanças ou observar algo, volta aqui com a nota dele e você pode reenviar.",
+      "kind_done": "Feito",
+      "kind_current": "Estado atual",
+      "kind_rejected": "Para corrigir",
+      "kind_pending": "Pendente",
+      "note_title": "Nota do campo local",
+      "load_error_title": "Não foi possível carregar o requisito",
+      "answer_title": "Sua resposta",
+      "answer_hint": "Escreva sua resposta aqui",
+      "files_title": "Arquivos",
+      "activity_title": "Atividade",
+      "activity_choose": "Escolher atividade",
+      "activity_sheet_title": "Escolha uma atividade",
+      "activity_empty": "Você ainda não tem atividades para escolher.",
+      "activity_unknown": "Atividade #{id}",
+      "activity_none": "Nenhuma atividade escolhida",
+      "honor_title": "Especialidade",
+      "honor_choose": "Escolher especialidade",
+      "honor_sheet_title": "Escolha uma especialidade aprovada",
+      "honor_empty": "Você ainda não tem especialidades aprovadas.",
+      "honor_unknown": "Especialidade #{id}",
+      "honor_none": "Nenhuma especialidade escolhida",
+      "attestation_title": "Declaração",
+      "send_answer": "Enviar resposta",
+      "send": "Enviar"
     },
     "requirement_detail": {
       "title": "Requisito",
       "submit_success": "Requisito enviado para revisão",
-      "unsaved_changes": "Alterações não salvas",
-      "history_title": "HISTÓRICO",
-      "event_submitted": "Enviado para revisão",
-      "event_approved": "Aprovado",
-      "event_changes_requested": "Alterações solicitadas",
-      "save_draft": "Salvar rascunho",
-      "submit": "Enviar para revisão",
-      "changes_requested_title": "Alterações foram solicitadas",
-      "text_response_hint": "Escreva sua resposta aqui",
       "attestation_label": "Confirmo que cumpri o que foi solicitado",
-      "linked_honor_hint": "ID da especialidade aprovada",
-      "linked_activity_hint": "ID da atividade",
-      "required_badge": "Obrigatório",
       "auto_validation_hint": "Este componente é validado automaticamente pelo sistema",
-      "unknown_component_hint": "Este tipo de componente ainda não é compatível com o app"
+      "unknown_component_hint": "Este tipo de componente ainda não é compatível com o app",
+      "unsaved_files_title": "Arquivos não enviados",
+      "unsaved_files_body": "Você tem arquivos que não foram enviados. Tem certeza de que quer sair?",
+      "stay_button": "Ficar",
+      "leave_button": "Sair"
     },
     "closeout": {
-      "title": "Encerramento da certificação",
-      "description": "Envie o comprovante de aprovação da diretoria e envie a certificação para revisão final. Esta etapa só está disponível depois que você concluir os requisitos obrigatórios.",
-      "submit_success": "Certificação enviada para revisão final",
-      "upload_failed": "Não foi possível enviar o comprovante"
+      "title": "Ata da diretoria",
+      "subtitle": "Até 1 arquivo",
+      "description": "Envie a ata da diretoria que aprovou sua certificação e mande-a para revisão final. Esta etapa só abre quando todos os seus requisitos estão validados.",
+      "file_title": "Arquivo",
+      "send": "Enviar ata",
+      "state_review": "Revisão final",
+      "state_certified": "Certificada",
+      "submit_success": "Ata enviada para revisão final",
+      "upload_failed": "Não foi possível enviar a ata"
     }
   },
   "catalogs": {
@@ -5049,9 +5160,7 @@
       "badge_new": "Novo",
       "btn_continue": "Continuar",
       "btn_continue_partial": "Continuar com os enviados ({count})",
-      "btn_image": "Imagem",
       "btn_retry_failed": "Tentar novamente os falhos ({count})",
-      "btn_submit": "Enviar para validação",
       "cancel": "Cancelar",
       "delete": "Excluir",
       "delete_dialog_body": "Tem certeza de que deseja excluir \"{name}\"? Esta ação não pode ser desfeita.",

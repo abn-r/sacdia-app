@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
-import 'package:sacdia_app/core/widgets/evidence_staging/evidence_staging_layout.dart';
 import 'package:sacdia_app/core/widgets/evidence_staging/evidence_staging_manager.dart';
 import 'package:sacdia_app/core/widgets/evidence_staging/staged_file.dart';
 
@@ -19,7 +18,6 @@ Future<void> _pump(
   int remote = 0,
   int maxFiles = 3,
   bool canModify = true,
-  EvidenceStagingLayout layout = EvidenceStagingLayout.addTile,
   bool isResend = false,
 }) async {
   await tester.pumpWidget(
@@ -27,7 +25,6 @@ Future<void> _pump(
       theme: AppTheme.lightTheme,
       home: Scaffold(
         body: EvidenceStagingManager(
-          layout: layout,
           sectionTitle: 'Archivos',
           isResend: isResend,
           existingFiles: [for (var i = 0; i < remote; i++) _remote(i)],
@@ -111,16 +108,5 @@ void main() {
 
     expect(find.byKey(const ValueKey('evidence-add-tile')), findsNothing);
     expect(find.text('No hay archivos de evidencia.'), findsOneWidget);
-  });
-
-  testWidgets('classic layout keeps the Imagen / PDF buttons and no tile',
-      (tester) async {
-    await _pump(tester, remote: 1, layout: EvidenceStagingLayout.classic);
-
-    expect(find.byKey(const ValueKey('evidence-add-tile')), findsNothing);
-    expect(find.text('Imagen'), findsOneWidget);
-    expect(find.text('PDF'), findsWidgets);
-    expect(find.text('Enviar a validación'), findsOneWidget);
-    expect(find.text('1 de 3 archivos'), findsOneWidget);
   });
 }

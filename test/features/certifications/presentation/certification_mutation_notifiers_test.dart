@@ -95,35 +95,4 @@ void main() {
           'boom');
     });
   });
-
-  group('SectionProgressNotifier', () {
-    test('updateSection completes when nothing listens', () async {
-      final container = createTestContainer(overrides: [
-        certificationsRepositoryProvider.overrideWithValue(_SlowRepository()),
-      ]);
-
-      final ok = await container
-          .read(sectionProgressNotifierProvider(3).notifier)
-          .updateSection(moduleId: 1, sectionId: 2, completed: true);
-
-      expect(ok, isTrue);
-      expect(
-          container.read(sectionProgressNotifierProvider(3)).success, isTrue);
-    });
-
-    test('a failed update reports false and keeps the message', () async {
-      final container = createTestContainer(overrides: [
-        certificationsRepositoryProvider.overrideWithValue(
-            _SlowRepository(failure: const ServerFailure(message: 'boom'))),
-      ]);
-
-      final ok = await container
-          .read(sectionProgressNotifierProvider(3).notifier)
-          .updateSection(moduleId: 1, sectionId: 2, completed: false);
-
-      expect(ok, isFalse);
-      expect(container.read(sectionProgressNotifierProvider(3)).errorMessage,
-          'boom');
-    });
-  });
 }

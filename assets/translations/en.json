@@ -2299,7 +2299,7 @@
       "enroll_tooltip": "Enroll previous class",
       "error_loading": "Error loading classes",
       "certifications_chip_title": "Certifications",
-      "certifications_chip_subtitle": "Browse and enroll",
+      "certifications_chip_subtitle": "All certifications",
       "section_current": "Current class",
       "enroll_cta": "Enroll in another class",
       "catalog_chip_title": "Classes by club",
@@ -3427,107 +3427,218 @@
       "cert_evidence_invalid_type": "The file type isn't valid for this evidence",
       "cert_evidence_too_large": "The file exceeds the maximum allowed size",
       "cert_closeout_incomplete": "Some required requirements still need approval before closing the certification",
-      "cert_concurrent_update": "The information changed while you were editing; reload and try again"
+      "cert_concurrent_update": "The information changed while you were editing; reload and try again",
+      "get_eligibility": "Error checking your eligibility",
+      "get_activity_options": "Error loading your activities",
+      "cert_eligibility_required": "You do not meet the requirements to enroll in this certification yet",
+      "cert_already_enrolled": "You are already enrolled in this certification",
+      "cert_enrollment_not_abandonable": "You can no longer leave this certification"
     },
     "common": {
-      "module": "module"
-    },
-    "detail": {
-      "description": "Description",
-      "modules_and_sections": "Modules and Sections",
-      "no_modules": "No modules available for this certification.",
-      "modules": "Modules",
-      "sections": "Sections",
-      "curriculum_meta": "{modules} modules · {sections} sections",
-      "sections_count": {
-        "one": "{count} section",
-        "other": "{count} sections"
+      "modules": {
+        "one": "1 module",
+        "other": "{} modules"
       },
-      "enrolled": "You are enrolled",
-      "enrolled_meta": "Enrolled · {percentage}%",
-      "progress_percent": "Progress: {percentage}%",
-      "view_progress": "View my progress",
-      "enroll_cta": "Enroll",
-      "enroll_dialog_title": "Enroll",
-      "enroll_dialog_content": "Confirm enrollment in this certification?",
-      "enroll_success": "Enrollment successful!",
-      "no_sections_module": "No sections in this module.",
-      "load_error": "Error loading certification"
+      "requirements": {
+        "one": "1 requirement",
+        "other": "{} requirements"
+      }
     },
     "list": {
-      "no_certifications": "No certifications available",
       "title": "Certifications",
+      "no_certifications": "No certifications available",
       "load_error": "Error loading certifications",
-      "enroll_dialog_title": "Enroll",
-      "enroll_dialog_content": "Do you want to enroll in \"{name}\"?",
-      "enroll_button": "Enroll",
-      "enroll_success": "You enrolled in \"{name}\"",
-      "enrolled_badge": "enrolled",
-      "modules_count": "{count} modules",
-      "view_progress": "View progress"
+      "section_in_progress": "In progress",
+      "section_available": "Available",
+      "section_certified": "Certified"
     },
-    "progress": {
+    "mine": {
+      "group": "Certifications"
+    },
+    "status": {
+      "pending": "Not sent",
+      "review": "Sent",
+      "validated": "Validated",
+      "rejected": "To fix",
+      "legend_validated": {
+        "one": "1 validated",
+        "other": "{} validated"
+      },
+      "legend_review": {
+        "one": "1 sent",
+        "other": "{} sent"
+      },
+      "legend_rejected": {
+        "one": "1 to fix",
+        "other": "{} to fix"
+      },
+      "legend_pending": {
+        "one": "1 not sent",
+        "other": "{} not sent"
+      }
+    },
+    "enrollment": {
+      "available": "Available",
+      "in_progress": {
+        "base": "In progress",
+        "with_year": "In progress · {year}"
+      },
+      "ready_for_closeout": "Ready for closeout",
+      "under_review": "Final review",
+      "certified": {
+        "base": "Certified",
+        "with_year": "Certified · {year}"
+      },
+      "certified_on": "Certified · {date}",
+      "changes_requested": "To fix",
+      "withdrawn": "Withdrawn",
+      "expired": "Expired"
+    },
+    "summary": {
+      "label": "Validated requirements",
+      "ready_count": "{ready} of {total}",
+      "missing": {
+        "one": "1 missing",
+        "other": "{} missing"
+      },
+      "progress": "Certification progress",
+      "modules": "Modules",
+      "requirements": "Requirements",
+      "reviewer": "Reviewed by",
+      "reviewer_value": "Your Local Field"
+    },
+    "view": {
+      "title": "Certification",
+      "error_loading": "Error loading the certification",
+      "menu_about": "About this certification",
+      "menu_leave": "Leave the certification",
+      "about_title": "About this certification",
+      "about_empty": "This certification has no description.",
+      "more": "See more",
+      "group_attention": "Needs attention",
       "modules_title": "Modules",
-      "no_modules": "No modules in this certification.",
-      "completed": "Certification completed",
-      "in_progress": "In progress",
-      "modules_completed": "{completed} / {total} modules completed",
-      "no_sections_module": "No sections in this module.",
-      "load_error": "Error loading progress",
-      "closeout_cta": "Close out certification",
-      "open_requirement": "View requirement"
+      "module_progress": "{done} of {total}",
+      "module_not_started": "not started",
+      "module_semantics": "{name}. {progress}",
+      "empty_modules_title": "No modules yet",
+      "empty_modules_body": "Modules will appear when they are available for this certification.",
+      "closeout_group": "Closeout",
+      "closeout_ready": "Not sent · upload the board record",
+      "closeout_changes": "To fix · correct the record and send it again",
+      "closeout_locked": {
+        "one": "Opens when you validate the requirement",
+        "other": "Opens when you validate all {} requirements"
+      },
+      "closeout_locked_label": "Locked",
+      "certificate_group": "Certificate",
+      "download_certificate": "Download certificate",
+      "download_hint": "Opens in your browser",
+      "enroll_cta": "Enroll",
+      "enroll_title": "Enroll in this certification",
+      "enroll_body": "You will be enrolled. You will have to meet its requirements and your Local Field will review them.",
+      "enroll_confirm": "Enroll",
+      "cancel": "Cancel",
+      "enroll_success": "You enrolled in « {name} »",
+      "leave_title": "Leave the certification?",
+      "leave_body": "Your progress will be lost. You can enroll again later.",
+      "leave_confirm": "Leave the certification",
+      "leave_success": "You left « {name} »"
     },
-    "my": {
-      "empty_title": "You are not enrolled in any certification",
-      "empty_subtitle": "Explore the certification catalog",
-      "title": "My Certifications",
-      "stat_total": "Total",
-      "stat_active": "In progress",
-      "stat_completed": "Completed",
-      "section_active": "In progress",
-      "section_completed": "Completed",
-      "load_error": "Error loading my certifications",
-      "unenroll_dialog_title": "Unenroll",
-      "unenroll_dialog_content": "Are you sure you want to unenroll from \"{name}\"? Your progress will be lost.",
-      "unenroll_dialog_confirm": "Unenroll",
-      "unenroll_success": "You unenrolled from \"{name}\"",
-      "enrolled_date": "enrolled on {date}",
-      "status_completed": "Completed",
-      "status_in_progress": "In progress",
-      "progress_label": "Progress",
-      "progress_modules": "{percentage}% · {completed}/{total} modules",
-      "unenroll_button": "Unenroll"
+    "eligibility": {
+      "title": "Enrollment requirements",
+      "met": "You meet this requirement",
+      "not_met": "You do not meet this requirement yet",
+      "min_age": "Be of the minimum age",
+      "baptized": "Be baptized",
+      "invested_class": "Have the required class invested",
+      "active_club_type": "Be in the required club type",
+      "active_role": "Hold the required role",
+      "unknown": "Another enrollment requirement"
     },
-    "requirement_status": {
-      "draft": "Draft",
-      "submitted": "Submitted",
-      "changes_requested": "Changes requested",
-      "approved": "Approved"
+    "module": {
+      "subtitle": "{done} of {total} validated",
+      "group_sent": "Sent",
+      "group_validated": "Validated",
+      "group_requirements": "Requirements",
+      "empty": "There are no requirements in this module.",
+      "not_found_title": "We couldn't find this module",
+      "not_found_body": "It may no longer be part of the certification."
+    },
+    "row": {
+      "not_started": "Not started",
+      "draft": "Draft saved",
+      "returned_on": "Returned on {date}",
+      "returned_default": "Returned to fix",
+      "sent_on": "Sent on {date}",
+      "validated_on": "Validated on {date}",
+      "requirement_semantics": "{title}. {state}. {detail}"
+    },
+    "req": {
+      "subtitle_files": "Up to {max} files",
+      "menu_states": "See every state",
+      "step_of": "Step {step} of {total} · See every state",
+      "panel_semantics": "State: {state}, step {step} of {total}",
+      "panel_hint": "Shows every state",
+      "sheet_title": "Requirement states",
+      "sheet_filled": "You completed what it asked",
+      "meta_pending": "Complete what it asks and send it when it is ready.",
+      "meta_rejected": "Returned on {date} · fix it and send it again",
+      "meta_rejected_nodate": "Fix it and send it again.",
+      "meta_sent": "Sent on {date} · waiting for the local field's review",
+      "meta_sent_nodate": "Waiting for the local field's review.",
+      "meta_validated": "Validated on {date}",
+      "meta_closed": "This certification is closed and no longer accepts changes.",
+      "sheet_sent_current": "{date} · under local field review",
+      "sheet_sent_current_nodate": "Under local field review",
+      "sheet_sent_next": "The local field reviews it",
+      "sheet_validated_next": "Counts toward your certification progress",
+      "sheet_fix_hint": "If the local field asks for changes or flags something, it comes back here with its note and you can resend.",
+      "kind_done": "Done",
+      "kind_current": "Current state",
+      "kind_rejected": "To fix",
+      "kind_pending": "Pending",
+      "note_title": "Local field note",
+      "load_error_title": "We couldn't load the requirement",
+      "answer_title": "Your answer",
+      "answer_hint": "Write your answer here",
+      "files_title": "Files",
+      "activity_title": "Activity",
+      "activity_choose": "Choose activity",
+      "activity_sheet_title": "Choose an activity",
+      "activity_empty": "You have no activities to choose from yet.",
+      "activity_unknown": "Activity #{id}",
+      "activity_none": "No activity chosen",
+      "honor_title": "Honor",
+      "honor_choose": "Choose honor",
+      "honor_sheet_title": "Choose an approved honor",
+      "honor_empty": "You have no approved honors yet.",
+      "honor_unknown": "Honor #{id}",
+      "honor_none": "No honor chosen",
+      "attestation_title": "Statement",
+      "send_answer": "Send answer",
+      "send": "Send"
     },
     "requirement_detail": {
       "title": "Requirement",
       "submit_success": "Requirement submitted for review",
-      "unsaved_changes": "Unsaved changes",
-      "history_title": "HISTORY",
-      "event_submitted": "Submitted for review",
-      "event_approved": "Approved",
-      "event_changes_requested": "Changes requested",
-      "save_draft": "Save draft",
-      "submit": "Submit for review",
-      "changes_requested_title": "Changes were requested",
-      "text_response_hint": "Write your answer here",
       "attestation_label": "I confirm I completed what was requested",
-      "linked_honor_hint": "Approved honor ID",
-      "linked_activity_hint": "Activity ID",
-      "required_badge": "Required",
       "auto_validation_hint": "This component is validated automatically by the system",
-      "unknown_component_hint": "This component type isn't supported by the app yet"
+      "unknown_component_hint": "This component type isn't supported by the app yet",
+      "unsaved_files_title": "Files not sent",
+      "unsaved_files_body": "You have files that were not sent. Are you sure you want to leave?",
+      "stay_button": "Stay",
+      "leave_button": "Leave"
     },
     "closeout": {
-      "title": "Certification closeout",
-      "description": "Upload the board's approval proof and submit the certification for final review. This step is only available once you've completed the required requirements.",
-      "submit_success": "Certification submitted for final review",
-      "upload_failed": "The proof couldn't be uploaded"
+      "title": "Board record",
+      "subtitle": "Up to 1 file",
+      "description": "Upload the record of the board that approved your certification and send it for final review. This step only opens when all your requirements are validated.",
+      "file_title": "File",
+      "send": "Send record",
+      "state_review": "Final review",
+      "state_certified": "Certified",
+      "submit_success": "Record sent for final review",
+      "upload_failed": "The record couldn't be uploaded"
     }
   },
   "catalogs": {
@@ -5051,9 +5162,7 @@
       "badge_new": "New",
       "btn_continue": "Continue",
       "btn_continue_partial": "Continue with uploaded ({count})",
-      "btn_image": "Image",
       "btn_retry_failed": "Retry failed ({count})",
-      "btn_submit": "Submit for validation",
       "cancel": "Cancel",
       "delete": "Delete",
       "delete_dialog_body": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",

@@ -1,10 +1,16 @@
 import 'dart:async';
 
+import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/user_error_message.dart';
+import '../../../../core/providers/keep_alive_during.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/local/certification_draft_local_data_source.dart';
+import '../../domain/entities/certification_activity_option.dart';
 import '../../domain/entities/certification_requirement.dart';
 import '../../domain/entities/certification_requirement_component.dart';
 import 'certifications_providers.dart';
@@ -52,13 +58,9 @@ class CertificationRequirementState extends Equatable {
 
   /// `lock_version` optimista de la inscripción.
   ///
-  /// LIMITACIÓN CONOCIDA: el endpoint participante `GET .../requirements/:id`
-  /// no expone `lock_version` (solo lo hace la vista de revisor). El cliente
-  /// arranca en 0 y lo incrementa localmente tras cada `submit` exitoso. Si
-  /// el valor real en el backend avanza por otra vía dentro de la misma
-  /// sesión, el próximo `submit` puede fallar con `CERT_CONCURRENT_UPDATE`
-  /// (409) de forma espuria — requiere que el backend exponga
-  /// `lock_version` en la vista de participante para resolverse por completo.
+  /// Lo trae `GET .../requirements/:id` (`lock_version`) y se reenvía al
+  /// enviar. Tras un envío correcto se incrementa localmente; ante un error
+  /// el requisito se relee para tomar el valor vigente.
   final int lockVersion;
 
   const CertificationRequirementState({
@@ -86,6 +88,9 @@ class CertificationRequirementState extends Equatable {
         type: c.type,
         label: c.label,
         required: c.required,
+        instructions: c.instructions,
+        configuration: c.configuration,
+        evidences: c.evidences,
         response: CertificationComponentResponse(
           textValue: draft.textValue ?? c.response?.textValue,
           attestationConfirmed:
@@ -158,8 +163,15 @@ class CertificationRequirementNotifier
     return authState.value?.id ?? '';
   }
 
-  Future<void> _load() async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
+  /// [keepError] conserva el mensaje de un envío fallido mientras se relee
+  /// el requisito, para que la vista alcance a mostrarlo.
+  Future<void> _load({bool keepError = false}) async {
+    // Una recarga con el requisito ya en pantalla no lo reemplaza por un
+    // spinner: se actualiza en el mismo lugar.
+    state = state.copyWith(
+      isLoading: state.requirement == null,
+      errorMessage: keepError ? state.errorMessage : null,
+    );
 
     final result =
         await ref.read(certificationsRepositoryProvider).getRequirement(
@@ -182,12 +194,13 @@ class CertificationRequirementNotifier
           isLoading: false,
           requirement: requirement,
           localValues: localDraft ?? const {},
+          lockVersion: requirement.lockVersion ?? state.lockVersion,
         );
       },
     );
   }
 
-  Future<void> reload() => _load();
+  Future<void> reload() => ref.keepAliveDuring(_load);
 
   /// Actualiza (en memoria + Hive) la respuesta de un componente. Reemplaza
   /// cualquier valor previo para ese `componentId` — el llamador debe pasar
@@ -209,7 +222,9 @@ class CertificationRequirementNotifier
 
   /// Guarda el borrador actual en el backend. Al confirmarse, limpia el
   /// borrador local (ya quedó persistido remotamente).
-  Future<bool> saveDraft() async {
+  Future<bool> saveDraft() => ref.keepAliveDuring(_saveDraft);
+
+  Future<bool> _saveDraft() async {
     if (state.localValues.isEmpty) return true;
     state = state.copyWith(isSavingDraft: true, errorMessage: null);
 
@@ -246,27 +261,43 @@ class CertificationRequirementNotifier
   /// Envía el requisito a revisión. Si hay cambios locales sin guardar, los
   /// guarda primero para no perder respuestas capturadas justo antes del
   /// envío.
-  Future<bool> submit() async {
+  Future<bool> submit() => ref.keepAliveDuring(_submit);
+
+  Future<bool> _submit() async {
     if (state.localValues.isNotEmpty) {
-      final saved = await saveDraft();
+      final saved = await _saveDraft();
       if (!saved) return false;
     }
 
     state = state.copyWith(
         isSubmitting: true, errorMessage: null, submitSuccess: false);
 
-    final result =
-        await ref.read(certificationsRepositoryProvider).submitRequirement(
-              _userId,
-              _query.enrollmentId,
-              _query.sectionId,
-              lockVersion: state.lockVersion,
-            );
+    final Either<Failure, CertificationRequirementSubmitResult> result;
+    try {
+      result =
+          await ref.read(certificationsRepositoryProvider).submitRequirement(
+                _userId,
+                _query.enrollmentId,
+                _query.sectionId,
+                lockVersion: state.lockVersion,
+              );
+    } catch (error) {
+      // Any unexpected error must release the button, never leave it spinning.
+      state = state.copyWith(
+        isSubmitting: false,
+        errorMessage: userErrorMessage(error),
+      );
+      unawaited(_load(keepError: true));
+      return false;
+    }
 
     return result.fold(
       (failure) {
         state =
             state.copyWith(isSubmitting: false, errorMessage: failure.message);
+        // A stale lock_version (someone else moved the enrollment) is fixed by
+        // re-reading the requirement, which brings the current one.
+        unawaited(_load(keepError: true));
         return false;
       },
       (submitResult) {
@@ -283,6 +314,10 @@ class CertificationRequirementNotifier
               .clearDraft(_query.enrollmentId, _query.sectionId),
         );
         ref.invalidate(certificationProgressProvider(_query.certificationId));
+        ref.invalidate(userCertificationsProvider);
+        // El requisito devuelto puede no traer las evidencias recién
+        // confirmadas: se relee en silencio para mostrarlas ya como subidas.
+        unawaited(_load());
         return true;
       },
     );
@@ -292,6 +327,23 @@ class CertificationRequirementNotifier
   /// directo a R2 → confirm. Lanza en caso de error, tal como espera
   /// `EvidenceStagingManager.onUpload`.
   Future<void> uploadComponentEvidence({
+    required int componentId,
+    required String filePath,
+    required String fileName,
+    required String mimeType,
+    required int fileSize,
+    required void Function(double progress) onProgress,
+  }) =>
+      ref.keepAliveDuring(() => _uploadComponentEvidence(
+            componentId: componentId,
+            filePath: filePath,
+            fileName: fileName,
+            mimeType: mimeType,
+            fileSize: fileSize,
+            onProgress: onProgress,
+          ));
+
+  Future<void> _uploadComponentEvidence({
     required int componentId,
     required String filePath,
     required String fileName,
@@ -344,7 +396,10 @@ class CertificationRequirementNotifier
 
   /// Elimina una evidencia ya confirmada. [evidenceIdStr] es el `id` (String)
   /// que `EvidenceStagingManager` reporta para el `StagedFile`.
-  Future<void> deleteComponentEvidence(String evidenceIdStr) async {
+  Future<void> deleteComponentEvidence(String evidenceIdStr) =>
+      ref.keepAliveDuring(() => _deleteComponentEvidence(evidenceIdStr));
+
+  Future<void> _deleteComponentEvidence(String evidenceIdStr) async {
     final evidenceId = int.tryParse(evidenceIdStr);
     if (evidenceId == null) return;
 
@@ -367,6 +422,47 @@ final certificationRequirementNotifierProvider = NotifierProvider.autoDispose
         CertificationRequirementQuery>(
   CertificationRequirementNotifier.new,
 );
+
+/// Identifica un componente `LINKED_ACTIVITY` de un requisito.
+class CertificationActivityOptionsQuery extends Equatable {
+  final int enrollmentId;
+  final int sectionId;
+  final int componentId;
+
+  const CertificationActivityOptionsQuery({
+    required this.enrollmentId,
+    required this.sectionId,
+    required this.componentId,
+  });
+
+  @override
+  List<Object?> get props => [enrollmentId, sectionId, componentId];
+}
+
+/// Actividades que la persona puede enlazar a un componente `LINKED_ACTIVITY`.
+final certificationActivityOptionsProvider = FutureProvider.autoDispose.family<
+    List<CertificationActivityOption>,
+    CertificationActivityOptionsQuery>((ref, query) async {
+  final userId = await ref.watch(
+    authNotifierProvider.selectAsync((user) => user?.id),
+  );
+  if (userId == null) return const [];
+
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result =
+      await ref.read(certificationsRepositoryProvider).getActivityOptions(
+            userId,
+            query.enrollmentId,
+            query.sectionId,
+            query.componentId,
+            cancelToken: cancelToken,
+          );
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (options) => options,
+  );
+});
 
 // ── Cierre (Task 12) ──────────────────────────────────────────────────────────
 
@@ -454,6 +550,21 @@ class CertificationCloseoutNotifier
     required String mimeType,
     required int fileSize,
     void Function(double progress)? onProgress,
+  }) =>
+      ref.keepAliveDuring(() => _uploadCloseoutEvidence(
+            filePath: filePath,
+            fileName: fileName,
+            mimeType: mimeType,
+            fileSize: fileSize,
+            onProgress: onProgress,
+          ));
+
+  Future<bool> _uploadCloseoutEvidence({
+    required String filePath,
+    required String fileName,
+    required String mimeType,
+    required int fileSize,
+    void Function(double progress)? onProgress,
   }) async {
     state = state.copyWith(isUploading: true, errorMessage: null);
     final repo = ref.read(certificationsRepositoryProvider);
@@ -513,7 +624,9 @@ class CertificationCloseoutNotifier
   }
 
   /// Envía la inscripción a revisión final.
-  Future<bool> submitFinal() async {
+  Future<bool> submitFinal() => ref.keepAliveDuring(_submitFinal);
+
+  Future<bool> _submitFinal() async {
     state = state.copyWith(
         isSubmitting: true, errorMessage: null, submitSuccess: false);
 
@@ -532,6 +645,7 @@ class CertificationCloseoutNotifier
         ref.invalidate(
           certificationProgressProvider(_query.certificationId),
         );
+        ref.invalidate(userCertificationsProvider);
         return true;
       },
     );
