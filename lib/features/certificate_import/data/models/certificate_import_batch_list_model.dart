@@ -42,6 +42,7 @@ class CertificateImportBatchListModel extends Equatable {
                 modifiedAt: item.modifiedAt,
                 fileCount: item.fileCount,
                 itemCount: item.itemCount,
+                rejectedCount: item.rejectedCount,
               ),
             )
             .toList(),
@@ -61,6 +62,7 @@ class CertificateImportBatchSummaryModel extends Equatable {
   final DateTime? modifiedAt;
   final int fileCount;
   final int itemCount;
+  final int rejectedCount;
 
   const CertificateImportBatchSummaryModel({
     required this.id,
@@ -69,6 +71,7 @@ class CertificateImportBatchSummaryModel extends Equatable {
     this.modifiedAt,
     this.fileCount = 0,
     this.itemCount = 0,
+    this.rejectedCount = 0,
   });
 
   factory CertificateImportBatchSummaryModel.fromJson(
@@ -83,10 +86,17 @@ class CertificateImportBatchSummaryModel extends Equatable {
       modifiedAt: DateTime.tryParse(safeString(json['modified_at'])),
       fileCount: rawFiles is List ? rawFiles.length : 0,
       itemCount: rawItems is List ? rawItems.length : 0,
+      rejectedCount: rawItems is List
+          ? rawItems
+              .whereType<Map<String, dynamic>>()
+              .where((row) =>
+                  safeString(row['status']).toUpperCase() == 'REJECTED')
+              .length
+          : 0,
     );
   }
 
   @override
   List<Object?> get props =>
-      [id, status, createdAt, modifiedAt, fileCount, itemCount];
+      [id, status, createdAt, modifiedAt, fileCount, itemCount, rejectedCount];
 }

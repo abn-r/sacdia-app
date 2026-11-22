@@ -37,6 +37,9 @@ enum CertificateImportErrorKind {
 
   /// Resubmit of a row that already left the rejected state.
   itemNotRejected,
+
+  /// Submit with a row that still needs the member.
+  itemsIncomplete,
   unknown,
 }
 
@@ -109,6 +112,7 @@ abstract final class CertificateImportErrorMapper {
     CertificateImportErrorKind.yearNotFound: ('age_year', _none),
     CertificateImportErrorKind.ageBelowMinimum: ('age_below_minimum', _none),
     CertificateImportErrorKind.itemNotRejected: ('item_not_rejected', _none),
+    CertificateImportErrorKind.itemsIncomplete: ('items_incomplete', _none),
     CertificateImportErrorKind.unknown: ('unexpected', _retry),
   };
 
@@ -220,6 +224,8 @@ abstract final class CertificateImportErrorMapper {
         return CertificateImportErrorKind.ageBelowMinimum;
       case CertificateImportErrorCode.itemNotRejected:
         return CertificateImportErrorKind.itemNotRejected;
+      case CertificateImportErrorCode.itemsIncomplete:
+        return CertificateImportErrorKind.itemsIncomplete;
       case CertificateImportErrorCode.network:
         return CertificateImportErrorKind.offline;
       case CertificateImportErrorCode.timeout:

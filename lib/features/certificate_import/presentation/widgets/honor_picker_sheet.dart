@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
@@ -14,9 +16,7 @@ import 'package:sacdia_app/features/honors/domain/entities/honor.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor_category.dart';
 import 'package:sacdia_app/features/honors/domain/usecases/get_honors.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
-import 'package:sacdia_app/features/honors/presentation/theme/honor_category_palette.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_badge_image.dart';
-import 'package:sacdia_app/features/honors/presentation/widgets/honor_category_chip.dart';
 
 import '../error/certificate_import_error_mapper.dart';
 
@@ -59,12 +59,16 @@ class HonorPickerSheet extends ConsumerStatefulWidget {
     super.key,
     this.initialQuery = '',
     this.initialCategoryId,
+    this.suggestedHonorId,
     this.debounce = const Duration(milliseconds: 300),
     this.blurGrace = const Duration(milliseconds: 800),
   });
 
   final String initialQuery;
   final int? initialCategoryId;
+
+  /// Honor the backend proposed for the row: it carries a "Sugerida" chip.
+  final int? suggestedHonorId;
   final Duration debounce;
 
   /// How long after the app loses or regains focus a dismissal from outside
@@ -76,6 +80,7 @@ class HonorPickerSheet extends ConsumerStatefulWidget {
     BuildContext context, {
     String initialQuery = '',
     int? categoryId,
+    int? suggestedHonorId,
   }) {
     return showSacSheet<Honor>(
       context: context,
@@ -84,6 +89,7 @@ class HonorPickerSheet extends ConsumerStatefulWidget {
       builder: (_) => HonorPickerSheet(
         initialQuery: initialQuery,
         initialCategoryId: categoryId,
+        suggestedHonorId: suggestedHonorId,
       ),
     );
   }
@@ -260,23 +266,18 @@ class _HonorPickerSheetState extends ConsumerState<HonorPickerSheet>
                 ),
                 if (categories.isNotEmpty)
                   SizedBox(
-                    height: 52,
+                    height: SacFilterChip.barHeight + 8,
                     child: ListView(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 4),
                       children: [
                         for (final category in [null, ...categories]) ...[
-                          HonorCategoryChip(
+                          // The accent color for every chip, "Todas" included.
+                          SacFilterChip(
                             label: category?.name ??
                                 'certificate_import.picker.all_categories'.tr(),
-                            isSelected: _categoryId == category?.id,
-                            activeColor: category == null
-                                ? null
-                                : getCategoryColor(
-                                    categoryId: category.id,
-                                    categoryName: category.name,
-                                  ),
+                            selected: _categoryId == category?.id,
                             onTap: () => _pickCategory(category?.id),
                           ),
                           const SizedBox(width: 8),
@@ -367,6 +368,7 @@ class _HonorPickerSheetState extends ConsumerState<HonorPickerSheet>
       itemCount: results.length,
       itemBuilder: (context, index) => _HonorRow(
         honor: results[index],
+        suggested: results[index].id == widget.suggestedHonorId,
         onTap: () => Navigator.of(context).pop(results[index]),
       ),
     );
@@ -374,9 +376,14 @@ class _HonorPickerSheetState extends ConsumerState<HonorPickerSheet>
 }
 
 class _HonorRow extends StatelessWidget {
-  const _HonorRow({required this.honor, required this.onTap});
+  const _HonorRow({
+    required this.honor,
+    required this.onTap,
+    this.suggested = false,
+  });
 
   final Honor honor;
+  final bool suggested;
   final VoidCallback onTap;
 
   @override
@@ -398,6 +405,7 @@ class _HonorRow extends StatelessWidget {
                 imageUrl: honor.imageUrl,
                 width: 36,
                 height: 36,
+                memCacheWidth: 108,
                 fallbackColor: c.textSecondary,
                 fallbackBackgroundColor: c.surfaceVariant,
                 fallbackIconSize: 20,
@@ -418,79 +426,17 @@ class _HonorRow extends StatelessWidget {
                   ],
                 ),
               ),
+              if (suggested) ...[
+                const SizedBox(width: 8),
+                SacBadge(
+                  key: const ValueKey('honor-picker-suggested'),
+                  label: 'certificate_import.editor.suggested'.tr(),
+                ),
+              ],
             ],
           ),
         ),
       ),
     );
   }
-}
-
-/// Category sheet. Returns `(id: null)` for "Todas las categorías" and null
-/// when dismissed, so clearing the filter is not confused with cancelling.
-Future<({int? id})?> showHonorCategoryPicker(
-  BuildContext context, {
-  required List<HonorCategory> categories,
-  required int? selectedId,
-}) {
-  return showSacSheet<({int? id})>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    builder: (sheetContext) {
-      final c = sheetContext.sac;
-      Widget tile(String label, int? id, Color? dot) => ListTile(
-            minVerticalPadding: 12,
-            leading: dot == null
-                ? const SizedBox(width: 12)
-                : Container(
-                    width: 12,
-                    height: 12,
-                    decoration:
-                        BoxDecoration(color: dot, shape: BoxShape.circle),
-                  ),
-            title: Text(label),
-            trailing: id == selectedId
-                ? HugeIcon(
-                    icon: HugeIcons.strokeRoundedTick02,
-                    size: 20,
-                    color: c.text,
-                  )
-                : null,
-            onTap: () => Navigator.of(sheetContext).pop((id: id)),
-          );
-      return ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.92,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SacSheetHeader(
-              title: 'certificate_import.picker.category_title'.tr(),
-              showClose: true,
-            ),
-            Flexible(
-              child: ListView(
-                shrinkWrap: true,
-                children: [
-                  tile('certificate_import.picker.all_categories'.tr(), null,
-                      null),
-                  for (final category in categories)
-                    tile(
-                      category.name,
-                      category.id,
-                      getCategoryColor(
-                        categoryId: category.id,
-                        categoryName: category.name,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    },
-  );
 }

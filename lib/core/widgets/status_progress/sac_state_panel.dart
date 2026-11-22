@@ -24,6 +24,7 @@ class SacStatePanel extends StatefulWidget {
     this.stepLabel,
     this.semanticsHint,
     this.semanticsLabel,
+    this.stateKey,
   });
 
   final SacStatusStyle style;
@@ -44,6 +45,11 @@ class SacStatePanel extends StatefulWidget {
   /// "State: Sent, step 2 of 3". Already translated.
   final String? semanticsLabel;
 
+  /// Identifies the state for the cross-fade: the panel animates only when
+  /// this changes. Defaults to [title]. Set it when the title carries a live
+  /// number ("Uploading 64 %") that must update without re-animating.
+  final String? stateKey;
+
   /// Null: a read-only panel (no ripple, no chevron, not a button).
   final VoidCallback? onTap;
 
@@ -58,7 +64,7 @@ class _SacStatePanelState extends State<SacStatePanel> {
   _IconEffect _effect = _IconEffect.none;
 
   static String _keyOf(SacStatePanel w) =>
-      '${w.title}|${w.style.container.toARGB32()}';
+      '${w.stateKey ?? w.title}|${w.style.container.toARGB32()}';
 
   @override
   void didUpdateWidget(SacStatePanel oldWidget) {

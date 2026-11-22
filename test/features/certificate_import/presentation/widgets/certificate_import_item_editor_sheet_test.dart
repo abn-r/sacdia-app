@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_item.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_import_item_editor_sheet.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/detected_text_quote.dart';
+import 'package:sacdia_app/features/certificate_import/presentation/widgets/import_catalog_images.dart';
 
 import '../../support/catalog_fakes.dart';
 import '../../support/test_app.dart';
@@ -24,6 +25,7 @@ CertificateImportItem _honorRow({
   DateTime? detectedDate,
   String detected = 'Primeros Auxilos basico',
   double? dateConfidence,
+  bool suggested = false,
   CertificateImportItemStatus status = CertificateImportItemStatus.needsReview,
 }) =>
     CertificateImportItem(
@@ -37,6 +39,7 @@ CertificateImportItem _honorRow({
       completedAt: completedAt,
       fieldConfidence: dateConfidence == null ? null : {'date': dateConfidence},
       status: status,
+      honorSuggested: suggested,
     );
 
 const _firstAidRef = CertificateImportHonorRef(
@@ -127,6 +130,15 @@ Future<void> showSacSheetForTest(BuildContext context, Widget sheet) {
   );
 }
 
+/// Taps one side of the "Especialidad | Clase" switch.
+Future<void> _switchTo(WidgetTester tester, String label) async {
+  await tester.tap(find.descendant(
+    of: find.byType(SegmentedButton<CertificateImportItemType>),
+    matching: find.text(label),
+  ));
+  await tester.pumpAndSettle();
+}
+
 Future<void> _save(WidgetTester tester) async {
   await tester.ensureVisible(find.widgetWithText(SacButton, 'Guardar'));
   await tester.tap(find.widgetWithText(SacButton, 'Guardar'));
@@ -142,7 +154,7 @@ void main() {
         (tester) async {
       await _open(
         tester,
-        _honorRow(honorId: 10, honor: _firstAidRef),
+        _honorRow(honorId: 10, honor: _firstAidRef, suggested: true),
         _Saved(),
         onViewProof: () {},
         proofPage: 2,
@@ -151,15 +163,15 @@ void main() {
       expect(find.byType(DetectedTextQuote), findsOneWidget);
       expect(find.text('«Primeros Auxilos basico»'), findsOneWidget);
       expect(find.text('Leído en tu comprobante'), findsOneWidget);
-      expect(find.text('Ver en tu comprobante · pág. 2'), findsOneWidget);
-      // The OCR proposal waits for confirmation.
+      expect(find.text('· Ver pág. 2'), findsOneWidget);
+      // The backend's own pick waits for confirmation (`honor_suggested`).
       expect(find.text('Sugerida'), findsOneWidget);
       expect(find.text('Primeros Auxilios'), findsOneWidget);
       expect(find.text('Fecha en que la completaste'), findsOneWidget);
       // Nothing to type: no catalog id, no free date.
       expect(find.text('ID catálogo'), findsNothing);
       expect(find.byType(SacTextField), findsNothing);
-      expect(find.text('Corregir especialidad'), findsOneWidget);
+      expect(find.text('Corregir fila'), findsOneWidget);
     });
 
     testWidgets('"Corregir texto" turns the quote into a text field',
@@ -171,17 +183,28 @@ void main() {
       expect(find.byType(SacTextField), findsOneWidget);
     });
 
-    testWidgets('hides the category filter for a honor without category',
+    testWidgets('has ONE honor selector: the category lives in the picker',
         (tester) async {
       await _open(
         tester,
-        _honorRow(
-          honorId: 10,
-          honor: const CertificateImportHonorRef(id: 10, name: 'Nudos'),
-        ),
+        _honorRow(honorId: 10, honor: _firstAidRef),
         _Saved(),
       );
       expect(find.text('Categoría'), findsNothing);
+      expect(find.text('Cualquier categoría'), findsNothing);
+      // The selector shows the chosen honor, not its category.
+      expect(find.text('Primeros Auxilios'), findsOneWidget);
+      expect(find.text('Salud'), findsNothing);
+    });
+
+    testWidgets('a row without honor_suggested has no "Sugerida" stamp',
+        (tester) async {
+      await _open(
+        tester,
+        _honorRow(honorId: 10, honor: _firstAidRef),
+        _Saved(),
+      );
+      expect(find.text('Sugerida'), findsNothing);
     });
 
     testWidgets('lists what is missing above the always-enabled save button',
@@ -241,7 +264,9 @@ void main() {
         find.text('Revisa la fecha. Lo que leímos no es una fecha válida'),
         findsOneWidget,
       );
-      expect(find.textContaining('1925'), findsNothing);
+      // The old date is only in the quote; the field stays empty.
+      expect(find.textContaining('1925'), findsOneWidget);
+      expect(find.text('Seleccionar fecha'), findsOneWidget);
     });
   });
 
@@ -337,7 +362,7 @@ void main() {
         saved,
       );
 
-      expect(find.text('Corregir clase'), findsOneWidget);
+      expect(find.text('Corregir fila'), findsOneWidget);
       expect(find.text('Fecha de investidura'), findsOneWidget);
       expect(find.text('Elige primero el tipo de club.'), findsOneWidget);
 
@@ -422,6 +447,67 @@ void main() {
     });
   });
 
+  group('the type switch', () {
+    SegmentedButton<CertificateImportItemType> switchOf(WidgetTester tester) =>
+        tester.widget(
+          find.byType(SegmentedButton<CertificateImportItemType>),
+        );
+
+    testWidgets('is a segmented "Especialidad | Clase", not a link',
+        (tester) async {
+      await _open(tester, _honorRow(), _Saved());
+
+      expect(find.text('¿Es una clase?'), findsNothing);
+      final control = find.byType(SegmentedButton<CertificateImportItemType>);
+      expect(control, findsOneWidget);
+      expect(find.descendant(of: control, matching: find.text('Especialidad')),
+          findsOneWidget);
+      expect(find.descendant(of: control, matching: find.text('Clase')),
+          findsOneWidget);
+      expect(switchOf(tester).selected, {CertificateImportItemType.honor});
+    });
+
+    testWidgets('switching to Clase shows the club chips; back to Especialidad',
+        (tester) async {
+      await _open(tester, _honorRow(), _Saved());
+
+      await _switchTo(tester, 'Clase');
+      expect(switchOf(tester).selected, {CertificateImportItemType.clazz});
+      expect(find.text('Elige primero el tipo de club.'), findsOneWidget);
+      expect(find.text('Elige la especialidad'), findsNothing);
+
+      await _switchTo(tester, 'Especialidad');
+      expect(switchOf(tester).selected, {CertificateImportItemType.honor});
+      expect(find.text('Elige la especialidad'), findsOneWidget);
+    });
+
+    testWidgets(
+        'a class row starts on Clase, with a logo per class and a check '
+        'on the chosen one', (tester) async {
+      await _open(
+        tester,
+        _classRow(
+          classId: 3,
+          classRef: const CertificateImportClassRef(
+            id: 3,
+            name: 'Explorador',
+            assetCode: 'CQ-02',
+            clubTypeId: 1,
+            clubTypeName: 'Conquistadores',
+          ),
+          completedAt: DateTime(2022, 11, 20),
+        ),
+        _Saved(),
+      );
+
+      expect(switchOf(tester).selected, {CertificateImportItemType.clazz});
+      // Amigo, Explorador and the institutional one: a logo each.
+      expect(find.byType(ImportClassLogo), findsNWidgets(3));
+      expect(
+          find.byKey(const ValueKey('class-selected-check')), findsOneWidget);
+    });
+  });
+
   group('changing the row type', () {
     testWidgets('drops the other type\'s id and keeps the date',
         (tester) async {
@@ -435,8 +521,7 @@ void main() {
         ),
         saved,
       );
-      await tester.tap(find.text('¿Es una clase?'));
-      await tester.pumpAndSettle();
+      await _switchTo(tester, 'Clase');
       await tester.tap(find.text('Conquistadores'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Explorador').last);
@@ -450,7 +535,7 @@ void main() {
       expect(saved.item!.completedAt, DateTime(2023, 3, 12));
     });
 
-    testWidgets('a new row picks the type with chips and has no quote',
+    testWidgets('a new row picks the type with the switch and has no quote',
         (tester) async {
       await _open(
         tester,
@@ -468,9 +553,8 @@ void main() {
         find.text('Nombre como aparece en tu comprobante (opcional)'),
         findsOneWidget,
       );
-      await tester.tap(find.widgetWithText(GestureDetector, 'Clase').first);
-      await tester.pumpAndSettle();
-      expect(find.text('Tipo de club'), findsOneWidget);
+      await _switchTo(tester, 'Clase');
+      expect(find.text('Club'), findsOneWidget);
     });
   });
 
@@ -773,8 +857,8 @@ void main() {
     testWidgets('is offered on a honor, with the help text, and not on a class',
         (tester) async {
       await _open(tester, completeRow(), _Saved());
-      expect(find.text('Instructor o instructora'), findsOneWidget);
-      expect(find.text('Agregar instructor (opcional)'), findsOneWidget);
+      expect(find.text('Instructor (opcional)'), findsOneWidget);
+      expect(find.text('Elige o escribe un nombre'), findsOneWidget);
       expect(
         find.text('Tu Campo Local revisa este dato. No avisamos a la persona.'),
         findsOneWidget,
@@ -791,7 +875,7 @@ void main() {
         ),
         _Saved(),
       );
-      expect(find.text('Instructor o instructora'), findsNothing);
+      expect(find.text('Instructor (opcional)'), findsNothing);
     });
 
     testWidgets('does not count for "Falta" and the row is ready without it',
@@ -811,7 +895,7 @@ void main() {
       final saved = _Saved();
       await _open(tester, completeRow(), saved);
 
-      await tester.tap(find.text('Agregar instructor (opcional)'));
+      await tester.tap(find.text('Elige o escribe un nombre'));
       await tester.pumpAndSettle();
       await search(tester, 'Ana');
       await tester.tap(find.text('Ana Gómez'));
@@ -829,7 +913,7 @@ void main() {
       final saved = _Saved();
       await _open(tester, completeRow(), saved);
 
-      await tester.tap(find.text('Agregar instructor (opcional)'));
+      await tester.tap(find.text('Elige o escribe un nombre'));
       await tester.pumpAndSettle();
       await search(tester, 'Juan López');
       await tester.tap(find.text('Usar «Juan López» como nombre'));
@@ -863,7 +947,7 @@ void main() {
 
       await tester.tap(find.widgetWithText(SacButton, 'Quitar'));
       await tester.pumpAndSettle();
-      expect(find.text('Agregar instructor (opcional)'), findsOneWidget);
+      expect(find.text('Elige o escribe un nombre'), findsOneWidget);
       await _save(tester);
 
       expect(saved.item!.instructor, isNull);
@@ -874,9 +958,8 @@ void main() {
       final saved = _Saved();
       await _open(tester, completeRow(by: byAna), saved);
 
-      await tester.tap(find.text('¿Es una clase?'));
-      await tester.pumpAndSettle();
-      expect(find.text('Instructor o instructora'), findsNothing);
+      await _switchTo(tester, 'Clase');
+      expect(find.text('Instructor (opcional)'), findsNothing);
       await tester.tap(find.text('Conquistadores'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Explorador').last);

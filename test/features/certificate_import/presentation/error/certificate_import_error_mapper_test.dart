@@ -51,6 +51,8 @@ void main() {
           CertificateImportErrorKind.ageBelowMinimum,
       'CERTIFICATE_IMPORT_ITEM_NOT_REJECTED':
           CertificateImportErrorKind.itemNotRejected,
+      'CERTIFICATE_IMPORT_ITEMS_INCOMPLETE':
+          CertificateImportErrorKind.itemsIncomplete,
       'NETWORK': CertificateImportErrorKind.offline,
       'TIMEOUT': CertificateImportErrorKind.timeout,
     };

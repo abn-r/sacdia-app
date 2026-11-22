@@ -12,6 +12,8 @@ import 'package:sacdia_app/features/certificate_import/domain/entities/certifica
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_ocr_state.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_review_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_import_item_editor_sheet.dart';
+import 'package:sacdia_app/features/certificate_import/presentation/widgets/import_catalog_images.dart';
+import 'package:sacdia_app/features/certificate_import/presentation/widgets/import_item_row.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/import_review_empty.dart';
 
 import '../../support/catalog_fakes.dart';
@@ -44,6 +46,7 @@ CertificateImportItem _honor(
   int? sourcePage,
   bool active = true,
   int revision = 0,
+  bool suggested = false,
 }) =>
     CertificateImportItem(
       id: id,
@@ -66,6 +69,7 @@ CertificateImportItem _honor(
       sourcePage: sourcePage,
       active: active,
       revision: revision,
+      honorSuggested: suggested,
       status: complete
           ? CertificateImportItemStatus.ready
           : CertificateImportItemStatus.needsReview,
@@ -159,36 +163,72 @@ Future<void> _show(
   }
 }
 
+/// [label] inside the open bottom sheet (the dock may carry the same text).
+Finder _inSheet(String label) => find.descendant(
+      of: find.byType(BottomSheet),
+      matching: find.text(label),
+    );
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(initTestLocalization);
 
   group('rows and groups', () {
-    testWidgets('groups honors and classes with counted headers',
+    testWidgets('summary box, then Por completar, then Listas', (tester) async {
+      await _show(
+        tester,
+        _batch([_honor('h1'), _honor('h2', complete: false), _class('c1')]),
+      );
+
+      // "Filas listas · 2 de 3 · falta 1".
+      expect(find.text('Filas listas'), findsOneWidget);
+      expect(find.textContaining('2 de 3', findRichText: true), findsOneWidget);
+      expect(
+          find.textContaining('falta 1', findRichText: true), findsOneWidget);
+      expect(find.byType(SacTweenedBar), findsOneWidget);
+
+      // What is missing goes first, the ready rows after it.
+      expect(find.text('POR COMPLETAR'), findsOneWidget);
+      expect(find.text('LISTAS'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('POR COMPLETAR')).dy,
+        lessThan(tester.getTopLeft(find.text('LISTAS')).dy),
+      );
+      // The old honors / classes split and the filters are gone.
+      expect(find.textContaining('ESPECIALIDADES'), findsNothing);
+      expect(find.byType(SacFilterChip), findsNothing);
+      expect(find.textContaining('% OCR'), findsNothing);
+      expect(find.textContaining('Catálogo'), findsNothing);
+    });
+
+    testWidgets('a row is compact: category and date, a chip, no proof link',
         (tester) async {
       await _show(
         tester,
-        _batch([_honor('h1'), _honor('h2'), _class('c1')]),
+        _batch([_honor('h1'), _class('c1'), _honor('h2', complete: false)]),
       );
 
-      expect(find.text('2 especialidades y 1 clase'), findsOneWidget);
-      expect(find.text('ESPECIALIDADES · 2'), findsOneWidget);
-      expect(find.text('CLASES · 1'), findsOneWidget);
-      // Catalog name, category and club type; never an id or a percentage.
-      expect(find.text('Salud'), findsNWidgets(2));
-      expect(find.text('Explorador'), findsOneWidget);
-      expect(find.text('Conquistadores'), findsOneWidget);
-      expect(find.textContaining('% OCR'), findsNothing);
-      expect(find.textContaining('Catálogo'), findsNothing);
-      expect(find.textContaining('Amigo y Explorador'), findsNothing);
-      // The filter chips carry their counts.
-      final chips =
-          tester.widgetList<SacFilterChip>(find.byType(SacFilterChip));
-      expect(chips.map((chip) => (chip.label, chip.count)),
-          [('Todas', 3), ('Listas', 3)]);
+      // Honor: category and date. Class: club type, investiture and date.
+      expect(find.text('Salud · 12 mar 2023'), findsOneWidget);
+      expect(find.text('Conquistadores · Investidura 20 nov 2022'),
+          findsOneWidget);
+      expect(find.byType(ImportItemRow), findsNWidgets(3));
+      // Text and icon, never color alone: "Lista" x2 and "Falta" x1.
+      expect(find.text('Lista'), findsNWidgets(2));
+      expect(find.text('Falta'), findsOneWidget);
+      // "Ver en tu comprobante" moved into the row sheet.
+      expect(find.textContaining('Ver en tu comprobante'), findsNothing);
     });
 
-    testWidgets('spells out what is missing in the badge', (tester) async {
+    testWidgets('a class row shows its logo, a honor row its placeholder',
+        (tester) async {
+      await _show(tester, _batch([_honor('h1'), _class('c1')]));
+
+      expect(find.byType(ImportClassLogo), findsOneWidget);
+      expect(find.byType(ImportHonorBadge), findsOneWidget);
+    });
+
+    testWidgets('spells out what is missing in the subtitle', (tester) async {
       await _show(
         tester,
         _batch([
@@ -199,25 +239,27 @@ void main() {
         ]),
       );
 
-      expect(find.text('Falta la fecha'), findsOneWidget);
-      expect(find.text('Falta elegir la especialidad'), findsOneWidget);
-      // Neither the honor h3 nor the class has its selection or its date.
-      expect(find.text('Faltan 2 datos'), findsNWidgets(2));
+      expect(find.text('Salud · Falta la fecha'), findsOneWidget);
+      expect(find.text('Elige la especialidad · 12 mar 2023'), findsOneWidget);
+      expect(
+          find.text('Elige la especialidad · Falta la fecha'), findsOneWidget);
+      expect(find.text('Elige la clase · Falta la fecha'), findsOneWidget);
+      expect(find.text('Falta'), findsNWidgets(4));
       expect(find.text('Lista'), findsNothing);
     });
 
-    testWidgets('shows what was read only when it differs from the catalog',
-        (tester) async {
+    testWidgets('marks the honor the backend suggested', (tester) async {
       await _show(
         tester,
         _batch([
-          _honor('h1', detected: 'Primeros Auxilos basico'),
-          _honor('h2', detected: 'primeros auxilios'),
+          _honor('h1', suggested: true),
+          _honor('h2'),
         ]),
       );
 
-      expect(find.text('Leído: «Primeros Auxilos basico»'), findsOneWidget);
-      expect(find.textContaining('Leído: «primeros'), findsNothing);
+      expect(
+          find.byKey(const ValueKey('import-row-suggested')), findsOneWidget);
+      expect(find.text('Sugerida'), findsOneWidget);
     });
 
     testWidgets('asks to check the date only below the 0.8 threshold',
@@ -230,7 +272,7 @@ void main() {
           _honor('none'),
         ]),
       );
-      expect(find.text('Revisa la fecha'), findsOneWidget);
+      expect(find.textContaining('Revisa la fecha'), findsOneWidget);
 
       expect(
         _honor('a', dateConfidence: 0.79).needsDateReview &&
@@ -249,7 +291,7 @@ void main() {
           _honor('saved', dateConfidence: 0.5, revision: 1),
         ]),
       );
-      expect(find.text('Revisa la fecha'), findsOneWidget);
+      expect(find.textContaining('Revisa la fecha'), findsOneWidget);
     });
 
     testWidgets('saving a row in the editor clears its date notice',
@@ -263,34 +305,18 @@ void main() {
           return item;
         },
       );
-      expect(find.text('Revisa la fecha'), findsOneWidget);
+      expect(find.textContaining('Revisa la fecha'), findsOneWidget);
 
       await tester.tap(find.text('Primeros Auxilios').first);
       await tester.pumpAndSettle();
       // The editor still warns while the member reviews the date.
-      expect(find.text('Revisa la fecha'), findsNWidgets(2));
+      expect(find.textContaining('Revisa la fecha'), findsNWidgets(2));
 
       await tester.tap(find.widgetWithText(SacButton, 'Guardar'));
       await tester.pumpAndSettle();
 
       expect(saved.single.revision, 1);
-      expect(find.text('Revisa la fecha'), findsNothing);
-    });
-
-    testWidgets('shows the instructor next to the date', (tester) async {
-      await _show(
-        tester,
-        _batch([
-          _honor(
-            'h1',
-            instructor: const CertificateImportInstructorRef(
-              isUser: true,
-              displayName: 'Ana Gómez',
-            ),
-          ),
-        ]),
-      );
-      expect(find.text('12/03/2023 · Ana Gómez'), findsOneWidget);
+      expect(find.textContaining('Revisa la fecha'), findsNothing);
     });
 
     testWidgets('tolerates rows without the new keys (R6)', (tester) async {
@@ -310,17 +336,27 @@ void main() {
       expect(find.text('Falta la fecha'), findsOneWidget);
     });
 
-    testWidgets('the Por completar chip filters and hides when all are ready',
+    testWidgets('the Por completar group disappears when all are ready',
         (tester) async {
       await _show(
         tester,
-        _batch(
-            [_honor('h1', detected: 'Listo'), _honor('h2', complete: false)]),
+        _batch([_honor('h1', detected: 'Listo'), _honor('h2')]),
       );
-      await tester.tap(find.text('Por completar'));
+      expect(find.text('POR COMPLETAR'), findsNothing);
+      expect(find.text('LISTAS'), findsOneWidget);
+      expect(find.text('Falta'), findsNothing);
+    });
+
+    testWidgets('keeps the proof as a row that opens the viewer',
+        (tester) async {
+      await _show(tester, _batch([_honor('h1')]), proofRoutes: true);
+
+      // "Tu comprobante · Foto · 1 página" style row.
+      expect(find.text('Tu comprobante'), findsOneWidget);
+      expect(find.text('PDF · 3 páginas'), findsOneWidget);
+      await tester.tap(find.text('Tu comprobante'));
       await tester.pumpAndSettle();
-      expect(find.text('Falta la fecha'), findsOneWidget);
-      expect(find.text('Lista'), findsNothing);
+      expect(find.text('PROOF file-1 p1'), findsOneWidget);
     });
   });
 
@@ -336,15 +372,11 @@ void main() {
         ]),
       );
 
-      expect(find.text('1 especialidad y 1 clase'), findsOneWidget);
-      expect(find.text('ESPECIALIDADES · 1'), findsOneWidget);
-      expect(find.text('CLASES · 1'), findsOneWidget);
-      expect(find.text('2 de 2 listas'), findsOneWidget);
+      expect(find.byType(ImportItemRow), findsNWidgets(2));
+      expect(find.text('LISTAS'), findsOneWidget);
+      expect(find.text('POR COMPLETAR'), findsNothing);
+      expect(find.textContaining('2 de 2', findRichText: true), findsOneWidget);
       expect(find.text('Enviar a revisión'), findsOneWidget);
-      final chips =
-          tester.widgetList<SacFilterChip>(find.byType(SacFilterChip));
-      expect(chips.map((chip) => (chip.label, chip.count)),
-          [('Todas', 2), ('Listas', 2)]);
     });
 
     testWidgets('a batch with only removed rows shows the empty state',
@@ -369,7 +401,7 @@ void main() {
         ]),
       );
 
-      expect(find.text('1 de 3 listas'), findsOneWidget);
+      expect(find.textContaining('1 de 3', findRichText: true), findsOneWidget);
       expect(find.byType(SacTweenedBar), findsOneWidget);
       expect(find.text('Completar 2 filas'), findsOneWidget);
       expect(find.text('Enviar a revisión'), findsNothing);
@@ -398,20 +430,53 @@ void main() {
         onSubmitBatch: () async => sent++,
       );
 
-      expect(find.text('2 de 2 listas'), findsOneWidget);
+      expect(find.textContaining('2 de 2', findRichText: true), findsOneWidget);
       await tester.tap(find.text('Enviar a revisión'));
       await tester.pumpAndSettle();
-      expect(find.text('¿Enviar a revisión?'), findsOneWidget);
+      expect(find.text('¿Enviar a tu Campo Local?'), findsOneWidget);
       expect(
-        find.text('Tu Campo Local revisará 1 especialidad y 1 clase. '
+        find.text('Revisará 1 especialidad y 1 clase. '
             'Mientras tanto no podrás editarlas.'),
         findsOneWidget,
       );
       expect(sent, 0);
 
-      await tester.tap(find.text('Enviar'));
+      await tester.tap(_inSheet('Enviar a revisión'));
       await tester.pumpAndSettle();
       expect(sent, 1);
+    });
+
+    testWidgets('the send sheet counts the real rows and is not red',
+        (tester) async {
+      var sent = 0;
+      await _show(
+        tester,
+        _batch([_honor('h1'), _honor('h2'), _class('c1'), _class('c2')]),
+        onSubmitBatch: () async => sent++,
+      );
+
+      await tester.tap(find.text('Enviar a revisión'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SacDialog), findsNothing);
+      expect(
+        find.text('Revisará 2 especialidades y 2 clases. '
+            'Mientras tanto no podrás editarlas.'),
+        findsOneWidget,
+      );
+      // The accent color: only removing something is destructive.
+      final confirm = tester.widget<SacButton>(find.ancestor(
+        of: _inSheet('Enviar a revisión'),
+        matching: find.byType(SacButton),
+      ));
+      expect(confirm.variant, SacButtonVariant.primary);
+      expect(find.text('Seguir revisando'), findsOneWidget);
+
+      // "Seguir revisando" closes the sheet and sends nothing.
+      await tester.tap(find.text('Seguir revisando'));
+      await tester.pumpAndSettle();
+      expect(find.text('¿Enviar a tu Campo Local?'), findsNothing);
+      expect(sent, 0);
     });
 
     testWidgets('a failed send shows a banner in the dock and can retry',
@@ -428,7 +493,7 @@ void main() {
 
       await tester.tap(find.text('Enviar a revisión'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Enviar'));
+      await tester.tap(_inSheet('Enviar a revisión'));
       await tester.pumpAndSettle();
 
       expect(
@@ -499,7 +564,7 @@ void main() {
         await tester.pump();
         expect(fetches, 1);
         expect(find.text('Seguimos leyendo tu comprobante'), findsNothing);
-        expect(find.text('1 especialidad'), findsOneWidget);
+        expect(find.text('Primeros Auxilios'), findsOneWidget);
 
         // Polling stops once the reading is over.
         await tester.pump(const Duration(seconds: 7));
@@ -522,7 +587,7 @@ void main() {
       await tester.tap(find.text('Reintentar lectura'));
       await tester.pumpAndSettle();
       expect(retries, 1);
-      expect(find.text('1 especialidad'), findsOneWidget);
+      expect(find.text('Primeros Auxilios'), findsOneWidget);
     });
 
     testWidgets('failed with a protected PDF: no useless retry',
@@ -578,7 +643,7 @@ void main() {
   });
 
   group('see in the proof', () {
-    testWidgets('opens the row file and page', (tester) async {
+    testWidgets('the row sheet opens the row file and page', (tester) async {
       await _show(
         tester,
         _batch(
@@ -588,7 +653,11 @@ void main() {
         proofRoutes: true,
       );
 
-      await tester.tap(find.text('Ver en tu comprobante · pág. 2'));
+      // Not repeated on every row: it lives in the sheet of each row.
+      expect(find.textContaining('Ver pág.'), findsNothing);
+      await tester.tap(find.text('Primeros Auxilios'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('· Ver pág. 2'));
       await tester.pumpAndSettle();
       expect(find.text('PROOF file-2 p2'), findsOneWidget);
     });
@@ -603,15 +672,21 @@ void main() {
         proofRoutes: true,
       );
 
+      await tester.tap(find.text('Primeros Auxilios'));
+      await tester.pumpAndSettle();
       expect(find.textContaining('pág.'), findsNothing);
-      await tester.tap(find.text('Ver en tu comprobante'));
+      await tester.tap(find.text('· Ver en tu comprobante'));
       await tester.pumpAndSettle();
       expect(find.text('PROOF file-1 p1'), findsOneWidget);
     });
 
-    testWidgets('no button when the batch has no file', (tester) async {
+    testWidgets('no proof link when the batch has no file', (tester) async {
       await _show(tester, _batch([_honor('h1')], files: const []));
-      expect(find.text('Ver en tu comprobante'), findsNothing);
+      expect(find.text('Tu comprobante'), findsNothing);
+
+      await tester.tap(find.text('Primeros Auxilios'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Ver en tu comprobante'), findsNothing);
     });
   });
 
@@ -684,7 +759,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('¿Quitar esta especialidad?'), findsOneWidget);
 
-      await tester.tap(find.text('Cancelar'));
+      // A sheet, not a red dialog.
+      expect(find.byType(SacDialog), findsNothing);
+      await tester.tap(find.text('Conservar'));
       await tester.pumpAndSettle();
       expect(calls, 0);
 
@@ -692,10 +769,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Quitar de la lista'));
       await tester.pumpAndSettle();
-      await tester.tap(find.descendant(
-        of: find.byType(SacDialog),
-        matching: find.text('Quitar'),
-      ));
+      await tester.tap(_inSheet('Quitar'));
       await tester.pumpAndSettle();
 
       expect(calls, 1);
@@ -714,19 +788,16 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Quitar de la lista'));
       await tester.pumpAndSettle();
-      await tester.tap(find.descendant(
-        of: find.byType(SacDialog),
-        matching: find.text('Quitar'),
-      ));
+      await tester.tap(_inSheet('Quitar'));
       await tester.pumpAndSettle();
 
       expect(find.text('Primeros Auxilios'), findsNothing);
-      expect(find.text('1 clase'), findsOneWidget);
+      expect(find.textContaining('1 de 1', findRichText: true), findsOneWidget);
     });
   });
 
   group('reduced motion', () {
-    testWidgets('rows, filters and dock work without animations',
+    testWidgets('rows, groups and dock work without animations',
         (tester) async {
       reduceMotion(tester);
       await _show(
@@ -735,12 +806,9 @@ void main() {
         settle: false,
       );
 
-      expect(find.text('ESPECIALIDADES · 2'), findsOneWidget);
+      expect(find.text('POR COMPLETAR'), findsOneWidget);
+      expect(find.text('LISTAS'), findsOneWidget);
       expect(find.text('Completar 1 fila'), findsOneWidget);
-      await tester.tap(find.text('Por completar'));
-      await tester.pump();
-      expect(find.text('Falta la fecha'), findsOneWidget);
-      expect(find.text('Lista'), findsNothing);
     });
 
     testWidgets('the reading state shows static dots and still refreshes',
@@ -759,7 +827,7 @@ void main() {
       await tester.pump(const Duration(seconds: 3));
       await tester.pump();
       expect(fetches, 1);
-      expect(find.text('1 especialidad'), findsOneWidget);
+      expect(find.text('Primeros Auxilios'), findsOneWidget);
     });
   });
 }

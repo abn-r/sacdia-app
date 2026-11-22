@@ -11,7 +11,8 @@ import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/config/router.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
+import 'package:sacdia_app/core/widgets/status_progress/status_progress.dart';
 import 'package:sacdia_app/core/widgets/sac_tweened_bar.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_batch.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_file.dart';
@@ -21,9 +22,17 @@ import 'package:sacdia_app/features/certificate_import/presentation/controllers/
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_status_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_upload_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_import_proof_card.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:sacdia_app/features/certificate_import/presentation/widgets/import_item_row.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-Widget _wrap(Widget child) => EasyLocalization(
+import '../../../../support/riverpod_test_support.dart';
+
+Widget _wrap(Widget child) => testProviderScope(
+      child: _localized(child),
+    );
+
+Widget _localized(Widget child) => EasyLocalization(
       supportedLocales: const [Locale('es')],
       path: 'assets/translations',
       assetLoader: const _FileAssetLoader(),
@@ -55,7 +64,10 @@ Future<void> _pump(WidgetTester tester, Widget child) async {
 
 /// Opens the "add proof" sheet and taps [option] (camera, gallery or files).
 Future<void> _choose(WidgetTester tester, String option) async {
-  await tester.tap(find.text('Agregar comprobante'));
+  // First time the dock offers "Agregar comprobante"; with a proof chosen
+  // the way to pick another one is "Cambiar" on its preview.
+  final add = find.text('Agregar comprobante');
+  await tester.tap(add.evaluate().isNotEmpty ? add : find.text('Cambiar'));
   await tester.pumpAndSettle();
   await tester.tap(find.text(option));
   await tester.pumpAndSettle();
@@ -118,6 +130,7 @@ void main() {
   setUpAll(() async {
     SharedPreferences.setMockInitialValues({});
     await EasyLocalization.ensureInitialized();
+    await initializeDateFormatting('es');
   });
 
   group('Certificate import routing', () {
@@ -136,6 +149,21 @@ void main() {
         (tester) async {
       await _pump(tester, const CertificateImportUploadView());
       expect(find.textContaining('PDF de hasta 5 páginas'), findsOneWidget);
+    });
+
+    testWidgets('pulling down reloads the member\'s sends', (tester) async {
+      var reloads = 0;
+      _phoneSurface(tester);
+      await _pump(
+        tester,
+        CertificateImportUploadView(onRefresh: () async => reloads++),
+      );
+
+      await tester.fling(find.textContaining('PDF de hasta 5 páginas'),
+          const Offset(0, 400), 1000);
+      await tester.pumpAndSettle();
+
+      expect(reloads, 1);
     });
 
     final pdfMessages = <String, String>{
@@ -262,7 +290,7 @@ void main() {
       expect(submit.onPressed, isNotNull);
     });
 
-    testWidgets('disables upload until a proof file is selected',
+    testWidgets('has no read action until a proof file is selected',
         (tester) async {
       var uploadCalls = 0;
       await _pump(
@@ -271,30 +299,31 @@ void main() {
           onSubmitProofs: (_) async => uploadCalls++,
           onPickFile: () async => const CertificateImportLocalProof(
             localPath: '/tmp/proof.jpg',
-            fileName: 'comprobante.jpg',
+            fileName: 'image_picker_8E67A1.jpg',
             mimeType: 'image/jpeg',
             fileSize: 128,
           ),
         ),
       );
 
-      expect(find.text('Leer comprobante'), findsOneWidget);
+      // ONE fixed action: no disabled "Leer comprobante" beside it.
       expect(find.text('Agregar comprobante'), findsOneWidget);
-
-      final initialUpload = tester.widget<SacButton>(
-        find.widgetWithText(SacButton, 'Leer comprobante'),
-      );
-      expect(initialUpload.onPressed, isNull);
-
-      await tester.tap(find.text('Leer comprobante'));
-      await tester.pump();
+      expect(find.text('Leer comprobante'), findsNothing);
+      expect(find.byType(SacButton), findsOneWidget);
+      expect(find.text('Tu comprobante'), findsNothing);
       expect(uploadCalls, 0);
 
       await _choose(tester, 'Elegir archivo');
       await tester.pump();
 
-      expect(find.text('Comprobante seleccionado'), findsOneWidget);
-      expect(find.text('comprobante.jpg'), findsOneWidget);
+      // A preview with the kind and size, never the technical file name.
+      expect(find.text('Tu comprobante'), findsOneWidget);
+      expect(find.text('Foto · 1 KB'), findsOneWidget);
+      expect(find.text('Cambiar'), findsOneWidget);
+      expect(find.textContaining('image_picker'), findsNothing);
+      // The action turned into "Leer comprobante".
+      expect(find.text('Agregar comprobante'), findsNothing);
+      expect(find.byType(SacButton), findsOneWidget);
 
       await tester.tap(find.text('Leer comprobante'));
       await tester.pump();
@@ -302,7 +331,41 @@ void main() {
       expect(uploadCalls, 1);
     });
 
-    testWidgets('keeps upload disabled when proof selection is cancelled',
+    testWidgets('a PDF previews with a page icon and its size', (tester) async {
+      await _pump(
+        tester,
+        CertificateImportUploadView(
+          onPickFile: () async => _proof(
+            name: 'acta.pdf',
+            mimeType: 'application/pdf',
+            size: 340 * 1024,
+          ),
+        ),
+      );
+      await _choose(tester, 'Elegir archivo');
+
+      expect(find.text('Tu comprobante'), findsOneWidget);
+      expect(find.text('PDF · 340 KB'), findsOneWidget);
+      expect(find.text('acta.pdf'), findsNothing);
+    });
+
+    testWidgets('"Cambiar" picks another proof and keeps ONE action',
+        (tester) async {
+      var next = _proof(name: 'uno.jpg');
+      await _pump(
+        tester,
+        CertificateImportUploadView(onPickGallery: () async => next),
+      );
+      await _choose(tester, 'Elegir de la galería');
+      expect(find.text('Foto · 1 KB'), findsOneWidget);
+
+      next = _proof(name: 'dos.jpg', size: 2 * 1024 * 1024);
+      await _choose(tester, 'Elegir de la galería');
+      expect(find.textContaining('Foto · 2'), findsOneWidget);
+      expect(find.byType(SacButton), findsOneWidget);
+    });
+
+    testWidgets('keeps the read action away when proof selection is cancelled',
         (tester) async {
       var uploadCalls = 0;
       await _pump(
@@ -317,23 +380,15 @@ void main() {
       await _choose(tester, 'Elegir archivo');
       await tester.pumpAndSettle();
 
-      expect(find.text('Comprobante seleccionado'), findsNothing);
-      var upload = tester.widget<SacButton>(
-        find.widgetWithText(SacButton, 'Leer comprobante'),
-      );
-      expect(upload.onPressed, isNull);
+      expect(find.text('Tu comprobante'), findsNothing);
+      expect(find.text('Leer comprobante'), findsNothing);
+      expect(find.text('Agregar comprobante'), findsOneWidget);
 
       await _choose(tester, 'Tomar foto');
       await tester.pumpAndSettle();
 
-      expect(find.text('Comprobante seleccionado'), findsNothing);
-      upload = tester.widget<SacButton>(
-        find.widgetWithText(SacButton, 'Leer comprobante'),
-      );
-      expect(upload.onPressed, isNull);
-
-      await tester.tap(find.text('Leer comprobante'));
-      await tester.pump();
+      expect(find.text('Tu comprobante'), findsNothing);
+      expect(find.text('Leer comprobante'), findsNothing);
       expect(uploadCalls, 0);
     });
     testWidgets('lists camera, gallery and files in one bottom sheet',
@@ -375,8 +430,8 @@ void main() {
       await _choose(tester, 'Elegir de la galería');
 
       expect([galleryCalls, cameraCalls, fileCalls], [1, 0, 0]);
-      expect(find.text('Comprobante seleccionado'), findsOneWidget);
-      expect(find.text('carrete.png'), findsOneWidget);
+      expect(find.text('Tu comprobante'), findsOneWidget);
+      expect(find.text('carrete.png'), findsNothing);
     });
 
     testWidgets('route picker requests ImageSource.gallery for the gallery',
@@ -426,11 +481,8 @@ void main() {
               'Formato no admitido. Usa un PDF o una imagen JPEG, PNG o WebP.'),
           findsOneWidget,
         );
-        expect(find.text('Comprobante seleccionado'), findsNothing);
-        final upload = tester.widget<SacButton>(
-          find.widgetWithText(SacButton, 'Leer comprobante'),
-        );
-        expect(upload.onPressed, isNull);
+        expect(find.text('Tu comprobante'), findsNothing);
+        expect(find.text('Leer comprobante'), findsNothing);
       });
 
       testWidgets('$picker rejects files over 10 MiB', (tester) async {
@@ -451,7 +503,7 @@ void main() {
             find.text(
                 'El archivo pesa más de 10 MB. Elige uno más liviano o toma la foto de nuevo.'),
             findsOneWidget);
-        expect(find.text('Comprobante seleccionado'), findsNothing);
+        expect(find.text('Tu comprobante'), findsNothing);
       });
     }
 
@@ -466,10 +518,10 @@ void main() {
       );
 
       await _choose(tester, 'Elegir de la galería');
-      expect(find.text('comprobante.jpg'), findsOneWidget);
+      expect(find.textContaining('Foto · 10'), findsOneWidget);
 
       await _choose(tester, 'Elegir archivo');
-      expect(find.text('acta.pdf'), findsOneWidget);
+      expect(find.text('PDF · 1 KB'), findsOneWidget);
       expect(find.textContaining('Formato no admitido'), findsNothing);
     });
 
@@ -482,15 +534,15 @@ void main() {
       );
 
       await _choose(tester, 'Elegir de la galería');
-      expect(find.text('comprobante.jpg'), findsOneWidget);
+      expect(find.text('Tu comprobante'), findsOneWidget);
 
       next = _proof(name: 'raro.heic', mimeType: 'image/heic');
       await _choose(tester, 'Elegir de la galería');
-      expect(find.text('comprobante.jpg'), findsNothing);
+      expect(find.text('Tu comprobante'), findsNothing);
       expect(find.textContaining('Formato no admitido'), findsOneWidget);
     });
 
-    testWidgets('shows three-dot loader and upload text instead of a spinner',
+    testWidgets('shows ONE state panel with skeleton rows, not a spinner',
         (tester) async {
       final completer = Completer<void>();
       final phase = ValueNotifier(CertificateImportUploadPhase.uploading);
@@ -507,47 +559,40 @@ void main() {
       await tester.tap(find.text('Leer comprobante'));
       await tester.pump();
 
-      expect(find.text('Subiendo tu comprobante…'), findsOneWidget);
-      expect(find.byType(SacLoadingSmall), findsOneWidget);
+      expect(find.byType(SacStatePanel), findsOneWidget);
+      expect(find.text('Subiendo tu comprobante'), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsNothing);
-      expect(
-        find.descendant(
-          of: find.byType(SacLoadingSmall),
-          matching: find.byType(AnimatedBuilder),
-        ),
-        findsOneWidget,
-      );
+      // "Encontrado" as three skeleton rows that the review fills in later.
+      expect(find.text('ENCONTRADO'), findsOneWidget);
+      expect(find.byType(SacSkeletonBox), findsNWidgets(9));
+      // Not the segmented Subir / Leer / Revisar bar.
+      expect(find.text('Subir'), findsNothing);
+      expect(find.text('Revisar'), findsNothing);
+      // Busy: no source picker, no read action.
       expect(find.widgetWithText(SacButton, 'Leer comprobante'), findsNothing);
-      // The source picker is hidden while busy: no way to swap the file.
       expect(find.text('Agregar comprobante'), findsNothing);
-
-      final semantics = tester.ensureSemantics();
-      expect(
-        tester.getSemantics(
-          find.byKey(const ValueKey('certificate-import-upload-progress')),
-        ),
-        matchesSemantics(
-          label: 'Subiendo tu comprobante…',
-          isLiveRegion: true,
-        ),
-      );
-      semantics.dispose();
 
       phase.value = CertificateImportUploadPhase.reading;
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
-      expect(find.text('Leyendo tu comprobante…'), findsOneWidget);
-      expect(find.text('Subiendo tu comprobante…'), findsNothing);
+      expect(find.text('Leyendo tu comprobante'), findsOneWidget);
+      expect(find.text('Subiendo tu comprobante'), findsNothing);
+      expect(
+        find.text('Buscamos líneas que empiecen con «Especialidad:» o '
+            '«Clase:».'),
+        findsOneWidget,
+      );
+      // Still ONE panel, never two.
+      expect(find.byType(SacStatePanel), findsOneWidget);
 
       completer.complete();
       await tester.pump();
       await tester.pump();
-      expect(find.byType(SacLoadingSmall), findsNothing);
+      expect(find.byType(SacStatePanel), findsNothing);
       expect(find.text('Leer comprobante'), findsOneWidget);
     });
 
-    testWidgets('uses the static dots variant under Reduced Motion',
-        (tester) async {
+    testWidgets('under Reduced Motion the skeleton is static', (tester) async {
       tester.platformDispatcher.accessibilityFeaturesTestValue =
           const FakeAccessibilityFeatures(disableAnimations: true);
       addTearDown(
@@ -564,22 +609,10 @@ void main() {
       await tester.tap(find.text('Leer comprobante'));
       await tester.pump();
 
-      expect(find.text('Subiendo tu comprobante…'), findsOneWidget);
+      expect(find.text('Subiendo tu comprobante'), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsNothing);
-      expect(
-        find.descendant(
-          of: find.byType(SacLoadingSmall),
-          matching: find.byType(AnimatedBuilder),
-        ),
-        findsNothing,
-      );
-      expect(
-        find.descendant(
-          of: find.byType(SacLoadingSmall),
-          matching: find.byType(DecoratedBox),
-        ),
-        findsNWidgets(3),
-      );
+      expect(find.byType(SacSkeletonBox), findsNWidgets(9));
+      expect(find.byType(ShaderMask), findsNothing);
 
       completer.complete();
       await tester.pump();
@@ -622,7 +655,7 @@ void main() {
       final suffix = reduced ? ' (reduced motion)' : '';
 
       testWidgets(
-          'shows real progress, steps and Cancelar while uploading$suffix',
+          'shows the real progress in the panel and Cancelar while uploading$suffix',
           (tester) async {
         if (reduced) {
           tester.platformDispatcher.accessibilityFeaturesTestValue =
@@ -644,14 +677,17 @@ void main() {
           onCancel: () => cancelled++,
         );
 
-        expect(find.text('Subir'), findsOneWidget);
-        expect(find.text('Leer'), findsOneWidget);
-        expect(find.text('Revisar'), findsOneWidget);
-        expect(find.text('Subiendo tu comprobante…'), findsOneWidget);
+        // No segmented Subir / Leer / Revisar bar: one panel.
+        expect(find.text('Subir'), findsNothing);
+        expect(find.text('Leer'), findsNothing);
+        expect(find.text('Revisar'), findsNothing);
+        expect(find.byType(SacStatePanel), findsOneWidget);
+        expect(find.text('Subiendo tu comprobante'), findsOneWidget);
 
         progress.value = 0.64;
         await tester.pump(const Duration(milliseconds: 300));
-        expect(find.text('Subiendo tu comprobante… 64 %'), findsOneWidget);
+        expect(find.text('Subiendo 64 %'), findsOneWidget);
+        expect(find.byType(SacStatePanel), findsOneWidget);
         final bar = tester.widget<SacTweenedBar>(find.byType(SacTweenedBar));
         expect(bar.value, 0.64);
 
@@ -687,7 +723,7 @@ void main() {
 
         phase.value = CertificateImportUploadPhase.reading;
         await tester.pump(const Duration(milliseconds: 300));
-        expect(find.text('Leyendo tu comprobante…'), findsOneWidget);
+        expect(find.text('Leyendo tu comprobante'), findsOneWidget);
         expect(find.byType(SacTweenedBar), findsNothing);
         expect(find.text('Cancelar'), findsNothing);
         expect(find.text('Seguir sin esperar'), findsNothing);
@@ -703,21 +739,29 @@ void main() {
       });
     }
 
-    testWidgets('marks the active step for assistive tech', (tester) async {
-      final phase = ValueNotifier(CertificateImportUploadPhase.reading);
+    testWidgets('announces the state in steps of 25 % for assistive tech',
+        (tester) async {
+      final phase = ValueNotifier(CertificateImportUploadPhase.uploading);
+      final progress = ValueNotifier(0.0);
       final done = Completer<void>();
       await startUpload(
         tester,
         phase: phase,
-        progress: ValueNotifier(1),
+        progress: progress,
         slow: ValueNotifier(false),
         done: done,
       );
       final semantics = tester.ensureSemantics();
-      expect(
-          find.bySemanticsLabel('Paso 2 de 3, Leer, en curso'), findsOneWidget);
-      expect(
-          find.bySemanticsLabel('Paso 1 de 3, Subir, hecho'), findsOneWidget);
+      progress.value = 0.64;
+      await tester.pump(const Duration(milliseconds: 300));
+      // The screen shows 64 %, a screen reader hears 50 %: not flooded.
+      expect(find.text('Subiendo 64 %'), findsOneWidget);
+      expect(find.bySemanticsLabel(RegExp(r'^Subiendo 50 %')), findsOneWidget);
+
+      phase.value = CertificateImportUploadPhase.reading;
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.bySemanticsLabel(RegExp(r'^Leyendo tu comprobante')),
+          findsOneWidget);
       semantics.dispose();
       done.complete();
       await tester.pump(const Duration(milliseconds: 300));
@@ -739,7 +783,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Algo salió mal'), findsNothing);
-      expect(find.text('comprobante.jpg'), findsOneWidget);
+      expect(find.text('Tu comprobante'), findsOneWidget);
       final submit = tester.widget<SacButton>(
         find.widgetWithText(SacButton, 'Leer comprobante'),
       );
@@ -748,7 +792,70 @@ void main() {
   });
 
   group('CertificateImportStatusView', () {
-    testWidgets('shows rejected correction and resubmit affordance',
+    CertificateImportItem row(
+      String id, {
+      required CertificateImportItemStatus status,
+      bool active = true,
+      String? reason,
+      String name = 'Nudos',
+      CertificateImportItemType type = CertificateImportItemType.honor,
+    }) =>
+        CertificateImportItem(
+          id: id,
+          type: type,
+          honorId: type == CertificateImportItemType.honor ? 10 : null,
+          classId: type == CertificateImportItemType.clazz ? 3 : null,
+          detectedName: name,
+          completedAt: DateTime(2026, 4, 12),
+          status: status,
+          rejectionReason: reason,
+          active: active,
+        );
+
+    Future<void> showBatch(
+      WidgetTester tester,
+      List<CertificateImportItem> items, {
+      String status = 'SUBMITTED',
+    }) async {
+      _phoneSurface(tester);
+      await _pump(
+        tester,
+        CertificateImportStatusView(
+          batch: CertificateImportBatch(
+            id: 'batch-1',
+            status: status,
+            items: items,
+          ),
+          onResubmitItem: (_, __) async {},
+        ),
+      );
+    }
+
+    testWidgets('pulling down reloads to see the reviewer decisions',
+        (tester) async {
+      var reloads = 0;
+      _phoneSurface(tester);
+      await _pump(
+        tester,
+        CertificateImportStatusView(
+          batch: _batch(rejected: true),
+          onRefresh: () async => reloads++,
+        ),
+      );
+
+      await tester.fling(
+          find.byType(SacStatePanel), const Offset(0, 400), 1000);
+      await tester.pumpAndSettle();
+
+      expect(reloads, 1);
+    });
+
+    testWidgets('without a reload there is no pull to refresh', (tester) async {
+      await _pump(tester, CertificateImportStatusView(batch: _batch()));
+      expect(find.byType(RefreshIndicator), findsNothing);
+    });
+
+    testWidgets('shows the state panel, the reason and every row by group',
         (tester) async {
       await _pump(
         tester,
@@ -758,103 +865,166 @@ void main() {
         ),
       );
 
-      expect(find.text('Hay correcciones pendientes'), findsOneWidget);
+      // The app bar is the batch name.
+      expect(find.text('Acampada Sinaí 2026'), findsOneWidget);
+      expect(find.byType(SacStatePanel), findsOneWidget);
+      expect(find.text('Hay 1 fila por corregir'), findsOneWidget);
+      expect(find.text('Ver todos los estados'), findsOneWidget);
+      // Por corregir: the reason as the subtitle, and "Corregir".
+      expect(find.text('POR CORREGIR'), findsOneWidget);
       expect(
           find.text('La fecha no coincide con el comprobante'), findsOneWidget);
-      expect(find.text('Corregir y reenviar'), findsWidgets);
+      expect(find.text('Corregir'), findsOneWidget);
+      // The other row is no longer hidden: it is in review.
+      expect(find.text('EN REVISIÓN'), findsOneWidget);
+      expect(find.byType(ImportItemRow), findsNWidgets(2));
     });
-  });
 
-  group('CertificateImportStatusView removed rows', () {
-    CertificateImportItem row(
-      String id, {
-      required CertificateImportItemStatus status,
-      bool active = true,
-    }) =>
-        CertificateImportItem(
-          id: id,
-          type: CertificateImportItemType.honor,
-          honorId: 10,
-          detectedName: 'Nudos',
-          completedAt: DateTime(2026, 4, 12),
-          status: status,
-          active: active,
+    testWidgets('groups ALL rows: Por corregir, En revisión and Aprobadas',
+        (tester) async {
+      await showBatch(tester, [
+        row('a', status: CertificateImportItemStatus.approved, name: 'Amigo'),
+        row('r',
+            status: CertificateImportItemStatus.rejected,
+            reason: 'Falta la firma',
+            name: 'Nudos'),
+        row('s', status: CertificateImportItemStatus.submitted, name: 'Fuego'),
+        row('t',
+            status: CertificateImportItemStatus.resubmitted, name: 'Cuerdas'),
+        row('n',
+            status: CertificateImportItemStatus.needsReview, name: 'Mapas'),
+      ]);
+
+      List<String> idsIn(String keyName) => tester
+          .widgetList<ImportItemRow>(find.descendant(
+            of: find.byKey(ValueKey(keyName)),
+            matching: find.byType(ImportItemRow),
+          ))
+          .map((r) => r.item.id)
+          .toList();
+
+      expect(idsIn('status-group-fix'), ['r']);
+      expect(idsIn('status-group-review'), ['s', 't', 'n']);
+      expect(idsIn('status-group-approved'), ['a']);
+      // The order of the groups: fix first.
+      expect(
+        tester.getTopLeft(find.text('POR CORREGIR')).dy,
+        lessThan(tester.getTopLeft(find.text('EN REVISIÓN')).dy),
+      );
+      expect(
+        tester.getTopLeft(find.text('EN REVISIÓN')).dy,
+        lessThan(tester.getTopLeft(find.text('APROBADAS')).dy),
+      );
+      // A resent row says so.
+      expect(find.textContaining('Reenviada'), findsOneWidget);
+    });
+
+    group('batch state in the panel', () {
+      testWidgets('En revisión: everything sent and waiting', (tester) async {
+        await showBatch(tester, [
+          row('a', status: CertificateImportItemStatus.submitted),
+          row('b', status: CertificateImportItemStatus.submitted),
+        ]);
+        expect(find.text('En revisión'), findsWidgets);
+        expect(find.text('Tu Campo Local está revisando este envío.'),
+            findsOneWidget);
+        expect(find.text('POR CORREGIR'), findsNothing);
+        expect(find.text('APROBADAS'), findsNothing);
+      });
+
+      testWidgets('Hay N filas por corregir, with the plural', (tester) async {
+        await showBatch(tester, [
+          row('a', status: CertificateImportItemStatus.rejected, reason: 'x'),
+          row('b', status: CertificateImportItemStatus.rejected, reason: 'y'),
+          row('c', status: CertificateImportItemStatus.submitted),
+        ]);
+        expect(find.text('Hay 2 filas por corregir'), findsOneWidget);
+        expect(
+          find.text('Corrígelas y reenvíalas; el resto sigue en revisión.'),
+          findsOneWidget,
         );
+      });
 
-    testWidgets('does not count the rows the member removed as pending',
+      testWidgets('Aprobado en parte: some approved, the rest in review',
+          (tester) async {
+        await showBatch(
+          tester,
+          [
+            row('a', status: CertificateImportItemStatus.approved),
+            row('b', status: CertificateImportItemStatus.submitted),
+          ],
+          status: 'PARTIALLY_APPROVED',
+        );
+        expect(find.text('Aprobado en parte'), findsOneWidget);
+        expect(find.text('POR CORREGIR'), findsNothing);
+      });
+
+      testWidgets('Aprobado: every row approved', (tester) async {
+        await showBatch(
+          tester,
+          [
+            row('a', status: CertificateImportItemStatus.approved),
+            row('b', status: CertificateImportItemStatus.approved),
+          ],
+          status: 'APPROVED',
+        );
+        expect(find.text('Aprobado'), findsOneWidget);
+        expect(find.text('EN REVISIÓN'), findsNothing);
+        expect(find.text('APROBADAS'), findsOneWidget);
+      });
+    });
+
+    testWidgets('"Ver todos los estados" opens the states sheet',
+        (tester) async {
+      await showBatch(tester, [
+        row('a', status: CertificateImportItemStatus.rejected, reason: 'x'),
+        row('b', status: CertificateImportItemStatus.submitted),
+      ]);
+
+      await tester.tap(find.byType(SacStatePanel));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SacStatesSheet), findsOneWidget);
+      expect(find.text('Estados del envío'), findsOneWidget);
+      final sheet = find.byType(SacStatesSheet);
+      for (final label in [
+        'Enviado',
+        'En revisión',
+        'Aprobado',
+        'Por corregir'
+      ]) {
+        expect(find.descendant(of: sheet, matching: find.text(label)),
+            findsOneWidget,
+            reason: label);
+      }
+    });
+
+    testWidgets('does not list or count the rows the member removed',
         (tester) async {
       // Three removed rows and two sent: only the two sent wait for review.
-      await _pump(
-        tester,
-        CertificateImportStatusView(
-          batch: CertificateImportBatch(
-            id: 'batch-1',
-            status: 'SUBMITTED',
-            items: [
-              row('a', status: CertificateImportItemStatus.submitted),
-              row('b', status: CertificateImportItemStatus.submitted),
-              for (final id in ['x', 'y', 'z'])
-                row(id,
-                    status: CertificateImportItemStatus.needsReview,
-                    active: false),
-            ],
-          ),
-        ),
-      );
+      await showBatch(tester, [
+        row('a', status: CertificateImportItemStatus.submitted),
+        row('b', status: CertificateImportItemStatus.submitted),
+        for (final id in ['x', 'y', 'z'])
+          row(id,
+              status: CertificateImportItemStatus.needsReview, active: false),
+      ]);
 
-      expect(
-        find.text('Aprobadas: 0 · Rechazadas: 0 · Pendientes: 2'),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('counts approved, rejected and the rest as pending',
-        (tester) async {
-      await _pump(
-        tester,
-        CertificateImportStatusView(
-          batch: CertificateImportBatch(
-            id: 'batch-1',
-            status: 'SUBMITTED',
-            items: [
-              row('a', status: CertificateImportItemStatus.approved),
-              row('r', status: CertificateImportItemStatus.rejected),
-              row('s', status: CertificateImportItemStatus.submitted),
-              row('t', status: CertificateImportItemStatus.resubmitted),
-              row('n', status: CertificateImportItemStatus.needsReview),
-            ],
-          ),
-        ),
-      );
-
-      expect(
-        find.text('Aprobadas: 1 · Rechazadas: 1 · Pendientes: 3'),
-        findsOneWidget,
-      );
+      expect(find.byType(ImportItemRow), findsNWidgets(2));
+      expect(find.text('EN REVISIÓN'), findsOneWidget);
     });
 
     testWidgets('a removed rejected row does not ask for corrections',
         (tester) async {
-      await _pump(
-        tester,
-        CertificateImportStatusView(
-          batch: CertificateImportBatch(
-            id: 'batch-1',
-            status: 'SUBMITTED',
-            items: [
-              row('a', status: CertificateImportItemStatus.approved),
-              row('r',
-                  status: CertificateImportItemStatus.rejected, active: false),
-            ],
-          ),
-        ),
-      );
+      await showBatch(tester, [
+        row('a', status: CertificateImportItemStatus.approved),
+        row('r', status: CertificateImportItemStatus.rejected, active: false),
+      ]);
 
-      expect(find.text('Hay correcciones pendientes'), findsNothing);
-      expect(
-        find.text('Aprobadas: 1 · Rechazadas: 0 · Pendientes: 0'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('por corregir'), findsNothing);
+      expect(find.text('POR CORREGIR'), findsNothing);
+      // The only row left is approved, so the whole batch is.
+      expect(find.text('Aprobado'), findsOneWidget);
     });
   });
 

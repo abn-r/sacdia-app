@@ -7,6 +7,7 @@ class CertificateImportHonorRef extends Equatable {
     required this.name,
     this.categoryId,
     this.categoryName,
+    this.imageUrl,
   });
 
   final int id;
@@ -14,8 +15,11 @@ class CertificateImportHonorRef extends Equatable {
   final int? categoryId;
   final String? categoryName;
 
+  /// Badge URL, ready to load. Null when the honor has no image.
+  final String? imageUrl;
+
   @override
-  List<Object?> get props => [id, name, categoryId, categoryName];
+  List<Object?> get props => [id, name, categoryId, categoryName, imageUrl];
 }
 
 /// Catalog class the row points to, with its club type.

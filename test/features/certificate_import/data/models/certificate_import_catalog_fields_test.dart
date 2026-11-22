@@ -132,5 +132,43 @@ void main() {
       expect(row().needsDateReview, isFalse);
       expect(kDateReviewThreshold, 0.8);
     });
+
+    test('ready to send needs the row complete and its date confirmed', () {
+      final complete = row(honorId: 1, date: DateTime(2020));
+      expect(complete.isReadyToSend, isTrue);
+      // Filled in by the backend, but the date was read with low confidence.
+      expect(
+        row(honorId: 1, date: DateTime(2020), confidence: {'date': 0.6})
+            .isReadyToSend,
+        isFalse,
+      );
+      expect(row(date: DateTime(2020)).isReadyToSend, isFalse);
+    });
+
+    test('a suggested honor waits until the server marks it ready', () {
+      final suggested = CertificateImportItem(
+        id: 'r',
+        type: CertificateImportItemType.honor,
+        honorId: 7,
+        completedAt: DateTime(2019, 3, 12),
+        detectedName: 'Natación I',
+        honorSuggested: true,
+        status: CertificateImportItemStatus.needsReview,
+      );
+      expect(suggested.isComplete, isTrue);
+      expect(suggested.isReadyToSend, isFalse);
+      expect(
+        CertificateImportItem(
+          id: 'r',
+          type: CertificateImportItemType.honor,
+          honorId: 7,
+          completedAt: DateTime(2019, 3, 12),
+          detectedName: 'Natación I',
+          honorSuggested: true,
+          status: CertificateImportItemStatus.ready,
+        ).isReadyToSend,
+        isTrue,
+      );
+    });
   });
 }

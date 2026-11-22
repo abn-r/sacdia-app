@@ -434,7 +434,8 @@ void main() {
       await _settle(tester);
 
       expect(find.text('Tu comprobante'), findsOneWidget);
-      expect(find.text('certificado.pdf'), findsOneWidget);
+      // The row says what it is (kind, pages), not a file name.
+      expect(find.text('certificado.pdf'), findsNothing);
       expect(find.text('PDF · 3 páginas · +1 archivo'), findsOneWidget);
 
       await tester.tap(find.text('Tu comprobante'));
@@ -475,13 +476,17 @@ void main() {
       expect(find.text('local /tmp/acta.pdf'), findsOneWidget);
     });
 
-    testWidgets('a PDF without page_count says just "PDF"; images say "Foto"',
+    testWidgets(
+        'a PDF without page_count says just "PDF"; images say "Foto · 1 página"',
         (tester) async {
       const noCount = CertificateImportFile(
           id: 'f', url: '', name: 'a.pdf', type: 'application/pdf');
       const photo = CertificateImportFile(
           id: 'g', url: '', name: 'a.jpg', type: 'image/jpeg');
-      for (final (file, text) in [(noCount, 'PDF'), (photo, 'Foto')]) {
+      for (final (file, text) in [
+        (noCount, 'PDF'),
+        (photo, 'Foto · 1 página')
+      ]) {
         await tester.pumpWidget(_app(Scaffold(
             body: CertificateProofSummary(batchId: 'b', files: [file]))));
         await _settle(tester);

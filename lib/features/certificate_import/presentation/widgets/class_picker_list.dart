@@ -2,16 +2,19 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 
 import '../../domain/entities/certificate_import_class_option.dart';
+import 'import_catalog_images.dart';
 
-/// Short radio list of the classes of one club type. No search: there are
-/// few. Shows three still skeleton rows while loading and a retry on error.
+/// Short list of the classes of one club type, each with its logo and a check
+/// on the chosen one. No search: there are few. Shows three still skeleton
+/// rows while loading and a retry on error.
 class ClassPickerList extends StatelessWidget {
   const ClassPickerList({
     super.key,
@@ -46,16 +49,35 @@ class ClassPickerList extends StatelessWidget {
               ?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 6),
-        if (list == null)
-          for (var i = 0; i < 3; i++) const _SkeletonRow()
-        else
-          for (final option in list)
-            _ClassRow(
-              option: option,
-              selected: option.id == selectedId,
-              suggested: option.id == suggestedId,
-              onTap: () => onSelect(option),
+        Material(
+          color: c.surface,
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+            side: BorderSide(
+              color: errorText == null ? c.border : c.error,
             ),
+          ),
+          child: Column(
+            children: [
+              if (list == null)
+                for (var i = 0; i < 3; i++) ...[
+                  if (i > 0) Divider(height: 1, indent: 66, color: c.divider),
+                  const _SkeletonRow(),
+                ]
+              else
+                for (var i = 0; i < list.length; i++) ...[
+                  if (i > 0) Divider(height: 1, indent: 66, color: c.divider),
+                  _ClassRow(
+                    option: list[i],
+                    selected: list[i].id == selectedId,
+                    suggested: list[i].id == suggestedId,
+                    onTap: () => onSelect(list[i]),
+                  ),
+                ],
+            ],
+          ),
+        ),
         if (errorText != null)
           Padding(
             padding: const EdgeInsets.only(top: 4, left: 4),
@@ -96,50 +118,44 @@ class _ClassRow extends StatelessWidget {
       button: true,
       label: option.name,
       excludeSemantics: true,
-      child: SacPressable(
+      child: SacInkWell(
         onTap: onTap,
-        child: AnimatedContainer(
-          duration: SacMotion.switcher,
-          curve: SacMotion.easeOut,
-          constraints: const BoxConstraints(minHeight: 48),
-          margin: const EdgeInsets.only(bottom: 6),
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: BoxDecoration(
-            color: selected ? accent.withValues(alpha: 0.08) : c.surface,
-            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-            border: Border.all(
-              color: selected ? accent : c.border,
-              width: selected ? 1.5 : 1,
+        pressedScale: SacMotion.rowPressScale,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 56),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 8, 14, 8),
+            child: Row(
+              children: [
+                ImportClassLogo(
+                  assetCode: option.assetCode,
+                  name: option.name,
+                  size: 40,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    option.name,
+                    style: TextStyle(
+                      fontSize: SacFontSize.titleMedium,
+                      fontWeight: FontWeight.w600,
+                      color: c.text,
+                    ),
+                  ),
+                ),
+                if (suggested) ...[
+                  SacBadge(label: 'certificate_import.editor.suggested'.tr()),
+                  const SizedBox(width: 8),
+                ],
+                if (selected)
+                  HugeIcon(
+                    key: const ValueKey('class-selected-check'),
+                    icon: HugeIcons.strokeRoundedTick02,
+                    size: 22,
+                    color: accent,
+                  ),
+              ],
             ),
-          ),
-          child: Row(
-            children: [
-              HugeIcon(
-                icon: selected
-                    ? HugeIcons.strokeRoundedCheckmarkCircle02
-                    : HugeIcons.strokeRoundedCircle,
-                size: 20,
-                color: selected ? accent : c.textTertiary,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  option.name,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: c.text),
-                ),
-              ),
-              if (suggested)
-                Text(
-                  'certificate_import.editor.suggested'.tr(),
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelSmall
-                      ?.copyWith(color: c.textSecondary),
-                ),
-            ],
           ),
         ),
       ),
@@ -153,11 +169,16 @@ class _SkeletonRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 48,
-      margin: const EdgeInsets.only(bottom: 6),
-      decoration: BoxDecoration(
-        color: context.sac.surfaceVariant,
-        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+      height: 56,
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: context.sac.surfaceVariant,
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+        ),
       ),
     );
   }

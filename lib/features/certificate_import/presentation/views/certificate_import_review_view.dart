@@ -5,16 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
-import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
-import 'package:sacdia_app/core/widgets/sac_dialog.dart';
-import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/status_progress/status_progress.dart';
 
 import '../../domain/entities/certificate_import_batch.dart';
 import '../../domain/entities/certificate_import_error_code.dart';
@@ -28,13 +26,15 @@ import '../../domain/usecases/update_certificate_import_item.dart';
 import '../error/certificate_import_error_mapper.dart';
 import '../providers/certificate_import_providers.dart';
 import '../widgets/certificate_import_back_button.dart';
-import '../widgets/certificate_import_item_card.dart';
 import '../widgets/certificate_import_item_editor_sheet.dart';
 import '../widgets/certificate_proof_summary.dart';
 import '../widgets/certificate_proof_viewer.dart';
+import '../widgets/import_confirm_sheet.dart';
+import '../widgets/import_item_row.dart';
 import '../widgets/import_load_error_scaffold.dart';
 import '../widgets/import_review_dock.dart';
 import '../widgets/import_review_empty.dart';
+import '../widgets/import_review_summary.dart';
 import '../widgets/import_row_presence.dart';
 
 class CertificateImportReviewRouteView extends ConsumerWidget {
@@ -117,7 +117,11 @@ class CertificateImportReviewRouteView extends ConsumerWidget {
               // counts what was really sent. The entry list shows its status.
               ref.invalidate(certificateImportBatchProvider(batch.id));
               ref.invalidate(certificateImportBatchListProvider);
-              context.go(RouteNames.certificateImportStatusPath(batch.id));
+              // Replace the review (already sent) with the status: back from
+              // there lands on "Carga por certificado", not on this review.
+              context.pushReplacement(
+                RouteNames.certificateImportStatusPath(batch.id),
+              );
             },
           );
         },
@@ -179,9 +183,6 @@ class _CertificateImportReviewViewState
   /// How often the batch is polled while it is still being read.
   static const _pollEvery = Duration(seconds: 3);
 
-  /// Stagger of the first results: 5 steps of 40 ms plus 200 ms, rounded up.
-  static const _entranceSpan = Duration(milliseconds: 480);
-
   late CertificateImportBatch _batch;
   late List<CertificateImportItem> _items;
   final _scroll = ScrollController();
@@ -190,11 +191,8 @@ class _CertificateImportReviewViewState
   Timer? _poll;
   bool _fetching = false;
   bool _submitting = false;
-  bool _entered = false;
   int _edits = 0;
   String? _submitError;
-  String _filter = 'all';
-  Set<String> _entering = {};
   final _arriving = <String>{};
   final _leaving = <String>{};
 
@@ -204,7 +202,6 @@ class _CertificateImportReviewViewState
     WidgetsBinding.instance.addObserver(this);
     _batch = widget.initialBatch;
     _items = List.of(_batch.activeItems);
-    _markEntrance();
     _syncPolling();
   }
 
@@ -237,15 +234,6 @@ class _CertificateImportReviewViewState
       _batch.ocrState == CertificateImportOcrState.running;
 
   GlobalKey _rowKey(String id) => _rowKeys.putIfAbsent(id, GlobalKey.new);
-
-  /// First results play the stagger once (M10); filtering or returning from
-  /// the editor never repeats it.
-  void _markEntrance() {
-    if (_entered || _items.isEmpty) return;
-    _entered = true;
-    _entering = _items.map((item) => item.id).toSet();
-    _later(_entranceSpan, () => setState(() => _entering = {}));
-  }
 
   void _syncPolling() {
     if (_isReading && widget.onFetchBatch != null) {
@@ -283,7 +271,6 @@ class _CertificateImportReviewViewState
     setState(() {
       _batch = next;
       _items = List.of(next.activeItems);
-      _markEntrance();
     });
     _syncPolling();
   }
@@ -304,24 +291,14 @@ class _CertificateImportReviewViewState
     }
   }
 
-  List<CertificateImportItem> get _honors =>
-      _items.where((i) => i.type != CertificateImportItemType.clazz).toList();
   List<CertificateImportItem> get _classes =>
       _items.where((i) => i.type == CertificateImportItemType.clazz).toList();
-  int get _readyCount => _items.where((i) => i.isComplete).length;
-  int get _missingCount => _items.length - _readyCount;
-
-  bool _passesFilter(CertificateImportItem item) => switch (_filter) {
-        'ready' => item.isComplete,
-        'missing' => !item.isComplete,
-        _ => true,
-      };
+  int get _readyCount => _items.where((i) => i.isReadyToSend).length;
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
     final empty = _items.isEmpty;
-    final visible = _items.where(_passesFilter).toList(growable: false);
     final showGmNotice = _items.any((item) => item.isGuiaMayorBase);
     final showInstitutionalNotice =
         _items.any((item) => item.isInstitutionalClass);
@@ -349,18 +326,22 @@ class _CertificateImportReviewViewState
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: EdgeInsets.only(bottom: empty ? 24 : 190),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       SizedBox(height: SacTopBar.frostedInset(context)),
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            if (!empty) ..._summaryHeader(context),
+                            if (!empty)
+                              ImportReviewSummary(
+                                total: _items.length,
+                                readyCount: _readyCount,
+                              ),
                             if (_batch.files.isNotEmpty)
                               Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.only(top: 12),
                                 child: CertificateProofSummary(
                                   batchId: _batch.id,
                                   files: _batch.files,
@@ -381,7 +362,6 @@ class _CertificateImportReviewViewState
                                 'certificate_import.review.period_pending',
                             ])
                               _InfoNotice(text: notice.tr()),
-                            if (!empty) _filters(),
                           ],
                         ),
                       ),
@@ -401,32 +381,11 @@ class _CertificateImportReviewViewState
                               widget.onRetryRead == null ? null : _retryRead,
                           onChooseOtherFile: widget.onChooseOtherFile,
                         )
-                      else if (visible.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: SacCard(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                    'certificate_import.review.empty_filter'
-                                        .tr(),
-                                    style: TextStyle(color: c.textSecondary)),
-                                SacButton.ghost(
-                                  text:
-                                      'certificate_import.review.show_all'.tr(),
-                                  onPressed: () =>
-                                      setState(() => _filter = 'all'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
                       else
-                        ..._groups(visible),
+                        ..._groups(),
                       if (!empty)
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                           child: SacButton.outline(
                             text: 'certificate_import.review.add_row'.tr(),
                             onPressed: _openAddEditor,
@@ -469,94 +428,42 @@ class _CertificateImportReviewViewState
         : ImportReviewEmptyKind.reading;
   }
 
-  List<Widget> _summaryHeader(BuildContext context) {
-    final c = context.sac;
-    final theme = Theme.of(context).textTheme;
+  /// "Por completar" first, then "Listas". The OCR order (the document order)
+  /// is kept inside a group.
+  List<Widget> _groups() {
+    final pending = _items.where((i) => !i.isReadyToSend).toList();
+    final ready = _items.where((i) => i.isReadyToSend).toList();
     return [
-      Text('certificate_import.review.found'.tr(),
-          style: TextStyle(color: c.textSecondary)),
-      const SizedBox(height: 2),
-      Text(
-        _summary(),
-        style: theme.displaySmall?.copyWith(
-          color: c.text,
-          fontWeight: FontWeight.w700,
+      if (pending.isNotEmpty)
+        SacGroupedSection(
+          key: const ValueKey('review-group-pending'),
+          label: 'certificate_import.review.group_pending'.tr(),
+          children: [for (final item in pending) _row(item)],
         ),
-      ),
-      const SizedBox(height: 4),
-      Text('certificate_import.review.hint'.tr(),
-          style: theme.bodySmall?.copyWith(color: c.textSecondary)),
-      const SizedBox(height: 12),
+      if (ready.isNotEmpty)
+        SacGroupedSection(
+          key: const ValueKey('review-group-ready'),
+          label: 'certificate_import.review.group_ready'.tr(),
+          children: [for (final item in ready) _row(item)],
+        ),
     ];
   }
 
-  Widget _filters() {
-    Widget chip(String id, String key, int count) => SacFilterChip(
-          label: key.tr(),
-          count: count,
-          selected: _filter == id,
-          variant: SacFilterChipVariant.quiet,
-          onTap: () => setState(() => _filter = id),
-        );
-    return Wrap(
-      spacing: 8,
-      children: [
-        chip('all', 'certificate_import.review.filter_all', _items.length),
-        chip('ready', 'certificate_import.review.filter_ready', _readyCount),
-        if (_missingCount > 0)
-          chip('missing', 'certificate_import.review.filter_missing',
-              _missingCount),
-      ],
-    );
-  }
-
-  /// Honor and class groups, each with a counted header. The OCR order (the
-  /// document order) is kept inside a group.
-  List<Widget> _groups(List<CertificateImportItem> visible) {
-    var index = 0;
-    final groups = [
-      ('certificate_import.review.group_honors', _honors),
-      ('certificate_import.review.group_classes', _classes),
-    ];
-    return [
-      for (final (titleKey, all) in groups)
-        if (all.any(visible.contains)) ...[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: Text(
-              titleKey.tr(namedArgs: {'count': '${all.length}'}).toUpperCase(),
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: context.sac.textTertiary,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.6,
-                  ),
-            ),
-          ),
-          for (final item in all.where(visible.contains)) _row(item, index++),
-        ],
-    ];
-  }
-
-  Widget _row(CertificateImportItem item, int index) {
-    final target = CertificateProofTarget.resolve(_batch.files, item: item);
+  Widget _row(CertificateImportItem item) {
+    final subtitle = importReviewSubtitle(item);
     return ImportRowPresence(
       key: ValueKey('row-${item.id}'),
       visible: !_leaving.contains(item.id),
       animateIn: _arriving.contains(item.id),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        child: KeyedSubtree(
-          key: _rowKey(item.id),
-          child: StaggeredListItem(
-            index: index,
-            animate: _entering.contains(item.id),
-            child: CertificateImportItemCard(
-              item: item,
-              onEdit: () => _openEditor(item),
-              onViewProof: target == null ? null : () => _openProof(item),
-              proofPage: _proofPage(item),
-            ),
-          ),
+      child: KeyedSubtree(
+        key: _rowKey(item.id),
+        child: ImportItemRow(
+          item: item,
+          subtitle: subtitle.text,
+          tone:
+              subtitle.attention ? ImportRowTone.warning : ImportRowTone.normal,
+          trailing: ImportReadyChip(ready: item.isReadyToSend),
+          onTap: () => _openEditor(item),
         ),
       ),
     );
@@ -586,10 +493,9 @@ class _CertificateImportReviewViewState
 
   /// Scrolls to the first incomplete row, then opens its editor (M16).
   Future<void> _completeNext() async {
-    final next = [..._honors, ..._classes].where((i) => !i.isComplete);
+    final next = _items.where((i) => !i.isReadyToSend);
     if (next.isEmpty) return;
     final item = next.first;
-    if (_filter == 'ready') setState(() => _filter = 'all');
     final rowContext = _rowKeys[item.id]?.currentContext;
     if (rowContext != null) {
       await Scrollable.ensureVisible(
@@ -622,8 +528,6 @@ class _CertificateImportReviewViewState
         setState(() {
           _items = [..._items, created];
           _arriving.add(created.id);
-          _filter = 'all';
-          _markEntrance();
         });
         _later(SacMotion.standard, () => _arriving.remove(created.id));
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -690,15 +594,16 @@ class _CertificateImportReviewViewState
 
   Future<void> _removeItem(CertificateImportItem item) async {
     final isHonor = item.type == CertificateImportItemType.honor;
-    final confirmed = await SacDialog.show(
+    final confirmed = await showImportConfirmSheet(
       context,
       title: (isHonor
               ? 'certificate_import.review.remove_honor_title'
               : 'certificate_import.review.remove_class_title')
           .tr(),
-      content: 'certificate_import.review.remove_body'.tr(),
+      body: 'certificate_import.review.remove_body'.tr(),
       confirmLabel: 'certificate_import.item.remove'.tr(),
-      confirmIsDestructive: true,
+      cancelLabel: 'certificate_import.review.remove_keep'.tr(),
+      destructive: true,
     );
     if (confirmed != true || !mounted) return;
     final messenger = ScaffoldMessenger.of(context);
@@ -724,13 +629,16 @@ class _CertificateImportReviewViewState
     }
   }
 
+  /// The send confirmation, in a sheet with the accent color: what goes out
+  /// and that it cannot be edited while it is reviewed.
   Future<void> _confirmAndSubmit() async {
-    final confirmed = await SacDialog.show(
+    final confirmed = await showImportConfirmSheet(
       context,
       title: 'certificate_import.review.submit_confirm_title'.tr(),
-      content: 'certificate_import.review.submit_confirm_body'
+      body: 'certificate_import.review.submit_confirm_body'
           .tr(namedArgs: {'summary': _summary()}),
-      confirmLabel: 'certificate_import.review.submit_confirm_action'.tr(),
+      confirmLabel: 'certificate_import.review.submit'.tr(),
+      cancelLabel: 'certificate_import.review.submit_confirm_keep'.tr(),
     );
     if (confirmed == true && mounted) await _submit();
   }

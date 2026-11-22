@@ -49,6 +49,27 @@ void main() {
     expect(find.widgetWithText(SacButton, 'Quitar'), findsNothing);
   });
 
+  testWidgets('label and hint can be replaced by the host screen',
+      (tester) async {
+    await tester.pumpWidget(wrapTestApp(
+      Scaffold(
+        body: InstructorField(
+          selection: const InstructorSelection.none(),
+          onChanged: (_) {},
+          label: 'Instructor (opcional)',
+          hint: 'Elige o escribe un nombre',
+        ),
+      ),
+      overrides: [FakeInstructorSearch().override],
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Instructor (opcional)'), findsOneWidget);
+    expect(find.text('Elige o escribe un nombre'), findsOneWidget);
+    expect(find.text('Instructor o instructora'), findsNothing);
+    expect(find.text('Agregar instructor (opcional)'), findsNothing);
+  });
+
   testWidgets('a person of the Local Field shows initials and the scope',
       (tester) async {
     await _show(tester, anaGomez);

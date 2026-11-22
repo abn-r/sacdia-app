@@ -7,7 +7,7 @@ import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/file_display_name.dart';
-import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 
 import '../../domain/entities/certificate_import_file.dart';
 import 'certificate_proof_viewer.dart';
@@ -39,7 +39,7 @@ class CertificateProofSummary extends StatelessWidget {
 
   String _meta(CertificateImportFile file) {
     final base = !isPdf(file)
-        ? 'certificate_import.viewer.kind_image'.tr()
+        ? 'certificate_import.viewer.photo_one_page'.tr()
         : file.pageCount == null
             ? 'certificate_import.viewer.kind_pdf'.tr()
             : (file.pageCount == 1
@@ -60,15 +60,14 @@ class CertificateProofSummary extends StatelessWidget {
     if (files.isEmpty) return const SizedBox.shrink();
     final c = context.sac;
     final file = files.first;
-    final theme = Theme.of(context).textTheme;
     final local = localPath;
     final showImage = local != null && !isPdf(file) && File(local).existsSync();
 
     Widget thumb = ClipRRect(
       borderRadius: BorderRadius.circular(AppTheme.radiusXS),
       child: SizedBox(
-        width: 48,
-        height: 60,
+        width: 32,
+        height: 40,
         child: showImage
             ? Image.file(File(local), fit: BoxFit.cover, cacheWidth: 96)
             : ColoredBox(
@@ -79,7 +78,7 @@ class CertificateProofSummary extends StatelessWidget {
                         ? HugeIcons.strokeRoundedPdf01
                         : HugeIcons.strokeRoundedImage01,
                     color: c.textSecondary,
-                    size: 24,
+                    size: 20,
                   ),
                 ),
               ),
@@ -99,53 +98,65 @@ class CertificateProofSummary extends StatelessWidget {
     return Semantics(
       button: true,
       container: true,
-      child: SacCard(
-        onTap: () => CertificateProofViewer.open(
-          context,
-          batchId: batchId,
-          file: file,
-          localPath: local,
+      child: Material(
+        color: c.surface,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+          side: BorderSide(color: c.border),
         ),
-        child: Row(
-          children: [
-            ExcludeSemantics(child: thumb),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        child: SacInkWell(
+          onTap: () => CertificateProofViewer.open(
+            context,
+            batchId: batchId,
+            file: file,
+            localPath: local,
+          ),
+          pressedScale: SacMotion.rowPressScale,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 64),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 10, 12, 10),
+              child: Row(
                 children: [
-                  Text(
-                    'certificate_import.viewer.title'.tr(),
-                    style: theme.titleSmall?.copyWith(
-                      color: c.text,
-                      fontWeight: FontWeight.w700,
+                  ExcludeSemantics(child: thumb),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'certificate_import.viewer.title'.tr(),
+                          style: TextStyle(
+                            fontSize: SacFontSize.titleMedium,
+                            fontWeight: FontWeight.w600,
+                            height: 1.25,
+                            color: c.text,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          _meta(file),
+                          style: TextStyle(
+                            fontSize: SacFontSize.bodySmall,
+                            height: 1.35,
+                            color: c.textSecondary,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  if (displayName(file.name) case final name?)
-                    Text(
-                      name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.bodySmall?.copyWith(color: c.textSecondary),
-                    ),
-                  Text(
-                    _meta(file),
-                    style: theme.bodySmall?.copyWith(color: c.textTertiary),
+                  const SizedBox(width: 8),
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowRight01,
+                    color: c.textTertiary,
+                    size: 18,
                   ),
                 ],
               ),
             ),
-            Text(
-              'certificate_import.viewer.view'.tr(),
-              style: theme.labelLarge?.copyWith(color: c.textSecondary),
-            ),
-            const SizedBox(width: 4),
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedArrowRight01,
-              color: c.textSecondary,
-              size: 18,
-            ),
-          ],
+          ),
         ),
       ),
     );

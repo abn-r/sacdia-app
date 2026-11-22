@@ -24,6 +24,9 @@ String? _buildImageUrl(String? raw) {
   return '$_honorImagesBase$raw';
 }
 
+/// Full badge URL from a raw `honor_image` value (relative key or absolute URL).
+String? honorImageUrlFrom(String? raw) => _buildImageUrl(raw);
+
 /// Modelo de especialidad para la capa de datos
 class HonorModel extends Equatable {
   final int id;

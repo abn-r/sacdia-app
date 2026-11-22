@@ -2,13 +2,14 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_item.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_import_item_editor_sheet.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/honor_picker_sheet.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor.dart';
 import 'package:sacdia_app/features/honors/domain/usecases/get_honors.dart';
-import 'package:sacdia_app/features/honors/presentation/widgets/honor_category_chip.dart';
 
 import '../../support/catalog_fakes.dart';
 import '../../support/test_app.dart';
@@ -18,6 +19,7 @@ Future<void> _openPicker(
   FakeGetHonors honors, {
   String query = 'Primeros Auxilos basico',
   int? categoryId,
+  int? suggestedHonorId,
 }) async {
   phoneSurface(tester, height: 2400);
   await tester.pumpWidget(wrapTestApp(
@@ -28,6 +30,7 @@ Future<void> _openPicker(
             context,
             initialQuery: query,
             categoryId: categoryId,
+            suggestedHonorId: suggestedHonorId,
           ),
           child: const Text('abrir'),
         ),
@@ -284,11 +287,52 @@ void main() {
     await _openPicker(tester, honors);
     honors.calls.clear();
 
-    await tester.tap(find.widgetWithText(HonorCategoryChip, 'Naturaleza'));
+    await tester.tap(find.widgetWithText(SacFilterChip, 'Naturaleza'));
     await tester.pumpAndSettle();
     expect(honors.calls.single.categoryId, 7);
     expect(honors.calls.single.search, 'Primeros Auxilos basico');
     expect(find.text('Primeros Auxilios'), findsNothing);
+  });
+
+  testWidgets('every category chip, "Todas" included, uses the accent color',
+      (tester) async {
+    await _openPicker(tester, FakeGetHonors());
+
+    final accent =
+        SacAccent.of(tester.element(find.byType(SacFilterChip).first));
+    // "Todas" starts selected: solid accent, not the old blue.
+    final todas = find.widgetWithText(SacFilterChip, 'Todas');
+    expect(todas, findsOneWidget);
+    final decorated = find.descendant(
+      of: todas,
+      matching: find.byWidgetPredicate(
+        (w) =>
+            w is AnimatedContainer &&
+            (w.decoration as BoxDecoration?)?.color == accent.color,
+      ),
+    );
+    expect(decorated, findsOneWidget);
+  });
+
+  testWidgets('the honor the backend suggested carries a "Sugerida" chip',
+      (tester) async {
+    await _openPicker(tester, FakeGetHonors(), suggestedHonorId: 10);
+
+    // Primeros Auxilios (10) is the suggestion; Nudos (11) is not.
+    expect(find.text('Sugerida'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.ancestor(
+          of: find.text('Primeros Auxilios'),
+          matching: find.byType(Row),
+        ),
+        matching: find.text('Sugerida'),
+      ),
+      findsWidgets,
+    );
+    // Every result shows its category.
+    expect(find.text('Salud'), findsWidgets);
+    expect(find.text('Naturaleza'), findsWidgets);
   });
 
   testWidgets('no results offers to search every category', (tester) async {
@@ -356,9 +400,10 @@ void main() {
     await tester.tap(find.text('Nudos'));
     await tester.pumpAndSettle();
 
-    // The field shows the choice, the category follows it and there is no stamp.
+    // ONE field shows the choice (the category lives inside the picker) and
+    // there is no stamp.
     expect(find.text('Nudos'), findsOneWidget);
-    expect(find.text('Naturaleza'), findsWidgets);
+    expect(find.text('Naturaleza'), findsNothing);
     expect(find.text('Sugerida'), findsNothing);
 
     await tester.tap(find.text('Seleccionar fecha'));
@@ -379,48 +424,5 @@ void main() {
     expect(saved!.honor!.categoryName, 'Naturaleza');
     expect(saved!.classId, isNull);
     expect(saved!.status, CertificateImportItemStatus.ready);
-  });
-
-  testWidgets('changing the category drops a honor that no longer fits',
-      (tester) async {
-    phoneSurface(tester, height: 2400);
-    await tester.pumpWidget(wrapTestApp(
-      Builder(
-        builder: (context) => Scaffold(
-          body: ElevatedButton(
-            onPressed: () => showCertificateImportItemEditor(
-              context,
-              item: const CertificateImportItem(
-                id: 'r',
-                type: CertificateImportItemType.honor,
-                honorId: 10,
-                honor: CertificateImportHonorRef(
-                  id: 10,
-                  name: 'Primeros Auxilios',
-                  categoryId: 3,
-                  categoryName: 'Salud',
-                ),
-                detectedName: 'Primeros Auxilios',
-                status: CertificateImportItemStatus.needsReview,
-              ),
-              onSave: (_) async {},
-            ),
-            child: const Text('abrir'),
-          ),
-        ),
-      ),
-      overrides: catalogOverrides(),
-    ));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('abrir'));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Salud').first);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Naturaleza'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Elige una especialidad de Naturaleza'), findsOneWidget);
-    expect(find.text('Falta: especialidad, fecha'), findsOneWidget);
   });
 }
