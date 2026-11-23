@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/features/family/domain/entities/dependent.dart';
 import 'package:sacdia_app/features/family/presentation/views/family_view.dart';
-import 'package:sacdia_app/features/family/presentation/widgets/dependent_card.dart';
+import 'package:sacdia_app/features/family/presentation/widgets/family_row.dart';
 
 import 'family_fixtures.dart';
 import 'family_test_harness.dart';
@@ -34,7 +34,7 @@ void main() {
         ],
       );
 
-  testWidgets('two dependents render two cards with the right badges',
+  testWidgets('two dependents render as rows with the line that matters',
       (tester) async {
     repo.overview = Right(
       FamilyOverview(
@@ -48,15 +48,17 @@ void main() {
 
     await pump(tester);
 
-    expect(find.byType(DependentCard), findsNWidgets(2));
+    expect(find.byType(DependentRow), findsNWidgets(2));
     expect(find.text('Ana Pérez'), findsOneWidget);
     expect(find.text('Luis Pérez'), findsOneWidget);
-    expect(find.text('Consentimiento pendiente'), findsOneWidget);
-    expect(find.text('Consentimiento verificado'), findsOneWidget);
-    expect(find.text('9 años'), findsOneWidget);
-    expect(find.text('Sin club'), findsNWidgets(2));
+    // Ana still misses her signed form; Luis is verified, so only his club.
+    expect(find.text('9 años · Falta la ficha firmada · Sin club'),
+        findsOneWidget);
+    expect(find.text('6 años · Sin club'), findsOneWidget);
     expect(find.text('Registrar a un menor'), findsOneWidget);
     expect(find.text('Tengo un código'), findsOneWidget);
+    // "Ver como" lives in the minor's profile, not on every row.
+    expect(find.textContaining('Ver como'), findsNothing);
   });
 
   testWidgets('club status shows on the card', (tester) async {
@@ -86,7 +88,11 @@ void main() {
 
     await pump(tester);
 
-    expect(find.text('Solicitud pendiente en Club Águilas'), findsOneWidget);
+    expect(
+      find.text('9 años · Falta la ficha firmada · '
+          'Solicitud pendiente en Club Águilas'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('a frozen dependent shows the frozen state and no view-as',
@@ -97,9 +103,10 @@ void main() {
 
     await pump(tester);
 
-    expect(find.text('Congelado'), findsOneWidget);
-    expect(find.textContaining('Se borrará pasados 90 días'), findsOneWidget);
+    expect(find.text('Congelado · Sin tutor ni club'), findsOneWidget);
     expect(find.text('Ver como Ana'), findsNothing);
+    // Nothing to do for a frozen minor: no "missing form" panel.
+    expect(find.byKey(const ValueKey('family-missing-form')), findsNothing);
   });
 
   testWidgets('empty state invites to add a minor', (tester) async {
@@ -161,14 +168,37 @@ void main() {
     expect(router.state.uri.path, '/family/ana-1');
   });
 
-  testWidgets('"Ver como" switches profile with the dependent first name',
+  testWidgets('a missing signed form is the first thing, and opens the minor',
       (tester) async {
-    await pump(tester);
+    repo.overview = Right(
+      FamilyOverview(
+        dependents: [
+          summary(id: 'luis-1', name: 'Luis', age: 6, consent: 'verified'),
+          summary(),
+        ],
+        maxDependents: 10,
+      ),
+    );
+    final router = await pump(tester);
 
-    await tester.tap(find.text('Ver como Ana'));
+    expect(find.byKey(const ValueKey('family-missing-form')), findsOneWidget);
+    expect(find.text('Falta la ficha de Ana'), findsOneWidget);
+    await tester.tap(find.text('Falta la ficha de Ana'));
     await tester.pumpAndSettle();
 
-    expect(auth.switchCalls, [(id: 'ana-1', firstName: 'Ana')]);
+    expect(router.state.uri.path, '/family/ana-1');
+  });
+
+  testWidgets('several missing forms are counted', (tester) async {
+    repo.overview = Right(
+      FamilyOverview(
+        dependents: [summary(), summary(id: 'luis-1', name: 'Luis')],
+        maxDependents: 10,
+      ),
+    );
+    await pump(tester);
+
+    expect(find.text('Faltan 2 fichas firmadas'), findsOneWidget);
   });
 
   testWidgets('a load error shows a translated message and retries',

@@ -6870,7 +6870,21 @@
     },
     "consent": {
       "pending": "Consentement en attente",
-      "verified": "Consentement vérifié"
+      "verified": "Consentement vérifié",
+      "missing": "Fiche signée manquante",
+      "in_review": "Fiche en vérification",
+      "step": "Étape {step} sur {total} · Voir tous les états",
+      "all_states": "Affiche tous les états",
+      "sheet_title": "Consentement",
+      "sheet_subtitle": "C’est ainsi qu’on confirme que tu es son tuteur.",
+      "state_upload": "Envoyer la fiche signée",
+      "state_upload_detail": "Photo ou PDF de la fiche du club avec ta signature.",
+      "state_review": "Le directeur la vérifie",
+      "state_review_detail": "On te prévient quand elle est vérifiée.",
+      "state_verified_detail": "Tu peux maintenant lui donner son propre accès et lier son téléphone.",
+      "kind_done": "Fait",
+      "kind_current": "Étape actuelle",
+      "kind_pending": "En attente"
     },
     "club": {
       "none": "Sans club",
@@ -6895,7 +6909,7 @@
       "generic": "Une erreur s'est produite. Réessayez."
     },
     "add": {
-      "title": "Ajouter un mineur",
+      "title": "Inscrire un mineur",
       "intro": "Inscrivez le mineur sous votre responsabilité. Vous compléterez ensuite son profil à sa place.",
       "name": "Prénom(s)",
       "paternal": "Nom de famille paternel",
@@ -6943,7 +6957,8 @@
       "form_title": "Fiche de consentement",
       "form_hint": "Imprimez et signez la fiche du club, puis téléversez-la ici en photo ou en PDF. Le directeur du club la vérifiera.",
       "form_view": "Voir la fiche téléversée",
-      "form_uploaded_toast": "Fiche téléversée. En attente de la vérification du directeur."
+      "form_uploaded_toast": "Fiche téléversée. En attente de la vérification du directeur.",
+      "code_subtitle": "La personne qui le reçoit le saisit dans Ma famille → J’ai un code."
     },
     "outcome": {
       "other_guardian": "Un autre tuteur restera responsable de {name}.",
@@ -7128,6 +7143,19 @@
       "released_person": "Personne libérée",
       "released_on": "Libéré le {date}",
       "generate_code": "Générer un code d'accès"
+    },
+    "add_group": "Ajouter",
+    "frozen_short": "Sans tuteur ni club",
+    "row": {
+      "form_missing": "Fiche signée manquante",
+      "form_in_review": "Fiche en vérification"
+    },
+    "todo": {
+      "form_title": "La fiche de {name} manque",
+      "form_message": "Envoie-la signée pour que le directeur vérifie ton consentement.",
+      "forms_title": "{count} fiches signées manquent",
+      "forms_message": "Envoie-les depuis le profil de chaque mineur.",
+      "open": "Ouvrir le profil de {name}"
     }
   },
   "restricted_account": {

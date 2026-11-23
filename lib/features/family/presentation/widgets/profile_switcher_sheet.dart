@@ -13,7 +13,6 @@ import '../../../auth/presentation/providers/acting_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/dependent.dart';
 import '../providers/family_providers.dart';
-import 'consent_badge.dart';
 import 'dependent_avatar.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -160,9 +159,6 @@ class ProfileSwitcherSheet extends ConsumerWidget {
                                 : 'family.card.age'.tr(
                                     namedArgs: {'age': '${dependent.age}'},
                                   ),
-                            trailing: ConsentBadge(
-                              status: dependent.guardianship.consentStatus,
-                            ),
                             selected: acting?.userId == dependent.userId,
                             onTap: acting?.userId == dependent.userId
                                 ? null
@@ -190,14 +186,12 @@ class _ProfileTile extends StatelessWidget {
     required this.title,
     required this.selected,
     this.subtitle,
-    this.trailing,
     this.onTap,
   });
 
   final Widget avatar;
   final String title;
   final String? subtitle;
-  final Widget? trailing;
   final bool selected;
   final VoidCallback? onTap;
 
@@ -210,7 +204,8 @@ class _ProfileTile extends StatelessWidget {
       button: onTap != null,
       selected: selected,
       child: Material(
-        color: selected ? accent.light : c.surfaceVariant,
+        // Plain rows like any picker; the check marks the current profile.
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         child: InkWell(
           borderRadius: BorderRadius.circular(AppTheme.radiusMD),
@@ -246,10 +241,6 @@ class _ProfileTile extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (trailing != null) ...[
-                    const SizedBox(width: 8),
-                    trailing!,
-                  ],
                   if (selected) ...[
                     const SizedBox(width: 8),
                     HugeIcon(

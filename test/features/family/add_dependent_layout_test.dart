@@ -36,7 +36,7 @@ void main() {
   }
 
   testWidgets(
-      'the submit button ends above the home indicator with breathing room '
+      'the submit button stays fixed above the home indicator '
       'once the form is scrolled to the end', (tester) async {
     const inset = 34.0;
     await pumpOnPhone(tester, bottomInset: inset);
@@ -48,8 +48,9 @@ void main() {
     final bottom = tester.getBottomLeft(find.byType(SacButton)).dy;
     expect(
       bottom,
-      lessThanOrEqualTo(screenHeight - inset - 24),
-      reason: 'the button must clear the bottom safe area plus a margin',
+      lessThanOrEqualTo(screenHeight - inset - 12),
+      reason: 'the fixed footer keeps the button above the bottom safe area '
+          'plus its 12 margin',
     );
   });
 
@@ -62,7 +63,7 @@ void main() {
 
     final screenHeight = tester.view.physicalSize.height / 3;
     final bottom = tester.getBottomLeft(find.byType(SacButton)).dy;
-    expect(bottom, lessThanOrEqualTo(screenHeight - 16));
+    expect(bottom, lessThanOrEqualTo(screenHeight - 12));
   });
 
   testWidgets('with the keyboard open the button is still reachable',

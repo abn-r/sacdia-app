@@ -13,17 +13,18 @@ import '../../../../core/consent/consent_evidence.dart';
 import '../../../../core/consent/consent_evidence_uploader.dart';
 import '../../../../core/consent/consent_evidence_viewer.dart';
 import '../../../../core/errors/failures.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_badge.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_card.dart';
-import '../../../../core/widgets/sac_dialog.dart';
+import '../../../../core/widgets/sac_frosted_footer.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
+import '../../../../core/widgets/status_progress/status_progress.dart';
 import '../../../auth/presentation/providers/acting_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/dependent.dart';
@@ -34,9 +35,9 @@ import '../family_error_messages.dart';
 import '../family_outcome_messages.dart';
 import '../providers/family_providers.dart';
 import '../widgets/access_section.dart';
-import '../widgets/consent_badge.dart';
 import '../widgets/dependent_avatar.dart';
-import '../widgets/dependent_card.dart';
+import '../widgets/family_row.dart';
+import '../widgets/family_sheets.dart';
 import '../widgets/devices_section.dart';
 import '../widgets/new_password_dialog.dart';
 import '../widgets/profile_switcher_sheet.dart';
@@ -91,53 +92,15 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
       'when': expires,
     });
 
-    return SacDialog.present<void>(
+    return showFamilyCodeSheet(
       context,
-      builder: (dialogContext) => SacDialog(
-        title: 'family.detail.code_title'.tr(),
-        icon: HugeIcons.strokeRoundedKey01,
-        body: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SelectableText(
-              issued.code,
-              style: Theme.of(dialogContext).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 4,
-                    color: dialogContext.sac.text,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'family.detail.code_expires'.tr(namedArgs: {'when': expires}),
-              style: Theme.of(dialogContext).textTheme.bodySmall?.copyWith(
-                    color: dialogContext.sac.textSecondary,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        actions: [
-          SacDialogAction(
-            label: 'family.detail.copy'.tr(),
-            style: SacDialogActionStyle.cancel,
-            onPressed: () async {
-              await Clipboard.setData(ClipboardData(text: issued.code));
-              if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-              _toast('family.detail.copied'.tr());
-            },
-          ),
-          SacDialogAction(
-            label: 'family.detail.share'.tr(),
-            style: SacDialogActionStyle.success,
-            onPressed: () async {
-              Navigator.of(dialogContext).pop();
-              await SharePlus.instance.share(ShareParams(text: message));
-            },
-          ),
-        ],
-      ),
+      title: 'family.detail.code_title'.tr(),
+      subtitle: 'family.detail.code_subtitle'.tr(),
+      code: issued.code,
+      expiresLabel:
+          'family.detail.code_expires'.tr(namedArgs: {'when': expires}),
+      onShare: () => SharePlus.instance.share(ShareParams(text: message)),
+      onCopied: () => _toast('family.detail.copied'.tr()),
     );
   }
 
@@ -199,14 +162,14 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
 
   Future<void> _disableAccess(DependentSummary dependent) async {
     final name = dependent.firstName;
-    final confirmed = await SacDialog.show(
+    final confirmed = await showFamilyConfirmSheet(
       context,
       title: 'family.access.disable_title'.tr(namedArgs: {'name': name}),
-      content: 'family.access.disable_body'.tr(namedArgs: {'name': name}),
+      body: 'family.access.disable_body'.tr(namedArgs: {'name': name}),
       confirmLabel: 'family.access.disable_confirm'.tr(),
-      confirmIsDestructive: true,
+      destructive: true,
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
 
     setState(() => _busy = true);
     final result = await ref.read(familyActionsProvider).disableSupervisedLogin(
@@ -238,14 +201,14 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
       );
       if (password == null || !mounted) return;
     } else {
-      final confirmed = await SacDialog.show(
+      final confirmed = await showFamilyConfirmSheet(
         context,
         title: 'family.access.reactivate_title'.tr(namedArgs: {'name': name}),
-        content:
+        body:
             'family.access.reactivate_body_email'.tr(namedArgs: {'name': name}),
         confirmLabel: 'family.access.reactivate_confirm'.tr(),
       );
-      if (confirmed != true || !mounted) return;
+      if (!confirmed || !mounted) return;
     }
 
     setState(() => _busy = true);
@@ -283,14 +246,14 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
       );
       if (password == null || !mounted) return;
     } else {
-      final confirmed = await SacDialog.show(
+      final confirmed = await showFamilyConfirmSheet(
         context,
         title: 'family.access.reset_title'.tr(namedArgs: {'name': name}),
-        content: 'family.access.reset_body_email'.tr(namedArgs: {'name': name}),
+        body: 'family.access.reset_body_email'.tr(namedArgs: {'name': name}),
         confirmLabel: 'family.access.reset_confirm'.tr(),
-        confirmIsDestructive: true,
+        destructive: true,
       );
-      if (confirmed != true || !mounted) return;
+      if (!confirmed || !mounted) return;
     }
 
     setState(() => _busy = true);
@@ -319,28 +282,28 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
 
   Future<void> _leave(DependentDetail detail, DependentGuardian me) async {
     final name = detail.summary.firstName;
-    final confirmed = await SacDialog.show(
+    final confirmed = await showFamilyConfirmSheet(
       context,
       title: 'family.detail.leave_title'.tr(namedArgs: {'name': name}),
-      content: outcomeMessage(predictLeaveOutcome(detail), name),
+      body: outcomeMessage(predictLeaveOutcome(detail), name),
       confirmLabel: 'family.detail.leave_confirm'.tr(),
-      confirmIsDestructive: true,
+      destructive: true,
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
     await _revoke(me.guardianshipId, removedByPrimary: false, leaving: true);
   }
 
   Future<void> _remove(DependentGuardian other) async {
-    final confirmed = await SacDialog.show(
+    final confirmed = await showFamilyConfirmSheet(
       context,
       title: 'family.detail.remove_title'.tr(
         namedArgs: {'name': other.displayName},
       ),
-      content: 'family.detail.remove_body'.tr(),
+      body: 'family.detail.remove_body'.tr(),
       confirmLabel: 'family.detail.remove_confirm'.tr(),
-      confirmIsDestructive: true,
+      destructive: true,
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
     await _revoke(other.guardianshipId, removedByPrimary: true, leaving: false);
   }
 
@@ -405,6 +368,27 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
         .then<void>((_) {}, onError: (_) {});
   }
 
+  /// "Ver como Ana", fixed at the bottom: the one main action of the screen.
+  /// Not for a frozen minor or one with their own active login (the server
+  /// no longer lets the guardian act for them).
+  Widget? _viewAsFooter(DependentDetail? detail) {
+    final summary = detail?.summary;
+    if (summary == null || summary.frozen || summary.hasActiveOwnLogin) {
+      return null;
+    }
+    return SacFrostedFooter(
+      child: SacButton.primary(
+        key: const ValueKey('family-detail-view-as'),
+        text: 'family.card.view_as'.tr(
+          namedArgs: {'name': summary.firstName},
+        ),
+        icon: HugeIcons.strokeRoundedUserSwitch,
+        onPressed:
+            _busy ? null : () => switchToDependent(context, ref, summary),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
@@ -431,6 +415,7 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
         backgroundColor: c.background,
         foregroundColor: c.text,
       ),
+      bottomNavigationBar: _viewAsFooter(detail.value),
       body: detail.when(
         loading: () => const Center(child: SacLoading()),
         error: (error, _) => _DetailError(
@@ -449,7 +434,6 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
             onFormUploaded: _onFormUploaded,
             onFormAlreadyVerified: _onFormAlreadyVerified,
             onViewForm: _viewForm,
-            onViewAs: () => switchToDependent(context, ref, data.summary),
             teenLoginEnabled: teenLoginEnabled,
             linkedDeviceEnabled: linkedDeviceEnabled,
             onPairDevice: () => context.push(
@@ -480,7 +464,6 @@ class _Body extends StatelessWidget {
     required this.onFormUploaded,
     required this.onFormAlreadyVerified,
     required this.onViewForm,
-    required this.onViewAs,
     required this.teenLoginEnabled,
     required this.linkedDeviceEnabled,
     required this.onPairDevice,
@@ -502,7 +485,6 @@ class _Body extends StatelessWidget {
   final ValueChanged<ConsentEvidenceReceipt> onFormUploaded;
   final VoidCallback onFormAlreadyVerified;
   final VoidCallback onViewForm;
-  final VoidCallback onViewAs;
   final bool teenLoginEnabled;
   final bool linkedDeviceEnabled;
   final VoidCallback onPairDevice;
@@ -525,8 +507,6 @@ class _Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    final textTheme = Theme.of(context).textTheme;
     final hPad = Responsive.horizontalPadding(context);
     final summary = detail.summary;
     final me = _me;
@@ -536,164 +516,293 @@ class _Body extends StatelessWidget {
       // Siempre desplazable: con poco contenido el gesto de refrescar debe
       // seguir funcionando.
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 32),
+      padding: const EdgeInsets.only(bottom: 32),
       children: [
-        SacCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  DependentAvatar(
-                    name: summary.firstName,
-                    imageUrl: summary.userImage,
-                    size: 56,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          summary.fullName,
-                          style: textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: c.text,
-                          ),
-                        ),
-                        if (summary.age != null)
-                          Text(
-                            'family.card.age'.tr(
-                              namedArgs: {'age': '${summary.age}'},
-                            ),
-                            style: textTheme.bodySmall?.copyWith(
-                              color: c.textSecondary,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  if (summary.frozen)
-                    SacBadge.error(label: 'family.frozen'.tr())
-                  else
-                    ConsentBadge(status: summary.guardianship.consentStatus),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                summary.frozen
-                    ? 'family.frozen_hint'.tr()
-                    : dependentClubLabel(summary.clubMembership),
-                style: textTheme.bodySmall?.copyWith(color: c.textSecondary),
-              ),
-              if (!summary.frozen) ...[
-                const SizedBox(height: 12),
-                Text(
-                  _consentText(summary.guardianship),
-                  style: textTheme.bodyMedium?.copyWith(color: c.text),
-                ),
-              ],
-            ],
-          ),
-        ),
+        _Identity(summary: summary),
         if (!summary.frozen) ...[
-          const SizedBox(height: 20),
-          _ConsentFormCard(
-            guardianship: summary.guardianship,
-            busy: busy,
-            picker: picker,
-            onUpload: onUploadForm,
-            onUploaded: onFormUploaded,
-            onAlreadyVerified: onFormAlreadyVerified,
-            onView: onViewForm,
+          Padding(
+            padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 0),
+            child: _ConsentPanel(guardianship: summary.guardianship),
           ),
-        ],
-        if (!summary.frozen) ...[
-          const SizedBox(height: 20),
-          AccessSection(
-            summary: summary,
-            teenLoginEnabled: teenLoginEnabled,
-            busy: busy,
-            onEnable: onEnableAccess,
-            onDisable: onDisableAccess,
-            onReactivate: onReactivateAccess,
-            onResetPassword: onResetPassword,
-            onOpenSummary: onOpenSummary,
-            onCopyHandle: onCopyHandle,
+          if (!summary.guardianship.isVerified ||
+              summary.guardianship.evidenceUploaded)
+            Padding(
+              padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 0),
+              child: _ConsentFormCard(
+                guardianship: summary.guardianship,
+                busy: busy,
+                picker: picker,
+                onUpload: onUploadForm,
+                onUploaded: onFormUploaded,
+                onAlreadyVerified: onFormAlreadyVerified,
+                onView: onViewForm,
+              ),
+            ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(hPad, 24, hPad, 0),
+            child: AccessSection(
+              summary: summary,
+              teenLoginEnabled: teenLoginEnabled,
+              busy: busy,
+              onEnable: onEnableAccess,
+              onDisable: onDisableAccess,
+              onReactivate: onReactivateAccess,
+              onResetPassword: onResetPassword,
+              onOpenSummary: onOpenSummary,
+              onCopyHandle: onCopyHandle,
+            ),
           ),
         ],
         if (shouldShowDevicesSection(
           summary,
           featureEnabled: linkedDeviceEnabled,
-        )) ...[
-          const SizedBox(height: 20),
-          DevicesSection(summary: summary, onPair: onPairDevice),
-        ],
-        const SizedBox(height: 20),
-        _SectionLabel(label: 'family.detail.guardians'.tr()),
-        const SizedBox(height: 8),
-        for (final guardian in detail.guardians)
-          _GuardianTile(
-            guardian: guardian,
-            canRemove: iAmPrimary &&
-                !guardian.isMe &&
-                !guardian.isCustodian &&
-                guardian.userId != null,
-            busy: busy,
-            onRemove: () => onRemove(guardian),
-          ),
-        const SizedBox(height: 20),
-        if (!summary.frozen) ...[
-          // Con acceso propio activo el servidor ya no deja actuar por él
-          // (403 ACTING_FOR_FORBIDDEN): no se ofrece.
-          if (!summary.hasActiveOwnLogin) ...[
-            SacButton.primary(
-              text: 'family.card.view_as'.tr(
-                namedArgs: {'name': summary.firstName},
-              ),
-              icon: HugeIcons.strokeRoundedUserSwitch,
-              onPressed: busy ? null : onViewAs,
-            ),
-            const SizedBox(height: 12),
-          ],
-          SacButton.outline(
-            text: 'family.detail.invite'.tr(),
-            icon: HugeIcons.strokeRoundedUserAdd01,
-            isLoading: busy,
-            onPressed: onInvite,
-          ),
+        ))
           Padding(
-            padding: const EdgeInsets.only(top: 6),
-            child: Text(
-              'family.detail.invite_hint'.tr(),
-              style: textTheme.bodySmall?.copyWith(color: c.textSecondary),
+            padding: EdgeInsets.fromLTRB(hPad, 24, hPad, 0),
+            child: DevicesSection(summary: summary, onPair: onPairDevice),
+          ),
+        SacGroupedSection(
+          label: 'family.detail.guardians'.tr(),
+          count: detail.guardians.length,
+          children: [
+            for (final guardian in detail.guardians) ...[
+              _GuardianRow(guardian: guardian),
+              if (iAmPrimary &&
+                  !guardian.isMe &&
+                  !guardian.isCustodian &&
+                  guardian.userId != null)
+                FamilyRow(
+                  key: ValueKey('family-remove-${guardian.guardianshipId}'),
+                  leading: const FamilyRowIcon(
+                    HugeIcons.strokeRoundedDelete02,
+                    destructive: true,
+                  ),
+                  title: 'family.detail.remove'.tr(
+                    namedArgs: {'name': guardian.displayName},
+                  ),
+                  titleColor: context.sac.onErrorContainer,
+                  enabled: !busy,
+                  showChevron: false,
+                  onTap: () => onRemove(guardian),
+                ),
+            ],
+          ],
+        ),
+        if (!summary.frozen || me != null)
+          Padding(
+            padding: EdgeInsets.fromLTRB(hPad, 24, hPad, 0),
+            child: _ActionsGroup(
+              children: [
+                if (!summary.frozen)
+                  FamilyRow(
+                    key: const ValueKey('family-detail-invite'),
+                    leading:
+                        const FamilyRowIcon(HugeIcons.strokeRoundedUserAdd01),
+                    title: 'family.detail.invite'.tr(),
+                    subtitle: 'family.detail.invite_hint'.tr(),
+                    enabled: !busy,
+                    onTap: onInvite,
+                  ),
+                if (me != null)
+                  FamilyRow(
+                    key: const ValueKey('family-detail-leave'),
+                    leading: const FamilyRowIcon(
+                      HugeIcons.strokeRoundedLogout02,
+                      destructive: true,
+                    ),
+                    title: 'family.detail.leave'.tr(),
+                    titleColor: context.sac.onErrorContainer,
+                    enabled: !busy,
+                    showChevron: false,
+                    onTap: () => onLeave(me),
+                  ),
+              ],
             ),
           ),
-        ],
-        if (me != null) ...[
-          const SizedBox(height: 24),
-          SacButton.destructive(
-            text: 'family.detail.leave'.tr(),
-            icon: HugeIcons.strokeRoundedLogout02,
-            onPressed: busy ? null : () => onLeave(me),
-          ),
-        ],
       ],
     );
   }
+}
 
-  String _consentText(DependentGuardianship guardianship) {
-    if (guardianship.isVerified) return 'family.detail.consent_verified'.tr();
-    return guardianship.evidenceUploaded
-        ? 'family.detail.consent_form_uploaded'.tr()
-        : 'family.detail.consent_pending'.tr();
+/// Avatar, name and the line under it (age and club, or frozen).
+class _Identity extends StatelessWidget {
+  const _Identity({required this.summary});
+
+  final DependentSummary summary;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final parts = <String>[
+      if (summary.age != null)
+        'family.card.age'.tr(namedArgs: {'age': '${summary.age}'}),
+      summary.frozen
+          ? 'family.frozen_hint'.tr()
+          : dependentClubLabel(summary.clubMembership),
+    ];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+      child: Column(
+        children: [
+          DependentAvatar(
+            name: summary.firstName,
+            imageUrl: summary.userImage,
+            size: 64,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            summary.fullName,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: SacFontSize.headlineMedium,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.3,
+              color: c.text,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            parts.join(' · '),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: SacFontSize.bodyMedium,
+              color: summary.frozen ? c.onErrorContainer : c.textSecondary,
+            ),
+          ),
+          if (summary.frozen) ...[
+            const SizedBox(height: 8),
+            SacBadge.error(
+              label: 'family.frozen'.tr(),
+              icon: HugeIcons.strokeRoundedSnow,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Where the consent stands: missing form, form in review or verified. One
+/// state at a time; tapping it shows the three in order.
+class _ConsentPanel extends StatelessWidget {
+  const _ConsentPanel({required this.guardianship});
+
+  final DependentGuardianship guardianship;
+
+  int get _step => guardianship.isVerified
+      ? 3
+      : guardianship.evidenceUploaded
+          ? 2
+          : 1;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final step = _step;
+    final (titleKey, messageKey) = switch (step) {
+      3 => ('family.consent.verified', 'family.detail.consent_verified'),
+      2 => ('family.consent.in_review', 'family.detail.consent_form_uploaded'),
+      _ => ('family.consent.missing', 'family.detail.consent_pending'),
+    };
+    final title = titleKey.tr();
+    final style = switch (step) {
+      3 => SacStatusStyle.of(
+          context,
+          SacStatusKind.validated,
+          label: title,
+          icon: HugeIcons.strokeRoundedCheckmarkBadge01,
+        ),
+      2 => SacStatusStyle.of(
+          context,
+          SacStatusKind.review,
+          label: title,
+          icon: HugeIcons.strokeRoundedClock01,
+        ),
+      _ => SacStatusStyle(
+          kind: SacStatusKind.pending,
+          container: c.warningContainer,
+          onContainer: c.onWarningContainer,
+          solid: c.warning,
+          icon: HugeIcons.strokeRoundedFileEdit,
+          label: title,
+        ),
+    };
+    return SacStatePanel(
+      key: ValueKey('family-consent-$step'),
+      style: style,
+      title: title,
+      message: messageKey.tr(),
+      stepLabel: step < 3
+          ? 'family.consent.step'.tr(namedArgs: {'step': '$step', 'total': '3'})
+          : null,
+      semanticsHint: 'family.consent.all_states'.tr(),
+      onTap: () => _showStates(context, step),
+    );
+  }
+
+  void _showStates(BuildContext context, int step) {
+    SacStateKind kindOf(int index) => index < step
+        ? SacStateKind.done
+        : index == step
+            ? (step == 3 ? SacStateKind.done : SacStateKind.current)
+            : SacStateKind.pending;
+    showSacStatesSheet(
+      context,
+      title: 'family.consent.sheet_title'.tr(),
+      subtitle: 'family.consent.sheet_subtitle'.tr(),
+      steps: [
+        SacStateStep(
+          kind: kindOf(1),
+          title: 'family.consent.state_upload'.tr(),
+          detail: 'family.consent.state_upload_detail'.tr(),
+        ),
+        SacStateStep(
+          kind: kindOf(2),
+          title: 'family.consent.state_review'.tr(),
+          detail: 'family.consent.state_review_detail'.tr(),
+        ),
+        SacStateStep(
+          kind: kindOf(3),
+          title: 'family.consent.verified'.tr(),
+          detail: 'family.consent.state_verified_detail'.tr(),
+        ),
+      ],
+      kindLabels: SacStateKindLabels(
+        done: 'family.consent.kind_done'.tr(),
+        current: 'family.consent.kind_current'.tr(),
+        rejected: 'family.consent.kind_current'.tr(),
+        pending: 'family.consent.kind_pending'.tr(),
+      ),
+    );
+  }
+}
+
+/// A bordered card holding a few rows, without an eyebrow.
+class _ActionsGroup extends StatelessWidget {
+  const _ActionsGroup({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return Container(
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+        border: Border.all(color: c.border),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          for (var i = 0; i < children.length; i++) ...[
+            if (i > 0)
+              Divider(height: 1, thickness: 1, indent: 62, color: c.divider),
+            children[i],
+          ],
+        ],
+      ),
+    );
   }
 }
 
@@ -769,103 +878,40 @@ class _ConsentFormCard extends StatelessWidget {
   }
 }
 
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      label.toUpperCase(),
-      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: context.sac.textSecondary,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.8,
-          ),
-    );
-  }
-}
-
-class _GuardianTile extends StatelessWidget {
-  const _GuardianTile({
-    required this.guardian,
-    required this.canRemove,
-    required this.busy,
-    required this.onRemove,
-  });
+/// A guardian: name, relationship and consent, with "Tú", "Principal" or
+/// "Custodia del club" at the end.
+class _GuardianRow extends StatelessWidget {
+  const _GuardianRow({required this.guardian});
 
   final DependentGuardian guardian;
-  final bool canRemove;
-  final bool busy;
-  final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    final textTheme = Theme.of(context).textTheme;
-
-    return SacCard(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+    final verified = guardian.consentStatus == GuardianConsentStatus.verified;
+    final parts = <String>[
+      if (guardian.relationshipTypeName != null) guardian.relationshipTypeName!,
+      verified ? 'family.consent.verified'.tr() : 'family.consent.pending'.tr(),
+    ];
+    return FamilyRow(
+      key: ValueKey('family-guardian-${guardian.guardianshipId}'),
+      leading: DependentAvatar(name: guardian.displayName, size: 36),
+      title: guardian.displayName,
+      subtitle: parts.join(' · '),
+      trailing: Wrap(
+        spacing: 6,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      guardian.displayName,
-                      style: textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: c.text,
-                      ),
-                    ),
-                    if (guardian.relationshipTypeName != null)
-                      Text(
-                        guardian.relationshipTypeName!,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: c.textSecondary,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              ConsentBadge(status: guardian.consentStatus),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: [
-              if (guardian.isMe)
-                SacBadge(label: 'family.detail.you'.tr())
-              else if (guardian.isCustodian)
-                SacBadge(
-                  label: 'family.detail.custodian'.tr(),
-                  variant: SacBadgeVariant.neutral,
-                ),
-              if (guardian.isPrimary)
-                SacBadge(
-                  label: 'family.detail.primary'.tr(),
-                  variant: SacBadgeVariant.neutral,
-                ),
-            ],
-          ),
-          if (canRemove) ...[
-            const SizedBox(height: 8),
-            SacButton.ghost(
-              text: 'family.detail.remove'.tr(
-                namedArgs: {'name': guardian.displayName},
-              ),
-              icon: HugeIcons.strokeRoundedDelete02,
-              textColor: AppColors.error,
-              onPressed: busy ? null : onRemove,
+          if (guardian.isMe)
+            SacBadge(label: 'family.detail.you'.tr())
+          else if (guardian.isCustodian)
+            SacBadge(
+              label: 'family.detail.custodian'.tr(),
+              variant: SacBadgeVariant.neutral,
             ),
-          ],
+          if (guardian.isPrimary)
+            SacBadge(
+              label: 'family.detail.primary'.tr(),
+              variant: SacBadgeVariant.neutral,
+            ),
         ],
       ),
     );

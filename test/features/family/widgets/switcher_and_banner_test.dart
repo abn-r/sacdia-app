@@ -81,8 +81,9 @@ void main() {
       expect(find.text('Ana'), findsOneWidget);
       expect(find.text('Luis'), findsOneWidget);
       expect(find.text('Eva'), findsNothing);
-      expect(find.text('Consentimiento pendiente'), findsOneWidget);
-      expect(find.text('Consentimiento verificado'), findsOneWidget);
+      // Plain rows: the consent status stays in Mi familia.
+      expect(find.text('Consentimiento pendiente'), findsNothing);
+      expect(find.text('Consentimiento verificado'), findsNothing);
     });
 
     testWidgets('selecting a dependent calls switchProfile with its name',

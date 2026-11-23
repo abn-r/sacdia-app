@@ -92,7 +92,10 @@ void main() {
       expect(find.text('Pedro Pérez'), findsOneWidget);
       expect(find.text('Tú'), findsOneWidget);
       expect(find.text('Principal'), findsOneWidget);
-      expect(find.text('Consentimiento verificado'), findsOneWidget);
+      // Each guardian row says whose consent is verified.
+      expect(find.textContaining('Consentimiento verificado'), findsOneWidget);
+      // The consent of this minor is still missing its form.
+      expect(find.text('Falta la ficha firmada'), findsOneWidget);
     });
 
     testWidgets('pulling down refetches, so a verification shows up',
@@ -137,6 +140,19 @@ void main() {
             'Ficha firmada subida. Esperando la verificación del director.'),
         findsOneWidget,
       );
+    });
+
+    testWidgets('the consent panel opens every state in order', (tester) async {
+      repo.detail = Right(_detail(evidence: true));
+      await pump(tester);
+
+      expect(find.text('Ficha en revisión'), findsOneWidget);
+      await tester.tap(find.text('Ficha en revisión'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Subir la ficha firmada'), findsOneWidget);
+      expect(find.text('El director la revisa'), findsOneWidget);
+      expect(find.text('Consentimiento verificado'), findsOneWidget);
     });
 
     testWidgets('a verified consent says so', (tester) async {
@@ -226,7 +242,7 @@ void main() {
 
       final share =
           tester.widget<SacButton>(find.widgetWithText(SacButton, 'Compartir'));
-      expect(share.variant, SacButtonVariant.success);
+      expect(share.variant, SacButtonVariant.primary);
     });
 
     testWidgets('the guardian limit shows its own message', (tester) async {
@@ -443,7 +459,8 @@ void main() {
             'Ficha firmada subida. Esperando la verificación del director.'),
         findsOneWidget,
       );
-      expect(find.text('Consentimiento pendiente'), findsWidgets);
+      // The panel moves to "in review", never to verified.
+      expect(find.text('Ficha en revisión'), findsOneWidget);
       expect(find.text('Consentimiento verificado'), findsNothing);
     });
 
