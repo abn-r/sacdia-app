@@ -184,7 +184,7 @@
     "language_picker_title": "Language",
     "logout": "Sign out",
     "change_password": "Change password",
-    "member_qr": "My QR credential",
+    "member_qr": "My virtual card",
     "scan_qr": "Scan credential",
     "section_sync": "DATA ON THIS PHONE",
     "cache_size_label": "Size",
@@ -4581,7 +4581,7 @@
       "load_error": "Error loading profile",
       "load_profile_error": "Could not load profile",
       "settings_tooltip": "Settings",
-      "qr_tooltip": "My QR credential",
+      "qr_tooltip": "My virtual card",
       "section_progressive_classes": "Progressive Classes",
       "section_my_classes": "My Classes",
       "section_my_certifications": "My Certifications",
@@ -5416,12 +5416,8 @@
   },
   "virtual_card": {
     "title": "My virtual card",
-    "refresh": "Refresh card",
-    "show_fullscreen": "Show full screen",
     "retry": "Retry",
     "loading": "Loading credential",
-    "offline_banner": "Offline mode — cached data",
-    "inactive_message": "This credential is not active.",
     "load_error": "Could not load the credential",
     "qr_alt": "Credential QR code",
     "club_label": "Club",
@@ -5448,9 +5444,51 @@
       "load_failed": "We could not load your credential right now.",
       "rate_limited": "Too many requests. Please wait a moment before refreshing the credential again."
     },
-    "share_card": "Share credential",
-    "share_preparing": "Preparing…",
-    "share_error": "Could not prepare the credential for sharing."
+    "share_error": "Could not prepare the credential for sharing.",
+    "sections": {
+      "av": "Adventurers",
+      "cq": "Pathfinders",
+      "gm": "Master Guides"
+    },
+    "status_active": "Active",
+    "status_suspended": "Suspended",
+    "qr_hint": "Show this code to check in",
+    "qr_tap_renew": "Tap to get a new code",
+    "qr_not_available": "The code is not available",
+    "details_title": "Card details",
+    "field_club": "Club",
+    "field_local_field": "Conference",
+    "field_union": "Union",
+    "field_year": "Year",
+    "field_blood": "Blood type",
+    "states": {
+      "offline_title": "No connection",
+      "offline_message": "This is the saved version. The code still works until it expires.",
+      "expired_title": "The code expired",
+      "expired_message": "Pull down to get a new one.",
+      "suspended_title": "Card suspended",
+      "suspended_message": "Your membership is not active. Talk to your club director."
+    },
+    "share": {
+      "action": "Share card",
+      "title": "Share card",
+      "subtitle": "Whoever gets it will see your name, your club and a code that expires.",
+      "image": "As an image",
+      "image_hint": "PNG, for messages",
+      "pdf": "As a PDF",
+      "pdf_hint": "To print or send by email",
+      "subject": "SACDIA card",
+      "text": "My SACDIA card · {folio}"
+    },
+    "qr_screen": {
+      "live": "Valid",
+      "brightness_note": "Brightness is at maximum while you show the code.",
+      "save": "Save image",
+      "saving": "Saving…",
+      "saved": "Image saved to Photos",
+      "save_error": "The image could not be saved.",
+      "close": "Close"
+    }
   },
   "rankings": {
     "my_ranking": {

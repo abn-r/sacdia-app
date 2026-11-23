@@ -94,6 +94,22 @@ class CredencialViewModel {
     return [primary];
   }
 
+  /// Line under the name: the club and, after it, the current class (or the
+  /// role when there is no class), e.g. "Orión · Clase actual: Guía".
+  String identitySubtitle({
+    required String currentClassLabel,
+    required String sectionDisplayName,
+  }) {
+    final parts = <String>[
+      if (club.trim().isNotEmpty) club.trim(),
+      ...identityChipLabels(
+        currentClassLabel: currentClassLabel,
+        sectionDisplayName: sectionDisplayName,
+      ),
+    ];
+    return parts.join(' · ');
+  }
+
   bool get hasEmergencia =>
       emergenciaNombre.isNotEmpty && emergenciaTel.isNotEmpty;
 

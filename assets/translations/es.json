@@ -184,7 +184,7 @@
     "language_picker_title": "Idioma",
     "logout": "Cerrar sesión",
     "change_password": "Cambiar contraseña",
-    "member_qr": "Mi credencial QR",
+    "member_qr": "Mi credencial",
     "scan_qr": "Escanear credencial",
     "section_sync": "DATOS EN ESTE TELÉFONO",
     "cache_size_label": "Tamaño",
@@ -4581,7 +4581,7 @@
       "load_error": "Error al cargar el perfil",
       "load_profile_error": "No se pudo cargar el perfil",
       "settings_tooltip": "Ajustes",
-      "qr_tooltip": "Mi credencial QR",
+      "qr_tooltip": "Mi credencial",
       "section_progressive_classes": "Clases Progresivas",
       "section_my_classes": "Mis Clases",
       "section_my_certifications": "Mis Certificaciones",
@@ -5416,12 +5416,8 @@
   },
   "virtual_card": {
     "title": "Mi credencial",
-    "refresh": "Actualizar tarjeta",
-    "show_fullscreen": "Mostrar en grande",
     "retry": "Reintentar",
     "loading": "Cargando credencial",
-    "offline_banner": "Modo sin conexión — datos en caché",
-    "inactive_message": "Esta credencial no está activa. Comunícate con tu director.",
     "load_error": "No se pudo cargar la credencial",
     "qr_alt": "Código QR de la credencial",
     "club_label": "Club",
@@ -5448,9 +5444,51 @@
       "load_failed": "No pudimos cargar tu credencial por ahora.",
       "rate_limited": "Demasiadas solicitudes. Espera un momento antes de volver a actualizar la credencial."
     },
-    "share_card": "Compartir credencial",
-    "share_preparing": "Preparando…",
-    "share_error": "No se pudo preparar la credencial para compartir."
+    "share_error": "No se pudo preparar la credencial para compartir.",
+    "sections": {
+      "av": "Aventureros",
+      "cq": "Conquistadores",
+      "gm": "Guías Mayores"
+    },
+    "status_active": "Activa",
+    "status_suspended": "Suspendida",
+    "qr_hint": "Muestra este código para registrar tu asistencia",
+    "qr_tap_renew": "Toca para generar un código nuevo",
+    "qr_not_available": "El código no está disponible",
+    "details_title": "Datos de la credencial",
+    "field_club": "Club",
+    "field_local_field": "Campo",
+    "field_union": "Unión",
+    "field_year": "Año",
+    "field_blood": "Tipo de sangre",
+    "states": {
+      "offline_title": "Sin conexión",
+      "offline_message": "Es la versión guardada. El código sigue sirviendo mientras no venza.",
+      "expired_title": "El código venció",
+      "expired_message": "Desliza hacia abajo para generar uno nuevo.",
+      "suspended_title": "Credencial suspendida",
+      "suspended_message": "Tu membresía no está activa. Habla con el director de tu club."
+    },
+    "share": {
+      "action": "Compartir credencial",
+      "title": "Compartir credencial",
+      "subtitle": "Quien la reciba verá tu nombre, tu club y un código que vence.",
+      "image": "Como imagen",
+      "image_hint": "PNG, para mensajes",
+      "pdf": "Como PDF",
+      "pdf_hint": "Para imprimir o enviar por correo",
+      "subject": "Credencial SACDIA",
+      "text": "Mi credencial SACDIA · {folio}"
+    },
+    "qr_screen": {
+      "live": "Vigente",
+      "brightness_note": "El brillo está al máximo mientras ves el código.",
+      "save": "Guardar imagen",
+      "saving": "Guardando…",
+      "saved": "Imagen guardada en Fotos",
+      "save_error": "No se pudo guardar la imagen.",
+      "close": "Cerrar"
+    }
   },
   "rankings": {
     "my_ranking": {
