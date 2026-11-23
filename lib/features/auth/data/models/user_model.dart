@@ -348,6 +348,9 @@ class UserModel extends UserEntity {
     final rawClubName = club is Map<String, dynamic>
         ? club['club_name']?.toString().trim()
         : null;
+    final scope = value['scope'];
+    final localField =
+        scope is Map<String, dynamic> ? scope['local_field'] : null;
 
     return AuthorizationGrant(
       assignmentId: value['assignment_id']?.toString(),
@@ -366,6 +369,12 @@ class UserModel extends UserEntity {
           : null,
       clubTypeId: int.tryParse(rawClubTypeId?.toString() ?? ''),
       clubTypeName: rawClubTypeName?.toString(),
+      localFieldId: localField is Map<String, dynamic>
+          ? int.tryParse(localField['id']?.toString() ?? '')
+          : null,
+      localFieldName: localField is Map<String, dynamic>
+          ? localField['name']?.toString()
+          : null,
       status: value['status']?.toString(),
       expiresAt: _parseDateTime(value['expires_at']),
       rejectionReason: value['rejection_reason']?.toString(),
@@ -449,6 +458,13 @@ class UserModel extends UserEntity {
           },
           'club_type_id': grant.clubTypeId,
           'club_type_name': grant.clubTypeName,
+          if (grant.localFieldId != null)
+            'scope': {
+              'local_field': {
+                'id': grant.localFieldId,
+                'name': grant.localFieldName,
+              },
+            },
           'status': grant.status,
           'expires_at': grant.expiresAt?.toIso8601String(),
           'rejection_reason': grant.rejectionReason,

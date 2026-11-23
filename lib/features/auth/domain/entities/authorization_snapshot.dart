@@ -16,6 +16,10 @@ class AuthorizationGrant extends Equatable {
   /// Populated from `club_type_name` in the backend grant response.
   final String? clubTypeName;
 
+  /// Local field of the club (`scope.local_field` in the grant response).
+  final int? localFieldId;
+  final String? localFieldName;
+
   /// Membership status: pending, active, rejected, expired, inactive, designated, ended.
   final String? status;
 
@@ -34,6 +38,8 @@ class AuthorizationGrant extends Equatable {
     this.clubTypeId,
     this.clubName,
     this.clubTypeName,
+    this.localFieldId,
+    this.localFieldName,
     this.status,
     this.expiresAt,
     this.rejectionReason,
@@ -66,6 +72,8 @@ class AuthorizationGrant extends Equatable {
         clubTypeId,
         clubName,
         clubTypeName,
+        localFieldId,
+        localFieldName,
         status,
         expiresAt,
         rejectionReason,
