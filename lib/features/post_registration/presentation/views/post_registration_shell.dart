@@ -11,6 +11,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
+import 'package:sacdia_app/features/auth/domain/entities/onboarding_mode.dart';
 import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
@@ -116,7 +117,12 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
       return;
     }
 
-    final step = status.isComplete ? 2 : status.currentStep;
+    // Una cuenta `club_exempt` solo tiene 2 pasos: nunca se abre el 3.
+    final totalSteps = _totalStepsFor(ref.read(authNotifierProvider).value);
+    final step = (status.isComplete ? 2 : status.currentStep).clamp(
+      1,
+      totalSteps,
+    );
     _currentStep = step;
     ref.read(currentStepProvider.notifier).state = step;
 
@@ -124,6 +130,11 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     _pageController = PageController(initialPage: step - 1);
     setState(() => _statusLoaded = true);
   }
+
+  /// Pasos del flujo según el modo que declaró el servidor: 2 para una cuenta
+  /// sin club por diseño (`club_exempt`), 3 en cualquier otro caso.
+  static int _totalStepsFor(UserEntity? user) =>
+      user?.onboardingMode == OnboardingMode.clubExempt ? 2 : 3;
 
   void _retryLoad() {
     setState(() => _loadError = null);
@@ -234,6 +245,26 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
             context,
             tr('post_registration.shell.error_step_failed'),
           );
+          return;
+        }
+        if (user?.onboardingMode == OnboardingMode.clubExempt) {
+          // Último paso de una cuenta sin club: el servidor es quien marca el
+          // post-registro como completo; la app solo lo confirma con el
+          // usuario refrescado y nunca lo calcula.
+          final current = fresh ?? ref.read(authNotifierProvider).value;
+          if (current != null &&
+              current.onboardingMode == OnboardingMode.clubExempt &&
+              current.postRegisterComplete) {
+            ref
+                .read(authNotifierProvider.notifier)
+                .markPostRegisterComplete(forUserId: userId);
+            context.go(RouteNames.homeDashboard);
+          } else {
+            SacSnackBar.show(
+              context,
+              tr('post_registration.shell.error_step_failed'),
+            );
+          }
           return;
         }
         _goToStep(3);
@@ -397,6 +428,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
       authUser,
       acting: ref.watch(actingDependentProvider) != null,
     );
+    final totalSteps = _totalStepsFor(authUser);
     final selectedPhoto = ref.watch(selectedPhotoPathProvider);
     final isUploading = ref.watch(isUploadingPhotoProvider);
     final isSavingStep3 = ref.watch(isSavingStep3Provider);
@@ -501,7 +533,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
                           tr('post_registration.shell.step_counter',
                               namedArgs: {
                                 'current': '$currentStep',
-                                'total': '3'
+                                'total': '$totalSteps'
                               }),
                           style: TextStyle(
                             fontSize: SacFontSize.bodyMedium,
@@ -522,7 +554,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
               animate: true,
               initialDelay: const Duration(milliseconds: 60),
               child: StepIndicator(
-                totalSteps: 3,
+                totalSteps: totalSteps,
                 currentStep: currentStep,
               ),
             ),
@@ -546,7 +578,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
                         canManageStep2AdministrativeCompletion,
                     targetUserId: targetUserId,
                   ),
-                  const ClubSelectionStepView(),
+                  if (totalSteps > 2) const ClubSelectionStepView(),
                 ],
               ),
             ),
@@ -557,7 +589,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
       // Bottom nav buttons
       bottomNavigationBar: BottomNavigationButtons(
         currentStep: currentStep,
-        totalSteps: 3,
+        totalSteps: totalSteps,
         canContinue: canContinue,
         isLoading: isUploading || isSavingStep3 || _isCompletingStep,
         onBack: _onBack,
