@@ -9,6 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/sac_frosted_footer.dart';
 import '../../../../core/widgets/sac_legal_consent.dart';
 import '../../../../core/widgets/sac_picker_field.dart';
 import '../../../../core/widgets/sac_text_field.dart';
@@ -181,123 +182,155 @@ class _AddDependentViewState extends ConsumerState<AddDependentView> {
         backgroundColor: c.background,
         foregroundColor: c.text,
       ),
-      // El inset inferior (home indicator, barra de gestos) se suma de forma
-      // explícita al margen del último control, como en las demás pantallas con
-      // acción al pie (`12 + MediaQuery.padding.bottom`); `SafeArea` solo cuida
-      // los laterales.
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(
-            hPad,
-            8,
-            hPad,
-            24 + MediaQuery.paddingOf(context).bottom,
-          ),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'family.add.intro'.tr(),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: c.textSecondary,
+      // The action stays fixed at the bottom (above the keyboard too): the
+      // body is a column with the scrolling form and the frosted footer.
+      body: Column(
+        children: [
+          Expanded(
+            child: SafeArea(
+              top: false,
+              bottom: false,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'family.add.intro'.tr(),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: c.textSecondary,
+                            ),
                       ),
-                ),
-                const SizedBox(height: 20),
-                SacTextField(
-                  controller: _nameController,
-                  label: 'family.add.name'.tr(),
-                  keyboardType: TextInputType.name,
-                  textCapitalization: TextCapitalization.words,
-                  prefixIcon: HugeIcons.strokeRoundedUser,
-                  validator: _required,
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: 16),
-                SacTextField(
-                  controller: _paternalController,
-                  label: 'family.add.paternal'.tr(),
-                  keyboardType: TextInputType.name,
-                  textCapitalization: TextCapitalization.words,
-                  prefixIcon: HugeIcons.strokeRoundedUser,
-                  validator: _required,
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: 16),
-                SacTextField(
-                  controller: _maternalController,
-                  label: 'family.add.maternal'.tr(),
-                  keyboardType: TextInputType.name,
-                  textCapitalization: TextCapitalization.words,
-                  prefixIcon: HugeIcons.strokeRoundedUser,
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: 16),
-                SacPickerField(
-                  label: 'family.add.birthday'.tr(),
-                  hint: 'family.add.birthday_hint'.tr(),
-                  icon: HugeIcons.strokeRoundedCalendar03,
-                  selectedName: birthdayLabel,
-                  errorText: _showBirthdayError
-                      ? 'family.add.birthday_required'.tr()
-                      : null,
-                  onTap: _pickBirthday,
-                ),
-                const SizedBox(height: 16),
-                relationshipTypes.when(
-                  loading: () => const LinearProgressIndicator(),
-                  error: (_, __) => Text(
-                    'family.add.relationship_error'.tr(),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.error,
+                      const SizedBox(height: 20),
+                      SacTextField(
+                        controller: _nameController,
+                        label: 'family.add.name'.tr(),
+                        keyboardType: TextInputType.name,
+                        textCapitalization: TextCapitalization.words,
+                        prefixIcon: HugeIcons.strokeRoundedUser,
+                        validator: _required,
+                        textInputAction: TextInputAction.next,
+                      ),
+                      const SizedBox(height: 16),
+                      SacTextField(
+                        controller: _paternalController,
+                        label: 'family.add.paternal'.tr(),
+                        keyboardType: TextInputType.name,
+                        textCapitalization: TextCapitalization.words,
+                        prefixIcon: HugeIcons.strokeRoundedUser,
+                        validator: _required,
+                        textInputAction: TextInputAction.next,
+                      ),
+                      const SizedBox(height: 16),
+                      SacTextField(
+                        controller: _maternalController,
+                        label: 'family.add.maternal'.tr(),
+                        keyboardType: TextInputType.name,
+                        textCapitalization: TextCapitalization.words,
+                        prefixIcon: HugeIcons.strokeRoundedUser,
+                        textInputAction: TextInputAction.next,
+                      ),
+                      const SizedBox(height: 16),
+                      SacPickerField(
+                        label: 'family.add.birthday'.tr(),
+                        hint: 'family.add.birthday_hint'.tr(),
+                        icon: HugeIcons.strokeRoundedCalendar03,
+                        selectedName: birthdayLabel,
+                        errorText: _showBirthdayError
+                            ? 'family.add.birthday_required'.tr()
+                            : null,
+                        onTap: _pickBirthday,
+                      ),
+                      const SizedBox(height: 16),
+                      relationshipTypes.when(
+                        loading: () => const LinearProgressIndicator(),
+                        error: (_, __) => Text(
+                          'family.add.relationship_error'.tr(),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.error,
+                                  ),
                         ),
-                  ),
-                  data: (types) => RelationshipTypePickerField(
-                    selectedId: _relationshipTypeId,
-                    relationshipTypes: types,
-                    label: 'family.add.relationship'.tr(),
-                    placeholder: 'family.add.relationship_hint'.tr(),
-                    errorText: 'family.add.relationship_required'.tr(),
-                    onSelected: (id) =>
-                        setState(() => _relationshipTypeId = id),
+                        data: (types) => RelationshipTypePickerField(
+                          selectedId: _relationshipTypeId,
+                          relationshipTypes: types,
+                          label: 'family.add.relationship'.tr(),
+                          placeholder: 'family.add.relationship_hint'.tr(),
+                          errorText: 'family.add.relationship_required'.tr(),
+                          onSelected: (id) =>
+                              setState(() => _relationshipTypeId = id),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      _DeclarationsBox(
+                        children: [
+                          _CheckRow(
+                            value: _swornDeclaration,
+                            label: 'family.add.sworn'.tr(),
+                            onChanged: (v) =>
+                                setState(() => _swornDeclaration = v),
+                          ),
+                          if (legal != null)
+                            SacLegalConsentCheckbox(
+                              value: _acceptedLegal,
+                              onChanged: (v) =>
+                                  setState(() => _acceptedLegal = v),
+                              termsUrl: legal.termsUrl,
+                              privacyUrl: legal.privacyUrl,
+                              prefixKey: 'family.add.legal_prefix',
+                            )
+                          else if (!legalAsync.isLoading)
+                            _LegalLoadFailed(
+                              onRetry: () =>
+                                  ref.invalidate(currentLegalDocumentsProvider),
+                            ),
+                        ],
+                      ),
+                      if (error != null) ...[
+                        const SizedBox(height: 12),
+                        _ErrorBox(error: error),
+                      ],
+                    ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                _CheckRow(
-                  value: _swornDeclaration,
-                  label: 'family.add.sworn'.tr(),
-                  onChanged: (v) => setState(() => _swornDeclaration = v),
-                ),
-                if (legal != null)
-                  SacLegalConsentCheckbox(
-                    value: _acceptedLegal,
-                    onChanged: (v) => setState(() => _acceptedLegal = v),
-                    termsUrl: legal.termsUrl,
-                    privacyUrl: legal.privacyUrl,
-                    prefixKey: 'family.add.legal_prefix',
-                  )
-                else if (!legalAsync.isLoading)
-                  _LegalLoadFailed(
-                    onRetry: () =>
-                        ref.invalidate(currentLegalDocumentsProvider),
-                  ),
-                if (error != null) ...[
-                  const SizedBox(height: 12),
-                  _ErrorBox(error: error),
-                ],
-                const SizedBox(height: 20),
-                SacButton.primary(
-                  text: 'family.add.submit'.tr(),
-                  isLoading: _submitting,
-                  onPressed: canSubmit ? () => _submit(legal) : null,
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+          SacFrostedFooter(
+            child: SacButton.primary(
+              key: const ValueKey('family-add-submit'),
+              text: 'family.add.submit'.tr(),
+              isLoading: _submitting,
+              onPressed: canSubmit ? () => _submit(legal) : null,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The sworn declaration and the legal acceptance, together in one box.
+class _DeclarationsBox extends StatelessWidget {
+  const _DeclarationsBox({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+        border: Border.all(color: c.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children,
       ),
     );
   }

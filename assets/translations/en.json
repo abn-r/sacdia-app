@@ -6872,7 +6872,21 @@
     },
     "consent": {
       "pending": "Consent pending",
-      "verified": "Consent verified"
+      "verified": "Consent verified",
+      "missing": "Signed form missing",
+      "in_review": "Form in review",
+      "step": "Step {step} of {total} · See every state",
+      "all_states": "Shows every state",
+      "sheet_title": "Consent",
+      "sheet_subtitle": "This is how we confirm you are their guardian.",
+      "state_upload": "Upload the signed form",
+      "state_upload_detail": "Photo or PDF of the club's form with your signature.",
+      "state_review": "The director reviews it",
+      "state_review_detail": "We let you know when it is verified.",
+      "state_verified_detail": "You can now give them their own login and link their phone.",
+      "kind_done": "Done",
+      "kind_current": "Current step",
+      "kind_pending": "Pending"
     },
     "club": {
       "none": "No club",
@@ -6897,7 +6911,7 @@
       "generic": "Something went wrong. Please try again."
     },
     "add": {
-      "title": "Add a minor",
+      "title": "Register a minor",
       "intro": "Register the minor in your care. You'll then complete their profile for them.",
       "name": "First name(s)",
       "paternal": "Paternal last name",
@@ -6945,7 +6959,8 @@
       "form_title": "Consent form",
       "form_hint": "Print and sign the club form, then upload it here as a photo or PDF. The club director will verify it.",
       "form_view": "View uploaded form",
-      "form_uploaded_toast": "Form uploaded. Waiting for the director's verification."
+      "form_uploaded_toast": "Form uploaded. Waiting for the director's verification.",
+      "code_subtitle": "Whoever gets it enters it in My family → I have a code."
     },
     "outcome": {
       "other_guardian": "Another guardian will remain in charge of {name}.",
@@ -7130,6 +7145,19 @@
       "released_person": "Released person",
       "released_on": "Released on {date}",
       "generate_code": "Generate access code"
+    },
+    "add_group": "Add",
+    "frozen_short": "No guardian or club",
+    "row": {
+      "form_missing": "Signed form missing",
+      "form_in_review": "Form in review"
+    },
+    "todo": {
+      "form_title": "{name}'s form is missing",
+      "form_message": "Upload it signed so the director can verify your consent.",
+      "forms_title": "{count} signed forms are missing",
+      "forms_message": "Upload them from each minor's profile.",
+      "open": "Open {name}'s profile"
     }
   },
   "restricted_account": {

@@ -11,6 +11,7 @@ import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/sac_frosted_footer.dart';
 import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../profile/presentation/views/edit_profile_view.dart';
@@ -106,8 +107,7 @@ class _RedeemLinkCodeViewState extends ConsumerState<RedeemLinkCodeView> {
         foregroundColor: c.text,
       ),
       // The action stays in the thumb zone while the form scrolls.
-      bottomNavigationBar: SafeArea(
-        minimum: EdgeInsets.fromLTRB(hPad, 8, hPad, 12),
+      bottomNavigationBar: SacFrostedFooter(
         child: SacButton.primary(
           key: const ValueKey('family-link-submit'),
           text: 'family.link.submit'.tr(),
@@ -239,12 +239,10 @@ class _RedeemLinkCodeViewState extends ConsumerState<RedeemLinkCodeView> {
                 const SizedBox(height: 20),
                 // The whole card toggles the declaration.
                 Material(
-                  color: _swornDeclaration ? accent.surface : c.surface,
+                  color: c.surface,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-                    side: BorderSide(
-                      color: _swornDeclaration ? accent.color : c.border,
-                    ),
+                    side: BorderSide(color: c.border),
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: CheckboxListTile(

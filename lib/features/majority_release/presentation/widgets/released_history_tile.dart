@@ -5,8 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/route_names.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/widgets/sac_card.dart';
 import '../../../../core/widgets/sac_pressable.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 
@@ -28,48 +29,76 @@ class ReleasedHistoryTile extends ConsumerWidget {
     if (!enabled) return const SizedBox.shrink();
 
     final c = context.sac;
-    final textTheme = Theme.of(context).textTheme;
+    final accent = SacAccent.of(context);
+    // One-row group, like the rest of Mi familia.
     return Padding(
-      padding: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
       child: Semantics(
         button: true,
         label: 'family.history.entry_title'.tr(),
-        child: SacPressable(
-          onTap: () => context.push(RouteNames.familyReleased),
-          child: SacCard(
-            key: const ValueKey('family_released_history_entry'),
-            child: Row(
-              children: [
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedTime04,
-                  size: 22,
-                  color: c.textSecondary,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'family.history.entry_title'.tr(),
-                        style: textTheme.titleSmall
-                            ?.copyWith(fontWeight: FontWeight.w600),
+        excludeSemantics: true,
+        child: Container(
+          key: const ValueKey('family_released_history_entry'),
+          decoration: BoxDecoration(
+            color: c.surface,
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+            border: Border.all(color: c.border),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: SacInkWell(
+            onTap: () => context.push(RouteNames.familyReleased),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 60),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: accent.light,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'family.history.entry_subtitle'.tr(),
-                        style: textTheme.bodySmall
-                            ?.copyWith(color: c.textSecondary),
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedTime04,
+                        size: 19,
+                        color: accent.color,
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'family.history.entry_title'.tr(),
+                            style: TextStyle(
+                              fontSize: SacFontSize.titleMedium,
+                              fontWeight: FontWeight.w600,
+                              color: c.text,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'family.history.entry_subtitle'.tr(),
+                            style: TextStyle(
+                              fontSize: SacFontSize.bodyMedium,
+                              color: c.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowRight01,
+                      size: 18,
+                      color: c.textTertiary,
+                    ),
+                  ],
                 ),
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowRight01,
-                  size: 18,
-                  color: c.textTertiary,
-                ),
-              ],
+              ),
             ),
           ),
         ),

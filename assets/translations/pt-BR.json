@@ -6870,7 +6870,21 @@
     },
     "consent": {
       "pending": "Consentimento pendente",
-      "verified": "Consentimento verificado"
+      "verified": "Consentimento verificado",
+      "missing": "Falta a ficha assinada",
+      "in_review": "Ficha em revisão",
+      "step": "Passo {step} de {total} · Ver todos os estados",
+      "all_states": "Mostra todos os estados",
+      "sheet_title": "Consentimento",
+      "sheet_subtitle": "É assim que confirmamos que você é o tutor.",
+      "state_upload": "Enviar a ficha assinada",
+      "state_upload_detail": "Foto ou PDF da ficha do clube com sua assinatura.",
+      "state_review": "O diretor a revisa",
+      "state_review_detail": "Avisamos quando for verificada.",
+      "state_verified_detail": "Agora você pode dar acesso próprio e vincular o telefone.",
+      "kind_done": "Feito",
+      "kind_current": "Passo atual",
+      "kind_pending": "Pendente"
     },
     "club": {
       "none": "Sem clube",
@@ -6895,7 +6909,7 @@
       "generic": "Algo deu errado. Tente novamente."
     },
     "add": {
-      "title": "Adicionar menor",
+      "title": "Cadastrar um menor",
       "intro": "Cadastre o menor sob seus cuidados. Depois você completará o perfil dele por ele.",
       "name": "Nome(s)",
       "paternal": "Sobrenome paterno",
@@ -6943,7 +6957,8 @@
       "form_title": "Ficha de consentimento",
       "form_hint": "Imprima e assine a ficha do clube; depois envie aqui como foto ou PDF. O diretor do clube a verificará.",
       "form_view": "Ver ficha enviada",
-      "form_uploaded_toast": "Ficha enviada. Aguardando a verificação do diretor."
+      "form_uploaded_toast": "Ficha enviada. Aguardando a verificação do diretor.",
+      "code_subtitle": "Quem receber digita em Minha família → Tenho um código."
     },
     "outcome": {
       "other_guardian": "Outro responsável continuará cuidando de {name}.",
@@ -7128,6 +7143,19 @@
       "released_person": "Pessoa liberada",
       "released_on": "Liberado em {date}",
       "generate_code": "Gerar código de acesso"
+    },
+    "add_group": "Adicionar",
+    "frozen_short": "Sem tutor nem clube",
+    "row": {
+      "form_missing": "Falta a ficha assinada",
+      "form_in_review": "Ficha em revisão"
+    },
+    "todo": {
+      "form_title": "Falta a ficha de {name}",
+      "form_message": "Envie-a assinada para que o diretor verifique seu consentimento.",
+      "forms_title": "Faltam {count} fichas assinadas",
+      "forms_message": "Envie-as pelo perfil de cada menor.",
+      "open": "Abrir o perfil de {name}"
     }
   },
   "restricted_account": {
