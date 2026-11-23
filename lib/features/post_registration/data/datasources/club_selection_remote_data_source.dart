@@ -11,6 +11,9 @@ import '../models/club_model.dart';
 import '../models/club_section_model.dart';
 import '../models/class_model.dart';
 
+/// Upper bound of pages read from `GET /clubs` (100 clubs each).
+const _maxClubPages = 10;
+
 /// Interfaz para la fuente de datos remota de selección de club
 abstract class ClubSelectionRemoteDataSource {
   Future<List<CountryModel>> getCountries({CancelToken? cancelToken});
@@ -149,20 +152,32 @@ class ClubSelectionRemoteDataSourceImpl
     CancelToken? cancelToken,
   }) async {
     try {
-      final response = await _dio.get(
-        '$_baseUrl${ApiEndpoints.clubs}',
-        queryParameters: {'localFieldId': localFieldId},
-        cancelToken: cancelToken,
-      );
+      // The list is paginated (20 per page by default, 100 at most): read
+      // every page, or a local field with more clubs would lose the rest.
+      final clubs = <ClubModel>[];
+      for (var page = 1; page <= _maxClubPages; page++) {
+        final response = await _dio.get(
+          '$_baseUrl${ApiEndpoints.clubs}',
+          queryParameters: {
+            'localFieldId': localFieldId,
+            'limit': 100,
+            'page': page,
+          },
+          cancelToken: cancelToken,
+        );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.statusCode != 200 && response.statusCode != 201) {
+          throw ServerException(
+            message: tr('post_registration.club_selection.errors.fetch_clubs'),
+          );
+        }
         final responseBody = response.data as Map<String, dynamic>;
         final List<dynamic> data = responseBody['data'] as List<dynamic>;
-        return data.map((json) => ClubModel.fromJson(json)).toList();
+        clubs.addAll(data.map((json) => ClubModel.fromJson(json)));
+        final meta = responseBody['meta'];
+        if (meta is! Map || meta['hasNextPage'] != true) break;
       }
-
-      throw ServerException(
-          message: tr('post_registration.club_selection.errors.fetch_clubs'));
+      return clubs;
     } catch (e) {
       AppLogger.e('Error en getClubsByLocalField', tag: _tag, error: e);
       if (e is DioException) {
