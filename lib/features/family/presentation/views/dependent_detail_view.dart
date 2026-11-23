@@ -539,29 +539,23 @@ class _Body extends StatelessWidget {
                 onView: onViewForm,
               ),
             ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(hPad, 24, hPad, 0),
-            child: AccessSection(
-              summary: summary,
-              teenLoginEnabled: teenLoginEnabled,
-              busy: busy,
-              onEnable: onEnableAccess,
-              onDisable: onDisableAccess,
-              onReactivate: onReactivateAccess,
-              onResetPassword: onResetPassword,
-              onOpenSummary: onOpenSummary,
-              onCopyHandle: onCopyHandle,
-            ),
+          AccessSection(
+            summary: summary,
+            teenLoginEnabled: teenLoginEnabled,
+            busy: busy,
+            onEnable: onEnableAccess,
+            onDisable: onDisableAccess,
+            onReactivate: onReactivateAccess,
+            onResetPassword: onResetPassword,
+            onOpenSummary: onOpenSummary,
+            onCopyHandle: onCopyHandle,
           ),
         ],
         if (shouldShowDevicesSection(
           summary,
           featureEnabled: linkedDeviceEnabled,
         ))
-          Padding(
-            padding: EdgeInsets.fromLTRB(hPad, 24, hPad, 0),
-            child: DevicesSection(summary: summary, onPair: onPairDevice),
-          ),
+          DevicesSection(summary: summary, onPair: onPairDevice),
         SacGroupedSection(
           label: 'family.detail.guardians'.tr(),
           count: detail.guardians.length,

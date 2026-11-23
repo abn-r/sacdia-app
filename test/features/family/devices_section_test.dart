@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/core/widgets/sac_list_row.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/family/data/models/dependent_models.dart';
@@ -191,8 +191,8 @@ void main() {
 
       expect(find.byKey(const ValueKey('devices_limit_hint')), findsOneWidget);
       expect(find.textContaining('el máximo'), findsOneWidget);
-      final button = tester.widget<SacButton>(pairButton);
-      expect(button.onPressed, isNull, reason: 'no room for another phone');
+      final row = tester.widget<SacListRow>(pairButton);
+      expect(row.enabled, isFalse, reason: 'no room for another phone');
     });
 
     testWidgets('revoked phones are shown as history, without a revoke button',
@@ -204,7 +204,7 @@ void main() {
       ]));
       await pump(tester, detail: _detail(devices: 1));
 
-      expect(find.text('Desvinculados recientemente'), findsOneWidget);
+      expect(find.text('DESVINCULADOS RECIENTEMENTE'), findsOneWidget);
       expect(find.text('Vieja'), findsOneWidget);
       expect(find.byKey(const ValueKey('device_revoke_d9')), findsNothing);
       expect(find.byKey(const ValueKey('device_revoke_d1')), findsOneWidget);

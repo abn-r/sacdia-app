@@ -7079,7 +7079,7 @@
       "enable": "Lui donner son propre accès",
       "enable_hint": "{name} pourra se connecter avec son propre nom d'utilisateur ou e-mail. Vous cesserez d'agir pour {name}.",
       "not_yet": "{name} pourra avoir son propre accès à partir de l'âge minimum.",
-      "summary": "Voir le résumé",
+      "summary": "Résumé d’activité",
       "disable": "Désactiver l'accès",
       "disable_title": "Désactiver l'accès de {name} ?",
       "disable_body": "{name} ne pourra plus se connecter et sa session se fermera immédiatement. Vous pourrez réactiver l'accès quand vous voulez tant qu'il est mineur.",
@@ -7098,7 +7098,9 @@
       "reset_confirm": "Réinitialiser",
       "reset_toast": "Mot de passe réinitialisé. Sessions fermées : {count}.",
       "reset_toast_email": "Sessions fermées : {count}. Nous avons envoyé l'e-mail de réinitialisation à {name}.",
-      "new_password": "Nouveau mot de passe"
+      "new_password": "Nouveau mot de passe",
+      "own_title": "Accès personnel",
+      "none": "Pas d’accès personnel"
     },
     "summary": {
       "title": "Résumé de {name}",

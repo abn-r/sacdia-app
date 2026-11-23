@@ -4,6 +4,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/core/widgets/sac_list_row.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
@@ -115,7 +116,7 @@ void main() {
   }
 
   group('guardian without verified consent', () {
-    testWidgets('sees only the explanation: no actions, no summary',
+    testWidgets('sees the rows off with the reason: no actions, no summary',
         (tester) async {
       repo.detail = Right(_detail(consent: 'pending'));
       await pump(tester);
@@ -123,7 +124,14 @@ void main() {
       expect(find.byKey(const ValueKey('access_pending_guardian')),
           findsOneWidget);
       expect(find.text('Darle acceso propio'), findsNothing);
-      expect(find.text('Ver resumen'), findsNothing);
+      // The summary row shows, off: tapping it opens nothing.
+      expect(find.byKey(const ValueKey('access_summary')), findsNothing);
+      final summaryRow = tester.widget<SacListRow>(find.ancestor(
+        of: find.text('Resumen de actividad'),
+        matching: find.byType(SacListRow),
+      ));
+      expect(summaryRow.enabled, isFalse);
+      expect(summaryRow.onTap, isNull);
       expect(find.text('Desactivar acceso'), findsNothing);
       expect(find.text('Restablecer contraseña'), findsNothing);
       // Lo único que sí puede: subir el formulario firmado.
@@ -202,7 +210,7 @@ void main() {
 
       expect(find.text('Darle acceso propio'), findsNothing);
       // El resumen no depende de la bandera.
-      expect(find.text('Ver resumen'), findsOneWidget);
+      expect(find.text('Resumen de actividad'), findsOneWidget);
     });
 
     testWidgets('an unknown flag state (offline restore) also hides it',
@@ -220,7 +228,7 @@ void main() {
       repo.detail = Right(_detail());
       final router = await pump(tester);
 
-      await tapText(tester, 'Ver resumen');
+      await tapText(tester, 'Resumen de actividad');
 
       expect(
         router.routerDelegate.currentConfiguration.last.matchedLocation,
@@ -253,7 +261,7 @@ void main() {
       expect(find.text('ana-7kq4m9'), findsOneWidget);
       expect(find.text('Restablecer contraseña'), findsOneWidget);
       expect(find.text('Desactivar acceso'), findsOneWidget);
-      expect(find.text('Ver resumen'), findsOneWidget);
+      expect(find.text('Resumen de actividad'), findsOneWidget);
       // Ya no se actúa por él.
       expect(find.text('Ver como Ana'), findsNothing);
       expect(find.text('Darle acceso propio'), findsNothing);
@@ -390,7 +398,7 @@ void main() {
 
       expect(find.text('Desactivar acceso'), findsNothing);
       expect(find.text('Restablecer contraseña'), findsNothing);
-      expect(find.text('Ver resumen'), findsOneWidget);
+      expect(find.text('Resumen de actividad'), findsOneWidget);
     });
   });
 

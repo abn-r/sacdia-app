@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_list_row.dart';
 import '../../domain/entities/dependent.dart';
@@ -71,6 +72,28 @@ class DependentRow extends StatelessWidget {
         ],
       ],
       onTap: onTap,
+    );
+  }
+}
+
+/// One line under a group: why its rows are off, or what they are for.
+class FamilyFootnote extends StatelessWidget {
+  const FamilyFootnote({super.key, required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: SacFontSize.bodyMedium,
+          height: 1.4,
+          color: context.sac.textSecondary,
+        ),
+      ),
     );
   }
 }
