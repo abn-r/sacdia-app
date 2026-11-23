@@ -27,6 +27,7 @@ import '../../domain/entities/onboarding_mode.dart';
 import '../../domain/entities/principal_info.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../domain/utils/authorization_utils.dart';
 import '../../domain/utils/registration_age_gate.dart';
 import '../../domain/usecases/get_current_user.dart';
 import '../../domain/usecases/reset_password_request.dart';
@@ -192,13 +193,16 @@ enum SwitchProfileOutcome {
 /// Notifier para manejar la autenticación y sus estados
 /// ¿Ya se puede pedir el permiso de notificaciones para [user]?
 ///
-/// Solo cuando terminó el post-registro y aceptó los documentos legales: antes
-/// el aviso del sistema tapaba el registro. Un teléfono vinculado no tiene
-/// post-registro de cuenta, así que siempre está listo.
+/// Solo cuando ya no necesita el post-registro y aceptó los documentos legales:
+/// antes el aviso del sistema tapaba el registro. Se usa
+/// [userNeedsPostRegistration] y no `postRegisterComplete` porque una cuenta
+/// `panel_only` nunca lo completa y aun así recibe avisos (familia, seguridad).
+/// Un teléfono vinculado no tiene post-registro de cuenta, así que siempre
+/// está listo.
 @visibleForTesting
 bool pushReadyFor(UserEntity user) {
   if (user.isLinkedDevice) return true;
-  return user.postRegisterComplete && !user.legalAcceptancePending;
+  return !userNeedsPostRegistration(user) && !user.legalAcceptancePending;
 }
 
 class AuthNotifier extends AsyncNotifier<UserEntity?> {

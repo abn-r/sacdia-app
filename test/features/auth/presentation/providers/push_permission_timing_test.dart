@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/notifications/push_notification_provider.dart';
+import 'package:sacdia_app/features/auth/domain/entities/onboarding_mode.dart';
 import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
@@ -38,6 +39,57 @@ void main() {
         pushReadyFor(const UserEntity(id: 'u', postRegisterComplete: true)),
         isTrue,
       );
+    });
+
+    for (final mode in OnboardingMode.values) {
+      for (final complete in [true, false]) {
+        for (final legalPending in [true, false]) {
+          // Una cuenta de solo panel nunca completa el post-registro: está
+          // lista aunque la bandera siga en falso.
+          final needsRegistration =
+              mode != OnboardingMode.panelOnly && !complete;
+          final expected = !needsRegistration && !legalPending;
+          test(
+              '${mode.name} complete=$complete legalPending=$legalPending '
+              '-> $expected', () {
+            expect(
+              pushReadyFor(UserEntity(
+                id: 'u',
+                onboardingMode: mode,
+                postRegisterComplete: complete,
+                legalAcceptancePending: legalPending,
+              )),
+              expected,
+            );
+          });
+        }
+      }
+    }
+
+    test('a panel-only account with legal documents pending is not ready', () {
+      expect(
+        pushReadyFor(const UserEntity(
+          id: 'u',
+          onboardingMode: OnboardingMode.panelOnly,
+          legalAcceptancePending: true,
+        )),
+        isFalse,
+      );
+    });
+
+    test('an account without birth date is never ready, even panel-only', () {
+      for (final mode in OnboardingMode.values) {
+        expect(
+          pushReadyFor(UserEntity(
+            id: 'u',
+            onboardingMode: mode,
+            postRegisterComplete: true,
+            principal: const PrincipalInfo(kind: PrincipalKind.ageUnknownUser),
+          )),
+          isFalse,
+          reason: mode.name,
+        );
+      }
     });
 
     test('a linked device is always ready', () {
@@ -90,6 +142,23 @@ void main() {
       container.read(authNotifierProvider.notifier).markLegalAccepted();
 
       expect(push().initializeCalls, 1);
+    });
+
+    test('a panel-only account asks on startup although it never completes',
+        () async {
+      await boot(const UserEntity(
+        id: 'panel',
+        onboardingMode: OnboardingMode.panelOnly,
+      ));
+      expect(push().initializeCalls, 1);
+    });
+
+    test('a club-exempt account waits for post-registration', () async {
+      await boot(const UserEntity(
+        id: 'exempt',
+        onboardingMode: OnboardingMode.clubExempt,
+      ));
+      expect(push().initializeCalls, 0);
     });
 
     test('a registered account asks on startup as before', () async {
