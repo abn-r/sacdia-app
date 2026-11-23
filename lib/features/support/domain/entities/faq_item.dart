@@ -10,11 +10,15 @@ class FaqItem extends Equatable {
   final String question;
   final String answer;
 
+  /// Shown first, on the help screen, without opening the full list.
+  final bool featured;
+
   const FaqItem({
     required this.id,
     required this.category,
     required this.question,
     required this.answer,
+    this.featured = false,
   });
 
   factory FaqItem.fromJson(Map<String, dynamic> json) {
@@ -23,6 +27,7 @@ class FaqItem extends Equatable {
       category: (json['category'] ?? 'other').toString(),
       question: (json['question'] ?? '').toString(),
       answer: (json['answer'] ?? '').toString(),
+      featured: json['featured'] == true,
     );
   }
 
@@ -81,5 +86,5 @@ class FaqItem extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, category, question, answer];
+  List<Object?> get props => [id, category, question, answer, featured];
 }

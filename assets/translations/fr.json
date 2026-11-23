@@ -490,24 +490,12 @@
   },
   "support": {
     "title": "Aide et support",
-    "section_title": "Aide et support",
-    "section_get_help": "Besoin d'aide ?",
     "settings_entry_title": "Aide et support",
-    "settings_entry_subtitle": "FAQ, e-mail et signalements",
-    "faq_tile": "Questions fréquentes",
-    "faq_tile_subtitle": "Réponses rapides aux questions courantes",
-    "contact_tile": "Contacter le support",
-    "contact_tile_subtitle": "E-mail direct",
     "report_tile": "Signaler un problème",
-    "report_tile_subtitle": "Envoyez bugs, suggestions ou demandes d'aide",
     "faq_title": "Questions fréquentes",
     "faq_search_hint": "Rechercher dans les questions…",
     "faq_empty": "Aucune question disponible pour le moment",
     "faq_no_results": "Aucun résultat pour « {} »",
-    "contact_title": "Contacter le support",
-    "contact_intro": "Nous sommes là pour aider. Envoyez-nous un e-mail et nous répondrons pendant les horaires de support.",
-    "contact_email_title": "Envoyer un e-mail",
-    "contact_hours": "Horaires : lun-ven 9:00 à 18:00 (CDMX)",
     "email_subject": "Demande depuis l'application SACDIA",
     "channel_launch_failed": "Impossible d'ouvrir ce canal. Copier : {}",
     "report_title": "Signaler un problème",
@@ -521,7 +509,6 @@
     "report_title_too_short": "Minimum 5 caractères",
     "report_desc_required": "La description est obligatoire",
     "report_desc_too_short": "Minimum 10 caractères",
-    "report_device_info_title": "Infos de l'appareil (envoyées automatiquement)",
     "report_device_info_error": "Impossible de récupérer les infos de l'appareil",
     "report_submit": "Envoyer le signalement",
     "report_success_title": "Signalement envoyé !",
@@ -540,16 +527,6 @@
       "no_internet": "Vous avez besoin d'une connexion Internet pour envoyer le rapport",
       "faq_load_failed": "Nous n'avons pas pu charger la foire aux questions"
     },
-    "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})",
-    "hub_badge": "Parcours d’aide",
-    "hub_title": "Comment pouvons-nous aider ?",
-    "hub_intro": "Cherchez une réponse ou choisissez comment nous contacter.",
-    "route_faq_label": "Premier arrêt",
-    "route_contact_label": "Canal direct",
-    "route_report_label": "Carnet de route",
-    "faq_hero_title": "Carte des réponses",
-    "faq_hero_body": "Explorez {} réponses organisées comme un parcours de camp.",
-    "faq_card_badge": "Parcours guidé",
     "faq_category": {
       "all": "Tout",
       "account": "Compte",
@@ -561,10 +538,24 @@
       "onboarding": "Départ"
     },
     "hub_search_hint": "Rechercher dans l’aide…",
-    "faq_count": "{} questions",
     "contact_copy": "Copier l’e-mail",
     "contact_copied": "E-mail copié",
-    "report_pick_category": "Choisir une catégorie"
+    "report_pick_category": "Choisir une catégorie",
+    "search_results": {
+      "one": "1 résultat",
+      "other": "{} résultats"
+    },
+    "see_all": "Voir les {count}",
+    "more_help": "Besoin de plus d’aide ?",
+    "write_title": "Écrire au support",
+    "contact_hours_short": "Nous répondons du lun. au ven., de 9 h à 18 h (CDMX)",
+    "report_row_subtitle": "Erreurs, suggestions ou ton compte",
+    "report_device_group": "Envoyé avec ton signalement",
+    "report_device_system": "Système",
+    "report_device_model": "Appareil",
+    "report_device_app": "Version de l’app",
+    "report_sent_group": "Ton signalement",
+    "report_done": "Terminé"
   },
   "biometric": {
     "tile_title": "Déverrouillage par empreinte ou visage",
@@ -7365,12 +7356,25 @@
     },
     "mine": {
       "title": "Mes attestations",
-      "intro": "Enregistrez ici l'attestation de votre cours de conseil (10 heures). Pour l'instant, elle est facultative.",
       "upload": "Envoyer une attestation",
-      "pending_note": "Vous avez une attestation en cours d'examen. Quand elle aura un résultat, vous pourrez en envoyer une autre.",
       "empty_title": "Vous n'avez encore envoyé aucune attestation",
       "empty_body": "Envoyez l'attestation de votre cours de conseil (10 heures) pour qu'elle soit examinée.",
-      "error_title": "Nous n'avons pas pu charger vos attestations"
+      "error_title": "Nous n'avons pas pu charger vos attestations",
+      "reason_label": "Motif",
+      "document_label": "Document",
+      "document_fallback": "Document",
+      "actions_label": "Actions",
+      "history_label": "Historique",
+      "upload_another": "Envoyer une autre attestation",
+      "withdraw": "Retirer l'attestation",
+      "approved_title": "Attestation approuvée",
+      "approved_message": "{course}, terminée le {date}. Elle n'expire pas.",
+      "approved_message_expires": "{course}, terminée le {date}. Valable jusqu'au {expires}.",
+      "rejected_title": "Attestation rejetée",
+      "rejected_message": "Elle a été examinée le {date}.",
+      "rejected_message_undated": "Elle a été examinée.",
+      "pending_message": "Vous l'avez envoyée le {date}. Nous vous préviendrons quand elle sera examinée.",
+      "pending_message_undated": "Nous vous préviendrons quand elle sera examinée."
     },
     "status": {
       "pending": "En cours d'examen",
@@ -7384,10 +7388,7 @@
     },
     "row": {
       "completed_on": "Terminée le {date}",
-      "rejected_reason": "Motif : {reason}",
-      "valid_until": "Valable jusqu'au {date}",
-      "resubmit": "Envoyer à nouveau",
-      "withdraw": "Retirer"
+      "resubmit": "Envoyer à nouveau"
     },
     "withdraw": {
       "title": "Retirer cette attestation ?",
@@ -7440,7 +7441,6 @@
       "load_more_error": "Impossible de charger plus d'attestations.",
       "sent_on": "Envoyée le {date}",
       "reviewed_on": "Examinée le {date}",
-      "fact_credential": "Attestation",
       "fact_completed": "Terminée le",
       "fact_sent": "Envoyée le",
       "open_file": "Ouvrir le document",
@@ -7456,7 +7456,13 @@
       "reason_label": "Motif du rejet",
       "reason_required": "Écrivez un motif d'au moins 5 caractères.",
       "approved_done": "Attestation approuvée.",
-      "rejected_done": "Attestation rejetée."
+      "rejected_done": "Attestation rejetée.",
+      "data_label": "Informations",
+      "fact_person": "Personne",
+      "fact_club": "Club",
+      "fact_status": "Statut",
+      "fact_reviewed": "Examinée le",
+      "fact_valid_until": "Valable jusqu'au"
     },
     "file_kind": {
       "pdf": "PDF",

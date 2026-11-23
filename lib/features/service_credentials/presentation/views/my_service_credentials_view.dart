@@ -9,23 +9,21 @@ import '../../../../core/errors/forbidden.dart';
 import '../../../../core/errors/user_error_message.dart';
 import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/theme/sac_font_size.dart';
 import '../../../../core/widgets/sac_button.dart';
-import '../../../../core/widgets/sac_dialog.dart';
 import '../../../../core/widgets/sac_empty_state.dart';
 import '../../../../core/widgets/sac_error_state.dart';
-import '../../../../core/widgets/sac_notice.dart';
-import '../../../../core/widgets/sac_settings.dart';
+import '../../../../core/widgets/sac_frosted_footer.dart';
 import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
-import '../../../members/presentation/widgets/join_request_group.dart';
 import '../../domain/entities/service_credential.dart';
 import '../providers/service_credentials_providers.dart';
-import '../widgets/service_credential_row.dart';
+import '../widgets/my_credentials_body.dart';
+import '../widgets/service_credential_confirm_sheet.dart';
 import '../widgets/service_credentials_skeleton.dart';
 
-/// «Mis constancias»: the person's own counselor credentials grouped by status
-/// (En revisión, Aprobadas, Rechazadas), with upload, withdraw and resubmit.
+/// «Mis constancias»: the state of the person's current counselor credential
+/// as a panel, its document, the action that fits it (withdraw, resubmit or
+/// upload another) and the older ones in «Historial».
 class MyServiceCredentialsView extends ConsumerWidget {
   const MyServiceCredentialsView({super.key});
 
@@ -43,15 +41,14 @@ class MyServiceCredentialsView extends ConsumerWidget {
     WidgetRef ref,
     ServiceCredential credential,
   ) async {
-    final confirmed = await SacDialog.show(
+    final confirmed = await showServiceCredentialConfirmSheet(
       context,
       title: 'service_credentials.withdraw.title'.tr(),
-      content: 'service_credentials.withdraw.body'.tr(),
+      body: 'service_credentials.withdraw.body'.tr(),
       confirmLabel: 'service_credentials.withdraw.confirm'.tr(),
-      cancelLabel: 'common.cancel'.tr(),
-      confirmIsDestructive: true,
+      destructive: true,
     );
-    if (confirmed != true) return;
+    if (!confirmed || !context.mounted) return;
     final failure = await ref
         .read(serviceCredentialWithdrawProvider.notifier)
         .withdraw(credential.id);
@@ -72,18 +69,22 @@ class MyServiceCredentialsView extends ConsumerWidget {
     final async = ref.watch(myServiceCredentialsProvider);
     final withdrawing = ref.watch(serviceCredentialWithdrawProvider);
     final items = async.hasError ? null : async.value;
-    // One pending credential at a time: the server answers
-    // SERVICE_CREDENTIAL_PENDING_EXISTS to a second one.
-    final canUpload =
-        items != null && items.isNotEmpty && !items.any((i) => i.isPending);
+    // The current credential is the newest one; only a rejected one offers
+    // to upload again from the footer.
+    final current = items == null || items.isEmpty ? null : items.first;
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: SacTopBar(title: 'service_credentials.mine.title'.tr()),
-      bottomNavigationBar: canUpload
-          ? SacPinnedActionBar(
+      appBar: SacTopBar(
+        title: 'service_credentials.mine.title'.tr(),
+        backgroundColor: c.background,
+        foregroundColor: c.text,
+      ),
+      bottomNavigationBar: current != null && current.isRejected
+          ? SacFrostedFooter(
               child: SacButton.primary(
-                text: 'service_credentials.mine.upload'.tr(),
+                key: const ValueKey('credential-resubmit'),
+                text: 'service_credentials.row.resubmit'.tr(),
                 icon: HugeIcons.strokeRoundedUpload01,
                 onPressed: () => _upload(context),
               ),
@@ -103,7 +104,7 @@ class MyServiceCredentialsView extends ConsumerWidget {
           onRefresh: () => _refresh(ref),
           child: items.isEmpty
               ? _EmptyBody(onUpload: () => _upload(context))
-              : _Body(
+              : MyCredentialsBody(
                   items: items,
                   withdrawing: withdrawing,
                   onUpload: () => _upload(context),
@@ -139,85 +140,6 @@ class _EmptyBody extends StatelessWidget {
             onAction: onUpload,
           ),
         ),
-      ],
-    );
-  }
-}
-
-class _Body extends StatelessWidget {
-  const _Body({
-    required this.items,
-    required this.withdrawing,
-    required this.onUpload,
-    required this.onWithdraw,
-  });
-
-  final List<ServiceCredential> items;
-  final Set<String> withdrawing;
-  final VoidCallback onUpload;
-  final void Function(ServiceCredential item) onWithdraw;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final pending = items.where((i) => i.isPending).toList();
-    final approved = items.where((i) => i.isApproved).toList();
-    final rejected = items.where((i) => i.isRejected).toList();
-
-    Widget group(
-      String titleKey,
-      Color dot,
-      List<ServiceCredential> group, {
-      bool resubmit = false,
-    }) =>
-        JoinRequestGroupSection(
-          title: titleKey.tr(),
-          count: group.length,
-          dotColor: dot,
-          children: [
-            for (final item in group)
-              ServiceCredentialRow(
-                key: ValueKey('service-credential-${item.id}'),
-                credential: item,
-                isWithdrawing: withdrawing.contains(item.id),
-                onWithdraw: () => onWithdraw(item),
-                onResubmit: resubmit ? onUpload : null,
-              ),
-          ],
-        );
-
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-      children: [
-        Text(
-          'service_credentials.mine.intro'.tr(),
-          style: TextStyle(
-            fontSize: SacFontSize.bodyMedium,
-            color: c.textSecondary,
-            height: 1.35,
-          ),
-        ),
-        if (pending.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          SacNotice(
-            key: const ValueKey('pending-notice'),
-            text: 'service_credentials.mine.pending_note'.tr(),
-            icon: HugeIcons.strokeRoundedClock01,
-          ),
-        ],
-        const SizedBox(height: 24),
-        if (pending.isNotEmpty) ...[
-          group('service_credentials.group.pending', c.warning, pending),
-          const SizedBox(height: 20),
-        ],
-        if (rejected.isNotEmpty) ...[
-          group('service_credentials.group.rejected', c.error, rejected,
-              resubmit: true),
-          const SizedBox(height: 20),
-        ],
-        if (approved.isNotEmpty)
-          group('service_credentials.group.approved', c.success, approved),
       ],
     );
   }

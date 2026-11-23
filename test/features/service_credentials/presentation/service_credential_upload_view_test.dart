@@ -10,7 +10,7 @@ import 'package:sacdia_app/core/consent/consent_evidence.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_notice.dart';
-import 'package:sacdia_app/core/widgets/sac_settings.dart';
+import 'package:sacdia_app/core/widgets/sac_frosted_footer.dart';
 import 'package:sacdia_app/features/service_credentials/presentation/views/service_credential_upload_view.dart';
 
 import '../service_credentials_test_support.dart';
@@ -160,11 +160,11 @@ void main() {
     expect(find.text('15 jun 2026'), findsOneWidget);
   });
 
-  testWidgets('the primary action lives in the pinned bar', (tester) async {
+  testWidgets('the primary action lives in the footer', (tester) async {
     await open(tester);
     expect(
       find.descendant(
-        of: find.byType(SacPinnedActionBar),
+        of: find.byType(SacFrostedFooter),
         matching: submitButton(),
       ),
       findsOneWidget,
@@ -243,10 +243,10 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('raw server text'), findsNothing);
-    // The failure is a notice inside the pinned bar, above the button.
+    // The failure is a notice inside the footer, above the button.
     expect(
       find.descendant(
-        of: find.byType(SacPinnedActionBar),
+        of: find.byType(SacFrostedFooter),
         matching: find.byType(SacNotice),
       ),
       findsOneWidget,

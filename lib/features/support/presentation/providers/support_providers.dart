@@ -2,7 +2,6 @@ import 'dart:io' show Platform;
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -48,19 +47,6 @@ final faqItemsProvider = FutureProvider<List<FaqItem>>((ref) async {
   );
 });
 
-/// Texto de búsqueda del FAQ — se consume desde FaqView.
-final faqSearchQueryProvider = StateProvider<String>((ref) => '');
-
-/// FAQ filtrado por el query actual.
-final filteredFaqItemsProvider = Provider<AsyncValue<List<FaqItem>>>((ref) {
-  final itemsAsync = ref.watch(faqItemsProvider);
-  final query = ref.watch(faqSearchQueryProvider);
-  return itemsAsync.whenData((items) {
-    if (query.trim().isEmpty) return items;
-    return items.where((i) => i.matches(query)).toList(growable: false);
-  });
-});
-
 // ── Device info ──────────────────────────────────────────────────────────────
 
 /// Información del dispositivo capturada vía `device_info_plus` +
@@ -103,6 +89,21 @@ final deviceReportInfoProvider =
     'appVersion': pkg.version,
     'buildNumber': pkg.buildNumber,
   };
+});
+
+/// Readable name of the phone ("iPhone 17 Pro") for the report screen; the
+/// report itself keeps sending the hardware id. Null when unknown.
+final deviceDisplayNameProvider =
+    FutureProvider.autoDispose<String?>((ref) async {
+  try {
+    if (Platform.isIOS) {
+      final name = (await DeviceInfoPlugin().iosInfo).modelName.trim();
+      return name.isEmpty ? null : name;
+    }
+  } catch (_) {
+    // Same fallback as the report: the screen shows the raw model.
+  }
+  return null;
 });
 
 // ── Report submission ────────────────────────────────────────────────────────

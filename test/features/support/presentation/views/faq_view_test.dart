@@ -35,7 +35,7 @@ void main() {
   testWidgets('should filter questions from the search field', (tester) async {
     await _pumpFaq(tester);
 
-    await tester.enterText(find.byType(TextFormField), 'internet');
+    await tester.enterText(find.byType(EditableText), 'internet');
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
 

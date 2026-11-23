@@ -490,24 +490,12 @@
   },
   "support": {
     "title": "Ayuda y soporte",
-    "section_title": "Ayuda y soporte",
-    "section_get_help": "¿Necesitas ayuda?",
     "settings_entry_title": "Ayuda y soporte",
-    "settings_entry_subtitle": "FAQ, correo y reportes",
-    "faq_tile": "Preguntas frecuentes",
-    "faq_tile_subtitle": "Respuestas rápidas a dudas comunes",
-    "contact_tile": "Contactar a soporte",
-    "contact_tile_subtitle": "Correo directo",
     "report_tile": "Reportar un problema",
-    "report_tile_subtitle": "Envía bugs, sugerencias o ayuda",
     "faq_title": "Preguntas frecuentes",
     "faq_search_hint": "Buscar en preguntas…",
     "faq_empty": "Aún no hay preguntas disponibles",
     "faq_no_results": "Sin resultados para \"{}\"",
-    "contact_title": "Contactar a soporte",
-    "contact_intro": "Estamos aquí para ayudarte. Escríbenos por correo y te responderemos en horario de atención.",
-    "contact_email_title": "Enviar correo",
-    "contact_hours": "Horario de atención: lun–vie 9:00 a 18:00 (CDMX)",
     "email_subject": "Consulta desde la app SACDIA",
     "channel_launch_failed": "No pudimos abrir este canal. Copia: {}",
     "report_title": "Reportar un problema",
@@ -521,7 +509,6 @@
     "report_title_too_short": "Mínimo 5 caracteres",
     "report_desc_required": "La descripción es obligatoria",
     "report_desc_too_short": "Mínimo 10 caracteres",
-    "report_device_info_title": "Info del dispositivo (se envía automáticamente)",
     "report_device_info_error": "No pudimos capturar la info del dispositivo",
     "report_submit": "Enviar reporte",
     "report_success_title": "¡Reporte enviado!",
@@ -540,16 +527,6 @@
       "no_internet": "Necesitas conexión a internet para enviar el reporte",
       "faq_load_failed": "No pudimos cargar las preguntas frecuentes"
     },
-    "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})",
-    "hub_badge": "Ruta de ayuda",
-    "hub_title": "¿En qué podemos ayudarte?",
-    "hub_intro": "Busca una respuesta o elige cómo contactarnos.",
-    "route_faq_label": "Primera parada",
-    "route_contact_label": "Canal directo",
-    "route_report_label": "Bitácora",
-    "faq_hero_title": "Mapa de respuestas",
-    "faq_hero_body": "Consulta {} respuestas organizadas como una ruta de campamento.",
-    "faq_card_badge": "Ruta guiada",
     "faq_category": {
       "all": "Todo",
       "account": "Cuenta",
@@ -561,10 +538,24 @@
       "onboarding": "Inicio"
     },
     "hub_search_hint": "Buscar en ayuda…",
-    "faq_count": "{} preguntas",
     "contact_copy": "Copiar correo",
     "contact_copied": "Correo copiado",
-    "report_pick_category": "Elegir categoría"
+    "report_pick_category": "Elegir categoría",
+    "search_results": {
+      "one": "1 resultado",
+      "other": "{} resultados"
+    },
+    "see_all": "Ver las {count}",
+    "more_help": "¿Necesitas más ayuda?",
+    "write_title": "Escribir a soporte",
+    "contact_hours_short": "Respondemos lun–vie, 9:00 a 18:00 (CDMX)",
+    "report_row_subtitle": "Errores, sugerencias o tu cuenta",
+    "report_device_group": "Se envía con tu reporte",
+    "report_device_system": "Sistema",
+    "report_device_model": "Equipo",
+    "report_device_app": "Versión de la app",
+    "report_sent_group": "Tu reporte",
+    "report_done": "Listo"
   },
   "biometric": {
     "tile_title": "Desbloqueo con huella o rostro",
@@ -7367,12 +7358,25 @@
     },
     "mine": {
       "title": "Mis constancias",
-      "intro": "Registra aquí la constancia de tu curso de consejería (10 horas). Por ahora es opcional.",
       "upload": "Subir constancia",
-      "pending_note": "Tienes una constancia en revisión. Cuando tenga resultado podrás subir otra.",
       "empty_title": "Aún no subes ninguna constancia",
       "empty_body": "Sube la constancia de tu curso de consejería (10 horas) para que la revisen.",
-      "error_title": "No pudimos cargar tus constancias"
+      "error_title": "No pudimos cargar tus constancias",
+      "reason_label": "Motivo",
+      "document_label": "Documento",
+      "document_fallback": "Documento",
+      "actions_label": "Acciones",
+      "history_label": "Historial",
+      "upload_another": "Subir otra constancia",
+      "withdraw": "Retirar constancia",
+      "approved_title": "Constancia aprobada",
+      "approved_message": "{course}, concluida el {date}. No vence.",
+      "approved_message_expires": "{course}, concluida el {date}. Vigente hasta {expires}.",
+      "rejected_title": "Constancia rechazada",
+      "rejected_message": "La revisaron el {date}.",
+      "rejected_message_undated": "La revisaron.",
+      "pending_message": "La enviaste el {date}. Te avisaremos cuando la revisen.",
+      "pending_message_undated": "Te avisaremos cuando la revisen."
     },
     "status": {
       "pending": "En revisión",
@@ -7386,10 +7390,7 @@
     },
     "row": {
       "completed_on": "Concluida el {date}",
-      "rejected_reason": "Motivo: {reason}",
-      "valid_until": "Vigente hasta {date}",
-      "resubmit": "Subir de nuevo",
-      "withdraw": "Retirar"
+      "resubmit": "Subir de nuevo"
     },
     "withdraw": {
       "title": "¿Retirar esta constancia?",
@@ -7442,7 +7443,6 @@
       "load_more_error": "No se pudieron cargar más constancias.",
       "sent_on": "Enviada el {date}",
       "reviewed_on": "Revisada el {date}",
-      "fact_credential": "Constancia",
       "fact_completed": "Concluida el",
       "fact_sent": "Enviada el",
       "open_file": "Abrir documento",
@@ -7458,7 +7458,13 @@
       "reason_label": "Motivo del rechazo",
       "reason_required": "Escribe un motivo de al menos 5 caracteres.",
       "approved_done": "Constancia aprobada.",
-      "rejected_done": "Constancia rechazada."
+      "rejected_done": "Constancia rechazada.",
+      "data_label": "Datos",
+      "fact_person": "Persona",
+      "fact_club": "Club",
+      "fact_status": "Estado",
+      "fact_reviewed": "Revisada el",
+      "fact_valid_until": "Vigente hasta"
     },
     "file_kind": {
       "pdf": "PDF",

@@ -490,24 +490,12 @@
   },
   "support": {
     "title": "Help and support",
-    "section_title": "Help and support",
-    "section_get_help": "Need help?",
     "settings_entry_title": "Help and support",
-    "settings_entry_subtitle": "FAQ, email and reports",
-    "faq_tile": "Frequently asked questions",
-    "faq_tile_subtitle": "Quick answers to common questions",
-    "contact_tile": "Contact support",
-    "contact_tile_subtitle": "Direct email",
     "report_tile": "Report a problem",
-    "report_tile_subtitle": "Send bugs, suggestions or help requests",
     "faq_title": "Frequently asked questions",
     "faq_search_hint": "Search questions…",
     "faq_empty": "No questions available yet",
     "faq_no_results": "No results for \"{}\"",
-    "contact_title": "Contact support",
-    "contact_intro": "We are here to help. Send us an email and we will reply during support hours.",
-    "contact_email_title": "Send email",
-    "contact_hours": "Office hours: Mon–Fri 9:00 to 18:00 (CDMX)",
     "email_subject": "Inquiry from the SACDIA app",
     "channel_launch_failed": "We couldn't open this channel. Copy: {}",
     "report_title": "Report a problem",
@@ -521,7 +509,6 @@
     "report_title_too_short": "Minimum 5 characters",
     "report_desc_required": "Description is required",
     "report_desc_too_short": "Minimum 10 characters",
-    "report_device_info_title": "Device info (sent automatically)",
     "report_device_info_error": "Couldn't capture device info",
     "report_submit": "Send report",
     "report_success_title": "Report sent!",
@@ -540,16 +527,6 @@
       "no_internet": "You need an internet connection to submit the report",
       "faq_load_failed": "We could not load the frequently asked questions"
     },
-    "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})",
-    "hub_badge": "Help trail",
-    "hub_title": "How can we help?",
-    "hub_intro": "Search for an answer or choose how to reach us.",
-    "route_faq_label": "First stop",
-    "route_contact_label": "Direct channel",
-    "route_report_label": "Trail log",
-    "faq_hero_title": "Answer map",
-    "faq_hero_body": "Explore {} answers organized like a camp trail.",
-    "faq_card_badge": "Guided trail",
     "faq_category": {
       "all": "All",
       "account": "Account",
@@ -561,10 +538,24 @@
       "onboarding": "Start"
     },
     "hub_search_hint": "Search help…",
-    "faq_count": "{} questions",
     "contact_copy": "Copy email",
     "contact_copied": "Email copied",
-    "report_pick_category": "Choose a category"
+    "report_pick_category": "Choose a category",
+    "search_results": {
+      "one": "1 result",
+      "other": "{} results"
+    },
+    "see_all": "See all {count}",
+    "more_help": "Need more help?",
+    "write_title": "Email support",
+    "contact_hours_short": "We answer Mon–Fri, 9:00 to 18:00 (CDMX)",
+    "report_row_subtitle": "Bugs, suggestions or your account",
+    "report_device_group": "Sent with your report",
+    "report_device_system": "System",
+    "report_device_model": "Device",
+    "report_device_app": "App version",
+    "report_sent_group": "Your report",
+    "report_done": "Done"
   },
   "biometric": {
     "tile_title": "Unlock with fingerprint or face",
@@ -7367,12 +7358,25 @@
     },
     "mine": {
       "title": "My certificates",
-      "intro": "Register your counseling course certificate (10 hours) here. For now it is optional.",
       "upload": "Upload certificate",
-      "pending_note": "You have a certificate under review. Once it has a result you can upload another.",
       "empty_title": "You have not uploaded a certificate yet",
       "empty_body": "Upload the certificate for your counseling course (10 hours) so it can be reviewed.",
-      "error_title": "We could not load your certificates"
+      "error_title": "We could not load your certificates",
+      "reason_label": "Reason",
+      "document_label": "Document",
+      "document_fallback": "Document",
+      "actions_label": "Actions",
+      "history_label": "History",
+      "upload_another": "Upload another certificate",
+      "withdraw": "Withdraw certificate",
+      "approved_title": "Certificate approved",
+      "approved_message": "{course}, completed on {date}. It does not expire.",
+      "approved_message_expires": "{course}, completed on {date}. Valid until {expires}.",
+      "rejected_title": "Certificate rejected",
+      "rejected_message": "It was reviewed on {date}.",
+      "rejected_message_undated": "It was reviewed.",
+      "pending_message": "You sent it on {date}. We will let you know when it is reviewed.",
+      "pending_message_undated": "We will let you know when it is reviewed."
     },
     "status": {
       "pending": "In review",
@@ -7386,10 +7390,7 @@
     },
     "row": {
       "completed_on": "Completed on {date}",
-      "rejected_reason": "Reason: {reason}",
-      "valid_until": "Valid until {date}",
-      "resubmit": "Upload again",
-      "withdraw": "Withdraw"
+      "resubmit": "Upload again"
     },
     "withdraw": {
       "title": "Withdraw this certificate?",
@@ -7442,7 +7443,6 @@
       "load_more_error": "Could not load more certificates.",
       "sent_on": "Sent on {date}",
       "reviewed_on": "Reviewed on {date}",
-      "fact_credential": "Certificate",
       "fact_completed": "Completed on",
       "fact_sent": "Sent on",
       "open_file": "Open document",
@@ -7458,7 +7458,13 @@
       "reason_label": "Reason for rejection",
       "reason_required": "Write a reason of at least 5 characters.",
       "approved_done": "Certificate approved.",
-      "rejected_done": "Certificate rejected."
+      "rejected_done": "Certificate rejected.",
+      "data_label": "Details",
+      "fact_person": "Person",
+      "fact_club": "Club",
+      "fact_status": "Status",
+      "fact_reviewed": "Reviewed on",
+      "fact_valid_until": "Valid until"
     },
     "file_kind": {
       "pdf": "PDF",

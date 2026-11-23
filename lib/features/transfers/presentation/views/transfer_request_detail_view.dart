@@ -12,6 +12,7 @@ import '../../../../core/widgets/sac_frosted_footer.dart';
 import '../../../../core/widgets/sac_list_row.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
+import '../../../../core/widgets/sac_value_row.dart';
 import '../../../../core/widgets/status_progress/status_progress.dart';
 import '../../domain/entities/transfer_request.dart';
 import '../providers/transfer_providers.dart';
@@ -108,16 +109,16 @@ class _DetailBody extends StatelessWidget {
           dividerIndent: 16,
           children: [
             if (created != null)
-              _ValueRow(
+              SacValueRow(
                 label: 'transfers.detail.sent'.tr(),
                 value: transferDate(context, created, withTime: true),
               ),
             if (reason != null && reason.isNotEmpty)
-              _ValueRow(
+              SacValueRow(
                 label: 'transfers.detail.your_reason'.tr(),
                 value: reason,
               ),
-            _ValueRow(
+            SacValueRow(
               label: 'transfers.detail.folio'.tr(),
               value: request.folio,
             ),
@@ -209,48 +210,6 @@ class _MoveBox extends StatelessWidget {
           subtitle: request.toSectionName,
         ),
       ],
-    );
-  }
-}
-
-/// A label and its value on one row.
-class _ValueRow extends StatelessWidget {
-  const _ValueRow({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return MergeSemantics(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: SacFontSize.titleMedium,
-                color: c.textSecondary,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                value,
-                textAlign: TextAlign.end,
-                style: TextStyle(
-                  fontSize: SacFontSize.titleMedium,
-                  fontWeight: FontWeight.w500,
-                  color: c.text,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

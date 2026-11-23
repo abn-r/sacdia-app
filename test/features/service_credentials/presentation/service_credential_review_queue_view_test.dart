@@ -83,7 +83,8 @@ void main() {
         findsOneWidget);
     expect(find.text('Club Aurora · Curso de consejería (10 horas)'),
         findsOneWidget);
-    expect(find.text('En revisión · 2'), findsOneWidget);
+    // The group header is a normal eyebrow (no dot) with its own count.
+    expect(find.text('EN REVISIÓN'), findsOneWidget);
     // Counts of the three tabs come from meta.counts.
     expect(find.text('5'), findsOneWidget);
     expect(find.text('1'), findsOneWidget);

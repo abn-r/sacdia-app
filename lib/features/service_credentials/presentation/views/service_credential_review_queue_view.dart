@@ -18,7 +18,7 @@ import '../../../../core/widgets/sac_error_state.dart';
 import '../../../../core/widgets/sac_filter_chip.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
-import '../../../members/presentation/widgets/join_request_group.dart';
+import '../../../../core/widgets/status_progress/status_progress.dart';
 import '../../domain/entities/service_credential_review.dart';
 import '../providers/service_credentials_providers.dart';
 import '../utils/service_credential_labels.dart';
@@ -118,7 +118,11 @@ class _ServiceCredentialReviewQueueViewState
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: SacTopBar(title: 'service_credentials.review.title'.tr()),
+      appBar: SacTopBar(
+        title: 'service_credentials.review.title'.tr(),
+        backgroundColor: c.background,
+        foregroundColor: c.text,
+      ),
       body: Column(
         children: [
           Padding(
@@ -235,20 +239,17 @@ class _Body extends StatelessWidget {
       child: ListView(
         controller: controller,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+        padding: const EdgeInsets.only(top: 0, bottom: 32),
         children: [
-          JoinRequestGroupSection(
-            title: reviewFilterLabel(filter),
+          SacGroupedSection(
+            key: ValueKey('review-group-${filter.name}'),
+            label: reviewFilterLabel(filter),
             // The server total covers every page; never show less than what
             // is already on screen.
             count: state.total > state.items.length
                 ? state.total
                 : state.items.length,
-            dotColor: switch (filter) {
-              ReviewStatusFilter.pending => c.warning,
-              ReviewStatusFilter.approved => c.success,
-              ReviewStatusFilter.rejected => c.error,
-            },
+            dividerIndent: 66,
             children: [
               for (final item in state.items)
                 ReviewItemRow(
@@ -265,7 +266,7 @@ class _Body extends StatelessWidget {
             )
           else if (state.loadMoreFailed)
             Padding(
-              padding: const EdgeInsets.only(top: 12),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
               child: Column(
                 children: [
                   Text(

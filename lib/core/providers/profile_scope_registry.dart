@@ -207,8 +207,6 @@ const Map<String, String> nonAutoDisposeAllowlist = {
   'programsProvider': 'catálogo de programas, igual para todos',
   'deviceReportInfoProvider': 'datos del dispositivo para reportes',
   'faqItemsProvider': 'preguntas frecuentes estáticas',
-  'faqSearchQueryProvider':
-      'texto de búsqueda de la pantalla, sin datos de perfil',
   // Fuera de lib/features (S3: la guarda también escanea lib/core y
   // lib/providers).
   'themeNotifierProvider': 'tema claro/oscuro del dispositivo',
