@@ -23,6 +23,7 @@ import '../../data/datasources/auth_remote_data_source.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/authorization_snapshot.dart';
 import '../../domain/entities/delete_account_reauth.dart';
+import '../../domain/entities/onboarding_mode.dart';
 import '../../domain/entities/principal_info.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -547,6 +548,11 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
               authorization: cachedAuthorization,
               postRegisterComplete:
                   prefs.getBool('cached_post_register_complete') ?? false,
+              // Sin el modo, una cuenta de solo panel restaurada sin red
+              // caería en el post-registro de club. Ausente = `club`.
+              onboardingMode: OnboardingMode.parse(
+                prefs.getString(AppConstants.cachedOnboardingMode),
+              ),
               // Server is the truth; never cache pending. Offline restore
               // cannot know the legal status, so it stays false.
               legalAcceptancePending: false,
@@ -628,9 +634,14 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       user.postRegisterComplete.toString(),
     );
     // Keep non-PII flag in SharedPreferences for synchronous router reads.
-    ref
-        .read(sharedPreferencesProvider)
-        .setBool('cached_post_register_complete', user.postRegisterComplete);
+    final cachePrefs = ref.read(sharedPreferencesProvider);
+    cachePrefs.setBool(
+        'cached_post_register_complete', user.postRegisterComplete);
+    // El modo viaja junto a la bandera: ambos deciden el inicio sin red.
+    cachePrefs.setString(
+      AppConstants.cachedOnboardingMode,
+      user.onboardingMode.wireValue,
+    );
 
     // Capacidades del servidor y momento de la respuesta: la restauración sin
     // red las usa para decidir inicio y pestañas (en modo solo lectura).
@@ -1341,6 +1352,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         // Limpiar estado local (el datasource ya limpió tokens en deleteAccount).
         final prefs = ref.read(sharedPreferencesProvider);
         prefs.remove('cached_post_register_complete');
+        prefs.remove(AppConstants.cachedOnboardingMode);
         prefs.remove('user_manually_logged_out');
         await clearSessionScopedBiometricOptIn(prefs);
         ref.invalidate(biometricProvider);
@@ -1777,6 +1789,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.remove('cached_post_register_complete');
+    prefs.remove(AppConstants.cachedOnboardingMode);
     unawaited(clearSessionScopedBiometricOptIn(prefs));
     ref.invalidate(biometricProvider);
 
@@ -1824,6 +1837,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         final prefs = ref.read(sharedPreferencesProvider);
         prefs.setBool('user_manually_logged_out', true);
         prefs.remove('cached_post_register_complete');
+        prefs.remove(AppConstants.cachedOnboardingMode);
         await clearSessionScopedBiometricOptIn(prefs);
         ref.invalidate(biometricProvider);
 

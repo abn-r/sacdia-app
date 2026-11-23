@@ -114,6 +114,7 @@ String accountHomeFor(
   AccountMode mode, {
   required bool needsPostRegistration,
   bool releaseFrozen = false,
+  bool panelOnly = false,
 }) {
   switch (mode) {
     case AccountMode.released:
@@ -132,6 +133,14 @@ String accountHomeFor(
           ? RouteNames.postRegistration
           : RouteNames.teenPendingHome;
     case AccountMode.adult:
+      if (panelOnly && !needsPostRegistration) {
+        // Cuenta de solo panel: su inicio es la pantalla que lo explica (ver
+        // `panel_only_route_policy.dart`), nunca un inicio de club.
+        return RouteNames.panelOnlyAccount;
+      }
+      return needsPostRegistration
+          ? RouteNames.postRegistration
+          : RouteNames.homeDashboard;
     case AccountMode.teenSupervised:
       return needsPostRegistration
           ? RouteNames.postRegistration

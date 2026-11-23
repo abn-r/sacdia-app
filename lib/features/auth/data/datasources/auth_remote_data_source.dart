@@ -807,6 +807,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'auth-type',
         'refresh_token',
         'cached_post_register_complete',
+        AppConstants.cachedOnboardingMode,
         AppConstants.biometricEnabledKey,
         AppConstants.biometricEnrolledAtKey,
       ];

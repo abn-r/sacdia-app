@@ -7096,6 +7096,15 @@
     "title": "Compte indisponible",
     "body": "Votre compte utilise une fonction que cette version de l'application ne reconnaît pas encore. Par sécurité, l'accès est limité. Mettez l'application à jour ou reconnectez-vous plus tard."
   },
+  "panel_only_account": {
+    "title": "Votre fonction se gère depuis le panneau web",
+    "body": "Votre compte est actif. Les tâches de votre fonction se font dans le panneau web de SACDIA, depuis un navigateur.",
+    "family_hint": "D'ici, vous pouvez continuer à gérer votre famille.",
+    "check_again": "Vérifier à nouveau",
+    "checking": "Vérification de votre accès",
+    "check_hint": "Si un club ou une fonction dans l'application vous est attribué, vérifiez-le ici.",
+    "unchanged": "Aucun changement pour l'instant. Réessayez plus tard."
+  },
   "teen": {
     "pending": {
       "title": "Il manque votre tuteur",

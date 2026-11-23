@@ -532,6 +532,11 @@ class RouteNames {
   // `supervised_route_policy.dart`.
   static const String restrictedAccount = '/account/restricted';
 
+  // Cuenta cuyo `onboarding_mode` es `panel_only`: su función se hace en el
+  // panel web y la app solo le muestra esta pantalla (y Mi familia si es
+  // tutor). Ver `panel_only_route_policy.dart`.
+  static const String panelOnlyAccount = '/account/panel-only';
+
   // Liberación por mayoría de edad (Fase 4).
   /// Flujo de un adulto liberado: agregar correo y aceptar términos. También
   /// lo abre quien está congelado (aceptar descongela).

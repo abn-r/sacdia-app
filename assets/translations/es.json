@@ -7098,6 +7098,15 @@
     "title": "Cuenta no disponible",
     "body": "Tu cuenta usa una función que esta versión de la app todavía no reconoce. Por tu seguridad, el acceso está limitado. Actualiza la app o inicia sesión de nuevo más tarde."
   },
+  "panel_only_account": {
+    "title": "Tu función se gestiona desde el panel web",
+    "body": "Tu cuenta está activa. Las tareas de tu función se hacen en el panel web de SACDIA, desde un navegador.",
+    "family_hint": "Desde aquí puedes seguir gestionando a tu familia.",
+    "check_again": "Comprobar de nuevo",
+    "checking": "Comprobando tu acceso",
+    "check_hint": "Si te asignan un club o una función en la app, compruébalo aquí.",
+    "unchanged": "Sin cambios por ahora. Vuelve a intentarlo más tarde."
+  },
   "teen": {
     "pending": {
       "title": "Falta tu tutor",

@@ -6,6 +6,7 @@ import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/domain/utils/authorization_utils.dart';
 import 'acting_route_policy.dart';
 import 'coordinator_route_access.dart';
+import 'panel_only_route_policy.dart';
 import 'supervised_route_policy.dart';
 
 /// Un destino (push tocado, enlace) que llegó cuando el router aún no podía
@@ -54,6 +55,9 @@ bool isPendingNavigationAllowed({
   if (userNeedsPostRegistration(user)) return false;
   if (acting && isBlockedWhileActing(path)) return false;
   if (clubLessRouteRedirect(user, path) != null) return false;
+  // Una cuenta de solo panel recibe un destino solo si su compuerta lo deja
+  // abrir (su pantalla, `/access-denied`, Mi familia si es tutora).
+  if (panelOnlyRouteRedirect(user, path) != null) return false;
   return supervisedRouteRedirect(
         mode: user.mode,
         path: path,
