@@ -13,6 +13,7 @@ import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/providers/app_bootstrap_provider.dart';
 import 'package:sacdia_app/features/auth/domain/entities/acting_for_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
+import 'package:sacdia_app/features/auth/domain/entities/onboarding_mode.dart';
 import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
@@ -42,6 +43,7 @@ UserEntity _user({
   String? activeAssignmentId = 'a1',
   bool legalPending = false,
   bool postRegisterComplete = true,
+  OnboardingMode onboardingMode = OnboardingMode.club,
   PrincipalInfo? principal,
   ActingForInfo? actingFor,
   bool withAuthorization = true,
@@ -50,6 +52,7 @@ UserEntity _user({
       id: 'u1',
       email: 'u1@example.com',
       postRegisterComplete: postRegisterComplete,
+      onboardingMode: onboardingMode,
       legalAcceptancePending: legalPending,
       principal: principal,
       actingFor: actingFor,
@@ -416,7 +419,8 @@ void main() {
         _user(
           clubAssignments: const [],
           activeAssignmentId: null,
-          postRegisterComplete: false,
+          postRegisterComplete: true,
+          onboardingMode: OnboardingMode.clubExempt,
           capabilities: const [
             'admin_panel.pastor_only',
             'investiture.authorize_requests',
@@ -438,7 +442,8 @@ void main() {
         _user(
           clubAssignments: const [],
           activeAssignmentId: null,
-          postRegisterComplete: false,
+          postRegisterComplete: true,
+          onboardingMode: OnboardingMode.clubExempt,
           capabilities: const ['coordination.hub_view'],
         ),
       );
@@ -448,6 +453,33 @@ void main() {
       );
       expect(await redirectFor(c, RouteNames.coordinator), isNull);
       expect(await redirectFor(c, RouteNames.accessDenied), isNull);
+    });
+
+    // R2.8: sin exención local; un pastor o coordinador sin club al que el
+    // servidor aún no marcó completo pasa por el post-registro.
+    testWidgets(
+        'a club-less pastor or coordinator the server did not complete goes to '
+        'post-registration', (tester) async {
+      for (final capability in [
+        'admin_panel.pastor_only',
+        'coordination.hub_view',
+      ]) {
+        final c = await setUpRouter(
+          tester,
+          _user(
+            clubAssignments: const [],
+            activeAssignmentId: null,
+            postRegisterComplete: false,
+            onboardingMode: OnboardingMode.clubExempt,
+            capabilities: [capability],
+          ),
+        );
+        expect(
+          await redirectFor(c, RouteNames.homeMembers),
+          RouteNames.postRegistration,
+          reason: capability,
+        );
+      }
     });
 
     testWidgets('post-registration wins over the guard', (tester) async {

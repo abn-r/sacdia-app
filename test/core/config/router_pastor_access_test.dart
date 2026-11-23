@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/config/router.dart';
 import 'package:sacdia_app/core/providers/app_bootstrap_provider.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
+import 'package:sacdia_app/features/auth/domain/entities/onboarding_mode.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
@@ -17,11 +18,13 @@ UserEntity _user({
   bool global = true,
   bool postRegisterComplete = false,
   List<AuthorizationGrant> clubAssignments = const [],
+  OnboardingMode onboardingMode = OnboardingMode.club,
 }) =>
     UserEntity(
       id: 'u1',
       email: 'u1@example.com',
       postRegisterComplete: postRegisterComplete,
+      onboardingMode: onboardingMode,
       authorization: withDerivedCapabilities(
         AuthorizationSnapshot(
           effectivePermissions: const ['clubs:read'],
@@ -30,6 +33,14 @@ UserEntity _user({
           clubAssignments: clubAssignments,
         ),
       ),
+    );
+
+/// Pastor sin club tal como lo informa el servidor tras el post-registro de 2
+/// pasos: `club_exempt` y completo.
+UserEntity _exemptPastor() => _user(
+      role: 'pastor',
+      postRegisterComplete: true,
+      onboardingMode: OnboardingMode.clubExempt,
     );
 
 const _activeClubGrant = AuthorizationGrant(
@@ -152,7 +163,7 @@ void main() {
 
     testWidgets('is not forced into post-registration from the splash',
         (tester) async {
-      final container = await setUpRouter(tester, _user(role: 'pastor'));
+      final container = await setUpRouter(tester, _exemptPastor());
       expect(
         await redirectFor(container, RouteNames.splash),
         RouteNames.homeDashboard,
@@ -160,7 +171,7 @@ void main() {
     });
 
     testWidgets('is sent home from a public route', (tester) async {
-      final container = await setUpRouter(tester, _user(role: 'pastor'));
+      final container = await setUpRouter(tester, _exemptPastor());
       expect(
         await redirectFor(container, RouteNames.login),
         RouteNames.homeDashboard,
@@ -169,7 +180,7 @@ void main() {
 
     testWidgets('may open only the authorization screens and the profile',
         (tester) async {
-      final container = await setUpRouter(tester, _user(role: 'pastor'));
+      final container = await setUpRouter(tester, _exemptPastor());
       for (final allowed in [
         RouteNames.homeDashboard,
         RouteNames.homeProfile,
@@ -183,7 +194,7 @@ void main() {
 
     testWidgets('any other route is redirected to home (authorizations tab)',
         (tester) async {
-      final container = await setUpRouter(tester, _user(role: 'pastor'));
+      final container = await setUpRouter(tester, _exemptPastor());
       for (final blocked in [
         RouteNames.homeHonors,
         RouteNames.homeCertifications,
@@ -258,6 +269,33 @@ void main() {
       );
       expect(
         await redirectFor(container, RouteNames.homeProfile),
+        RouteNames.postRegistration,
+      );
+    });
+
+    // R2.8: la exención local por rol se eliminó; decide el servidor.
+    testWidgets(
+        'a pastor without a club whose server did not complete it is sent to '
+        'post-registration', (tester) async {
+      final container = await setUpRouter(
+        tester,
+        _user(role: 'pastor', onboardingMode: OnboardingMode.clubExempt),
+      );
+      expect(
+        await redirectFor(container, RouteNames.splash),
+        RouteNames.postRegistration,
+      );
+      expect(
+        await redirectFor(container, RouteNames.homeProfile),
+        RouteNames.postRegistration,
+      );
+    });
+
+    testWidgets('a pastor without a club and an old server (club) needs it too',
+        (tester) async {
+      final container = await setUpRouter(tester, _user(role: 'pastor'));
+      expect(
+        await redirectFor(container, RouteNames.splash),
         RouteNames.postRegistration,
       );
     });

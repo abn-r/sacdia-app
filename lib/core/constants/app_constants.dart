@@ -87,6 +87,11 @@ class AppConstants {
 
   // Caché de PII de usuario (SecureStorage)
   static const String cachedUserId = 'cached_user_id';
+
+  /// `onboarding_mode` del tutor/cuenta (SharedPreferences, no es PII): junto
+  /// a `cached_post_register_complete` decide el inicio al restaurar sin red.
+  /// Ausente o desconocido = `club`.
+  static const String cachedOnboardingMode = 'cached_onboarding_mode';
   static const String cachedUserEmail = 'cached_user_email';
   static const String cachedUserName = 'cached_user_name';
   static const String cachedUserAvatar = 'cached_user_avatar';

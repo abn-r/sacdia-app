@@ -105,6 +105,7 @@ import 'device_pair_link.dart';
 import 'route_not_found_view.dart';
 import 'route_screen_policy.dart';
 import 'device_route_policy.dart';
+import 'panel_only_route_policy.dart';
 import 'pending_navigation.dart';
 import 'release_route_policy.dart';
 import 'supervised_route_policy.dart';
@@ -128,6 +129,7 @@ import '../../features/device_mode/presentation/views/device_home_view.dart';
 import '../../features/device_mode/presentation/views/device_requirement_view.dart';
 import '../../features/device_mode/presentation/views/device_shell.dart';
 import '../../features/device_mode/presentation/views/pair_device_view.dart';
+import '../../features/auth/presentation/views/panel_only_account_view.dart';
 import '../../features/auth/presentation/views/restricted_account_view.dart';
 import '../../features/family/presentation/views/add_dependent_view.dart';
 import '../../features/family/presentation/views/dependent_detail_view.dart';
@@ -339,6 +341,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return accountHomeFor(
           user.mode,
           needsPostRegistration: userNeedsPostRegistration(user),
+          panelOnly: isPanelOnlyAccount(user),
         );
       }
 
@@ -363,6 +366,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return accountHomeFor(
           user.mode,
           needsPostRegistration: userNeedsPostRegistration(user),
+          panelOnly: isPanelOnlyAccount(user),
         );
       }
 
@@ -400,10 +404,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         }
         // Adolescente sin tutor verificado: su pantalla de estado, sin rebote
         // por el inicio. Cuenta sin fecha de nacimiento: el post-registro.
-        // Principal desconocido: su pantalla informativa.
+        // Principal desconocido: su pantalla informativa. Cuenta de solo
+        // panel: su pantalla, nunca un inicio de club.
         return accountHomeFor(
           user.mode,
           needsPostRegistration: userNeedsPostRegistration(user),
+          panelOnly: isPanelOnlyAccount(user),
         );
       }
 
@@ -421,9 +427,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         return isPublicRoute ? null : RouteNames.login;
       }
 
-      // El pastor y el coordinador sin club no tienen datos de club que
-      // completar: no pasan por el post-registro (la app solo les muestra
-      // «Autorizaciones» o la coordinación, y su perfil).
+      // Quién pasa por el post-registro lo decide el servidor
+      // (`onboarding_mode`, ver `userNeedsPostRegistration`): `club` hace los 3
+      // pasos, `club_exempt` (pastor o coordinación sin club) los 2 primeros y
+      // `panel_only` nunca. La app no exime a nadie por su rol.
       final needsPostRegistration = userNeedsPostRegistration(user);
 
       // Usuario autenticado en ruta pública → destino home compartido.
@@ -431,6 +438,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return accountHomeFor(
           user.mode,
           needsPostRegistration: needsPostRegistration,
+          panelOnly: isPanelOnlyAccount(user),
         );
       }
 
@@ -462,6 +470,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           ref.read(actingForSessionProvider).isActing) {
         return RouteNames.homeDashboard;
       }
+
+      // Cuenta de solo panel (`onboarding_mode == panel_only`): la app no tiene
+      // tareas para ella. Solo ve su pantalla, `/access-denied` y, si es tutora,
+      // Mi familia. Va DESPUÉS de las compuertas por modo de sesión y de "actuar
+      // por" (que ganan) y ANTES del post-registro (que nunca completa). Quien no
+      // es de solo panel y abre su pantalla vuelve a su inicio.
+      final panelOnlyTarget = panelOnlyRouteRedirect(user, currentPath);
+      if (panelOnlyTarget != null) return panelOnlyTarget;
 
       // Usuario autenticado con post-registro incompleto fuera de la ruta de post-registro
       if (needsPostRegistration && currentPath != RouteNames.postRegistration) {
@@ -552,6 +568,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RouteNames.restrictedAccount,
         pageBuilder: (context, state) =>
             _sharedAxisBuild(context, state, const RestrictedAccountView()),
+      ),
+
+      // Cuenta de solo panel web: pantalla única (ver
+      // `panel_only_route_policy.dart`).
+      GoRoute(
+        path: RouteNames.panelOnlyAccount,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const PanelOnlyAccountView()),
       ),
 
       // Teléfono vinculado de un menor de 13 (Fase 3b). La pantalla de

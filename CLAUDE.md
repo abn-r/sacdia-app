@@ -165,6 +165,24 @@ La app puede estar en cinco modos. El servidor decide cuál es: `GET /auth/me` d
 - **`PRINCIPAL_SCOPE_DENIED`** (403 de un adolescente o de un dispositivo en una ruta fuera de su alcance) no es un error de esa acción: `PrincipalScopeInterceptor` refresca `/auth/me` porque casi siempre el modo cambió en el servidor. No sale de actuar.
 - **Regla**: toda pantalla o ruta nueva decide qué hace en cada modo antes de existir. El router descarta lo que el modo no permite (y `acting_route_policy.dart` lo que no se permite al actuar); el servidor sigue siendo la autoridad (403).
 
+### Modo de ingreso (`onboarding_mode`)
+
+El servidor decide cómo ingresa una cuenta y lo publica en el login, en `GET /auth/me` y en el estado del post-registro. `OnboardingMode` (`features/auth/domain/entities/onboarding_mode.dart`, en `UserEntity.onboardingMode`) NO es `AccountMode` (tipo de principal): la app lo lee y nunca lo calcula con roles ni clubes. Ausente o desconocido es `club` (servidor anterior al campo).
+
+| Valor | Quién es | Post-registro |
+| --- | --- | --- |
+| `club` | Flujo normal de club | 3 pasos |
+| `club_exempt` | Cuenta sin club por diseño (pastor, coordinación) | 2 pasos: foto e información personal; sin selección de club |
+| `panel_only` | Cuenta que solo usa el panel web | Nunca lo completa |
+
+- **`userNeedsPostRegistration`** (`authorization_utils.dart`): `AccountMode.profileIncomplete` o (modo distinto de `panel_only` y `!postRegisterComplete`). Ya no hay exenciones por rol (pastor/coordinador): `club_exempt` hace los 2 pasos.
+- **Flujo de 2 pasos** (`post_registration_shell.dart`): el total sale de `_totalStepsFor(user)`. Tras el paso 2 se vuelve a leer `/auth/me`; si el servidor ya marcó el post-registro completo, la app lo marca y va a home; si no, avisa y se queda.
+- **Pantalla de solo panel** (`PanelOnlyAccountView`, `RouteNames.panelOnlyAccount` = `/account/panel-only`): explica que la función de la cuenta está en el panel web. Acciones: «Mi familia» (solo si `isGuardianAccount`), «Comprobar de nuevo» (`refreshAuthorization(minInterval: Duration.zero)`; si el modo cambió, el router la saca de ahí) y «Cerrar sesión». Sin atrás (`PopScope`).
+- **Compuerta de rutas** (`panel_only_route_policy.dart`, `panelOnlyRouteRedirect`): solo para `panel_only` en el adulto normal (`isPanelOnlyAccount`: sin `actingFor` y `AccountMode.adult`). Lista blanca: `/account/panel-only`, `/access-denied` y, para un tutor, todo `/family`. Todo lo demás va a la pantalla; quien no es de solo panel y la abre va a su inicio. Es también el inicio de la cuenta (`accountHomeFor(..., panelOnly:)`) y el filtro de destinos diferidos (`isPendingNavigationAllowed`).
+- **Posición en el redirect de `router.dart`**: arranque/bootstrap, liberación, legal, vinculación y splash, adulto/dispositivo/adolescente (`supervisedRouteRedirect`), «actuar por» (`isBlockedWhileActing`), **compuerta de solo panel**, post-registro, pastor/coordinador sin club y, ÚLTIMO, el guard por catálogo. Las compuertas por modo de sesión ganan. `/account/panel-only` está en `acting_route_policy.dart`.
+- **Excepción del tutor**: una cuenta `panel_only` con dependientes conserva `/family`. Al entrar a un dependiente la sesión es la del menor (modo `club`, `actingFor` puesto) y la compuerta no aplica; al salir el router devuelve al tutor a la pantalla, no a un inicio de club.
+- **Caché sin red**: `AuthNotifier._cacheUser` guarda el modo en SharedPreferences (`AppConstants.cachedOnboardingMode`, `cached_onboarding_mode`, sin PII) junto a `cached_post_register_complete`, y `AuthNotifier.build` lo restaura (ausente o desconocido = `club`). Nunca se escribe mientras se actúa, y se borra donde se borra la bandera (cerrar sesión, sesión expirada, borrar cuenta, reinicio total y `_clearAllPersistentData`).
+
 ### Política de analítica por modo
 
 `AnalyticsPolicy.apply` (`lib/core/analytics/analytics_policy.dart`) se ejecuta con cada usuario cargado. Falla cerrado:

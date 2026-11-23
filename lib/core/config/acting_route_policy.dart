@@ -16,7 +16,9 @@ bool isBlockedWhileActing(String path) {
       _hasPrefix(path, RouteNames.serviceCredentials) ||
       // Fase 4: la liberación y el canje del código son de la propia persona.
       _hasPrefix(path, RouteNames.release) ||
-      _hasPrefix(path, RouteNames.adultClaim);
+      _hasPrefix(path, RouteNames.adultClaim) ||
+      // La pantalla de cuenta solo de panel es del propio tutor, no del menor.
+      _hasPrefix(path, RouteNames.panelOnlyAccount);
 }
 
 bool _hasPrefix(String path, String prefix) =>

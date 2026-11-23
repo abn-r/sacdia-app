@@ -1,4 +1,5 @@
 import '../entities/authorization_snapshot.dart';
+import '../entities/onboarding_mode.dart';
 import '../entities/principal_info.dart';
 import '../entities/user_entity.dart';
 
@@ -231,8 +232,9 @@ bool isClubStaffMode(UserEntity? user) {
 /// ¿Es un pastor «solo pastor» (`admin_panel.pastor_only`: roles globales no
 /// vacíos y todos pastor) sin ninguna presencia en un club?
 ///
-/// Esa persona no pasa por el post-registro de club ni ve el inicio de un
-/// miembro: la app le muestra solo «Autorizaciones» y su perfil. Con cualquier
+/// Esa persona no ve el inicio de un miembro: la app le muestra solo
+/// «Autorizaciones» y su perfil. El post-registro no depende de esto: lo decide
+/// el `onboarding_mode` del servidor (`club_exempt` hace 2 pasos). Con cualquier
 /// asignación de club utilizable, pendiente, inactiva o vencida, deja de
 /// calificar y conserva el flujo normal.
 bool isPastorWithoutClub(UserEntity? user) {
@@ -245,8 +247,8 @@ bool isPastorWithoutClub(UserEntity? user) {
 /// ¿Puede ver el panel de coordinación (`coordination.hub_view`) sin ninguna
 /// presencia en un club?
 ///
-/// Igual que el pastor sin club: no pasa por el post-registro de club y su
-/// inicio no es el resumen de un club sino el panel de coordinación. No exige
+/// Igual que el pastor sin club: el post-registro lo decide el `onboarding_mode`
+/// del servidor (no esta función) y su inicio no es el resumen de un club sino el panel de coordinación. No exige
 /// `consent:verify` ni secciones asignadas: el propio panel resuelve esos
 /// estados (alcance vacío, sin fichas). Con cualquier asignación de club
 /// visible (activa, pendiente, inactiva o vencida) deja de calificar y conserva
@@ -279,27 +281,36 @@ bool isGuardianWithoutClub(UserEntity? user) {
   if (user == null || user.actingFor != null) return false;
   final assignments = user.authorization?.clubAssignments ?? const [];
   if (visibleClubAssignments(assignments).isNotEmpty) return false;
-  final family = user.family;
-  final isGuardian =
-      family != null && (family.isGuardian || family.dependentsCount > 0);
   // Sin datos de tutoría, solo califica quien ya completó el post-registro y
   // el servidor devolvió su autorización sin clubes (cuenta de tutor sin club).
   final completedWithoutClub =
       user.postRegisterComplete && user.authorization != null;
-  return isGuardian || completedWithoutClub;
+  return isGuardianAccount(user) || completedWithoutClub;
 }
 
-/// ¿Debe pasar por el post-registro de club?
+/// ¿Es una cuenta de tutor según `family` (`is_guardian` o `dependents_count`)?
 ///
-/// Falta completarlo, salvo para el pastor o el coordinador sin club: su
-/// cuenta no tiene datos de club que completar. Una cuenta sin fecha de nacimiento
-/// (`profile_incomplete`) lo necesita siempre: la restricción la levanta el
-/// servidor, no la bandera local.
+/// No mira clubes ni la bandera de post-registro: solo la tutoría que el
+/// servidor informó. Es falso mientras se actúa por un dependiente y cuando
+/// `family` no vino (sesión supervisada, de dispositivo, restaurada sin red...).
+bool isGuardianAccount(UserEntity? user) {
+  if (user == null || user.actingFor != null) return false;
+  final family = user.family;
+  return family != null && (family.isGuardian || family.dependentsCount > 0);
+}
+
+/// ¿Debe pasar por el post-registro?
+///
+/// Lo decide el servidor: falta completarlo (`post_register_complete`), salvo
+/// que el `onboarding_mode` sea `panel_only` (cuenta solo de panel web, que
+/// nunca lo completa). Un `club_exempt` (pastor o coordinación sin club) sí lo
+/// hace, en 2 pasos. Una cuenta sin fecha de nacimiento (`profile_incomplete`)
+/// lo necesita siempre: la restricción la levanta el servidor, no la bandera
+/// local. La app no deduce nada de roles ni de clubes.
 bool userNeedsPostRegistration(UserEntity user) =>
     user.mode == AccountMode.profileIncomplete ||
-    (!user.postRegisterComplete &&
-        !isPastorWithoutClub(user) &&
-        !isCoordinatorWithoutClub(user));
+    (user.onboardingMode != OnboardingMode.panelOnly &&
+        !user.postRegisterComplete);
 
 /// ¿Se ofrece «Eliminar cuenta» en el menú del post-registro?
 ///

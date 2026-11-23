@@ -7096,6 +7096,15 @@
     "title": "Conta indisponível",
     "body": "Sua conta usa um recurso que esta versão do app ainda não reconhece. Por segurança, o acesso está limitado. Atualize o app ou entre novamente mais tarde."
   },
+  "panel_only_account": {
+    "title": "Sua função é gerenciada pelo painel web",
+    "body": "Sua conta está ativa. As tarefas da sua função são feitas no painel web do SACDIA, em um navegador.",
+    "family_hint": "Daqui você pode continuar gerenciando sua família.",
+    "check_again": "Verificar novamente",
+    "checking": "Verificando seu acesso",
+    "check_hint": "Se você receber um clube ou uma função no app, verifique aqui.",
+    "unchanged": "Sem mudanças por enquanto. Tente novamente mais tarde."
+  },
   "teen": {
     "pending": {
       "title": "Falta o seu responsável",

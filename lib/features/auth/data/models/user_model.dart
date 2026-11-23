@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 
 import '../../domain/entities/acting_for_info.dart';
 import '../../domain/entities/authorization_snapshot.dart';
+import '../../domain/entities/onboarding_mode.dart';
 import '../../domain/entities/pending_club_membership.dart';
 import '../../domain/entities/principal_info.dart';
 import '../../domain/entities/user_entity.dart';
@@ -28,6 +29,7 @@ class UserModel extends UserEntity {
     super.serverMode,
     super.pendingClubMembership,
     super.authorizationStale,
+    super.onboardingMode,
   });
 
   /// Crea un UserModel a partir de la respuesta de la API personalizada
@@ -63,6 +65,7 @@ class UserModel extends UserEntity {
       serverMode: _parseMode(data),
       pendingClubMembership:
           _parsePendingClubMembership(data['pending_club_membership']),
+      onboardingMode: OnboardingMode.parse(data['onboarding_mode']),
     );
   }
 
@@ -79,6 +82,7 @@ class UserModel extends UserEntity {
       'lastSignInAt': lastSignInAt?.toIso8601String(),
       'createdAt': createdAt?.toIso8601String(),
       'postRegisterComplete': postRegisterComplete,
+      'onboardingMode': onboardingMode.wireValue,
     };
   }
 
@@ -488,6 +492,7 @@ class UserModel extends UserEntity {
       lastSignInAt: _parseDateTime(json['lastSignInAt']),
       createdAt: _parseDateTime(json['createdAt']),
       postRegisterComplete: json['postRegisterComplete'] as bool? ?? false,
+      onboardingMode: OnboardingMode.parse(json['onboardingMode']),
     );
   }
 
@@ -512,6 +517,7 @@ class UserModel extends UserEntity {
     AccountMode? serverMode,
     PendingClubMembership? pendingClubMembership,
     bool? authorizationStale,
+    OnboardingMode? onboardingMode,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -535,6 +541,7 @@ class UserModel extends UserEntity {
       pendingClubMembership:
           pendingClubMembership ?? this.pendingClubMembership,
       authorizationStale: authorizationStale ?? this.authorizationStale,
+      onboardingMode: onboardingMode ?? this.onboardingMode,
     );
   }
 }

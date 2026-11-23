@@ -262,6 +262,7 @@ class AppBootstrapNotifier extends AsyncNotifier<AppBootstrapState> {
 
     // SharedPreferences — await to ensure flush before state transition.
     await prefs.remove('cached_post_register_complete');
+    await prefs.remove(AppConstants.cachedOnboardingMode);
     await prefs.remove('user_manually_logged_out');
 
     // Invalidate all user-specific providers.

@@ -7098,6 +7098,15 @@
     "title": "Account unavailable",
     "body": "Your account uses a feature this version of the app does not recognize yet. For your safety, access is limited. Update the app or sign in again later."
   },
+  "panel_only_account": {
+    "title": "Your role is managed from the web panel",
+    "body": "Your account is active. The tasks for your role are done in the SACDIA web panel, from a browser.",
+    "family_hint": "From here you can keep managing your family.",
+    "check_again": "Check again",
+    "checking": "Checking your access",
+    "check_hint": "If you are assigned a club or a role in the app, check it here.",
+    "unchanged": "No changes for now. Try again later."
+  },
   "teen": {
     "pending": {
       "title": "Your guardian is missing",

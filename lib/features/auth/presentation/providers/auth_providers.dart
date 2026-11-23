@@ -23,9 +23,11 @@ import '../../data/datasources/auth_remote_data_source.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/authorization_snapshot.dart';
 import '../../domain/entities/delete_account_reauth.dart';
+import '../../domain/entities/onboarding_mode.dart';
 import '../../domain/entities/principal_info.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../domain/utils/authorization_utils.dart';
 import '../../domain/utils/registration_age_gate.dart';
 import '../../domain/usecases/get_current_user.dart';
 import '../../domain/usecases/reset_password_request.dart';
@@ -191,13 +193,16 @@ enum SwitchProfileOutcome {
 /// Notifier para manejar la autenticación y sus estados
 /// ¿Ya se puede pedir el permiso de notificaciones para [user]?
 ///
-/// Solo cuando terminó el post-registro y aceptó los documentos legales: antes
-/// el aviso del sistema tapaba el registro. Un teléfono vinculado no tiene
-/// post-registro de cuenta, así que siempre está listo.
+/// Solo cuando ya no necesita el post-registro y aceptó los documentos legales:
+/// antes el aviso del sistema tapaba el registro. Se usa
+/// [userNeedsPostRegistration] y no `postRegisterComplete` porque una cuenta
+/// `panel_only` nunca lo completa y aun así recibe avisos (familia, seguridad).
+/// Un teléfono vinculado no tiene post-registro de cuenta, así que siempre
+/// está listo.
 @visibleForTesting
 bool pushReadyFor(UserEntity user) {
   if (user.isLinkedDevice) return true;
-  return user.postRegisterComplete && !user.legalAcceptancePending;
+  return !userNeedsPostRegistration(user) && !user.legalAcceptancePending;
 }
 
 class AuthNotifier extends AsyncNotifier<UserEntity?> {
@@ -547,6 +552,11 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
               authorization: cachedAuthorization,
               postRegisterComplete:
                   prefs.getBool('cached_post_register_complete') ?? false,
+              // Sin el modo, una cuenta de solo panel restaurada sin red
+              // caería en el post-registro de club. Ausente = `club`.
+              onboardingMode: OnboardingMode.parse(
+                prefs.getString(AppConstants.cachedOnboardingMode),
+              ),
               // Server is the truth; never cache pending. Offline restore
               // cannot know the legal status, so it stays false.
               legalAcceptancePending: false,
@@ -628,9 +638,14 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       user.postRegisterComplete.toString(),
     );
     // Keep non-PII flag in SharedPreferences for synchronous router reads.
-    ref
-        .read(sharedPreferencesProvider)
-        .setBool('cached_post_register_complete', user.postRegisterComplete);
+    final cachePrefs = ref.read(sharedPreferencesProvider);
+    cachePrefs.setBool(
+        'cached_post_register_complete', user.postRegisterComplete);
+    // El modo viaja junto a la bandera: ambos deciden el inicio sin red.
+    cachePrefs.setString(
+      AppConstants.cachedOnboardingMode,
+      user.onboardingMode.wireValue,
+    );
 
     // Capacidades del servidor y momento de la respuesta: la restauración sin
     // red las usa para decidir inicio y pestañas (en modo solo lectura).
@@ -915,6 +930,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       serverMode: current.serverMode,
       pendingClubMembership: current.pendingClubMembership,
       authorizationStale: current.authorizationStale,
+      onboardingMode: current.onboardingMode,
     );
     state = AsyncValue.data(updatedUser);
     _cacheUser(updatedUser);
@@ -948,6 +964,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       serverMode: current.serverMode,
       pendingClubMembership: current.pendingClubMembership,
       authorizationStale: current.authorizationStale,
+      onboardingMode: current.onboardingMode,
     );
     state = AsyncValue.data(
         updatedUser); // Aceptó los documentos: si ya terminó el registro, pide el permiso.
@@ -976,6 +993,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       serverMode: current.serverMode,
       pendingClubMembership: current.pendingClubMembership,
       authorizationStale: current.authorizationStale,
+      onboardingMode: current.onboardingMode,
     );
     state = AsyncValue.data(updatedUser);
     _cacheUser(updatedUser);
@@ -1338,6 +1356,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         // Limpiar estado local (el datasource ya limpió tokens en deleteAccount).
         final prefs = ref.read(sharedPreferencesProvider);
         prefs.remove('cached_post_register_complete');
+        prefs.remove(AppConstants.cachedOnboardingMode);
         prefs.remove('user_manually_logged_out');
         await clearSessionScopedBiometricOptIn(prefs);
         ref.invalidate(biometricProvider);
@@ -1546,7 +1565,8 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     // los documentos) cambia el principal y el modo aunque los permisos no
     // cambien: sin esto el router no saldría de `/release`.
     if (before.principal != after.principal ||
-        before.serverMode != after.serverMode) {
+        before.serverMode != after.serverMode ||
+        before.onboardingMode != after.onboardingMode) {
       return true;
     }
     final a = before.authorization;
@@ -1773,6 +1793,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.remove('cached_post_register_complete');
+    prefs.remove(AppConstants.cachedOnboardingMode);
     unawaited(clearSessionScopedBiometricOptIn(prefs));
     ref.invalidate(biometricProvider);
 
@@ -1820,6 +1841,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         final prefs = ref.read(sharedPreferencesProvider);
         prefs.setBool('user_manually_logged_out', true);
         prefs.remove('cached_post_register_complete');
+        prefs.remove(AppConstants.cachedOnboardingMode);
         await clearSessionScopedBiometricOptIn(prefs);
         ref.invalidate(biometricProvider);
 

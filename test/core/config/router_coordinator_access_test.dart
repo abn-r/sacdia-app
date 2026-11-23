@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/config/router.dart';
 import 'package:sacdia_app/core/providers/app_bootstrap_provider.dart';
 import 'package:sacdia_app/features/auth/domain/entities/acting_for_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
+import 'package:sacdia_app/features/auth/domain/entities/onboarding_mode.dart';
 import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
@@ -23,11 +24,13 @@ UserEntity _user({
   ActingForInfo? actingFor,
   FamilySummary? family,
   AccountMode? serverMode,
+  OnboardingMode onboardingMode = OnboardingMode.club,
 }) =>
     UserEntity(
       id: 'u1',
       email: 'u1@example.com',
       postRegisterComplete: postRegisterComplete,
+      onboardingMode: onboardingMode,
       actingFor: actingFor,
       family: family,
       serverMode: serverMode,
@@ -40,6 +43,14 @@ UserEntity _user({
           clubAssignments: clubAssignments,
         ),
       ),
+    );
+
+/// Cuenta sin club tal como la informa el servidor tras el post-registro de 2
+/// pasos: `club_exempt` y completa.
+UserEntity _exempt({List<String> roles = const ['coordinator']}) => _user(
+      roles: roles,
+      postRegisterComplete: true,
+      onboardingMode: OnboardingMode.clubExempt,
     );
 
 /// Roles globales de coordinación (los que el backend resume en
@@ -194,8 +205,19 @@ void main() {
   });
 
   group('userNeedsPostRegistration', () {
-    test('a coordinator without a club is exempt', () {
-      expect(userNeedsPostRegistration(_user()), isFalse);
+    test('a completed club_exempt coordinator without a club does not', () {
+      expect(userNeedsPostRegistration(_exempt()), isFalse);
+    });
+
+    // R2.8: sin exención local por rol; decide `post_register_complete`.
+    test('an incomplete coordinator without a club needs it', () {
+      expect(userNeedsPostRegistration(_user()), isTrue);
+      expect(
+        userNeedsPostRegistration(
+          _user(onboardingMode: OnboardingMode.clubExempt),
+        ),
+        isTrue,
+      );
     });
 
     test('a coordinator with a club still completes it', () {
@@ -213,8 +235,10 @@ void main() {
       expect(userNeedsPostRegistration(user), isTrue);
     });
 
-    test('a pastor without a club stays exempt and a plain user does not', () {
-      expect(userNeedsPostRegistration(_user(roles: ['pastor'])), isFalse);
+    test('a completed pastor without a club does not; an incomplete one does',
+        () {
+      expect(userNeedsPostRegistration(_exempt(roles: ['pastor'])), isFalse);
+      expect(userNeedsPostRegistration(_user(roles: ['pastor'])), isTrue);
       expect(userNeedsPostRegistration(_user(roles: ['user'])), isTrue);
     });
   });
@@ -312,7 +336,7 @@ void main() {
 
     testWidgets('is not forced into post-registration from the splash',
         (tester) async {
-      final container = await setUpRouter(tester, _user());
+      final container = await setUpRouter(tester, _exempt());
       expect(
         await redirectFor(container, RouteNames.splash),
         RouteNames.homeDashboard,
@@ -321,7 +345,7 @@ void main() {
 
     testWidgets('leaves the post-registration route for the home',
         (tester) async {
-      final container = await setUpRouter(tester, _user());
+      final container = await setUpRouter(tester, _exempt());
       expect(
         await redirectFor(container, RouteNames.postRegistration),
         RouteNames.homeDashboard,
@@ -329,7 +353,7 @@ void main() {
     });
 
     testWidgets('is sent home from a public route', (tester) async {
-      final container = await setUpRouter(tester, _user());
+      final container = await setUpRouter(tester, _exempt());
       expect(
         await redirectFor(container, RouteNames.login),
         RouteNames.homeDashboard,
@@ -338,7 +362,7 @@ void main() {
 
     testWidgets('may open the hub, its modules, profile and inbox',
         (tester) async {
-      final container = await setUpRouter(tester, _user());
+      final container = await setUpRouter(tester, _exempt());
       for (final allowed in [
         RouteNames.homeDashboard,
         RouteNames.homeProfile,
@@ -358,7 +382,7 @@ void main() {
 
     testWidgets('club-only routes are redirected to the coordination home',
         (tester) async {
-      final container = await setUpRouter(tester, _user());
+      final container = await setUpRouter(tester, _exempt());
       for (final blocked in [
         RouteNames.homeHonors,
         RouteNames.homeClasses,
@@ -383,7 +407,7 @@ void main() {
         (tester) async {
       final container = await setUpRouter(
         tester,
-        _user(roles: ['coordinator', 'pastor']),
+        _exempt(roles: ['coordinator', 'pastor']),
       );
       expect(
         await redirectFor(container, RouteNames.splash),
@@ -431,7 +455,7 @@ void main() {
     testWidgets(
         'a pastor without a club is still sent to home (authorizations tab)',
         (tester) async {
-      final container = await setUpRouter(tester, _user(roles: ['pastor']));
+      final container = await setUpRouter(tester, _exempt(roles: ['pastor']));
       expect(
         await redirectFor(container, RouteNames.homeHonors),
         RouteNames.homeDashboard,
@@ -482,7 +506,7 @@ void main() {
       ]) {
         expect(
           isPendingNavigationAllowed(
-            user: _user(),
+            user: _exempt(),
             route: route,
             acting: false,
           ),
@@ -495,7 +519,7 @@ void main() {
     test('club-only routes are dropped for a coordinator without a club', () {
       expect(
         isPendingNavigationAllowed(
-          user: _user(),
+          user: _exempt(),
           route: RouteNames.homeActivities,
           acting: false,
         ),
