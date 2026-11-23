@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/animations/page_transitions.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/class_tone.dart';
 import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -223,7 +222,7 @@ class _RedeemLinkCodeViewState extends ConsumerState<RedeemLinkCodeView> {
                   error: (_, __) => Text(
                     'family.add.relationship_error'.tr(),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.error,
+                      color: context.sac.error,
                     ),
                   ),
                   data: (types) => RelationshipTypePickerField(

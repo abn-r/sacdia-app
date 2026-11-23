@@ -3,14 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/route_names.dart';
 import '../../../../core/notifications/push_notification_provider.dart';
-import '../../../../core/widgets/sac_dialog.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/providers/acting_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import 'family_sheets.dart';
 
 /// `true` justo después de que el TUTOR termina su propio post-registro.
 ///
@@ -80,15 +79,14 @@ class FamilyPromptHost extends ConsumerWidget {
     final context = (navigatorKey ?? pushNavigatorKey).currentContext;
     if (context == null || !context.mounted) return;
 
-    final wantsToAdd = await SacDialog.show(
+    final wantsToAdd = await showFamilyConfirmSheet(
       context,
       title: 'family.prompt.title'.tr(),
-      content: 'family.prompt.body'.tr(),
+      body: 'family.prompt.body'.tr(),
       confirmLabel: 'family.prompt.add'.tr(),
       cancelLabel: 'family.prompt.later'.tr(),
-      icon: HugeIcons.strokeRoundedUserGroup,
     );
-    if (wantsToAdd != true || !context.mounted) return;
+    if (!wantsToAdd || !context.mounted) return;
     GoRouter.of(context).push(RouteNames.familyAdd);
   }
 }

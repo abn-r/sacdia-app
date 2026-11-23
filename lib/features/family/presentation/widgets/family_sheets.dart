@@ -20,6 +20,7 @@ Future<bool> showFamilyConfirmSheet(
   required String title,
   required String body,
   required String confirmLabel,
+  String? cancelLabel,
   bool destructive = false,
 }) async {
   final confirmed = await showSacSheet<bool>(
@@ -51,7 +52,7 @@ Future<bool> showFamilyConfirmSheet(
                         ),
                   const SizedBox(height: 8),
                   SacButton.ghost(
-                    text: 'common.cancel'.tr(),
+                    text: cancelLabel ?? 'common.cancel'.tr(),
                     onPressed: () => Navigator.of(ctx).pop(false),
                   ),
                 ],

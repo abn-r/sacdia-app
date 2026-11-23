@@ -135,7 +135,7 @@ void main() {
       expect(find.text('Desactivar acceso'), findsNothing);
       expect(find.text('Restablecer contraseña'), findsNothing);
       // Lo único que sí puede: subir el formulario firmado.
-      expect(find.text('Ficha de consentimiento'), findsOneWidget);
+      expect(find.text('FICHA DE CONSENTIMIENTO'), findsOneWidget);
     });
 
     testWidgets(

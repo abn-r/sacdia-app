@@ -383,7 +383,7 @@ void main() {
       repo.detail = Right(_detail());
       await pump(tester);
 
-      expect(find.text('Ficha de consentimiento'), findsOneWidget);
+      expect(find.text('FICHA DE CONSENTIMIENTO'), findsOneWidget);
       expect(find.textContaining('Imprime y firma la ficha del club'),
           findsOneWidget);
       expect(find.text('Subir ficha firmada'), findsOneWidget);
@@ -425,7 +425,7 @@ void main() {
       );
       await pump(tester);
 
-      expect(find.text('Ficha de consentimiento'), findsNothing);
+      expect(find.text('FICHA DE CONSENTIMIENTO'), findsNothing);
       expect(find.text('Subir ficha firmada'), findsNothing);
     });
 
