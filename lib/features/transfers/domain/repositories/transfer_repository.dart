@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/cancellation_token.dart';
+import '../entities/transfer_club_option.dart';
 import '../entities/transfer_request.dart';
 
 abstract class TransferRepository {
@@ -20,6 +21,13 @@ abstract class TransferRepository {
   /// Obtiene el detalle de una solicitud de traslado.
   Future<Either<Failure, TransferRequest>> getTransferRequest(
     String requestId, {
+    RequestCancelToken? cancelToken,
+  });
+
+  /// Clubs of a local field the member can move to.
+  Future<Either<Failure, List<TransferClubOption>>> getDestinationClubs({
+    required int localFieldId,
+    required int clubTypeId,
     RequestCancelToken? cancelToken,
   });
 }

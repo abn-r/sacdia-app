@@ -6,6 +6,7 @@ import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/business_error.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../../domain/entities/transfer_club_option.dart';
 import '../models/transfer_request_model.dart';
 
 abstract class TransferRemoteDataSource {
@@ -21,6 +22,13 @@ abstract class TransferRemoteDataSource {
 
   Future<TransferRequestModel> getTransferRequest(
     String requestId, {
+    CancelToken? cancelToken,
+  });
+
+  /// Active clubs of a local field, each with its section of [clubTypeId].
+  Future<List<TransferClubOption>> getDestinationClubs({
+    required int localFieldId,
+    required int clubTypeId,
     CancelToken? cancelToken,
   });
 }
@@ -176,6 +184,73 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
       throw ServerException(message: e.toString());
     }
   }
+
+  @override
+  Future<List<TransferClubOption>> getDestinationClubs({
+    required int localFieldId,
+    required int clubTypeId,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final options = <TransferClubOption>[];
+      // The list is paginated (100 at most per page); a local field rarely
+      // has more, but read every page so no club is missing.
+      for (var page = 1; page <= 10; page++) {
+        final response = await _dio.get(
+          '$_baseUrl${ApiEndpoints.clubs}',
+          queryParameters: {
+            'localFieldId': localFieldId,
+            'active': true,
+            'limit': 100,
+            'page': page,
+          },
+          cancelToken: cancelToken,
+        );
+        final body = response.data;
+        options.addAll(
+          _unwrapList(body).map((json) => clubOptionFromJson(json, clubTypeId)),
+        );
+        final meta = body is Map ? body['meta'] : null;
+        if (meta is! Map || meta['hasNextPage'] != true) break;
+      }
+      return options;
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      AppLogger.e('DioException en getDestinationClubs', tag: _tag, error: e);
+      throw businessErrorFrom(e);
+    } catch (e) {
+      if (e is AppException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+}
+
+/// A club row of `GET /clubs` as a destination: its active section of
+/// [clubTypeId], if any.
+@visibleForTesting
+TransferClubOption clubOptionFromJson(
+  Map<String, dynamic> json,
+  int clubTypeId,
+) {
+  int? sectionId;
+  final sections = json['club_sections'];
+  if (sections is List) {
+    for (final raw in sections) {
+      if (raw is! Map) continue;
+      final type =
+          raw['club_type_id'] ?? (raw['club_types'] as Map?)?['club_type_id'];
+      if (raw['active'] == false || '$type' != '$clubTypeId') continue;
+      sectionId = int.tryParse('${raw['club_section_id'] ?? raw['id']}');
+      if (sectionId != null) break;
+    }
+  }
+  final church = (json['churches'] as Map?)?['name']?.toString().trim();
+  return TransferClubOption(
+    clubId: int.tryParse('${json['club_id'] ?? json['id']}') ?? 0,
+    name: (json['name'] as String?)?.trim() ?? '',
+    churchName: church == null || church.isEmpty ? null : church,
+    sectionId: sectionId,
+  );
 }
 
 /// Texto para un error al crear un traslado. Los códigos conocidos usan un

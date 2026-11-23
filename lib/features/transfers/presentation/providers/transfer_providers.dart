@@ -5,6 +5,8 @@ import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/datasources/transfer_remote_data_source.dart';
 import '../../data/repositories/transfer_repository_impl.dart';
+import '../../../../core/providers/keep_alive_during.dart';
+import '../../domain/entities/transfer_club_option.dart';
 import '../../domain/entities/transfer_request.dart';
 import '../../domain/repositories/transfer_repository.dart';
 
@@ -104,27 +106,32 @@ class CreateTransferNotifier extends Notifier<CreateTransferState> {
     required int fromSectionId,
     required int toSectionId,
     String? reason,
-  }) async {
-    state = state.copyWith(isLoading: true, clearError: true);
+  }) {
+    // The sheet may close before the answer arrives: keep the notifier
+    // alive across the await so the result still lands.
+    return ref.keepAliveDuring(() async {
+      state = state.copyWith(isLoading: true, clearError: true);
 
-    final repo = ref.read(transferRepositoryProvider);
-    final result = await repo.createTransferRequest(
-      fromSectionId: fromSectionId,
-      toSectionId: toSectionId,
-      reason: reason,
-    );
+      final repo = ref.read(transferRepositoryProvider);
+      final result = await repo.createTransferRequest(
+        fromSectionId: fromSectionId,
+        toSectionId: toSectionId,
+        reason: reason,
+      );
 
-    return result.fold(
-      (failure) {
-        state = state.copyWith(isLoading: false, errorMessage: failure.message);
-        return false;
-      },
-      (transfer) {
-        state = state.copyWith(isLoading: false, result: transfer);
-        ref.invalidate(myTransferRequestsProvider);
-        return true;
-      },
-    );
+      return result.fold(
+        (failure) {
+          state =
+              state.copyWith(isLoading: false, errorMessage: failure.message);
+          return false;
+        },
+        (transfer) {
+          state = state.copyWith(isLoading: false, result: transfer);
+          ref.invalidate(myTransferRequestsProvider);
+          return true;
+        },
+      );
+    });
   }
 
   void reset() => state = const CreateTransferState();
@@ -134,3 +141,22 @@ final createTransferProvider =
     NotifierProvider.autoDispose<CreateTransferNotifier, CreateTransferState>(
   CreateTransferNotifier.new,
 );
+
+// ── Destination clubs ─────────────────────────────────────────────────────────
+
+/// Clubs of a local field for the new request, with their section of the
+/// member's club type. Key: `(localFieldId, clubTypeId)`.
+final destinationClubsProvider = FutureProvider.autoDispose
+    .family<List<TransferClubOption>, (int, int)>((ref, key) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await ref.read(transferRepositoryProvider).getDestinationClubs(
+        localFieldId: key.$1,
+        clubTypeId: key.$2,
+        cancelToken: cancelToken,
+      );
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (clubs) => clubs,
+  );
+});

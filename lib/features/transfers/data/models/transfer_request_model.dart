@@ -18,10 +18,13 @@ class TransferRequestModel extends TransferRequest {
     required super.toSectionId,
     super.toSectionName,
     super.toClubName,
+    super.fromSectionName,
+    super.fromClubName,
     super.reason,
     required super.status,
     super.reviewerComment,
     super.createdAt,
+    super.reviewedAt,
   });
 
   factory TransferRequestModel.fromJson(Map<String, dynamic> json) {
@@ -36,29 +39,42 @@ class TransferRequestModel extends TransferRequest {
 
     final status = _parseStatus(json['status'] as String?);
 
-    DateTime? createdAt;
-    final rawDate = json['created_at'];
-    if (rawDate is String) createdAt = DateTime.tryParse(rawDate);
+    DateTime? parseDate(Object? raw) =>
+        raw is String ? DateTime.tryParse(raw) : null;
 
-    // to_section nested object (optional)
+    // to_section / from_section nested objects (optional)
     final sectionNested = json['to_section'] as Map<String, dynamic>?;
-    final nestedType =
-        sectionNested?['club_types'] ?? sectionNested?['club_type'];
-    final toSectionName = json['to_section_name'] as String? ??
-        (nestedType is Map ? nestedType['name'] as String? : null);
-    final toClubName = json['to_club_name'] as String? ??
-        (sectionNested?['clubs'] as Map?)?['name'] as String? ??
-        (sectionNested?['main_club'] as Map?)?['name'] as String?;
+    final toSectionName =
+        json['to_section_name'] as String? ?? _sectionTypeName(sectionNested);
+    final toClubName =
+        json['to_club_name'] as String? ?? _sectionClubName(sectionNested);
+    final fromNested = json['from_section'] as Map<String, dynamic>?;
 
     return TransferRequestModel(
       id: id,
       toSectionId: toSectionId,
       toSectionName: toSectionName,
       toClubName: toClubName,
+      fromSectionName:
+          json['from_section_name'] as String? ?? _sectionTypeName(fromNested),
+      fromClubName:
+          json['from_club_name'] as String? ?? _sectionClubName(fromNested),
       reason: json['reason'] as String?,
       status: status,
-      reviewerComment: json['reviewer_comment'] as String?,
-      createdAt: createdAt,
+      // The table column is `review_comment`.
+      reviewerComment:
+          (json['review_comment'] ?? json['reviewer_comment'])?.toString(),
+      createdAt: parseDate(json['created_at']),
+      reviewedAt: parseDate(json['reviewed_at']),
     );
   }
+
+  static String? _sectionTypeName(Map<String, dynamic>? section) {
+    final type = section?['club_types'] ?? section?['club_type'];
+    return type is Map ? type['name'] as String? : null;
+  }
+
+  static String? _sectionClubName(Map<String, dynamic>? section) =>
+      (section?['clubs'] as Map?)?['name'] as String? ??
+      (section?['main_club'] as Map?)?['name'] as String?;
 }

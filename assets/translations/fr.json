@@ -4456,40 +4456,79 @@
       "not_in_section": "Nous n'avons pas trouvé votre club actuel. Actualisez l'application et réessayez."
     },
     "detail": {
-      "title": "Détail du transfert",
-      "request_number": "Demande #{id}",
-      "destination_section": "Section destination",
-      "destination_club": "Club destination",
-      "request_date": "Date de la demande",
-      "reason": "Motif",
-      "reviewer_comment": "Commentaire du réviseur"
+      "title_to": "Demande vers {club}",
+      "pending_message": "Le directeur de {club} l’examinera.",
+      "reviewed": "Elle a déjà été examinée.",
+      "reviewed_on": "Examinée le {date}.",
+      "reviewer_comment": "Commentaire du directeur",
+      "move": "Clubs",
+      "move_to": "Vers",
+      "details": "Détails",
+      "sent": "Envoyée",
+      "your_reason": "Ton motif",
+      "folio": "Référence",
+      "try_other": "Demander un autre club"
     },
     "list": {
-      "title": "Demandes de transfert",
-      "new_request": "Nouvelle demande",
-      "section_number": "Section #{id}",
-      "empty_title": "Aucune demande de transfert",
-      "empty_subtitle": "Vous pouvez demander un transfert vers une autre section du club depuis ici.",
-      "empty_action": "Demander un transfert"
+      "current_club": "Ton club",
+      "keeps": "Ton type de club et ta classe sont conservés.",
+      "history": "Demandes précédentes",
+      "to_club": "Vers {club}",
+      "pending_sent": "Vers {club} · envoyée le {date}.",
+      "request": "Demander un changement de club",
+      "pending_note": "Tu as déjà une demande en cours d’examen."
     },
     "form": {
-      "title": "Nouvelle demande de transfert",
       "success_message": "Demande envoyée avec succès",
-      "info_banner": "Saisissez l'ID de la section destination. Vous pouvez l'obtenir depuis les informations du club.",
-      "section_id_label": "ID de la section destination",
-      "section_id_hint": "Ex : 42",
-      "section_id_required": "Saisissez l'ID de la section",
-      "section_id_invalid": "Saisissez un ID de section valide",
-      "reason": "Motif",
-      "reason_hint": "Expliquez brièvement pourquoi vous demandez le transfert...",
       "submit": "Envoyer la demande",
       "club_selection_title": "Choisissez votre nouveau club",
       "club_selection_subtitle": "Sélectionnez le club vers lequel vous souhaitez aller. Votre type de club et votre classe actuelle sont conservés.",
       "class_preserved_hint": "Votre classe actuelle ne change pas",
       "class_preserved_value": "Votre classe actuelle est conservée",
       "no_matching_section": "Ce club n’a pas de section correspondant à votre type de membre actuel.",
-      "no_active_membership": "Vous devez avoir une adhésion active pour demander un changement de club.",
-      "select_valid_club": "Sélectionnez un club valide pour demander le changement"
+      "no_active_membership": "Vous devez avoir une adhésion active pour demander un changement de club."
+    },
+    "title": "Changer de club",
+    "unknown_club": "Club sans nom",
+    "status": {
+      "pending": "En cours d’examen",
+      "approved": "Approuvée",
+      "rejected": "Refusée"
+    },
+    "states": {
+      "title": "Demande de changement de club",
+      "sent": "Envoyée",
+      "review_detail": "Le directeur du nouveau club l’examine.",
+      "decision": "Approuvée ou refusée",
+      "decision_detail": "Tu verras la réponse ici.",
+      "rejected_detail": "Tu peux demander un autre club.",
+      "step": "Étape {step} sur {total} · Voir tous les états",
+      "all": "Voir tous les états",
+      "kind_done": "Fait",
+      "kind_current": "Étape actuelle",
+      "kind_rejected": "Refusée",
+      "kind_pending": "En attente"
+    },
+    "picker": {
+      "title": "Choisis ton nouveau club",
+      "search_hint": "Rechercher par nom ou église",
+      "other_field": "Autre champ",
+      "clubs_with": "Clubs avec {type}",
+      "no_section": "Pas de section {type}",
+      "empty": "Aucun club ne correspond.",
+      "no_field": "Choisis avec « Autre champ » le champ du club que tu rejoins.",
+      "load_error": "Impossible de charger la liste. Réessaie.",
+      "pick_country": "Choisis le pays",
+      "pick_union": "Choisis l’union",
+      "pick_field": "Choisis le champ"
+    },
+    "confirm": {
+      "title": "Passer de {from} à {to}",
+      "subtitle": "Le directeur de {club} examinera ta demande.",
+      "keeps": "Conservé",
+      "keeps_class": "{type} · classe {class}",
+      "reason_label": "Motif (facultatif)",
+      "reason_hint": "Explique au directeur pourquoi tu changes"
     }
   },
   "profile": {

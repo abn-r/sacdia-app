@@ -1,448 +1,209 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:easy_localization/easy_localization.dart';
 
+import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/config/route_names.dart';
 import '../../../../core/errors/user_error_message.dart';
-import 'package:sacdia_app/core/theme/sac_accent.dart';
+import '../../../../core/theme/sac_accent.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/utils/icon_helper.dart';
-import '../../../../core/widgets/sac_badge.dart';
 import '../../../../core/widgets/sac_button.dart';
-import '../../../../core/widgets/sac_empty_state.dart';
 import '../../../../core/widgets/sac_error_state.dart';
+import '../../../../core/widgets/sac_frosted_footer.dart';
+import '../../../../core/widgets/sac_list_row.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
+import '../../../../core/widgets/status_progress/status_progress.dart';
+import '../../../auth/domain/entities/authorization_snapshot.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../../post_registration/presentation/providers/club_selection_providers.dart';
-import '../../../post_registration/presentation/views/club_selection_step_view.dart';
-import '../../../profile/presentation/providers/profile_providers.dart';
 import '../../domain/entities/transfer_request.dart';
 import '../providers/transfer_providers.dart';
-import 'package:sacdia_app/core/animations/page_transitions.dart';
-import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
+import '../widgets/club_type_tile.dart';
+import '../widgets/transfer_status.dart';
+import 'transfer_club_picker_view.dart';
 
-/// Pantalla principal de solicitudes de traslado.
-///
-/// Muestra:
-///  - Lista de mis solicitudes con estado
-///  - IconButton Add01 en SacTopBar + empty CTA para crear solicitud
+/// "Cambiar de club": the club the member is in, the request in review (if
+/// any), past requests and the action to ask for a new club.
 class TransferRequestsView extends ConsumerWidget {
   const TransferRequestsView({super.key});
 
+  /// Opens the club picker of a new request.
+  static void openNewRequest(BuildContext context) {
+    Navigator.of(context).push(
+      SacSharedAxisRoute(builder: (_) => const TransferClubPickerView()),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.sac;
     final requestsAsync = ref.watch(myTransferRequestsProvider);
-    final c = context.sac;
-
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: c.background,
-      appBar: SacTopBar(
-          title: tr('transfers.list.title'),
-          actions: [
-            SacPressable(
-              listenOnly: true,
-              child: IconButton(
-                enableFeedback: false,
-                tooltip: tr('transfers.list.new_request'),
-                onPressed: () => _openNewRequest(context),
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedAdd01,
-                  size: 22,
-                  color: SacAccent.of(context).color,
-                ),
-              ),
-            ),
-          ],
-          frosted: true),
-      body: SacFrostedVeil(
-        child: Builder(
-          builder: (context) => requestsAsync.when(
-            loading: () => const Center(child: SacLoading()),
-            error: (e, _) => SacErrorState(
-              title: userErrorMessage(e),
-              padding:
-                  SacTopBar.paddingBelowBar(context, const EdgeInsets.all(32)),
-              onRetry: () => ref.invalidate(myTransferRequestsProvider),
-            ),
-            data: (requests) {
-              if (requests.isEmpty) {
-                return SacEmptyState(
-                  icon: HugeIcons.strokeRoundedExchange01,
-                  title: tr('transfers.list.empty_title'),
-                  body: tr('transfers.list.empty_subtitle'),
-                  actionLabel: tr('transfers.list.empty_action'),
-                  onAction: () => _openNewRequest(context),
-                );
-              }
-
-              return RefreshIndicator(
-                color: SacAccent.of(context).color,
-                onRefresh: () async =>
-                    ref.invalidate(myTransferRequestsProvider),
-                child: ListView.separated(
-                  padding: SacTopBar.paddingBelowBar(
-                      context, const EdgeInsets.all(20)),
-                  itemCount: requests.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (_, i) => _TransferCard(
-                    request: requests[i],
-                    onTap: () => context.push(
-                      RouteNames.transferRequestDetail(requests[i].id),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _openNewRequest(BuildContext context) {
-    Navigator.of(context).push(
-      SacSharedAxisRoute(
-        builder: (_) => const TransferRequestFormView(),
-      ),
-    );
-  }
-}
-
-// ── Transfer card ─────────────────────────────────────────────────────────────
-
-class _TransferCard extends StatelessWidget {
-  final TransferRequest request;
-  final VoidCallback? onTap;
-
-  const _TransferCard({required this.request, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final statusConfig = _statusConfig(context, request.status);
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: c.surface,
-          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-          border: Border.all(color: c.border),
-          boxShadow: [
-            BoxShadow(
-              color: c.shadow,
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // ── Icon ────────────────────────────────────────────────
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: statusConfig.bg,
-                borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-              ),
-              child: Center(
-                child: HugeIcon(
-                  icon: statusConfig.icon,
-                  color: statusConfig.fg,
-                  size: 18,
-                ),
-              ),
-            ),
-
-            const SizedBox(width: 12),
-
-            // ── Info ─────────────────────────────────────────────────
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (request.toClubName != null)
-                    Text(
-                      request.toClubName!,
-                      style: TextStyle(
-                        fontSize: SacFontSize.titleSmall,
-                        fontWeight: FontWeight.w700,
-                        color: c.text,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  if (request.toSectionName != null)
-                    Text(
-                      request.toSectionName!,
-                      style: TextStyle(
-                        fontSize: SacFontSize.bodySmall,
-                        color: c.textSecondary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    )
-                  else
-                    Text(
-                      tr('transfers.list.section_number',
-                          namedArgs: {'id': '${request.toSectionId}'}),
-                      style: TextStyle(
-                        fontSize: SacFontSize.bodySmall,
-                        color: c.textSecondary,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-
-            const SizedBox(width: 8),
-
-            // ── Status badge ─────────────────────────────────────────
-            _StatusBadge(status: request.status),
-          ],
-        ),
-      ),
-    );
-  }
-
-  _TransferStatusConfig _statusConfig(
-      BuildContext context, TransferStatus status) {
-    final c = context.sac;
-    switch (status) {
-      case TransferStatus.approved:
-        return _TransferStatusConfig(
-          bg: c.successContainer,
-          fg: c.onSuccessContainer,
-          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-        );
-      case TransferStatus.rejected:
-        return _TransferStatusConfig(
-          bg: c.errorContainer,
-          fg: c.onErrorContainer,
-          icon: HugeIcons.strokeRoundedCancel01,
-        );
-      case TransferStatus.pending:
-        return _TransferStatusConfig(
-          bg: c.warningContainer,
-          fg: c.onWarningContainer,
-          icon: HugeIcons.strokeRoundedClock01,
-        );
-    }
-  }
-}
-
-class _TransferStatusConfig {
-  final Color bg;
-  final Color fg;
-  final HugeIconData icon;
-
-  const _TransferStatusConfig({
-    required this.bg,
-    required this.fg,
-    required this.icon,
-  });
-}
-
-class _StatusBadge extends StatelessWidget {
-  final TransferStatus status;
-
-  const _StatusBadge({required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    switch (status) {
-      case TransferStatus.approved:
-        return SacBadge.success(label: status.label);
-      case TransferStatus.rejected:
-        return SacBadge.error(label: status.label);
-      case TransferStatus.pending:
-        return SacBadge.warning(label: status.label);
-    }
-  }
-}
-
-// ── Form view (same file for compactness) ────────────────────────────────────
-
-/// Formulario para crear una nueva solicitud de traslado.
-class TransferRequestFormView extends ConsumerStatefulWidget {
-  const TransferRequestFormView({super.key});
-
-  @override
-  ConsumerState<TransferRequestFormView> createState() =>
-      _TransferRequestFormViewState();
-}
-
-class _TransferRequestFormViewState
-    extends ConsumerState<TransferRequestFormView> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _resetSelection());
-  }
-
-  void _resetSelection() {
-    if (!mounted) return;
-    ref.invalidate(selectedCountryProvider);
-    ref.invalidate(selectedUnionProvider);
-    ref.invalidate(selectedLocalFieldProvider);
-    ref.invalidate(selectedClubProvider);
-    ref.invalidate(requiredClubTypeIdProvider);
-    _syncRequiredClubType();
-  }
-
-  void _syncRequiredClubType() {
-    final activeGrant =
-        ref.read(authNotifierProvider).value?.authorization?.activeGrant;
-    final clubTypeId = activeGrant?.clubTypeId;
-    if (clubTypeId == null) return;
-    ref.read(requiredClubTypeIdProvider.notifier).state = clubTypeId;
-  }
-
-  Future<void> _submit() async {
-    final activeGrant =
-        ref.read(authNotifierProvider).value?.authorization?.activeGrant;
-    final fromSectionId = activeGrant?.sectionId;
-    final toSectionId = ref.read(selectedClubSectionProvider);
-
-    if (fromSectionId == null || toSectionId == null) {
-      SacSnackBar.show(context, 'transfers.form.select_valid_club'.tr(),
-          isError: true);
-      return;
-    }
-
-    final notifier = ref.read(createTransferProvider.notifier);
-    final success = await notifier.create(
-      fromSectionId: fromSectionId,
-      toSectionId: toSectionId,
-    );
-
-    if (!mounted) return;
-
-    if (success) {
-      SacSnackBar.show(context, 'transfers.form.success_message'.tr(),
-          isSuccess: true);
-      Navigator.of(context).pop();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final formState = ref.watch(createTransferProvider);
-    final activeGrant = ref.watch(
+    final grant = ref.watch(
       authNotifierProvider.select(
         (value) => value.value?.authorization?.activeGrant,
       ),
     );
-    final currentClassName =
-        ref.watch(profileNotifierProvider).value?.currentClass;
-    final selectedSectionId = ref.watch(selectedClubSectionProvider);
-    final requiredClubTypeId = ref.watch(requiredClubTypeIdProvider);
-    final c = context.sac;
-
-    final activeClubTypeId = activeGrant?.clubTypeId;
-    if (activeClubTypeId != null && requiredClubTypeId != activeClubTypeId) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        ref.read(requiredClubTypeIdProvider.notifier).state = activeClubTypeId;
-      });
-    }
-
-    final fromSectionId = activeGrant?.sectionId;
-    final canSubmit = fromSectionId != null &&
-        selectedSectionId != null &&
-        selectedSectionId != fromSectionId &&
-        !formState.isLoading;
+    final requests = requestsAsync.value;
+    final pending =
+        requests?.where((r) => r.status == TransferStatus.pending).firstOrNull;
+    final hasMembership = grant?.sectionId != null && grant?.clubTypeId != null;
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
-      appBar: SacTopBar(title: tr('transfers.form.title'), frosted: true),
-      body: SacFrostedVeil(
-        child: Builder(
-          builder: (context) => Padding(
-            padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
-            child: activeGrant == null || activeClubTypeId == null
-                ? SacErrorState(
-                    title: 'transfers.form.no_active_membership'.tr(),
-                    onRetry: () => ref
-                        .read(authNotifierProvider.notifier)
-                        .refreshCurrentUser(keepCurrentOnFailure: true),
-                  )
-                : Column(
-                    children: [
-                      Expanded(
-                        child: ClubSelectionStepView(
-                          isClubTransfer: true,
-                          preservedClassName: currentClassName,
-                          excludedClubId: activeGrant.clubId,
-                        ),
-                      ),
-                      if (formState.errorMessage != null)
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                          child: _InlineError(message: formState.errorMessage!),
-                        ),
-                      SafeArea(
-                        top: false,
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                          child: SacButton.primary(
-                            text: tr('transfers.form.submit'),
-                            icon: HugeIcons.strokeRoundedSent,
-                            isLoading: formState.isLoading,
-                            onPressed: canSubmit ? _submit : null,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
+      appBar: SacTopBar(
+        title: 'transfers.title'.tr(),
+        backgroundColor: c.background,
+        foregroundColor: c.text,
+      ),
+      body: requestsAsync.when(
+        loading: () => const Center(child: SacLoading()),
+        error: (e, _) => SacErrorState(
+          title: userErrorMessage(e),
+          onRetry: () => ref.invalidate(myTransferRequestsProvider),
+        ),
+        data: (requests) => RefreshIndicator(
+          color: SacAccent.of(context).color,
+          onRefresh: () async {
+            ref.invalidate(myTransferRequestsProvider);
+            await ref
+                .read(myTransferRequestsProvider.future)
+                .catchError((_) => const <TransferRequest>[]);
+          },
+          child: _Body(requests: requests, pending: pending, grant: grant),
         ),
       ),
+      bottomNavigationBar: requests == null
+          ? null
+          : SacFrostedFooter(
+              note: pending != null
+                  ? 'transfers.list.pending_note'.tr()
+                  : !hasMembership
+                      ? 'transfers.form.no_active_membership'.tr()
+                      : null,
+              child: SacButton.primary(
+                key: const ValueKey('transfer-request-new'),
+                text: 'transfers.list.request'.tr(),
+                icon: HugeIcons.strokeRoundedArrowDataTransferHorizontal,
+                onPressed: pending == null && hasMembership
+                    ? () => TransferRequestsView.openNewRequest(context)
+                    : null,
+              ),
+            ),
     );
   }
 }
 
-class _InlineError extends StatelessWidget {
-  final String message;
+class _Body extends StatelessWidget {
+  const _Body({
+    required this.requests,
+    required this.pending,
+    required this.grant,
+  });
 
-  const _InlineError({required this.message});
+  final List<TransferRequest> requests;
+  final TransferRequest? pending;
+  final AuthorizationGrant? grant;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: context.sac.errorContainer,
-        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-      ),
-      child: Row(
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedAlert02,
-            color: context.sac.onErrorContainer,
-            size: 16,
+    final c = context.sac;
+    final pending = this.pending;
+    final grant = this.grant;
+    final history = [
+      for (final r in requests)
+        if (r.status != TransferStatus.pending) r,
+    ];
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.only(top: 4, bottom: 32),
+      children: [
+        if (pending != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+            child: _PendingPanel(request: pending),
           ),
-          const SizedBox(width: 8),
-          Expanded(
+        if (grant != null && grant.clubName != null) ...[
+          SacGroupedSection(
+            label: 'transfers.list.current_club'.tr(),
+            action: const SizedBox.shrink(),
+            children: [
+              SacListRow(
+                key: const ValueKey('transfer-current-club'),
+                leading: ClubTypeTile(clubTypeName: grant.clubTypeName),
+                title: grant.clubName!,
+                subtitle: [
+                  if (grant.clubTypeName != null) grant.clubTypeName!,
+                  if (grant.localFieldName != null) grant.localFieldName!,
+                ].join(' · '),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
             child: Text(
-              message,
+              'transfers.list.keeps'.tr(),
               style: TextStyle(
                 fontSize: SacFontSize.bodyMedium,
-                color: context.sac.onErrorContainer,
+                height: 1.4,
+                color: c.textSecondary,
               ),
             ),
           ),
         ],
-      ),
+        if (history.isNotEmpty)
+          SacGroupedSection(
+            label: 'transfers.list.history'.tr(),
+            children: [
+              for (final r in history)
+                SacStatusRow(
+                  key: ValueKey('transfer-row-${r.id}'),
+                  style: transferStatusStyle(context, r.status),
+                  title: 'transfers.list.to_club'
+                      .tr(namedArgs: {'club': transferDestination(r)}),
+                  detail: [
+                    'transfers.status.${r.status.slug}'.tr(),
+                    if (r.createdAt != null)
+                      transferDate(context, r.createdAt!),
+                  ].join(' · '),
+                  detailIsError: r.status == TransferStatus.rejected,
+                  onTap: () =>
+                      context.push(RouteNames.transferRequestDetail(r.id)),
+                ),
+            ],
+          ),
+      ],
+    );
+  }
+}
+
+/// The request in review, first: where it went and when.
+class _PendingPanel extends StatelessWidget {
+  const _PendingPanel({required this.request});
+
+  final TransferRequest request;
+
+  @override
+  Widget build(BuildContext context) {
+    final club = transferDestination(request);
+    final created = request.createdAt;
+    return SacStatePanel(
+      key: const ValueKey('transfer-pending-panel'),
+      style: transferStatusStyle(context, request.status),
+      title: 'transfers.status.pending'.tr(),
+      message: [
+        if (created != null)
+          'transfers.list.pending_sent'.tr(namedArgs: {
+            'club': club,
+            'date': transferDate(context, created),
+          }),
+        'transfers.detail.pending_message'.tr(namedArgs: {'club': club}),
+      ].join(' '),
+      stepLabel:
+          'transfers.states.step'.tr(namedArgs: {'step': '2', 'total': '3'}),
+      onTap: () => context.push(RouteNames.transferRequestDetail(request.id)),
     );
   }
 }

@@ -4457,40 +4457,79 @@
       "not_in_section": "We couldn't find your current club. Refresh the app and try again."
     },
     "detail": {
-      "title": "Transfer detail",
-      "request_number": "Request #{id}",
-      "destination_section": "Destination section",
-      "destination_club": "Destination club",
-      "request_date": "Request date",
-      "reason": "Reason",
-      "reviewer_comment": "Reviewer comment"
+      "title_to": "Request to {club}",
+      "pending_message": "The director of {club} will review it.",
+      "reviewed": "It was already reviewed.",
+      "reviewed_on": "Reviewed on {date}.",
+      "reviewer_comment": "Director's comment",
+      "move": "Clubs",
+      "move_to": "Moving to",
+      "details": "Details",
+      "sent": "Sent",
+      "your_reason": "Your reason",
+      "folio": "Reference",
+      "try_other": "Request another club"
     },
     "list": {
-      "title": "Transfer requests",
-      "new_request": "New request",
-      "section_number": "Section #{id}",
-      "empty_title": "No transfer requests",
-      "empty_subtitle": "You can request a transfer to another section of the club from here.",
-      "empty_action": "Request transfer"
+      "current_club": "Your club",
+      "keeps": "Your club type and your class stay the same.",
+      "history": "Previous requests",
+      "to_club": "To {club}",
+      "pending_sent": "To {club} · sent on {date}.",
+      "request": "Request a club change",
+      "pending_note": "You already have a request in review."
     },
     "form": {
-      "title": "New transfer request",
       "success_message": "Request sent successfully",
-      "info_banner": "Enter the destination section ID. You can obtain it from the club information.",
-      "section_id_label": "Destination section ID",
-      "section_id_hint": "Ex: 42",
-      "section_id_required": "Enter the section ID",
-      "section_id_invalid": "Enter a valid section ID",
-      "reason": "Reason",
-      "reason_hint": "Briefly explain why you are requesting the transfer...",
       "submit": "Send request",
       "club_selection_title": "Choose your new club",
       "club_selection_subtitle": "Select the club you want to move to. Your club type and current class stay the same.",
       "class_preserved_hint": "Your current class will not change",
       "class_preserved_value": "Your current class is preserved",
       "no_matching_section": "This club does not have a section matching your current membership type.",
-      "no_active_membership": "You need an active membership to request a club change.",
-      "select_valid_club": "Select a valid club to request the change"
+      "no_active_membership": "You need an active membership to request a club change."
+    },
+    "title": "Change club",
+    "unknown_club": "Unnamed club",
+    "status": {
+      "pending": "In review",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "states": {
+      "title": "Club change request",
+      "sent": "Sent",
+      "review_detail": "The director of the new club reviews it.",
+      "decision": "Approved or rejected",
+      "decision_detail": "You'll see the answer here.",
+      "rejected_detail": "You can request another club.",
+      "step": "Step {step} of {total} · See all states",
+      "all": "See all states",
+      "kind_done": "Done",
+      "kind_current": "Current step",
+      "kind_rejected": "Rejected",
+      "kind_pending": "Pending"
+    },
+    "picker": {
+      "title": "Choose your new club",
+      "search_hint": "Search by name or church",
+      "other_field": "Another field",
+      "clubs_with": "Clubs with {type}",
+      "no_section": "No {type} section",
+      "empty": "No clubs match.",
+      "no_field": "Use \"Another field\" to choose the field of the club you are moving to.",
+      "load_error": "The list couldn't load. Try again.",
+      "pick_country": "Choose the country",
+      "pick_union": "Choose the union",
+      "pick_field": "Choose the field"
+    },
+    "confirm": {
+      "title": "Change from {from} to {to}",
+      "subtitle": "The director of {club} will review your request.",
+      "keeps": "Stays the same",
+      "keeps_class": "{type} · {class} class",
+      "reason_label": "Reason (optional)",
+      "reason_hint": "Tell the director why you are moving"
     }
   },
   "profile": {

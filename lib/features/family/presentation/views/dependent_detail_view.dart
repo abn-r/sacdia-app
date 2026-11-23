@@ -36,6 +36,7 @@ import '../family_outcome_messages.dart';
 import '../providers/family_providers.dart';
 import '../widgets/access_section.dart';
 import '../widgets/dependent_avatar.dart';
+import '../../../../core/widgets/sac_list_row.dart';
 import '../widgets/family_row.dart';
 import '../widgets/family_sheets.dart';
 import '../widgets/devices_section.dart';
@@ -571,9 +572,9 @@ class _Body extends StatelessWidget {
                   !guardian.isMe &&
                   !guardian.isCustodian &&
                   guardian.userId != null)
-                FamilyRow(
+                SacListRow(
                   key: ValueKey('family-remove-${guardian.guardianshipId}'),
-                  leading: const FamilyRowIcon(
+                  leading: const SacListRowIcon(
                     HugeIcons.strokeRoundedDelete02,
                     destructive: true,
                   ),
@@ -594,19 +595,19 @@ class _Body extends StatelessWidget {
             child: _ActionsGroup(
               children: [
                 if (!summary.frozen)
-                  FamilyRow(
+                  SacListRow(
                     key: const ValueKey('family-detail-invite'),
                     leading:
-                        const FamilyRowIcon(HugeIcons.strokeRoundedUserAdd01),
+                        const SacListRowIcon(HugeIcons.strokeRoundedUserAdd01),
                     title: 'family.detail.invite'.tr(),
                     subtitle: 'family.detail.invite_hint'.tr(),
                     enabled: !busy,
                     onTap: onInvite,
                   ),
                 if (me != null)
-                  FamilyRow(
+                  SacListRow(
                     key: const ValueKey('family-detail-leave'),
-                    leading: const FamilyRowIcon(
+                    leading: const SacListRowIcon(
                       HugeIcons.strokeRoundedLogout02,
                       destructive: true,
                     ),
@@ -892,7 +893,7 @@ class _GuardianRow extends StatelessWidget {
       if (guardian.relationshipTypeName != null) guardian.relationshipTypeName!,
       verified ? 'family.consent.verified'.tr() : 'family.consent.pending'.tr(),
     ];
-    return FamilyRow(
+    return SacListRow(
       key: ValueKey('family-guardian-${guardian.guardianshipId}'),
       leading: DependentAvatar(name: guardian.displayName, size: 36),
       title: guardian.displayName,

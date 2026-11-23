@@ -16,6 +16,7 @@ import '../../../majority_release/presentation/widgets/released_history_tile.dar
 import '../../domain/entities/dependent.dart';
 import '../family_error_messages.dart';
 import '../providers/family_providers.dart';
+import '../../../../core/widgets/sac_list_row.dart';
 import '../widgets/family_row.dart';
 
 /// "Mi familia": los menores a cargo del tutor (FP-57).
@@ -156,9 +157,9 @@ class _AddRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FamilyRow(
+    return SacListRow(
       key: const ValueKey('family-option-add'),
-      leading: const FamilyRowIcon(HugeIcons.strokeRoundedUserAdd01),
+      leading: const SacListRowIcon(HugeIcons.strokeRoundedUserAdd01),
       title: 'family.option.add_title'.tr(),
       subtitle: family.canAddMore
           ? 'family.option.spots_left'.plural(
@@ -180,9 +181,9 @@ class _CodeRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FamilyRow(
+    return SacListRow(
       key: const ValueKey('family-option-code'),
-      leading: const FamilyRowIcon(HugeIcons.strokeRoundedKey01),
+      leading: const SacListRowIcon(HugeIcons.strokeRoundedKey01),
       title: 'family.option.code_title'.tr(),
       subtitle: 'family.option.code_subtitle'.tr(),
       onTap: () => context.push(RouteNames.familyLink),
@@ -251,9 +252,9 @@ class _EmptyBody extends StatelessWidget {
           dividerIndent: 62,
           children: [
             if (family.canAddMore)
-              FamilyRow(
+              SacListRow(
                 key: const ValueKey('family-option-add'),
-                leading: const FamilyRowIcon(HugeIcons.strokeRoundedUserAdd01),
+                leading: const SacListRowIcon(HugeIcons.strokeRoundedUserAdd01),
                 title: 'family.option.add_title'.tr(),
                 subtitle: 'family.option.add_subtitle'.tr(),
                 onTap: () => context.push(RouteNames.familyAdd),

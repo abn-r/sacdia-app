@@ -34,21 +34,30 @@ class TransferRequest extends Equatable {
   final int toSectionId;
   final String? toSectionName;
   final String? toClubName;
+  final String? fromSectionName;
+  final String? fromClubName;
   final String? reason;
   final TransferStatus status;
   final String? reviewerComment;
   final DateTime? createdAt;
+  final DateTime? reviewedAt;
 
   const TransferRequest({
     required this.id,
     required this.toSectionId,
     this.toSectionName,
     this.toClubName,
+    this.fromSectionName,
+    this.fromClubName,
     this.reason,
     required this.status,
     this.reviewerComment,
     this.createdAt,
+    this.reviewedAt,
   });
+
+  /// First 8 characters of the id: enough to quote it to a director.
+  String get folio => id.length > 8 ? id.substring(0, 8) : id;
 
   @override
   List<Object?> get props => [
@@ -56,9 +65,12 @@ class TransferRequest extends Equatable {
         toSectionId,
         toSectionName,
         toClubName,
+        fromSectionName,
+        fromClubName,
         reason,
         status,
         reviewerComment,
         createdAt,
+        reviewedAt,
       ];
 }
