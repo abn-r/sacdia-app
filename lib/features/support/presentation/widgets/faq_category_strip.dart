@@ -28,6 +28,8 @@ class FaqCategoryStrip extends StatelessWidget {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       clipBehavior: Clip.none,
+      // Edge to edge: the chips scroll under the screen margin.
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
           for (var i = 0; i < categories.length; i++) ...[

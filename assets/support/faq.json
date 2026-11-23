@@ -32,7 +32,7 @@
       "id": "offline_mode",
       "category": "offline",
       "question": "¿La app funciona sin internet?",
-      "answer": "SACDIA muestra parte del contenido en modo offline (perfil, actividades ya cargadas, notificaciones recibidas). Sin embargo, para registrar puntos, enviar evidencias, o reportar problemas necesitás conexión a internet. Cuando la conexión se restablece, la app sincroniza automáticamente los cambios pendientes.",
+      "answer": "SACDIA muestra parte del contenido en modo offline (perfil, actividades ya cargadas, notificaciones recibidas). Sin embargo, para registrar puntos, enviar evidencias, o reportar problemas necesitas conexión a internet. Cuando la conexión se restablece, la app sincroniza automáticamente los cambios pendientes.",
       "featured": true
     },
     {

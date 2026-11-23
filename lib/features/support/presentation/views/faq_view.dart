@@ -100,7 +100,7 @@ class _FaqViewState extends ConsumerState<FaqView> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                padding: const EdgeInsets.only(top: 12),
                 child: FaqCategoryStrip(
                   categories: [
                     FaqCategoryFilter(category: 'all', count: matching.length),
