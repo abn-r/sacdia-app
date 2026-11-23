@@ -7081,7 +7081,7 @@
       "enable": "Darle acceso propio",
       "enable_hint": "{name} podrá entrar con su propio usuario o correo. Dejarás de actuar por {name}.",
       "not_yet": "{name} podrá tener su propio acceso a partir de la edad mínima.",
-      "summary": "Ver resumen",
+      "summary": "Resumen de actividad",
       "disable": "Desactivar acceso",
       "disable_title": "¿Desactivar el acceso de {name}?",
       "disable_body": "{name} no podrá entrar y su sesión se cerrará de inmediato. Podrás reactivar el acceso cuando quieras mientras sea menor.",
@@ -7100,7 +7100,9 @@
       "reset_confirm": "Restablecer",
       "reset_toast": "Contraseña restablecida. Sesiones cerradas: {count}.",
       "reset_toast_email": "Sesiones cerradas: {count}. Enviamos el correo de restablecimiento a {name}.",
-      "new_password": "Contraseña nueva"
+      "new_password": "Contraseña nueva",
+      "own_title": "Acceso propio",
+      "none": "Sin acceso propio"
     },
     "summary": {
       "title": "Resumen de {name}",

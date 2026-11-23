@@ -7079,7 +7079,7 @@
       "enable": "Dar acesso próprio",
       "enable_hint": "{name} poderá entrar com o próprio usuário ou e-mail. Você deixará de agir por {name}.",
       "not_yet": "{name} poderá ter acesso próprio a partir da idade mínima.",
-      "summary": "Ver resumo",
+      "summary": "Resumo de atividade",
       "disable": "Desativar acesso",
       "disable_title": "Desativar o acesso de {name}?",
       "disable_body": "{name} não poderá entrar e a sessão será encerrada imediatamente. Você pode reativar o acesso quando quiser enquanto for menor.",
@@ -7098,7 +7098,9 @@
       "reset_confirm": "Redefinir",
       "reset_toast": "Senha redefinida. Sessões encerradas: {count}.",
       "reset_toast_email": "Sessões encerradas: {count}. Enviamos o e-mail de redefinição para {name}.",
-      "new_password": "Senha nova"
+      "new_password": "Senha nova",
+      "own_title": "Acesso próprio",
+      "none": "Sem acesso próprio"
     },
     "summary": {
       "title": "Resumo de {name}",

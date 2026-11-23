@@ -2,28 +2,28 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_badge.dart';
-import '../../../../core/widgets/sac_button.dart';
-import '../../../../core/widgets/sac_card.dart';
+import '../../../../core/widgets/sac_list_row.dart';
+import '../../../../core/widgets/status_progress/status_progress.dart';
 import '../../domain/entities/dependent.dart';
 import '../../domain/entities/supervised_login.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'family_row.dart';
 
-/// Sección "Acceso" del detalle de un menor (FP3-33).
+/// Sección "Acceso" del detalle de un menor (FP3-33), como grupo de filas.
 ///
 /// Lo que ofrece depende del tutor y del menor:
-/// - tutor SIN consentimiento verificado: solo el estado, con la explicación
-///   (no puede activar, desactivar, restablecer ni ver el resumen);
+/// - tutor SIN consentimiento verificado: las filas deshabilitadas y, debajo,
+///   la razón (no puede activar, desactivar, restablecer ni ver el resumen);
 /// - tutor verificado y menor sin acceso propio: "Darle acceso propio" si ya
 ///   alcanzó la edad mínima y la función está activa;
-/// - con acceso propio: estado, usuario (copiar), restablecer contraseña y
-///   desactivar; si está desactivado, reactivar;
-/// - el resumen de progreso, siempre para un tutor verificado.
+/// - con acceso propio: usuario (copiar), restablecer contraseña y desactivar
+///   (en rojo); si está desactivado, reactivar;
+/// - el resumen de actividad, siempre para un tutor verificado.
 ///
 /// Es presentacional: cada acción es un callback que el detalle resuelve
-/// (diálogos de advertencia incluidos).
+/// (confirmaciones incluidas).
 class AccessSection extends StatelessWidget {
   const AccessSection({
     super.key,
@@ -53,76 +53,73 @@ class AccessSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    final textTheme = Theme.of(context).textTheme;
     final name = summary.firstName;
     final verified = summary.guardianship.isVerified;
     final login = summary.supervisedLogin;
     final hasOwnAccess = summary.accessMode == AccessMode.supervisedLogin;
 
-    return SacCard(
-      key: const ValueKey('access_section'),
-      child: Column(
+    final badge = (hasOwnAccess || login != null)
+        ? (login?.isDisabled ?? false)
+            ? SacBadge.warning(label: 'family.access.disabled'.tr())
+            : SacBadge.success(label: 'family.access.active'.tr())
+        : const SizedBox.shrink();
+
+    if (!verified) {
+      return Column(
+        key: const ValueKey('access_section'),
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
+          SacGroupedSection(
+            label: 'family.access.title'.tr(),
+            action: badge,
+            dividerIndent: 62,
             children: [
-              Expanded(
-                child: Text(
-                  'family.access.title'.tr(),
-                  style: textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: c.text,
-                  ),
-                ),
+              SacListRow(
+                leading: const SacListRowIcon(HugeIcons.strokeRoundedKey01),
+                title: 'family.access.own_title'.tr(),
+                enabled: false,
               ),
-              if (hasOwnAccess || login != null)
-                login?.isDisabled ?? false
-                    ? SacBadge.warning(label: 'family.access.disabled'.tr())
-                    : SacBadge.success(label: 'family.access.active'.tr()),
+              SacListRow(
+                leading: const SacListRowIcon(
+                  HugeIcons.strokeRoundedChartLineData01,
+                ),
+                title: 'family.access.summary'.tr(),
+                enabled: false,
+              ),
             ],
           ),
-          if (!verified) ...[
-            const SizedBox(height: 8),
-            Text(
-              'family.access.pending_guardian'.tr(namedArgs: {'name': name}),
-              key: const ValueKey('access_pending_guardian'),
-              style: textTheme.bodySmall?.copyWith(
-                color: c.textSecondary,
-                height: 1.4,
-              ),
-            ),
-          ] else ...[
-            if (login != null) ...[
-              const SizedBox(height: 8),
-              _LoginRow(login: login, onCopy: onCopyHandle),
-            ],
-            ..._actions(context, verified: verified),
-          ],
+          FamilyFootnote(
+            key: const ValueKey('access_pending_guardian'),
+            text:
+                'family.access.pending_guardian'.tr(namedArgs: {'name': name}),
+          ),
         ],
-      ),
+      );
+    }
+
+    final rows = <Widget>[
+      ..._ownAccessRows(context),
+      if (!summary.frozen)
+        SacListRow(
+          key: const ValueKey('access_summary'),
+          leading: const SacListRowIcon(HugeIcons.strokeRoundedChartLineData01),
+          title: 'family.access.summary'.tr(),
+          onTap: onOpenSummary,
+        ),
+    ];
+
+    return SacGroupedSection(
+      key: const ValueKey('access_section'),
+      label: 'family.access.title'.tr(),
+      action: badge,
+      dividerIndent: 62,
+      children: rows,
     );
   }
 
-  List<Widget> _actions(BuildContext context, {required bool verified}) {
-    if (summary.frozen) return const [];
-    return [
-      ..._managementActions(context),
-      // El resumen funciona en todos los modos de acceso para un tutor
-      // verificado y no depende de la bandera del acceso propio.
-      const SizedBox(height: 8),
-      SacButton.outline(
-        text: 'family.access.summary'.tr(),
-        icon: HugeIcons.strokeRoundedChartLineData01,
-        onPressed: onOpenSummary,
-      ),
-    ];
-  }
-
-  /// Activar / reactivar / restablecer / desactivar, según el estado del acceso.
-  List<Widget> _managementActions(BuildContext context) {
+  /// Estado del acceso propio y lo que se puede hacer con él.
+  List<Widget> _ownAccessRows(BuildContext context) {
     final c = context.sac;
-    final textTheme = Theme.of(context).textTheme;
     final name = summary.firstName;
     final login = summary.supervisedLogin;
     final hasOwnAccess = summary.accessMode == AccessMode.supervisedLogin;
@@ -131,171 +128,116 @@ class AccessSection extends StatelessWidget {
     if (login == null && !hasOwnAccess) {
       if (!summary.ageMilestoneReached) {
         return [
-          const SizedBox(height: 8),
-          Text(
-            'family.access.not_yet'.tr(namedArgs: {'name': name}),
+          SacListRow(
             key: const ValueKey('access_not_yet'),
-            style: textTheme.bodySmall?.copyWith(color: c.textSecondary),
+            leading: const SacListRowIcon(HugeIcons.strokeRoundedKey01),
+            title: 'family.access.own_title'.tr(),
+            subtitle: 'family.access.not_yet'.tr(namedArgs: {'name': name}),
           ),
         ];
       }
-      if (!teenLoginEnabled) return const [];
+      if (summary.frozen || !teenLoginEnabled) {
+        return [
+          SacListRow(
+            leading: const SacListRowIcon(HugeIcons.strokeRoundedKey01),
+            title: 'family.access.own_title'.tr(),
+            subtitle: 'family.access.none'.tr(),
+          ),
+        ];
+      }
       return [
-        const SizedBox(height: 8),
         // Cumplió la edad mínima de acceso propio (el aviso del cumpleaños):
         // el push `family:age_nudge` aterriza aquí.
-        _AgeNudge(name: name),
-        const SizedBox(height: 8),
-        Text(
-          'family.access.enable_hint'.tr(namedArgs: {'name': name}),
-          style: textTheme.bodySmall?.copyWith(
-            color: c.textSecondary,
-            height: 1.4,
-          ),
+        SacListRow(
+          key: const ValueKey('age_nudge'),
+          leading: const SacListRowIcon(HugeIcons.strokeRoundedBirthdayCake),
+          title: 'family.age_nudge.title'.tr(namedArgs: {'name': name}),
+          subtitle: 'family.age_nudge.body'.tr(),
         ),
-        const SizedBox(height: 12),
-        SacButton.primary(
-          text: 'family.access.enable'.tr(),
-          icon: HugeIcons.strokeRoundedUserAdd01,
-          onPressed: busy ? null : onEnable,
+        SacListRow(
+          key: const ValueKey('access_enable'),
+          leading: const SacListRowIcon(HugeIcons.strokeRoundedUserAdd01),
+          title: 'family.access.enable'.tr(),
+          titleColor: SacAccent.of(context).color,
+          subtitle: 'family.access.enable_hint'.tr(namedArgs: {'name': name}),
+          enabled: !busy,
+          onTap: onEnable,
         ),
       ];
     }
 
+    final handleRow = login == null ? null : _handleRow(context, login);
+
     // Con acceso propio (o que lo tuvo): la gestión la apaga la bandera.
-    if (!teenLoginEnabled) return const [];
+    if (summary.frozen || !teenLoginEnabled) {
+      return [if (handleRow != null) handleRow];
+    }
     if (login?.isDisabled ?? false) {
-      if (!login!.canBeReactivated) return const [];
       return [
-        const SizedBox(height: 12),
-        SacButton.primary(
-          text: 'family.access.reactivate'.tr(),
-          icon: HugeIcons.strokeRoundedRefresh,
-          onPressed: busy ? null : onReactivate,
-        ),
+        if (handleRow != null) handleRow,
+        if (login!.canBeReactivated)
+          SacListRow(
+            key: const ValueKey('access_reactivate'),
+            leading: const SacListRowIcon(HugeIcons.strokeRoundedRefresh),
+            title: 'family.access.reactivate'.tr(),
+            enabled: !busy,
+            onTap: onReactivate,
+          ),
       ];
     }
     return [
-      const SizedBox(height: 12),
-      SacButton.outline(
-        text: 'family.access.reset_password'.tr(),
-        icon: HugeIcons.strokeRoundedLockPassword,
-        onPressed: busy ? null : onResetPassword,
+      if (handleRow != null) handleRow,
+      SacListRow(
+        key: const ValueKey('access_reset_password'),
+        leading: const SacListRowIcon(HugeIcons.strokeRoundedLockPassword),
+        title: 'family.access.reset_password'.tr(),
+        enabled: !busy,
+        onTap: onResetPassword,
       ),
-      const SizedBox(height: 8),
-      SacButton.ghost(
-        text: 'family.access.disable'.tr(),
-        icon: HugeIcons.strokeRoundedUserBlock01,
-        textColor: AppColors.error,
-        onPressed: busy ? null : onDisable,
+      SacListRow(
+        key: const ValueKey('access_disable'),
+        leading: const SacListRowIcon(
+          HugeIcons.strokeRoundedUserBlock01,
+          destructive: true,
+        ),
+        title: 'family.access.disable'.tr(),
+        titleColor: c.onErrorContainer,
+        showChevron: false,
+        enabled: !busy,
+        onTap: onDisable,
       ),
     ];
   }
-}
 
-/// Aviso de que el menor ya cumplió la edad mínima de acceso propio.
-class _AgeNudge extends StatelessWidget {
-  const _AgeNudge({required this.name});
-
-  final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final textTheme = Theme.of(context).textTheme;
-    return Container(
-      key: const ValueKey('age_nudge'),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedBirthdayCake,
-            size: 20,
-            color: AppColors.primary,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'family.age_nudge.title'.tr(namedArgs: {'name': name}),
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: c.text,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'family.age_nudge.body'.tr(),
-                  style: textTheme.bodySmall?.copyWith(
-                    color: c.textSecondary,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LoginRow extends StatelessWidget {
-  const _LoginRow({required this.login, required this.onCopy});
-
-  final SupervisedLoginInfo login;
-  final ValueChanged<String> onCopy;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final textTheme = Theme.of(context).textTheme;
+  /// Cómo entra el menor: su usuario (con copiar) o su correo.
+  Widget _handleRow(BuildContext context, SupervisedLoginInfo login) {
     final isHandle = login.method == SupervisedLoginMethod.handle;
     final handle = login.loginHandle;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          (isHandle
-                  ? 'family.access.method_handle'
-                  : 'family.access.method_email')
-              .tr(),
-          style: textTheme.bodySmall?.copyWith(color: c.textSecondary),
+    final method = (isHandle
+            ? 'family.access.method_handle'
+            : 'family.access.method_email')
+        .tr();
+    if (!isHandle || handle == null) {
+      return SacListRow(
+        leading: const SacListRowIcon(HugeIcons.strokeRoundedKey01),
+        title: 'family.access.own_title'.tr(),
+        subtitle: method,
+      );
+    }
+    return SacListRow(
+      key: const ValueKey('access_handle'),
+      leading: const SacListRowIcon(HugeIcons.strokeRoundedUser),
+      title: handle,
+      subtitle: '${'family.access.own_title'.tr()} · $method',
+      trailing: IconButton(
+        tooltip: 'family.access.copy'.tr(),
+        onPressed: () => onCopyHandle(handle),
+        icon: HugeIcon(
+          icon: HugeIcons.strokeRoundedCopy01,
+          size: 20,
+          color: SacAccent.of(context).color,
         ),
-        if (isHandle && handle != null) ...[
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Expanded(
-                child: SelectableText(
-                  handle,
-                  key: const ValueKey('access_handle'),
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: c.text,
-                  ),
-                ),
-              ),
-              IconButton(
-                tooltip: 'family.access.copy'.tr(),
-                onPressed: () => onCopy(handle),
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedCopy01,
-                  size: 20,
-                  color: c.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ],
+      ),
     );
   }
 }

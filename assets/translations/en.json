@@ -7081,7 +7081,7 @@
       "enable": "Give them their own login",
       "enable_hint": "{name} will be able to sign in with their own username or email. You will stop acting for {name}.",
       "not_yet": "{name} will be able to have their own login from the minimum age.",
-      "summary": "View summary",
+      "summary": "Activity summary",
       "disable": "Turn off access",
       "disable_title": "Turn off {name}'s access?",
       "disable_body": "{name} will not be able to sign in and their session will end immediately. You can turn the access back on whenever you want while they are a minor.",
@@ -7100,7 +7100,9 @@
       "reset_confirm": "Reset",
       "reset_toast": "Password reset. Sessions ended: {count}.",
       "reset_toast_email": "Sessions ended: {count}. We sent the reset email to {name}.",
-      "new_password": "New password"
+      "new_password": "New password",
+      "own_title": "Own access",
+      "none": "No own access"
     },
     "summary": {
       "title": "{name}'s summary",

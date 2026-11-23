@@ -5,7 +5,6 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/errors/failures.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -250,7 +249,7 @@ class _AddDependentViewState extends ConsumerState<AddDependentView> {
                           'family.add.relationship_error'.tr(),
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: AppColors.error,
+                                    color: context.sac.error,
                                   ),
                         ),
                         data: (types) => RelationshipTypePickerField(
@@ -381,7 +380,7 @@ class _LegalLoadFailed extends StatelessWidget {
           child: Text(
             'family.add.legal_unavailable'.tr(),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.error,
+                  color: context.sac.error,
                 ),
           ),
         ),

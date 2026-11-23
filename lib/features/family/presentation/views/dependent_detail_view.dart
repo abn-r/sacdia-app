@@ -19,7 +19,6 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_badge.dart';
 import '../../../../core/widgets/sac_button.dart';
-import '../../../../core/widgets/sac_card.dart';
 import '../../../../core/widgets/sac_frosted_footer.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_snack_bar.dart';
@@ -527,41 +526,32 @@ class _Body extends StatelessWidget {
           ),
           if (!summary.guardianship.isVerified ||
               summary.guardianship.evidenceUploaded)
-            Padding(
-              padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 0),
-              child: _ConsentFormCard(
-                guardianship: summary.guardianship,
-                busy: busy,
-                picker: picker,
-                onUpload: onUploadForm,
-                onUploaded: onFormUploaded,
-                onAlreadyVerified: onFormAlreadyVerified,
-                onView: onViewForm,
-              ),
-            ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(hPad, 24, hPad, 0),
-            child: AccessSection(
-              summary: summary,
-              teenLoginEnabled: teenLoginEnabled,
+            _ConsentFormCard(
+              guardianship: summary.guardianship,
               busy: busy,
-              onEnable: onEnableAccess,
-              onDisable: onDisableAccess,
-              onReactivate: onReactivateAccess,
-              onResetPassword: onResetPassword,
-              onOpenSummary: onOpenSummary,
-              onCopyHandle: onCopyHandle,
+              picker: picker,
+              onUpload: onUploadForm,
+              onUploaded: onFormUploaded,
+              onAlreadyVerified: onFormAlreadyVerified,
+              onView: onViewForm,
             ),
+          AccessSection(
+            summary: summary,
+            teenLoginEnabled: teenLoginEnabled,
+            busy: busy,
+            onEnable: onEnableAccess,
+            onDisable: onDisableAccess,
+            onReactivate: onReactivateAccess,
+            onResetPassword: onResetPassword,
+            onOpenSummary: onOpenSummary,
+            onCopyHandle: onCopyHandle,
           ),
         ],
         if (shouldShowDevicesSection(
           summary,
           featureEnabled: linkedDeviceEnabled,
         ))
-          Padding(
-            padding: EdgeInsets.fromLTRB(hPad, 24, hPad, 0),
-            child: DevicesSection(summary: summary, onPair: onPairDevice),
-          ),
+          DevicesSection(summary: summary, onPair: onPairDevice),
         SacGroupedSection(
           label: 'family.detail.guardians'.tr(),
           count: detail.guardians.length,
@@ -833,48 +823,40 @@ class _ConsentFormCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    final textTheme = Theme.of(context).textTheme;
-
-    return SacCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'family.detail.form_title'.tr(),
-            style: textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: c.text,
-            ),
-          ),
-          if (!guardianship.isVerified) ...[
-            const SizedBox(height: 4),
-            Text(
-              'family.detail.form_hint'.tr(),
-              style: textTheme.bodySmall?.copyWith(color: c.textSecondary),
-            ),
+    return Column(
+      key: const ValueKey('family-consent-form'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SacGroupedSection(
+          label: 'family.detail.form_title'.tr(),
+          action: const SizedBox.shrink(),
+          dividerIndent: 62,
+          children: [
+            if (guardianship.evidenceUploaded)
+              SacListRow(
+                key: const ValueKey('family-consent-form-view'),
+                leading: const SacListRowIcon(HugeIcons.strokeRoundedView),
+                title: 'family.detail.form_view'.tr(),
+                enabled: !busy,
+                onTap: onView,
+              ),
+            if (!guardianship.isVerified)
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: ConsentEvidenceUploader(
+                  picker: picker,
+                  hasExisting: guardianship.evidenceUploaded,
+                  enabled: !busy,
+                  onUpload: onUpload,
+                  onUploaded: onUploaded,
+                  onAlreadyVerified: onAlreadyVerified,
+                ),
+              ),
           ],
-          if (guardianship.evidenceUploaded) ...[
-            const SizedBox(height: 12),
-            SacButton.outline(
-              text: 'family.detail.form_view'.tr(),
-              icon: HugeIcons.strokeRoundedView,
-              onPressed: busy ? null : onView,
-            ),
-          ],
-          if (!guardianship.isVerified) ...[
-            const SizedBox(height: 12),
-            ConsentEvidenceUploader(
-              picker: picker,
-              hasExisting: guardianship.evidenceUploaded,
-              enabled: !busy,
-              onUpload: onUpload,
-              onUploaded: onUploaded,
-              onAlreadyVerified: onAlreadyVerified,
-            ),
-          ],
-        ],
-      ),
+        ),
+        if (!guardianship.isVerified)
+          FamilyFootnote(text: 'family.detail.form_hint'.tr()),
+      ],
     );
   }
 }

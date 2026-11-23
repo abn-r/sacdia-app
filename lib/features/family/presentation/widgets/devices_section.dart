@@ -3,18 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/widgets/sac_badge.dart';
-import '../../../../core/widgets/sac_button.dart';
-import '../../../../core/widgets/sac_card.dart';
-import '../../../../core/widgets/sac_dialog.dart';
+import '../../../../core/widgets/sac_list_row.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_snack_bar.dart';
+import '../../../../core/widgets/status_progress/status_progress.dart';
 import '../../domain/entities/dependent.dart';
 import '../../domain/entities/linked_device.dart';
 import '../family_error_messages.dart';
 import '../providers/linked_devices_providers.dart';
+import 'family_row.dart';
+import 'family_sheets.dart';
 
 /// ¿Se muestra la sección «Teléfonos vinculados» de un menor?
 ///
@@ -34,9 +35,10 @@ bool shouldShowDevicesSection(
   return summary.canPairDevice || summary.linkedDevicesCount > 0;
 }
 
-/// Sección «Teléfonos vinculados» del detalle de un menor (FP3-41, FP3-49):
-/// lista (nombre, plataforma, última actividad, quién lo vinculó), desvincular
-/// con confirmación y «Vincular un teléfono».
+/// Sección «Teléfonos vinculados» del detalle de un menor (FP3-41, FP3-49),
+/// como grupo de filas: cada teléfono (nombre, plataforma, última actividad,
+/// quién lo vinculó) con «Desvincular», y «Vincular un teléfono». Los
+/// desvinculados van en su propio grupo.
 class DevicesSection extends ConsumerWidget {
   const DevicesSection({
     super.key,
@@ -54,16 +56,16 @@ class DevicesSection extends ConsumerWidget {
     WidgetRef ref,
     LinkedDevice device,
   ) async {
-    final confirmed = await SacDialog.show(
+    final confirmed = await showFamilyConfirmSheet(
       context,
       title:
           'family.devices.revoke_title'.tr(namedArgs: {'label': device.label}),
-      content: 'family.devices.revoke_body'
+      body: 'family.devices.revoke_body'
           .tr(namedArgs: {'name': summary.firstName}),
       confirmLabel: 'family.devices.revoke_confirm'.tr(),
-      confirmIsDestructive: true,
+      destructive: true,
     );
-    if (confirmed != true || !context.mounted) return;
+    if (!confirmed || !context.mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     final result = await ref
         .read(linkedDevicesActionsProvider)
@@ -84,125 +86,110 @@ class DevicesSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.sac;
-    final textTheme = Theme.of(context).textTheme;
     final devices = ref.watch(linkedDevicesProvider(summary.userId));
     final data = devices.value;
     final activeCount = data?.active.length ?? summary.linkedDevicesCount;
     final full = data?.isFull ?? false;
+    final countStyle = TextStyle(
+      fontSize: SacFontSize.labelSmall,
+      fontWeight: FontWeight.w600,
+      color: c.textTertiary,
+    );
 
-    return SacCard(
+    final rows = devices.when<List<Widget>>(
+      loading: () => const [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 18),
+          child: Center(child: SacLoadingSmall()),
+        ),
+      ],
+      error: (error, _) => [
+        SacListRow(
+          key: const ValueKey('devices_error'),
+          leading: const SacListRowIcon(
+            HugeIcons.strokeRoundedAlert02,
+            destructive: true,
+          ),
+          title: familyErrorMessage(error),
+          subtitle: 'common.retry'.tr(),
+          onTap: () => ref.invalidate(linkedDevicesProvider(summary.userId)),
+        ),
+      ],
+      data: (list) => [
+        if (list.active.isEmpty)
+          SacListRow(
+            key: const ValueKey('devices_empty'),
+            leading: const SacListRowIcon(HugeIcons.strokeRoundedSmartPhone01),
+            title: 'family.devices.empty'.tr(),
+            titleColor: c.textSecondary,
+          ),
+        for (final device in list.active)
+          _DeviceRow(
+            device: device,
+            onRevoke: () => _revoke(context, ref, device),
+          ),
+      ],
+    );
+
+    return Column(
       key: const ValueKey('devices_section'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'family.devices.title'.tr(),
-                  style: textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: c.text,
-                  ),
-                ),
-              ),
-              if (activeCount > 0)
-                SacBadge.success(
-                  label: data == null
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SacGroupedSection(
+          label: 'family.devices.title'.tr(),
+          dividerIndent: 62,
+          action: activeCount > 0
+              ? Text(
+                  data == null
                       ? '$activeCount'
                       : '$activeCount/${data.maxDevices}',
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            (summary.canPairDevice
+                  style: countStyle,
+                )
+              : const SizedBox.shrink(),
+          children: [
+            ...rows,
+            if (summary.canPairDevice)
+              SacListRow(
+                key: const ValueKey('devices_pair'),
+                leading: const SacListRowIcon(HugeIcons.strokeRoundedQrCode),
+                title: 'family.devices.pair'.tr(),
+                titleColor: full ? null : SacAccent.of(context).color,
+                enabled: !full,
+                onTap: onPair,
+              ),
+          ],
+        ),
+        if (summary.canPairDevice && full)
+          FamilyFootnote(
+            key: const ValueKey('devices_limit_hint'),
+            text: 'family.devices.limit_hint'.tr(namedArgs: {
+              'max': '${data?.maxDevices ?? kDefaultMaxLinkedDevices}',
+            }),
+          )
+        else
+          FamilyFootnote(
+            key: const ValueKey('devices_intro'),
+            text: (summary.canPairDevice
                     ? 'family.devices.intro'
                     : 'family.devices.no_new')
                 .tr(namedArgs: {'name': summary.firstName}),
-            key: const ValueKey('devices_intro'),
-            style: textTheme.bodySmall?.copyWith(
-              color: c.textSecondary,
-              height: 1.4,
-            ),
           ),
-          const SizedBox(height: 12),
-          devices.when(
-            loading: () => const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Center(child: SacLoadingSmall()),
-            ),
-            error: (error, _) => Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  familyErrorMessage(error),
-                  key: const ValueKey('devices_error'),
-                  style: textTheme.bodySmall?.copyWith(color: AppColors.error),
-                ),
-                const SizedBox(height: 8),
-                SacButton.ghost(
-                  text: 'common.retry'.tr(),
-                  icon: HugeIcons.strokeRoundedRefresh,
-                  onPressed: () =>
-                      ref.invalidate(linkedDevicesProvider(summary.userId)),
-                ),
-              ],
-            ),
-            data: (list) => Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (list.active.isEmpty)
-                  Text(
-                    'family.devices.empty'.tr(),
-                    key: const ValueKey('devices_empty'),
-                    style: textTheme.bodySmall?.copyWith(color: c.textTertiary),
-                  ),
-                for (final device in list.active)
-                  _DeviceTile(
-                    device: device,
-                    onRevoke: () => _revoke(context, ref, device),
-                  ),
-                if (list.revoked.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    'family.devices.history'.tr(),
-                    style: textTheme.labelMedium?.copyWith(
-                      color: c.textSecondary,
-                    ),
-                  ),
-                  for (final device in list.revoked)
-                    _DeviceTile(device: device),
-                ],
-              ],
-            ),
+        if (data != null && data.revoked.isNotEmpty)
+          SacGroupedSection(
+            key: const ValueKey('devices_history'),
+            label: 'family.devices.history'.tr(),
+            dividerIndent: 62,
+            children: [
+              for (final device in data.revoked) _DeviceRow(device: device),
+            ],
           ),
-          if (summary.canPairDevice) ...[
-            const SizedBox(height: 12),
-            if (full)
-              Text(
-                'family.devices.limit_hint'.tr(namedArgs: {
-                  'max': '${data?.maxDevices ?? kDefaultMaxLinkedDevices}',
-                }),
-                key: const ValueKey('devices_limit_hint'),
-                style: textTheme.bodySmall?.copyWith(color: c.textSecondary),
-              ),
-            const SizedBox(height: 8),
-            SacButton.primary(
-              key: const ValueKey('devices_pair'),
-              text: 'family.devices.pair'.tr(),
-              icon: HugeIcons.strokeRoundedQrCode,
-              onPressed: full ? null : onPair,
-            ),
-          ],
-        ],
-      ),
+      ],
     );
   }
 }
 
-class _DeviceTile extends StatelessWidget {
-  const _DeviceTile({required this.device, this.onRevoke});
+class _DeviceRow extends StatelessWidget {
+  const _DeviceRow({required this.device, this.onRevoke});
 
   final LinkedDevice device;
 
@@ -212,7 +199,6 @@ class _DeviceTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final textTheme = Theme.of(context).textTheme;
     final locale = context.locale.toString();
     final seen = device.lastSeenAt;
     final details = <String>[
@@ -235,46 +221,30 @@ class _DeviceTile extends StatelessWidget {
                     DateFormat.yMMMd(locale).add_jm().format(seen.toLocal()),
               }),
     ];
-    return Padding(
+    final onRevoke = this.onRevoke;
+    return SacListRow(
       key: ValueKey('device_${device.id}'),
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedSmartPhone01,
-            size: 24,
-            color: device.isRevoked ? c.textTertiary : c.textSecondary,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  device.label,
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: device.isRevoked ? c.textTertiary : c.text,
-                  ),
-                ),
-                Text(
-                  details.join(' · '),
-                  style: textTheme.bodySmall?.copyWith(
-                    color: c.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (onRevoke != null)
-            SacButton.text(
+      leading: const SacListRowIcon(HugeIcons.strokeRoundedSmartPhone01),
+      title: device.label,
+      titleColor: device.isRevoked ? c.textTertiary : null,
+      subtitle: details.join(' · '),
+      trailing: onRevoke == null
+          ? null
+          : TextButton(
               key: ValueKey('device_revoke_${device.id}'),
-              text: 'family.devices.revoke'.tr(),
+              style: TextButton.styleFrom(
+                foregroundColor: c.onErrorContainer,
+                minimumSize: const Size(44, 44),
+              ),
               onPressed: onRevoke,
-              color: context.sac.error,
+              child: Text(
+                'family.devices.revoke'.tr(),
+                style: const TextStyle(
+                  fontSize: SacFontSize.bodyMedium,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
-        ],
-      ),
     );
   }
 }
