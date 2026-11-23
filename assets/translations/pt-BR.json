@@ -4456,40 +4456,79 @@
       "not_in_section": "Não encontramos seu clube atual. Atualize o app e tente novamente."
     },
     "detail": {
-      "title": "Detalhe da transferência",
-      "request_number": "Solicitação #{id}",
-      "destination_section": "Seção destino",
-      "destination_club": "Clube destino",
-      "request_date": "Data da solicitação",
-      "reason": "Motivo",
-      "reviewer_comment": "Comentário do revisor"
+      "title_to": "Solicitação para {club}",
+      "pending_message": "O diretor de {club} vai analisá-la.",
+      "reviewed": "Ela já foi analisada.",
+      "reviewed_on": "Analisada em {date}.",
+      "reviewer_comment": "Comentário do diretor",
+      "move": "Clubes",
+      "move_to": "Para",
+      "details": "Detalhes",
+      "sent": "Enviada",
+      "your_reason": "Seu motivo",
+      "folio": "Referência",
+      "try_other": "Solicitar outro clube"
     },
     "list": {
-      "title": "Solicitações de transferência",
-      "new_request": "Nova solicitação",
-      "section_number": "Seção #{id}",
-      "empty_title": "Nenhuma solicitação de transferência",
-      "empty_subtitle": "Você pode solicitar uma transferência para outra seção do clube daqui.",
-      "empty_action": "Solicitar transferência"
+      "current_club": "Seu clube",
+      "keeps": "Seu tipo de clube e sua classe continuam os mesmos.",
+      "history": "Solicitações anteriores",
+      "to_club": "Para {club}",
+      "pending_sent": "Para {club} · enviada em {date}.",
+      "request": "Solicitar mudança de clube",
+      "pending_note": "Você já tem uma solicitação em análise."
     },
     "form": {
-      "title": "Nova solicitação de transferência",
       "success_message": "Solicitação enviada com sucesso",
-      "info_banner": "Digite o ID da seção destino. Você pode obtê-lo nas informações do clube.",
-      "section_id_label": "ID da seção destino",
-      "section_id_hint": "Ex: 42",
-      "section_id_required": "Digite o ID da seção",
-      "section_id_invalid": "Digite um ID de seção válido",
-      "reason": "Motivo",
-      "reason_hint": "Explique brevemente por que você está solicitando a transferência...",
       "submit": "Enviar solicitação",
       "club_selection_title": "Escolha seu novo clube",
       "club_selection_subtitle": "Selecione o clube para o qual deseja mudar. Seu tipo de clube e sua classe atual serão mantidos.",
       "class_preserved_hint": "Sua classe atual não muda",
       "class_preserved_value": "Sua classe atual será mantida",
       "no_matching_section": "Este clube não tem uma seção do mesmo tipo da sua membresia atual.",
-      "no_active_membership": "Você precisa de uma membresia ativa para solicitar mudança de clube.",
-      "select_valid_club": "Selecione um clube válido para solicitar a mudança"
+      "no_active_membership": "Você precisa de uma membresia ativa para solicitar mudança de clube."
+    },
+    "title": "Mudar de clube",
+    "unknown_club": "Clube sem nome",
+    "status": {
+      "pending": "Em análise",
+      "approved": "Aprovada",
+      "rejected": "Recusada"
+    },
+    "states": {
+      "title": "Solicitação de mudança de clube",
+      "sent": "Enviada",
+      "review_detail": "O diretor do novo clube a analisa.",
+      "decision": "Aprovada ou recusada",
+      "decision_detail": "Você verá a resposta aqui.",
+      "rejected_detail": "Você pode solicitar outro clube.",
+      "step": "Passo {step} de {total} · Ver todos os estados",
+      "all": "Ver todos os estados",
+      "kind_done": "Concluído",
+      "kind_current": "Passo atual",
+      "kind_rejected": "Recusada",
+      "kind_pending": "Pendente"
+    },
+    "picker": {
+      "title": "Escolha seu novo clube",
+      "search_hint": "Buscar por nome ou igreja",
+      "other_field": "Outro campo",
+      "clubs_with": "Clubes com {type}",
+      "no_section": "Sem seção de {type}",
+      "empty": "Nenhum clube corresponde.",
+      "no_field": "Use «Outro campo» para escolher o campo do clube para o qual você vai.",
+      "load_error": "Não foi possível carregar a lista. Tente de novo.",
+      "pick_country": "Escolha o país",
+      "pick_union": "Escolha a união",
+      "pick_field": "Escolha o campo"
+    },
+    "confirm": {
+      "title": "Mudar de {from} para {to}",
+      "subtitle": "O diretor de {club} vai analisar sua solicitação.",
+      "keeps": "Continua igual",
+      "keeps_class": "{type} · classe {class}",
+      "reason_label": "Motivo (opcional)",
+      "reason_hint": "Conte ao diretor por que você está mudando"
     }
   },
   "profile": {

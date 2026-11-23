@@ -4,6 +4,7 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/network/cancel_token_adapter.dart';
+import '../../domain/entities/transfer_club_option.dart';
 import '../../domain/entities/transfer_request.dart';
 import '../../domain/repositories/transfer_repository.dart';
 import '../datasources/transfer_remote_data_source.dart';
@@ -70,6 +71,29 @@ class TransferRepositoryImpl implements TransferRepository {
       return Left(AuthFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<TransferClubOption>>> getDestinationClubs({
+    required int localFieldId,
+    required int clubTypeId,
+    RequestCancelToken? cancelToken,
+  }) async {
+    try {
+      return Right(await _remoteDataSource.getDestinationClubs(
+        localFieldId: localFieldId,
+        clubTypeId: clubTypeId,
+        cancelToken: cancelToken.asDioCancelToken(),
+      ));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AppException catch (e) {
+      return Left(ServerFailure(message: e.message));
     } catch (e) {
       return Left(UnexpectedFailure(message: e.toString()));
     }
