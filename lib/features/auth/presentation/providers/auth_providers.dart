@@ -915,6 +915,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       serverMode: current.serverMode,
       pendingClubMembership: current.pendingClubMembership,
       authorizationStale: current.authorizationStale,
+      onboardingMode: current.onboardingMode,
     );
     state = AsyncValue.data(updatedUser);
     _cacheUser(updatedUser);
@@ -948,6 +949,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       serverMode: current.serverMode,
       pendingClubMembership: current.pendingClubMembership,
       authorizationStale: current.authorizationStale,
+      onboardingMode: current.onboardingMode,
     );
     state = AsyncValue.data(
         updatedUser); // Aceptó los documentos: si ya terminó el registro, pide el permiso.
@@ -976,6 +978,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       serverMode: current.serverMode,
       pendingClubMembership: current.pendingClubMembership,
       authorizationStale: current.authorizationStale,
+      onboardingMode: current.onboardingMode,
     );
     state = AsyncValue.data(updatedUser);
     _cacheUser(updatedUser);
@@ -1546,7 +1549,8 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     // los documentos) cambia el principal y el modo aunque los permisos no
     // cambien: sin esto el router no saldría de `/release`.
     if (before.principal != after.principal ||
-        before.serverMode != after.serverMode) {
+        before.serverMode != after.serverMode ||
+        before.onboardingMode != after.onboardingMode) {
       return true;
     }
     final a = before.authorization;

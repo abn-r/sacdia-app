@@ -3,6 +3,7 @@
 const Set<String> kCapabilityKeys = {
   'admin_panel.access',
   'admin_panel.pastor_only',
+  'app.clubless_surface',
   'audit.read_system',
   'camporee_orders.configure_offering',
   'camporee_orders.issue',

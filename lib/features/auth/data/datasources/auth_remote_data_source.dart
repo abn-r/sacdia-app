@@ -15,6 +15,7 @@ import '../../../../core/network/interceptors/auth_interceptor.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/delete_account_reauth.dart';
+import '../../domain/entities/onboarding_mode.dart';
 import '../models/user_model.dart';
 
 /// Interfaz para la fuente de datos remota de autenticación
@@ -190,6 +191,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       // `data.user.principal` del login: solo kind + estado. `/auth/me` trae el
       // resto en cuanto el arranque lo vuelve a pedir.
       principal: UserModel.parsePrincipal(userData?['principal']),
+      // `data.onboarding_mode` del login; ausente (servidor anterior) = club.
+      onboardingMode: OnboardingMode.parse(responseData['onboarding_mode']),
     );
   }
 

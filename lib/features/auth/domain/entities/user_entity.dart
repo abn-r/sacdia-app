@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import 'acting_for_info.dart';
 import 'authorization_snapshot.dart';
+import 'onboarding_mode.dart';
 import 'pending_club_membership.dart';
 import 'principal_info.dart';
 
@@ -66,6 +67,10 @@ class UserEntity extends Equatable {
   /// (`AuthNotifier.refreshAuthorization`). Debe estar en `props`.
   final bool authorizationStale;
 
+  /// Modo de ingreso que declaró el servidor (`onboarding_mode`). Ausente o
+  /// desconocido es `club`. La app lo lee; nunca lo infiere de roles ni clubes.
+  final OnboardingMode onboardingMode;
+
   const UserEntity({
     required this.id,
     this.email,
@@ -86,6 +91,7 @@ class UserEntity extends Equatable {
     this.serverMode,
     this.pendingClubMembership,
     this.authorizationStale = false,
+    this.onboardingMode = OnboardingMode.club,
   });
 
   /// Copia con otro [principal]. Todo lo demás se conserva.
@@ -109,6 +115,7 @@ class UserEntity extends Equatable {
         serverMode: serverMode,
         pendingClubMembership: pendingClubMembership,
         authorizationStale: authorizationStale,
+        onboardingMode: onboardingMode,
       );
 
   /// Modo de la cuenta para enrutar (FP3-31). Falla cerrado:
@@ -217,5 +224,6 @@ class UserEntity extends Equatable {
         serverMode,
         pendingClubMembership,
         authorizationStale,
+        onboardingMode,
       ];
 }

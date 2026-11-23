@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/core/storage/secure_storage.dart';
 import 'package:sacdia_app/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:sacdia_app/features/auth/data/models/user_model.dart';
+import 'package:sacdia_app/features/auth/domain/entities/onboarding_mode.dart';
 
 import '../../../support/http_adapters.dart';
 
@@ -126,6 +127,31 @@ void main() {
       expect(await storage.read(AppConstants.tokenTypeKey), 'bearer');
     },
   );
+
+  test('reads data.onboarding_mode of the session response', () async {
+    final body = {
+      'status': 'success',
+      'data': {
+        ...(_successBody['data'] as Map<String, dynamic>),
+        'onboarding_mode': 'club_exempt',
+      },
+    };
+    dio.httpClientAdapter = JsonAdapter(201, body);
+
+    final user =
+        await build(_FakeSocialAuthClient(_credential)).signInWithApple();
+
+    expect(user.onboardingMode, OnboardingMode.clubExempt);
+  });
+
+  test('a session response without onboarding_mode reads as club', () async {
+    dio.httpClientAdapter = JsonAdapter(201, _successBody);
+
+    final user =
+        await build(_FakeSocialAuthClient(_credential)).signInWithApple();
+
+    expect(user.onboardingMode, OnboardingMode.club);
+  });
 
   test('uses the google route for Google', () async {
     final adapter = JsonAdapter(201, _successBody);
