@@ -232,8 +232,9 @@ bool isClubStaffMode(UserEntity? user) {
 /// ¿Es un pastor «solo pastor» (`admin_panel.pastor_only`: roles globales no
 /// vacíos y todos pastor) sin ninguna presencia en un club?
 ///
-/// Esa persona no pasa por el post-registro de club ni ve el inicio de un
-/// miembro: la app le muestra solo «Autorizaciones» y su perfil. Con cualquier
+/// Esa persona no ve el inicio de un miembro: la app le muestra solo
+/// «Autorizaciones» y su perfil. El post-registro no depende de esto: lo decide
+/// el `onboarding_mode` del servidor (`club_exempt` hace 2 pasos). Con cualquier
 /// asignación de club utilizable, pendiente, inactiva o vencida, deja de
 /// calificar y conserva el flujo normal.
 bool isPastorWithoutClub(UserEntity? user) {
@@ -246,8 +247,8 @@ bool isPastorWithoutClub(UserEntity? user) {
 /// ¿Puede ver el panel de coordinación (`coordination.hub_view`) sin ninguna
 /// presencia en un club?
 ///
-/// Igual que el pastor sin club: no pasa por el post-registro de club y su
-/// inicio no es el resumen de un club sino el panel de coordinación. No exige
+/// Igual que el pastor sin club: el post-registro lo decide el `onboarding_mode`
+/// del servidor (no esta función) y su inicio no es el resumen de un club sino el panel de coordinación. No exige
 /// `consent:verify` ni secciones asignadas: el propio panel resuelve esos
 /// estados (alcance vacío, sin fichas). Con cualquier asignación de club
 /// visible (activa, pendiente, inactiva o vencida) deja de calificar y conserva

@@ -427,9 +427,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         return isPublicRoute ? null : RouteNames.login;
       }
 
-      // El pastor y el coordinador sin club no tienen datos de club que
-      // completar: no pasan por el post-registro (la app solo les muestra
-      // «Autorizaciones» o la coordinación, y su perfil).
+      // Quién pasa por el post-registro lo decide el servidor
+      // (`onboarding_mode`, ver `userNeedsPostRegistration`): `club` hace los 3
+      // pasos, `club_exempt` (pastor o coordinación sin club) los 2 primeros y
+      // `panel_only` nunca. La app no exime a nadie por su rol.
       final needsPostRegistration = userNeedsPostRegistration(user);
 
       // Usuario autenticado en ruta pública → destino home compartido.
