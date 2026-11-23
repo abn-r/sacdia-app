@@ -135,4 +135,7 @@ class AppConstants {
   static const String privacyPolicyUrl = 'https://sacdia.com/privacy';
   static const String termsUrl = 'https://sacdia.com/terms';
   static const String supportUrl = 'https://sacdia.com/support';
+
+  /// Inbox of the support team (Ayuda y soporte → Escribir a soporte).
+  static const String supportEmail = 'sacdia.app@gmail.com';
 }

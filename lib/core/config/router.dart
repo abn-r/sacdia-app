@@ -83,7 +83,6 @@ import 'package:sacdia_app/features/achievements/presentation/views/achievements
 import 'package:sacdia_app/features/master_honors/presentation/views/master_honors_view.dart';
 import 'package:sacdia_app/features/support/presentation/views/support_view.dart';
 import 'package:sacdia_app/features/support/presentation/views/faq_view.dart';
-import 'package:sacdia_app/features/support/presentation/views/contact_view.dart';
 import 'package:sacdia_app/features/support/presentation/views/report_problem_view.dart';
 import 'package:sacdia_app/features/materials/presentation/views/cart_view.dart';
 import 'package:sacdia_app/features/materials/presentation/views/catalog_view.dart';
@@ -1838,11 +1837,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       // Soporte — Contacto
-      GoRoute(
-        path: ContactView.routeName,
-        pageBuilder: (context, state) =>
-            _sharedAxisBuild(context, state, const ContactView()),
-      ),
 
       // Soporte — Reportar problema
       GoRoute(

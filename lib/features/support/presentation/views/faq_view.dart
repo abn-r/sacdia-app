@@ -1,28 +1,37 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/errors/user_error_message.dart';
-import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
-import 'package:sacdia_app/core/widgets/sac_error_state.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/animations/motion_tokens.dart';
-import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
-import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/utils/responsive.dart';
-import 'package:sacdia_app/core/widgets/sac_loading.dart';
-import 'package:sacdia_app/core/widgets/sac_text_field.dart';
-import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
+import '../../../../core/errors/user_error_message.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/sac_error_state.dart';
+import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/widgets/sac_text_field.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
+import '../../../../core/widgets/status_progress/status_progress.dart';
 import '../../domain/entities/faq_item.dart';
 import '../providers/support_providers.dart';
 import '../widgets/faq_category_strip.dart';
-import '../widgets/faq_item_card.dart';
+import '../widgets/faq_question_row.dart';
 
+/// Every question, grouped under its category once; each opens in place.
 class FaqView extends ConsumerStatefulWidget {
   const FaqView({super.key});
 
   static const String routeName = '/settings/support/faq';
+
+  /// Order of the categories in the chips and the groups.
+  static const categoryOrder = <String>[
+    'account',
+    'onboarding',
+    'offline',
+    'notifications',
+    'profile',
+    'privacy',
+    'support',
+  ];
 
   @override
   ConsumerState<FaqView> createState() => _FaqViewState();
@@ -30,18 +39,9 @@ class FaqView extends ConsumerStatefulWidget {
 
 class _FaqViewState extends ConsumerState<FaqView> {
   final _searchCtrl = TextEditingController();
+  String _query = '';
   String _selectedCategory = 'all';
   String? _expandedId;
-  bool _entranceDone = false;
-
-  @override
-  void initState() {
-    super.initState();
-    final query = ref.read(faqSearchQueryProvider);
-    if (query.isNotEmpty) {
-      _searchCtrl.text = query;
-    }
-  }
 
   @override
   void dispose() {
@@ -49,178 +49,122 @@ class _FaqViewState extends ConsumerState<FaqView> {
     super.dispose();
   }
 
-  void _onSearchChanged(String value) {
-    setState(() {
-      _expandedId = null;
-    });
-    ref.read(faqSearchQueryProvider.notifier).state = value;
-  }
-
-  void _clearSearch() {
-    setState(() {
-      _searchCtrl.clear();
-      _expandedId = null;
-    });
-    ref.read(faqSearchQueryProvider.notifier).state = '';
-    FocusScope.of(context).unfocus();
-  }
-
   @override
   Widget build(BuildContext context) {
-    final filteredAsync = ref.watch(filteredFaqItemsProvider);
     final c = context.sac;
-    final padding = Responsive.horizontalPadding(context);
+    final itemsAsync = ref.watch(faqItemsProvider);
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
-      appBar: SacTopBar(title: 'support.faq_title'.tr(), frosted: true),
-      body: SacFrostedVeil(
-        child: Builder(
-          builder: (context) => filteredAsync.when(
-            loading: () => const Center(child: SacLoading()),
-            error: (e, _) => SacErrorState(
-              title: 'support.errors.faq_load_failed'.tr(),
-              message: userErrorMessage(e),
-              onRetry: () => ref.invalidate(faqItemsProvider),
-            ),
-            data: (items) {
-              final categories = _categoriesFrom(items);
-              final visibleItems = _selectedCategory == 'all'
-                  ? items
-                  : items
-                      .where((item) => item.category == _selectedCategory)
-                      .toList(growable: false);
-
-              if (!_entranceDone) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) _entranceDone = true;
-                });
-              }
-
-              return ListView(
-                padding: SacTopBar.paddingBelowBar(
-                    context,
-                    EdgeInsets.fromLTRB(
-                      padding,
-                      8,
-                      padding,
-                      28 + MediaQuery.paddingOf(context).bottom,
-                    )),
-                children: [
-                  Semantics(
-                    textField: true,
-                    label: 'support.faq_search_hint'.tr(),
-                    child: SacTextField(
-                      controller: _searchCtrl,
-                      hint: 'support.faq_search_hint'.tr(),
-                      prefixIcon: HugeIcons.strokeRoundedSearch01,
-                      textInputAction: TextInputAction.search,
-                      onChanged: _onSearchChanged,
-                      suffix: _searchCtrl.text.isEmpty
-                          ? null
-                          : SacPressable(
-                              listenOnly: true,
-                              child: IconButton(
-                                enableFeedback: false,
-                                tooltip: 'common.clear'.tr(),
-                                onPressed: _clearSearch,
-                                icon: HugeIcon(
-                                  icon: HugeIcons.strokeRoundedCancelCircle,
-                                  size: 20,
-                                  color: c.textTertiary,
-                                ),
-                              ),
-                            ),
+      appBar: SacTopBar(
+        title: 'support.faq_title'.tr(),
+        backgroundColor: c.background,
+        foregroundColor: c.text,
+      ),
+      body: itemsAsync.when(
+        loading: () => const Center(child: SacLoading()),
+        error: (e, _) => SacErrorState(
+          title: 'support.errors.faq_load_failed'.tr(),
+          message: userErrorMessage(e),
+          onRetry: () => ref.invalidate(faqItemsProvider),
+        ),
+        data: (all) {
+          final query = _query.trim();
+          final matching = [
+            for (final i in all)
+              if (i.matches(query)) i,
+          ];
+          final groups = groupFaqByCategory(matching);
+          final visible = _selectedCategory == 'all'
+              ? groups
+              : {
+                  for (final e in groups.entries)
+                    if (e.key == _selectedCategory) e.key: e.value,
+                };
+          return ListView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.only(top: 4, bottom: 32),
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+                child: SacTextField(
+                  key: const ValueKey('faq-search'),
+                  controller: _searchCtrl,
+                  hint: 'support.faq_search_hint'.tr(),
+                  prefixIcon: HugeIcons.strokeRoundedSearch01,
+                  textInputAction: TextInputAction.search,
+                  onChanged: (v) => setState(() {
+                    _query = v;
+                    _expandedId = null;
+                  }),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                child: FaqCategoryStrip(
+                  categories: [
+                    FaqCategoryFilter(category: 'all', count: matching.length),
+                    for (final e in groups.entries)
+                      FaqCategoryFilter(category: e.key, count: e.value.length),
+                  ],
+                  selected: _selectedCategory,
+                  onSelected: (category) => setState(() {
+                    _selectedCategory = category;
+                    _expandedId = null;
+                  }),
+                ),
+              ),
+              if (visible.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
+                  child: Text(
+                    query.isEmpty
+                        ? 'support.faq_empty'.tr()
+                        : 'support.faq_no_results'.tr(args: [query]),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: SacFontSize.bodyMedium,
+                      color: c.textSecondary,
                     ),
                   ),
-                  const SizedBox(height: 14),
-                  FaqCategoryStrip(
-                    categories: categories,
-                    selected: _selectedCategory,
-                    onSelected: (category) {
-                      setState(() {
-                        _selectedCategory = category;
-                        _expandedId = null;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'support.faq_count'.tr(args: ['${visibleItems.length}']),
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: c.textTertiary,
+                ),
+              for (final e in visible.entries)
+                SacGroupedSection(
+                  key: ValueKey('faq-group-${e.key}'),
+                  label: 'support.faq_category.${e.key}'.tr(),
+                  dividerIndent: 16,
+                  children: [
+                    for (final item in e.value)
+                      FaqQuestionRow(
+                        key: ValueKey('faq-${item.id}'),
+                        item: item,
+                        expanded: _expandedId == item.id,
+                        onTap: () => setState(
+                          () => _expandedId =
+                              _expandedId == item.id ? null : item.id,
                         ),
-                  ),
-                  const SizedBox(height: 12),
-                  if (visibleItems.isEmpty)
-                    SacEmptyState(
-                      icon: HugeIcons.strokeRoundedSearch01,
-                      title: _searchCtrl.text.isEmpty
-                          ? 'support.faq_empty'.tr()
-                          : 'support.faq_no_results'
-                              .tr(args: [_searchCtrl.text]),
-                    )
-                  else
-                    ...visibleItems.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final item = entry.value;
-                      final isExpanded = _expandedId == item.id;
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: StaggeredListItem(
-                          index: index,
-                          staggerDelay: SacMotion.stagger,
-                          duration: SacMotion.standard,
-                          slideOffset: 8,
-                          animate: !_entranceDone && index < 6,
-                          child: FaqItemCard(
-                            key: ValueKey(item.id),
-                            item: item,
-                            expanded: isExpanded,
-                            onTap: () {
-                              setState(() {
-                                _expandedId = isExpanded ? null : item.id;
-                              });
-                            },
-                          ),
-                        ),
-                      );
-                    }),
-                ],
-              );
-            },
-          ),
-        ),
+                      ),
+                  ],
+                ),
+            ],
+          );
+        },
       ),
     );
   }
+}
 
-  List<FaqCategoryFilter> _categoriesFrom(List<FaqItem> items) {
-    final counts = <String, int>{'all': items.length};
-    for (final item in items) {
-      counts[item.category] = (counts[item.category] ?? 0) + 1;
-    }
-
-    const order = <String>[
-      'all',
-      'account',
-      'onboarding',
-      'offline',
-      'notifications',
-      'profile',
-      'privacy',
-      'support',
-    ];
-
-    return order
-        .where(counts.containsKey)
-        .map(
-          (category) => FaqCategoryFilter(
-            category: category,
-            count: counts[category]!,
-          ),
-        )
-        .toList(growable: false);
+/// [items] by category, in [FaqView.categoryOrder]; unknown categories last.
+Map<String, List<FaqItem>> groupFaqByCategory(List<FaqItem> items) {
+  final byCategory = <String, List<FaqItem>>{};
+  for (final item in items) {
+    byCategory.putIfAbsent(item.category, () => []).add(item);
   }
+  final ordered = <String, List<FaqItem>>{};
+  for (final category in FaqView.categoryOrder) {
+    final list = byCategory.remove(category);
+    if (list != null) ordered[category] = list;
+  }
+  ordered.addAll(byCategory);
+  return ordered;
 }

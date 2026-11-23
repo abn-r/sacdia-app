@@ -7,10 +7,12 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
-import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_frosted_footer.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_value_row.dart';
+import 'package:sacdia_app/core/widgets/status_progress/status_progress.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../domain/entities/support_category.dart';
@@ -31,6 +33,9 @@ class _ReportProblemViewState extends ConsumerState<ReportProblemView> {
   final _titleCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   SupportCategory _category = SupportCategory.bug;
+
+  /// The report once it was sent: the screen shows it instead of the form.
+  SupportReportDraft? _sent;
 
   @override
   void initState() {
@@ -77,35 +82,11 @@ class _ReportProblemViewState extends ConsumerState<ReportProblemView> {
     if (!mounted) return;
     final state = ref.read(supportReportSubmitProvider);
     if (state.success != null) {
-      _showSuccessDialog();
+      // The screen turns into the confirmation (see [build]).
+      setState(() => _sent = draft);
     } else if (state.errorMessage != null) {
       SacSnackBar.show(context, state.errorMessage!, isError: true);
     }
-  }
-
-  void _showSuccessDialog() {
-    final scheme = Theme.of(context).colorScheme;
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: context.sac.barrierColor,
-      builder: (ctx) => SacDialog(
-        title: 'support.report_success_title'.tr(),
-        content: 'support.report_success_body'.tr(),
-        icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-        iconColor: scheme.secondary,
-        iconBackgroundColor: scheme.secondaryContainer,
-        actions: [
-          SacDialogAction(
-            label: 'common.ok'.tr(),
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ),
-    );
   }
 
   Future<void> _pickCategory() async {
@@ -157,8 +138,29 @@ class _ReportProblemViewState extends ConsumerState<ReportProblemView> {
   Widget build(BuildContext context) {
     final submitState = ref.watch(supportReportSubmitProvider);
     final deviceInfoAsync = ref.watch(deviceReportInfoProvider);
+    final displayName = ref.watch(deviceDisplayNameProvider).value;
     final c = context.sac;
     final padding = Responsive.horizontalPadding(context);
+    final sent = _sent;
+
+    if (sent != null) {
+      return Scaffold(
+        backgroundColor: c.background,
+        appBar: SacTopBar(
+          title: 'support.report_title'.tr(),
+          backgroundColor: c.background,
+          foregroundColor: c.text,
+        ),
+        body: _SentBody(draft: sent),
+        bottomNavigationBar: SacFrostedFooter(
+          child: SacButton.primary(
+            key: const ValueKey('support-report-done'),
+            text: 'support.report_done'.tr(),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -174,188 +176,150 @@ class _ReportProblemViewState extends ConsumerState<ReportProblemView> {
                 children: [
                   Expanded(
                     child: ListView(
-                      padding: SacTopBar.paddingBelowBar(context,
-                          EdgeInsets.fromLTRB(padding, 8, padding, 24)),
+                      padding: SacTopBar.paddingBelowBar(
+                          context, const EdgeInsets.fromLTRB(0, 8, 0, 24)),
                       children: [
-                        Text(
-                          'support.report_intro'.tr(),
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: c.textSecondary,
-                                    height: 1.45,
-                                  ),
-                        ),
-                        const SizedBox(height: 20),
-                        Text(
-                          'support.report_field_category'.tr(),
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                        ),
-                        const SizedBox(height: 6),
-                        SacPressable(
-                          onTap: _pickCategory,
-                          semanticLabel: 'support.report_pick_category'.tr(),
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: c.surface,
-                              borderRadius:
-                                  BorderRadius.circular(AppTheme.radiusSM),
-                              border: Border.all(color: c.border),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: c.shadow,
-                                  offset: const Offset(0, 3),
-                                  blurRadius: 20,
-                                ),
-                              ],
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 15,
-                              ),
-                              child: Row(
-                                children: [
-                                  HugeIcon(
-                                    icon:
-                                        HugeIcons.strokeRoundedFilterHorizontal,
-                                    color: c.textSecondary,
-                                    size: 22,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      _category.i18nKey.tr(),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium,
-                                    ),
-                                  ),
-                                  HugeIcon(
-                                    icon: HugeIcons.strokeRoundedArrowDown01,
-                                    color: c.textTertiary,
-                                    size: 18,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        SacTextField(
-                          controller: _titleCtrl,
-                          label: 'support.report_field_title'.tr(),
-                          hint: 'support.report_title_hint'.tr(),
-                          maxLength: 120,
-                          textInputAction: TextInputAction.next,
-                          validator: (v) {
-                            if (v == null || v.trim().isEmpty) {
-                              return 'support.report_title_required'.tr();
-                            }
-                            if (v.trim().length < 5) {
-                              return 'support.report_title_too_short'.tr();
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 8),
-                        SacTextField(
-                          controller: _descCtrl,
-                          label: 'support.report_field_description'.tr(),
-                          hint: 'support.report_desc_hint'.tr(),
-                          maxLength: 2000,
-                          maxLines: 6,
-                          validator: (v) {
-                            if (v == null || v.trim().isEmpty) {
-                              return 'support.report_desc_required'.tr();
-                            }
-                            if (v.trim().length < 10) {
-                              return 'support.report_desc_too_short'.tr();
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: c.surfaceVariant,
-                            borderRadius:
-                                BorderRadius.circular(AppTheme.radiusMD),
-                            border: Border.all(color: c.borderLight),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(14),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    HugeIcon(
-                                      icon: HugeIcons
-                                          .strokeRoundedInformationCircle,
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: padding),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                'support.report_intro'.tr(),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
                                       color: c.textSecondary,
-                                      size: 18,
+                                      height: 1.45,
                                     ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        'support.report_device_info_title'.tr(),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .labelMedium
-                                            ?.copyWith(
-                                              color: c.text,
-                                              fontWeight: FontWeight.w700,
-                                            ),
+                              ),
+                              const SizedBox(height: 20),
+                              Text(
+                                'support.report_field_category'.tr(),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                              ),
+                              const SizedBox(height: 6),
+                              SacPressable(
+                                onTap: _pickCategory,
+                                semanticLabel:
+                                    'support.report_pick_category'.tr(),
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    color: c.surface,
+                                    borderRadius: BorderRadius.circular(
+                                        AppTheme.radiusSM),
+                                    border: Border.all(color: c.border),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: c.shadow,
+                                        offset: const Offset(0, 3),
+                                        blurRadius: 20,
                                       ),
+                                    ],
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 15,
                                     ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                deviceInfoAsync.when(
-                                  loading: () => Text(
-                                    'common.loading'.tr(),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(color: c.textSecondary),
-                                  ),
-                                  error: (_, __) => Text(
-                                    'support.report_device_info_error'.tr(),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(color: c.error),
-                                  ),
-                                  data: (info) => Text(
-                                    'support.report_device_info'.tr(namedArgs: {
-                                      'platform': info['platform']!,
-                                      'osVersion': info['osVersion']!,
-                                      'model': info['model']!,
-                                      'appVersion': info['appVersion']!,
-                                      'buildNumber': info['buildNumber']!,
-                                    }),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
+                                    child: Row(
+                                      children: [
+                                        HugeIcon(
+                                          icon: HugeIcons
+                                              .strokeRoundedFilterHorizontal,
                                           color: c.textSecondary,
-                                          height: 1.4,
+                                          size: 22,
                                         ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            _category.i18nKey.tr(),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium,
+                                          ),
+                                        ),
+                                        HugeIcon(
+                                          icon: HugeIcons
+                                              .strokeRoundedArrowDown01,
+                                          color: c.textTertiary,
+                                          size: 18,
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(height: 16),
+                              SacTextField(
+                                controller: _titleCtrl,
+                                label: 'support.report_field_title'.tr(),
+                                hint: 'support.report_title_hint'.tr(),
+                                maxLength: 120,
+                                textInputAction: TextInputAction.next,
+                                validator: (v) {
+                                  if (v == null || v.trim().isEmpty) {
+                                    return 'support.report_title_required'.tr();
+                                  }
+                                  if (v.trim().length < 5) {
+                                    return 'support.report_title_too_short'
+                                        .tr();
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 8),
+                              SacTextField(
+                                controller: _descCtrl,
+                                label: 'support.report_field_description'.tr(),
+                                hint: 'support.report_desc_hint'.tr(),
+                                maxLength: 2000,
+                                maxLines: 6,
+                                validator: (v) {
+                                  if (v == null || v.trim().isEmpty) {
+                                    return 'support.report_desc_required'.tr();
+                                  }
+                                  if (v.trim().length < 10) {
+                                    return 'support.report_desc_too_short'.tr();
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ],
                           ),
+                        ),
+                        SacGroupedSection(
+                          label: 'support.report_device_group'.tr(),
+                          action: const SizedBox.shrink(),
+                          dividerIndent: 16,
+                          children: [
+                            deviceInfoAsync.when(
+                              loading: () => SacValueRow(
+                                label: 'support.report_device_system'.tr(),
+                                value: 'common.loading'.tr(),
+                              ),
+                              error: (_, __) => Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Text(
+                                  'support.report_device_info_error'.tr(),
+                                  style: TextStyle(color: c.error),
+                                ),
+                              ),
+                              data: (info) => _DeviceRows(
+                                info: info,
+                                displayName: displayName,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ),
-                  _SubmitDock(
-                    isSubmitting: submitState.isSubmitting,
-                    onSubmit: _submit,
                   ),
                 ],
               ),
@@ -363,49 +327,104 @@ class _ReportProblemViewState extends ConsumerState<ReportProblemView> {
           ),
         ),
       ),
+      bottomNavigationBar: SacFrostedFooter(
+        child: SacButton.primary(
+          key: const ValueKey('support-report-submit'),
+          text: 'support.report_submit'.tr(),
+          icon: HugeIcons.strokeRoundedSent02,
+          isLoading: submitState.isSubmitting,
+          isEnabled: !submitState.isSubmitting,
+          onPressed: _submit,
+        ),
+      ),
     );
   }
 }
 
-class _SubmitDock extends StatelessWidget {
-  const _SubmitDock({
-    required this.isSubmitting,
-    required this.onSubmit,
-  });
+/// System, phone and app version, with readable names.
+class _DeviceRows extends StatelessWidget {
+  const _DeviceRows({required this.info, required this.displayName});
 
-  final bool isSubmitting;
-  final VoidCallback onSubmit;
+  final Map<String, dynamic> info;
+  final String? displayName;
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    return Material(
-      color: c.surface,
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: c.border)),
-          boxShadow: [
-            BoxShadow(
-              color: c.shadow,
-              blurRadius: 16,
-              offset: const Offset(0, -4),
+    final platform = '${info['platform']}';
+    final os = '${info['osVersion']}';
+    final system = switch (platform) {
+      'ios' => 'iOS $os',
+      'macos' => 'macOS $os',
+      _ => os,
+    };
+    return Column(
+      children: [
+        SacValueRow(label: 'support.report_device_system'.tr(), value: system),
+        Divider(
+          height: 1,
+          thickness: 1,
+          indent: 16,
+          color: context.sac.divider,
+        ),
+        SacValueRow(
+          label: 'support.report_device_model'.tr(),
+          value: displayName ?? '${info['model']}',
+        ),
+        Divider(
+          height: 1,
+          thickness: 1,
+          indent: 16,
+          color: context.sac.divider,
+        ),
+        SacValueRow(
+          label: 'support.report_device_app'.tr(),
+          value: '${info['appVersion']} (${info['buildNumber']})',
+        ),
+      ],
+    );
+  }
+}
+
+/// After sending: what was sent, and one way out.
+class _SentBody extends StatelessWidget {
+  const _SentBody({required this.draft});
+
+  final SupportReportDraft draft;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.only(top: 4, bottom: 32),
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+          child: SacStatePanel(
+            key: const ValueKey('support-report-sent'),
+            style: SacStatusStyle.of(
+              context,
+              SacStatusKind.validated,
+              label: 'support.report_success_title'.tr(),
+            ),
+            title: 'support.report_success_title'.tr(),
+            message: 'support.report_success_body'.tr(),
+          ),
+        ),
+        SacGroupedSection(
+          label: 'support.report_sent_group'.tr(),
+          action: const SizedBox.shrink(),
+          dividerIndent: 16,
+          children: [
+            SacValueRow(
+              label: 'support.report_field_category'.tr(),
+              value: draft.category.i18nKey.tr(),
+            ),
+            SacValueRow(
+              label: 'support.report_field_title'.tr(),
+              value: draft.title,
             ),
           ],
         ),
-        padding: EdgeInsets.fromLTRB(
-          20,
-          12,
-          20,
-          12 + MediaQuery.paddingOf(context).bottom,
-        ),
-        child: SacButton.primary(
-          text: 'support.report_submit'.tr(),
-          icon: HugeIcons.strokeRoundedSent02,
-          isLoading: isSubmitting,
-          isEnabled: !isSubmitting,
-          onPressed: onSubmit,
-        ),
-      ),
+      ],
     );
   }
 }

@@ -19,7 +19,8 @@
       "id": "login_forgot_password",
       "category": "account",
       "question": "Olvidé mi contraseña. ¿Cómo la recupero?",
-      "answer": "En la pantalla de inicio de sesión toca **¿Olvidaste tu contraseña?** e ingresa tu correo. Te enviaremos un enlace para restablecerla. Si no recibes el correo en 5 minutos, revisa tu carpeta de spam. Si sigues sin verlo, contáctanos desde **Configuración → Soporte → Contactar**."
+      "answer": "En la pantalla de inicio de sesión toca **¿Olvidaste tu contraseña?** e ingresa tu correo. Te enviaremos un enlace para restablecerla. Si no recibes el correo en 5 minutos, revisa tu carpeta de spam. Si sigues sin verlo, contáctanos desde **Configuración → Soporte → Contactar**.",
+      "featured": true
     },
     {
       "id": "login_stuck_oauth",
@@ -31,7 +32,8 @@
       "id": "offline_mode",
       "category": "offline",
       "question": "¿La app funciona sin internet?",
-      "answer": "SACDIA muestra parte del contenido en modo offline (perfil, actividades ya cargadas, notificaciones recibidas). Sin embargo, para registrar puntos, enviar evidencias, o reportar problemas necesitás conexión a internet. Cuando la conexión se restablece, la app sincroniza automáticamente los cambios pendientes."
+      "answer": "SACDIA muestra parte del contenido en modo offline (perfil, actividades ya cargadas, notificaciones recibidas). Sin embargo, para registrar puntos, enviar evidencias, o reportar problemas necesitás conexión a internet. Cuando la conexión se restablece, la app sincroniza automáticamente los cambios pendientes.",
+      "featured": true
     },
     {
       "id": "offline_sync_error",
@@ -43,7 +45,8 @@
       "id": "notifications_not_receiving",
       "category": "notifications",
       "question": "No recibo notificaciones push. ¿Cómo lo soluciono?",
-      "answer": "1) Abre **Configuración → Notificaciones** en SACDIA y verifica que el tipo de notificación esté activado.\n2) En los ajustes de tu teléfono: **Ajustes → SACDIA → Notificaciones** — asegúrate de que estén permitidas.\n3) En iOS, revisa que **Modo de concentración** no esté bloqueándolas.\n\nSi tras estos pasos sigues sin recibir notificaciones, repórtalo con tu modelo de teléfono y versión del sistema operativo."
+      "answer": "1) Abre **Configuración → Notificaciones** en SACDIA y verifica que el tipo de notificación esté activado.\n2) En los ajustes de tu teléfono: **Ajustes → SACDIA → Notificaciones** — asegúrate de que estén permitidas.\n3) En iOS, revisa que **Modo de concentración** no esté bloqueándolas.\n\nSi tras estos pasos sigues sin recibir notificaciones, repórtalo con tu modelo de teléfono y versión del sistema operativo.",
+      "featured": true
     },
     {
       "id": "notifications_silencing",
@@ -61,7 +64,8 @@
       "id": "profile_change_club",
       "category": "profile",
       "question": "¿Cómo cambio de club?",
-      "answer": "Desde **Configuración → Cambiar de club** selecciona el club al que deseas integrarte. Tu clase y tipo de club actual se conservan; el director del club de destino debe aprobar la solicitud antes de que el cambio quede activo."
+      "answer": "Desde **Configuración → Cambiar de club** selecciona el club al que deseas integrarte. Tu clase y tipo de club actual se conservan; el director del club de destino debe aprobar la solicitud antes de que el cambio quede activo.",
+      "featured": true
     },
     {
       "id": "privacy_data",
