@@ -7356,12 +7356,25 @@
     },
     "mine": {
       "title": "Mes attestations",
-      "intro": "Enregistrez ici l'attestation de votre cours de conseil (10 heures). Pour l'instant, elle est facultative.",
       "upload": "Envoyer une attestation",
-      "pending_note": "Vous avez une attestation en cours d'examen. Quand elle aura un résultat, vous pourrez en envoyer une autre.",
       "empty_title": "Vous n'avez encore envoyé aucune attestation",
       "empty_body": "Envoyez l'attestation de votre cours de conseil (10 heures) pour qu'elle soit examinée.",
-      "error_title": "Nous n'avons pas pu charger vos attestations"
+      "error_title": "Nous n'avons pas pu charger vos attestations",
+      "reason_label": "Motif",
+      "document_label": "Document",
+      "document_fallback": "Document",
+      "actions_label": "Actions",
+      "history_label": "Historique",
+      "upload_another": "Envoyer une autre attestation",
+      "withdraw": "Retirer l'attestation",
+      "approved_title": "Attestation approuvée",
+      "approved_message": "{course}, terminée le {date}. Elle n'expire pas.",
+      "approved_message_expires": "{course}, terminée le {date}. Valable jusqu'au {expires}.",
+      "rejected_title": "Attestation rejetée",
+      "rejected_message": "Elle a été examinée le {date}.",
+      "rejected_message_undated": "Elle a été examinée.",
+      "pending_message": "Vous l'avez envoyée le {date}. Nous vous préviendrons quand elle sera examinée.",
+      "pending_message_undated": "Nous vous préviendrons quand elle sera examinée."
     },
     "status": {
       "pending": "En cours d'examen",
@@ -7375,10 +7388,7 @@
     },
     "row": {
       "completed_on": "Terminée le {date}",
-      "rejected_reason": "Motif : {reason}",
-      "valid_until": "Valable jusqu'au {date}",
-      "resubmit": "Envoyer à nouveau",
-      "withdraw": "Retirer"
+      "resubmit": "Envoyer à nouveau"
     },
     "withdraw": {
       "title": "Retirer cette attestation ?",
@@ -7431,7 +7441,6 @@
       "load_more_error": "Impossible de charger plus d'attestations.",
       "sent_on": "Envoyée le {date}",
       "reviewed_on": "Examinée le {date}",
-      "fact_credential": "Attestation",
       "fact_completed": "Terminée le",
       "fact_sent": "Envoyée le",
       "open_file": "Ouvrir le document",
@@ -7447,7 +7456,13 @@
       "reason_label": "Motif du rejet",
       "reason_required": "Écrivez un motif d'au moins 5 caractères.",
       "approved_done": "Attestation approuvée.",
-      "rejected_done": "Attestation rejetée."
+      "rejected_done": "Attestation rejetée.",
+      "data_label": "Informations",
+      "fact_person": "Personne",
+      "fact_club": "Club",
+      "fact_status": "Statut",
+      "fact_reviewed": "Examinée le",
+      "fact_valid_until": "Valable jusqu'au"
     },
     "file_kind": {
       "pdf": "PDF",

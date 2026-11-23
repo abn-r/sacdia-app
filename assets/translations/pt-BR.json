@@ -7356,12 +7356,25 @@
     },
     "mine": {
       "title": "Minhas comprovações",
-      "intro": "Registre aqui a comprovação do seu curso de aconselhamento (10 horas). Por enquanto, é opcional.",
       "upload": "Enviar comprovação",
-      "pending_note": "Você tem uma comprovação em revisão. Quando ela tiver resultado, você poderá enviar outra.",
       "empty_title": "Você ainda não enviou nenhuma comprovação",
       "empty_body": "Envie a comprovação do seu curso de aconselhamento (10 horas) para que seja revisada.",
-      "error_title": "Não foi possível carregar as suas comprovações"
+      "error_title": "Não foi possível carregar as suas comprovações",
+      "reason_label": "Motivo",
+      "document_label": "Documento",
+      "document_fallback": "Documento",
+      "actions_label": "Ações",
+      "history_label": "Histórico",
+      "upload_another": "Enviar outra comprovação",
+      "withdraw": "Retirar comprovação",
+      "approved_title": "Comprovação aprovada",
+      "approved_message": "{course}, concluída em {date}. Não vence.",
+      "approved_message_expires": "{course}, concluída em {date}. Válida até {expires}.",
+      "rejected_title": "Comprovação rejeitada",
+      "rejected_message": "Ela foi revisada em {date}.",
+      "rejected_message_undated": "Ela foi revisada.",
+      "pending_message": "Você a enviou em {date}. Avisaremos quando ela for revisada.",
+      "pending_message_undated": "Avisaremos quando ela for revisada."
     },
     "status": {
       "pending": "Em revisão",
@@ -7375,10 +7388,7 @@
     },
     "row": {
       "completed_on": "Concluída em {date}",
-      "rejected_reason": "Motivo: {reason}",
-      "valid_until": "Válida até {date}",
-      "resubmit": "Enviar novamente",
-      "withdraw": "Retirar"
+      "resubmit": "Enviar novamente"
     },
     "withdraw": {
       "title": "Retirar esta comprovação?",
@@ -7431,7 +7441,6 @@
       "load_more_error": "Não foi possível carregar mais comprovações.",
       "sent_on": "Enviada em {date}",
       "reviewed_on": "Revisada em {date}",
-      "fact_credential": "Comprovação",
       "fact_completed": "Concluída em",
       "fact_sent": "Enviada em",
       "open_file": "Abrir documento",
@@ -7447,7 +7456,13 @@
       "reason_label": "Motivo da rejeição",
       "reason_required": "Escreva um motivo com pelo menos 5 caracteres.",
       "approved_done": "Comprovação aprovada.",
-      "rejected_done": "Comprovação rejeitada."
+      "rejected_done": "Comprovação rejeitada.",
+      "data_label": "Dados",
+      "fact_person": "Pessoa",
+      "fact_club": "Clube",
+      "fact_status": "Situação",
+      "fact_reviewed": "Revisada em",
+      "fact_valid_until": "Válida até"
     },
     "file_kind": {
       "pdf": "PDF",

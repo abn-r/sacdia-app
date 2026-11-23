@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/config/access_denied_view.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_frosted_footer.dart';
 import 'package:sacdia_app/features/service_credentials/domain/entities/service_credential.dart';
 import 'package:sacdia_app/features/service_credentials/presentation/views/service_credential_review_detail_view.dart';
 import 'package:sacdia_app/features/service_credentials/presentation/widgets/service_credentials_skeleton.dart';
@@ -76,13 +77,39 @@ void main() {
     await open(tester);
     expect(find.text('Laura Méndez'), findsOneWidget);
     expect(find.text('Club Pionero'), findsOneWidget);
-    expect(find.text('Curso de consejería (10 horas)'), findsOneWidget);
     expect(find.text('14 mar 2026'), findsOneWidget); // completion date
     expect(find.text('1 abr 2026'), findsOneWidget); // sent date
     expect(find.text('Abrir documento'), findsOneWidget);
     expect(find.text('En revisión'), findsOneWidget);
+    expect(find.text('Revisada el'), findsNothing);
     expect(find.widgetWithText(SacButton, 'Aprobar'), findsOneWidget);
     expect(find.widgetWithText(SacButton, 'Rechazar'), findsOneWidget);
+  });
+
+  testWidgets('the file comes before the data', (tester) async {
+    await open(tester);
+    final file =
+        tester.getTopLeft(find.byKey(const ValueKey('review-file-card')));
+    final data = tester.getTopLeft(find.byKey(const ValueKey('review-data')));
+    expect(file.dy, lessThan(data.dy));
+  });
+
+  testWidgets('pending: Rechazar and Aprobar sit side by side in the footer',
+      (tester) async {
+    await open(tester);
+    expect(find.byType(SacFrostedFooter), findsOneWidget);
+    final reject = find.byKey(const ValueKey('review-reject'));
+    final approve = find.byKey(const ValueKey('review-approve'));
+    expect(
+      find.descendant(of: find.byType(SacFrostedFooter), matching: reject),
+      findsOneWidget,
+    );
+    final left = tester.getRect(reject);
+    final right = tester.getRect(approve);
+    expect(left.right, lessThanOrEqualTo(right.left));
+    expect(left.center.dy, closeTo(right.center.dy, 0.5));
+    expect(tester.widget<SacButton>(reject).variant, SacButtonVariant.outline);
+    expect(tester.widget<SacButton>(approve).variant, SacButtonVariant.primary);
   });
 
   testWidgets('an image is previewed inline and a missing file is explained',
@@ -167,6 +194,25 @@ void main() {
     expect(find.text('home'), findsOneWidget);
   });
 
+  testWidgets('reject sheet: red confirm first, Cancelar ghost below',
+      (tester) async {
+    await open(tester);
+    await tester.tap(find.byKey(const ValueKey('review-reject')));
+    await tester.pumpAndSettle();
+    final confirm = find.byKey(const ValueKey('reject-confirm'));
+    final cancel = find.byKey(const ValueKey('reject-cancel'));
+    expect(tester.widget<SacButton>(confirm).variant,
+        SacButtonVariant.destructive);
+    expect(tester.widget<SacButton>(cancel).variant, SacButtonVariant.ghost);
+    expect(
+        tester.getTopLeft(confirm).dy, lessThan(tester.getTopLeft(cancel).dy));
+
+    await tester.tap(cancel);
+    await tester.pumpAndSettle();
+    expect(find.text('Rechazar constancia'), findsNothing);
+    expect(repo.calls.where((c) => c.startsWith('reject')), isEmpty);
+  });
+
   testWidgets('dismissing the reject sheet calls nothing', (tester) async {
     await open(tester);
     await tester.tap(find.widgetWithText(SacButton, 'Rechazar'));
@@ -224,8 +270,16 @@ void main() {
       reason: 'Documento ilegible',
     ));
     await open(tester);
-    expect(find.text('Motivo: Documento ilegible'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('review-reason')),
+        matching: find.text('Documento ilegible'),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Rechazada'), findsOneWidget);
+    expect(find.text('Revisada el'), findsOneWidget);
+    expect(find.byType(SacFrostedFooter), findsNothing);
     expect(find.widgetWithText(SacButton, 'Aprobar'), findsNothing);
     expect(find.widgetWithText(SacButton, 'Rechazar'), findsNothing);
   });
@@ -237,7 +291,9 @@ void main() {
       expiresAt: DateTime(2027, 5, 20),
     ));
     await open(tester);
-    expect(find.textContaining('Vigente hasta'), findsOneWidget);
+    expect(find.text('Vigente hasta'), findsOneWidget);
+    expect(find.text('20 may 2027'), findsOneWidget);
+    expect(find.byType(SacFrostedFooter), findsNothing);
     expect(find.widgetWithText(SacButton, 'Aprobar'), findsNothing);
   });
 

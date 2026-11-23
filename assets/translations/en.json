@@ -7358,12 +7358,25 @@
     },
     "mine": {
       "title": "My certificates",
-      "intro": "Register your counseling course certificate (10 hours) here. For now it is optional.",
       "upload": "Upload certificate",
-      "pending_note": "You have a certificate under review. Once it has a result you can upload another.",
       "empty_title": "You have not uploaded a certificate yet",
       "empty_body": "Upload the certificate for your counseling course (10 hours) so it can be reviewed.",
-      "error_title": "We could not load your certificates"
+      "error_title": "We could not load your certificates",
+      "reason_label": "Reason",
+      "document_label": "Document",
+      "document_fallback": "Document",
+      "actions_label": "Actions",
+      "history_label": "History",
+      "upload_another": "Upload another certificate",
+      "withdraw": "Withdraw certificate",
+      "approved_title": "Certificate approved",
+      "approved_message": "{course}, completed on {date}. It does not expire.",
+      "approved_message_expires": "{course}, completed on {date}. Valid until {expires}.",
+      "rejected_title": "Certificate rejected",
+      "rejected_message": "It was reviewed on {date}.",
+      "rejected_message_undated": "It was reviewed.",
+      "pending_message": "You sent it on {date}. We will let you know when it is reviewed.",
+      "pending_message_undated": "We will let you know when it is reviewed."
     },
     "status": {
       "pending": "In review",
@@ -7377,10 +7390,7 @@
     },
     "row": {
       "completed_on": "Completed on {date}",
-      "rejected_reason": "Reason: {reason}",
-      "valid_until": "Valid until {date}",
-      "resubmit": "Upload again",
-      "withdraw": "Withdraw"
+      "resubmit": "Upload again"
     },
     "withdraw": {
       "title": "Withdraw this certificate?",
@@ -7433,7 +7443,6 @@
       "load_more_error": "Could not load more certificates.",
       "sent_on": "Sent on {date}",
       "reviewed_on": "Reviewed on {date}",
-      "fact_credential": "Certificate",
       "fact_completed": "Completed on",
       "fact_sent": "Sent on",
       "open_file": "Open document",
@@ -7449,7 +7458,13 @@
       "reason_label": "Reason for rejection",
       "reason_required": "Write a reason of at least 5 characters.",
       "approved_done": "Certificate approved.",
-      "rejected_done": "Certificate rejected."
+      "rejected_done": "Certificate rejected.",
+      "data_label": "Details",
+      "fact_person": "Person",
+      "fact_club": "Club",
+      "fact_status": "Status",
+      "fact_reviewed": "Reviewed on",
+      "fact_valid_until": "Valid until"
     },
     "file_kind": {
       "pdf": "PDF",

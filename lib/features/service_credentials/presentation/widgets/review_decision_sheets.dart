@@ -215,11 +215,18 @@ class _RejectSheetState extends State<_RejectSheet> {
           ],
           const SizedBox(height: 20),
           SacButton.destructive(
+            key: const ValueKey('reject-confirm'),
             text: 'service_credentials.review.reject'.tr(),
             icon: HugeIcons.strokeRoundedCancelCircle,
             onPressed: valid
                 ? () => Navigator.of(context).pop(_controller.text.trim())
                 : null,
+          ),
+          const SizedBox(height: 8),
+          SacButton.ghost(
+            key: const ValueKey('reject-cancel'),
+            text: 'common.cancel'.tr(),
+            onPressed: () => Navigator.of(context).pop(),
           ),
         ],
       ),

@@ -13,24 +13,28 @@ import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_card.dart';
+import '../../../../core/widgets/sac_frosted_footer.dart';
 import '../../../../core/widgets/sac_error_state.dart';
 import '../../../../core/widgets/sac_image_viewer.dart';
-import '../../../../core/widgets/sac_member_avatar.dart';
 import '../../../../core/widgets/sac_pdf_viewer.dart';
 import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
+import '../../../../core/widgets/sac_value_row.dart';
+import '../../../../core/widgets/status_progress/status_progress.dart';
 import '../../domain/entities/service_credential.dart';
 import '../../domain/entities/service_credential_review.dart';
 import '../providers/service_credentials_providers.dart';
 import '../utils/service_credential_labels.dart';
+import '../utils/service_credential_status_style.dart';
 import '../utils/service_credentials_access.dart';
 import '../widgets/review_decision_sheets.dart';
-import '../widgets/service_credential_status_pill.dart';
+import '../widgets/service_credential_text_row.dart';
 import '../widgets/service_credentials_skeleton.dart';
 
-/// Detail of one credential under review: who and which club, what and when,
-/// the file (image inline, PDF in the app viewer) and, while pending, the
-/// decision: Aprobar (optional expiry) or Rechazar (reason required).
+/// Detail of one credential under review: the file first (image inline, PDF in
+/// the app viewer), then who, which club and when, and, while pending, the
+/// decision fixed at the bottom: Rechazar or Aprobar (optional expiry; the
+/// rejection needs a reason).
 class ServiceCredentialReviewDetailView extends ConsumerWidget {
   const ServiceCredentialReviewDetailView({super.key, required this.id});
 
@@ -76,10 +80,42 @@ class ServiceCredentialReviewDetailView extends ConsumerWidget {
     final c = context.sac;
     final async = ref.watch(reviewDetailProvider(id));
     final busy = ref.watch(serviceCredentialReviewActionsProvider);
+    final detail = async.value;
+    final isPending = detail != null &&
+        (detail.item.status == ServiceCredentialStatus.pendingReview ||
+            detail.item.status == ServiceCredentialStatus.unknown);
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: SacTopBar(title: 'service_credentials.review.detail_title'.tr()),
+      appBar: SacTopBar(
+        title: 'service_credentials.review.detail_title'.tr(),
+        backgroundColor: c.background,
+        foregroundColor: c.text,
+      ),
+      bottomNavigationBar: isPending
+          ? SacFrostedFooter(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: SacButton.outline(
+                      key: const ValueKey('review-reject'),
+                      text: 'service_credentials.review.reject'.tr(),
+                      onPressed: busy ? null : () => _reject(context, ref),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SacButton.primary(
+                      key: const ValueKey('review-approve'),
+                      text: 'service_credentials.review.approve'.tr(),
+                      isLoading: busy,
+                      onPressed: busy ? null : () => _approve(context, ref),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : null,
       body: async.when(
         loading: () => const ServiceCredentialsSkeleton(rowCount: 3),
         error: (error, _) => isForbiddenFailure(error)
@@ -89,183 +125,91 @@ class ServiceCredentialReviewDetailView extends ConsumerWidget {
                 message: userErrorMessage(error),
                 onRetry: () => ref.invalidate(reviewDetailProvider(id)),
               ),
-        data: (detail) => ListView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-          children: [
-            _Header(detail: detail),
-            const SizedBox(height: 16),
-            _FileSection(detail: detail),
-            if (detail.item.status == ServiceCredentialStatus.rejected &&
-                detail.decisionReason != null) ...[
-              const SizedBox(height: 16),
-              _Note(
-                text: tr('service_credentials.row.rejected_reason',
-                    namedArgs: {'reason': detail.decisionReason!}),
-                color: c.error,
-              ),
-            ],
-            if (detail.item.status == ServiceCredentialStatus.approved &&
-                detail.expiresAt != null) ...[
-              const SizedBox(height: 16),
-              _Note(
-                text: tr('service_credentials.row.valid_until', namedArgs: {
-                  'date': serviceCredentialDate(context, detail.expiresAt!),
-                }),
-                color: c.textSecondary,
-              ),
-            ],
-            if (detail.item.status == ServiceCredentialStatus.pendingReview ||
-                detail.item.status == ServiceCredentialStatus.unknown) ...[
-              const SizedBox(height: 24),
-              SacButton.primary(
-                text: 'service_credentials.review.approve'.tr(),
-                icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                isLoading: busy,
-                onPressed: busy ? null : () => _approve(context, ref),
-              ),
-              const SizedBox(height: 8),
-              SacButton.outline(
-                text: 'service_credentials.review.reject'.tr(),
-                icon: HugeIcons.strokeRoundedCancelCircle,
-                onPressed: busy ? null : () => _reject(context, ref),
-              ),
-            ],
-          ],
-        ),
+        data: (detail) => _DetailBody(detail: detail),
       ),
     );
   }
 }
 
-class _Header extends StatelessWidget {
-  const _Header({required this.detail});
+class _DetailBody extends StatelessWidget {
+  const _DetailBody({required this.detail});
 
   final ReviewDetail detail;
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
     final item = detail.item;
     final name = item.person.name.trim().isEmpty
         ? 'service_credentials.review.unknown_person'.tr()
         : item.person.name.trim();
+    final club = item.clubName?.trim();
     final completed = item.completedAt;
-    return SacCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              SacMemberAvatar(
-                imageUrl: item.person.photoUrl,
-                name: name,
-                semanticLabel: name,
-                size: 48,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: TextStyle(
-                        fontSize: SacFontSize.titleMedium,
-                        fontWeight: FontWeight.w700,
-                        color: c.text,
-                      ),
-                    ),
-                    if (item.clubName != null)
-                      Text(
-                        item.clubName!,
-                        style: TextStyle(
-                          fontSize: SacFontSize.bodyMedium,
-                          color: c.textSecondary,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              ServiceCredentialStatusPill(status: item.status),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _Fact(
-            label: 'service_credentials.review.fact_credential'.tr(),
-            value: serviceCredentialTitle(),
-          ),
-          if (completed != null)
-            _Fact(
-              label: 'service_credentials.review.fact_completed'.tr(),
-              value: serviceCredentialDate(context, completed),
-            ),
-          if (item.createdAt != null)
-            _Fact(
-              label: 'service_credentials.review.fact_sent'.tr(),
-              value: serviceCredentialDate(context, item.createdAt!),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Fact extends StatelessWidget {
-  const _Fact({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Padding(
-      padding: const EdgeInsets.only(top: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: SacFontSize.bodySmall,
-                color: c.textTertiary,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: SacFontSize.bodyMedium,
-                fontWeight: FontWeight.w600,
-                color: c.text,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Note extends StatelessWidget {
-  const _Note({required this.text, required this.color});
-
-  final String text;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => Text(
-        text,
-        style: TextStyle(
-          fontSize: SacFontSize.bodyMedium,
-          color: color,
-          height: 1.35,
+    final sent = item.createdAt;
+    final reviewed = item.reviewedAt;
+    final expires = detail.expiresAt;
+    final reason = detail.decisionReason?.trim();
+    return ListView(
+      padding: const EdgeInsets.only(top: 4, bottom: 32),
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+          child: _FileSection(detail: detail),
         ),
-      );
+        SacGroupedSection(
+          key: const ValueKey('review-data'),
+          label: 'service_credentials.review.data_label'.tr(),
+          action: const SizedBox.shrink(),
+          dividerIndent: 16,
+          children: [
+            SacValueRow(
+              label: 'service_credentials.review.fact_person'.tr(),
+              value: name,
+            ),
+            if (club != null && club.isNotEmpty)
+              SacValueRow(
+                label: 'service_credentials.review.fact_club'.tr(),
+                value: club,
+              ),
+            SacValueRow(
+              label: 'service_credentials.review.fact_status'.tr(),
+              value: serviceCredentialStatusLabel(item.status),
+            ),
+            if (completed != null)
+              SacValueRow(
+                label: 'service_credentials.review.fact_completed'.tr(),
+                value: serviceCredentialDate(context, completed),
+              ),
+            if (sent != null)
+              SacValueRow(
+                label: 'service_credentials.review.fact_sent'.tr(),
+                value: serviceCredentialDate(context, sent),
+              ),
+            if (reviewed != null)
+              SacValueRow(
+                label: 'service_credentials.review.fact_reviewed'.tr(),
+                value: serviceCredentialDate(context, reviewed),
+              ),
+            if (item.status == ServiceCredentialStatus.approved &&
+                expires != null)
+              SacValueRow(
+                label: 'service_credentials.review.fact_valid_until'.tr(),
+                value: serviceCredentialDate(context, expires),
+              ),
+          ],
+        ),
+        if (item.status == ServiceCredentialStatus.rejected &&
+            reason != null &&
+            reason.isNotEmpty)
+          SacGroupedSection(
+            key: const ValueKey('review-reason'),
+            label: 'service_credentials.review.reason_label'.tr(),
+            action: const SizedBox.shrink(),
+            dividerIndent: 0,
+            children: [ServiceCredentialTextRow(text: reason)],
+          ),
+      ],
+    );
+  }
 }
 
 /// File of the credential. Images preview inline (signed URL, no disk cache);
@@ -298,12 +242,17 @@ class _FileSection extends StatelessWidget {
     final c = context.sac;
     final accent = SacAccent.of(context);
     if (!detail.hasFile) {
-      return _Note(
-        text: 'service_credentials.review.no_file'.tr(),
-        color: c.textSecondary,
+      return Text(
+        'service_credentials.review.no_file'.tr(),
+        style: TextStyle(
+          fontSize: SacFontSize.bodyMedium,
+          color: c.textSecondary,
+          height: 1.35,
+        ),
       );
     }
     final fileCard = SacCard(
+      key: const ValueKey('review-file-card'),
       onTap: () => _open(context),
       child: Row(
         children: [
@@ -358,7 +307,8 @@ class _FileSection extends StatelessWidget {
                 constraints: const BoxConstraints(maxHeight: 320),
                 child: Image.network(
                   detail.fileUrl!,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.contain,
+                  width: double.infinity,
                   errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                 ),
               ),

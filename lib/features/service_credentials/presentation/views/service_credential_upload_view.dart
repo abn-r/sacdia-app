@@ -13,7 +13,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_notice.dart';
 import '../../../../core/widgets/sac_picker_field.dart';
-import '../../../../core/widgets/sac_settings.dart';
+import '../../../../core/widgets/sac_frosted_footer.dart';
 import '../../../../core/widgets/sac_date_picker.dart';
 import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
@@ -136,73 +136,71 @@ class _ServiceCredentialUploadViewState
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: SacTopBar(title: 'service_credentials.upload.title'.tr()),
-      body: Column(
+      appBar: SacTopBar(
+        title: 'service_credentials.upload.title'.tr(),
+        backgroundColor: c.background,
+        foregroundColor: c.text,
+      ),
+      bottomNavigationBar: SacFrostedFooter(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (failure != null) ...[
+              SacNotice(
+                key: const ValueKey('submit-error'),
+                tone: SacNoticeTone.error,
+                text: userErrorMessage(failure),
+                liveRegion: true,
+              ),
+              const SizedBox(height: 10),
+            ],
+            if (busy) ...[
+              _Progress(state: submit),
+              const SizedBox(height: 12),
+            ],
+            SacButton.primary(
+              text: failure != null
+                  ? 'service_credentials.upload.retry'.tr()
+                  : 'service_credentials.upload.submit'.tr(),
+              icon: HugeIcons.strokeRoundedUpload01,
+              isLoading: busy,
+              onPressed: busy ? null : _submit,
+            ),
+          ],
+        ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
         children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-              children: [
-                Text(
-                  'service_credentials.upload.intro'.tr(),
-                  style: TextStyle(
-                    fontSize: SacFontSize.bodyMedium,
-                    color: c.textSecondary,
-                    height: 1.35,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                SacPickerField(
-                  label: 'service_credentials.upload.date_label'.tr(),
-                  hint: 'service_credentials.upload.date_hint'.tr(),
-                  icon: HugeIcons.strokeRoundedCalendar01,
-                  selectedName: completedAt == null
-                      ? null
-                      : DateFormat('d MMM yyyy', context.locale.toString())
-                          .format(completedAt.toLocal()),
-                  enabled: !busy,
-                  onTap: _pickDate,
-                  errorText: _dateError(errors.date),
-                ),
-                const SizedBox(height: 24),
-                _Label('service_credentials.upload.file_label'.tr()),
-                const SizedBox(height: 8),
-                ServiceCredentialDocumentField(
-                  file: _file,
-                  onPick: busy ? null : _pickFile,
-                  errorText: _fileError(errors),
-                ),
-              ],
+          Text(
+            'service_credentials.upload.intro'.tr(),
+            style: TextStyle(
+              fontSize: SacFontSize.bodyMedium,
+              color: c.textSecondary,
+              height: 1.35,
             ),
           ),
-          SacPinnedActionBar(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (failure != null) ...[
-                  SacNotice(
-                    key: const ValueKey('submit-error'),
-                    tone: SacNoticeTone.error,
-                    text: userErrorMessage(failure),
-                    liveRegion: true,
-                  ),
-                  const SizedBox(height: 10),
-                ],
-                if (busy) ...[
-                  _Progress(state: submit),
-                  const SizedBox(height: 12),
-                ],
-                SacButton.primary(
-                  text: failure != null
-                      ? 'service_credentials.upload.retry'.tr()
-                      : 'service_credentials.upload.submit'.tr(),
-                  icon: HugeIcons.strokeRoundedUpload01,
-                  isLoading: busy,
-                  onPressed: busy ? null : _submit,
-                ),
-              ],
-            ),
+          const SizedBox(height: 24),
+          SacPickerField(
+            label: 'service_credentials.upload.date_label'.tr(),
+            hint: 'service_credentials.upload.date_hint'.tr(),
+            icon: HugeIcons.strokeRoundedCalendar01,
+            selectedName: completedAt == null
+                ? null
+                : DateFormat('d MMM yyyy', context.locale.toString())
+                    .format(completedAt.toLocal()),
+            enabled: !busy,
+            onTap: _pickDate,
+            errorText: _dateError(errors.date),
+          ),
+          const SizedBox(height: 24),
+          _Label('service_credentials.upload.file_label'.tr()),
+          const SizedBox(height: 8),
+          ServiceCredentialDocumentField(
+            file: _file,
+            onPick: busy ? null : _pickFile,
+            errorText: _fileError(errors),
           ),
         ],
       ),

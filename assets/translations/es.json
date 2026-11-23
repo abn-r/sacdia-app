@@ -7358,12 +7358,25 @@
     },
     "mine": {
       "title": "Mis constancias",
-      "intro": "Registra aquí la constancia de tu curso de consejería (10 horas). Por ahora es opcional.",
       "upload": "Subir constancia",
-      "pending_note": "Tienes una constancia en revisión. Cuando tenga resultado podrás subir otra.",
       "empty_title": "Aún no subes ninguna constancia",
       "empty_body": "Sube la constancia de tu curso de consejería (10 horas) para que la revisen.",
-      "error_title": "No pudimos cargar tus constancias"
+      "error_title": "No pudimos cargar tus constancias",
+      "reason_label": "Motivo",
+      "document_label": "Documento",
+      "document_fallback": "Documento",
+      "actions_label": "Acciones",
+      "history_label": "Historial",
+      "upload_another": "Subir otra constancia",
+      "withdraw": "Retirar constancia",
+      "approved_title": "Constancia aprobada",
+      "approved_message": "{course}, concluida el {date}. No vence.",
+      "approved_message_expires": "{course}, concluida el {date}. Vigente hasta {expires}.",
+      "rejected_title": "Constancia rechazada",
+      "rejected_message": "La revisaron el {date}.",
+      "rejected_message_undated": "La revisaron.",
+      "pending_message": "La enviaste el {date}. Te avisaremos cuando la revisen.",
+      "pending_message_undated": "Te avisaremos cuando la revisen."
     },
     "status": {
       "pending": "En revisión",
@@ -7377,10 +7390,7 @@
     },
     "row": {
       "completed_on": "Concluida el {date}",
-      "rejected_reason": "Motivo: {reason}",
-      "valid_until": "Vigente hasta {date}",
-      "resubmit": "Subir de nuevo",
-      "withdraw": "Retirar"
+      "resubmit": "Subir de nuevo"
     },
     "withdraw": {
       "title": "¿Retirar esta constancia?",
@@ -7433,7 +7443,6 @@
       "load_more_error": "No se pudieron cargar más constancias.",
       "sent_on": "Enviada el {date}",
       "reviewed_on": "Revisada el {date}",
-      "fact_credential": "Constancia",
       "fact_completed": "Concluida el",
       "fact_sent": "Enviada el",
       "open_file": "Abrir documento",
@@ -7449,7 +7458,13 @@
       "reason_label": "Motivo del rechazo",
       "reason_required": "Escribe un motivo de al menos 5 caracteres.",
       "approved_done": "Constancia aprobada.",
-      "rejected_done": "Constancia rechazada."
+      "rejected_done": "Constancia rechazada.",
+      "data_label": "Datos",
+      "fact_person": "Persona",
+      "fact_club": "Club",
+      "fact_status": "Estado",
+      "fact_reviewed": "Revisada el",
+      "fact_valid_until": "Vigente hasta"
     },
     "file_kind": {
       "pdf": "PDF",

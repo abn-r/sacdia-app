@@ -4,11 +4,11 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
-import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_frosted_footer.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
-import 'package:sacdia_app/core/widgets/sac_notice.dart';
-import 'package:sacdia_app/core/widgets/sac_settings.dart';
+import 'package:sacdia_app/core/widgets/status_progress/status_progress.dart';
 import 'package:sacdia_app/features/service_credentials/domain/entities/service_credential.dart';
 import 'package:sacdia_app/features/service_credentials/presentation/views/my_service_credentials_view.dart';
 import 'package:sacdia_app/features/service_credentials/presentation/widgets/service_credentials_skeleton.dart';
@@ -30,9 +30,8 @@ void main() {
         settle: settle,
       );
 
-  /// The confirm button of the withdraw dialog (not the row button).
-  Finder dialogWithdraw() => find.descendant(
-      of: find.byType(SacDialog), matching: find.text('Retirar'));
+  Finder confirmButton() =>
+      find.byKey(const ValueKey('credential-sheet-confirm'));
 
   testWidgets('shows a skeleton while loading', (tester) async {
     repo.mineGate = Completer<void>();
@@ -66,159 +65,176 @@ void main() {
     await tester.tap(find.text('Reintentar'));
     await tester.pumpAndSettle();
     expect(find.byType(SacErrorState), findsNothing);
-    expect(find.text('Curso de consejería (10 horas)'), findsOneWidget);
+    expect(find.byType(SacStatePanel), findsOneWidget);
   });
 
-  testWidgets('groups by status with reason and expiry', (tester) async {
-    repo.mine = Right([
-      credential(
-        id: 'p',
-        status: ServiceCredentialStatus.pendingReview,
-      ),
-      credential(
-        id: 'r',
-        status: ServiceCredentialStatus.rejected,
-        reason: 'Documento ilegible',
-        createdAt: DateTime(2026, 3, 1),
-      ),
-      credential(
-        id: 'a',
-        status: ServiceCredentialStatus.approved,
-        expiresAt: DateTime(2027, 5, 20),
-        createdAt: DateTime(2026, 2, 1),
-      ),
-    ]);
-    await open(tester);
-
-    expect(find.text('En revisión · 1'), findsOneWidget);
-    expect(find.text('Rechazadas · 1'), findsOneWidget);
-    expect(find.text('Aprobadas · 1'), findsOneWidget);
-    expect(find.text('Curso de consejería (10 horas)'), findsNWidgets(3));
-    expect(find.text('Motivo: Documento ilegible'), findsOneWidget);
-    expect(find.textContaining('Vigente hasta'), findsOneWidget);
-    // Status pills (text, not color alone).
-    expect(find.text('Aprobada'), findsOneWidget);
-    expect(find.text('Rechazada'), findsOneWidget);
-    expect(find.text('En revisión'), findsOneWidget);
-  });
-
-  testWidgets('a pending credential hides the upload button', (tester) async {
-    repo.mine = Right([credential()]);
-    await open(tester);
-    expect(find.text('Subir constancia'), findsNothing);
-    expect(find.textContaining('Tienes una constancia en revisión'),
-        findsOneWidget);
-    // The info notice replaces the pinned upload bar.
-    expect(
-      find.descendant(
-        of: find.byKey(const ValueKey('pending-notice')),
-        matching: find.byType(SacNotice),
-      ),
-      findsNothing, // the key sits on the notice itself
-    );
-    expect(find.byKey(const ValueKey('pending-notice')), findsOneWidget);
-    expect(find.byType(SacPinnedActionBar), findsNothing);
-  });
-
-  testWidgets('with no pending credential the upload button is offered',
+  testWidgets('approved: panel with the course and no expiry, upload another',
       (tester) async {
-    repo.mine = Right([
-      credential(status: ServiceCredentialStatus.approved),
-    ]);
+    repo.mine = Right([credential(status: ServiceCredentialStatus.approved)]);
     await open(tester);
+
     expect(
-      find.descendant(
-        of: find.byType(SacPinnedActionBar),
-        matching: find.text('Subir constancia'),
-      ),
+        find.byKey(const ValueKey('credential-state-panel')), findsOneWidget);
+    expect(find.text('Constancia aprobada'), findsOneWidget);
+    expect(
+      find.text(
+          'Curso de consejería (10 horas), concluida el 14 mar 2026. No vence.'),
       findsOneWidget,
     );
-    expect(find.byKey(const ValueKey('pending-notice')), findsNothing);
-    await tester.tap(find.text('Subir constancia'));
+    // The own entity has no file URL: the document row is not interactive.
+    expect(
+        find.byKey(const ValueKey('credential-document-row')), findsOneWidget);
+    expect(find.text('constancia.pdf'), findsOneWidget);
+    expect(find.text('Concluida el 14 mar 2026'), findsOneWidget);
+    // No footer, no withdraw.
+    expect(find.byType(SacFrostedFooter), findsNothing);
+    expect(find.text('Retirar constancia'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('credential-upload-another')));
     await tester.pumpAndSettle();
     expect(find.text('route:/service-credentials/new'), findsOneWidget);
   });
 
-  testWidgets('the empty state has no pinned bar (it owns its action)',
-      (tester) async {
-    await open(tester);
-    expect(find.byType(SacPinnedActionBar), findsNothing);
-  });
-
-  testWidgets('a row never shows the raw picker file name', (tester) async {
+  testWidgets('approved with expiry says until when', (tester) async {
     repo.mine = Right([
       credential(
-        id: 'a',
         status: ServiceCredentialStatus.approved,
-        fileName: 'image_picker_EF659504-6A1B-4C2D-9E3F.jpg',
+        expiresAt: DateTime(2027, 5, 20),
       ),
-      credential(
-        id: 'b',
-        status: ServiceCredentialStatus.approved,
-        fileName: 'scaled_image_picker_AAAA1111-0000.png',
-      ),
-    ]);
-    await open(tester);
-    expect(find.textContaining('image_picker_'), findsNothing);
-    expect(find.textContaining('Concluida el'), findsNWidgets(2));
-    expect(find.textContaining('· Foto'), findsNWidgets(2));
-  });
-
-  testWidgets('a human file name is kept in the row subtitle', (tester) async {
-    repo.mine = Right([credential(fileName: 'curso-2026.pdf')]);
-    await open(tester);
-    expect(find.textContaining('curso-2026.pdf'), findsOneWidget);
-  });
-
-  testWidgets('the rejection reason is an error notice inside the row',
-      (tester) async {
-    repo.mine = Right([
-      credential(status: ServiceCredentialStatus.rejected, reason: 'Borroso'),
     ]);
     await open(tester);
     expect(
-      find.descendant(
-        of: find.byKey(const ValueKey('rejected-reason')),
-        matching: find.text('Motivo: Borroso'),
-      ),
+      find.text('Curso de consejería (10 horas), concluida el 14 mar 2026. '
+          'Vigente hasta 20 may 2027.'),
       findsOneWidget,
     );
   });
 
-  testWidgets('an approved credential cannot be withdrawn', (tester) async {
-    repo.mine = Right([credential(status: ServiceCredentialStatus.approved)]);
-    await open(tester);
-    expect(find.text('Retirar'), findsNothing);
-  });
-
-  testWidgets('a rejected credential can be resubmitted', (tester) async {
+  testWidgets('rejected: reason in its own group and resubmit in the footer',
+      (tester) async {
     repo.mine = Right([
-      credential(status: ServiceCredentialStatus.rejected, reason: 'Borroso'),
+      credential(
+        status: ServiceCredentialStatus.rejected,
+        reason: 'Documento ilegible',
+      ),
     ]);
     await open(tester);
+
+    expect(find.text('Constancia rechazada'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('credential-reason')),
+        matching: find.text('Documento ilegible'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byType(SacFrostedFooter),
+        matching: find.widgetWithText(SacButton, 'Subir de nuevo'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Retirar constancia'), findsNothing);
+
     await tester.tap(find.text('Subir de nuevo'));
     await tester.pumpAndSettle();
     expect(find.text('route:/service-credentials/new'), findsOneWidget);
   });
 
-  testWidgets('withdraw asks first, then removes and refreshes',
+  testWidgets('rejected without reason shows no reason group', (tester) async {
+    repo.mine = Right([credential(status: ServiceCredentialStatus.rejected)]);
+    await open(tester);
+    expect(find.byKey(const ValueKey('credential-reason')), findsNothing);
+  });
+
+  testWidgets('pending: panel, no upload offered and a red withdraw row',
+      (tester) async {
+    repo.mine = Right([credential()]);
+    await open(tester);
+
+    expect(find.text('En revisión'), findsOneWidget);
+    expect(
+      find.text('La enviaste el 1 abr 2026. Te avisaremos cuando la revisen.'),
+      findsOneWidget,
+    );
+    expect(find.text('Subir constancia'), findsNothing);
+    expect(find.text('Subir otra constancia'), findsNothing);
+    expect(find.byType(SacFrostedFooter), findsNothing);
+    expect(find.text('Retirar constancia'), findsOneWidget);
+  });
+
+  testWidgets('older credentials go to Historial with status and date',
+      (tester) async {
+    repo.mine = Right([
+      credential(
+        id: 'new',
+        status: ServiceCredentialStatus.approved,
+        createdAt: DateTime(2026, 6, 1),
+      ),
+      credential(
+        id: 'old',
+        status: ServiceCredentialStatus.rejected,
+        createdAt: DateTime(2026, 3, 1),
+      ),
+    ]);
+    await open(tester);
+
+    expect(find.byKey(const ValueKey('credential-history')), findsOneWidget);
+    expect(find.text('HISTORIAL'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('service-credential-old')),
+        matching: find.text('Rechazada · 1 mar 2026'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('service-credential-new')), findsNothing);
+  });
+
+  testWidgets('a single credential has no Historial', (tester) async {
+    repo.mine = Right([credential()]);
+    await open(tester);
+    expect(find.byKey(const ValueKey('credential-history')), findsNothing);
+  });
+
+  testWidgets('the empty state has no footer (it owns its action)',
+      (tester) async {
+    await open(tester);
+    expect(find.byType(SacFrostedFooter), findsNothing);
+  });
+
+  testWidgets('the document row never shows the raw picker file name',
+      (tester) async {
+    repo.mine = Right([
+      credential(
+        status: ServiceCredentialStatus.approved,
+        fileName: 'image_picker_EF659504-6A1B-4C2D-9E3F.jpg',
+      ),
+    ]);
+    await open(tester);
+    expect(find.textContaining('image_picker_'), findsNothing);
+    expect(find.text('Foto'), findsOneWidget);
+  });
+
+  testWidgets('withdraw asks in a sheet first, then removes and refreshes',
       (tester) async {
     repo.mine = Right([credential(id: 'p')]);
     await open(tester);
 
-    await tester.tap(find.text('Retirar'));
+    await tester.tap(find.byKey(const ValueKey('credential-withdraw')));
     await tester.pumpAndSettle();
     expect(find.text('¿Retirar esta constancia?'), findsOneWidget);
 
     // Cancelling does nothing.
-    await tester.tap(find.text('Cancelar'));
+    await tester.tap(find.byKey(const ValueKey('credential-sheet-cancel')));
     await tester.pumpAndSettle();
     expect(repo.calls.where((c) => c.startsWith('withdraw')), isEmpty);
 
     repo.mine = const Right([]);
-    await tester.tap(find.text('Retirar'));
+    await tester.tap(find.byKey(const ValueKey('credential-withdraw')));
     await tester.pumpAndSettle();
-    await tester.tap(dialogWithdraw());
+    await tester.tap(confirmButton());
     await tester.pumpAndSettle();
 
     expect(repo.calls, contains('withdraw:p'));
@@ -235,9 +251,9 @@ void main() {
       errorCode: 'SERVICE_CREDENTIAL_NOT_FOUND',
     ));
     await open(tester);
-    await tester.tap(find.text('Retirar'));
+    await tester.tap(find.byKey(const ValueKey('credential-withdraw')));
     await tester.pumpAndSettle();
-    await tester.tap(dialogWithdraw());
+    await tester.tap(confirmButton());
     await tester.pumpAndSettle();
     expect(find.text('No encontramos esta constancia. Actualizamos la lista.'),
         findsOneWidget);
