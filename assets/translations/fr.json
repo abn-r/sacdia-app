@@ -184,7 +184,7 @@
     "language_picker_title": "Langue",
     "logout": "Se déconnecter",
     "change_password": "Changer le mot de passe",
-    "member_qr": "Ma carte QR",
+    "member_qr": "Ma carte virtuelle",
     "scan_qr": "Scanner une carte",
     "section_sync": "DONNÉES SUR CE TÉLÉPHONE",
     "cache_size_label": "Taille",
@@ -4580,7 +4580,7 @@
       "load_error": "Erreur lors du chargement du profil",
       "load_profile_error": "Impossible de charger le profil",
       "settings_tooltip": "Paramètres",
-      "qr_tooltip": "Mon identifiant QR",
+      "qr_tooltip": "Ma carte virtuelle",
       "section_progressive_classes": "Classes progressives",
       "section_my_classes": "Mes classes",
       "section_my_certifications": "Mes certifications",
@@ -5414,12 +5414,8 @@
   },
   "virtual_card": {
     "title": "Ma carte virtuelle",
-    "refresh": "Actualiser la carte",
-    "show_fullscreen": "Afficher en plein écran",
     "retry": "Réessayer",
     "loading": "Chargement de la carte",
-    "offline_banner": "Mode hors ligne — données en cache",
-    "inactive_message": "Cette carte n’est pas active. Contactez votre directeur.",
     "load_error": "Impossible de charger la carte",
     "qr_alt": "Code QR de la carte",
     "club_label": "Club",
@@ -5446,9 +5442,51 @@
       "load_failed": "Impossible de charger votre carte pour le moment.",
       "rate_limited": "Trop de requêtes. Patientez un moment avant d’actualiser à nouveau la carte."
     },
-    "share_card": "Partager la carte",
-    "share_preparing": "Préparation…",
-    "share_error": "Impossible de préparer la carte pour le partage."
+    "share_error": "Impossible de préparer la carte pour le partage.",
+    "sections": {
+      "av": "Aventuriers",
+      "cq": "Explorateurs",
+      "gm": "Guides Aînés"
+    },
+    "status_active": "Active",
+    "status_suspended": "Suspendue",
+    "qr_hint": "Montre ce code pour enregistrer ta présence",
+    "qr_tap_renew": "Touche pour obtenir un nouveau code",
+    "qr_not_available": "Le code n’est pas disponible",
+    "details_title": "Données de la carte",
+    "field_club": "Club",
+    "field_local_field": "Fédération",
+    "field_union": "Union",
+    "field_year": "Année",
+    "field_blood": "Groupe sanguin",
+    "states": {
+      "offline_title": "Pas de connexion",
+      "offline_message": "C’est la version enregistrée. Le code reste valable jusqu’à son expiration.",
+      "expired_title": "Le code a expiré",
+      "expired_message": "Tire vers le bas pour en obtenir un nouveau.",
+      "suspended_title": "Carte suspendue",
+      "suspended_message": "Ton adhésion n’est pas active. Parle au directeur de ton club."
+    },
+    "share": {
+      "action": "Partager la carte",
+      "title": "Partager la carte",
+      "subtitle": "La personne qui la reçoit verra ton nom, ton club et un code qui expire.",
+      "image": "En image",
+      "image_hint": "PNG, pour les messages",
+      "pdf": "En PDF",
+      "pdf_hint": "Pour imprimer ou envoyer par e-mail",
+      "subject": "Carte SACDIA",
+      "text": "Ma carte SACDIA · {folio}"
+    },
+    "qr_screen": {
+      "live": "Valide",
+      "brightness_note": "La luminosité est au maximum pendant que tu montres le code.",
+      "save": "Enregistrer l’image",
+      "saving": "Enregistrement…",
+      "saved": "Image enregistrée dans Photos",
+      "save_error": "Impossible d’enregistrer l’image.",
+      "close": "Fermer"
+    }
   },
   "rankings": {
     "my_ranking": {
