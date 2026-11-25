@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/features/auth/domain/entities/acting_for_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
@@ -319,6 +320,147 @@ void main() {
 
       expect(userNeedsLegalAcceptance(pending), isTrue);
       expect(userNeedsLegalAcceptance(clear), isFalse);
+    });
+  });
+
+  group('supervision persona', () {
+    UserEntity supervisor({
+      List<String> capabilities = const ['supervision.app_view'],
+      List<AuthorizationGrant> clubAssignments = const [],
+      ActingForInfo? actingFor,
+      AuthorizationTerritory? territory,
+    }) {
+      return UserEntity(
+        id: 's1',
+        email: 's1@example.com',
+        actingFor: actingFor,
+        authorization: AuthorizationSnapshot(
+          clubAssignments: clubAssignments,
+          capabilities: capabilities,
+          territory: territory,
+        ),
+      );
+    }
+
+    const activeClub = AuthorizationGrant(
+      assignmentId: 'a1',
+      roleName: 'counselor',
+      clubId: 1,
+      sectionId: 4,
+      status: 'active',
+    );
+
+    test('canOpenSupervision reads only the capability', () {
+      expect(canOpenSupervision(supervisor()), isTrue);
+      expect(canOpenSupervision(supervisor(capabilities: const [])), isFalse);
+      expect(canOpenSupervision(null), isFalse);
+      // A role name alone grants nothing.
+      expect(
+        canOpenSupervision(
+          const UserEntity(
+            id: 'x',
+            authorization: AuthorizationSnapshot(
+              globalGrants: [AuthorizationGrant(roleName: 'union-director')],
+            ),
+          ),
+        ),
+        isFalse,
+      );
+    });
+
+    test('canOpenSupervision holds with or without a club', () {
+      expect(
+        canOpenSupervision(supervisor(clubAssignments: const [activeClub])),
+        isTrue,
+      );
+    });
+
+    test('isSupervisorWithoutClub needs the capability and no visible club',
+        () {
+      expect(isSupervisorWithoutClub(supervisor()), isTrue);
+      expect(
+        isSupervisorWithoutClub(supervisor(capabilities: const [])),
+        isFalse,
+      );
+      expect(isSupervisorWithoutClub(null), isFalse);
+      expect(
+        isSupervisorWithoutClub(
+          const UserEntity(id: 'x', email: 'x@example.com'),
+        ),
+        isFalse,
+      );
+    });
+
+    test('any visible club assignment stops qualifying', () {
+      expect(
+        isSupervisorWithoutClub(
+          supervisor(clubAssignments: const [activeClub]),
+        ),
+        isFalse,
+      );
+      for (final status in ['pending', 'inactive', 'expired']) {
+        expect(
+          isSupervisorWithoutClub(
+            supervisor(
+              clubAssignments: [
+                AuthorizationGrant(
+                  assignmentId: 'a2',
+                  roleName: 'member',
+                  clubId: 1,
+                  sectionId: 4,
+                  status: status,
+                ),
+              ],
+            ),
+          ),
+          isFalse,
+          reason: status,
+        );
+      }
+    });
+
+    test('a designated assignment does not count as membership', () {
+      expect(
+        isSupervisorWithoutClub(
+          supervisor(
+            clubAssignments: const [
+              AuthorizationGrant(
+                assignmentId: 'a3',
+                roleName: 'director',
+                clubId: 1,
+                sectionId: 4,
+                status: 'designated',
+              ),
+            ],
+          ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('is false while acting for a dependent', () {
+      expect(
+        isSupervisorWithoutClub(
+          supervisor(
+            actingFor: const ActingForInfo(
+              actorUserId: 's1',
+              dependentUserId: 'ana',
+            ),
+          ),
+        ),
+        isFalse,
+      );
+    });
+
+    test('an unconfigured territory still qualifies', () {
+      expect(
+        isSupervisorWithoutClub(
+          supervisor(
+            territory: const AuthorizationTerritory(level: 'unconfigured'),
+          ),
+        ),
+        isTrue,
+      );
     });
   });
 }
