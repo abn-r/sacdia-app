@@ -5393,7 +5393,8 @@
       "activities": "Activities",
       "profile": "Profile",
       "authorizations": "Authorizations",
-      "coordination": "Coordination"
+      "coordination": "Coordination",
+      "supervision": "Supervision"
     },
     "evidence_folder": {
       "title": "Annual Evidence Folder",
@@ -7507,6 +7508,58 @@
       "title": "You reach legal age on {date}",
       "body": "On that day your guardians will lose access to your account. You will need to accept the terms and add an email to keep using it.",
       "dismiss": "Dismiss notice"
+    }
+  },
+  "supervision": {
+    "hub": {
+      "level_union": "Union",
+      "level_division": "Division",
+      "queues_title": "Needs attention",
+      "territory_title": "Your territory",
+      "up_to_date": "Up to date",
+      "counts_error": "Pending items could not be loaded.",
+      "no_functions_title": "No functions assigned",
+      "no_functions_body": "Your account has no supervision functions in the app.",
+      "unconfigured_title": "Territory not configured",
+      "unconfigured_body": "Your account has no union or division assigned yet. Ask an administrator to set it up and check again.",
+      "unconfigured_action": "Check again",
+      "unconfigured_unchanged": "No changes yet. Try again later.",
+      "enrollments": {
+        "title": "Club enrollments",
+        "description": "Validate club enrollments",
+        "pending": "{} to validate"
+      },
+      "folders": {
+        "title": "Annual folders",
+        "description": "Evaluate evidence folders",
+        "pending": "{} to evaluate"
+      },
+      "requests": {
+        "title": "Transfers and assignments",
+        "description": "Review transfers and roles between clubs",
+        "pending": "{} to review"
+      },
+      "union_camporees": {
+        "title": "Union camporee",
+        "description": "Registrations, payments, orders and supplies",
+        "pending": "{} to approve"
+      },
+      "operations": {
+        "title": "Operations",
+        "description": "Club and member indicators"
+      },
+      "clubs": {
+        "title": "Clubs",
+        "description": "Directory and summary of each club"
+      },
+      "reports": {
+        "title": "Monthly reports",
+        "description": "Compliance and PDF by club"
+      },
+      "annual_progress": {
+        "title": "Annual progress",
+        "description": "Progress of clubs and sections"
+      }
     }
   },
   "adult_claim": {

@@ -5391,7 +5391,8 @@
       "activities": "Atividades",
       "profile": "Perfil",
       "authorizations": "Autorizações",
-      "coordination": "Coordenação"
+      "coordination": "Coordenação",
+      "supervision": "Supervisão"
     },
     "evidence_folder": {
       "title": "Pasta Anual de Evidências",
@@ -7505,6 +7506,58 @@
       "title": "Você atinge a maioridade em {date}",
       "body": "Nesse dia seus responsáveis perderão o acesso à sua conta. Você precisará aceitar os termos e adicionar um e-mail para continuar usando.",
       "dismiss": "Dispensar aviso"
+    }
+  },
+  "supervision": {
+    "hub": {
+      "level_union": "União",
+      "level_division": "Divisão",
+      "queues_title": "Para atender",
+      "territory_title": "Seu território",
+      "up_to_date": "Em dia",
+      "counts_error": "Não foi possível carregar as pendências.",
+      "no_functions_title": "Sem funções atribuídas",
+      "no_functions_body": "Sua conta não tem funções de supervisão no aplicativo.",
+      "unconfigured_title": "Território não configurado",
+      "unconfigured_body": "Sua conta ainda não tem uma união ou divisão atribuída. Peça a um administrador que a configure e verifique novamente.",
+      "unconfigured_action": "Verificar novamente",
+      "unconfigured_unchanged": "Ainda não há mudanças. Tente mais tarde.",
+      "enrollments": {
+        "title": "Inscrições de clube",
+        "description": "Valide as inscrições dos clubes",
+        "pending": "{} para validar"
+      },
+      "folders": {
+        "title": "Pastas anuais",
+        "description": "Avalie as pastas de evidências",
+        "pending": "{} para avaliar"
+      },
+      "requests": {
+        "title": "Transferências e designações",
+        "description": "Revise transferências e cargos entre clubes",
+        "pending": "{} para revisar"
+      },
+      "union_camporees": {
+        "title": "Camporee da união",
+        "description": "Inscrições, pagamentos, pedidos e insumos",
+        "pending": "{} para aprovar"
+      },
+      "operations": {
+        "title": "Operação",
+        "description": "Indicadores de clubes e membros"
+      },
+      "clubs": {
+        "title": "Clubes",
+        "description": "Diretório e resumo de cada clube"
+      },
+      "reports": {
+        "title": "Relatórios mensais",
+        "description": "Cumprimento e PDF por clube"
+      },
+      "annual_progress": {
+        "title": "Progresso anual",
+        "description": "Avanço de clubes e seções"
+      }
     }
   },
   "adult_claim": {

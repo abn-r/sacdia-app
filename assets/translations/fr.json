@@ -5391,7 +5391,8 @@
       "activities": "Activités",
       "profile": "Profil",
       "authorizations": "Autorisations",
-      "coordination": "Coordination"
+      "coordination": "Coordination",
+      "supervision": "Supervision"
     },
     "evidence_folder": {
       "title": "Dossier annuel de preuves",
@@ -7505,6 +7506,58 @@
       "title": "Vous devenez majeur le {date}",
       "body": "Ce jour-là, vos tuteurs perdront l'accès à votre compte. Vous devrez accepter les conditions et ajouter un e-mail pour continuer à l'utiliser.",
       "dismiss": "Ignorer l'avis"
+    }
+  },
+  "supervision": {
+    "hub": {
+      "level_union": "Union",
+      "level_division": "Division",
+      "queues_title": "À traiter",
+      "territory_title": "Votre territoire",
+      "up_to_date": "À jour",
+      "counts_error": "Impossible de charger les éléments en attente.",
+      "no_functions_title": "Aucune fonction attribuée",
+      "no_functions_body": "Votre compte n'a pas de fonctions de supervision dans l'application.",
+      "unconfigured_title": "Territoire non configuré",
+      "unconfigured_body": "Votre compte n'a pas encore d'union ou de division attribuée. Demandez à un administrateur de la configurer, puis vérifiez à nouveau.",
+      "unconfigured_action": "Vérifier à nouveau",
+      "unconfigured_unchanged": "Aucun changement pour l'instant. Réessayez plus tard.",
+      "enrollments": {
+        "title": "Inscriptions de club",
+        "description": "Validez les inscriptions des clubs",
+        "pending": "{} à valider"
+      },
+      "folders": {
+        "title": "Dossiers annuels",
+        "description": "Évaluez les dossiers de preuves",
+        "pending": "{} à évaluer"
+      },
+      "requests": {
+        "title": "Transferts et affectations",
+        "description": "Examinez les transferts et les rôles entre clubs",
+        "pending": "{} à examiner"
+      },
+      "union_camporees": {
+        "title": "Camporee d'union",
+        "description": "Inscriptions, paiements, commandes et fournitures",
+        "pending": "{} à approuver"
+      },
+      "operations": {
+        "title": "Opérations",
+        "description": "Indicateurs des clubs et des membres"
+      },
+      "clubs": {
+        "title": "Clubs",
+        "description": "Répertoire et résumé de chaque club"
+      },
+      "reports": {
+        "title": "Rapports mensuels",
+        "description": "Conformité et PDF par club"
+      },
+      "annual_progress": {
+        "title": "Progression annuelle",
+        "description": "Avancement des clubs et des sections"
+      }
     }
   },
   "adult_claim": {
