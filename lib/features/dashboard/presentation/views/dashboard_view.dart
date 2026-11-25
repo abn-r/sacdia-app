@@ -42,6 +42,7 @@ import '../widgets/welcome_header.dart';
 import '../../../enrollment/presentation/providers/enrollment_providers.dart';
 import '../../../enrollment/presentation/widgets/enrollment_status_card.dart';
 import '../../../coordinator/presentation/views/coordinator_hub_view.dart';
+import '../../../supervision/presentation/views/supervision_hub_view.dart';
 import '../../../investiture_requests/presentation/views/authorizer_requests_view.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -54,6 +55,10 @@ class DashboardView extends ConsumerWidget {
     final user = ref.watch(
       authNotifierProvider.select((v) => v.value),
     );
+    // El supervisor territorial sin club (Unión / División) tiene como inicio el
+    // hub de supervisión; manda sobre coordinación y pastor sin club.
+    if (isSupervisorWithoutClub(user)) return const SupervisionHubView();
+
     // El coordinador sin club tampoco: su inicio es el panel de coordinación
     // (manda sobre pastor y tutor sin club; «Mi familia» sigue en el perfil).
     if (isCoordinatorWithoutClub(user)) return const CoordinatorHubView();

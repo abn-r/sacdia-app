@@ -78,6 +78,20 @@ import 'package:sacdia_app/features/coordinator/presentation/views/evidence_revi
 import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_clubs_list_view.dart';
 import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_reports_view.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/evidence_review_item.dart';
+import 'package:sacdia_app/features/supervision/domain/entities/supervision_operations.dart';
+import 'package:sacdia_app/features/supervision/presentation/views/supervision_annual_progress_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/views/supervision_camporee_approvals_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/views/supervision_camporee_orders_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/views/supervision_club_detail_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/views/supervision_clubs_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/views/supervision_enrollments_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/views/supervision_folder_detail_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/views/supervision_folders_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/views/supervision_operations_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/views/supervision_reports_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/views/supervision_requests_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/views/supervision_union_camporees_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/views/supervision_hub_view.dart';
 import 'package:sacdia_app/features/notifications/presentation/views/notifications_inbox_view.dart';
 import 'package:sacdia_app/features/achievements/presentation/views/achievements_view.dart';
 import 'package:sacdia_app/features/master_honors/presentation/views/master_honors_view.dart';
@@ -167,6 +181,7 @@ import '../../features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/core/authorization/access_subject.dart';
 import 'package:sacdia_app/core/authorization/screen_catalog.dart';
 import 'coordinator_route_access.dart';
+import 'supervision_route_access.dart';
 import 'dashboard_drill_in.dart';
 import 'route_names.dart';
 import 'package:sacdia_app/core/widgets/sac_nav_icon.dart';
@@ -496,6 +511,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       // necesita: lo demás vuelve a su inicio.
       final clubLessTarget = clubLessRouteRedirect(user, currentPath);
       if (clubLessTarget != null) return clubLessTarget;
+
+      // Supervisor con territorio sin configurar: las funciones de supervisión
+      // no existen para él; cualquier ruta bajo el hub vuelve al hub.
+      final unconfiguredTarget = unconfiguredSupervisionRedirect(
+        territoryLevel: user.authorization?.territory?.level,
+        path: currentPath,
+      );
+      if (unconfiguredTarget != null) return unconfiguredTarget;
 
       // ÚLTIMO paso: guard por catálogo de pantallas. Una ruta gobernada por el
       // catálogo (`route_screen_policy.dart`) que la autorización del usuario
@@ -996,6 +1019,154 @@ final routerProvider = Provider<GoRouter>((ref) {
                       state,
                       const CoordinatorReportsView(),
                     ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          // ── Branch 5: Supervisión ────────────────────────────────────────
+          // Territorial supervision (Union / Division). Appended last so the
+          // branch indexes 0-4 stay stable.
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.supervision,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const SupervisionHubView(),
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'enrollments',
+                    pageBuilder: (context, state) => _sharedAxisBuild(
+                      context,
+                      state,
+                      const SupervisionEnrollmentsView(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'requests',
+                    pageBuilder: (context, state) => _sharedAxisBuild(
+                      context,
+                      state,
+                      const SupervisionRequestsView(),
+                    ),
+                  ),
+                  // Drill-down pushes the same path with the id of the level
+                  // below in the query; the server checks it.
+                  GoRoute(
+                    path: 'operations',
+                    pageBuilder: (context, state) {
+                      final query = state.uri.queryParameters;
+                      return _sharedAxisBuild(
+                        context,
+                        state,
+                        SupervisionOperationsView(
+                          query: SupervisionOperationsQuery(
+                            divisionId:
+                                int.tryParse(query['division_id'] ?? ''),
+                            unionId: int.tryParse(query['union_id'] ?? ''),
+                            localFieldId:
+                                int.tryParse(query['local_field_id'] ?? ''),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  GoRoute(
+                    path: 'reports',
+                    pageBuilder: (context, state) => _sharedAxisBuild(
+                      context,
+                      state,
+                      const SupervisionReportsView(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'annual-progress',
+                    pageBuilder: (context, state) {
+                      final query = state.uri.queryParameters;
+                      return _sharedAxisBuild(
+                        context,
+                        state,
+                        SupervisionAnnualProgressView(
+                          unionId: int.tryParse(query['union_id'] ?? ''),
+                          localFieldId:
+                              int.tryParse(query['local_field_id'] ?? ''),
+                        ),
+                      );
+                    },
+                  ),
+                  GoRoute(
+                    path: 'folders',
+                    pageBuilder: (context, state) => _sharedAxisBuild(
+                      context,
+                      state,
+                      const SupervisionFoldersView(),
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: ':folderId',
+                        pageBuilder: (context, state) => _sharedAxisBuild(
+                          context,
+                          state,
+                          SupervisionFolderDetailView(
+                            folderId: state.pathParameters['folderId']!,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'clubs',
+                    pageBuilder: (context, state) => _sharedAxisBuild(
+                      context,
+                      state,
+                      const SupervisionClubsView(),
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: ':clubId',
+                        pageBuilder: (context, state) => _sharedAxisBuild(
+                          context,
+                          state,
+                          SupervisionClubDetailView(
+                            clubId: state.pathParameters['clubId']!,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'union-camporees',
+                    pageBuilder: (context, state) => _sharedAxisBuild(
+                      context,
+                      state,
+                      const SupervisionUnionCamporeesView(),
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: ':camporeeId/approvals',
+                        pageBuilder: (context, state) => _sharedAxisBuild(
+                          context,
+                          state,
+                          SupervisionCamporeeApprovalsView(
+                            camporeeId: state.pathParameters['camporeeId']!,
+                          ),
+                        ),
+                      ),
+                      GoRoute(
+                        path: ':camporeeId/orders',
+                        pageBuilder: (context, state) => _sharedAxisBuild(
+                          context,
+                          state,
+                          SupervisionCamporeeOrdersView(
+                            camporeeId: state.pathParameters['camporeeId']!,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -2115,6 +2286,16 @@ const List<_NavItemConfig> _navItemsConfig = [
     screenId: 'coordinator-hub',
     requiresClubSurface: false,
   ),
+  // Branch 5 (supervision) also sits before Profile. Anyone with
+  // `supervision.app_view` gets it, with or without a club.
+  _NavItemConfig(
+    branchIndex: 5,
+    route: RouteNames.supervision,
+    icon: HugeIcons.strokeRoundedAnalytics01,
+    labelKey: 'router.nav.supervision',
+    screenId: 'supervision-hub',
+    requiresClubSurface: false,
+  ),
   _NavItemConfig(
     branchIndex: 3,
     route: RouteNames.homeProfile,
@@ -2122,6 +2303,33 @@ const List<_NavItemConfig> _navItemsConfig = [
     labelKey: 'router.nav.profile',
   ),
 ];
+
+/// Navegación del supervisor territorial sin club: el hub de supervisión (su
+/// inicio, `/home/dashboard`), el panel de coordinación si además tiene
+/// `coordination.hub_view`, y el perfil. Se construye por usuario.
+List<_NavItemConfig> _supervisorNavItems(UserEntity? user) {
+  return [
+    const _NavItemConfig(
+      branchIndex: 0,
+      route: RouteNames.homeDashboard,
+      icon: HugeIcons.strokeRoundedAnalytics01,
+      labelKey: 'router.nav.supervision',
+    ),
+    if (hasCapability(user, 'coordination.hub_view'))
+      const _NavItemConfig(
+        branchIndex: 4,
+        route: RouteNames.coordinator,
+        icon: HugeIcons.strokeRoundedUserGroup,
+        labelKey: 'router.nav.coordination',
+      ),
+    const _NavItemConfig(
+      branchIndex: 3,
+      route: RouteNames.homeProfile,
+      icon: HugeIcons.strokeRoundedUser,
+      labelKey: 'router.nav.profile',
+    ),
+  ];
+}
 
 /// Navegación del pastor sin club: solo «Autorizaciones» (su inicio) y el
 /// perfil. El resto de las pestañas pertenece a un miembro de club.
@@ -2170,7 +2378,9 @@ List<_NavItemConfig> _filterNavItems(
   // A coordinator without a club has the hub as dashboard home (Coordination /
   // Profile). The 5th "Coordinación" tab would duplicate it, so it only applies
   // to coordinators WITH a club. Coordination wins over authorizations when
-  // someone is both.
+  // someone is both. A territorial supervisor without a club wins over both
+  // (its hub is the home; coordination stays as a tab when it also applies).
+  if (isSupervisorWithoutClub(user)) return _supervisorNavItems(user);
   if (isCoordinatorWithoutClub(user)) return _coordinatorNavItems;
   if (isPastorWithoutClub(user)) return _pastorNavItems;
   final subject = subjectFromUser(user);

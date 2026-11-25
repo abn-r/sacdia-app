@@ -142,6 +142,61 @@ void main() {
       expect(routeScreenIds[RouteNames.homeFinances], 'finances');
     });
 
+    test('every supervision route maps to its own catalog screen', () {
+      expect(routeScreenIds[RouteNames.supervision], 'supervision-hub');
+      expect(
+        routeScreenIds[RouteNames.supervisionEnrollments],
+        'supervision-enrollments',
+      );
+      expect(
+        routeScreenIds[RouteNames.supervisionFolders],
+        'supervision-folders',
+      );
+      expect(
+        routeScreenIds[RouteNames.supervisionFolderDetailRoute],
+        'supervision-folders',
+      );
+      expect(
+        routeScreenIds[RouteNames.supervisionRequests],
+        'supervision-requests',
+      );
+      expect(
+        routeScreenIds[RouteNames.supervisionOperations],
+        'supervision-operations',
+      );
+      expect(routeScreenIds[RouteNames.supervisionClubs], 'supervision-clubs');
+      expect(
+        routeScreenIds[RouteNames.supervisionClubDetailRoute],
+        'supervision-clubs',
+      );
+      expect(
+        routeScreenIds[RouteNames.supervisionReports],
+        'supervision-reports',
+      );
+      expect(
+        routeScreenIds[RouteNames.supervisionAnnualProgress],
+        'supervision-annual-progress',
+      );
+      expect(
+        routeScreenIds[RouteNames.supervisionUnionCamporees],
+        'supervision-union-camporees',
+      );
+      expect(
+        routeScreenIds[RouteNames.supervisionUnionCamporeeApprovalsRoute],
+        'supervision-union-camporee-approvals',
+      );
+      expect(
+        routeScreenIds[RouteNames.supervisionUnionCamporeeOrdersRoute],
+        'supervision-union-camporee-orders',
+      );
+      // Every `supervision-*` catalog screen has a route.
+      final routed = routeScreenIds.values.toSet();
+      for (final screen in kAppScreenCatalog) {
+        if (!screen.id.startsWith('supervision-')) continue;
+        expect(routed, contains(screen.id), reason: screen.id);
+      }
+    });
+
     test('screenIdForRoute tolerates a trailing slash and unknown routes', () {
       expect(screenIdForRoute('${RouteNames.homeMembers}/'), 'app-members');
       expect(screenIdForRoute(RouteNames.homeDashboard), isNull);
@@ -453,6 +508,50 @@ void main() {
       );
       expect(await redirectFor(c, RouteNames.coordinator), isNull);
       expect(await redirectFor(c, RouteNames.accessDenied), isNull);
+    });
+
+    testWidgets('a supervisor without a club is sent to the hub, not the guard',
+        (tester) async {
+      final c = await setUpRouter(
+        tester,
+        _user(
+          clubAssignments: const [],
+          activeAssignmentId: null,
+          postRegisterComplete: true,
+          onboardingMode: OnboardingMode.clubExempt,
+          capabilities: const ['supervision.app_view'],
+        ),
+      );
+      expect(
+        await redirectFor(c, RouteNames.homeMembers),
+        RouteNames.homeDashboard,
+      );
+      expect(
+        await redirectFor(
+          c,
+          RouteNames.supervision,
+          fullPath: RouteNames.supervision,
+        ),
+        isNull,
+      );
+      expect(await redirectFor(c, RouteNames.accessDenied), isNull);
+    });
+
+    testWidgets('a club member with the capability opens the supervision tab',
+        (tester) async {
+      final withCapability = await setUpRouter(
+        tester,
+        _user(capabilities: const ['supervision.app_view']),
+      );
+      expect(
+        await redirectFor(withCapability, RouteNames.supervision),
+        isNull,
+      );
+      final without = await setUpRouter(tester, _user());
+      expect(
+        await redirectFor(without, RouteNames.supervision),
+        RouteNames.accessDenied,
+      );
     });
 
     // R2.8: sin exención local; un pastor o coordinador sin club al que el
