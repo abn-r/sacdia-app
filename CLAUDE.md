@@ -26,13 +26,13 @@ lib/
 │   ├── config/         - router.dart (go_router), route_names.dart, cache_config.dart
 │   ├── constants/      - app_constants.dart, maps_constants.dart
 │   ├── network/, errors/, notifications/, realtime/, storage/, theme/, widgets/, …
-├── features/<feature>/ - 41 features; cada una con data/, domain/ y presentation/
+├── features/<feature>/ - 49 features; cada una con data/, domain/ y presentation/
 │                         (home solo tiene presentation/)
 ├── shared/             - data, models y widgets compartidos
 └── providers/          - Providers globales (dio, storage, catálogos, caché JSON)
 ```
 
-Ejemplos de features: `auth`, `biometric`, `dashboard`, `activities`, `classes`, `honors`, `master_honors`, `certifications`, `investiture`, `members`, `units`, `finances`, `camporees`, `qr`, `virtual_card`, `monthly_reports`, `rankings`, `post_registration`. La lista completa es `ls lib/features`.
+Ejemplos de features: `auth`, `biometric`, `dashboard`, `activities`, `classes`, `honors`, `master_honors`, `certifications`, `investiture`, `members`, `units`, `finances`, `camporees`, `qr`, `virtual_card`, `monthly_reports`, `rankings`, `post_registration`, `supervision`. La lista completa es `ls lib/features`.
 
 ## Stack
 
@@ -172,7 +172,7 @@ El servidor decide cómo ingresa una cuenta y lo publica en el login, en `GET /a
 | Valor | Quién es | Post-registro |
 | --- | --- | --- |
 | `club` | Flujo normal de club | 3 pasos |
-| `club_exempt` | Cuenta sin club por diseño (pastor, coordinación) | 2 pasos: foto e información personal; sin selección de club |
+| `club_exempt` | Cuenta sin club por diseño (pastor, coordinación, supervisión territorial) | 2 pasos: foto e información personal; sin selección de club |
 | `panel_only` | Cuenta que solo usa el panel web | Nunca lo completa |
 
 - **`userNeedsPostRegistration`** (`authorization_utils.dart`): `AccountMode.profileIncomplete` o (modo distinto de `panel_only` y `!postRegisterComplete`). Ya no hay exenciones por rol (pastor/coordinador): `club_exempt` hace los 2 pasos.
@@ -262,6 +262,34 @@ El servidor reenvía al tutor los push del menor (`data.dependent_user_id`, tít
 ### i18n: paridad de traducciones
 
 `test/core/l10n/translation_parity_test.dart` exige que en, fr y pt-BR tengan exactamente las llaves de es (solo 2 huecos históricos permitidos en `_knownGaps`: no añadir más), sin textos vacíos, mismos placeholders en `family.*`/`errors.*`, y una traducción `errors.<code en minúsculas>` por cada código de Fase 2 (`_phase2ErrorCodes`) y de Fase 4 (`_phase4ErrorCodes`). Al añadir un código de error del backend, agrégalo a esa lista y a los 4 idiomas.
+
+## Supervisión territorial (Unión / División)
+
+Cuarta persona sin club de la app, junto a pastor, coordinación y solo tutor. Feature `lib/features/supervision/` (data/domain/presentation). Detalle funcional en `../docs/features/supervision-territorial.md`.
+
+- **Quién**: cuentas con capacidad `supervision.app_view` (roles de Unión y División). El servidor las ingresa como `club_exempt` (2 pasos de post-registro). La app nunca compara nombres de rol ni manda su territorio como autoridad: cada endpoint recorta por el actor.
+- **Predicados** (`authorization_utils.dart`): `canOpenSupervision(user)` y `isSupervisorWithoutClub(user)` (sin `actingFor`, con autorización y sin clubes visibles).
+- **Inicio y pestañas**: sin club, `DashboardView` dibuja `SupervisionHubView` (antes que coordinación y pastor) y las pestañas son Supervisión + Perfil (+ Coordinación si también tiene `coordination.hub_view`). Con club visible, la persona es la de club y «Supervisión» es una pestaña extra (rama 5 del shell, `/supervision`).
+- **Lista blanca** (`lib/core/config/supervision_route_access.dart`, `isSupervisionAllowedPath`): inicio, perfil, ficha médica, bandeja de avisos, `/access-denied`, todo `/supervision` y todo `/family`. `clubLessRouteRedirect` evalúa primero la rama de supervisión; el guard por catálogo va al final.
+- **Territorio sin configurar** (`territory.level == 'unconfigured'`): el hub muestra solo «Territorio sin configurar» con «Comprobar de nuevo» (`refreshAuthorization`); no pide conteos ni muestra funciones. Cualquier ruta bajo `/supervision/` vuelve al hub (`unconfiguredSupervisionRedirect`, justo antes del guard por catálogo): algunas capacidades dependen solo del rol y sin esto un enlace profundo abriría una cola vacía.
+- **Conteos del hub**: un solo `GET /supervision/pending-counts`; `null` significa «sin esa función», nunca 0. Se invalidan tras cada decisión, al refrescar y al volver al frente.
+
+| Función | Ruta | Capacidad | Notas |
+| --- | --- | --- | --- |
+| Inscripciones de club | `/supervision/enrollments` | `club_enrollments.validate` | Aprobar / rechazar |
+| Carpetas anuales | `/supervision/folders`, `/folders/:folderId` | `folders.evaluate` (+ `folders.confirm_union` solo Unión) | División evalúa con puntos; solo Unión rechaza |
+| Traslados y asignaciones | `/supervision/requests` | `requests.review_territory` | |
+| Operación | `/supervision/operations` | `analytics.operations_dashboard` | Baja de nivel con `?union_id=` / `?local_field_id=` en la misma ruta |
+| Clubes | `/supervision/clubs`, `/clubs/:clubId` | `clubs.view_territory` | Solo lectura |
+| Informes mensuales | `/supervision/reports` | `reports.view_territory` | Cumplimiento por club y PDF; el id del informe es UUID (`String`) |
+| Progreso anual | `/supervision/annual-progress` | `annual_progress.view_territory` | División → unión → campo local por query; nunca «ranking» ni posiciones |
+| Camporee de unión: aprobaciones | `/supervision/union-camporees`, `/:camporeeId/approvals` | `union_camporees.approve_registrations` | Solo Unión. La fila del hub sigue esta capacidad (es la de la lista) |
+| Camporee de unión: pedidos e insumos | `/supervision/union-camporees/:camporeeId/orders` | `camporee_orders.configure_offering` (+ `camporee_supplies.configure` para insumos) | Solo Unión |
+
+- **Patrones de la feature**: acciones solo si la capacidad está y el elemento sigue pendiente; errores de una acción DENTRO de la hoja (el snackbar queda detrás del modal); éxito = `SacSnackBar` + cerrar; listas con `SupervisionLoadMoreFooter`; columna máxima de 640 (`kSupervisionMaxContentWidth`, `SupervisionScroll`); filas sin icono con `SupervisionPlainRow`; formato de números y fechas en `supervision_format.dart`.
+- **Escrituras**: devuelven `SupervisionActionResult` (`presentation/providers/supervision_action_result.dart`); la vista elige el texto por `errorCode` y cae al mensaje del servidor.
+- **Providers**: todos `autoDispose`, ninguno en `profile_scope_registry.dart`. Nada de `ref.keepAlive()` en la feature (usar `ref.keepAliveDuring`) ni `e.toString()` en `presentation/` (candados `profile_scope_registry_test` y `semantic_states_ratchet_test`).
+- **Se queda en el panel web**: catálogo de productos y tallas, cerrar o reabrir la inscripción de clubes de un camporee, planes y reportes de insumos, y toda la configuración que no aparece en la tabla.
 
 ## CI y deployment
 
