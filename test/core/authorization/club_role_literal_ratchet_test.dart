@@ -32,6 +32,10 @@ const _allowlist = <String>{
   // `unit_role` values of `scoring_members` ('captain' / 'secretary'): unit
   // positions from the units API, not club roles.
   'lib/features/units/domain/entities/unit_member.dart',
+  // JSON keys of the enrollment `board` object (`board['director']`,
+  // `board['secretary']`, `board['treasurer']`): seats of the declared board
+  // shown as labels, never compared against a role.
+  'lib/features/supervision/data/models/supervision_enrollment_model.dart',
 };
 
 void main() {
