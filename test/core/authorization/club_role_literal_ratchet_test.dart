@@ -36,6 +36,9 @@ const _allowlist = <String>{
   // `board['secretary']`, `board['treasurer']`): seats of the declared board
   // shown as labels, never compared against a role.
   'lib/features/supervision/data/models/supervision_enrollment_model.dart',
+  // JSON key `json['director']` of the club leadership payload: a response
+  // section shown as a label, never compared against a role.
+  'lib/features/supervision/data/models/supervision_club_model.dart',
 };
 
 void main() {
