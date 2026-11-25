@@ -96,6 +96,11 @@ class SacSheetHeader extends StatelessWidget {
                   children: [
                     Text(
                       title,
+                      // A header is pinned above the scroll of its sheet: an
+                      // unbounded title can take the whole sheet at large
+                      // text sizes and leave the content no room.
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontSize: SacFontSize.titleLarge,
                             fontWeight: FontWeight.w700,

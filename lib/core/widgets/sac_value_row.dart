@@ -17,29 +17,38 @@ class SacValueRow extends StatelessWidget {
     return MergeSemantics(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: SacFontSize.titleMedium,
-                color: c.textSecondary,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                value,
-                textAlign: TextAlign.end,
-                style: TextStyle(
-                  fontSize: SacFontSize.titleMedium,
-                  fontWeight: FontWeight.w500,
-                  color: c.text,
+        // The label keeps its natural width up to half the row and wraps
+        // beyond that (long label, large text), so it never overflows.
+        child: LayoutBuilder(
+          builder: (context, constraints) => Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: (constraints.maxWidth - 16) / 2,
+                ),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: SacFontSize.titleMedium,
+                    color: c.textSecondary,
+                  ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  value,
+                  textAlign: TextAlign.end,
+                  style: TextStyle(
+                    fontSize: SacFontSize.titleMedium,
+                    fontWeight: FontWeight.w500,
+                    color: c.text,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
