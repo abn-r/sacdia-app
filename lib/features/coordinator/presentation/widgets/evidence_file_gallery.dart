@@ -191,15 +191,19 @@ class _FileTile extends StatelessWidget {
               color: c.textSecondary,
             ),
             const SizedBox(height: 6),
-            Text(
-              _fileLabel(file),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelSmall
-                  ?.copyWith(color: c.textSecondary),
+            // Flexible: with large text the name shortens inside the fixed
+            // cell instead of overflowing it.
+            Flexible(
+              child: Text(
+                _fileLabel(file),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .labelSmall
+                    ?.copyWith(color: c.textSecondary),
+              ),
             ),
           ],
         ),

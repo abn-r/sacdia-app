@@ -150,7 +150,7 @@ void main() {
   group('CoordinatorReportModel', () {
     test('monthly admin list item', () {
       final r = CoordinatorReportModel.fromJson({
-        'monthly_report_id': 55,
+        'monthly_report_id': '3f2b8c1e-0a4d-4e7b-9c55-000000000055',
         'club_enrollment_id': 3,
         'month': 9,
         'year': 2026,
@@ -160,7 +160,7 @@ void main() {
         'club_type': 'Conquistadores',
         'club_type_id': 1,
       })!;
-      expect(r.id, 55);
+      expect(r.id, '3f2b8c1e-0a4d-4e7b-9c55-000000000055');
       expect(r.clubId, isNull);
       expect(r.clubName, 'Club Alfa');
       expect(r.clubTypeName, 'Conquistadores');
@@ -169,15 +169,33 @@ void main() {
       expect(r.isSubmitted, isTrue);
     });
 
+    test('a UUID item is kept and a numeric id is stringified', () {
+      final page = CoordinatorReportPage.fromJson({
+        'items': [
+          {
+            'monthly_report_id': '3f2b8c1e-0a4d-4e7b-9c55-000000000055',
+            'status': 'submitted'
+          },
+          {'monthly_report_id': 7, 'status': 'generated'},
+        ],
+      });
+      expect(page.items.map((r) => r.id),
+          ['3f2b8c1e-0a4d-4e7b-9c55-000000000055', '7']);
+    });
+
     test('items without an id are dropped from the page', () {
       final page = CoordinatorReportPage.fromJson({
         'total': 2,
         'items': [
-          {'monthly_report_id': 1, 'status': 'generated'},
+          {
+            'monthly_report_id': '3f2b8c1e-0a4d-4e7b-9c01-000000000001',
+            'status': 'generated'
+          },
           {'status': 'generated'},
+          {'monthly_report_id': '  ', 'status': 'generated'},
         ],
       });
-      expect(page.items.single.id, 1);
+      expect(page.items.single.id, '3f2b8c1e-0a4d-4e7b-9c01-000000000001');
       expect(page.total, 2);
     });
   });
@@ -192,19 +210,19 @@ void main() {
     test('matches by a unique name; ambiguous names never match', () {
       const reports = [
         CoordinatorReport(
-          id: 1,
+          id: 'r1',
           status: 'submitted',
           clubName: 'club alfa ',
           clubTypeId: 2,
         ),
         CoordinatorReport(
-          id: 2,
+          id: 'r2',
           status: 'submitted',
           clubName: 'Club Alfa',
           clubTypeId: 1,
         ),
         CoordinatorReport(
-          id: 3,
+          id: 'r3',
           status: 'submitted',
           clubName: 'Club Beta',
         ),
@@ -212,7 +230,7 @@ void main() {
 
       final grouped = groupReportsByClub(clubs, reports);
 
-      expect(grouped[10]!.map((r) => r.id), [2, 1]);
+      expect(grouped[10]!.map((r) => r.id), ['r2', 'r1']);
       expect(grouped[11], isNull);
       expect(grouped[12], isNull);
     });

@@ -14,7 +14,8 @@ const String kReviewServiceCredentialsCapability = 'service_credentials.review';
 /// «Mis constancias»: solo en la cuenta de un adulto, en su propio perfil.
 /// Quedan fuera quien actúa por un menor, el adolescente supervisado, el
 /// teléfono vinculado y las cuentas restringidas (el router también las
-/// descarta) y el pastor o coordinador sin club, que no abren esa ruta.
+/// descarta) y el pastor, coordinador o supervisor sin club, que no abren esa
+/// ruta.
 ///
 /// Se ofrece a todo adulto con club: la constancia se sube ANTES de recibir un
 /// cargo de servicio, así que no se exige ya tener una asignación.
@@ -27,7 +28,8 @@ bool canManageOwnServiceCredentials(
     user.actingFor == null &&
     user.mode == AccountMode.adult &&
     !isPastorWithoutClub(user) &&
-    !isCoordinatorWithoutClub(user);
+    !isCoordinatorWithoutClub(user) &&
+    !isSupervisorWithoutClub(user);
 
 /// «Constancias por revisar»: capacidad + cuenta de adulto en su propio perfil.
 bool canReviewServiceCredentials(

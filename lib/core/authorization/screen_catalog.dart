@@ -47,6 +47,19 @@ ScreenDefinition _view(
   );
 }
 
+/// App-only screen gated by a single server capability.
+ScreenDefinition _capabilityScreen(String id, String capability) {
+  return ScreenDefinition(
+    id: id,
+    surfaces: _appOnly,
+    viewAny: CapabilityGate(
+      permissions: const [],
+      roles: const [],
+      capability: capability,
+    ),
+  );
+}
+
 const List<String> _adminApp = ['admin', 'app'];
 const List<String> _appOnly = ['app'];
 
@@ -195,6 +208,34 @@ final List<ScreenDefinition> kAppScreenCatalog = [
       _cap('delete', 'resources:delete'),
       _cap('update', 'resources:update'),
     ],
+  ),
+  // Territorial supervision (Union / Division), one screen per function. Each
+  // is gated by the capability the server computes for it.
+  _capabilityScreen(
+    'supervision-annual-progress',
+    'annual_progress.view_territory',
+  ),
+  _capabilityScreen('supervision-clubs', 'clubs.view_territory'),
+  _capabilityScreen('supervision-enrollments', 'club_enrollments.validate'),
+  _capabilityScreen('supervision-folders', 'folders.evaluate'),
+  _capabilityScreen('supervision-hub', 'supervision.app_view'),
+  _capabilityScreen(
+    'supervision-operations',
+    'analytics.operations_dashboard',
+  ),
+  _capabilityScreen('supervision-reports', 'reports.view_territory'),
+  _capabilityScreen('supervision-requests', 'requests.review_territory'),
+  _capabilityScreen(
+    'supervision-union-camporee-approvals',
+    'union_camporees.approve_registrations',
+  ),
+  _capabilityScreen(
+    'supervision-union-camporee-orders',
+    'camporee_orders.configure_offering',
+  ),
+  _capabilityScreen(
+    'supervision-union-camporees',
+    'union_camporees.approve_registrations',
   ),
 ];
 

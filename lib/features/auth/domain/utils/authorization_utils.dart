@@ -266,6 +266,29 @@ bool isCoordinatorWithoutClub(UserEntity? user) {
   return visibleClubAssignments(authorization.clubAssignments).isEmpty;
 }
 
+/// ¿Puede abrir la superficie de supervisión territorial (Unión / División,
+/// `supervision.app_view`)? Con o sin club: es el permiso de la pestaña.
+bool canOpenSupervision(UserEntity? user) =>
+    hasCapability(user, 'supervision.app_view');
+
+/// ¿Es un supervisor territorial sin ninguna presencia en un club?
+///
+/// Su inicio no es el resumen de un club sino el hub de supervisión. Igual que
+/// el coordinador sin club: cualquier asignación visible (activa, pendiente,
+/// inactiva o vencida) deja de calificar (las `designated` no cuentan como
+/// pertenencia) y es falso mientras se actúa por un dependiente. Un territorio
+/// sin configurar sigue calificando: el hub muestra ese estado.
+///
+/// Precedencia: manda sobre coordinación y pastor sin club; «Mi familia» sigue
+/// disponible desde el perfil.
+bool isSupervisorWithoutClub(UserEntity? user) {
+  if (user == null || user.actingFor != null) return false;
+  final authorization = user.authorization;
+  if (authorization == null) return false;
+  if (!canOpenSupervision(user)) return false;
+  return visibleClubAssignments(authorization.clubAssignments).isEmpty;
+}
+
 /// ¿Es un tutor que no pertenece a ningún club?
 ///
 /// Es el caso de quien cerró el post-registro por «solo tutor»: tiene la cuenta

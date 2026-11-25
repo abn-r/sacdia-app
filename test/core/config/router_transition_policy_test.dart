@@ -112,16 +112,40 @@ void main() {
         RouteNames.homeReports,
         RouteNames.homeClubRankings,
         RouteNames.sectionInvestiture,
-        // Coordination tab drill-ins (relative child paths of /coordinator)
-        // and the full-screen evidence detail.
-        'evidence-review',
-        'clubs',
-        'sla',
+        // The full-screen coordination evidence detail.
         RouteNames.coordinatorEvidenceReviewDetailRoute,
       };
 
-      for (final path in quickAccessDestinations) {
-        final page = _buildPage(router, _routeByPath(router, path), context);
+      // Drill-ins are relative child paths ('clubs' exists under both
+      // /coordinator and /supervision), so they are resolved by parent.
+      final drillIns = <(String, String)>[
+        (RouteNames.coordinator, 'evidence-review'),
+        (RouteNames.coordinator, 'clubs'),
+        (RouteNames.coordinator, 'sla'),
+        for (final child in [
+          'enrollments',
+          'folders',
+          'requests',
+          'operations',
+          'clubs',
+          'reports',
+          'annual-progress',
+          'union-camporees',
+        ])
+          (RouteNames.supervision, child),
+      ];
+
+      final destinations = [
+        for (final path in quickAccessDestinations) _routeByPath(router, path),
+        for (final (parent, child) in drillIns)
+          _routeByPath(router, parent)
+              .routes
+              .whereType<GoRoute>()
+              .singleWhere((r) => r.path == child),
+      ];
+
+      for (final route in destinations) {
+        final page = _buildPage(router, route, context);
         final transition = page.transitionsBuilder(
           context,
           const AlwaysStoppedAnimation(0.1),
@@ -129,7 +153,7 @@ void main() {
           const SizedBox(),
         );
 
-        expect(transition, isA<SlideTransition>(), reason: path);
+        expect(transition, isA<SlideTransition>(), reason: route.path);
       }
 
       const bottomNavigationRoots = {
@@ -138,6 +162,7 @@ void main() {
         RouteNames.homeActivities,
         RouteNames.homeProfile,
         RouteNames.coordinator,
+        RouteNames.supervision,
       };
       const dashboardPeers = {
         RouteNames.homeHonors,

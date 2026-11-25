@@ -231,6 +231,72 @@
         { "id": "delete", "kind": "button", "gate": { "permissions": ["resources:delete"] } },
         { "id": "update", "kind": "button", "gate": { "permissions": ["resources:update"] } }
       ]
+    },
+    {
+      "id": "supervision-annual-progress",
+      "surfaces": ["app"],
+      "viewAny": { "capability": "annual_progress.view_territory" },
+      "capabilities": []
+    },
+    {
+      "id": "supervision-clubs",
+      "surfaces": ["app"],
+      "viewAny": { "capability": "clubs.view_territory" },
+      "capabilities": []
+    },
+    {
+      "id": "supervision-enrollments",
+      "surfaces": ["app"],
+      "viewAny": { "capability": "club_enrollments.validate" },
+      "capabilities": []
+    },
+    {
+      "id": "supervision-folders",
+      "surfaces": ["app"],
+      "viewAny": { "capability": "folders.evaluate" },
+      "capabilities": []
+    },
+    {
+      "id": "supervision-hub",
+      "surfaces": ["app"],
+      "viewAny": { "capability": "supervision.app_view" },
+      "capabilities": []
+    },
+    {
+      "id": "supervision-operations",
+      "surfaces": ["app"],
+      "viewAny": { "capability": "analytics.operations_dashboard" },
+      "capabilities": []
+    },
+    {
+      "id": "supervision-reports",
+      "surfaces": ["app"],
+      "viewAny": { "capability": "reports.view_territory" },
+      "capabilities": []
+    },
+    {
+      "id": "supervision-requests",
+      "surfaces": ["app"],
+      "viewAny": { "capability": "requests.review_territory" },
+      "capabilities": []
+    },
+    {
+      "id": "supervision-union-camporee-approvals",
+      "surfaces": ["app"],
+      "viewAny": { "capability": "union_camporees.approve_registrations" },
+      "capabilities": []
+    },
+    {
+      "id": "supervision-union-camporee-orders",
+      "surfaces": ["app"],
+      "viewAny": { "capability": "camporee_orders.configure_offering" },
+      "capabilities": []
+    },
+    {
+      "id": "supervision-union-camporees",
+      "surfaces": ["app"],
+      "viewAny": { "capability": "union_camporees.approve_registrations" },
+      "capabilities": []
     }
   ]
 }

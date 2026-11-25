@@ -111,6 +111,10 @@ class ApiEndpoints {
   // ── Coordination ─────────────────────────────────────────────────────────
   static const String coordination = '/coordination';
 
+  // ── Supervision ──────────────────────────────────────────────────────────
+  static const String supervision = '/supervision';
+  static const String clubEnrollments = '/club-enrollments';
+
   // ── Certificate Bulk Imports ─────────────────────────────────────────────
   static const String certificateBulkImports = '/certificate-bulk-imports';
 

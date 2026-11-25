@@ -43,7 +43,7 @@ abstract class CoordinatorReportsRemoteDataSource {
 
   /// Downloads the report PDF to a temp file and returns its path.
   Future<String> downloadReportPdf({
-    required int reportId,
+    required String reportId,
     CancelToken? cancelToken,
   });
 }
@@ -136,7 +136,7 @@ class CoordinatorReportsRemoteDataSourceImpl
 
   @override
   Future<String> downloadReportPdf({
-    required int reportId,
+    required String reportId,
     CancelToken? cancelToken,
   }) async {
     try {

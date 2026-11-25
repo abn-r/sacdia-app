@@ -24,6 +24,22 @@ const Map<String, String> routeScreenIds = {
   RouteNames.coordinatorReports: 'coordinator-hub',
   RouteNames.coordinatorEvidenceReview: 'coordinator-hub',
   RouteNames.coordinatorEvidenceReviewDetailRoute: 'coordinator-hub',
+  // Supervisión territorial: una pantalla del catálogo por función.
+  RouteNames.supervision: 'supervision-hub',
+  RouteNames.supervisionEnrollments: 'supervision-enrollments',
+  RouteNames.supervisionFolders: 'supervision-folders',
+  RouteNames.supervisionFolderDetailRoute: 'supervision-folders',
+  RouteNames.supervisionRequests: 'supervision-requests',
+  RouteNames.supervisionOperations: 'supervision-operations',
+  RouteNames.supervisionClubs: 'supervision-clubs',
+  RouteNames.supervisionClubDetailRoute: 'supervision-clubs',
+  RouteNames.supervisionReports: 'supervision-reports',
+  RouteNames.supervisionAnnualProgress: 'supervision-annual-progress',
+  RouteNames.supervisionUnionCamporees: 'supervision-union-camporees',
+  RouteNames.supervisionUnionCamporeeApprovalsRoute:
+      'supervision-union-camporee-approvals',
+  RouteNames.supervisionUnionCamporeeOrdersRoute:
+      'supervision-union-camporee-orders',
   RouteNames.homeMembers: 'app-members',
   RouteNames.homeUnits: 'app-units',
   RouteNames.homeClub: 'app-club',

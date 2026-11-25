@@ -365,6 +365,61 @@ class RouteNames {
   static String coordinatorEvidenceReviewDetail(String type, String id) =>
       '/coordinator/evidence-review/$type/$id';
 
+  // Supervisión territorial (Unión / División) — pestaña del shell principal
+  // (rama 5) y sus funciones. Un club-less supervisor la tiene como inicio.
+  static const String supervision = '/supervision';
+  static const String supervisionEnrollments = '/supervision/enrollments';
+  static const String supervisionFolders = '/supervision/folders';
+  static const String supervisionFolderDetailRoute =
+      '/supervision/folders/:folderId';
+  static const String supervisionRequests = '/supervision/requests';
+  static const String supervisionOperations = '/supervision/operations';
+  static const String supervisionClubs = '/supervision/clubs';
+  static const String supervisionClubDetailRoute = '/supervision/clubs/:clubId';
+  static const String supervisionReports = '/supervision/reports';
+  static const String supervisionAnnualProgress =
+      '/supervision/annual-progress';
+  static const String supervisionUnionCamporees =
+      '/supervision/union-camporees';
+  static const String supervisionUnionCamporeeApprovalsRoute =
+      '/supervision/union-camporees/:camporeeId/approvals';
+  static const String supervisionUnionCamporeeOrdersRoute =
+      '/supervision/union-camporees/:camporeeId/orders';
+
+  // Helpers para supervisión
+  static String supervisionFolderDetail(String folderId) =>
+      '/supervision/folders/$folderId';
+  static String supervisionClubDetail(String clubId) =>
+      '/supervision/clubs/$clubId';
+
+  /// Operations dashboard of a territory below the actor's own (drill-down).
+  /// With no id it is the actor's own scope.
+  static String supervisionOperationsScope({
+    int? divisionId,
+    int? unionId,
+    int? localFieldId,
+  }) =>
+      _withQuery(supervisionOperations, {
+        'division_id': divisionId,
+        'union_id': unionId,
+        'local_field_id': localFieldId,
+      });
+
+  /// «Progreso anual» one level down: the local fields of a union, or the
+  /// clubs of a local field.
+  static String supervisionAnnualProgressScope({
+    int? unionId,
+    int? localFieldId,
+  }) =>
+      _withQuery(supervisionAnnualProgress, {
+        'union_id': unionId,
+        'local_field_id': localFieldId,
+      });
+  static String supervisionUnionCamporeeApprovals(String camporeeId) =>
+      '/supervision/union-camporees/$camporeeId/approvals';
+  static String supervisionUnionCamporeeOrders(String camporeeId) =>
+      '/supervision/union-camporees/$camporeeId/orders';
+
   // Bandeja de notificaciones
   static const String notificationsInbox = '/notifications';
 

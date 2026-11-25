@@ -65,14 +65,14 @@ ReportCompliance _period(ComplianceQuery query) => ReportCompliance(
 
 const _monthlyReports = [
   CoordinatorReport(
-    id: 55,
+    id: '3f2b8c1e-0a4d-4e7b-9c55-000000000055',
     status: 'submitted',
     clubName: 'Club Alfa',
     clubTypeId: 1,
     clubTypeName: 'Conquistadores',
   ),
   CoordinatorReport(
-    id: 56,
+    id: '3f2b8c1e-0a4d-4e7b-9c56-000000000056',
     status: 'draft',
     clubName: 'Club Alfa',
     clubTypeId: 2,
@@ -83,7 +83,7 @@ const _monthlyReports = [
 class _Calls {
   final compliance = <ComplianceQuery>[];
   final lists = <ReportListQuery>[];
-  final pdfs = <int>[];
+  final pdfs = <String>[];
 }
 
 Future<_Calls> _pump(
@@ -191,7 +191,7 @@ void main() {
     await tester.tap(find.text('Ver PDF · Conquistadores'));
     await tester.pumpAndSettle();
 
-    expect(calls.pdfs, [55]);
+    expect(calls.pdfs, ['3f2b8c1e-0a4d-4e7b-9c55-000000000055']);
     expect(
       find.text('No se pudo abrir el PDF. Inténtalo de nuevo.'),
       findsOneWidget,

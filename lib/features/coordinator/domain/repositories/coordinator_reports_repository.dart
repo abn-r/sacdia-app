@@ -25,7 +25,7 @@ abstract class CoordinatorReportsRepository {
 
   /// Local path of the downloaded PDF.
   Future<Either<Failure, String>> downloadReportPdf({
-    required int reportId,
+    required String reportId,
     RequestCancelToken? cancelToken,
   });
 }

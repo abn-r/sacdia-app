@@ -56,7 +56,7 @@ class CoordinatorReportsRepositoryImpl implements CoordinatorReportsRepository {
 
   @override
   Future<Either<Failure, String>> downloadReportPdf({
-    required int reportId,
+    required String reportId,
     RequestCancelToken? cancelToken,
   }) =>
       _guard(

@@ -211,15 +211,18 @@ void main() {
       // member shell is the one that has the coordination root branch.
       final shell = router.configuration.routes
           .whereType<StatefulShellRoute>()
-          .singleWhere((s) => s.branches.length == 5);
+          .singleWhere((s) => s.branches.length == 6);
 
-      expect(shell.branches, hasLength(5));
+      // Branch 5 is supervision (appended after coordination).
+      expect(shell.branches, hasLength(6));
       final root = shell.branches[4].routes.single as GoRoute;
       expect(root.path, RouteNames.coordinator);
       expect(
         root.routes.whereType<GoRoute>().map((r) => r.path),
         unorderedEquals(['evidence-review', 'clubs', 'sla', 'reports']),
       );
+      final supervision = shell.branches[5].routes.single as GoRoute;
+      expect(supervision.path, RouteNames.supervision);
     });
 
     testWidgets('tab root and drill-ins keep their full paths inside the shell',

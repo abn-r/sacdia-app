@@ -2,6 +2,7 @@ import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/domain/utils/authorization_utils.dart';
 import 'pastor_route_access.dart';
 import 'route_names.dart';
+import 'supervision_route_access.dart';
 
 /// Rutas que puede abrir un coordinador sin club (ver `isCoordinatorWithoutClub`).
 ///
@@ -64,7 +65,24 @@ bool isCoordinatorAllowedPath(String path) {
 /// (se llega por notificación o enlace; su inicio es la coordinación). Un
 /// pastor sin club que no coordina vuelve a su inicio (`/home/dashboard`, que
 /// dibuja el listado de autorizaciones dentro de las pestañas).
+///
+/// Un supervisor territorial sin club (`supervision.app_view`) manda sobre los
+/// dos: su inicio es el hub de supervisión (`/home/dashboard`). Si además tiene
+/// `coordination.hub_view` conserva también las rutas del panel de coordinación
+/// (lista combinada), y las de autorizaciones si autoriza investiduras.
 String? clubLessRouteRedirect(UserEntity? user, String path) {
+  if (isSupervisorWithoutClub(user)) {
+    if (isSupervisionAllowedPath(path)) return null;
+    if (hasCapability(user, 'coordination.hub_view') &&
+        isCoordinatorAllowedPath(path)) {
+      return null;
+    }
+    if (hasCapability(user, 'investiture.authorize_requests') &&
+        isPastorAllowedPath(path)) {
+      return null;
+    }
+    return RouteNames.homeDashboard;
+  }
   if (isCoordinatorWithoutClub(user)) {
     if (isCoordinatorAllowedPath(path)) return null;
     if (hasCapability(user, 'investiture.authorize_requests') &&
