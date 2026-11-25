@@ -67,7 +67,7 @@ class CoordinatorReportModel {
 
   /// One item of the monthly admin list.
   static CoordinatorReport? fromJson(Map<String, dynamic> json) {
-    final id = _int(json['monthly_report_id']);
+    final id = _id(json['monthly_report_id']);
     if (id == null) return null;
 
     final club = _map(json['club']);
@@ -110,6 +110,14 @@ Map<String, dynamic> _map(Object? raw) =>
 
 List<Map<String, dynamic>> _list(Object? raw) =>
     raw is List ? raw.whereType<Map<String, dynamic>>().toList() : const [];
+
+/// Report ids are UUID strings; a numeric id is kept as its string. Blank or
+/// missing ids yield null so the item is dropped.
+String? _id(Object? raw) => switch (raw) {
+      String v when v.trim().isNotEmpty => v.trim(),
+      num v => v.toString(),
+      _ => null,
+    };
 
 int? _int(Object? raw) => switch (raw) {
       int v => v,

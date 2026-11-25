@@ -16,7 +16,8 @@ class CoordinatorReport {
     this.submittedAt,
   });
 
-  final int id;
+  /// Backend `monthly_reports.monthly_report_id`: a UUID string.
+  final String id;
 
   /// Raw backend status: draft | generated | submitted.
   final String status;

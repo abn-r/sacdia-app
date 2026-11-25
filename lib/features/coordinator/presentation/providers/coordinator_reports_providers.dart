@@ -93,7 +93,7 @@ final coordinatorReportListProvider = FutureProvider.autoDispose
 
 /// Local path of a downloaded monthly report PDF.
 final coordinatorReportPdfProvider =
-    FutureProvider.autoDispose.family<String, int>((ref, reportId) async {
+    FutureProvider.autoDispose.family<String, String>((ref, reportId) async {
   final repository = ref.read(coordinatorReportsRepositoryProvider);
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
