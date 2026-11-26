@@ -1107,7 +1107,7 @@ void main() {
       return repo;
     }
 
-    testWidgets('the cutoff row shows the time and the camporee timezone', (
+    testWidgets('the cutoff row shows the time and the camporee place', (
       tester,
     ) async {
       await pumpSupplies(tester);
@@ -1115,8 +1115,7 @@ void main() {
       expect(find.text('EDICIÓN DE PLANES'), findsOneWidget);
       expect(_inRow('Corte de edición', '18:30'), findsOneWidget);
       expect(
-        _inRow('Corte de edición',
-            'Hora local del camporee (America/Mexico_City)'),
+        _inRow('Corte de edición', 'Hora local del camporee (Mexico City)'),
         findsOneWidget,
       );
     });

@@ -978,7 +978,7 @@ class _SuppliesTabState extends ConsumerState<_SuppliesTab> {
               subtitle: catalog.timezone.trim().isEmpty
                   ? null
                   : 'supervision.union_camporees.cutoff_timezone'
-                      .tr(args: [catalog.timezone]),
+                      .tr(args: [supervisionZoneLabel(catalog.timezone)]),
               trailing: SupervisionRowValue(catalog.cutoffTime),
               onTap: _saving ? null : () => _editCutoff(catalog.cutoffTime),
             ),
