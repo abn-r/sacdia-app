@@ -14,9 +14,9 @@ import 'package:sacdia_app/core/errors/forbidden.dart';
 import 'package:sacdia_app/core/usecases/cancellation_token.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_list_row.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
-import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 import 'package:sacdia_app/core/widgets/sac_value_row.dart';
 import 'package:sacdia_app/features/supervision/domain/entities/supervision_enrollment.dart';
@@ -25,6 +25,10 @@ import 'package:sacdia_app/features/supervision/domain/repositories/supervision_
 import 'package:sacdia_app/features/supervision/presentation/providers/supervision_enrollments_providers.dart';
 import 'package:sacdia_app/features/supervision/presentation/providers/supervision_providers.dart';
 import 'package:sacdia_app/features/supervision/presentation/views/supervision_enrollments_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_quote.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_segmented_control.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_status_chip.dart';
+import 'package:sacdia_app/features/transfers/presentation/widgets/club_type_tile.dart';
 
 import 'supervision_view_test_harness.dart';
 
@@ -176,10 +180,29 @@ Future<_FakeRepo> _pump(
   return fake;
 }
 
-Finder _chip(String label) => find.widgetWithText(SacFilterChip, label);
+typedef _Control = SupervisionSegmentedControl<SupervisionEnrollmentStatus>;
+
+/// A segment of the status control, found by its label.
+Finder _chip(String label) => find.descendant(
+      of: find.byType(_Control),
+      matching: find.textContaining(label, findRichText: true),
+    );
+
+SupervisionSegment<SupervisionEnrollmentStatus> _segmentOf(
+  WidgetTester tester,
+  String label,
+) =>
+    tester
+        .widget<_Control>(find.byType(_Control))
+        .segments
+        .firstWhere((s) => s.label == label);
 
 int? _chipCount(WidgetTester tester, String label) =>
-    tester.widget<SacFilterChip>(_chip(label)).count;
+    _segmentOf(tester, label).count;
+
+bool _chipSelected(WidgetTester tester, String label) =>
+    tester.widget<_Control>(find.byType(_Control)).selected ==
+    _segmentOf(tester, label).value;
 
 /// Opens the sheet of the enrollment card titled [clubName].
 Future<void> _openSheet(WidgetTester tester, String clubName) async {
@@ -199,19 +222,12 @@ Finder _rowLabel(String label) =>
 
 Finder _barButton(String text) => find.widgetWithText(SacButton, text);
 
-Finder _dialogButton(String text) => find.descendant(
-      of: find.byType(SacDialog),
-      matching: find.widgetWithText(SacButton, text),
-    );
+/// The red primary of the rejection sheet.
+Finder get _decisionConfirm => _barButton('Rechazar inscripción');
 
-/// The confirm button of the decision sheet is the last "Rechazar" in the
-/// tree (the action bar of the enrollment sheet sits below it).
-Finder get _decisionConfirm => _barButton('Rechazar').last;
-
-Future<void> _approveThroughDialog(WidgetTester tester) async {
-  await tester.tap(_barButton('Aprobar'));
-  await tester.pumpAndSettle();
-  await tester.tap(_dialogButton('Aprobar'));
+/// Approving needs no second dialog: one tap on the primary.
+Future<void> _approve(WidgetTester tester) async {
+  await tester.tap(_barButton('Aprobar inscripción'));
   await tester.pumpAndSettle();
 }
 
@@ -321,7 +337,7 @@ void main() {
       expect(find.text('Club 1'), findsOneWidget);
       expect(find.text('Club 2'), findsOneWidget);
       expect(find.text('Conquistadores · Asociación Norte'), findsNWidgets(2));
-      expect(find.text('Las más antiguas primero'), findsOneWidget);
+      expect(find.text('MÁS ANTIGUAS PRIMERO'), findsOneWidget);
     });
 
     testWidgets('the place line skips whatever the server omitted', (
@@ -373,10 +389,9 @@ void main() {
       expect(repo.queueCalls.last.page, 1);
       expect(find.text('Club 9'), findsOneWidget);
       expect(find.text('Club 1'), findsNothing);
-      expect(find.text('Las más antiguas primero'), findsNothing);
-      expect(tester.widget<SacFilterChip>(_chip('Aprobadas')).selected, isTrue);
-      expect(
-          tester.widget<SacFilterChip>(_chip('Por validar')).selected, isFalse);
+      expect(find.text('MÁS ANTIGUAS PRIMERO'), findsNothing);
+      expect(_chipSelected(tester, 'Aprobadas'), isTrue);
+      expect(_chipSelected(tester, 'Por validar'), isFalse);
     });
 
     testWidgets('tapping the selected chip does not reload', (tester) async {
@@ -389,54 +404,77 @@ void main() {
     });
   });
 
-  group('outcome line of decided cards', () {
-    testWidgets('approved by name, approved without reviewer', (tester) async {
-      final repo = _FakeRepo()
-        ..onQueue = (call) async => Right(
-              call.status == _active
-                  ? _page([
-                      _enr('1',
-                          status: _active,
-                          reviewedBy: const SupervisionPersonRef(
-                            userId: 'r1',
-                            name: 'Marta Revisa',
-                          )),
-                      _enr('2', status: _active),
-                    ])
-                  : _page(const []),
-            );
-      await _pump(tester, repo: repo);
-      await tester.tap(_chip('Aprobadas'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Aprobada por Marta Revisa'), findsOneWidget);
-      expect(find.text('Aprobada'), findsOneWidget);
-    });
-
-    testWidgets('rejected shows the reason, else "rejected by", else plain', (
+  group('decided rows', () {
+    testWidgets('the result is a chip under the place line, not a sentence', (
       tester,
     ) async {
       const reviewer = SupervisionPersonRef(userId: 'r1', name: 'Marta Revisa');
       final repo = _FakeRepo()
         ..onQueue = (call) async => Right(
-              call.status == _rejected
-                  ? _page([
-                      _enr('1',
-                          status: _rejected,
-                          reviewedBy: reviewer,
-                          decisionReason: 'Falta la ficha médica'),
-                      _enr('2', status: _rejected, reviewedBy: reviewer),
-                      _enr('3', status: _rejected),
-                    ])
-                  : _page(const []),
+              switch (call.status) {
+                _active => _page([
+                    _enr('1', status: _active, reviewedBy: reviewer),
+                    _enr('2', status: _active),
+                  ]),
+                _rejected => _page([
+                    _enr('3',
+                        status: _rejected,
+                        reviewedBy: reviewer,
+                        decisionReason: 'Falta la ficha médica'),
+                  ]),
+                _ => _page(const []),
+              },
             );
       await _pump(tester, repo: repo);
+
+      await tester.tap(_chip('Aprobadas'));
+      await tester.pumpAndSettle();
+      expect(find.byType(SupervisionStatusChip), findsNWidgets(2));
+      expect(find.text('Aprobada'), findsNWidgets(2));
+      expect(find.text('Aprobada por Marta Revisa'), findsNothing);
+      expect(find.text('ESTE AÑO'), findsOneWidget);
+      expect(find.text('MÁS ANTIGUAS PRIMERO'), findsNothing);
+
       await tester.tap(_chip('Rechazadas'));
       await tester.pumpAndSettle();
-
-      expect(find.text('Falta la ficha médica'), findsOneWidget);
-      expect(find.text('Rechazada por Marta Revisa'), findsOneWidget);
       expect(find.text('Rechazada'), findsOneWidget);
+      // The reason lives in the sheet, not in the row.
+      expect(find.text('Falta la ficha médica'), findsNothing);
+    });
+
+    testWidgets('a decided row shows the decision day instead of the age', (
+      tester,
+    ) async {
+      final repo = _FakeRepo()
+        ..onQueue = (call) async => Right(
+              call.status == _active
+                  ? _page([
+                      _enr('1',
+                          status: _active, reviewedAt: DateTime(2026, 3, 12)),
+                    ])
+                  : _page([_enr('2')]),
+            );
+      await _pump(tester, repo: repo);
+      await tester.tap(_chip('Aprobadas'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(intl.DateFormat.MMMd('es').format(DateTime(2026, 3, 12))),
+        findsOneWidget,
+      );
+    });
+  });
+
+  group('rows', () {
+    testWidgets('each row carries the logo tile of its club type', (
+      tester,
+    ) async {
+      final repo = _FakeRepo()
+        ..onQueue = (_) async => Right(_page([_enr('1'), _enr('2')]));
+      await _pump(tester, repo: repo);
+
+      expect(find.byType(ClubTypeTile), findsNWidgets(2));
+      expect(find.byType(SacListRow), findsNWidgets(2));
     });
   });
 
@@ -529,7 +567,9 @@ void main() {
       submittedAt: DateTime(2026, 3, 5),
     );
 
-    testWidgets('groups board, operation and request; blank rows are absent', (
+    testWidgets(
+        'groups board and operation, the request is a note; blank rows are absent',
+        (
       tester,
     ) async {
       final repo = _FakeRepo()..onQueue = (_) async => Right(_page([full]));
@@ -538,7 +578,7 @@ void main() {
 
       expect(find.text('DIRECTIVA'), findsOneWidget);
       expect(find.text('FUNCIONAMIENTO'), findsOneWidget);
-      expect(find.text('SOLICITUD'), findsOneWidget);
+      expect(find.text('SOLICITUD'), findsNothing);
 
       expect(_row('Director', 'Ana Directora'), findsOneWidget);
       expect(_rowLabel('Subdirector'), findsNWidgets(2));
@@ -552,14 +592,14 @@ void main() {
       expect(_rowLabel('Dirección'), findsNothing);
       expect(_row('Blanco de almas', '12'), findsOneWidget);
 
-      expect(_row('Enviada por', 'Elena Envía'), findsOneWidget);
+      // The request info is one quiet line, not a group of rows.
       expect(
-        _row('Enviada',
-            intl.DateFormat.yMMMd('es').format(DateTime(2026, 3, 5))),
+        find.text(
+            'Enviada por Elena Envía · ${intl.DateFormat.yMMMd('es').format(DateTime(2026, 3, 5))}'),
         findsOneWidget,
       );
-      expect(_rowLabel('Revisó'), findsNothing);
-      expect(_rowLabel('Resuelta'), findsNothing);
+      expect(_rowLabel('Enviada por'), findsNothing);
+      expect(find.textContaining('Revisó'), findsNothing);
       expect(_rowLabel('Motivo'), findsNothing);
     });
 
@@ -598,7 +638,7 @@ void main() {
       expect(_row('Cuota', 'Sin cuota'), findsOneWidget);
       // No board, no request data: only the operation group remains.
       expect(find.text('DIRECTIVA'), findsNothing);
-      expect(find.text('SOLICITUD'), findsNothing);
+      expect(find.textContaining('Enviada por'), findsNothing);
       await tester.tapAt(const Offset(10, 10));
       await tester.pumpAndSettle();
       expect(_sheetOpen, findsNothing);
@@ -607,7 +647,9 @@ void main() {
       expect(_row('Cuota', 'Sin cuota'), findsOneWidget);
     });
 
-    testWidgets('a decided enrollment shows the review rows', (tester) async {
+    testWidgets(
+        'a rejected enrollment quotes the reason and notes the reviewer',
+        (tester) async {
       final repo = _FakeRepo()
         ..onQueue = (call) async => Right(
               call.status == _rejected
@@ -626,13 +668,22 @@ void main() {
       await tester.pumpAndSettle();
       await _openSheet(tester, 'Club 7');
 
-      expect(_row('Revisó', 'Marta Revisa'), findsOneWidget);
-      expect(_row('Motivo', 'Falta la ficha médica'), findsOneWidget);
+      expect(find.byType(SupervisionQuote), findsOneWidget);
+      expect(find.text('Motivo'), findsOneWidget);
+      expect(find.text('Falta la ficha médica'), findsOneWidget);
       expect(
-        _row('Resuelta',
-            intl.DateFormat.yMMMd('es').format(DateTime(2026, 4, 1))),
+        find.text(
+            'Revisó Marta Revisa · ${intl.DateFormat.yMMMd('es').format(DateTime(2026, 4, 1))}'),
         findsOneWidget,
       );
+      expect(_barButton('Aprobar inscripción'), findsNothing);
+    });
+
+    testWidgets('a pending enrollment has no quote', (tester) async {
+      await _pump(tester);
+      await _openSheet(tester, 'Club 1');
+
+      expect(find.byType(SupervisionQuote), findsNothing);
     });
   });
 
@@ -644,7 +695,7 @@ void main() {
       await _openSheet(tester, 'Club 1');
 
       expect(_sheetOpen, findsOneWidget);
-      expect(_barButton('Aprobar'), findsNothing);
+      expect(_barButton('Aprobar inscripción'), findsNothing);
       expect(_barButton('Rechazar'), findsNothing);
     });
 
@@ -654,7 +705,7 @@ void main() {
       await _pump(tester);
       await _openSheet(tester, 'Club 1');
 
-      expect(_barButton('Aprobar'), findsOneWidget);
+      expect(_barButton('Aprobar inscripción'), findsOneWidget);
       expect(_barButton('Rechazar'), findsOneWidget);
     });
 
@@ -673,28 +724,23 @@ void main() {
       await _openSheet(tester, 'Club 4');
 
       expect(_sheetOpen, findsOneWidget);
-      expect(_barButton('Aprobar'), findsNothing);
+      expect(_barButton('Aprobar inscripción'), findsNothing);
       expect(_barButton('Rechazar'), findsNothing);
     });
   });
 
   group('approve', () {
     testWidgets(
-        'confirm dialog, approve with the id, sheet closes, toast and the '
+        'one tap approves with the id: no dialog, sheet closes, toast and the '
         'item leaves the list', (tester) async {
       final repo = _FakeRepo()
         ..onQueue = (_) async => Right(_page([_enr('1'), _enr('2')]));
       await _pump(tester, repo: repo);
       await _openSheet(tester, 'Club 1');
 
-      await tester.tap(_barButton('Aprobar'));
-      await tester.pumpAndSettle();
-      expect(find.text('¿Aprobar esta inscripción?'), findsOneWidget);
-      expect(
-          find.text('Club 1 quedará inscrito para este año.'), findsOneWidget);
-      expect(repo.approved, isEmpty);
-
-      await tester.tap(_dialogButton('Aprobar'));
+      await tester.tap(_barButton('Aprobar inscripción'));
+      await tester.pump();
+      expect(find.byType(SacDialog), findsNothing);
       await tester.pumpAndSettle();
 
       expect(repo.approved, ['1']);
@@ -709,21 +755,17 @@ void main() {
       expect(_chipCount(tester, 'Aprobadas'), 3);
     });
 
-    testWidgets('cancel in the dialog calls nothing and keeps the sheet', (
+    testWidgets('the actions are stacked: approve on top, reject under it', (
       tester,
     ) async {
-      final repo = await _pump(tester);
+      await _pump(tester);
       await _openSheet(tester, 'Club 1');
 
-      await tester.tap(_barButton('Aprobar'));
-      await tester.pumpAndSettle();
-      await tester.tap(_dialogButton('Cancelar'));
-      await tester.pumpAndSettle();
-
-      expect(repo.approved, isEmpty);
-      expect(find.byType(SacDialog), findsNothing);
-      expect(_sheetOpen, findsOneWidget);
-      expect(find.text('Inscripción aprobada'), findsNothing);
+      final approve = tester.getRect(_barButton('Aprobar inscripción'));
+      final reject = tester.getRect(_barButton('Rechazar'));
+      expect(reject.top, greaterThan(approve.bottom - 1));
+      expect(tester.widget<SacButton>(_barButton('Rechazar')).variant,
+          SacButtonVariant.ghost);
     });
 
     testWidgets('both buttons are disabled while the request is in flight', (
@@ -734,16 +776,16 @@ void main() {
       await _pump(tester, repo: repo);
       await _openSheet(tester, 'Club 1');
 
-      await tester.tap(_barButton('Aprobar'));
-      await tester.pumpAndSettle();
-      await tester.tap(_dialogButton('Aprobar'));
+      await tester.tap(_barButton('Aprobar inscripción'));
       // The loading button animates forever: advance frames, never settle.
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       expect(repo.approved, ['1']);
       expect(
           tester.widget<SacButton>(_barButton('Rechazar')).isEnabled, isFalse);
-      expect(tester.widget<SacButton>(_barButton('Aprobar')).isLoading, isTrue);
+      expect(
+          tester.widget<SacButton>(_barButton('Aprobar inscripción')).isLoading,
+          isTrue);
 
       gate.complete(Right(_enr('1', status: _active)));
       await tester.pumpAndSettle();
@@ -761,7 +803,7 @@ void main() {
       await _rejectWith(tester, 'abc');
 
       expect(find.text('Escribe al menos 5 caracteres.'), findsOneWidget);
-      expect(find.text('Rechazar inscripción'), findsOneWidget);
+      expect(_decisionConfirm, findsOneWidget);
       expect(repo.rejected, isEmpty);
       expect(_sheetOpen, findsOneWidget);
     });
@@ -773,7 +815,7 @@ void main() {
       await _rejectWith(tester, '     ');
 
       expect(find.text('Escribe el motivo.'), findsOneWidget);
-      expect(find.text('Rechazar inscripción'), findsOneWidget);
+      expect(_decisionConfirm, findsOneWidget);
       expect(repo.rejected, isEmpty);
     });
 
@@ -809,7 +851,7 @@ void main() {
       expect(repo.rejected.single.id, '1');
       expect(repo.rejected.single.reason, 'Falta la ficha médica');
       expect(_sheetOpen, findsNothing);
-      expect(find.text('Rechazar inscripción'), findsNothing);
+      expect(_decisionConfirm, findsNothing);
       expect(find.text('Inscripción rechazada'), findsOneWidget);
       expect(find.text('Club 1'), findsNothing);
       expect(_chipCount(tester, 'Rechazadas'), 2);
@@ -821,12 +863,31 @@ void main() {
 
       await tester.tap(_barButton('Rechazar'));
       await tester.pumpAndSettle();
+      expect(find.text('Rechazar la inscripción de Club 1'), findsOneWidget);
+      expect(
+        find.text('El director verá el motivo y podrá corregir y reenviar.'),
+        findsOneWidget,
+      );
       await tester.tap(_barButton('Cancelar'));
       await tester.pumpAndSettle();
 
       expect(repo.rejected, isEmpty);
-      expect(find.text('Rechazar inscripción'), findsNothing);
+      expect(_decisionConfirm, findsNothing);
       expect(_sheetOpen, findsOneWidget);
+    });
+
+    testWidgets('the rejection primary is red and Cancelar sits under it', (
+      tester,
+    ) async {
+      await _pump(tester);
+      await _openSheet(tester, 'Club 1');
+      await tester.tap(_barButton('Rechazar'));
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<SacButton>(_decisionConfirm).variant,
+          SacButtonVariant.destructive);
+      expect(tester.getRect(_barButton('Cancelar')).top,
+          greaterThan(tester.getRect(_decisionConfirm).bottom - 1));
     });
   });
 
@@ -839,7 +900,7 @@ void main() {
       await _pump(tester, repo: repo);
       await _openSheet(tester, 'Club 1');
 
-      await _approveThroughDialog(tester);
+      await _approve(tester);
 
       expect(
         find.text(
@@ -849,16 +910,17 @@ void main() {
       expect(find.text('server says no'), findsNothing);
       expect(_sheetOpen, findsOneWidget);
       expect(find.text('Inscripción aprobada'), findsNothing);
-      final approve = tester.widget<SacButton>(_barButton('Aprobar'));
+      final approve =
+          tester.widget<SacButton>(_barButton('Aprobar inscripción'));
       expect(approve.isEnabled, isTrue);
       expect(approve.isLoading, isFalse);
       expect(
           tester.widget<SacButton>(_barButton('Rechazar')).isEnabled, isTrue);
 
-      // Usable again: a second tap reaches the confirmation.
-      await tester.tap(_barButton('Aprobar'));
+      // Usable again: a second tap approves again.
+      await tester.tap(_barButton('Aprobar inscripción'));
       await tester.pumpAndSettle();
-      expect(find.byType(SacDialog), findsOneWidget);
+      expect(repo.approved, ['1', '1']);
     });
 
     testWidgets('CE_SELF_REVIEW on reject shows the same inline error', (
@@ -877,7 +939,7 @@ void main() {
         findsOneWidget,
       );
       expect(_sheetOpen, findsOneWidget);
-      expect(find.text('Rechazar inscripción'), findsNothing);
+      expect(_decisionConfirm, findsNothing);
     });
 
     testWidgets('an unknown code shows the server message inline', (
@@ -889,11 +951,13 @@ void main() {
       await _pump(tester, repo: repo);
       await _openSheet(tester, 'Club 1');
 
-      await _approveThroughDialog(tester);
+      await _approve(tester);
 
       expect(find.text('server says no'), findsOneWidget);
       expect(_sheetOpen, findsOneWidget);
-      expect(tester.widget<SacButton>(_barButton('Aprobar')).isEnabled, isTrue);
+      expect(
+          tester.widget<SacButton>(_barButton('Aprobar inscripción')).isEnabled,
+          isTrue);
     });
 
     testWidgets(
@@ -909,7 +973,7 @@ void main() {
       await _pump(tester, repo: repo);
       await _openSheet(tester, 'Club 1');
 
-      await _approveThroughDialog(tester);
+      await _approve(tester);
 
       expect(_sheetOpen, findsNothing);
       expect(find.text('Esta inscripción ya fue resuelta.'), findsOneWidget);
@@ -993,17 +1057,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expectNoLayoutException(tester);
-        expect(find.text('Rechazar inscripción'), findsOneWidget);
-      });
-
-      testWidgets('320 wide: approve dialog does not overflow', (tester) async {
-        await _pump(tester, repo: repoOf([rich()]), size: narrow);
-        await _openSheet(tester, 'Club 1');
-        await tester.tap(_barButton('Aprobar'));
-        await tester.pumpAndSettle();
-
-        expectNoLayoutException(tester);
-        expect(find.byType(SacDialog), findsOneWidget);
+        expect(_decisionConfirm, findsOneWidget);
       });
     });
 
@@ -1026,7 +1080,7 @@ void main() {
 
         expectNoLayoutException(tester);
         expect(_sheetOpen, findsOneWidget);
-        expect(_barButton('Aprobar'), findsOneWidget);
+        expect(_barButton('Aprobar inscripción'), findsOneWidget);
       });
 
       testWidgets('320 wide: decision sheet does not overflow', (tester) async {
@@ -1036,17 +1090,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expectNoLayoutException(tester);
-        expect(find.text('Rechazar inscripción'), findsOneWidget);
-      });
-
-      testWidgets('320 wide: approve dialog does not overflow', (tester) async {
-        await _pump(tester, repo: repoOf([bare]), size: narrow, textScale: 2.0);
-        await _openSheet(tester, 'Club 1');
-        await tester.tap(_barButton('Aprobar'));
-        await tester.pumpAndSettle();
-
-        expectNoLayoutException(tester);
-        expect(find.byType(SacDialog), findsOneWidget);
+        expect(_decisionConfirm, findsOneWidget);
       });
 
       testWidgets(

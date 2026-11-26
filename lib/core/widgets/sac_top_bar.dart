@@ -7,6 +7,7 @@ import 'package:haze/haze.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../theme/sac_colors.dart';
 import 'sac_back_button.dart';
+import 'sac_pressable.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// iOS-inspired SACDIA top navigation primitives.
@@ -18,6 +19,14 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final String? subtitle;
   final Widget? titleIcon;
+
+  /// Small widget right after the title (a chevron that says «this opens a
+  /// picker»). Decorative: pair it with [onTitleTap].
+  final Widget? titleTrailing;
+
+  /// Makes the title a button (a month picker). The title and subtitle read
+  /// as one button to a screen reader.
+  final VoidCallback? onTitleTap;
   final Widget? leading;
 
   /// Width reserved for [leading]. Null: 56, enough for an icon button.
@@ -47,6 +56,8 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
     required this.title,
     this.subtitle,
     this.titleIcon,
+    this.titleTrailing,
+    this.onTitleTap,
     this.leading,
     this.leadingWidth,
     this.actions = const [],
@@ -66,6 +77,10 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
 
   /// Alto de la barra, incluido el status bar, para el padding del scroll.
   static double frostedInset(BuildContext context) {
+    final override = context
+        .dependOnInheritedWidgetOfExactType<SacFrostedInsetOverride>()
+        ?.inset;
+    if (override != null) return override;
     final height = Scaffold.maybeOf(context)?.appBarMaxHeight;
     if (height != null && height > 0) return height;
     return MediaQuery.paddingOf(context).top + compactHeight;
@@ -156,6 +171,8 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
         title: title,
         subtitle: subtitle,
         titleIcon: titleIcon,
+        titleTrailing: titleTrailing,
+        onTitleTap: onTitleTap,
         centerTitle: centerTitle,
         foregroundColor: resolvedForeground,
       ),
@@ -390,6 +407,8 @@ class _SacTopBarTitle extends StatelessWidget {
   final String title;
   final String? subtitle;
   final Widget? titleIcon;
+  final Widget? titleTrailing;
+  final VoidCallback? onTitleTap;
   final bool centerTitle;
   final Color foregroundColor;
 
@@ -398,6 +417,8 @@ class _SacTopBarTitle extends StatelessWidget {
     required this.foregroundColor,
     this.subtitle,
     this.titleIcon,
+    this.titleTrailing,
+    this.onTitleTap,
     this.centerTitle = false,
   });
 
@@ -415,12 +436,23 @@ class _SacTopBarTitle extends StatelessWidget {
           ),
     );
 
-    final content = Column(
+    final trailing = titleTrailing;
+    final Widget content = Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment:
           centerTitle ? CrossAxisAlignment.center : CrossAxisAlignment.start,
       children: [
-        titleText,
+        if (trailing == null)
+          titleText
+        else
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(child: titleText),
+              const SizedBox(width: 4),
+              ExcludeSemantics(child: trailing),
+            ],
+          ),
         if (subtitle != null) ...[
           const SizedBox(height: 1),
           Text(
@@ -437,14 +469,33 @@ class _SacTopBarTitle extends StatelessWidget {
       ],
     );
 
-    if (titleIcon == null) return content;
+    final tap = onTitleTap;
+    // SacInkWell is the button: it carries the semantics and the tap.
+    final Widget tappable = tap == null
+        ? content
+        : SacInkWell(
+            onTap: tap,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                minHeight: SacTopBar.touchTarget,
+              ),
+              child: Align(
+                alignment: centerTitle
+                    ? Alignment.center
+                    : AlignmentDirectional.centerStart,
+                child: content,
+              ),
+            ),
+          );
+
+    if (titleIcon == null) return tappable;
 
     return Row(
       mainAxisSize: centerTitle ? MainAxisSize.min : MainAxisSize.max,
       children: [
         _IconBadge(child: titleIcon!),
         const SizedBox(width: 12),
-        Flexible(child: content),
+        Flexible(child: tappable),
       ],
     );
   }
@@ -525,4 +576,22 @@ class _IconBadge extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Fixes the value [SacTopBar.frostedInset] (and so `paddingBelowBar`) returns
+/// below it. A screen that swaps the top bar for its own header (the
+/// club-less homes) wraps its body in this with `inset: 0`, so the scrolls it
+/// reuses do not reserve room for a bar that is not there.
+class SacFrostedInsetOverride extends InheritedWidget {
+  const SacFrostedInsetOverride({
+    super.key,
+    required this.inset,
+    required super.child,
+  });
+
+  final double inset;
+
+  @override
+  bool updateShouldNotify(SacFrostedInsetOverride oldWidget) =>
+      oldWidget.inset != inset;
 }

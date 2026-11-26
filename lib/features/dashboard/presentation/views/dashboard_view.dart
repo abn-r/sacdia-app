@@ -66,7 +66,9 @@ class DashboardView extends ConsumerWidget {
     // El pastor sin club no tiene inicio de miembro: su inicio son las
     // autorizaciones. Se decide antes de leer el resumen del dashboard, que
     // pertenece a un club.
-    if (isPastorWithoutClub(user)) return const AuthorizerRequestsView();
+    if (isPastorWithoutClub(user)) {
+      return const AuthorizerRequestsView(asHome: true);
+    }
 
     final dashboardState = ref.watch(dashboardNotifierProvider);
     final unreadNotificationsCount =

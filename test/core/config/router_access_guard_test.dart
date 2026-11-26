@@ -156,6 +156,11 @@ void main() {
         routeScreenIds[RouteNames.supervisionFolderDetailRoute],
         'supervision-folders',
       );
+      // The section screen is gated like the folder it belongs to.
+      expect(
+        routeScreenIds[RouteNames.supervisionFolderSectionRoute],
+        'supervision-folders',
+      );
       expect(
         routeScreenIds[RouteNames.supervisionRequests],
         'supervision-requests',

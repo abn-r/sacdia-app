@@ -9,11 +9,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/forbidden.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
-import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
+import 'package:sacdia_app/core/widgets/sac_list_row.dart';
 import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
+import 'package:sacdia_app/core/widgets/sac_tone.dart';
+import 'package:sacdia_app/core/widgets/status_progress/sac_status_bar.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/supervision/domain/entities/supervision_annual_progress.dart';
 import 'package:sacdia_app/features/supervision/presentation/views/supervision_annual_progress_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_progress_parts.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_segmented_control.dart';
 import 'package:sacdia_app/shared/models/catalogs/club_type_model.dart';
 
 import 'supervision_reports_progress_test_harness.dart';
@@ -65,6 +69,14 @@ FakeProgressRepo _repoWithClubs(List<SupervisionClubProgress> clubs) {
       Right(SupervisionAnnualProgress(configured: true, clubs: clubs));
   return repo;
 }
+
+/// A club type segment (no count, so the text is just the type name).
+Finder _typeSegment(String name) => find.descendant(
+      of: find.byType(SupervisionSegmentedControl<int>),
+      matching: find.text(name),
+    );
+
+Finder _row(String title) => find.widgetWithText(SacListRow, title);
 
 Finder _sheet() => find.byType(BottomSheet);
 Finder _inSheet(Finder f) => find.descendant(of: _sheet(), matching: f);
@@ -121,6 +133,43 @@ void main() {
         find.text('landing:/supervision/annual-progress?union_id=2'),
         findsOneWidget,
       );
+    });
+
+    testWidgets('unions show «N clubes» and «Sin configurar» in warning', (
+      tester,
+    ) async {
+      final repo = FakeProgressRepo()
+        ..onUnions = (_) async => Right([
+              territoryOption(1, 'Unión Norte',
+                  clubsCount: 8, configured: true),
+              territoryOption(2, 'Unión Sur', clubsCount: 1, configured: true),
+              territoryOption(3, 'Unión Este',
+                  clubsCount: 6, configured: false),
+            ]);
+      await _pump(tester, repo: repo);
+
+      expect(find.text('8 clubes'), findsOneWidget);
+      expect(find.text('1 club'), findsOneWidget);
+      expect(find.text('6 clubes · Sin configurar'), findsOneWidget);
+      SacTone toneOf(String name) => tester
+          .widget<SacListRowIcon>(find.descendant(
+            of: _row(name),
+            matching: find.byType(SacListRowIcon),
+          ))
+          .tone;
+      expect(toneOf('Unión Norte'), SacTone.accent);
+      expect(toneOf('Unión Este'), SacTone.warning);
+    });
+
+    testWidgets('names only (an older server) draw no second line', (
+      tester,
+    ) async {
+      await _pump(tester);
+
+      expect(find.text('Unión Norte'), findsOneWidget);
+      expect(tester.widget<SacListRow>(_row('Unión Norte')).subtitleWidget,
+          isNull);
+      expect(find.textContaining('Sin configurar'), findsNothing);
     });
 
     testWidgets('an empty division says so', (tester) async {
@@ -349,24 +398,19 @@ void main() {
       await _pump(tester, home: _leaf, territory: kUnionTerritory);
 
       expect(find.text('Asociación Oeste'), findsOneWidget);
-      expect(find.text('Progreso anual'), findsOneWidget);
+      // The year sits in the subtitle: «Progreso anual · 2025-2026».
+      expect(find.text('Progreso anual · 2025-2026'), findsOneWidget);
     });
 
-    testWidgets('shows the year name caption', (tester) async {
-      await _pump(tester, home: _leaf, territory: kUnionTerritory);
-
-      expect(find.text('2025-2026'), findsOneWidget);
-    });
-
-    testWidgets('hides the club type chips when there is one type', (
+    testWidgets('hides the club type control when there is one type', (
       tester,
     ) async {
       await _pump(tester, home: _leaf, territory: kUnionTerritory);
 
-      expect(find.byType(SacFilterChip), findsNothing);
+      expect(find.byType(SupervisionSegmentedControl<int>), findsNothing);
     });
 
-    testWidgets('shows a chip per club type, the first one selected', (
+    testWidgets('shows a segment per club type, the first one selected', (
       tester,
     ) async {
       await _pump(
@@ -376,26 +420,15 @@ void main() {
         types: const [kConquistadores, kAventureros],
       );
 
-      expect(find.byType(SacFilterChip), findsNWidgets(2));
-      expect(
-        tester
-            .widget<SacFilterChip>(
-              find.widgetWithText(SacFilterChip, 'Conquistadores'),
-            )
-            .selected,
-        isTrue,
+      final control = tester.widget<SupervisionSegmentedControl<int>>(
+        find.byType(SupervisionSegmentedControl<int>),
       );
-      expect(
-        tester
-            .widget<SacFilterChip>(
-              find.widgetWithText(SacFilterChip, 'Aventureros'),
-            )
-            .selected,
-        isFalse,
-      );
+      expect(control.segments.map((s) => s.label),
+          ['Conquistadores', 'Aventureros']);
+      expect(control.selected, kConquistadores.clubTypeId);
     });
 
-    testWidgets('picking a chip requests that club type', (tester) async {
+    testWidgets('picking a segment requests that club type', (tester) async {
       final repo = await _pump(
         tester,
         home: _leaf,
@@ -403,7 +436,7 @@ void main() {
         types: const [kConquistadores, kAventureros],
       );
 
-      await tester.tap(find.widgetWithText(SacFilterChip, 'Aventureros'));
+      await tester.tap(_typeSegment('Aventureros'));
       await tester.pumpAndSettle();
 
       expect(repo.progressCalls, hasLength(2));
@@ -414,11 +447,11 @@ void main() {
       ));
       expect(
         tester
-            .widget<SacFilterChip>(
-              find.widgetWithText(SacFilterChip, 'Aventureros'),
+            .widget<SupervisionSegmentedControl<int>>(
+              find.byType(SupervisionSegmentedControl<int>),
             )
             .selected,
-        isTrue,
+        kAventureros.clubTypeId,
       );
     });
 
@@ -446,12 +479,106 @@ void main() {
       await _pump(tester, home: _leaf, territory: kUnionTerritory, repo: repo);
 
       expect(find.text('Club Orión'), findsOneWidget);
-      expect(find.text('Oro · 320 de 500 pts'), findsOneWidget);
+      expect(find.text('Oro · 320 pts'), findsOneWidget);
       expect(find.text('64%'), findsOneWidget);
       // No current medal: the points stand alone.
       expect(find.text('Club Sin Medalla'), findsOneWidget);
-      expect(find.text('12.5 de 500 pts'), findsOneWidget);
+      expect(find.text('12.5 pts'), findsOneWidget);
       expect(find.text('2%'), findsOneWidget);
+    });
+
+    testWidgets('the tier name is bold and the row has the medal of its tier', (
+      tester,
+    ) async {
+      final repo = _repoWithClubs([
+        clubProgress(
+          1,
+          name: 'Club Orión',
+          current: const SupervisionProgressTier(name: 'Oro', slug: 'gold'),
+        ),
+        clubProgress(2, name: 'Club Sin Medalla', current: null),
+      ]);
+      await _pump(tester, home: _leaf, territory: kUnionTerritory, repo: repo);
+
+      final medal = tester.widget<SupervisionTierMedal>(find.descendant(
+        of: _row('Club Orión'),
+        matching: find.byType(SupervisionTierMedal),
+      ));
+      expect(medal.tier?.name, 'Oro');
+      expect(medal.size, 36);
+      // No medal: the bronze one, grey (no tier is handed to the widget).
+      final grey = tester.widget<SupervisionTierMedal>(find.descendant(
+        of: _row('Club Sin Medalla'),
+        matching: find.byType(SupervisionTierMedal),
+      ));
+      expect(grey.tier, isNull);
+      // «Oro» is its own bold span.
+      final rich = tester.widgetList<RichText>(find.descendant(
+        of: _row('Club Orión'),
+        matching: find.byType(RichText),
+      ));
+      FontWeight? weight;
+      for (final r in rich) {
+        r.text.visitChildren((span) {
+          if (span is TextSpan && span.text == 'Oro') {
+            weight = span.style?.fontWeight;
+          }
+          return true;
+        });
+      }
+      expect(weight, FontWeight.w700);
+    });
+
+    testWidgets('the tier box counts the medals of the clubs on screen', (
+      tester,
+    ) async {
+      SupervisionClubProgress club(int id, String? tier, String? slug) =>
+          clubProgress(
+            id,
+            current: tier == null
+                ? null
+                : SupervisionProgressTier(name: tier, slug: slug ?? ''),
+          );
+      final repo = _repoWithClubs([
+        club(1, 'Diamante', 'diamond'),
+        club(2, 'Oro', 'gold'),
+        club(3, 'Oro', 'gold'),
+        club(4, 'Plata', 'silver'),
+        club(5, 'Bronce', 'bronze'),
+        club(6, null, null),
+        club(7, null, null),
+        club(8, '  ', null),
+      ]);
+      await _pump(tester, home: _leaf, territory: kUnionTerritory, repo: repo);
+
+      expect(find.text('Medallas en el campo'), findsOneWidget);
+      expect(find.text('8 clubes'), findsOneWidget);
+      final bar = tester.widget<SacStatusBar>(find.byType(SacStatusBar));
+      expect(
+        {for (final s in bar.segments!) s.label: s.count},
+        {
+          'Diamante 1': 1,
+          'Oro 2': 2,
+          'Plata 1': 1,
+          'Bronce 1': 1,
+          'Sin medalla 3': 3,
+        },
+      );
+    });
+
+    testWidgets('no ranking order: the rows keep the server order', (
+      tester,
+    ) async {
+      final repo = _repoWithClubs([
+        clubProgress(1, name: 'Zeta'),
+        clubProgress(2, name: 'Alfa'),
+      ]);
+      await _pump(tester, home: _leaf, territory: kUnionTerritory, repo: repo);
+
+      expect(
+        tester.getTopLeft(find.text('Zeta')).dy,
+        lessThan(tester.getTopLeft(find.text('Alfa')).dy),
+      );
     });
 
     testWidgets('a blank medal name counts as no medal', (tester) async {
@@ -463,7 +590,7 @@ void main() {
       ]);
       await _pump(tester, home: _leaf, territory: kUnionTerritory, repo: repo);
 
-      expect(find.text('320 de 500 pts'), findsOneWidget);
+      expect(find.text('320 pts'), findsOneWidget);
     });
 
     testWidgets('99.6 shows 99% and only a full club shows 100%', (
@@ -536,7 +663,7 @@ void main() {
         types: const [kConquistadores, kAventureros],
       );
 
-      await tester.tap(find.widgetWithText(SacFilterChip, 'Aventureros'));
+      await tester.tap(_typeSegment('Aventureros'));
       await tester.pumpAndSettle();
 
       expect(
@@ -589,8 +716,8 @@ void main() {
       await _pump(tester, home: _leaf, territory: kUnionTerritory, repo: repo);
 
       expect(find.text('No se pudo cargar el progreso anual'), findsOneWidget);
-      // The year caption survives: only the list failed.
-      expect(find.text('2025-2026'), findsOneWidget);
+      // The year in the subtitle survives: only the list failed.
+      expect(find.text('Progreso anual · 2025-2026'), findsOneWidget);
 
       await tester.tap(find.text('Reintentar'));
       await tester.pumpAndSettle();
@@ -625,6 +752,8 @@ void main() {
             axis(
               'a1',
               label: 'Eje Espiritual',
+              earned: 15,
+              max: 25,
               components: [
                 component('c1', label: 'Reuniones', earned: 10, max: 20),
                 component('c2',
@@ -652,30 +781,24 @@ void main() {
       await _openClub(tester, 'Club Orión');
     }
 
-    testWidgets('opens with the club name and club type as header', (
+    testWidgets('opens with the club and club type in the header', (
       tester,
     ) async {
       await openFull(tester);
 
       expect(_sheet(), findsOneWidget);
-      expect(_inSheet(find.text('Club Orión')), findsOneWidget);
-      expect(_inSheet(find.text('Conquistadores')), findsOneWidget);
+      expect(
+          _inSheet(find.text('CLUB ORIÓN · CONQUISTADORES')), findsOneWidget);
     });
 
-    testWidgets('summary lists progress, points, medal and next medal', (
+    testWidgets('header: current tier with points and what is missing', (
       tester,
     ) async {
       await openFull(tester);
 
-      expect(_inSheet(find.text('RESUMEN')), findsOneWidget);
-      expect(_inSheet(find.text('Avance')), findsOneWidget);
-      expect(_inSheet(find.text('64%')), findsOneWidget);
-      expect(_inSheet(find.text('Puntos')), findsOneWidget);
-      expect(_inSheet(find.text('320 de 500 pts')), findsOneWidget);
-      expect(_inSheet(find.text('Medalla actual')), findsOneWidget);
-      expect(_inSheet(find.text('Oro')), findsOneWidget);
-      expect(_inSheet(find.text('Siguiente medalla')), findsOneWidget);
-      expect(_inSheet(find.text('Platino · faltan 30 pts')), findsOneWidget);
+      expect(_inSheet(find.text('Oro · 320 pts')), findsOneWidget);
+      expect(
+          _inSheet(find.text('Le faltan 30 pts para Platino')), findsOneWidget);
     });
 
     testWidgets('shows one group per axis with its components', (tester) async {
@@ -683,6 +806,8 @@ void main() {
 
       expect(_inSheet(find.text('EJE ESPIRITUAL')), findsOneWidget);
       expect(_inSheet(find.text('EJE SERVICIO')), findsOneWidget);
+      // The axis totals sit at the end of its eyebrow.
+      expect(_inSheet(find.text('15 DE 25 PTS')), findsOneWidget);
       expect(_inSheet(find.text('Reuniones')), findsOneWidget);
       expect(_inSheet(find.text('10 de 20 pts')), findsOneWidget);
       expect(_inSheet(find.text('50%')), findsOneWidget);
@@ -740,7 +865,7 @@ void main() {
       expect(_inSheet(find.text('DE DÓNDE VIENEN LOS PUNTOS')), findsOneWidget);
     });
 
-    testWidgets('without a current medal it says there is none yet', (
+    testWidgets('without a current medal the header shows the points alone', (
       tester,
     ) async {
       final club = clubProgress(1, name: 'Club Orión', current: null);
@@ -752,11 +877,11 @@ void main() {
       );
       await _openClub(tester, 'Club Orión');
 
-      expect(_inSheet(find.text('Sin medalla aún')), findsOneWidget);
-      expect(_inSheet(find.text('Siguiente medalla')), findsNothing);
+      expect(_inSheet(find.text('320 pts')), findsOneWidget);
+      expect(_inSheet(find.textContaining('Oro')), findsNothing);
     });
 
-    testWidgets('without a next medal the row is hidden', (tester) async {
+    testWidgets('without a next medal the top tier is stated', (tester) async {
       final club = clubProgress(1, name: 'Club Orión', next: null);
       await _pump(
         tester,
@@ -766,11 +891,50 @@ void main() {
       );
       await _openClub(tester, 'Club Orión');
 
-      expect(_inSheet(find.text('Medalla actual')), findsOneWidget);
-      expect(_inSheet(find.text('Siguiente medalla')), findsNothing);
+      expect(
+          _inSheet(find.text('Ya tiene la medalla más alta')), findsOneWidget);
+      expect(_inSheet(find.textContaining('Le faltan')), findsNothing);
     });
 
-    testWidgets('a next medal with no points to reach shows only its name', (
+    testWidgets('no medal and no next medal leaves no status line', (
+      tester,
+    ) async {
+      final club =
+          clubProgress(1, name: 'Club Orión', current: null, next: null);
+      await _pump(
+        tester,
+        home: _leaf,
+        territory: kUnionTerritory,
+        repo: _repoWithClubs([club]),
+      );
+      await _openClub(tester, 'Club Orión');
+
+      expect(_inSheet(find.textContaining('Le faltan')), findsNothing);
+      expect(_inSheet(find.text('Ya tiene la medalla más alta')), findsNothing);
+    });
+
+    testWidgets('the missing points are derived when the server omits them', (
+      tester,
+    ) async {
+      final club = clubProgress(
+        1,
+        name: 'Club Orión',
+        points: 320,
+        next: const SupervisionProgressTier(name: 'Platino', fromPoints: 400),
+      );
+      await _pump(
+        tester,
+        home: _leaf,
+        territory: kUnionTerritory,
+        repo: _repoWithClubs([club]),
+      );
+      await _openClub(tester, 'Club Orión');
+
+      expect(
+          _inSheet(find.text('Le faltan 80 pts para Platino')), findsOneWidget);
+    });
+
+    testWidgets('a next medal with nothing missing shows no «Le faltan»', (
       tester,
     ) async {
       final club = clubProgress(
@@ -786,8 +950,16 @@ void main() {
       );
       await _openClub(tester, 'Club Orión');
 
-      expect(_inSheet(find.text('Platino')), findsOneWidget);
-      expect(_inSheet(find.textContaining('faltan')), findsNothing);
+      expect(_inSheet(find.textContaining('Le faltan')), findsNothing);
+    });
+
+    testWidgets('the «Cerrar» button closes the sheet', (tester) async {
+      await openFull(tester);
+
+      await tester.tap(_inSheet(find.text('Cerrar')));
+      await tester.pumpAndSettle();
+
+      expect(_sheet(), findsNothing);
     });
 
     testWidgets('dismissing the sheet returns to the list', (tester) async {

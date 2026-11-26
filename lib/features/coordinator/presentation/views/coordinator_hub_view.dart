@@ -26,8 +26,8 @@ import 'package:sacdia_app/features/coordinator/domain/entities/evidence_review_
 import 'package:sacdia_app/features/coordinator/domain/entities/sla_dashboard.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/features/dashboard/presentation/widgets/clubless_home_header.dart';
 import 'package:sacdia_app/features/members/presentation/utils/consent_access.dart';
-import 'package:sacdia_app/features/notifications/presentation/providers/unread_notifications_count_provider.dart';
 import 'package:sacdia_app/features/service_credentials/presentation/utils/service_credentials_access.dart';
 import 'package:sacdia_app/features/service_credentials/presentation/widgets/service_credentials_entries.dart';
 import 'package:sacdia_app/features/coordinator/presentation/providers/consent_review_providers.dart';
@@ -104,37 +104,41 @@ class CoordinatorHubView extends ConsumerWidget {
       data: (scope) => coordinatorScopeSubtitle(scope, clubsFallback: clubs),
     );
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: c.background,
-      appBar: SacTopBar(
-        title: 'coordinator.hub.title'.tr(),
-        subtitle: subtitle,
-        frosted: true,
-        automaticallyImplyLeading: false,
-        // Without a club the hub is the dashboard home and there is no other
-        // bell: the inbox opens from here.
-        actions: [
-          if (isCoordinatorWithoutClub(user))
-            _NotificationsAction(
-              unreadCount: ref.watch(unreadNotificationsCountProvider),
-            ),
-        ],
-      ),
-      body: SacFrostedVeil(
-        child: Builder(
-          builder: (context) => scopeAsync.softWhen(
-            loading: () => _HubScroll(
-              onRefresh: () => _refresh(ref),
-              children: const [
-                _SummarySkeleton(),
-                SizedBox(height: 24),
-                _StatsSkeleton(),
-                SizedBox(height: 24),
-                _ClubsSkeleton(),
-              ],
-            ),
-            error: (error, _) => isForbiddenFailure(error)
+    // Without a club the hub is the dashboard home: the club dashboard's
+    // greeting header replaces the top bar (and carries the bell). With a club
+    // it is a tab and keeps the top bar.
+    final isHome = isCoordinatorWithoutClub(user);
+    final header = isHome
+        ? ClubLessHomeHeader(
+            sectionTitle: 'coordinator.hub.title'.tr(),
+            contextLabel: subtitle,
+            contextIcon: HugeIcons.strokeRoundedBuilding04,
+          )
+        : null;
+    // States that do not scroll need the header above them.
+    Widget withHeader(Widget child) => header == null
+        ? child
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [header, Expanded(child: child)],
+          );
+
+    // Built under the Scaffold (and the inset override) so the scrolls read the
+    // right top inset.
+    Widget buildContent(BuildContext context) => scopeAsync.softWhen(
+          loading: () => _HubScroll(
+            header: header,
+            onRefresh: () => _refresh(ref),
+            children: const [
+              _SummarySkeleton(),
+              SizedBox(height: 24),
+              _StatsSkeleton(),
+              SizedBox(height: 24),
+              _ClubsSkeleton(),
+            ],
+          ),
+          error: (error, _) => withHeader(
+            isForbiddenFailure(error)
                 ? ForbiddenView(
                     padding: SacTopBar.paddingBelowBar(
                       context,
@@ -150,117 +154,86 @@ class CoordinatorHubView extends ConsumerWidget {
                       const EdgeInsets.all(32),
                     ),
                   ),
-            data: (scope) {
-              if (!scope.isCoordinator || !scope.hasAssignedSections) {
-                return RefreshIndicator(
-                  color: accent.color,
-                  edgeOffset: SacTopBar.frostedInset(context),
-                  onRefresh: () => _refresh(ref),
-                  child: CustomScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    slivers: [
-                      SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            top: SacTopBar.frostedInset(context),
-                          ),
-                          child: SacEmptyState(
-                            icon: HugeIcons.strokeRoundedBuilding04,
-                            title: 'coordinator.hub.empty_title'.tr(),
-                            body: 'coordinator.hub.empty_body'.tr(),
-                          ),
+          ),
+          data: (scope) {
+            if (!scope.isCoordinator || !scope.hasAssignedSections) {
+              return RefreshIndicator(
+                color: accent.color,
+                edgeOffset: SacTopBar.frostedInset(context),
+                onRefresh: () => _refresh(ref),
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    if (header != null) SliverToBoxAdapter(child: header),
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          top: SacTopBar.frostedInset(context),
+                        ),
+                        child: SacEmptyState(
+                          icon: HugeIcons.strokeRoundedBuilding04,
+                          title: 'coordinator.hub.empty_title'.tr(),
+                          body: 'coordinator.hub.empty_body'.tr(),
                         ),
                       ),
-                    ],
-                  ),
-                );
-              }
-              return _HubScroll(
-                onRefresh: () => _refresh(ref),
-                children: [
-                  const _ReviewSection(),
-                  // Consent forms of minors to verify: only for a coordinator
-                  // role carrying `consent:verify` (what the server requires).
-                  if (coordinatorRoleCanVerify(user)) ...const [
-                    SizedBox(height: 24),
-                    _ConsentSection(),
+                    ),
                   ],
-                  // Constancias de servicio por revisar: solo con la capacidad
-                  // `service_credentials.review` (la propia tarjeta lo decide).
-                  if (canReviewServiceCredentials(user,
-                      isActing: false)) ...const [
-                    SizedBox(height: 24),
-                    ServiceCredentialsReviewCard(),
-                  ],
-                  const SizedBox(height: 24),
-                  const _ResponseTimeSection(),
-                  const SizedBox(height: 24),
-                  const _ClubsSection(),
-                  const SizedBox(height: 24),
-                  const _ReportsSection(),
-                ],
+                ),
               );
-            },
+            }
+            return _HubScroll(
+              header: header,
+              onRefresh: () => _refresh(ref),
+              children: [
+                const _ReviewSection(),
+                // Consent forms of minors to verify: only for a coordinator
+                // role carrying `consent:verify` (what the server requires).
+                if (coordinatorRoleCanVerify(user)) ...const [
+                  SizedBox(height: 24),
+                  _ConsentSection(),
+                ],
+                // Constancias de servicio por revisar: solo con la capacidad
+                // `service_credentials.review` (la propia tarjeta lo decide).
+                if (canReviewServiceCredentials(user,
+                    isActing: false)) ...const [
+                  SizedBox(height: 24),
+                  ServiceCredentialsReviewCard(),
+                ],
+                const SizedBox(height: 24),
+                const _ResponseTimeSection(),
+                const SizedBox(height: 24),
+                const _ClubsSection(),
+                const SizedBox(height: 24),
+                const _ReportsSection(),
+              ],
+            );
+          },
+        );
+
+    if (isHome) {
+      return Scaffold(
+        backgroundColor: c.background,
+        body: SafeArea(
+          bottom: false,
+          // No top bar: the scrolls below must not reserve room for one.
+          child: SacFrostedInsetOverride(
+            inset: 0,
+            child: Builder(builder: buildContent),
           ),
         ),
+      );
+    }
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      backgroundColor: c.background,
+      appBar: SacTopBar(
+        title: 'coordinator.hub.title'.tr(),
+        subtitle: subtitle,
+        frosted: true,
+        automaticallyImplyLeading: false,
       ),
-    );
-  }
-}
-
-// ── Notifications action ────────────────────────────────────────────────────
-
-class _NotificationsAction extends StatelessWidget {
-  const _NotificationsAction({required this.unreadCount});
-
-  final int unreadCount;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        SacPressable(
-          listenOnly: true,
-          child: IconButton(
-            enableFeedback: false,
-            onPressed: () => context.push(RouteNames.notificationsInbox),
-            tooltip: 'dashboard.notifications_tooltip'.tr(),
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedNotification01,
-              size: 24,
-              color: c.text,
-            ),
-          ),
-        ),
-        if (unreadCount > 0)
-          Positioned(
-            top: 4,
-            right: 4,
-            child: IgnorePointer(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                decoration: BoxDecoration(
-                  color: c.error,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-                ),
-                constraints: const BoxConstraints(minWidth: 16),
-                child: Text(
-                  unreadCount > 99 ? '99+' : '$unreadCount',
-                  style: textTheme.labelSmall?.copyWith(
-                    color: c.onError,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          ),
-      ],
+      body: SacFrostedVeil(child: Builder(builder: buildContent)),
     );
   }
 }
@@ -402,10 +375,17 @@ String? coordinatorScopeSubtitle(
 // ── Scroll scaffold ─────────────────────────────────────────────────────────
 
 class _HubScroll extends StatelessWidget {
-  const _HubScroll({required this.onRefresh, required this.children});
+  const _HubScroll({
+    required this.onRefresh,
+    required this.children,
+    this.header,
+  });
 
   final Future<void> Function() onRefresh;
   final List<Widget> children;
+
+  /// Greeting of the club-less home, the first thing in the scroll.
+  final Widget? header;
 
   @override
   Widget build(BuildContext context) {
@@ -417,6 +397,7 @@ class _HubScroll extends StatelessWidget {
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
+          if (header != null) SliverToBoxAdapter(child: header),
           SliverPadding(
             padding: SacTopBar.paddingBelowBar(
               context,

@@ -9,6 +9,9 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
+import 'package:sacdia_app/core/widgets/sac_frosted_footer.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/status_progress/status_progress.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/onboarding_mode.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
@@ -16,6 +19,7 @@ import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.d
 import 'package:sacdia_app/features/supervision/domain/entities/supervision_pending_counts.dart';
 import 'package:sacdia_app/features/supervision/presentation/providers/supervision_providers.dart';
 import 'package:sacdia_app/features/supervision/presentation/views/supervision_hub_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_count_pill.dart';
 
 import '../../../coordinator/coordinator_test_harness.dart';
 import '../../../../support/riverpod_test_support.dart';
@@ -60,6 +64,7 @@ const _grant = AuthorizationGrant(
 );
 
 UserEntity _user({
+  String? name,
   List<String> capabilities = _unionCaps,
   AuthorizationTerritory? territory = _unionTerritory,
   List<AuthorizationGrant> clubAssignments = const [],
@@ -67,6 +72,7 @@ UserEntity _user({
     UserEntity(
       id: 'u1',
       email: 'u1@example.com',
+      name: name,
       postRegisterComplete: true,
       onboardingMode: OnboardingMode.clubExempt,
       authorization: AuthorizationSnapshot(
@@ -218,23 +224,103 @@ void main() {
       expect(find.text('Indicadores de clubes y miembros'), findsOneWidget);
     });
 
-    testWidgets('eyebrow shows the total of the visible queues',
-        (tester) async {
+    testWidgets(
+        'summary box shows the total, the queues that hold it and a legend '
+        'per queue', (tester) async {
       await _pumpHub(tester);
 
       // 3 + 2 + (1 + 2) + 4
-      expect(find.text('12'), findsOneWidget);
+      expect(find.textContaining('12  ·  en 4 de 4 colas'), findsOneWidget);
+      expect(find.text('3 DE 4'), findsNothing);
+      expect(find.text('4 DE 4'), findsOneWidget);
+      final bar = tester.widget<SacStatusBar>(find.byType(SacStatusBar));
+      expect(
+        [for (final s in bar.segments!) s.label],
+        ['Inscripciones 3', 'Carpetas 2', 'Traslados 3', 'Camporee 4'],
+      );
     });
 
-    testWidgets('eyebrow total only sums the queues the actor holds',
+    testWidgets('summary only counts the queues the actor holds',
         (tester) async {
       await _pumpHub(
         tester,
         user: _user(capabilities: const [_appView, 'folders.evaluate']),
       );
 
-      expect(find.text('2'), findsOneWidget);
-      expect(find.text('12'), findsNothing);
+      expect(find.textContaining('2  ·  en 1 de 1 cola'), findsOneWidget);
+      expect(find.textContaining('12'), findsNothing);
+    });
+
+    testWidgets('queues at zero are left out of the summary and its count',
+        (tester) async {
+      await _pumpHub(
+        tester,
+        counts: (_) => const SupervisionPendingCounts(
+          territoryLevel: 'union',
+          clubEnrollments: 3,
+        ),
+      );
+
+      expect(find.textContaining('3  ·  en 1 de 4 colas'), findsOneWidget);
+      expect(find.text('1 DE 4'), findsOneWidget);
+      final bar = tester.widget<SacStatusBar>(find.byType(SacStatusBar));
+      expect([for (final s in bar.segments!) s.label], ['Inscripciones 3']);
+    });
+
+    testWidgets('a queue with pending shows a count pill, one at zero does not',
+        (tester) async {
+      await _pumpHub(
+        tester,
+        counts: (_) => const SupervisionPendingCounts(
+          territoryLevel: 'union',
+          clubEnrollments: 3,
+          annualFolders: 0,
+          transfers: 0,
+          roleAssignments: 0,
+          unionCamporeeRegistrations: 0,
+        ),
+      );
+
+      final pill = find.byType(SupervisionCountPill);
+      expect(pill, findsOneWidget);
+      expect(tester.widget<SupervisionCountPill>(pill).count, 3);
+    });
+
+    testWidgets('every queue at zero swaps the summary for "Todo al día"',
+        (tester) async {
+      await _pumpHub(
+        tester,
+        counts: (_) => const SupervisionPendingCounts(
+          territoryLevel: 'union',
+          clubEnrollments: 0,
+          annualFolders: 0,
+          transfers: 0,
+          roleAssignments: 0,
+          unionCamporeeRegistrations: 0,
+        ),
+      );
+
+      expect(find.text('Todo al día'), findsOneWidget);
+      expect(
+        find.text(
+            'No hay nada esperando tu decisión. Te avisamos cuando llegue algo.'),
+        findsOneWidget,
+      );
+      expect(find.byType(SacStatusBar), findsNothing);
+      expect(find.byType(SupervisionCountPill), findsNothing);
+      expect(find.text('0 DE 4'), findsOneWidget);
+      expect(find.text('Al día'), findsNWidgets(4));
+    });
+
+    testWidgets('no summary or all-clear panel while the counts are unknown',
+        (tester) async {
+      await _pumpHub(
+        tester,
+        counts: (_) => const SupervisionPendingCounts(territoryLevel: 'union'),
+      );
+
+      expect(find.text('Todo al día'), findsNothing);
+      expect(find.byType(SacStatusBar), findsNothing);
     });
 
     testWidgets('division actor has no union camporee row', (tester) async {
@@ -424,8 +510,9 @@ void main() {
   });
 
   group('unconfigured territory', () {
-    UserEntity unconfigured() =>
-        _user(territory: const AuthorizationTerritory(level: 'unconfigured'));
+    UserEntity unconfigured({String? name}) => _user(
+        name: name,
+        territory: const AuthorizationTerritory(level: 'unconfigured'));
 
     testWidgets('shows only the state and never reads the counts provider',
         (tester) async {
@@ -440,6 +527,24 @@ void main() {
       expect(find.text('POR ATENDER'), findsNothing);
       expect(find.text('TU TERRITORIO'), findsNothing);
       expect(h.countsCalls, 0);
+    });
+
+    testWidgets('keeps the greeting, a hint and a fixed recheck footer',
+        (tester) async {
+      await _pumpHub(tester, user: unconfigured(name: 'Mateo Herrera'));
+
+      expect(find.text('Mateo!'), findsOneWidget);
+      expect(find.text('Supervisión'), findsOneWidget);
+      expect(
+          find.textContaining('Cuando esté lista verás aquí'), findsOneWidget);
+      expect(find.byType(SacFrostedFooter), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(SacFrostedFooter),
+          matching: find.text('Comprobar de nuevo'),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('recheck calls refreshAuthorization and reports no change',
@@ -458,14 +563,36 @@ void main() {
     });
   });
 
-  group('top bar', () {
-    testWidgets('subtitle names the union level', (tester) async {
-      await _pumpHub(tester);
+  group('greeting header (home without a club)', () {
+    testWidgets('greets the user by first name and names the union level',
+        (tester) async {
+      await _pumpHub(tester, user: _user(name: 'Mateo Herrera'));
+
+      expect(find.text('Mateo!'), findsOneWidget);
       expect(find.text('Unión'), findsOneWidget);
       expect(find.text('División'), findsNothing);
+      // Section title under the greeting.
+      expect(find.text('Supervisión'), findsOneWidget);
+      expect(find.byType(SacTopBar), findsNothing);
     });
 
-    testWidgets('subtitle names the division level', (tester) async {
+    testWidgets('names the territory when the server sends its name',
+        (tester) async {
+      await _pumpHub(
+        tester,
+        user: _user(
+          territory: const AuthorizationTerritory(
+            level: 'union',
+            unionId: 1,
+            name: 'Unión Mexicana del Sur',
+          ),
+        ),
+      );
+      expect(find.text('Unión Mexicana del Sur'), findsOneWidget);
+      expect(find.text('Unión'), findsNothing);
+    });
+
+    testWidgets('names the division level', (tester) async {
       await _pumpHub(
         tester,
         user: _user(territory: _divisionTerritory),
@@ -486,10 +613,18 @@ void main() {
           find.text('page:${RouteNames.notificationsInbox}'), findsOneWidget);
     });
 
-    testWidgets('bell is hidden when the supervisor also has a club',
-        (tester) async {
-      await _pumpHub(tester, user: _user(clubAssignments: const [_grant]));
+    testWidgets(
+        'with a club the hub is a tab: top bar with the level, no greeting '
+        'and no bell', (tester) async {
+      await _pumpHub(
+        tester,
+        user: _user(name: 'Mateo Herrera', clubAssignments: const [_grant]),
+      );
 
+      expect(find.byType(SacTopBar), findsOneWidget);
+      expect(find.text('Supervisión'), findsOneWidget);
+      expect(find.text('Unión'), findsOneWidget);
+      expect(find.text('Mateo!'), findsNothing);
       expect(find.byTooltip('Notificaciones'), findsNothing);
       expect(find.text(_enrollTitle), findsOneWidget);
     });

@@ -29,6 +29,7 @@ const Map<String, String> routeScreenIds = {
   RouteNames.supervisionEnrollments: 'supervision-enrollments',
   RouteNames.supervisionFolders: 'supervision-folders',
   RouteNames.supervisionFolderDetailRoute: 'supervision-folders',
+  RouteNames.supervisionFolderSectionRoute: 'supervision-folders',
   RouteNames.supervisionRequests: 'supervision-requests',
   RouteNames.supervisionOperations: 'supervision-operations',
   RouteNames.supervisionClubs: 'supervision-clubs',

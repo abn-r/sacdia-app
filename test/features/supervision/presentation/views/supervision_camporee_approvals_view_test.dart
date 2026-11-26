@@ -11,11 +11,14 @@ import 'package:intl/intl.dart' as intl;
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/errors/forbidden.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
+import 'package:sacdia_app/core/widgets/sac_tone.dart';
 import 'package:sacdia_app/core/widgets/sac_value_row.dart';
 import 'package:sacdia_app/features/supervision/domain/entities/supervision_union_camporee.dart';
 import 'package:sacdia_app/features/supervision/presentation/views/supervision_camporee_approvals_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_segmented_control.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_status_chip.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_voucher_card.dart';
 
 import 'supervision_camporee_test_harness.dart';
 import 'supervision_view_test_harness.dart';
@@ -83,9 +86,32 @@ Future<CamporeeEnv> _pump(
 
 String _date(DateTime when) => intl.DateFormat.yMMMd('es').format(when);
 
-Finder _chip(String label) => find.widgetWithText(SacFilterChip, label);
+typedef _Control = SupervisionSegmentedControl<SupervisionCamporeeApprovalKind>;
+
+/// A segment of the kind control, found by its label.
+Finder _seg(String label) => find.descendant(
+      of: find.byType(_Control),
+      matching: find.textContaining(label, findRichText: true),
+    );
+
+SupervisionSegment<SupervisionCamporeeApprovalKind> _segmentOf(
+  WidgetTester tester,
+  String label,
+) =>
+    tester
+        .widget<_Control>(find.byType(_Control))
+        .segments
+        .firstWhere((segment) => segment.label == label);
+
+SupervisionCamporeeApprovalKind _selectedKind(WidgetTester tester) =>
+    tester.widget<_Control>(find.byType(_Control)).selected;
 
 Finder _button(String text) => find.widgetWithText(SacButton, text);
+
+/// The primary of the sheet: «Aprobar inscripción» or «Aprobar pago».
+final _approveBtn = find.byWidgetPredicate(
+  (w) => w is SacButton && w.text.startsWith('Aprobar'),
+);
 
 Finder _row(String label, String value) => find.byWidgetPredicate(
       (w) => w is SacValueRow && w.label == label && w.value == value,
@@ -101,12 +127,10 @@ Future<void> _openSheet(WidgetTester tester, String title) async {
   await tester.pumpAndSettle();
 }
 
-/// Taps "Aprobar" in the sheet and confirms the dialog.
+/// Taps the approve button of the sheet: it approves right away, with no
+/// confirmation dialog in between.
 Future<void> _approve(WidgetTester tester) async {
-  await tester.tap(_button('Aprobar'));
-  await tester.pumpAndSettle();
-  // The dialog repeats the label: its action sits on top.
-  await tester.tap(find.text('Aprobar').last);
+  await tester.tap(_approveBtn);
   await tester.pumpAndSettle();
 }
 
@@ -208,7 +232,7 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.byType(SacFilterChip), findsNothing);
+      expect(find.byType(_Control), findsNothing);
     });
 
     testWidgets('a load error shows retry and retrying reloads', (
@@ -261,7 +285,7 @@ void main() {
   });
 
   group('kind chips', () {
-    testWidgets('carry the count of each kind, none when 0', (tester) async {
+    testWidgets('carry the count of each kind, 0 included', (tester) async {
       await _pump(
         tester,
         repo: _repoWith(
@@ -272,10 +296,9 @@ void main() {
         ),
       );
 
-      expect(_chip('Clubes · 2'), findsOneWidget);
-      expect(_chip('Miembros · 1'), findsOneWidget);
-      expect(_chip('Pagos'), findsOneWidget);
-      expect(find.textContaining('Pagos ·'), findsNothing);
+      expect(_segmentOf(tester, 'Clubes').count, 2);
+      expect(_segmentOf(tester, 'Miembros').count, 1);
+      expect(_segmentOf(tester, 'Pagos').count, 0);
     });
 
     testWidgets('opens on clubs when clubs wait', (tester) async {
@@ -290,11 +313,10 @@ void main() {
         ),
       );
 
-      expect(
-          tester.widget<SacFilterChip>(_chip('Clubes · 1')).selected, isTrue);
+      expect(_selectedKind(tester), SupervisionCamporeeApprovalKind.club);
       expect(find.text('Club 1'), findsOneWidget);
       expect(find.text('Miembro 1'), findsNothing);
-      expect(find.text('Pagador p1'), findsNothing);
+      expect(find.text('Club Orión'), findsNothing);
     });
 
     testWidgets('opens on members when there are no clubs', (tester) async {
@@ -308,8 +330,7 @@ void main() {
         ),
       );
 
-      expect(
-          tester.widget<SacFilterChip>(_chip('Miembros · 1')).selected, isTrue);
+      expect(_selectedKind(tester), SupervisionCamporeeApprovalKind.member);
       expect(find.text('Miembro 1'), findsOneWidget);
     });
 
@@ -319,8 +340,8 @@ void main() {
         repo: _repoWith(_pending(payments: [pendingPayment('p1')])),
       );
 
-      expect(tester.widget<SacFilterChip>(_chip('Pagos · 1')).selected, isTrue);
-      expect(find.text('Pagador p1'), findsOneWidget);
+      expect(_selectedKind(tester), SupervisionCamporeeApprovalKind.payment);
+      expect(find.text('Club Orión'), findsOneWidget);
     });
 
     testWidgets('switching chips swaps the cards', (tester) async {
@@ -335,16 +356,15 @@ void main() {
         ),
       );
 
-      await tester.tap(_chip('Miembros · 1'));
+      await tester.tap(_seg('Miembros'));
       await tester.pumpAndSettle();
       expect(find.text('Miembro 1'), findsOneWidget);
       expect(find.text('Club 1'), findsNothing);
-      expect(
-          tester.widget<SacFilterChip>(_chip('Miembros · 1')).selected, isTrue);
+      expect(_selectedKind(tester), SupervisionCamporeeApprovalKind.member);
 
-      await tester.tap(_chip('Pagos · 1'));
+      await tester.tap(_seg('Pagos'));
       await tester.pumpAndSettle();
-      expect(find.text('Pagador p1'), findsOneWidget);
+      expect(find.text('Club Orión'), findsOneWidget);
       expect(find.text('Miembro 1'), findsNothing);
     });
 
@@ -356,18 +376,18 @@ void main() {
         repo: _repoWith(_pending(clubs: [pendingClub(1)])),
       );
 
-      await tester.tap(_chip('Pagos'));
+      await tester.tap(_seg('Pagos'));
       await tester.pumpAndSettle();
 
       expect(find.text('Nada por aprobar aquí'), findsOneWidget);
       expect(find.text('Club 1'), findsNothing);
       // The chips stay so the reviewer can go back.
-      expect(_chip('Clubes · 1'), findsOneWidget);
+      expect(_seg('Clubes'), findsOneWidget);
     });
   });
 
   group('cards', () {
-    testWidgets('a club card shows name, section and who registered it', (
+    testWidgets('a club row shows its name, section and the late eyebrow', (
       tester,
     ) async {
       await _pump(
@@ -375,30 +395,16 @@ void main() {
         repo: _repoWith(
           _pending(
             clubs: [
-              pendingClub(
-                1,
-                name: 'Club Orión',
-                section: 'Aventureros',
-                registeredBy: 'Elena Ruiz',
-              ),
+              pendingClub(1, name: 'Club Orión', section: 'Aventureros'),
             ],
           ),
         ),
       );
 
+      expect(find.text('FUERA DE PLAZO'), findsOneWidget);
       expect(find.text('Club Orión'), findsOneWidget);
       expect(find.text('Aventureros'), findsOneWidget);
-      expect(find.text('Registró: Elena Ruiz'), findsOneWidget);
-    });
-
-    testWidgets('a club card without registrant has no "Registró" line', (
-      tester,
-    ) async {
-      await _pump(
-        tester,
-        repo: _repoWith(_pending(clubs: [pendingClub(1, registeredBy: null)])),
-      );
-
+      // Who registered it lives in the sheet, not in the row.
       expect(find.textContaining('Registró'), findsNothing);
     });
 
@@ -431,6 +437,9 @@ void main() {
       expect(find.text('Seguro verificado'), findsOneWidget);
       expect(find.text('Luis Gómez'), findsOneWidget);
       expect(find.text('Seguro sin verificar'), findsOneWidget);
+      // The insurance is a chip under the club, not plain text.
+      expect(find.byType(SupervisionStatusChip), findsNWidgets(2));
+      expect(find.text('AP'), findsOneWidget);
     });
 
     testWidgets('an unnamed member falls back to «Miembro sin nombre»', (
@@ -444,9 +453,9 @@ void main() {
       expect(find.text('Miembro sin nombre'), findsOneWidget);
     });
 
-    testWidgets('a payment card shows member, club, amount and type', (
-      tester,
-    ) async {
+    testWidgets(
+        'a payment row shows club, type and reference, amount at the end',
+        (tester) async {
       await _pump(
         tester,
         repo: _repoWith(
@@ -454,19 +463,19 @@ void main() {
             payments: [
               pendingPayment(
                 'p1',
-                member: 'Ana Pérez',
-                club: 'Club Orión',
+                club: 'Orión',
                 amount: 350,
+                reference: '4471',
               ),
               pendingPayment(
                 'p2',
-                member: 'Luis Gómez',
+                club: 'Vega',
                 amount: 1250.5,
                 type: SupervisionCamporeePaymentType.materials,
               ),
               pendingPayment(
                 'p3',
-                member: 'Rosa Díaz',
+                club: 'Lira',
                 amount: 10,
                 type: SupervisionCamporeePaymentType.unknown,
               ),
@@ -475,11 +484,14 @@ void main() {
         ),
       );
 
-      expect(find.text('Ana Pérez'), findsOneWidget);
-      expect(find.text('\$350.00 · Inscripción'), findsOneWidget);
-      expect(find.text('\$1,250.50 · Materiales'), findsOneWidget);
+      expect(find.text('Orión'), findsOneWidget);
+      expect(find.text('Inscripción · ref. 4471'), findsOneWidget);
+      expect(find.text('\$350.00'), findsOneWidget);
+      expect(find.text('Materiales'), findsOneWidget);
+      expect(find.text('\$1,250.50'), findsOneWidget);
       // Anything the app does not know is "Otro".
-      expect(find.text('\$10.00 · Otro'), findsOneWidget);
+      expect(find.text('Otro'), findsOneWidget);
+      expect(find.text('\$10.00'), findsOneWidget);
     });
   });
 
@@ -537,6 +549,7 @@ void main() {
               pendingPayment(
                 'p1',
                 member: 'Ana Pérez',
+                club: 'Club Orión',
                 amount: 350,
                 reference: 'REF-123',
                 notes: 'Pago en dos partes',
@@ -546,12 +559,16 @@ void main() {
           ),
         ),
       );
-      await _openSheet(tester, 'Ana Pérez');
+      await _openSheet(tester, 'Club Orión');
 
-      expect(find.text('Pago'), findsOneWidget);
-      expect(_row('Monto', '\$350.00'), findsOneWidget);
-      expect(_row('Tipo', 'Inscripción'), findsOneWidget);
-      expect(_row('Club', 'Club Orión'), findsOneWidget);
+      expect(find.text('Pago de Club Orión'), findsOneWidget);
+      expect(
+        find.text('Inscripción · pagado el ${_date(paid)}'),
+        findsOneWidget,
+      );
+      // The amount, big at the top (and still in the row behind the sheet).
+      expect(find.text('\$350.00'), findsNWidgets(2));
+      expect(_row('Pagador', 'Ana Pérez'), findsOneWidget);
       expect(_row('Referencia', 'REF-123'), findsOneWidget);
       expect(_row('Fecha de pago', _date(paid)), findsOneWidget);
       expect(_row('Notas', 'Pago en dos partes'), findsOneWidget);
@@ -563,12 +580,12 @@ void main() {
       await _pump(
         tester,
         repo: _repoWith(
-          _pending(payments: [pendingPayment('p1', member: 'Ana Pérez')]),
+          _pending(payments: [pendingPayment('p1', club: 'Ana Pérez')]),
         ),
       );
       await _openSheet(tester, 'Ana Pérez');
 
-      expect(_rowLabel('Monto'), findsOneWidget);
+      expect(_rowLabel('Pagador'), findsOneWidget);
       expect(_rowLabel('Notas'), findsNothing);
       expect(_rowLabel('Referencia'), findsNothing);
       expect(_rowLabel('Fecha de pago'), findsNothing);
@@ -579,7 +596,7 @@ void main() {
         tester,
         repo: _repoWith(
           _pending(
-            payments: [pendingPayment('p1', member: 'Ana Pérez', notes: '  ')],
+            payments: [pendingPayment('p1', club: 'Ana Pérez', notes: '  ')],
           ),
         ),
       );
@@ -598,11 +615,11 @@ void main() {
             payments: [
               pendingPayment(
                 'p1',
-                member: 'Con Voucher',
+                club: 'Con Voucher',
                 voucherUrl: 'https://example.com/v.png',
               ),
-              pendingPayment('p2', member: 'Sin Voucher'),
-              pendingPayment('p3', member: 'Voucher Vacío', voucherUrl: '  '),
+              pendingPayment('p2', club: 'Sin Voucher'),
+              pendingPayment('p3', club: 'Voucher Vacío', voucherUrl: '  '),
             ],
           ),
         ),
@@ -635,7 +652,7 @@ void main() {
       await _openSheet(tester, 'Club 1');
 
       expect(_sheetOpen, findsOneWidget);
-      expect(_button('Aprobar'), findsNothing);
+      expect(_approveBtn, findsNothing);
       expect(_button('Rechazar'), findsNothing);
     });
 
@@ -646,64 +663,45 @@ void main() {
       );
       await _openSheet(tester, 'Club 1');
 
-      expect(tester.widget<SacButton>(_button('Aprobar')).isEnabled, isTrue);
+      expect(tester.widget<SacButton>(_approveBtn).isEnabled, isTrue);
       expect(tester.widget<SacButton>(_button('Rechazar')).isEnabled, isTrue);
     });
   });
 
   group('approve', () {
-    testWidgets('the confirm dialog names the club', (tester) async {
-      await _pump(
-        tester,
-        repo: _repoWith(_pending(clubs: [pendingClub(1, name: 'Club Orión')])),
-      );
-      await _openSheet(tester, 'Club Orión');
-
-      await tester.tap(_button('Aprobar'));
-      await tester.pumpAndSettle();
-
-      expect(
-          find.text('¿Aprobar la inscripción de Club Orión?'), findsOneWidget);
-      expect(
-        find.text(
-          'Queda inscrito en el camporee y cuenta para el cobro y la agenda.',
-        ),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('the confirm dialog of a payment names the payer', (
-      tester,
-    ) async {
-      await _pump(
-        tester,
-        repo: _repoWith(
-          _pending(payments: [pendingPayment('p1', member: 'Ana Pérez')]),
-        ),
-      );
-      await _openSheet(tester, 'Ana Pérez');
-
-      await tester.tap(_button('Aprobar'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('¿Aprobar el pago de Ana Pérez?'), findsOneWidget);
-    });
-
-    testWidgets('cancelling the dialog calls nothing and keeps the sheet', (
+    testWidgets('the primary approves right away, with no confirm dialog', (
       tester,
     ) async {
       final repo = _repoWith(_pending(clubs: [pendingClub(1)]));
       await _pump(tester, repo: repo);
       await _openSheet(tester, 'Club 1');
 
-      await tester.tap(_button('Aprobar'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Cancelar'));
+      expect(find.text('Aprobar inscripción'), findsOneWidget);
+      await tester.tap(_approveBtn);
       await tester.pumpAndSettle();
 
-      expect(repo.decisions, isEmpty);
-      expect(_sheetOpen, findsOneWidget);
-      expect(find.text('Inscripción aprobada'), findsNothing);
+      expect(find.textContaining('¿Aprobar'), findsNothing);
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(repo.decisions, hasLength(1));
+    });
+
+    testWidgets('a payment says «Aprobar pago» with «Rechazar» under it', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        repo: _repoWith(
+          _pending(payments: [pendingPayment('p1', club: 'Orión')]),
+        ),
+      );
+      await _openSheet(tester, 'Orión');
+
+      expect(_button('Aprobar pago'), findsOneWidget);
+      expect(_button('Rechazar'), findsOneWidget);
+      expect(
+        tester.getTopLeft(_button('Aprobar pago')).dy,
+        lessThan(tester.getTopLeft(_button('Rechazar')).dy),
+      );
     });
 
     testWidgets('a club is approved with its ids, toasts and closes the sheet',
@@ -734,12 +732,7 @@ void main() {
       await _pump(tester, repo: repo, camporeeId: '5');
       await _openSheet(tester, 'Miembro 21');
 
-      await tester.tap(_button('Aprobar'));
-      await tester.pumpAndSettle();
-      expect(
-          find.text('¿Aprobar la inscripción de Miembro 21?'), findsOneWidget);
-      await tester.tap(find.text('Aprobar').last);
-      await tester.pumpAndSettle();
+      await _approve(tester);
 
       final d = repo.decisions.single;
       expect(d.kind, DecisionKind.member);
@@ -755,7 +748,7 @@ void main() {
       tester,
     ) async {
       final repo = _repoWith(
-        _pending(payments: [pendingPayment('uuid-1', member: 'Ana Pérez')]),
+        _pending(payments: [pendingPayment('uuid-1', club: 'Ana Pérez')]),
       );
       await _pump(tester, repo: repo);
       await _openSheet(tester, 'Ana Pérez');
@@ -788,7 +781,7 @@ void main() {
       expect(env.countsCalls, 2);
       expect(find.text('Club 1'), findsNothing);
       expect(find.text('Club 2'), findsOneWidget);
-      expect(_chip('Clubes · 1'), findsOneWidget);
+      expect(_seg('Clubes'), findsOneWidget);
     });
 
     testWidgets('deciding the last item shows the empty state', (tester) async {
@@ -810,19 +803,17 @@ void main() {
       await _pump(tester, repo: repo);
       await _openSheet(tester, 'Club 1');
 
-      await tester.tap(_button('Aprobar'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Aprobar').last);
+      await tester.tap(_approveBtn);
       // Not settled: the loading button never stops animating.
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
       expect(repo.decisions, hasLength(1));
-      expect(tester.widget<SacButton>(_button('Aprobar')).isEnabled, isFalse);
-      expect(tester.widget<SacButton>(_button('Aprobar')).isLoading, isTrue);
+      expect(tester.widget<SacButton>(_approveBtn).onPressed, isNull);
+      expect(tester.widget<SacButton>(_approveBtn).isLoading, isTrue);
       expect(tester.widget<SacButton>(_button('Rechazar')).isEnabled, isFalse);
 
-      await tester.tap(_button('Aprobar'), warnIfMissed: false);
+      await tester.tap(_approveBtn, warnIfMissed: false);
       await tester.tap(_button('Rechazar'), warnIfMissed: false);
       await tester.pump();
       await tester.pump();
@@ -862,7 +853,7 @@ void main() {
       await _pump(
         tester,
         repo: _repoWith(
-          _pending(payments: [pendingPayment('p1', member: 'Ana Pérez')]),
+          _pending(payments: [pendingPayment('p1', club: 'Ana Pérez')]),
         ),
       );
       await _openSheet(tester, 'Ana Pérez');
@@ -939,7 +930,7 @@ void main() {
       tester,
     ) async {
       final repo = _repoWith(
-        _pending(payments: [pendingPayment('uuid-9', member: 'Ana Pérez')]),
+        _pending(payments: [pendingPayment('uuid-9', club: 'Ana Pérez')]),
       );
       await _pump(tester, repo: repo);
       await _openSheet(tester, 'Ana Pérez');
@@ -984,7 +975,7 @@ void main() {
           _pending(
             clubs: [pendingClub(1, name: 'Item')],
             members: [pendingMember(1, name: 'Item')],
-            payments: [pendingPayment('p1', member: 'Item')],
+            payments: [pendingPayment('p1', club: 'Item')],
           ),
         );
         // The first load serves every kind; later loads, an empty queue.
@@ -995,15 +986,15 @@ void main() {
           return loads == 1
               ? served(id)
               : Future.value(Right(_pending(payments: [
-                  pendingPayment('other', member: 'Otra persona'),
+                  pendingPayment('other', club: 'Otra persona'),
                 ])));
         };
         repo.onDecide = (_) async => Left(coded(entry.value));
         await _pump(tester, repo: repo);
-        await tester.tap(_chip(switch (entry.key) {
-          DecisionKind.club => 'Clubes · 1',
-          DecisionKind.member => 'Miembros · 1',
-          DecisionKind.payment => 'Pagos · 1',
+        await tester.tap(_seg(switch (entry.key) {
+          DecisionKind.club => 'Clubes',
+          DecisionKind.member => 'Miembros',
+          DecisionKind.payment => 'Pagos',
         }));
         await tester.pumpAndSettle();
         await _openSheet(tester, 'Item');
@@ -1050,7 +1041,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('server says no'), findsNothing);
-      expect(tester.widget<SacButton>(_button('Aprobar')).isEnabled, isTrue);
+      expect(tester.widget<SacButton>(_approveBtn).isEnabled, isTrue);
     });
 
     testWidgets('a 403 shows the inline permission text', (tester) async {
@@ -1105,7 +1096,7 @@ void main() {
       final repo = _repoWith(_pending(payments: [pendingPayment('p1')]))
         ..onDecide = ((_) async => const Left(kCamporeeBoom));
       await _pump(tester, repo: repo);
-      await _openSheet(tester, 'Pagador p1');
+      await _openSheet(tester, 'Club Orión');
 
       await _reject(tester, 'Comprobante ilegible');
 
@@ -1154,7 +1145,7 @@ void main() {
         .substring(0, 70);
     final clubName = long('Club');
     final memberName = long('Miembro');
-    final payerName = long('Pagador');
+    final paymentClub = long('Club P');
 
     SupervisionCamporeePending longPending() => _pending(
           clubs: [
@@ -1169,8 +1160,8 @@ void main() {
           payments: [
             pendingPayment(
               'p1',
-              member: payerName,
-              club: long('Club P'),
+              member: long('Pagador'),
+              club: paymentClub,
               reference: long('Ref'),
               notes: '${long('Nota')} ${long('Nota')}',
               paidAt: DateTime(2026, 11, 10),
@@ -1179,19 +1170,8 @@ void main() {
           ],
         );
 
-    /// The chip row is a lazy horizontal list: scroll it to the chip.
     Future<void> tapChip(WidgetTester tester, String label) async {
-      await tester.scrollUntilVisible(
-        _chip(label),
-        80,
-        scrollable: find
-            .byWidgetPredicate(
-              (w) => w is Scrollable && w.axis == Axis.horizontal,
-            )
-            .first,
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(_chip(label));
+      await tester.tap(_seg(label));
       await tester.pumpAndSettle();
     }
 
@@ -1217,7 +1197,7 @@ void main() {
             size: _narrow,
             textScale: scale,
           );
-          await tapChip(tester, 'Miembros · 1');
+          await tapChip(tester, 'Miembros');
 
           expectNoLayoutException(tester);
           expect(find.text(memberName), findsOneWidget);
@@ -1230,10 +1210,10 @@ void main() {
             size: _narrow,
             textScale: scale,
           );
-          await tapChip(tester, 'Pagos · 1');
+          await tapChip(tester, 'Pagos');
 
           expectNoLayoutException(tester);
-          expect(find.text(payerName), findsOneWidget);
+          expect(find.text(paymentClub), findsOneWidget);
         });
 
         testWidgets('320x640: club sheet does not overflow', (tester) async {
@@ -1256,7 +1236,7 @@ void main() {
             size: _narrow,
             textScale: scale,
           );
-          await tapChip(tester, 'Miembros · 1');
+          await tapChip(tester, 'Miembros');
           await _openSheet(tester, memberName);
 
           expectNoLayoutException(tester);
@@ -1270,8 +1250,8 @@ void main() {
             size: _narrow,
             textScale: scale,
           );
-          await tapChip(tester, 'Pagos · 1');
-          await _openSheet(tester, payerName);
+          await tapChip(tester, 'Pagos');
+          await _openSheet(tester, paymentClub);
 
           expectNoLayoutException(tester);
           expect(_sheetOpen, findsOneWidget);
@@ -1292,23 +1272,6 @@ void main() {
 
           expectNoLayoutException(tester);
           expect(find.text('Motivo'), findsOneWidget);
-        });
-
-        testWidgets('320x640: approve dialog does not overflow',
-            (tester) async {
-          await _pump(
-            tester,
-            repo: _repoWith(longPending()),
-            size: _narrow,
-            textScale: scale,
-          );
-          await _openSheet(tester, clubName);
-          await tester.tap(_button('Aprobar'));
-          await tester.pumpAndSettle();
-
-          expectNoLayoutException(tester);
-          expect(find.textContaining('¿Aprobar la inscripción de'),
-              findsOneWidget);
         });
       });
     }
@@ -1334,6 +1297,94 @@ void main() {
       );
 
       expectNoLayoutException(tester);
+    });
+  });
+
+  group('redesign: voucher card and queue language', () {
+    testWidgets('an image voucher is a tappable thumbnail card', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        repo: _repoWith(
+          _pending(
+            payments: [
+              pendingPayment(
+                'p1',
+                club: 'Orión',
+                voucherUrl: 'https://example.com/v.png',
+              ),
+            ],
+          ),
+        ),
+      );
+      await _openSheet(tester, 'Orión');
+
+      expect(find.byType(SupervisionVoucherCard), findsOneWidget);
+      expect(find.text('Ver comprobante'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(SupervisionVoucherCard),
+          matching: find.byType(InkWell),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a PDF voucher shows a file tile, never an image', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        repo: _repoWith(
+          _pending(
+            payments: [
+              pendingPayment(
+                'p1',
+                club: 'Orión',
+                voucherUrl: 'https://example.com/v.pdf',
+              ),
+            ],
+          ),
+        ),
+      );
+      await _openSheet(tester, 'Orión');
+
+      expect(find.byType(SupervisionVoucherCard), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(SupervisionVoucherCard),
+          matching: find.byType(Image),
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('a member that is not insured gets the warning chip', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        repo: _repoWith(_pending(members: [pendingMember(1, insured: false)])),
+      );
+
+      final chip = tester.widget<SupervisionStatusChip>(
+        find.byType(SupervisionStatusChip),
+      );
+      expect(chip.label, 'Seguro sin verificar');
+      expect(chip.tone, SacTone.warning);
+    });
+
+    testWidgets('the segmented control defaults to the first with pending', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        repo: _repoWith(_pending(payments: [pendingPayment('p1')])),
+      );
+
+      expect(find.byType(_Control), findsOneWidget);
+      expect(_selectedKind(tester), SupervisionCamporeeApprovalKind.payment);
     });
   });
 }

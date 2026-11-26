@@ -11,10 +11,14 @@ import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/errors/forbidden.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
-import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
+import 'package:sacdia_app/core/widgets/sac_list_row.dart';
+import 'package:sacdia_app/core/widgets/status_progress/sac_grouped_section.dart';
 import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 import 'package:sacdia_app/features/supervision/domain/entities/supervision_folder.dart';
 import 'package:sacdia_app/features/supervision/presentation/views/supervision_folders_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_segmented_control.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_status_chip.dart';
+import 'package:sacdia_app/features/transfers/presentation/widgets/club_type_tile.dart';
 
 import 'supervision_folders_test_harness.dart';
 import 'supervision_view_test_harness.dart';
@@ -38,7 +42,26 @@ Future<FakeFoldersRepo> _pump(
   return fake;
 }
 
-Finder _chip(String label) => find.widgetWithText(SacFilterChip, label);
+typedef _Control = SupervisionSegmentedControl<SupervisionFolderQueueFilter>;
+
+/// A segment of the queue control, found by its label.
+Finder _chip(String label) => find.descendant(
+      of: find.byType(_Control),
+      matching: find.textContaining(label, findRichText: true),
+    );
+
+SupervisionSegment<SupervisionFolderQueueFilter> _segmentOf(
+  WidgetTester tester,
+  String label,
+) =>
+    tester
+        .widget<_Control>(find.byType(_Control))
+        .segments
+        .firstWhere((s) => s.label == label);
+
+bool _chipSelected(WidgetTester tester, String label) =>
+    tester.widget<_Control>(find.byType(_Control)).selected ==
+    _segmentOf(tester, label).value;
 
 void main() {
   setUpAll(initSupervisionViewTests);
@@ -183,18 +206,80 @@ void main() {
       expect(find.textContaining(' · '), findsNothing);
     });
 
-    testWidgets('lists the pending section names when there are any', (
+    testWidgets('says how many sections wait, not which ones', (
       tester,
     ) async {
       final repo = FakeFoldersRepo()
         ..onQueue = (_) async => Right(queuePage([
-              queueItem('1', pending: const ['Tesorería', 'Secretaría']),
+              queueItem(
+                '1',
+                pending: const ['Tesorería', 'Secretaría'],
+                totalSections: 9,
+                submittedSections: 2,
+              ),
             ]));
       await _pump(tester, repo: repo);
 
-      expect(find.text('Por revisar: Tesorería, Secretaría'), findsOneWidget);
+      expect(find.text('2 por evaluar'), findsOneWidget);
+      expect(find.textContaining('Tesorería'), findsNothing);
       // The folder status is only the fallback.
       expect(find.text('Enviada'), findsNothing);
+    });
+
+    testWidgets('a folder waiting for the Union gets the blue chip', (
+      tester,
+    ) async {
+      final repo = FakeFoldersRepo()
+        ..onQueue = (_) async => Right(queuePage([
+              queueItem('1', totalSections: 6, preapprovedSections: 1),
+              queueItem('2',
+                  totalSections: 6,
+                  submittedSections: 1,
+                  preapprovedSections: 3),
+            ]));
+      await _pump(tester, repo: repo);
+
+      expect(find.text('1 espera a la Unión'), findsOneWidget);
+      expect(find.text('3 esperan a la Unión'), findsOneWidget);
+      expect(find.text('1 por evaluar'), findsOneWidget);
+      expect(find.byType(SupervisionStatusChip), findsNWidgets(3));
+    });
+
+    testWidgets('a thin bar shows the share of sections already evaluated', (
+      tester,
+    ) async {
+      final repo = FakeFoldersRepo()
+        ..onQueue = (_) async => Right(queuePage([
+              queueItem('1',
+                  totalSections: 4,
+                  submittedSections: 2,
+                  validatedSections: 1,
+                  preapprovedSections: 1),
+              queueItem('2'),
+            ]));
+      await _pump(tester, repo: repo);
+
+      final bars = tester.widgetList<LinearProgressIndicator>(
+          find.byType(LinearProgressIndicator));
+      // The folder without sections draws no bar.
+      expect(bars, hasLength(1));
+      expect(bars.single.value, 0.5);
+    });
+
+    testWidgets('each row carries the logo tile and a single grouped list', (
+      tester,
+    ) async {
+      final repo = FakeFoldersRepo()
+        ..onQueue = (_) async => Right(queuePage([
+              queueItem('1'),
+              queueItem('2'),
+            ]));
+      await _pump(tester, repo: repo);
+
+      expect(find.byType(ClubTypeTile), findsNWidgets(2));
+      expect(find.byType(SacListRow), findsNWidgets(2));
+      expect(find.byType(SacGroupedSection), findsOneWidget);
+      expect(find.text('MÁS ANTIGUAS PRIMERO'), findsOneWidget);
     });
 
     testWidgets('shows the folder status when no section is pending', (
@@ -222,8 +307,7 @@ void main() {
       expect(repo.queueCalls, hasLength(1));
       expect(repo.queueCalls.single.filter,
           SupervisionFolderQueueFilter.needsReview);
-      expect(
-          tester.widget<SacFilterChip>(_chip('Por revisar')).selected, isTrue);
+      expect(_chipSelected(tester, 'Por revisar'), isTrue);
     });
 
     testWidgets('tapping a chip selects it and replaces the list', (
@@ -244,9 +328,8 @@ void main() {
       expect(
           repo.queueCalls.last.filter, SupervisionFolderQueueFilter.evaluated);
       expect(repo.queueCalls.last.page, 1);
-      expect(tester.widget<SacFilterChip>(_chip('Evaluadas')).selected, isTrue);
-      expect(
-          tester.widget<SacFilterChip>(_chip('Por revisar')).selected, isFalse);
+      expect(_chipSelected(tester, 'Evaluadas'), isTrue);
+      expect(_chipSelected(tester, 'Por revisar'), isFalse);
       expect(find.text('Carpeta evaluada'), findsOneWidget);
       expect(find.text('Carpeta pendiente'), findsNothing);
     });

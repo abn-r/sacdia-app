@@ -8,32 +8,36 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/money_format.dart';
-import 'package:sacdia_app/core/widgets/sac_card.dart';
-import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
-import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_list_row.dart';
+import 'package:sacdia_app/core/widgets/sac_member_avatar.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_tone.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_value_row.dart';
 import 'package:sacdia_app/core/widgets/status_progress/sac_grouped_section.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
-import 'package:sacdia_app/features/coordinator/presentation/widgets/approval_action_buttons.dart';
 import 'package:sacdia_app/features/supervision/domain/entities/supervision_union_camporee.dart';
 import 'package:sacdia_app/features/supervision/presentation/providers/supervision_action_result.dart';
 import 'package:sacdia_app/features/supervision/presentation/providers/supervision_providers.dart';
 import 'package:sacdia_app/features/supervision/presentation/providers/supervision_union_camporees_providers.dart';
-import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_card_header.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_actions.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_decision_sheet.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_format.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_messages.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_row_parts.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_scroll.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_segmented_control.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_status_chip.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_voucher_card.dart';
+import 'package:sacdia_app/features/transfers/presentation/widgets/club_type_tile.dart';
+import 'package:sacdia_app/core/theme/club_type.dart';
 
 /// Server limit of a rejection reason.
 const int _kReasonMaxLength = 500;
@@ -198,21 +202,13 @@ class _Queue extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cards = <Widget>[
+    final rows = <Widget>[
       ...switch (kind) {
         SupervisionCamporeeApprovalKind.club => [
             for (final club in pending.clubs)
-              _ItemCard(
-                title: _orUnnamed(
-                  club.clubName,
-                  'supervision.union_camporees.unknown_club',
-                ),
-                when: club.createdAt,
-                secondary: club.sectionName,
-                detail: club.registeredByName == null
-                    ? null
-                    : 'supervision.union_camporees.registered_by'
-                        .tr(args: [club.registeredByName!]),
+              _ClubRow(
+                key: ValueKey('club-${club.id}'),
+                club: club,
                 onTap: () => _showItem(
                   context,
                   _ItemSheet.club(camporeeId: camporeeId, club: club),
@@ -221,19 +217,9 @@ class _Queue extends StatelessWidget {
           ],
         SupervisionCamporeeApprovalKind.member => [
             for (final member in pending.members)
-              _ItemCard(
-                title: _orUnnamed(
-                  member.fullName,
-                  'supervision.union_camporees.unknown_member',
-                ),
-                when: member.createdAt,
-                secondary: member.clubName,
-                detail: (member.insuranceVerified
-                        ? 'supervision.union_camporees.insurance_verified'
-                        : 'supervision.union_camporees.insurance_unverified')
-                    .tr(),
-                // A missing insurance is what the reviewer must not miss.
-                detailStrong: !member.insuranceVerified,
+              _MemberRow(
+                key: ValueKey('member-${member.id}'),
+                member: member,
                 onTap: () => _showItem(
                   context,
                   _ItemSheet.member(camporeeId: camporeeId, member: member),
@@ -242,16 +228,9 @@ class _Queue extends StatelessWidget {
           ],
         SupervisionCamporeeApprovalKind.payment => [
             for (final payment in pending.payments)
-              _ItemCard(
-                title: _orUnnamed(
-                  payment.memberName,
-                  'supervision.union_camporees.unknown_member',
-                ),
-                when: payment.createdAt,
-                secondary: payment.clubName,
-                detail: '${SacMoney.format(payment.amount)} · '
-                    '${_paymentTypeLabel(payment.type)}',
-                detailStrong: true,
+              _PaymentRow(
+                key: ValueKey('payment-${payment.id}'),
+                payment: payment,
                 onTap: () => _showItem(
                   context,
                   _ItemSheet.payment(camporeeId: camporeeId, payment: payment),
@@ -273,13 +252,30 @@ class _Queue extends StatelessWidget {
             SliverPadding(
               padding: SacTopBar.paddingBelowBar(
                 context,
-                const EdgeInsets.only(top: 8),
+                const EdgeInsets.only(top: 0),
               ),
               sliver: SliverToBoxAdapter(
-                child: _KindChips(
-                  pending: pending,
+                child: SupervisionSegmentedControl<
+                    SupervisionCamporeeApprovalKind>(
                   selected: kind,
-                  onSelected: onKind,
+                  onChanged: onKind,
+                  segments: [
+                    SupervisionSegment(
+                      value: SupervisionCamporeeApprovalKind.club,
+                      label: 'supervision.union_camporees.kind_clubs'.tr(),
+                      count: pending.clubs.length,
+                    ),
+                    SupervisionSegment(
+                      value: SupervisionCamporeeApprovalKind.member,
+                      label: 'supervision.union_camporees.kind_members'.tr(),
+                      count: pending.members.length,
+                    ),
+                    SupervisionSegment(
+                      value: SupervisionCamporeeApprovalKind.payment,
+                      label: 'supervision.union_camporees.kind_payments'.tr(),
+                      count: pending.payments.length,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -293,7 +289,7 @@ class _Queue extends StatelessWidget {
                   padding: EdgeInsets.symmetric(
                     horizontal: side > 0 ? side : 0,
                   ),
-                  sliver: cards.isEmpty
+                  sliver: rows.isEmpty
                       ? SliverFillRemaining(
                           hasScrollBody: false,
                           child: SacEmptyState(
@@ -303,12 +299,13 @@ class _Queue extends StatelessWidget {
                           ),
                         )
                       : SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-                          sliver: SliverList.separated(
-                            itemCount: cards.length,
-                            separatorBuilder: (context, index) =>
-                                const SizedBox(height: 10),
-                            itemBuilder: (context, index) => cards[index],
+                          padding: const EdgeInsets.only(bottom: 32),
+                          sliver: SliverToBoxAdapter(
+                            child: SacGroupedSection(
+                              label:
+                                  'supervision.union_camporees.late_label'.tr(),
+                              children: rows,
+                            ),
                           ),
                         ),
                 );
@@ -321,125 +318,146 @@ class _Queue extends StatelessWidget {
   }
 }
 
-class _KindChips extends StatelessWidget {
-  const _KindChips({
-    required this.pending,
-    required this.selected,
-    required this.onSelected,
-  });
+class _ClubRow extends StatelessWidget {
+  const _ClubRow({super.key, required this.club, required this.onTap});
 
-  final SupervisionCamporeePending pending;
-  final SupervisionCamporeeApprovalKind selected;
-  final ValueChanged<SupervisionCamporeeApprovalKind> onSelected;
+  final SupervisionCamporeePendingClub club;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final options = [
-      (
-        SupervisionCamporeeApprovalKind.club,
-        'supervision.union_camporees.kind_clubs',
-        pending.clubs.length,
+    final title = _orUnnamed(
+      club.clubName,
+      'supervision.union_camporees.unknown_club',
+    );
+    // Without a known club-type logo the tile shows the monogram.
+    final hasLogo = clubLogoAssetFromName(club.sectionName) != null;
+    final monogram = SacMemberAvatar.initialsOf(club.clubName);
+    return SacListRow(
+      leading: ClubTypeTile(
+        clubTypeName: club.sectionName,
+        initials: hasLogo || monogram.isEmpty ? null : monogram,
       ),
-      (
-        SupervisionCamporeeApprovalKind.member,
-        'supervision.union_camporees.kind_members',
-        pending.members.length,
-      ),
-      (
-        SupervisionCamporeeApprovalKind.payment,
-        'supervision.union_camporees.kind_payments',
-        pending.payments.length,
-      ),
-    ];
-    return SizedBox(
-      height: SacFilterChip.barHeight,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: options.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final (kind, labelKey, count) = options[index];
-          return Center(
-            child: SacFilterChip(
-              label: count > 0
-                  ? '${labelKey.tr()} · ${supervisionCount(context, count)}'
-                  : labelKey.tr(),
-              selected: kind == selected,
-              onTap: () => onSelected(kind),
-            ),
-          );
-        },
-      ),
+      title: title,
+      subtitle: club.sectionName,
+      trailing: SupervisionRowAge(when: club.createdAt),
+      onTap: onTap,
     );
   }
 }
 
-class _ItemCard extends StatelessWidget {
-  const _ItemCard({
-    required this.title,
-    required this.when,
-    required this.secondary,
-    required this.detail,
-    required this.onTap,
-    this.detailStrong = false,
-  });
+class _MemberRow extends StatelessWidget {
+  const _MemberRow({super.key, required this.member, required this.onTap});
 
-  final String title;
-  final DateTime? when;
-  final String secondary;
-  final String? detail;
-  final bool detailStrong;
+  final SupervisionCamporeePendingMember member;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    return MergeSemantics(
-      child: Semantics(
-        button: true,
-        child: SacCard(
-          onTap: onTap,
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SupervisionCardHeader(title: title, when: when),
-              if (secondary.trim().isNotEmpty) ...[
-                const SizedBox(height: 2),
-                Text(
-                  secondary,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: SacFontSize.bodyMedium,
-                    height: 1.3,
-                    color: c.textSecondary,
-                  ),
-                ),
-              ],
-              if (detail != null && detail!.trim().isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  detail!,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: SacFontSize.bodyMedium,
-                    height: 1.3,
-                    color: detailStrong ? c.text : c.textSecondary,
-                    fontWeight:
-                        detailStrong ? FontWeight.w500 : FontWeight.w400,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
+    final name = _orUnnamed(
+      member.fullName,
+      'supervision.union_camporees.unknown_member',
+    );
+    return SacListRow(
+      leading: ExcludeSemantics(
+        child: SacMemberAvatar(name: member.fullName, size: 40),
       ),
+      title: name,
+      subtitleWidget: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (member.clubName.trim().isNotEmpty)
+            Text(
+              member.clubName,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: SacFontSize.bodyMedium,
+                height: 1.3,
+                color: c.textSecondary,
+              ),
+            ),
+          const SizedBox(height: 6),
+          _InsuranceChip(verified: member.insuranceVerified),
+        ],
+      ),
+      trailing: SupervisionRowAge(when: member.createdAt),
+      onTap: onTap,
     );
   }
 }
+
+/// «Seguro verificado» (green) or «Seguro sin verificar» (amber): what the
+/// reviewer must not miss when approving a member.
+class _InsuranceChip extends StatelessWidget {
+  const _InsuranceChip({required this.verified});
+
+  final bool verified;
+
+  @override
+  Widget build(BuildContext context) {
+    return SupervisionStatusChip(
+      label: (verified
+              ? 'supervision.union_camporees.insurance_verified'
+              : 'supervision.union_camporees.insurance_unverified')
+          .tr(),
+      icon: HugeIcons.strokeRoundedShield01,
+      tone: verified ? SacTone.success : SacTone.warning,
+    );
+  }
+}
+
+class _PaymentRow extends StatelessWidget {
+  const _PaymentRow({super.key, required this.payment, required this.onTap});
+
+  final SupervisionCamporeePendingPayment payment;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final type = _paymentTypeLabel(payment.type);
+    final reference = payment.reference?.trim() ?? '';
+    return SacListRow(
+      leading: const SacListRowIcon(HugeIcons.strokeRoundedMoney01),
+      title: _paymentTitle(payment),
+      subtitle: reference.isEmpty
+          ? type
+          : 'supervision.union_camporees.payment_ref'
+              .tr(args: [type, reference]),
+      trailing: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          SupervisionTrailingFit(
+            child: Text(
+              SacMoney.format(payment.amount),
+              maxLines: 1,
+              style: TextStyle(
+                fontSize: SacFontSize.titleMedium,
+                fontWeight: FontWeight.w700,
+                color: c.text,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ),
+          SupervisionRowAge(when: payment.createdAt),
+        ],
+      ),
+      onTap: onTap,
+    );
+  }
+}
+
+/// A payment is named after its club; the payer is the fallback.
+String _paymentTitle(SupervisionCamporeePendingPayment payment) =>
+    payment.clubName.trim().isNotEmpty
+        ? payment.clubName
+        : _orUnnamed(
+            payment.memberName,
+            'supervision.union_camporees.unknown_club',
+          );
 
 // ── One item: what it is, and the decision ──────────────────────────────────
 
@@ -487,12 +505,9 @@ class _ItemSheetState extends ConsumerState<_ItemSheet> {
   bool get _isPayment => widget.payment != null;
 
   String get _name {
-    final raw = widget.club?.clubName ??
-        widget.member?.fullName ??
-        widget.payment?.memberName ??
-        '';
+    if (widget.payment != null) return _paymentTitle(widget.payment!);
     return _orUnnamed(
-      raw,
+      widget.club?.clubName ?? widget.member?.fullName ?? '',
       widget.club != null
           ? 'supervision.union_camporees.unknown_club'
           : 'supervision.union_camporees.unknown_member',
@@ -529,21 +544,12 @@ class _ItemSheetState extends ConsumerState<_ItemSheet> {
     );
   }
 
+  /// Approving needs no second dialog: the sheet already shows everything
+  /// that is being approved. Rejecting asks for the reason first.
   Future<void> _decide({required bool approve}) async {
     final what = _isPayment ? 'payment' : 'registration';
     String? reason;
-    if (approve) {
-      final confirmed = await SacDialog.show(
-        context,
-        title: 'supervision.union_camporees.approve_${what}_title'
-            .tr(args: [_name]),
-        content: 'supervision.union_camporees.approve_${what}_message'.tr(),
-        confirmLabel: 'coordinator.actions.approve'.tr(),
-        cancelLabel: 'common.cancel'.tr(),
-        confirmIsSuccess: true,
-      );
-      if (confirmed != true || !mounted) return;
-    } else {
+    if (!approve) {
       reason = await showSupervisionDecisionSheet(
         context: context,
         title: 'supervision.union_camporees.reject_${what}_title'
@@ -624,11 +630,30 @@ class _ItemSheetState extends ConsumerState<_ItemSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
     final user = ref.watch(authNotifierProvider.select((v) => v.value));
     final canDecide =
         hasCapability(user, 'union_camporees.approve_registrations');
-    final voucher = widget.payment?.voucherUrl;
+    final payment = widget.payment;
+    final voucher = payment?.voucherUrl?.trim() ?? '';
+
+    final String title;
+    final String subtitle;
+    if (payment != null) {
+      title =
+          'supervision.union_camporees.sheet_payment_title'.tr(args: [_name]);
+      subtitle = [
+        _paymentTypeLabel(payment.type),
+        if (payment.paidAt != null)
+          'supervision.union_camporees.paid_on'
+              .tr(args: [supervisionShortDate(context, payment.paidAt!)]),
+      ].join(' · ');
+    } else {
+      title = _name;
+      subtitle = (widget.club != null
+              ? 'supervision.union_camporees.sheet_club'
+              : 'supervision.union_camporees.sheet_member')
+          .tr();
+    }
 
     return ConstrainedBox(
       constraints: BoxConstraints(
@@ -638,75 +663,72 @@ class _ItemSheetState extends ConsumerState<_ItemSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SacSheetHeader(
-            title: _name,
-            subtitle: (widget.club != null
-                    ? 'supervision.union_camporees.sheet_club'
-                    : widget.member != null
-                        ? 'supervision.union_camporees.sheet_member'
-                        : 'supervision.union_camporees.sheet_payment')
-                .tr(),
-          ),
+          SacSheetHeader(title: title, subtitle: subtitle),
           Flexible(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 24),
+              padding: const EdgeInsets.only(bottom: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  if (payment != null) _BigAmount(amount: payment.amount),
+                  if (voucher.isNotEmpty)
+                    SupervisionVoucherCard(
+                      url: voucher,
+                      onTap: () => _openVoucher(voucher),
+                    ),
                   _ItemFacts(
                     club: widget.club,
                     member: widget.member,
-                    payment: widget.payment,
+                    payment: payment,
                   ),
-                  if (voucher != null && voucher.trim().isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                      child: Material(
-                        color: c.surface,
-                        clipBehavior: Clip.antiAlias,
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.radiusMD),
-                          side: BorderSide(color: c.border),
-                        ),
-                        child: SacListRow(
-                          leading: const SacListRowIcon(
-                            HugeIcons.strokeRoundedAttachment01,
-                          ),
-                          title:
-                              'supervision.union_camporees.view_voucher'.tr(),
-                          onTap: () => _openVoucher(voucher),
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),
           ),
-          if (_error != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-              child: Semantics(
-                liveRegion: true,
-                child: Text(
-                  _error!,
-                  style: TextStyle(
-                    fontSize: SacFontSize.bodyMedium,
-                    height: 1.35,
-                    color: c.error,
-                  ),
-                ),
-              ),
-            ),
+          if (_error != null) SupervisionInlineError(message: _error!),
           if (canDecide)
-            ApprovalActionBar(
-              isLoading: _busy,
-              onApprove: () => _decide(approve: true),
-              onReject: () => _decide(approve: false),
+            SupervisionSheetFooter(
+              child: SupervisionStackedActions(
+                primaryLabel: (_isPayment
+                        ? 'supervision.union_camporees.approve_payment_action'
+                        : 'supervision.union_camporees.approve_registration_action')
+                    .tr(),
+                primaryIcon: HugeIcons.strokeRoundedTick02,
+                onPrimary: () => _decide(approve: true),
+                secondaryLabel: 'coordinator.actions.reject'.tr(),
+                secondaryIcon: HugeIcons.strokeRoundedCancel01,
+                onSecondary: () => _decide(approve: false),
+                isLoading: _busy,
+              ),
             )
           else
             const SafeArea(top: false, child: SizedBox(height: 4)),
         ],
+      ),
+    );
+  }
+}
+
+/// The amount of a payment, large, at the top of its sheet.
+class _BigAmount extends StatelessWidget {
+  const _BigAmount({required this.amount});
+
+  final double amount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+      child: Text(
+        SacMoney.format(amount),
+        style: TextStyle(
+          fontSize: SacFontSize.displaySmall,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.5,
+          height: 1.15,
+          color: context.sac.text,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
       ),
     );
   }
@@ -750,9 +772,7 @@ class _ItemFacts extends StatelessWidget {
         ),
         optional('fact_requested_at', date(member!.createdAt)),
       ] else if (payment != null) ...[
-        row('fact_amount', SacMoney.format(payment!.amount)),
-        row('fact_type', _paymentTypeLabel(payment!.type)),
-        optional('fact_club', payment!.clubName),
+        optional('fact_payer', payment!.memberName),
         optional('fact_reference', payment!.reference),
         // A calendar date: shown as stored, never shifted by the time zone.
         optional(

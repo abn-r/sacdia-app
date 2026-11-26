@@ -1,6 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/widgets.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/widgets/sac_tone.dart';
+import 'package:sacdia_app/core/widgets/status_progress/status_progress.dart';
 import 'package:sacdia_app/features/supervision/domain/entities/supervision_folder.dart';
 
 /// Where an annual folder stands, in words.
@@ -36,8 +39,7 @@ String sectionStatusLabel(SupervisionSectionStatus status) => switch (status) {
 HugeIconData sectionStatusIcon(SupervisionSectionStatus status) =>
     switch (status) {
       SupervisionSectionStatus.submitted => HugeIcons.strokeRoundedInbox,
-      SupervisionSectionStatus.preapprovedLf =>
-        HugeIcons.strokeRoundedTaskDone01,
+      SupervisionSectionStatus.preapprovedLf => HugeIcons.strokeRoundedClock01,
       SupervisionSectionStatus.validated =>
         HugeIcons.strokeRoundedCheckmarkCircle02,
       SupervisionSectionStatus.rejected => HugeIcons.strokeRoundedCancel01,
@@ -45,3 +47,49 @@ HugeIconData sectionStatusIcon(SupervisionSectionStatus status) =>
       SupervisionSectionStatus.unknown =>
         HugeIcons.strokeRoundedFile01,
     };
+
+/// Tint of the section icon: amber it is yours to evaluate, blue it waits for
+/// the Union, green validated, red rejected, grey not sent yet.
+SacTone sectionStatusTone(SupervisionSectionStatus status) => switch (status) {
+      SupervisionSectionStatus.submitted => SacTone.warning,
+      SupervisionSectionStatus.preapprovedLf => SacTone.info,
+      SupervisionSectionStatus.validated => SacTone.success,
+      SupervisionSectionStatus.rejected => SacTone.error,
+      SupervisionSectionStatus.pending ||
+      SupervisionSectionStatus.unknown =>
+        SacTone.muted,
+    };
+
+/// Color and icon of the folder state panel: grey while the club still builds
+/// it, blue while it is under review, green once evaluated or closed.
+SacStatusStyle folderStatusStyle(
+  BuildContext context,
+  SupervisionFolderStatus status,
+) {
+  final label = folderStatusLabel(status);
+  return switch (status) {
+    SupervisionFolderStatus.open ||
+    SupervisionFolderStatus.unknown =>
+      SacStatusStyle.of(context, SacStatusKind.pending, label: label),
+    SupervisionFolderStatus.submitted => SacStatusStyle.of(
+        context,
+        SacStatusKind.review,
+        label: label,
+        icon: HugeIcons.strokeRoundedFolder01,
+      ),
+    SupervisionFolderStatus.underEvaluation => SacStatusStyle.of(
+        context,
+        SacStatusKind.review,
+        label: label,
+        icon: HugeIcons.strokeRoundedFolderOpen,
+      ),
+    SupervisionFolderStatus.evaluated =>
+      SacStatusStyle.of(context, SacStatusKind.validated, label: label),
+    SupervisionFolderStatus.closed => SacStatusStyle.of(
+        context,
+        SacStatusKind.validated,
+        label: label,
+        icon: HugeIcons.strokeRoundedLock,
+      ),
+  };
+}

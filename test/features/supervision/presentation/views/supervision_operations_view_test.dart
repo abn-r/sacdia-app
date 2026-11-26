@@ -9,12 +9,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/forbidden.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_list_row.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
+import 'package:sacdia_app/core/widgets/sac_tone.dart';
 import 'package:sacdia_app/core/widgets/status_progress/sac_grouped_section.dart';
 import 'package:sacdia_app/features/supervision/domain/entities/supervision_operations.dart';
 import 'package:sacdia_app/features/supervision/presentation/views/supervision_operations_view.dart';
-import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_plain_row.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_breadcrumb.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_figures_card.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_status_chip.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_summary_box.dart';
 
 import 'supervision_territory_test_harness.dart';
 import 'supervision_view_test_harness.dart';
@@ -48,30 +53,24 @@ Future<FakeOperationsRepo> _pump(
 FakeOperationsRepo _repoWith(SupervisionOperationsDashboard d) =>
     FakeOperationsRepo()..onDashboard = (_) async => Right(d);
 
-Finder _row(String title) => find.widgetWithText(SupervisionPlainRow, title);
+/// Title of the summary box at the top (month 10 of the default period).
+const _boxTitle = 'Informes de octubre';
+
+Finder _row(String title) => find.widgetWithText(SacListRow, title);
 
 bool _isTappable(WidgetTester tester, String title) => find
     .descendant(of: _row(title), matching: find.byType(SacInkWell))
     .evaluate()
     .isNotEmpty;
 
-/// Weight of the span that carries [text], wherever it is drawn.
-FontWeight? _spanWeight(WidgetTester tester, String text) {
-  for (final rich in tester.widgetList<RichText>(find.byType(RichText))) {
-    FontWeight? weight;
-    var found = false;
-    rich.text.visitChildren((span) {
-      if (span is TextSpan && span.text == text) {
-        found = true;
-        weight = span.style?.fontWeight;
-        return false;
-      }
-      return true;
-    });
-    if (found) return weight;
-  }
-  fail('No span with the text "$text"');
-}
+/// The «Inscritos a clases» cell is a button only when there is a breakdown.
+bool _classesFigureTappable() => find
+    .ancestor(
+      of: find.text('Inscritos a clases'),
+      matching: find.byType(SacInkWell),
+    )
+    .evaluate()
+    .isNotEmpty;
 
 void main() {
   setUpAll(initSupervisionViewTests);
@@ -101,25 +100,26 @@ void main() {
       expect(m.hasGap, isFalse);
     });
 
-    testWidgets('the reports caption reads darker with a draft pending', (
-      tester,
-    ) async {
+    testWidgets('the reports box counts drafts and generated as not delivered',
+        (tester) async {
       final d = dashboard(
         summary: metrics(
           reportsExpected: 4,
           reportsSubmitted: 1,
           reportsMissing: 0,
+          reportsCoveragePct: 25,
         ),
       );
       await _pump(tester, repo: _repoWith(d));
 
-      expect(
-        _spanWeight(tester, '1 de 4 secciones · octubre'),
-        FontWeight.w500,
-      );
+      expect(find.text(_boxTitle), findsOneWidget);
+      expect(find.textContaining('25%'), findsOneWidget);
+      expect(find.textContaining('1 de 4 secciones'), findsOneWidget);
+      expect(find.textContaining('Entregados 1'), findsOneWidget);
+      expect(find.textContaining('Sin entregar 3'), findsOneWidget);
     });
 
-    testWidgets('the reports caption stays quiet with everything delivered', (
+    testWidgets('everything delivered has no «sin entregar» legend', (
       tester,
     ) async {
       final d = dashboard(
@@ -127,14 +127,16 @@ void main() {
           reportsExpected: 4,
           reportsSubmitted: 4,
           reportsMissing: 0,
+          reportsCoveragePct: 100,
         ),
       );
       await _pump(tester, repo: _repoWith(d));
 
-      expect(_spanWeight(tester, '4 de 4 secciones · octubre'), isNull);
+      expect(find.textContaining('Entregados 4'), findsOneWidget);
+      expect(find.textContaining('Sin entregar'), findsNothing);
     });
 
-    testWidgets('a club with a draft pending reads darker in the list', (
+    testWidgets('a club with a draft pending shows the warning chip', (
       tester,
     ) async {
       final d = dashboard(
@@ -156,7 +158,14 @@ void main() {
       );
       await _pump(tester, repo: _repoWith(d));
 
-      expect(_spanWeight(tester, 'Informes: 1 de 3'), FontWeight.w500);
+      expect(
+        find.descendant(
+          of: _row('Club Orión'),
+          matching:
+              find.widgetWithText(SupervisionStatusChip, '2 sin entregar'),
+        ),
+        findsOneWidget,
+      );
     });
   });
 
@@ -168,12 +177,12 @@ void main() {
       await _pump(tester, repo: repo, settle: false);
 
       expect(find.byType(SacSkeletonList), findsOneWidget);
-      expect(find.text('INDICADORES'), findsNothing);
+      expect(find.text(_boxTitle), findsNothing);
 
       gate.complete(dashboard());
       await tester.pumpAndSettle();
       expect(find.byType(SacSkeletonList), findsNothing);
-      expect(find.text('INDICADORES'), findsOneWidget);
+      expect(find.text(_boxTitle), findsOneWidget);
       expectNoLayoutException(tester);
     });
 
@@ -189,14 +198,14 @@ void main() {
       expect(
           find.text('No se pudieron cargar los indicadores'), findsOneWidget);
       expect(find.byType(SacErrorState), findsOneWidget);
-      expect(find.text('INDICADORES'), findsNothing);
+      expect(find.text(_boxTitle), findsNothing);
 
       await tester.tap(find.text('Reintentar'));
       await tester.pumpAndSettle();
 
       expect(repo.queries, hasLength(2));
       expect(find.text('No se pudieron cargar los indicadores'), findsNothing);
-      expect(find.text('INDICADORES'), findsOneWidget);
+      expect(find.text(_boxTitle), findsOneWidget);
     });
 
     testWidgets('a 403 renders the ForbiddenView and no retry', (tester) async {
@@ -221,7 +230,7 @@ void main() {
 
       expect(find.byType(SacEmptyState), findsOneWidget);
       expect(find.text('Sin clubes en este territorio'), findsOneWidget);
-      expect(find.text('INDICADORES'), findsNothing);
+      expect(find.text(_boxTitle), findsNothing);
     });
 
     testWidgets('no clubs but with children still shows the dashboard', (
@@ -247,7 +256,7 @@ void main() {
           ? Right(dashboard(scopeName: 'Unión Norte'))
           : const Left(kTerritoryBoom);
       await _pump(tester, repo: repo);
-      expect(find.text('INDICADORES'), findsOneWidget);
+      expect(find.text(_boxTitle), findsOneWidget);
 
       // The same callback a pull gesture runs.
       final refreshing = tester
@@ -258,7 +267,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repo.queries.length, greaterThanOrEqualTo(2));
-      expect(find.text('INDICADORES'), findsOneWidget);
+      expect(find.text(_boxTitle), findsOneWidget);
       expect(find.byType(SacErrorState), findsNothing);
       expect(find.text('Unión Norte'), findsOneWidget);
     });
@@ -274,7 +283,7 @@ void main() {
       expect(find.text('Unión Norte'), findsOneWidget);
     });
 
-    testWidgets('own scope does not show the parents line', (tester) async {
+    testWidgets('own scope does not show the breadcrumb', (tester) async {
       final d = dashboard(
         scopeName: 'Unión Norte',
         path: const [
@@ -288,7 +297,7 @@ void main() {
       );
       await _pump(tester, repo: _repoWith(d));
 
-      expect(find.textContaining('›'), findsNothing);
+      expect(find.byType(SupervisionBreadcrumb), findsNothing);
     });
 
     testWidgets(
@@ -315,13 +324,24 @@ void main() {
         query: const SupervisionOperationsQuery(localFieldId: 3),
       );
 
-      expect(find.text('Campo Central'), findsOneWidget);
+      // The territory is the title and the last crumb.
+      expect(find.text('Campo Central'), findsNWidgets(2));
       expect(find.text('Operación'), findsNothing);
       expect(find.text('Campo local'), findsOneWidget);
-      expect(find.text('División Sur › Unión Norte'), findsOneWidget);
+      // The actor is a union: the division above is not on the stack.
+      final crumbs = find.byType(SupervisionBreadcrumb);
+      expect(crumbs, findsOneWidget);
+      expect(
+        find.descendant(of: crumbs, matching: find.text('Unión Norte')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: crumbs, matching: find.text('División Sur')),
+        findsNothing,
+      );
     });
 
-    testWidgets('drilled scope without parents shows no path line', (
+    testWidgets('drilled scope without climbable parents shows no breadcrumb', (
       tester,
     ) async {
       final d = dashboard(
@@ -336,8 +356,72 @@ void main() {
         query: const SupervisionOperationsQuery(unionId: 1),
       );
 
-      expect(find.textContaining('›'), findsNothing);
+      expect(find.byType(SupervisionBreadcrumb), findsNothing);
       expect(find.text('Unión'), findsOneWidget);
+    });
+
+    testWidgets('tapping an ancestor crumb pops back to that level', (
+      tester,
+    ) async {
+      // Stack: own scope (union) -> local field. A division actor would add
+      // one more level; the union crumb is one pop away.
+      final repo = FakeOperationsRepo()
+        ..onDashboard = (q) async => Right(
+              q.isOwnScope
+                  ? dashboard(scopeName: 'Unión Norte')
+                  : dashboard(
+                      level: _localField,
+                      scopeId: 3,
+                      scopeName: 'Campo Central',
+                      path: const [
+                        SupervisionScopeNode(
+                          level: _union,
+                          id: 1,
+                          name: 'Unión Norte',
+                        ),
+                        SupervisionScopeNode(
+                          level: _localField,
+                          id: 3,
+                          name: 'Campo Central',
+                        ),
+                      ],
+                    ),
+            );
+      await pumpTerritoryApp(
+        tester,
+        home: Builder(
+          builder: (context) => Column(
+            children: [
+              Expanded(child: const SupervisionOperationsView()),
+              TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const SupervisionOperationsView(
+                      query: SupervisionOperationsQuery(localFieldId: 3),
+                    ),
+                  ),
+                ),
+                child: const Text('drill'),
+              ),
+            ],
+          ),
+        ),
+        opsRepo: repo,
+      );
+      await tester.tap(find.text('drill'));
+      await tester.pumpAndSettle();
+      expect(find.byType(SupervisionBreadcrumb), findsOneWidget);
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(SupervisionBreadcrumb),
+          matching: find.text('Unión Norte'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SupervisionBreadcrumb), findsNothing);
+      expect(find.text('Operación'), findsOneWidget);
     });
 
     testWidgets('requests the dashboard with the given query', (tester) async {
@@ -351,14 +435,19 @@ void main() {
   });
 
   group('indicators', () {
-    testWidgets('reports row: caption with month, coverage as value', (
+    testWidgets('reports box: month, coverage, caption and legend', (
       tester,
     ) async {
       await _pump(tester);
 
-      expect(find.text('Informes del mes'), findsOneWidget);
-      expect(find.text('9 de 12 secciones · octubre'), findsOneWidget);
-      expect(find.text('75%'), findsOneWidget);
+      expect(find.text(_boxTitle), findsOneWidget);
+      expect(find.textContaining('9 de 12 secciones'), findsOneWidget);
+      expect(find.textContaining('75%'), findsOneWidget);
+      expect(find.textContaining('Entregados 9'), findsOneWidget);
+      expect(find.textContaining('Sin entregar 3'), findsOneWidget);
+      // The dashboard answer carries no deadline.
+      expect(find.textContaining('límite'), findsNothing);
+      expect(find.byType(SupervisionSummaryBox), findsOneWidget);
     });
 
     testWidgets('no reporting month: «Aún no hay un mes cerrado» and a dash', (
@@ -370,9 +459,10 @@ void main() {
       );
       await _pump(tester, repo: _repoWith(d));
 
-      expect(find.text('Aún no hay un mes cerrado'), findsOneWidget);
-      expect(find.text('—'), findsOneWidget);
-      expect(find.text('75%'), findsNothing);
+      expect(find.text('Informes del mes'), findsOneWidget);
+      expect(find.textContaining('Aún no hay un mes cerrado'), findsOneWidget);
+      expect(find.textContaining('—'), findsOneWidget);
+      expect(find.textContaining('75%'), findsNothing);
     });
 
     testWidgets('no reports expected in the month says so with the month', (
@@ -388,35 +478,23 @@ void main() {
       );
       await _pump(tester, repo: _repoWith(d));
 
-      expect(find.text('Sin informes esperados en octubre'), findsOneWidget);
-      expect(find.text('—'), findsOneWidget);
+      expect(
+        find.textContaining('Sin informes esperados en octubre'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('—'), findsOneWidget);
+      expect(find.textContaining('Entregados'), findsNothing);
     });
 
-    testWidgets('clubs row: gap caption and «de total» suffix', (tester) async {
+    testWidgets('figures card: operating clubs read «8 de 10»', (tester) async {
       await _pump(tester);
 
+      expect(find.byType(SupervisionFiguresCard), findsOneWidget);
       expect(find.text('Clubes operativos'), findsOneWidget);
-      expect(find.text('Sin actividad este mes: 2'), findsOneWidget);
       expect(find.text('8 de 10'), findsOneWidget);
     });
 
-    testWidgets('clubs row: everybody active shows the all-active caption', (
-      tester,
-    ) async {
-      final d = dashboard(
-        summary: metrics(
-          operationalClubs: 5,
-          nonOperationalClubs: 0,
-          operationalRatePct: 100,
-        ),
-      );
-      await _pump(tester, repo: _repoWith(d));
-
-      expect(find.text('Todos con actividad este mes'), findsOneWidget);
-      expect(find.text('5 de 5'), findsOneWidget);
-    });
-
-    testWidgets('clubs row: zero clubs has no caption', (tester) async {
+    testWidgets('figures card: zero clubs reads «0 de 0»', (tester) async {
       final d = dashboard(
         summary: metrics(
           clubsTotal: 3,
@@ -427,21 +505,19 @@ void main() {
       );
       await _pump(tester, repo: _repoWith(d));
 
-      expect(find.text('Todos con actividad este mes'), findsNothing);
-      expect(find.textContaining('Sin actividad este mes:'), findsNothing);
       expect(find.text('0 de 0'), findsOneWidget);
     });
 
-    testWidgets('people and classes rows show their captions and values', (
+    testWidgets('figures card: people, accounts and class enrollments', (
       tester,
     ) async {
       await _pump(tester);
 
       expect(find.text('Personas activas'), findsOneWidget);
-      expect(find.text('Con cuenta en la app: 210'), findsOneWidget);
       expect(find.text('320'), findsOneWidget);
-      expect(find.text('Inscripciones a clases'), findsOneWidget);
-      expect(find.text('Personas distintas: 140'), findsOneWidget);
+      expect(find.text('Con cuenta en la app'), findsOneWidget);
+      expect(find.text('210'), findsOneWidget);
+      expect(find.text('Inscritos a clases'), findsOneWidget);
       expect(find.text('150'), findsOneWidget);
     });
 
@@ -472,11 +548,13 @@ void main() {
       );
       await _pump(tester, repo: _repoWith(d));
 
-      expect(_isTappable(tester, 'Inscripciones a clases'), isTrue);
-      await tester.tap(find.text('Inscripciones a clases'));
+      expect(_classesFigureTappable(), isTrue);
+      await tester.tap(find.text('Inscritos a clases'));
       await tester.pumpAndSettle();
 
       expect(find.text('Inscripciones por clase'), findsOneWidget);
+      // Totals under the title: enrollments and distinct people.
+      expect(find.text('150 inscritos · 140 personas'), findsOneWidget);
       expect(find.text('Amigo'), findsOneWidget);
       expect(find.text('Compañero'), findsOneWidget);
       expect(find.text('Abeja'), findsOneWidget);
@@ -502,8 +580,8 @@ void main() {
       );
       await _pump(tester, repo: _repoWith(d));
 
-      expect(_isTappable(tester, 'Inscripciones a clases'), isFalse);
-      await tester.tap(find.text('Inscripciones a clases'));
+      expect(_classesFigureTappable(), isFalse);
+      await tester.tap(find.text('Inscritos a clases'));
       await tester.pumpAndSettle();
       expect(find.text('Inscripciones por clase'), findsNothing);
     });
@@ -511,7 +589,24 @@ void main() {
     testWidgets('is not tappable with an empty class list', (tester) async {
       await _pump(tester);
 
-      expect(_isTappable(tester, 'Inscripciones a clases'), isFalse);
+      expect(_classesFigureTappable(), isFalse);
+    });
+
+    testWidgets('the «Cerrar» button at the bottom closes the sheet', (
+      tester,
+    ) async {
+      final d = dashboard(
+        summary: metrics(classes: [classRow(1, 'Amigo', count: 4)]),
+      );
+      await _pump(tester, repo: _repoWith(d));
+
+      await tester.tap(find.text('Inscritos a clases'));
+      await tester.pumpAndSettle();
+      expect(find.text('Cerrar'), findsOneWidget);
+
+      await tester.tap(find.text('Cerrar'));
+      await tester.pumpAndSettle();
+      expect(find.text('Inscripciones por clase'), findsNothing);
     });
   });
 
@@ -540,9 +635,17 @@ void main() {
 
       expect(find.text('UNIONES'), findsOneWidget);
       expect(find.text('Unión Este'), findsOneWidget);
-      expect(find.text('Informes 75% · Operativos: 8 de 10'), findsOneWidget);
+      expect(
+          find.text('Informes 9 de 12 · 8 de 10 operativos'), findsOneWidget);
+      // 12 expected, 9 delivered: the gap is a chip under the subtitle and
+      // the percent sits at the end of the row.
+      expect(find.text('3 sin entregar'), findsOneWidget);
+      expect(
+        find.descendant(of: _row('Unión Este'), matching: find.text('75%')),
+        findsOneWidget,
+      );
       expect(find.text('Unión Oeste'), findsOneWidget);
-      expect(find.text('Sin informes esperados · Operativos: 4 de 4'),
+      expect(find.text('Sin informes esperados · 4 de 4 operativos'),
           findsOneWidget);
     });
 
@@ -587,8 +690,70 @@ void main() {
       expect(find.text('CLUBES'), findsOneWidget);
       expect(find.text('Informes: 1 de 2 · Con actividad este mes'),
           findsOneWidget);
+      expect(find.text('1 sin entregar'), findsOneWidget);
       expect(find.text('Sin informes esperados · Sin actividad este mes'),
           findsOneWidget);
+    });
+
+    testWidgets('a club with everything delivered shows «Al día»', (
+      tester,
+    ) async {
+      final d = dashboard(
+        level: _localField,
+        children: [
+          opsChild(
+            11,
+            'Club Orión',
+            _club,
+            m: metrics(
+              reportsExpected: 2,
+              reportsSubmitted: 2,
+              reportsMissing: 0,
+              nonOperationalClubs: 0,
+              operationalClubs: 1,
+            ),
+          ),
+        ],
+      );
+      await _pump(tester, repo: _repoWith(d));
+
+      expect(
+        find.descendant(
+          of: _row('Club Orión'),
+          matching: find.text('Al día'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.textContaining('sin entregar'), findsNothing);
+    });
+
+    testWidgets('a territory with gaps tints its icon warning, others accent', (
+      tester,
+    ) async {
+      final d = dashboard(
+        level: SupervisionTerritoryLevel.division,
+        children: [
+          opsChild(5, 'Unión Este', _union),
+          opsChild(
+            6,
+            'Unión Oeste',
+            _union,
+            m: metrics(reportsExpected: 4, reportsSubmitted: 4),
+          ),
+        ],
+      );
+      await _pump(tester, repo: _repoWith(d));
+
+      SacTone toneOf(String title) => tester
+          .widget<SacListRowIcon>(
+            find.descendant(
+              of: _row(title),
+              matching: find.byType(SacListRowIcon),
+            ),
+          )
+          .tone;
+      expect(toneOf('Unión Este'), SacTone.warning);
+      expect(toneOf('Unión Oeste'), SacTone.accent);
     });
 
     testWidgets('no children hides the section', (tester) async {
@@ -788,7 +953,7 @@ void main() {
         capabilities: const [kSupervisionAppView, kViewTerritoryCap],
       );
 
-      expect(find.text('INDICADORES'), findsOneWidget);
+      expect(find.text(_boxTitle), findsOneWidget);
       expectNoLayoutException(tester);
     });
 
@@ -803,7 +968,7 @@ void main() {
         textScale: 2.0,
       );
 
-      expect(find.text('INDICADORES'), findsOneWidget);
+      expect(find.text(_boxTitle), findsOneWidget);
       expectNoLayoutException(tester);
     });
 
@@ -818,14 +983,14 @@ void main() {
       );
 
       await tester.dragUntilVisible(
-        find.text('Inscripciones a clases'),
+        find.text('Inscritos a clases'),
         find.byType(CustomScrollView),
         const Offset(0, -200),
       );
       // Out of the frosted top bar's area.
       await tester.drag(find.byType(CustomScrollView), const Offset(0, 250));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Inscripciones a clases'));
+      await tester.tap(find.text('Inscritos a clases'));
       await tester.pumpAndSettle();
 
       expect(find.text('Inscripciones por clase'), findsOneWidget);
@@ -839,7 +1004,7 @@ void main() {
         size: const Size(1024, 1400),
       );
 
-      expect(find.text('INDICADORES'), findsOneWidget);
+      expect(find.text(_boxTitle), findsOneWidget);
       final sections = find.byType(SacGroupedSection);
       expect(sections, findsWidgets);
       for (final element in sections.evaluate()) {

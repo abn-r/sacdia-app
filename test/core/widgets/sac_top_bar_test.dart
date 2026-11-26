@@ -39,6 +39,57 @@ void main() {
       expect(find.text('Unión'), findsOneWidget);
     });
 
+    testWidgets('a title with onTitleTap is a button with its trailing mark',
+        (tester) async {
+      final handle = tester.ensureSemantics();
+      var taps = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: Scaffold(
+            appBar: SacTopBar(
+              title: 'Octubre 2026',
+              subtitle: 'Informes mensuales',
+              automaticallyImplyLeading: false,
+              titleTrailing: const Icon(Icons.expand_more, key: Key('chev')),
+              onTitleTap: () => taps++,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byKey(const Key('chev')), findsOneWidget);
+      // The title and its subtitle read as one button; the chevron is mute.
+      expect(
+        tester.getSemantics(find.text('Octubre 2026')),
+        isSemantics(
+          hasTapAction: true,
+          label: 'Octubre 2026\nInformes mensuales',
+        ),
+      );
+      await tester.tap(find.text('Octubre 2026'));
+      expect(taps, 1);
+      await tester.tap(find.byKey(const Key('chev')));
+      expect(taps, 2);
+      handle.dispose();
+    });
+
+    testWidgets('without onTitleTap the title is plain text', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const Scaffold(
+            appBar: SacTopBar(
+              title: 'Octubre 2026',
+              automaticallyImplyLeading: false,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(InkWell), findsNothing);
+    });
+
     testWidgets('frosted bar keeps dark status icons on a light surface',
         (tester) async {
       await tester.pumpWidget(

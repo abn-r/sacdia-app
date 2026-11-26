@@ -70,6 +70,10 @@ String supervisionMonthYear(BuildContext context, int year, int month) =>
 String supervisionShortDate(BuildContext context, DateTime date) =>
     intl.DateFormat.yMMMd(_localeTag(context)).format(date);
 
+/// Day and month in the app language ("12 nov").
+String supervisionDayMonth(BuildContext context, DateTime date) =>
+    intl.DateFormat.MMMd(_localeTag(context)).format(date);
+
 /// Date and time in the app language ("12 nov 2026 21:00").
 String supervisionDateTime(BuildContext context, DateTime moment) =>
     intl.DateFormat.yMMMd(_localeTag(context)).add_Hm().format(moment);

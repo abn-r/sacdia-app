@@ -2,17 +2,23 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/errors/forbidden.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_list_row.dart';
 import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
+import 'package:sacdia_app/core/widgets/sac_tone.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_value_row.dart';
 import 'package:sacdia_app/core/widgets/status_progress/sac_grouped_section.dart';
+import 'package:sacdia_app/core/widgets/status_progress/sac_state_panel.dart';
+import 'package:sacdia_app/core/widgets/status_progress/sac_status_style.dart';
 import 'package:sacdia_app/features/supervision/domain/entities/supervision_club.dart';
 import 'package:sacdia_app/features/supervision/presentation/providers/supervision_clubs_providers.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_format.dart';
-import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_plain_row.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_figures_card.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_identity_tiles.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_scroll.dart';
 
 /// Summary of one club of the territory: where it is, who leads it, how it
@@ -94,12 +100,15 @@ class SupervisionClubDetailView extends ConsumerWidget {
     }
 
     final name = summary?.profile.name.trim() ?? '';
+    // The local field says whose club it is; before it loads (or when the
+    // club carries none) the bar keeps naming the screen.
+    final field = summary?.profile.localFieldName.trim() ?? '';
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
         title: name.isEmpty ? title : name,
-        subtitle: name.isEmpty ? null : title,
+        subtitle: name.isEmpty ? null : (field.isEmpty ? title : field),
         frosted: true,
       ),
       body: SacFrostedVeil(child: body),
@@ -119,19 +128,6 @@ class _Summary extends StatelessWidget {
     final overview = summary.overview;
     final leadership = summary.leadership;
 
-    SacGroupedSection facts(String key, List<Widget> rows) => SacGroupedSection(
-          label: 'supervision.clubs.$key'.tr(),
-          dividerIndent: 16,
-          // A count of rows says nothing here.
-          action: const SizedBox.shrink(),
-          children: rows,
-        );
-
-    SacValueRow row(String key, String value) => SacValueRow(
-          label: 'supervision.clubs.$key'.tr(),
-          value: value,
-        );
-
     final leaders = <(String, SupervisionClubLeader)>[
       if (leadership?.director != null)
         ('supervision.clubs.role_director', leadership!.director!),
@@ -141,45 +137,19 @@ class _Summary extends StatelessWidget {
         ('supervision.clubs.role_secretary', person),
     ].where((entry) => entry.$2.fullName.trim().isNotEmpty).toList();
 
-    final attendance = overview?.attendanceAverage;
     final events = overview?.upcomingEvents ?? const <SupervisionClubEvent>[];
+    final facts = <(String, String)>[
+      ('church', profile.churchName),
+      ('district', profile.districtName),
+      ('address', profile.address ?? ''),
+    ].where((fact) => fact.$2.trim().isNotEmpty).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        facts('about_title', [
-          row(
-            'status',
-            (profile.active
-                    ? 'supervision.clubs.status_active'
-                    : 'supervision.clubs.status_inactive')
-                .tr(),
-          ),
-          if (profile.churchName.isNotEmpty) row('church', profile.churchName),
-          if (profile.districtName.isNotEmpty)
-            row('district', profile.districtName),
-          if (profile.localFieldName.isNotEmpty)
-            row('local_field', profile.localFieldName),
-          if ((profile.address ?? '').trim().isNotEmpty)
-            row('address', profile.address!),
-        ]),
+        if (!profile.active) const _InactivePanel(),
         if (overview != null)
-          facts('year_title', [
-            row(
-              'active_members',
-              supervisionCount(context, overview.activeMembers),
-            ),
-            row(
-              'invested',
-              supervisionCount(context, overview.investedThisYear),
-            ),
-            row(
-              'pending_requests',
-              supervisionCount(context, overview.pendingRequests),
-            ),
-            if (attendance != null)
-              row('attendance', supervisionPercent(attendance)),
-          ])
+          _Figures(overview: overview)
         else
           // The club itself loaded; only its figures did not.
           Padding(
@@ -196,32 +166,20 @@ class _Summary extends StatelessWidget {
         if (profile.sections.isNotEmpty)
           SacGroupedSection(
             label: 'supervision.clubs.sections_title'.tr(),
-            dividerIndent: 16,
+            dividerIndent: 64,
             children: [
               for (final section in profile.sections)
-                SupervisionPlainRow(
-                  title: section.typeName.isEmpty
-                      ? 'supervision.clubs.section_unnamed'.tr()
-                      : section.typeName,
-                  subtitle: [
-                    if (!section.active)
-                      'supervision.clubs.section_inactive'.tr(),
-                    if (section.soulsTarget != null && section.soulsTarget! > 0)
-                      'supervision.clubs.section_target'.tr(
-                        args: [supervisionCount(context, section.soulsTarget!)],
-                      ),
-                  ].join(' · '),
-                ),
+                _SectionRow(section: section),
             ],
           ),
         if (leaders.isNotEmpty)
           SacGroupedSection(
             label: 'supervision.clubs.leadership_title'.tr(),
-            dividerIndent: 16,
-            action: const SizedBox.shrink(),
+            dividerIndent: 64,
             children: [
               for (final (roleKey, person) in leaders)
-                SupervisionPlainRow(
+                SacListRow(
+                  leading: SupervisionInitialsAvatar(name: person.fullName),
                   title: person.fullName,
                   subtitle: [
                     roleKey.tr(),
@@ -233,10 +191,11 @@ class _Summary extends StatelessWidget {
         if (events.isNotEmpty)
           SacGroupedSection(
             label: 'supervision.clubs.events_title'.tr(),
-            dividerIndent: 16,
+            dividerIndent: 70,
             children: [
               for (final event in events)
-                SupervisionPlainRow(
+                SacListRow(
+                  leading: SupervisionDateTile(date: event.date),
                   title: event.name,
                   subtitle: [
                     if (event.date != null)
@@ -246,7 +205,108 @@ class _Summary extends StatelessWidget {
                 ),
             ],
           ),
+        if (facts.isNotEmpty)
+          SacGroupedSection(
+            label: 'supervision.clubs.facts_title'.tr(),
+            dividerIndent: 16,
+            // A count of rows says nothing here.
+            action: const SizedBox.shrink(),
+            children: [
+              for (final (key, value) in facts)
+                SacValueRow(
+                  label: 'supervision.clubs.$key'.tr(),
+                  value: value,
+                ),
+            ],
+          ),
       ],
+    );
+  }
+}
+
+/// The club is inactive: that is the first thing to read, so it is a panel
+/// and not a «Estado: Inactivo» row among the data.
+class _InactivePanel extends StatelessWidget {
+  const _InactivePanel();
+
+  @override
+  Widget build(BuildContext context) {
+    final title = 'supervision.clubs.inactive_title'.tr();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      child: SacStatePanel(
+        style: SacStatusStyle.of(
+          context,
+          SacStatusKind.pending,
+          label: title,
+          icon: HugeIcons.strokeRoundedInformationCircle,
+        ),
+        title: title,
+        message: 'supervision.clubs.inactive_body'.tr(),
+      ),
+    );
+  }
+}
+
+/// Members, invested, attendance and the pending role requests. The pending
+/// ones read in the warning tone when there are any.
+class _Figures extends StatelessWidget {
+  const _Figures({required this.overview});
+
+  final SupervisionClubOverview overview;
+
+  @override
+  Widget build(BuildContext context) {
+    final attendance = overview.attendanceAverage;
+    return SupervisionFiguresCard(
+      figures: [
+        SupervisionFigure(
+          value: supervisionCount(context, overview.activeMembers),
+          label: 'supervision.clubs.active_members'.tr(),
+        ),
+        SupervisionFigure(
+          value: supervisionCount(context, overview.investedThisYear),
+          label: 'supervision.clubs.invested'.tr(),
+        ),
+        // No attendance data: the figure leaves instead of showing a zero.
+        if (attendance != null)
+          SupervisionFigure(
+            value: supervisionPercent(attendance),
+            label: 'supervision.clubs.attendance'.tr(),
+          ),
+        SupervisionFigure(
+          value: supervisionCount(context, overview.pendingRequests),
+          label: 'supervision.clubs.pending_roles'.tr(),
+          tone: overview.pendingRequests > 0 ? SacTone.warning : null,
+        ),
+      ],
+    );
+  }
+}
+
+class _SectionRow extends StatelessWidget {
+  const _SectionRow({required this.section});
+
+  final SupervisionClubSection section;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final name = section.typeName.isEmpty
+        ? 'supervision.clubs.section_unnamed'.tr()
+        : section.typeName;
+    final target = section.soulsTarget;
+    final subtitle = [
+      if (!section.active) 'supervision.clubs.section_inactive'.tr(),
+      if (target != null && target > 0)
+        'supervision.clubs.section_target'
+            .tr(args: [supervisionCount(context, target)]),
+    ].join(' · ');
+    return SacListRow(
+      leading: SupervisionClubTypeLogo(typeName: section.typeName),
+      title: name,
+      titleColor: section.active ? null : c.textTertiary,
+      subtitle: subtitle,
     );
   }
 }

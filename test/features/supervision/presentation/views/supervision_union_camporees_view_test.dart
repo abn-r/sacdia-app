@@ -9,9 +9,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:sacdia_app/core/errors/forbidden.dart';
+import 'package:sacdia_app/core/widgets/sac_list_row.dart';
 import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 import 'package:sacdia_app/features/supervision/domain/entities/supervision_union_camporee.dart';
 import 'package:sacdia_app/features/supervision/presentation/views/supervision_union_camporees_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_count_pill.dart';
 
 import 'supervision_camporee_test_harness.dart';
 import 'supervision_view_test_harness.dart';
@@ -51,6 +53,12 @@ FakeCamporeesRepo _repoWith(
 String _date(DateTime when) => intl.DateFormat.yMMMd('es').format(when);
 
 final _approvalsRow = find.text('Inscripciones y pagos');
+
+/// The number in the pill of a row that has something waiting.
+Finder _pill(String count) => find.descendant(
+      of: find.byType(SupervisionCountPill),
+      matching: find.text(count),
+    );
 final _ordersRow = find.text('Pedidos e insumos');
 
 /// Flings the list down from [onItem] past the trigger distance of the
@@ -217,7 +225,8 @@ void main() {
         ),
       );
 
-      expect(find.text('4 por aprobar'), findsOneWidget);
+      expect(_pill('4'), findsOneWidget);
+      expect(find.text('Fuera de plazo'), findsOneWidget);
       expect(find.text('Al día'), findsNothing);
     });
 
@@ -237,7 +246,7 @@ void main() {
             ));
       await _pump(tester, repo: repo);
 
-      expect(find.text('1 por aprobar'), findsOneWidget);
+      expect(_pill('1'), findsOneWidget);
       expect(find.text('Al día'), findsOneWidget);
       expect(repo.pendingCalls.toSet(), {1, 2});
     });
@@ -344,7 +353,13 @@ void main() {
         ]),
       );
 
-      expect(find.text('Pedidos abiertos'), findsOneWidget);
+      // «Pedidos abiertos» in the success color, then when they close.
+      expect(
+        find.textContaining('Pedidos abiertos', findRichText: true),
+        findsOneWidget,
+      );
+      expect(
+          find.textContaining('cierran', findRichText: true), findsOneWidget);
     });
 
     testWidgets('disabled wins over dates in the past', (tester) async {
@@ -465,12 +480,12 @@ void main() {
               ),
             ));
       await _pump(tester, repo: repo, size: _shortSurface);
-      expect(find.text('1 por aprobar'), findsOneWidget);
+      expect(_pill('1'), findsOneWidget);
 
       total = 3;
       await _pullToRefresh(tester, find.text('Camporee 1'));
 
-      expect(find.text('3 por aprobar'), findsOneWidget);
+      expect(_pill('3'), findsOneWidget);
     });
 
     testWidgets('a failed refresh keeps the last list on screen', (
@@ -544,6 +559,49 @@ void main() {
           repo: _repoWith(const []), size: narrow, textScale: 2.0);
 
       expectNoLayoutException(tester);
+    });
+  });
+
+  group('card layout', () {
+    testWidgets('an «Activos» eyebrow counts the camporees', (tester) async {
+      await _pump(tester, repo: _repoWith([camporee(1), camporee(2)]));
+
+      expect(find.text('ACTIVOS'), findsOneWidget);
+      expect(find.text('2'), findsOneWidget);
+    });
+
+    testWidgets('each camporee is one card with a campfire header', (
+      tester,
+    ) async {
+      await _pump(tester, repo: _repoWith([camporee(1), camporee(2)]));
+
+      // Two cards, each with its two function rows.
+      expect(find.byType(SacListRow), findsNWidgets(4));
+      expect(_approvalsRow, findsNWidgets(2));
+    });
+
+    testWidgets('pending approvals: warning subtitle and the pill', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        repo: _repoWith(
+          [camporee(1)],
+          pending: SupervisionCamporeePending(clubs: [pendingClub(1)]),
+        ),
+      );
+
+      expect(find.text('Fuera de plazo'), findsOneWidget);
+      expect(_pill('1'), findsOneWidget);
+      expect(find.byType(SupervisionAllClearLabel), findsNothing);
+    });
+
+    testWidgets('nothing pending: «Al día» label and no pill', (tester) async {
+      await _pump(tester, repo: _repoWith([camporee(1)]));
+
+      expect(find.byType(SupervisionAllClearLabel), findsOneWidget);
+      expect(find.byType(SupervisionCountPill), findsNothing);
+      expect(find.text('Fuera de plazo'), findsNothing);
     });
   });
 }

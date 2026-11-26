@@ -5,10 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/errors/forbidden.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
@@ -17,7 +15,7 @@ import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/supervision/domain/entities/supervision_club.dart';
 import 'package:sacdia_app/features/supervision/presentation/providers/supervision_clubs_providers.dart';
-import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_format.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_club_list_parts.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_load_more_footer.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_scroll.dart';
 
@@ -78,28 +76,14 @@ class SupervisionClubsView extends ConsumerWidget {
         ),
       );
     } else {
-      final items = state.items;
+      final groups = groupSupervisionClubsByField(state.items);
       content = SliverPadding(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+        padding: const EdgeInsets.fromLTRB(0, 0, 0, 32),
         sliver: SliverList.builder(
-          // Total line, the clubs, and the load-more footer.
-          itemCount: items.length + 1 + (state.hasMore ? 1 : 0),
+          // The groups, and the load-more footer.
+          itemCount: groups.length + (state.hasMore ? 1 : 0),
           itemBuilder: (context, index) {
-            if (index == 0) {
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(4, 0, 4, 10),
-                child: Text(
-                  'supervision.clubs.total'
-                      .tr(args: [supervisionCount(context, state.total)]),
-                  style: TextStyle(
-                    fontSize: SacFontSize.bodySmall,
-                    color: c.textTertiary,
-                  ),
-                ),
-              );
-            }
-            final position = index - 1;
-            if (position >= items.length) {
+            if (index >= groups.length) {
               return SupervisionLoadMoreFooter(
                 loading: state.isLoadingMore,
                 failed: state.error != null,
@@ -107,14 +91,12 @@ class SupervisionClubsView extends ConsumerWidget {
                 onLoadMore: notifier.loadMore,
               );
             }
-            final club = items[position];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _ClubCard(
-                club: club,
-                onTap: () => context.push(
-                  RouteNames.supervisionClubDetail('${club.id}'),
-                ),
+            return SupervisionClubGroupSection(
+              group: groups[index],
+              // More pages can still add clubs to a field.
+              showCount: !state.hasMore,
+              onOpen: (club) => context.push(
+                RouteNames.supervisionClubDetail('${club.id}'),
               ),
             );
           },
@@ -170,6 +152,12 @@ class SupervisionClubsView extends ConsumerWidget {
                     padding: const EdgeInsets.only(top: 4),
                     child: _ActiveFilter(
                       selected: state.filter,
+                      // The server counts only the list on screen: the
+                      // other chips stay without a number.
+                      selectedCount: state.isLoading ||
+                              (state.items.isEmpty && state.error != null)
+                          ? null
+                          : state.total,
                       onSelected: notifier.setFilter,
                     ),
                   ),
@@ -198,9 +186,14 @@ class SupervisionClubsView extends ConsumerWidget {
 }
 
 class _ActiveFilter extends StatelessWidget {
-  const _ActiveFilter({required this.selected, required this.onSelected});
+  const _ActiveFilter({
+    required this.selected,
+    required this.selectedCount,
+    required this.onSelected,
+  });
 
   final SupervisionClubActiveFilter selected;
+  final int? selectedCount;
   final ValueChanged<SupervisionClubActiveFilter> onSelected;
 
   @override
@@ -226,109 +219,11 @@ class _ActiveFilter extends StatelessWidget {
             child: SacFilterChip(
               label: labelKey.tr(),
               selected: filter == selected,
+              count: filter == selected ? selectedCount : null,
               onTap: () => onSelected(filter),
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class _ClubCard extends StatelessWidget {
-  const _ClubCard({required this.club, required this.onTap});
-
-  final SupervisionClubListItem club;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    // Church and district place the club; the local field says whose it is.
-    final place = [club.churchName, club.districtName]
-        .where((part) => part.trim().isNotEmpty)
-        .join(' · ');
-    final sections = club.activeSectionNames;
-    final secondary = TextStyle(
-      fontSize: SacFontSize.bodyMedium,
-      height: 1.3,
-      color: c.textSecondary,
-    );
-
-    return MergeSemantics(
-      child: Semantics(
-        button: true,
-        child: SacCard(
-          onTap: onTap,
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      club.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: SacFontSize.titleMedium,
-                        fontWeight: FontWeight.w600,
-                        color: c.text,
-                      ),
-                    ),
-                  ),
-                  if (!club.active) ...[
-                    const SizedBox(width: 12),
-                    Text(
-                      'supervision.clubs.inactive'.tr(),
-                      style: TextStyle(
-                        fontSize: SacFontSize.bodySmall,
-                        fontWeight: FontWeight.w600,
-                        height: 1.6,
-                        color: c.textSecondary,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-              if (place.isNotEmpty) ...[
-                const SizedBox(height: 2),
-                Text(
-                  place,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: secondary,
-                ),
-              ],
-              if (club.localFieldName.trim().isNotEmpty) ...[
-                const SizedBox(height: 2),
-                Text(
-                  club.localFieldName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: secondary,
-                ),
-              ],
-              const SizedBox(height: 8),
-              Text(
-                sections.isEmpty
-                    ? 'supervision.clubs.no_sections'.tr()
-                    : sections.join(' · '),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: SacFontSize.bodyMedium,
-                  height: 1.3,
-                  color: sections.isEmpty ? c.textSecondary : c.text,
-                  fontWeight:
-                      sections.isEmpty ? FontWeight.w400 : FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

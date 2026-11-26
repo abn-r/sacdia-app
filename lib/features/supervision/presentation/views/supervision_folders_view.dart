@@ -1,23 +1,31 @@
+import 'dart:math' as math;
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/errors/forbidden.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
-import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
+import 'package:sacdia_app/core/widgets/sac_list_row.dart';
 import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
+import 'package:sacdia_app/core/widgets/sac_tone.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/status_progress/sac_grouped_section.dart';
 import 'package:sacdia_app/features/supervision/domain/entities/supervision_folder.dart';
 import 'package:sacdia_app/features/supervision/presentation/providers/supervision_folders_providers.dart';
-import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_card_header.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_folder_labels.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_format.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_load_more_footer.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_row_parts.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_segmented_control.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_status_chip.dart';
+import 'package:sacdia_app/features/transfers/presentation/widgets/club_type_tile.dart';
 
 const double _kMaxContentWidth = 640;
 
@@ -74,27 +82,42 @@ class SupervisionFoldersView extends ConsumerWidget {
     } else {
       final items = state.items;
       content = SliverPadding(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+        padding: const EdgeInsets.only(bottom: 32),
         sliver: SliverList.builder(
-          itemCount: items.length + (state.hasMore ? 1 : 0),
+          itemCount: 1 + (state.hasMore ? 1 : 0),
           itemBuilder: (context, index) {
-            if (index >= items.length) {
-              return SupervisionLoadMoreFooter(
-                loading: state.isLoadingMore,
-                failed: state.error != null,
-                errorMessage: 'supervision.folders.load_more_error'.tr(),
-                onLoadMore: notifier.loadMore,
+            if (index > 0) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: SupervisionLoadMoreFooter(
+                  loading: state.isLoadingMore,
+                  failed: state.error != null,
+                  errorMessage: 'supervision.folders.load_more_error'.tr(),
+                  onLoadMore: notifier.loadMore,
+                ),
               );
             }
-            final folder = items[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _FolderCard(
-                folder: folder,
-                onTap: () => context.push(
-                  RouteNames.supervisionFolderDetail(folder.id),
-                ),
-              ),
+            return SacGroupedSection(
+              label: switch (state.filter) {
+                SupervisionFolderQueueFilter.needsReview =>
+                  'supervision.folders.oldest_first',
+                SupervisionFolderQueueFilter.evaluated =>
+                  'supervision.folders.filter_evaluated',
+                SupervisionFolderQueueFilter.all =>
+                  'supervision.folders.filter_all',
+              }
+                  .tr(),
+              count: math.max(state.total, items.length),
+              children: [
+                for (final folder in items)
+                  _FolderRow(
+                    key: ValueKey(folder.id),
+                    folder: folder,
+                    onTap: () => context.push(
+                      RouteNames.supervisionFolderDetail(folder.id),
+                    ),
+                  ),
+              ],
             );
           },
         ),
@@ -121,12 +144,40 @@ class SupervisionFoldersView extends ConsumerWidget {
                 SliverPadding(
                   padding: SacTopBar.paddingBelowBar(
                     context,
-                    const EdgeInsets.only(top: 8),
+                    const EdgeInsets.only(top: 0),
                   ),
                   sliver: SliverToBoxAdapter(
-                    child: _QueueFilter(
+                    child: SupervisionSegmentedControl<
+                        SupervisionFolderQueueFilter>(
                       selected: state.filter,
-                      onSelected: notifier.setFilter,
+                      onChanged: notifier.setFilter,
+                      segments: [
+                        for (final (filter, labelKey) in const [
+                          (
+                            SupervisionFolderQueueFilter.needsReview,
+                            'supervision.folders.filter_review',
+                          ),
+                          (
+                            SupervisionFolderQueueFilter.evaluated,
+                            'supervision.folders.filter_evaluated',
+                          ),
+                          (
+                            SupervisionFolderQueueFilter.all,
+                            'supervision.folders.filter_all',
+                          ),
+                        ])
+                          SupervisionSegment(
+                            value: filter,
+                            label: labelKey.tr(),
+                            // The API counts only the list it returns: the
+                            // other segments carry no number.
+                            count: filter == state.filter &&
+                                    !state.isLoading &&
+                                    state.error == null
+                                ? state.total
+                                : null,
+                          ),
+                      ],
                     ),
                   ),
                 ),
@@ -152,49 +203,11 @@ class SupervisionFoldersView extends ConsumerWidget {
   }
 }
 
-class _QueueFilter extends StatelessWidget {
-  const _QueueFilter({required this.selected, required this.onSelected});
-
-  final SupervisionFolderQueueFilter selected;
-  final ValueChanged<SupervisionFolderQueueFilter> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    const options = [
-      (
-        SupervisionFolderQueueFilter.needsReview,
-        'supervision.folders.filter_review',
-      ),
-      (
-        SupervisionFolderQueueFilter.evaluated,
-        'supervision.folders.filter_evaluated',
-      ),
-      (SupervisionFolderQueueFilter.all, 'supervision.folders.filter_all'),
-    ];
-    return SizedBox(
-      height: SacFilterChip.barHeight,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: options.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final (filter, labelKey) = options[index];
-          return Center(
-            child: SacFilterChip(
-              label: labelKey.tr(),
-              selected: filter == selected,
-              onTap: () => onSelected(filter),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _FolderCard extends StatelessWidget {
-  const _FolderCard({required this.folder, required this.onTap});
+/// A folder of the queue: the logo of its club type, where it belongs, how
+/// many sections wait (amber: yours to evaluate; blue: waiting for the Union)
+/// and a thin bar with the share of sections already evaluated.
+class _FolderRow extends StatelessWidget {
+  const _FolderRow({super.key, required this.folder, required this.onTap});
 
   final SupervisionFolderQueueItem folder;
   final VoidCallback onTap;
@@ -214,53 +227,87 @@ class _FolderCard extends StatelessWidget {
       if (!typeInTitle) folder.clubTypeName,
       folder.localFieldName,
     ].where((part) => part.trim().isNotEmpty).join(' · ');
-    final when = folder.latestSubmittedAt ?? folder.createdAt;
-    final waiting = folder.pendingSectionNames;
+    final toEvaluate = folder.submittedSections;
+    final waitingUnion = folder.preapprovedSections;
+    final evaluated = folder.validatedSections +
+        folder.preapprovedSections +
+        folder.rejectedSections;
+    final progress = folder.totalSections > 0
+        ? (evaluated / folder.totalSections).clamp(0.0, 1.0)
+        : null;
 
-    return MergeSemantics(
-      child: Semantics(
-        button: true,
-        child: SacCard(
-          onTap: onTap,
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SupervisionCardHeader(title: title, when: when),
-              if (place.isNotEmpty) ...[
-                const SizedBox(height: 2),
-                Text(
-                  place,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: SacFontSize.bodyMedium,
-                    height: 1.3,
-                    color: c.textSecondary,
+    return SacListRow(
+      leading: ClubTypeTile(clubTypeName: folder.clubTypeName),
+      title: title,
+      subtitleWidget: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (place.isNotEmpty)
+            Text(
+              place,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: SacFontSize.bodyMedium,
+                height: 1.3,
+                color: c.textSecondary,
+              ),
+            ),
+          if (toEvaluate > 0 || waitingUnion > 0) ...[
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                if (toEvaluate > 0)
+                  SupervisionStatusChip(
+                    label: 'supervision.folders.n_to_evaluate'
+                        .tr(args: ['$toEvaluate']),
+                    icon: HugeIcons.strokeRoundedInbox,
+                    tone: SacTone.warning,
                   ),
-                ),
+                if (waitingUnion > 0)
+                  SupervisionStatusChip(
+                    label: 'supervision.folders.n_waiting_union'
+                        .plural(waitingUnion),
+                    icon: HugeIcons.strokeRoundedClock01,
+                    tone: SacTone.info,
+                  ),
               ],
-              const SizedBox(height: 8),
-              // What waits inside, by name; otherwise where the folder stands.
-              Text(
-                waiting.isNotEmpty
-                    ? 'supervision.folders.waiting_sections'
-                        .tr(args: [waiting.join(', ')])
-                    : folderStatusLabel(folder.folderStatus),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: SacFontSize.bodyMedium,
-                  height: 1.3,
-                  color: waiting.isNotEmpty ? c.text : c.textSecondary,
-                  fontWeight:
-                      waiting.isNotEmpty ? FontWeight.w500 : FontWeight.w400,
+            ),
+          ] else ...[
+            const SizedBox(height: 2),
+            Text(
+              folderStatusLabel(folder.folderStatus),
+              style: TextStyle(
+                fontSize: SacFontSize.bodyMedium,
+                height: 1.3,
+                color: c.textSecondary,
+              ),
+            ),
+          ],
+          if (progress != null) ...[
+            const SizedBox(height: 8),
+            Semantics(
+              label:
+                  '${'supervision.folders.progress'.tr()} ${supervisionPercent(progress * 100)}',
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 4,
+                  color: c.success,
+                  backgroundColor: c.surfaceVariant,
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+          ],
+        ],
       ),
+      trailing: SupervisionRowAge(
+        when: folder.latestSubmittedAt ?? folder.createdAt,
+      ),
+      onTap: onTap,
     );
   }
 }

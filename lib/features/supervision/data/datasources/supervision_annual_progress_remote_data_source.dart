@@ -12,13 +12,18 @@ import '../models/supervision_annual_progress_model.dart';
 const String kAnnualConfigNotFoundCode = 'ANNUAL_RANKING_CONFIG_NOT_FOUND';
 
 abstract class SupervisionAnnualProgressRemoteDataSource {
-  /// GET /catalogs/unions?divisionId=
+  /// GET /annual-rankings/territory-summary with no parent: the server answers
+  /// with the caller's own division's unions, each with its club count and
+  /// whether it is configured (the route takes no division id). An older
+  /// server answers 404 and the names come from GET /catalogs/unions?divisionId=
+  /// instead.
   Future<List<SupervisionTerritoryOption>> getUnions(
     int divisionId, {
     CancelToken? cancelToken,
   });
 
-  /// GET /catalogs/local-fields?unionId=
+  /// GET /annual-rankings/territory-summary?union_id= (same contract), with
+  /// the same fallback to GET /catalogs/local-fields?unionId=.
   Future<List<SupervisionTerritoryOption>> getLocalFields(
     int unionId, {
     CancelToken? cancelToken,
@@ -29,6 +34,11 @@ abstract class SupervisionAnnualProgressRemoteDataSource {
     SupervisionAnnualProgressQuery query, {
     CancelToken? cancelToken,
   });
+}
+
+/// The territory summary endpoint is not on this server (404).
+class _SummaryUnavailable implements Exception {
+  const _SummaryUnavailable();
 }
 
 class SupervisionAnnualProgressRemoteDataSourceImpl
@@ -71,6 +81,63 @@ class SupervisionAnnualProgressRemoteDataSourceImpl
     CancelToken? cancelToken,
   }) async {
     try {
+      return await _territorySummary(const {}, cancelToken: cancelToken);
+    } on _SummaryUnavailable {
+      return _catalogUnions(divisionId, cancelToken: cancelToken);
+    } catch (e) {
+      AppLogger.e('Error en getUnions (supervision progress)',
+          tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  @override
+  Future<List<SupervisionTerritoryOption>> getLocalFields(
+    int unionId, {
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      return await _territorySummary(
+        {'union_id': unionId},
+        cancelToken: cancelToken,
+      );
+    } on _SummaryUnavailable {
+      return _catalogLocalFields(unionId, cancelToken: cancelToken);
+    } catch (e) {
+      AppLogger.e('Error en getLocalFields (supervision progress)',
+          tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  /// One call for the territories below the parent in [query] (none = the
+  /// caller's own unit). A 404 means the server predates the endpoint:
+  /// [_SummaryUnavailable].
+  Future<List<SupervisionTerritoryOption>> _territorySummary(
+    Map<String, Object> query, {
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl/annual-rankings/territory-summary',
+        queryParameters: query,
+        cancelToken: cancelToken,
+      );
+      if (!_isOk(response.statusCode)) _badResponse(response);
+      return SupervisionAnnualProgressModel.parseTerritorySummary(
+        _unwrap(response.data),
+      );
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) throw const _SummaryUnavailable();
+      rethrow;
+    }
+  }
+
+  Future<List<SupervisionTerritoryOption>> _catalogUnions(
+    int divisionId, {
+    CancelToken? cancelToken,
+  }) async {
+    try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.catalogs}/unions',
         queryParameters: {'divisionId': divisionId},
@@ -90,8 +157,7 @@ class SupervisionAnnualProgressRemoteDataSourceImpl
     }
   }
 
-  @override
-  Future<List<SupervisionTerritoryOption>> getLocalFields(
+  Future<List<SupervisionTerritoryOption>> _catalogLocalFields(
     int unionId, {
     CancelToken? cancelToken,
   }) async {

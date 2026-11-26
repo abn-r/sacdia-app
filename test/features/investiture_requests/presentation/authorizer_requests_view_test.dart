@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/features/dashboard/presentation/widgets/welcome_header.dart';
 import 'package:sacdia_app/features/investiture_requests/domain/entities/person_status.dart';
 import 'package:sacdia_app/features/investiture_requests/presentation/views/authorizer_requests_view.dart';
 
@@ -50,6 +52,9 @@ void main() {
       );
 
       expect(find.text('Autorizaciones'), findsOneWidget);
+      // Ruta normal (no inicio): conserva la barra, sin saludo.
+      expect(find.byType(SacTopBar), findsOneWidget);
+      expect(find.byType(WelcomeHeader), findsNothing);
       expect(find.text('Distrito Norte · 2025-2026'), findsOneWidget);
       expect(find.text('PARA AUTORIZAR'), findsOneWidget);
       expect(find.text('Club Alfa'), findsOneWidget);

@@ -7,20 +7,23 @@ import 'package:sacdia_app/core/errors/forbidden.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/utils/money_format.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'package:sacdia_app/core/widgets/sac_dropdown_field.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
-import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 import 'package:sacdia_app/core/widgets/sac_list_row.dart';
+import 'package:sacdia_app/core/widgets/sac_notice.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_tone.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/status_progress/sac_grouped_section.dart';
+import 'package:sacdia_app/core/widgets/status_progress/sac_state_panel.dart';
+import 'package:sacdia_app/core/widgets/status_progress/sac_status_style.dart';
 import 'package:sacdia_app/features/activities/presentation/widgets/activity_form_widgets.dart'
     show showTimePickerSheet;
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
@@ -31,10 +34,14 @@ import 'package:sacdia_app/features/supervision/domain/entities/supervision_camp
 import 'package:sacdia_app/features/supervision/presentation/providers/supervision_action_result.dart';
 import 'package:sacdia_app/features/supervision/presentation/providers/supervision_camporee_orders_providers.dart';
 import 'package:sacdia_app/features/supervision/presentation/providers/supervision_union_camporees_providers.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_actions.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_format.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_messages.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_plain_row.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_row_parts.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_scroll.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_segmented_control.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_status_chip.dart';
 
 /// The two things set up for a camporee.
 enum _Tab { orders, supplies }
@@ -93,12 +100,19 @@ class _SupervisionCamporeeOrdersViewState
         ref.watch(supervisionUnionCamporeeProvider(id)).value?.name.trim();
 
     final chips = canSupplies
-        ? Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: _TabChips(
-              selected: tab,
-              onSelected: (value) => setState(() => _tab = value),
-            ),
+        ? SupervisionSegmentedControl<_Tab>(
+            selected: tab,
+            onChanged: (value) => setState(() => _tab = value),
+            segments: [
+              SupervisionSegment(
+                value: _Tab.orders,
+                label: 'supervision.union_camporees.tab_orders'.tr(),
+              ),
+              SupervisionSegment(
+                value: _Tab.supplies,
+                label: 'supervision.union_camporees.tab_supplies'.tr(),
+              ),
+            ],
           )
         : null;
 
@@ -115,40 +129,6 @@ class _SupervisionCamporeeOrdersViewState
         child: switch (tab) {
           _Tab.orders => _OrdersTab(camporeeId: id, chips: chips),
           _Tab.supplies => _SuppliesTab(camporeeId: id, chips: chips),
-        },
-      ),
-    );
-  }
-}
-
-class _TabChips extends StatelessWidget {
-  const _TabChips({required this.selected, required this.onSelected});
-
-  final _Tab selected;
-  final ValueChanged<_Tab> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    const options = [
-      (_Tab.orders, 'supervision.union_camporees.tab_orders'),
-      (_Tab.supplies, 'supervision.union_camporees.tab_supplies'),
-    ];
-    return SizedBox(
-      height: SacFilterChip.barHeight,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: options.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final (tab, labelKey) = options[index];
-          return Center(
-            child: SacFilterChip(
-              label: labelKey.tr(),
-              selected: tab == selected,
-              onTap: () => onSelected(tab),
-            ),
-          );
         },
       ),
     );
@@ -323,7 +303,8 @@ class _TabBody<T> extends StatelessWidget {
   }
 }
 
-/// Sheet with a few fields, an inline error and one save button.
+/// Sheet with a few fields in a scroll and, fixed at the bottom, one primary
+/// «Guardar» with «Cancelar» under it. An inline error sits above them.
 class _FormSheet extends StatelessWidget {
   const _FormSheet({
     required this.title,
@@ -343,48 +324,48 @@ class _FormSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: SafeArea(
-        top: false,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SacSheetHeader(title: title, subtitle: subtitle),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.9,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // The header scrolls with the fields: at a large text scale only
+            // the error and the buttons stay fixed.
+            Flexible(
+              child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    ...children,
-                    if (error != null) ...[
-                      const SizedBox(height: 12),
-                      Semantics(
-                        liveRegion: true,
-                        child: Text(
-                          error!,
-                          style: TextStyle(
-                            fontSize: SacFontSize.bodyMedium,
-                            height: 1.35,
-                            color: c.error,
-                          ),
-                        ),
+                    SacSheetHeader(title: title, subtitle: subtitle),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: children,
                       ),
-                    ],
-                    const SizedBox(height: 20),
-                    SacButton.primary(
-                      text: 'common.save'.tr(),
-                      isLoading: busy,
-                      onPressed: busy ? null : onSave,
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+            if (error != null) SupervisionInlineError(message: error!),
+            SupervisionSheetFooter(
+              child: SupervisionStackedActions(
+                primaryLabel: 'common.save'.tr(),
+                primaryIcon: HugeIcons.strokeRoundedTick02,
+                onPrimary: onSave,
+                secondaryLabel: 'common.cancel'.tr(),
+                secondaryDestructive: false,
+                onSecondary: () => Navigator.of(context).pop(),
+                isLoading: busy,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -599,22 +580,28 @@ class _OrdersTabState extends ConsumerState<_OrdersTab> {
     final offered = config.products
         .where((p) => config.activeOfferingOf(p.productId) != null)
         .length;
+    final enabled = _enabledWhileSaving ?? settings.ordersEnabled;
+    final accent = SacAccent.of(context).color;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        _WindowPanel(
+          enabled: settings.ordersEnabled,
+          opensAt: settings.ordersOpensAt,
+          deadline: settings.ordersDeadline,
+        ),
         SacGroupedSection(
           label: 'supervision.union_camporees.window_title'.tr(),
-          dividerIndent: 16,
           // A count of rows says nothing here.
           action: const SizedBox.shrink(),
           children: [
-            SupervisionPlainRow(
+            SacListRow(
+              leading: const SacListRowIcon(HugeIcons.strokeRoundedStore01),
               title: 'supervision.union_camporees.orders_enabled'.tr(),
-              subtitle: 'supervision.union_camporees.orders_enabled_note'.tr(),
               trailing: Switch.adaptive(
-                value: _enabledWhileSaving ?? settings.ordersEnabled,
-                activeTrackColor: SacAccent.of(context).color,
+                value: enabled,
+                activeTrackColor: accent,
                 onChanged: _saving
                     ? null
                     : (value) => _patch(
@@ -622,9 +609,10 @@ class _OrdersTabState extends ConsumerState<_OrdersTab> {
                         ),
               ),
             ),
-            SupervisionPlainRow(
+            SacListRow(
+              leading: const SacListRowIcon(HugeIcons.strokeRoundedCalendar03),
               title: 'supervision.union_camporees.opens_at'.tr(),
-              subtitle: moment(settings.ordersOpensAt),
+              trailing: _MomentValue(moment(settings.ordersOpensAt)),
               onTap: _saving
                   ? null
                   : () => _editMoment(
@@ -633,9 +621,10 @@ class _OrdersTabState extends ConsumerState<_OrdersTab> {
                         other: settings.ordersDeadline,
                       ),
             ),
-            SupervisionPlainRow(
+            SacListRow(
+              leading: const SacListRowIcon(HugeIcons.strokeRoundedClock01),
               title: 'supervision.union_camporees.deadline'.tr(),
-              subtitle: moment(settings.ordersDeadline),
+              trailing: _MomentValue(moment(settings.ordersDeadline)),
               onTap: _saving
                   ? null
                   : () => _editMoment(
@@ -662,15 +651,27 @@ class _OrdersTabState extends ConsumerState<_OrdersTab> {
         else ...[
           SacGroupedSection(
             label: 'supervision.union_camporees.products_title'.tr(),
-            dividerIndent: 16,
-            // On sale, out of the library.
-            count: offered,
+            // «3 de 4»: on sale, out of the library.
+            action: Text(
+              'supervision.union_camporees.products_count'
+                  .tr(args: ['$offered', '${config.products.length}']),
+              style: TextStyle(
+                fontSize: SacFontSize.labelSmall,
+                fontWeight: FontWeight.w600,
+                color: context.sac.textTertiary,
+              ),
+            ),
             children: [
               for (final product in config.products)
                 _productRow(context, config, product),
             ],
           ),
-          _Footnote('supervision.union_camporees.products_note'.tr()),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            child: SacNotice(
+              text: 'supervision.union_camporees.products_note'.tr(),
+            ),
+          ),
         ],
       ],
     );
@@ -681,33 +682,60 @@ class _OrdersTabState extends ConsumerState<_OrdersTab> {
     SupervisionCamporeeOrderConfig config,
     CamporeeOrderProduct product,
   ) {
+    final c = context.sac;
     final offering = config.activeOfferingOf(product.productId);
     final sizes = product.options.where((o) => o.active).length;
     final missingSizes = product.requiresOption && sizes == 0;
-    return SupervisionPlainRow(
+
+    final SupervisionStatusChip chip;
+    if (missingSizes) {
+      chip = SupervisionStatusChip(
+        label: 'supervision.union_camporees.product_no_sizes'.tr(),
+        icon: HugeIcons.strokeRoundedAlert02,
+        tone: SacTone.warning,
+      );
+    } else if (offering == null) {
+      chip = SupervisionStatusChip(
+        label: 'supervision.union_camporees.product_not_offered'.tr(),
+        icon: HugeIcons.strokeRoundedCancel01,
+        tone: SacTone.muted,
+      );
+    } else {
+      chip = SupervisionStatusChip(
+        label: !product.requiresOption
+            ? 'supervision.union_camporees.product_offered'.tr()
+            : sizes == 1
+                ? 'supervision.union_camporees.product_sizes_one'.tr()
+                : 'supervision.union_camporees.product_sizes'
+                    .tr(args: ['$sizes']),
+        icon: HugeIcons.strokeRoundedTick02,
+        tone: SacTone.success,
+      );
+    }
+
+    return SacListRow(
+      leading: SacListRowIcon(
+        product.requiresOption
+            ? HugeIcons.strokeRoundedShirt01
+            : HugeIcons.strokeRoundedTag01,
+        tone: offering == null ? SacTone.muted : SacTone.accent,
+      ),
       title: product.title,
-      subtitleSpans: [
-        if (missingSizes)
-          TextSpan(
-            text: 'supervision.union_camporees.product_no_sizes'.tr(),
-            style: TextStyle(
-              color: context.sac.text,
-              fontWeight: FontWeight.w500,
-            ),
-          )
-        else if (offering == null)
-          TextSpan(text: 'supervision.union_camporees.product_not_offered'.tr())
-        else if (product.requiresOption)
-          TextSpan(
-            text: 'supervision.union_camporees.product_sizes'
-                .tr(args: ['$sizes']),
-          )
-        else
-          TextSpan(text: 'supervision.union_camporees.product_offered'.tr()),
-      ],
+      subtitleWidget: Align(alignment: Alignment.centerLeft, child: chip),
       trailing: offering == null
           ? null
-          : SupervisionRowValue(SacMoney.fromCentavos(offering.priceCentavos)),
+          : SupervisionTrailingFit(
+              child: Text(
+                SacMoney.fromCentavos(offering.priceCentavos),
+                maxLines: 1,
+                style: TextStyle(
+                  fontSize: SacFontSize.titleMedium,
+                  fontWeight: FontWeight.w700,
+                  color: c.text,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ),
       onTap: () => showSacSheet<void>(
         context: context,
         isScrollControlled: true,
@@ -718,6 +746,91 @@ class _OrdersTabState extends ConsumerState<_OrdersTab> {
           offering: offering,
           canOffer: !missingSizes,
         ),
+      ),
+    );
+  }
+}
+
+/// Date and time at the end of a window row.
+class _MomentValue extends StatelessWidget {
+  const _MomentValue(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.sizeOf(context).width * 0.4,
+      ),
+      child: Text(
+        text,
+        maxLines: 2,
+        textAlign: TextAlign.end,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: SacFontSize.titleSmall,
+          fontWeight: FontWeight.w500,
+          color: context.sac.text,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
+      ),
+    );
+  }
+}
+
+/// Where the order window stands right now, said in words on top of the tab.
+class _WindowPanel extends StatelessWidget {
+  const _WindowPanel({
+    required this.enabled,
+    required this.opensAt,
+    required this.deadline,
+  });
+
+  final bool enabled;
+  final DateTime? opensAt;
+  final DateTime? deadline;
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final SacStatusKind kind;
+    final HugeIconData icon;
+    final String title;
+    String? message;
+    if (!enabled) {
+      kind = SacStatusKind.pending;
+      icon = HugeIcons.strokeRoundedCancel01;
+      title = 'supervision.union_camporees.orders_disabled'.tr();
+      message = 'supervision.union_camporees.window_disabled_message'.tr();
+    } else if (deadline != null && now.isAfter(deadline!)) {
+      kind = SacStatusKind.pending;
+      icon = HugeIcons.strokeRoundedLockKey;
+      title = 'supervision.union_camporees.orders_closed'.tr();
+      message = 'supervision.union_camporees.window_closed_message'.tr(
+        args: [supervisionDateTime(context, deadline!.toLocal())],
+      );
+    } else if (opensAt != null && now.isBefore(opensAt!)) {
+      kind = SacStatusKind.review;
+      icon = HugeIcons.strokeRoundedCalendar03;
+      title = 'supervision.union_camporees.orders_opens_on'
+          .tr(args: [supervisionShortDate(context, opensAt!.toLocal())]);
+    } else {
+      kind = SacStatusKind.validated;
+      icon = HugeIcons.strokeRoundedShoppingBag01;
+      title = 'supervision.union_camporees.orders_open'.tr();
+      message = deadline == null
+          ? 'supervision.union_camporees.window_open_no_deadline'.tr()
+          : 'supervision.union_camporees.window_open_until'.tr(
+              args: [supervisionDateTime(context, deadline!.toLocal())],
+            );
+    }
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      child: SacStatePanel(
+        style: SacStatusStyle.of(context, kind, label: title, icon: icon),
+        title: title,
+        message: message,
       ),
     );
   }
@@ -845,30 +958,59 @@ class _OfferingSheetState extends ConsumerState<_OfferingSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     final description = widget.product.description?.trim() ?? '';
+    final activeSizes =
+        widget.product.options.where((o) => o.active).toList(growable: false);
+    // «5 tallas activas · Ch, M, G»: what the club will pick from.
+    final sizesLine = activeSizes.isEmpty
+        ? null
+        : (activeSizes.length == 1
+                ? 'supervision.union_camporees.sizes_active_one'
+                : 'supervision.union_camporees.sizes_active')
+            .tr(
+            args: [
+              if (activeSizes.length > 1) '${activeSizes.length}',
+              activeSizes.map((o) => o.label).join(', '),
+            ],
+          );
+    final subtitle = sizesLine ?? (description.isEmpty ? null : description);
+
     return _FormSheet(
       title: widget.product.title,
-      subtitle: description.isEmpty ? null : description,
+      subtitle: subtitle,
       error: _error,
       busy: _busy,
       onSave: _save,
       children: [
-        _SwitchLine(
-          label: 'supervision.union_camporees.offer_switch'.tr(),
-          note: widget.canOffer
-              ? null
-              : 'supervision.union_camporees.offer_needs_sizes'.tr(),
-          value: _offered,
-          // A product already on sale can always be taken off.
-          onChanged: _busy || (!widget.canOffer && !_offered)
-              ? null
-              : (value) => setState(() {
-                    _offered = value;
-                    _error = null;
-                  }),
+        Material(
+          color: c.surface,
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+            side: BorderSide(color: c.border),
+          ),
+          child: SacListRow(
+            leading: const SacListRowIcon(HugeIcons.strokeRoundedStore01),
+            title: 'supervision.union_camporees.offer_title'.tr(),
+            subtitle: widget.canOffer
+                ? 'supervision.union_camporees.offer_note'.tr()
+                : 'supervision.union_camporees.offer_needs_sizes'.tr(),
+            trailing: Switch.adaptive(
+              value: _offered,
+              activeTrackColor: SacAccent.of(context).color,
+              // A product already on sale can always be taken off.
+              onChanged: _busy || (!widget.canOffer && !_offered)
+                  ? null
+                  : (value) => setState(() {
+                        _offered = value;
+                        _error = null;
+                      }),
+            ),
+          ),
         ),
         if (_offered) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           SacTextField(
             controller: _price,
             label: 'supervision.union_camporees.price_label'.tr(),
@@ -969,17 +1111,19 @@ class _SuppliesTabState extends ConsumerState<_SuppliesTab> {
       children: [
         SacGroupedSection(
           label: 'supervision.union_camporees.cutoff_title'.tr(),
-          dividerIndent: 16,
           // A count of rows says nothing here.
           action: const SizedBox.shrink(),
           children: [
-            SupervisionPlainRow(
+            SacListRow(
+              leading: const SacListRowIcon(HugeIcons.strokeRoundedLockKey),
               title: 'supervision.union_camporees.cutoff'.tr(),
               subtitle: catalog.timezone.trim().isEmpty
                   ? null
                   : 'supervision.union_camporees.cutoff_timezone'
                       .tr(args: [supervisionZoneLabel(catalog.timezone)]),
-              trailing: SupervisionRowValue(catalog.cutoffTime),
+              trailing: SupervisionTrailingFit(
+                child: SupervisionRowValue(catalog.cutoffTime),
+              ),
               onTap: _saving ? null : () => _editCutoff(catalog.cutoffTime),
             ),
           ],
@@ -987,7 +1131,6 @@ class _SuppliesTabState extends ConsumerState<_SuppliesTab> {
         _Footnote('supervision.union_camporees.cutoff_note'.tr()),
         SacGroupedSection(
           label: 'supervision.union_camporees.slots_title'.tr(),
-          dividerIndent: 16,
           action: _EyebrowAction(label: add, onTap: () => _openSlot(null)),
           children: [
             if (catalog.slots.isEmpty)
@@ -995,17 +1138,25 @@ class _SuppliesTabState extends ConsumerState<_SuppliesTab> {
                 title: 'supervision.union_camporees.slots_empty'.tr(),
               ),
             for (final slot in catalog.slots)
-              SupervisionPlainRow(
-                title: slot.label,
-                subtitle: slot.active ? null : inactive,
-                trailing: SupervisionRowValue(slot.deliverTime),
-                onTap: () => _openSlot(slot),
+              _Dimmed(
+                dimmed: !slot.active,
+                child: SacListRow(
+                  leading: SacListRowIcon(
+                    HugeIcons.strokeRoundedClock01,
+                    tone: slot.active ? SacTone.accent : SacTone.muted,
+                  ),
+                  title: slot.label,
+                  subtitle: slot.active ? null : inactive,
+                  trailing: SupervisionTrailingFit(
+                    child: SupervisionRowValue(slot.deliverTime),
+                  ),
+                  onTap: () => _openSlot(slot),
+                ),
               ),
           ],
         ),
         SacGroupedSection(
           label: 'supervision.union_camporees.supply_products_title'.tr(),
-          dividerIndent: 16,
           action: _EyebrowAction(label: add, onTap: () => _openProduct(null)),
           children: [
             if (catalog.products.isEmpty)
@@ -1013,17 +1164,26 @@ class _SuppliesTabState extends ConsumerState<_SuppliesTab> {
                 title: 'supervision.union_camporees.supply_products_empty'.tr(),
               ),
             for (final product in catalog.products)
-              SupervisionPlainRow(
-                title: product.name,
-                subtitle: [
-                  'supervision.union_camporees.per_uom'
-                      .tr(args: [_uomLabel(product.uom)]),
-                  if (!product.active) inactive,
-                ].join(' · '),
-                trailing: SupervisionRowValue(
-                  SacMoney.fromCentavos(product.unitCostCentavos),
+              _Dimmed(
+                dimmed: !product.active,
+                child: SacListRow(
+                  leading: SacListRowIcon(
+                    HugeIcons.strokeRoundedPackage01,
+                    tone: product.active ? SacTone.accent : SacTone.muted,
+                  ),
+                  title: product.name,
+                  subtitle: [
+                    'supervision.union_camporees.per_uom'
+                        .tr(args: [_uomLabel(product.uom)]),
+                    if (!product.active) inactive,
+                  ].join(' · '),
+                  trailing: SupervisionTrailingFit(
+                    child: SupervisionRowValue(
+                      SacMoney.fromCentavos(product.unitCostCentavos),
+                    ),
+                  ),
+                  onTap: () => _openProduct(product),
                 ),
-                onTap: () => _openProduct(product),
               ),
           ],
         ),
@@ -1031,6 +1191,18 @@ class _SuppliesTabState extends ConsumerState<_SuppliesTab> {
       ],
     );
   }
+}
+
+/// Quiets an inactive row without taking away its tap.
+class _Dimmed extends StatelessWidget {
+  const _Dimmed({required this.dimmed, required this.child});
+
+  final bool dimmed;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) =>
+      dimmed ? Opacity(opacity: 0.6, child: child) : child;
 }
 
 class _SlotSheet extends ConsumerStatefulWidget {

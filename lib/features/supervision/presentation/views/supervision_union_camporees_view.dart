@@ -11,11 +11,13 @@ import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_list_row.dart';
 import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
+import 'package:sacdia_app/core/widgets/sac_tone.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/supervision/domain/entities/supervision_union_camporee.dart';
 import 'package:sacdia_app/features/supervision/presentation/providers/supervision_union_camporees_providers.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_count_pill.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_format.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_scroll.dart';
 
@@ -84,16 +86,23 @@ class SupervisionUnionCamporeesView extends ConsumerWidget {
           hasCapability(user, 'camporee_orders.configure_offering');
       body = SupervisionScroll(
         onRefresh: refresh,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (final camporee in camporees)
-              _CamporeeBlock(
-                camporee: camporee,
-                canApprove: canApprove,
-                canConfigure: canConfigure,
-              ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _ActiveEyebrow(count: camporees.length),
+              for (var i = 0; i < camporees.length; i++) ...[
+                if (i > 0) const SizedBox(height: 12),
+                _CamporeeCard(
+                  key: ValueKey(camporees[i].id),
+                  camporee: camporees[i],
+                  canApprove: canApprove,
+                  canConfigure: canConfigure,
+                ),
+              ],
+            ],
+          ),
         ),
       );
     }
@@ -120,8 +129,45 @@ String camporeeDateRange(BuildContext context, DateTime? start, DateTime? end) {
       '${supervisionShortDate(context, end)}';
 }
 
-class _CamporeeBlock extends StatelessWidget {
-  const _CamporeeBlock({
+/// «ACTIVOS · 2»: eyebrow over the camporee cards.
+class _ActiveEyebrow extends StatelessWidget {
+  const _ActiveEyebrow({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = TextStyle(
+      fontSize: SacFontSize.labelSmall,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.8,
+      color: context.sac.textTertiary,
+    );
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Semantics(
+              header: true,
+              child: Text(
+                'supervision.union_camporees.active_label'.tr().toUpperCase(),
+                style: style,
+              ),
+            ),
+          ),
+          Text('$count', style: style),
+        ],
+      ),
+    );
+  }
+}
+
+/// One camporee as one grouped card: its header (campfire tile, name, dates and
+/// place) and, under it, the functions the actor may use.
+class _CamporeeCard extends StatelessWidget {
+  const _CamporeeCard({
+    super.key,
     required this.camporee,
     required this.canApprove,
     required this.canConfigure,
@@ -134,13 +180,9 @@ class _CamporeeBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final where = [
-      camporeeDateRange(context, camporee.startDate, camporee.endDate),
-      camporee.place,
-    ].where((part) => part.trim().isNotEmpty).join(' · ');
     final id = '${camporee.id}';
-
     final rows = <Widget>[
+      _CamporeeHeader(camporee: camporee),
       if (canApprove)
         _ApprovalsRow(
           camporeeId: camporee.id,
@@ -149,23 +191,70 @@ class _CamporeeBlock extends StatelessWidget {
           ),
         ),
       if (canConfigure)
-        SacListRow(
-          leading: const SacListRowIcon(HugeIcons.strokeRoundedShoppingBag01),
-          title: 'supervision.union_camporees.orders_row'.tr(),
-          subtitle: _ordersStatus(context, camporee),
+        _OrdersRow(
+          camporee: camporee,
           onTap: () => context.push(
             RouteNames.supervisionUnionCamporeeOrders(id),
           ),
         ),
     ];
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+    return Material(
+      color: c.surface,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+        side: BorderSide(color: c.border),
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(4, 0, 4, 10),
+          for (var i = 0; i < rows.length; i++) ...[
+            if (i > 0)
+              Divider(height: 1, thickness: 1, indent: 14, color: c.divider),
+            rows[i],
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _CamporeeHeader extends StatelessWidget {
+  const _CamporeeHeader({required this.camporee});
+
+  final SupervisionUnionCamporee camporee;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final palette = SacTonePalette.of(context, SacTone.warning);
+    final where = [
+      camporeeDateRange(context, camporee.startDate, camporee.endDate),
+      camporee.place,
+    ].where((part) => part.trim().isNotEmpty).join(' · ');
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: palette.container,
+              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+            ),
+            child: ExcludeSemantics(
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedCampfire,
+                size: 24,
+                color: palette.onContainer,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
             child: Semantics(
               header: true,
               child: Column(
@@ -173,12 +262,11 @@ class _CamporeeBlock extends StatelessWidget {
                 children: [
                   Text(
                     camporee.name,
-                    maxLines: 3,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: SacFontSize.headlineSmall,
+                      fontSize: SacFontSize.titleMedium,
                       fontWeight: FontWeight.w600,
-                      letterSpacing: -0.2,
                       height: 1.25,
                       color: c.text,
                     ),
@@ -187,7 +275,7 @@ class _CamporeeBlock extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       where,
-                      maxLines: 3,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: SacFontSize.bodyMedium,
@@ -200,51 +288,77 @@ class _CamporeeBlock extends StatelessWidget {
               ),
             ),
           ),
-          if (rows.isNotEmpty)
-            Material(
-              color: c.surface,
-              clipBehavior: Clip.antiAlias,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-                side: BorderSide(color: c.border),
-              ),
-              child: Column(
-                children: [
-                  for (var i = 0; i < rows.length; i++) ...[
-                    if (i > 0)
-                      Divider(
-                        height: 1,
-                        thickness: 1,
-                        indent: 58,
-                        color: c.divider,
-                      ),
-                    rows[i],
-                  ],
-                ],
-              ),
-            ),
         ],
       ),
     );
   }
 }
 
-/// Where the order window stands right now, in a few words.
-String _ordersStatus(BuildContext context, SupervisionUnionCamporee camporee) {
-  if (!camporee.ordersEnabled) {
-    return 'supervision.union_camporees.orders_disabled'.tr();
-  }
+/// The order window of one camporee seen from now.
+enum _OrdersState { disabled, closed, opensLater, open }
+
+_OrdersState _ordersStateOf(SupervisionUnionCamporee camporee) {
+  if (!camporee.ordersEnabled) return _OrdersState.disabled;
   final now = DateTime.now();
   final opens = camporee.ordersOpensAt;
   final deadline = camporee.ordersDeadline;
-  if (deadline != null && now.isAfter(deadline)) {
-    return 'supervision.union_camporees.orders_closed'.tr();
+  if (deadline != null && now.isAfter(deadline)) return _OrdersState.closed;
+  if (opens != null && now.isBefore(opens)) return _OrdersState.opensLater;
+  return _OrdersState.open;
+}
+
+/// Entry to orders and supplies, with the state of the window as subtitle.
+class _OrdersRow extends StatelessWidget {
+  const _OrdersRow({required this.camporee, required this.onTap});
+
+  final SupervisionUnionCamporee camporee;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final state = _ordersStateOf(camporee);
+    final success = SacTonePalette.of(context, SacTone.success).onContainer;
+    final deadline = camporee.ordersDeadline;
+
+    List<TextSpan>? spans;
+    String? text;
+    switch (state) {
+      case _OrdersState.disabled:
+        text = 'supervision.union_camporees.orders_disabled'.tr();
+      case _OrdersState.closed:
+        text = 'supervision.union_camporees.orders_closed'.tr();
+      case _OrdersState.opensLater:
+        text = 'supervision.union_camporees.orders_opens_on'.tr(args: [
+          supervisionShortDate(context, camporee.ordersOpensAt!.toLocal()),
+        ]);
+      case _OrdersState.open:
+        spans = [
+          TextSpan(
+            text: 'supervision.union_camporees.orders_open'.tr(),
+            style: TextStyle(color: success, fontWeight: FontWeight.w600),
+          ),
+          if (deadline != null)
+            TextSpan(
+              text: ' · ${'supervision.union_camporees.orders_closes_on'.tr(
+                args: [supervisionShortDate(context, deadline.toLocal())],
+              )}',
+              style: TextStyle(color: c.textSecondary),
+            ),
+        ];
+    }
+
+    return SacListRow(
+      leading: SacListRowIcon(
+        HugeIcons.strokeRoundedShoppingBag01,
+        tone: state == _OrdersState.open ? SacTone.success : SacTone.muted,
+      ),
+      title: 'supervision.union_camporees.orders_row'.tr(),
+      subtitle: text,
+      subtitleSpans: spans,
+      onTap: onTap,
+    );
   }
-  if (opens != null && now.isBefore(opens)) {
-    return 'supervision.union_camporees.orders_opens_on'
-        .tr(args: [supervisionShortDate(context, opens.toLocal())]);
-  }
-  return 'supervision.union_camporees.orders_open'.tr();
 }
 
 /// Entry to the approvals of one camporee, with its live pending count.
@@ -256,26 +370,37 @@ class _ApprovalsRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.sac;
     final pending = ref.watch(supervisionCamporeePendingProvider(camporeeId));
     final total = pending.value?.total;
+    final hasPending = total != null && total > 0;
 
-    final String subtitle;
-    if (total == null) {
-      // Loading or failed: say what the row holds instead of a wrong count.
-      subtitle = 'supervision.union_camporees.approvals_description'.tr();
-    } else if (total > 0) {
-      subtitle = 'supervision.union_camporees.pending_count'
-          .tr(args: [supervisionCount(context, total)]);
-    } else {
-      subtitle = 'supervision.union_camporees.up_to_date'.tr();
-    }
+    // Loading or failed: say what the row holds instead of a wrong count.
+    final Widget? subtitleWidget = total != null && total == 0
+        ? SupervisionAllClearLabel(
+            label: 'supervision.union_camporees.up_to_date'.tr(),
+          )
+        : null;
+    final subtitle = hasPending
+        ? 'supervision.union_camporees.late_label'.tr()
+        : 'supervision.union_camporees.approvals_description'.tr();
 
     return SacListRow(
-      leading: const SacListRowIcon(HugeIcons.strokeRoundedUserAdd01),
+      leading: SacListRowIcon(
+        HugeIcons.strokeRoundedUserAdd01,
+        tone: hasPending
+            ? SacTone.warning
+            : (total == null ? SacTone.accent : SacTone.success),
+      ),
       title: 'supervision.union_camporees.approvals_row'.tr(),
       subtitle: subtitle,
-      subtitleColor: total != null && total > 0 ? c.text : null,
+      subtitleWidget: subtitleWidget,
+      trailing: hasPending
+          ? SupervisionCountPill(
+              count: total,
+              semanticLabel: 'supervision.union_camporees.pending_count'
+                  .tr(args: [supervisionCount(context, total)]),
+            )
+          : null,
       onTap: onTap,
     );
   }

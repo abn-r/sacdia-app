@@ -48,6 +48,11 @@ SupervisionFolderQueueItem queueItem(
   List<String> pending = const [],
   SupervisionFolderStatus status = SupervisionFolderStatus.submitted,
   DateTime? latestSubmittedAt,
+  int totalSections = 0,
+  int submittedSections = 0,
+  int preapprovedSections = 0,
+  int validatedSections = 0,
+  int rejectedSections = 0,
 }) =>
     SupervisionFolderQueueItem(
       id: id,
@@ -58,6 +63,11 @@ SupervisionFolderQueueItem queueItem(
       folderStatus: status,
       pendingSectionNames: pending,
       latestSubmittedAt: latestSubmittedAt,
+      totalSections: totalSections,
+      submittedSections: submittedSections,
+      preapprovedSections: preapprovedSections,
+      validatedSections: validatedSections,
+      rejectedSections: rejectedSections,
     );
 
 SupervisionFolderQueuePage queuePage(
@@ -278,7 +288,8 @@ class FakeFoldersRepo implements SupervisionFoldersRepository {
 // ── Pump ────────────────────────────────────────────────────────────────────
 
 /// Pumps [home] at `/` with `/supervision/folders/:folderId` as a landing
-/// route that renders `detail:<id>`.
+/// route that renders `detail:<id>` and the section route rendering
+/// `section:<folderId>/<sectionId>` (or [sectionBuilder]).
 Future<void> pumpFoldersApp(
   WidgetTester tester, {
   required Widget home,
@@ -287,6 +298,7 @@ Future<void> pumpFoldersApp(
   Size? size,
   double? textScale,
   bool settle = true,
+  Widget Function(String folderId, String sectionId)? sectionBuilder,
 }) async {
   if (size != null) {
     tester.view.physicalSize = size;
@@ -302,6 +314,15 @@ Future<void> pumpFoldersApp(
         path: '/supervision/folders/:folderId',
         builder: (_, state) =>
             Text('detail:${state.pathParameters['folderId']}'),
+      ),
+      GoRoute(
+        path: '/supervision/folders/:folderId/sections/:sectionId',
+        builder: (_, state) {
+          final folderId = state.pathParameters['folderId']!;
+          final sectionId = state.pathParameters['sectionId']!;
+          return sectionBuilder?.call(folderId, sectionId) ??
+              Text('section:$folderId/$sectionId');
+        },
       ),
     ],
   );

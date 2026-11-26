@@ -213,6 +213,7 @@ void main() {
         RouteNames.supervisionEnrollments,
         RouteNames.supervisionFolders,
         RouteNames.supervisionFolderDetail('f1'),
+        RouteNames.supervisionFolderSection('f1', 's1'),
         RouteNames.supervisionRequests,
         RouteNames.supervisionOperations,
         RouteNames.supervisionClubs,
@@ -322,6 +323,7 @@ void main() {
         RouteNames.supervisionEnrollments,
         RouteNames.supervisionFolders,
         RouteNames.supervisionFolderDetail('abc'),
+        RouteNames.supervisionFolderSection('abc', 's9'),
       ]) {
         expect(
           await redirectFor(c, path),

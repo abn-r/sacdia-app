@@ -10,8 +10,12 @@ import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/errors/forbidden.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
+import 'package:sacdia_app/core/widgets/sac_tone.dart';
+import 'package:sacdia_app/core/widgets/status_progress/sac_state_panel.dart';
 import 'package:sacdia_app/features/supervision/domain/entities/supervision_club.dart';
 import 'package:sacdia_app/features/supervision/presentation/views/supervision_club_detail_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_figures_card.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_identity_tiles.dart';
 
 import 'supervision_territory_test_harness.dart';
 import 'supervision_view_test_harness.dart';
@@ -73,12 +77,12 @@ void main() {
       await _pump(tester, repo: repo, settle: false);
 
       expect(find.byType(SacSkeletonList), findsOneWidget);
-      expect(find.text('CLUB'), findsNothing);
+      expect(find.text('DATOS DEL CLUB'), findsNothing);
 
       gate.complete(clubSummary());
       await tester.pumpAndSettle();
       expect(find.byType(SacSkeletonList), findsNothing);
-      expect(find.text('CLUB'), findsOneWidget);
+      expect(find.text('DATOS DEL CLUB'), findsOneWidget);
       expectNoLayoutException(tester);
     });
 
@@ -98,14 +102,14 @@ void main() {
       await _pump(tester, repo: repo);
 
       expect(find.text('No se pudo cargar el club'), findsOneWidget);
-      expect(find.text('CLUB'), findsNothing);
+      expect(find.text('DATOS DEL CLUB'), findsNothing);
 
       await tester.tap(find.text('Reintentar'));
       await tester.pumpAndSettle();
 
       expect(repo.summaryCalls, hasLength(2));
       expect(find.text('No se pudo cargar el club'), findsNothing);
-      expect(find.text('CLUB'), findsOneWidget);
+      expect(find.text('DATOS DEL CLUB'), findsOneWidget);
     });
 
     testWidgets('a 403 renders the ForbiddenView and no retry', (tester) async {
@@ -136,13 +140,13 @@ void main() {
 
       expect(repo.summaryCalls, hasLength(2));
       expect(find.byType(SacErrorState), findsNothing);
-      expect(find.text('CLUB'), findsOneWidget);
+      expect(find.text('DATOS DEL CLUB'), findsOneWidget);
       expect(find.text('Club Orión'), findsOneWidget);
     });
   });
 
   group('top bar', () {
-    testWidgets('shows the club name with «Resumen del club» as subtitle', (
+    testWidgets('shows the club name with its local field as subtitle', (
       tester,
     ) async {
       await _pump(
@@ -151,6 +155,20 @@ void main() {
       );
 
       expect(find.text('Club Orión'), findsOneWidget);
+      expect(find.text('Asociación Norte'), findsOneWidget);
+      expect(find.text('Resumen del club'), findsNothing);
+    });
+
+    testWidgets('a club without local field keeps «Resumen del club»', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        repo: _repoWith(
+          clubSummary(profile: clubProfile(name: 'Club Orión', localField: '')),
+        ),
+      );
+
       expect(find.text('Resumen del club'), findsOneWidget);
     });
 
@@ -168,33 +186,37 @@ void main() {
     });
   });
 
-  group('club group', () {
-    testWidgets('shows status, church, district, local field and address', (
-      tester,
-    ) async {
+  group('facts group', () {
+    testWidgets('shows church, district and address last', (tester) async {
       await _pump(tester, repo: _repoWith(clubSummary()));
 
-      expect(find.text('CLUB'), findsOneWidget);
-      expect(find.text('Estado'), findsOneWidget);
-      expect(find.text('Activo'), findsOneWidget);
+      expect(find.text('DATOS DEL CLUB'), findsOneWidget);
       expect(find.text('Iglesia'), findsOneWidget);
       expect(find.text('Iglesia Central'), findsOneWidget);
       expect(find.text('Distrito'), findsOneWidget);
       expect(find.text('Distrito 1'), findsOneWidget);
-      expect(find.text('Campo local'), findsOneWidget);
-      expect(find.text('Asociación Norte'), findsOneWidget);
       expect(find.text('Dirección'), findsOneWidget);
       expect(find.text('Calle 1 #23'), findsOneWidget);
+      // State and local field moved out of the data rows.
+      expect(find.text('Estado'), findsNothing);
+      expect(find.text('Campo local'), findsNothing);
     });
 
-    testWidgets('an inactive club shows «Inactivo»', (tester) async {
+    testWidgets('the data group comes after the other groups', (tester) async {
       await _pump(
         tester,
-        repo: _repoWith(clubSummary(profile: clubProfile(active: false))),
+        repo: _repoWith(
+          clubSummary(
+            profile: clubProfile(sections: [clubSection(1, 'Conquistadores')]),
+            overview: clubOverview(),
+            leadership: _leadership(director: leader('Ana Pérez')),
+          ),
+        ),
       );
 
-      expect(find.text('Inactivo'), findsOneWidget);
-      expect(find.text('Activo'), findsNothing);
+      final facts = tester.getTopLeft(find.text('DATOS DEL CLUB')).dy;
+      expect(tester.getTopLeft(find.text('SECCIONES')).dy, lessThan(facts));
+      expect(tester.getTopLeft(find.text('DIRECTIVA')).dy, lessThan(facts));
     });
 
     testWidgets('no address hides the «Dirección» row', (tester) async {
@@ -207,7 +229,7 @@ void main() {
       expect(find.text('Iglesia'), findsOneWidget);
     });
 
-    testWidgets('empty church, district and local field hide their rows', (
+    testWidgets('empty church, district and address hide the whole group', (
       tester,
     ) async {
       await _pump(
@@ -224,10 +246,40 @@ void main() {
         ),
       );
 
-      expect(find.text('Estado'), findsOneWidget);
+      expect(find.text('DATOS DEL CLUB'), findsNothing);
       expect(find.text('Iglesia'), findsNothing);
       expect(find.text('Distrito'), findsNothing);
-      expect(find.text('Campo local'), findsNothing);
+    });
+  });
+
+  group('inactive club', () {
+    testWidgets('shows the «Club inactivo» panel on top', (tester) async {
+      await _pump(
+        tester,
+        repo: _repoWith(
+          clubSummary(
+            profile: clubProfile(active: false),
+            overview: clubOverview(),
+          ),
+        ),
+      );
+
+      expect(find.byType(SacStatePanel), findsOneWidget);
+      expect(find.text('Club inactivo'), findsOneWidget);
+      expect(find.textContaining('Lo reactiva el campo local'), findsOneWidget);
+      // First thing on the screen: above the figures.
+      expect(
+        tester.getTopLeft(find.text('Club inactivo')).dy,
+        lessThan(tester.getTopLeft(find.text('Miembros activos')).dy),
+      );
+      expect(find.text('Estado'), findsNothing);
+    });
+
+    testWidgets('an active club has no panel', (tester) async {
+      await _pump(tester, repo: _repoWith(clubSummary()));
+
+      expect(find.byType(SacStatePanel), findsNothing);
+      expect(find.text('Club inactivo'), findsNothing);
     });
   });
 
@@ -249,12 +301,12 @@ void main() {
         ),
       );
 
-      expect(find.text('EN CIFRAS'), findsOneWidget);
+      expect(find.byType(SupervisionFiguresCard), findsOneWidget);
       expect(find.text('Miembros activos'), findsOneWidget);
       expect(find.text('40'), findsOneWidget);
       expect(find.text('Investidos este año'), findsOneWidget);
       expect(find.text('6'), findsOneWidget);
-      expect(find.text('Solicitudes de cargo pendientes'), findsOneWidget);
+      expect(find.text('Cargos por aprobar'), findsOneWidget);
       expect(find.text('2'), findsOneWidget);
       expect(find.text('Asistencia promedio'), findsOneWidget);
       expect(find.text('87%'), findsOneWidget);
@@ -262,7 +314,29 @@ void main() {
           findsNothing);
     });
 
-    testWidgets('null attendance hides only that row', (tester) async {
+    Future<SacTone?> pendingTone(WidgetTester tester, int pending) async {
+      await _pump(
+        tester,
+        repo: _repoWith(clubSummary(overview: clubOverview(pending: pending))),
+      );
+      return tester
+          .widget<SupervisionFiguresCard>(find.byType(SupervisionFiguresCard))
+          .figures
+          .singleWhere((f) => f.label == 'Cargos por aprobar')
+          .tone;
+    }
+
+    testWidgets('pending role requests read warning when there are any', (
+      tester,
+    ) async {
+      expect(await pendingTone(tester, 2), SacTone.warning);
+    });
+
+    testWidgets('no pending role requests keep the plain tone', (tester) async {
+      expect(await pendingTone(tester, 0), isNull);
+    });
+
+    testWidgets('null attendance hides only that figure', (tester) async {
       await _pump(
         tester,
         repo: _repoWith(
@@ -311,10 +385,10 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.text('EN CIFRAS'), findsNothing);
+      expect(find.byType(SupervisionFiguresCard), findsNothing);
       expect(find.text('Miembros activos'), findsNothing);
       // The club itself still shows.
-      expect(find.text('CLUB'), findsOneWidget);
+      expect(find.text('DATOS DEL CLUB'), findsOneWidget);
     });
   });
 
@@ -344,6 +418,8 @@ void main() {
       expect(find.textContaining('Meta de miembros: 0'), findsNothing);
       // A section without type name falls back to «Sección».
       expect(find.text('Sección'), findsOneWidget);
+      // One logo (or letter tile) per section, labeled with its type.
+      expect(find.byType(SupervisionClubTypeLogo), findsNWidgets(5));
     });
 
     testWidgets('no sections hides the group', (tester) async {
@@ -374,6 +450,10 @@ void main() {
       expect(find.text('Subdirector · Aventureros'), findsOneWidget);
       expect(find.text('Marta Ruiz'), findsOneWidget);
       expect(find.text('Secretaría'), findsOneWidget);
+      // Initials avatars: first letter of the first two words.
+      expect(find.text('AP'), findsOneWidget);
+      expect(find.text('LG'), findsOneWidget);
+      expect(find.text('MR'), findsOneWidget);
     });
 
     testWidgets('null leadership hides the group', (tester) async {
@@ -451,6 +531,9 @@ void main() {
       expect(find.text('PRÓXIMAS ACTIVIDADES'), findsOneWidget);
       expect(find.text('Campamento'), findsOneWidget);
       expect(find.text('$formatted · Conquistadores'), findsOneWidget);
+      // Date tile: the day and the short month.
+      expect(find.text('12'), findsOneWidget);
+      expect(find.text('NOV'), findsOneWidget);
       expect(formatted, contains('2026'));
       expect(find.text('Reunión sin fecha'), findsOneWidget);
     });
@@ -511,7 +594,7 @@ void main() {
         textScale: 2.0,
       );
 
-      expect(find.text('CLUB'), findsOneWidget);
+      expect(find.text('DATOS DEL CLUB'), findsOneWidget);
       expectNoLayoutException(tester);
     });
 
