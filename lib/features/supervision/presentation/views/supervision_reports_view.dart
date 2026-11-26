@@ -303,7 +303,10 @@ class _PeriodHeader extends StatelessWidget {
     final due = period.dueAt;
     final strong = TextStyle(color: c.text, fontWeight: FontWeight.w500);
 
-    return Padding(
+    // Full width: under a `Center` a bare column shrinks to its widest line
+    // and drifts away from the gutter.
+    return Container(
+      width: double.infinity,
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

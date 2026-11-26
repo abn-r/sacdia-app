@@ -21,6 +21,7 @@ import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 import 'package:sacdia_app/features/supervision/domain/entities/supervision_report.dart';
 import 'package:sacdia_app/features/supervision/presentation/providers/supervision_reports_providers.dart';
 import 'package:sacdia_app/features/supervision/presentation/views/supervision_reports_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_scroll.dart';
 
 import 'supervision_reports_progress_test_harness.dart';
 import 'supervision_view_test_harness.dart';
@@ -137,6 +138,38 @@ void main() {
       expect(find.text('Octubre de 2026'), findsOneWidget);
       expect(find.text('octubre de 2026'), findsNothing);
       expect(find.text('Informes mensuales'), findsOneWidget);
+    });
+
+    testWidgets('month, sentence and due date start at the same gutter', (
+      tester,
+    ) async {
+      final due = DateTime(2026, 11, 10);
+      await _pump(
+        tester,
+        repo: _repoWith([
+          period(
+            2026,
+            10,
+            dueAt: due,
+            counts: counts(expected: 3, submitted: 1, overdue: 2),
+          ),
+        ]),
+      );
+
+      final width = tester.getSize(find.byType(Scaffold)).width;
+      final column = width > kSupervisionMaxContentWidth
+          ? kSupervisionMaxContentWidth
+          : width;
+      final gutter = (width - column) / 2 + 24;
+      final month = tester.getTopLeft(find.text('Octubre de 2026')).dx;
+      final sentence =
+          tester.getTopLeft(find.textContaining('Entregados: 1 de 3')).dx;
+      final dueLine =
+          tester.getTopLeft(find.textContaining(_shortDate(due))).dx;
+
+      expect(month, gutter);
+      expect(sentence, gutter);
+      expect(dueLine, gutter);
     });
 
     testWidgets('default period skips newer months with nothing expected', (
