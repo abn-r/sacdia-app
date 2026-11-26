@@ -12,9 +12,11 @@ import '../models/supervision_annual_progress_model.dart';
 const String kAnnualConfigNotFoundCode = 'ANNUAL_RANKING_CONFIG_NOT_FOUND';
 
 abstract class SupervisionAnnualProgressRemoteDataSource {
-  /// GET /annual-rankings/territory-summary?division_id= (unions with their
-  /// club count and whether they are configured); an older server answers
-  /// 404 and the names come from GET /catalogs/unions?divisionId= instead.
+  /// GET /annual-rankings/territory-summary with no parent: the server answers
+  /// with the caller's own division's unions, each with its club count and
+  /// whether it is configured (the route takes no division id). An older
+  /// server answers 404 and the names come from GET /catalogs/unions?divisionId=
+  /// instead.
   Future<List<SupervisionTerritoryOption>> getUnions(
     int divisionId, {
     CancelToken? cancelToken,
@@ -79,11 +81,7 @@ class SupervisionAnnualProgressRemoteDataSourceImpl
     CancelToken? cancelToken,
   }) async {
     try {
-      return await _territorySummary(
-        'division_id',
-        divisionId,
-        cancelToken: cancelToken,
-      );
+      return await _territorySummary(const {}, cancelToken: cancelToken);
     } on _SummaryUnavailable {
       return _catalogUnions(divisionId, cancelToken: cancelToken);
     } catch (e) {
@@ -100,8 +98,7 @@ class SupervisionAnnualProgressRemoteDataSourceImpl
   }) async {
     try {
       return await _territorySummary(
-        'union_id',
-        unionId,
+        {'union_id': unionId},
         cancelToken: cancelToken,
       );
     } on _SummaryUnavailable {
@@ -113,17 +110,17 @@ class SupervisionAnnualProgressRemoteDataSourceImpl
     }
   }
 
-  /// One call for the territories below [parentKey] = [parentId]. A 404 means
-  /// the server predates the endpoint: [_SummaryUnavailable].
+  /// One call for the territories below the parent in [query] (none = the
+  /// caller's own unit). A 404 means the server predates the endpoint:
+  /// [_SummaryUnavailable].
   Future<List<SupervisionTerritoryOption>> _territorySummary(
-    String parentKey,
-    int parentId, {
+    Map<String, Object> query, {
     CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl/annual-rankings/territory-summary',
-        queryParameters: {parentKey: parentId},
+        queryParameters: query,
         cancelToken: cancelToken,
       );
       if (!_isOk(response.statusCode)) _badResponse(response);

@@ -31,7 +31,7 @@ const _query = (localFieldId: 3, clubTypeId: 2, yearId: 9);
 
 void main() {
   group('territory summary (new server)', () {
-    test('getUnions asks the summary with division_id and parses the rows',
+    test('getUnions asks the summary for the caller unit and parses the rows',
         () async {
       final uris = <Uri>[];
       final ds = _ds((o, h) {
@@ -50,7 +50,7 @@ void main() {
 
       expect(uris, hasLength(1));
       expect(uris.single.path, '/api/v1/annual-rankings/territory-summary');
-      expect(uris.single.queryParameters, {'division_id': '5'});
+      expect(uris.single.queryParameters, isEmpty);
       expect(unions.map((e) => e.id), [1, 2]);
       expect(unions[0].name, 'Unión A');
       expect(unions[0].clubsCount, 8);
