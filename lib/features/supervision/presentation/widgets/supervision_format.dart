@@ -25,6 +25,15 @@ String supervisionPercent(double value) {
   return '$shown%';
 }
 
+/// The place of an IANA zone id, as people say it: "America/Mexico_City"
+/// reads "Mexico City", "America/Argentina/Buenos_Aires" reads "Buenos
+/// Aires". An id with no region ("UTC") is kept as it comes.
+String supervisionZoneLabel(String zoneId) {
+  final id = zoneId.trim();
+  final place = id.substring(id.lastIndexOf('/') + 1);
+  return place.replaceAll('_', ' ').trim();
+}
+
 /// Month name in the app language ("octubre").
 String supervisionMonthName(BuildContext context, int month) =>
     intl.DateFormat.MMMM(_localeTag(context)).format(DateTime(2000, month));

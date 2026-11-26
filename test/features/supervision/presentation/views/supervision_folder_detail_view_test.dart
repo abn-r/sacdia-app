@@ -254,6 +254,21 @@ void main() {
   });
 
   group('summary', () {
+    testWidgets('points are grouped like in the rest of supervision', (
+      tester,
+    ) async {
+      final repo = FakeFoldersRepo()
+        ..onFolder = (_) async => Right(folderDetail(
+              totalEarnedPoints: 1200,
+              totalMaxPoints: 3000,
+              progressPercentage: 0,
+            ));
+      await _pump(tester, repo: repo);
+
+      expect(_row('Puntos', value: '1.200 de 3.000 pts'), findsOneWidget);
+      expect(_row('Avance', value: '0%'), findsOneWidget);
+    });
+
     testWidgets('shows status, points, progress and the optional rows', (
       tester,
     ) async {
@@ -270,7 +285,7 @@ void main() {
 
       expect(_row('Estado', value: 'En evaluación'), findsOneWidget);
       expect(_row('Puntos', value: '40 de 120 pts'), findsOneWidget);
-      expect(_rowValueMatching('Avance', RegExp(r'^40\s*%$')), findsOneWidget);
+      expect(_row('Avance', value: '40%'), findsOneWidget);
       expect(_row('Campo local', value: 'Asociación Norte'), findsOneWidget);
       expect(_row('Plantilla', value: 'Plantilla 2026'), findsOneWidget);
       expect(

@@ -121,6 +121,24 @@ void main() {
   });
 
   group('cards', () {
+    testWidgets('a name that already says the section does not repeat it', (
+      tester,
+    ) async {
+      final repo = FakeFoldersRepo()
+        ..onQueue = (_) async => Right(queuePage([
+              queueItem(
+                '1',
+                displayName: 'ACV · Aventureros · 2026',
+                clubTypeName: 'Aventureros',
+              ),
+            ]));
+      await _pump(tester, repo: repo);
+
+      expect(find.text('ACV · Aventureros · 2026'), findsOneWidget);
+      expect(find.text('Asociación Norte'), findsOneWidget);
+      expect(find.text('Aventureros · Asociación Norte'), findsNothing);
+    });
+
     testWidgets('title is the display name, with type and field line', (
       tester,
     ) async {

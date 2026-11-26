@@ -205,8 +205,13 @@ class _FolderCard extends StatelessWidget {
     final title = folder.displayName.trim().isNotEmpty
         ? folder.displayName
         : folder.clubName;
+    // The folder's own name usually carries the section ("ACV · Aventureros
+    // · 2026"): it is not said twice.
+    final type = folder.clubTypeName.trim();
+    final typeInTitle =
+        type.isNotEmpty && title.toLowerCase().contains(type.toLowerCase());
     final place = [
-      folder.clubTypeName,
+      if (!typeInTitle) folder.clubTypeName,
       folder.localFieldName,
     ].where((part) => part.trim().isNotEmpty).join(' · ');
     final when = folder.latestSubmittedAt ?? folder.createdAt;

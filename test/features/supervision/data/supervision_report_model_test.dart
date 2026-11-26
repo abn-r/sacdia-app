@@ -86,6 +86,22 @@ void main() {
   });
 
   group('compliance page', () {
+    test('a club lists its sections by club type, untyped ones last', () {
+      final club = SupervisionReportModel.tryParseClub({
+        'club_id': 7,
+        'club_name': 'Orion',
+        'sections': [
+          {'club_section_id': 1, 'club_type_name': 'Sin tipo'},
+          {'club_section_id': 2, 'club_type_id': 3, 'club_type_name': 'GM'},
+          {'club_section_id': 3, 'club_type_id': 2, 'club_type_name': 'Conq'},
+          {'club_section_id': 4, 'club_type_id': 1, 'club_type_name': 'Av'},
+          {'club_section_id': 5, 'club_type_id': 2, 'club_type_name': 'Conq'},
+        ],
+      })!;
+
+      expect(club.sectionNames, ['Av', 'Conq', 'GM', 'Sin tipo']);
+    });
+
     test('parses totals, clubs and hasMore', () {
       final page = SupervisionReportModel.parseCompliancePage({
         ..._compliance([]),

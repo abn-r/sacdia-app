@@ -140,7 +140,7 @@ class SupervisionOperationsModel {
   ) {
     if (a.metrics.hasGap != b.metrics.hasGap) return a.metrics.hasGap ? -1 : 1;
     final byMissing =
-        b.metrics.reportsMissing.compareTo(a.metrics.reportsMissing);
+        b.metrics.reportsNotSubmitted.compareTo(a.metrics.reportsNotSubmitted);
     if (byMissing != 0) return byMissing;
     final byNonOp =
         b.metrics.nonOperationalClubs.compareTo(a.metrics.nonOperationalClubs);

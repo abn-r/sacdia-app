@@ -54,6 +54,30 @@ void main() {
       expect(item.activeSectionNames, ['Conquistadores']);
     });
 
+    test('sections are ordered by club type, ties in server order', () {
+      Map<String, dynamic> section(int id, int type, String name) => {
+            'club_section_id': id,
+            'active': true,
+            'club_type_id': type,
+            'club_types': {'club_type_id': type, 'name': name},
+          };
+      final item = SupervisionClubModel.tryParseListItem({
+        ..._item(),
+        'club_sections': [
+          section(9, 3, 'Guías Mayores'),
+          section(8, 1, 'Aventureros'),
+          section(7, 2, 'Conquistadores'),
+          section(6, 1, 'Aventureros'),
+        ],
+      })!;
+
+      expect(item.sections.map((s) => s.id), [8, 6, 7, 9]);
+      expect(
+        item.activeSectionNames,
+        ['Aventureros', 'Conquistadores', 'Guías Mayores'],
+      );
+    });
+
     test('item without id is dropped; wrong types do not throw', () {
       expect(SupervisionClubModel.tryParseListItem(_item(id: null)), isNull);
       expect(SupervisionClubModel.tryParseListItem('x'), isNull);
