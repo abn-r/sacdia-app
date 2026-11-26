@@ -1115,7 +1115,36 @@ void main() {
       expect(find.text('EDICIÓN DE PLANES'), findsOneWidget);
       expect(_inRow('Corte de edición', '18:30'), findsOneWidget);
       expect(
-        _inRow('Corte de edición', 'Hora local del camporee (Mexico City)'),
+        _inRow(
+            'Corte de edición', 'Hora local del camporee (Ciudad de México)'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a zone with no name of its own reads as its city', (
+      tester,
+    ) async {
+      await pumpSupplies(
+        tester,
+        catalog: supplyCatalog(timezone: 'America/Argentina/Buenos_Aires'),
+      );
+
+      expect(
+        _inRow('Corte de edición', 'Hora local del camporee (Buenos Aires)'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a nested zone with a name of its own is translated', (
+      tester,
+    ) async {
+      await pumpSupplies(
+        tester,
+        catalog: supplyCatalog(timezone: 'America/Argentina/Cordoba'),
+      );
+
+      expect(
+        _inRow('Corte de edición', 'Hora local del camporee (Córdoba)'),
         findsOneWidget,
       );
     });

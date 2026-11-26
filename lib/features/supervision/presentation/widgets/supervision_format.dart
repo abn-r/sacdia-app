@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart' as intl;
 
@@ -37,13 +38,24 @@ String supervisionPercent(double value) {
   return '$shown%';
 }
 
-/// The place of an IANA zone id, as people say it: "America/Mexico_City"
+/// The place of an IANA zone id, as the id spells it: "America/Mexico_City"
 /// reads "Mexico City", "America/Argentina/Buenos_Aires" reads "Buenos
 /// Aires". An id with no region ("UTC") is kept as it comes.
-String supervisionZoneLabel(String zoneId) {
+String supervisionZoneCity(String zoneId) {
   final id = zoneId.trim();
   final place = id.substring(id.lastIndexOf('/') + 1);
   return place.replaceAll('_', ' ').trim();
+}
+
+/// The place of an IANA zone id in the app language ("Ciudad de México",
+/// "Cidade do México"). `supervision.time_zones` holds the names that are
+/// not just the city of the id; every other zone reads as
+/// [supervisionZoneCity].
+String supervisionZoneLabel(String zoneId) {
+  final id = zoneId.trim();
+  if (id.isEmpty) return '';
+  final key = 'supervision.time_zones.${id.replaceAll('/', '.')}';
+  return trExists(key) ? key.tr() : supervisionZoneCity(id);
 }
 
 /// Month name in the app language ("octubre").
