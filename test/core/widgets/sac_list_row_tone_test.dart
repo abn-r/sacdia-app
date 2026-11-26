@@ -12,6 +12,20 @@ Widget _host(Widget child) => MaterialApp(
       home: Scaffold(body: child),
     );
 
+Widget _darkHost(Widget child, {SacAccent accent = SacAccent.logoBlue}) =>
+    MaterialApp(
+      theme: AppTheme.buildDark(accent),
+      home: Scaffold(body: child),
+    );
+
+double _contrast(Color a, Color b) {
+  final la = a.computeLuminance();
+  final lb = b.computeLuminance();
+  final hi = la > lb ? la : lb;
+  final lo = la > lb ? lb : la;
+  return (hi + 0.05) / (lo + 0.05);
+}
+
 Color _tileColor(WidgetTester tester) {
   final container = tester.widget<Container>(
     find.descendant(
@@ -30,6 +44,47 @@ void main() {
     );
     final accent = SacAccent.of(tester.element(find.byType(SacListRowIcon)));
     expect(_tileColor(tester), accent.light);
+  });
+
+  testWidgets(
+      'in dark the accent tile is a tint over the surface, not the pastel',
+      (tester) async {
+    await tester.pumpWidget(
+      _darkHost(const SacListRowIcon(HugeIcons.strokeRoundedFolder01)),
+    );
+    final context = tester.element(find.byType(SacListRowIcon));
+    final accent = SacAccent.of(context);
+    final tile = _tileColor(tester);
+
+    expect(tile, isNot(accent.light));
+    expect(
+      tile,
+      Color.alphaBlend(
+          accent.color.withValues(alpha: 0.2), context.sac.surface),
+    );
+    // A dark tile: closer to the surface than to white.
+    expect(tile.computeLuminance(), lessThan(0.1));
+  });
+
+  testWidgets('in dark every accent keeps its icon readable on the tile',
+      (tester) async {
+    for (final accent in SacAccent.catalog) {
+      await tester.pumpWidget(
+        _darkHost(
+          const SacListRowIcon(HugeIcons.strokeRoundedFolder01),
+          accent: accent,
+        ),
+      );
+      final palette = SacTonePalette.of(
+        tester.element(find.byType(SacListRowIcon)),
+        SacTone.accent,
+      );
+      expect(
+        _contrast(palette.onContainer, palette.container),
+        greaterThanOrEqualTo(3),
+        reason: accent.id,
+      );
+    }
   });
 
   testWidgets('SacListRowIcon destructive keeps the error tint',

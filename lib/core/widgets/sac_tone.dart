@@ -22,6 +22,19 @@ class SacTonePalette {
     switch (tone) {
       case SacTone.accent:
         final accent = SacAccent.of(context);
+        if (Theme.of(context).brightness == Brightness.dark) {
+          // `accent.light` is a pastel and glares on the dark theme. Same
+          // recipe as SacBadge primary (DESIGN-SYSTEM §6.2): the accent
+          // tinted over the dark surface, with a foreground that reads on it.
+          return SacTonePalette(
+            container: Color.alphaBlend(
+              accent.color.withValues(alpha: 0.2),
+              c.surface,
+            ),
+            onContainer: accent.forHighContrast(Brightness.dark).color,
+            solid: accent.color,
+          );
+        }
         return SacTonePalette(
           container: accent.light,
           onContainer: accent.color,
