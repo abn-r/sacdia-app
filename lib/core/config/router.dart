@@ -86,6 +86,7 @@ import 'package:sacdia_app/features/supervision/presentation/views/supervision_c
 import 'package:sacdia_app/features/supervision/presentation/views/supervision_clubs_view.dart';
 import 'package:sacdia_app/features/supervision/presentation/views/supervision_enrollments_view.dart';
 import 'package:sacdia_app/features/supervision/presentation/views/supervision_folder_detail_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/views/supervision_folder_section_view.dart';
 import 'package:sacdia_app/features/supervision/presentation/views/supervision_folders_view.dart';
 import 'package:sacdia_app/features/supervision/presentation/views/supervision_operations_view.dart';
 import 'package:sacdia_app/features/supervision/presentation/views/supervision_reports_view.dart';
@@ -1115,6 +1116,19 @@ final routerProvider = Provider<GoRouter>((ref) {
                             folderId: state.pathParameters['folderId']!,
                           ),
                         ),
+                        routes: [
+                          GoRoute(
+                            path: 'sections/:sectionId',
+                            pageBuilder: (context, state) => _sharedAxisBuild(
+                              context,
+                              state,
+                              SupervisionFolderSectionView(
+                                folderId: state.pathParameters['folderId']!,
+                                sectionId: state.pathParameters['sectionId']!,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

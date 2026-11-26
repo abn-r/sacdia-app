@@ -13,7 +13,9 @@ import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/errors/forbidden.dart';
 import 'package:sacdia_app/core/usecases/cancellation_token.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
+import 'package:sacdia_app/core/widgets/sac_member_avatar.dart';
+import 'package:sacdia_app/core/widgets/sac_move_box.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet_header.dart';
 import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 import 'package:sacdia_app/core/widgets/sac_value_row.dart';
 import 'package:sacdia_app/features/supervision/domain/entities/supervision_pending_counts.dart';
@@ -22,6 +24,9 @@ import 'package:sacdia_app/features/supervision/domain/repositories/supervision_
 import 'package:sacdia_app/features/supervision/presentation/providers/supervision_providers.dart';
 import 'package:sacdia_app/features/supervision/presentation/providers/supervision_requests_providers.dart';
 import 'package:sacdia_app/features/supervision/presentation/views/supervision_requests_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_quote.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_segmented_control.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_status_chip.dart';
 
 import 'supervision_view_test_harness.dart';
 
@@ -209,10 +214,29 @@ Future<_Env> _pump(
   return env;
 }
 
-Finder _chip(String label) => find.widgetWithText(SacFilterChip, label);
+/// A segment of the control, found by its label.
+Finder _chip(String label) => find.descendant(
+      of: find.byWidgetPredicate((w) => w is SupervisionSegmentedControl),
+      matching: find.textContaining(label, findRichText: true),
+    );
 
-SacFilterChip _chipWidget(WidgetTester tester, String label) =>
-    tester.widget<SacFilterChip>(_chip(label));
+class _SegmentInfo {
+  const _SegmentInfo(this.count, this.selected);
+  final int? count;
+  final bool selected;
+}
+
+_SegmentInfo _chipWidget(WidgetTester tester, String label) {
+  final control = tester.widget(
+    find.byWidgetPredicate((w) => w is SupervisionSegmentedControl),
+  ) as dynamic;
+  final segments = control.segments as List;
+  final segment = segments.firstWhere((s) => (s as dynamic).label == label);
+  return _SegmentInfo(
+    (segment as dynamic).count as int?,
+    control.selected == (segment as dynamic).value,
+  );
+}
 
 Future<void> _openSheet(WidgetTester tester, String person) async {
   await tester.tap(find.text(person));
@@ -234,6 +258,13 @@ Finder _confirm(String text) => _barButton(text).last;
 
 String _date(DateTime when) => intl.DateFormat.yMMMd('es').format(when);
 
+/// The action of the request sheet footer: «Aprobar traslado» / «Aprobar
+/// asignación» on top, «Rechazar» under it.
+Finder _footer(String action) => action == 'Aprobar'
+    ? find.byWidgetPredicate(
+        (w) => w is SacButton && w.text.startsWith('Aprobar '))
+    : _barButton(action);
+
 /// Opens the review sheet of [action] ("Aprobar" / "Rechazar"), writes
 /// [comment] (when given) and confirms.
 Future<void> _review(
@@ -241,7 +272,7 @@ Future<void> _review(
   String action, {
   String? comment,
 }) async {
-  await tester.tap(_barButton(action));
+  await tester.tap(_footer(action));
   await tester.pumpAndSettle();
   if (comment != null) {
     await tester.enterText(find.byType(TextFormField), comment);
@@ -252,7 +283,7 @@ Future<void> _review(
 }
 
 /// Marker of the request sheet.
-final _sheetOpen = find.text('SOLICITUD');
+final _sheetOpen = find.byType(SacSheetHeader);
 
 /// Flings the list down from [onItem] past the trigger distance of the
 /// RefreshIndicator and lets the refresh finish.
@@ -264,7 +295,7 @@ Future<void> _pullToRefresh(WidgetTester tester, Finder onItem) async {
   await tester.pumpAndSettle();
 }
 
-/// The chip row is a horizontal list: at large text scales it scrolls.
+/// The segments share the width: at large text scales their labels wrap.
 Future<void> _tapChip(WidgetTester tester, String label) async {
   await tester.ensureVisible(_chip(label));
   await tester.pumpAndSettle();
@@ -284,7 +315,7 @@ void main() {
 
       expect(env.repo.queries.map((q) => '$q'), ['(transfer, pending)']);
       expect(_chipWidget(tester, 'Traslados').selected, isTrue);
-      expect(_chipWidget(tester, 'Asignaciones').selected, isFalse);
+      expect(_chipWidget(tester, 'Cargos').selected, isFalse);
       expect(_chipWidget(tester, 'Resueltas').selected, isFalse);
     });
 
@@ -292,7 +323,7 @@ void main() {
       await _pump(tester);
 
       expect(_chipWidget(tester, 'Traslados').count, 3);
-      expect(_chipWidget(tester, 'Asignaciones').count, 2);
+      expect(_chipWidget(tester, 'Cargos').count, 2);
       expect(_chipWidget(tester, 'Resueltas').count, isNull);
     });
 
@@ -303,7 +334,7 @@ void main() {
       await _pump(tester, counts: (_) => gate.future, settle: false);
 
       expect(_chipWidget(tester, 'Traslados').count, isNull);
-      expect(_chipWidget(tester, 'Asignaciones').count, isNull);
+      expect(_chipWidget(tester, 'Cargos').count, isNull);
 
       gate.complete(_counts);
       await tester.pumpAndSettle();
@@ -321,7 +352,7 @@ void main() {
       );
 
       expect(_chipWidget(tester, 'Traslados').count, isNull);
-      expect(_chipWidget(tester, 'Asignaciones').count, isNull);
+      expect(_chipWidget(tester, 'Cargos').count, isNull);
       // The list is not affected by the failed counts.
       expect(find.text('Persona t1'), findsOneWidget);
     });
@@ -332,20 +363,20 @@ void main() {
       await _pump(tester, repo: repo);
       expect(find.text('Persona t1'), findsOneWidget);
 
-      await tester.tap(_chip('Asignaciones'));
+      await tester.tap(_chip('Cargos'));
       await tester.pumpAndSettle();
 
       expect(repo.queries.last.kind, _assignment);
       expect(repo.queries.last.status, _pending);
       expect(find.text('Persona a1'), findsOneWidget);
       expect(find.text('Persona t1'), findsNothing);
-      expect(_chipWidget(tester, 'Asignaciones').selected, isTrue);
+      expect(_chipWidget(tester, 'Cargos').selected, isTrue);
       expect(_chipWidget(tester, 'Traslados').selected, isFalse);
     });
 
     testWidgets(
         '"Resueltas" merges approved and rejected, newest decision first, '
-        'and toggles back', (tester) async {
+        'and goes back to the pending transfers', (tester) async {
       final repo = _FakeRepo()
         ..serve(
           transfers: [_tr('p1')],
@@ -376,56 +407,54 @@ void main() {
       expect(order[0], lessThan(order[1]));
       expect(order[1], lessThan(order[2]));
 
-      await tester.tap(_chip('Resueltas'));
+      await tester.tap(_chip('Traslados'));
       await tester.pumpAndSettle();
       expect(find.text('Persona p1'), findsOneWidget);
       expect(find.text('Persona new'), findsNothing);
       expect(_chipWidget(tester, 'Resueltas').selected, isFalse);
     });
 
-    testWidgets('"Resueltas" keeps the selected kind', (tester) async {
-      final repo = _FakeRepo()..serve(approved: [_as('a1', status: _approved)]);
+    testWidgets('"Resueltas" lists both kinds, whatever segment was open', (
+      tester,
+    ) async {
+      final repo = _FakeRepo()
+        ..serve(approved: [
+          _as('a1', status: _approved),
+          _tr('t1', status: _approved),
+        ]);
       await _pump(tester, repo: repo);
 
-      await tester.tap(_chip('Asignaciones'));
+      await tester.tap(_chip('Cargos'));
       await tester.pumpAndSettle();
       await tester.tap(_chip('Resueltas'));
       await tester.pumpAndSettle();
 
       expect(
         repo.queries.map((q) => '$q'),
-        containsAll(['(assignment, approved)', '(assignment, rejected)']),
+        containsAll([
+          '(assignment, approved)',
+          '(assignment, rejected)',
+          '(transfer, approved)',
+          '(transfer, rejected)',
+        ]),
       );
       expect(find.text('Persona a1'), findsOneWidget);
+      expect(find.text('Persona t1'), findsOneWidget);
     });
   });
 
   group('cards', () {
-    testWidgets('a transfer reads "De A a B" with club and section', (
+    testWidgets('a transfer reads "Origen › Destino" with the avatar', (
       tester,
     ) async {
       final repo = _FakeRepo()..serve(transfers: [_tr('t1')]);
       await _pump(tester, repo: repo);
 
-      expect(
-          find.text(
-              'De Club Origen (Conquistadores) a Club Destino (Aventureros)'),
-          findsOneWidget);
-    });
-
-    testWidgets('a transfer summary keeps what the server sent', (
-      tester,
-    ) async {
-      final repo = _FakeRepo()
-        ..serve(transfers: [
-          _tr('t1', fromSection: null, toSection: ''),
-          _tr('t2', fromClub: null, fromSection: 'Guías Mayores'),
-        ]);
-      await _pump(tester, repo: repo);
-
-      expect(find.text('De Club Origen a Club Destino'), findsOneWidget);
-      expect(find.text('De Guías Mayores a Club Destino (Aventureros)'),
-          findsOneWidget);
+      expect(find.text('Club Origen › Club Destino'), findsOneWidget);
+      expect(find.byType(SacMemberAvatar), findsOneWidget);
+      expect(find.text('PT'), findsOneWidget);
+      // The section is said once, in the sheet.
+      expect(find.textContaining('Conquistadores'), findsNothing);
     });
 
     testWidgets('a transfer with a missing club falls back to a placeholder', (
@@ -438,17 +467,16 @@ void main() {
         ]);
       await _pump(tester, repo: repo);
 
-      expect(find.text('De club sin nombre a club sin nombre'), findsOneWidget);
+      expect(find.text('club sin nombre › club sin nombre'), findsOneWidget);
     });
 
-    testWidgets('an assignment reads "Role en Club (Section)"', (tester) async {
+    testWidgets('an assignment reads "Cargo en Club"', (tester) async {
       final repo = _FakeRepo()..serve(assignments: [_as('a1')]);
       await _pump(tester, repo: repo);
-      await tester.tap(_chip('Asignaciones'));
+      await tester.tap(_chip('Cargos'));
       await tester.pumpAndSettle();
 
-      expect(
-          find.text('Consejero en Club Cargo (Aventureros)'), findsOneWidget);
+      expect(find.text('Consejero en Club Cargo'), findsOneWidget);
     });
 
     testWidgets('an assignment with a missing role or club falls back', (
@@ -460,16 +488,14 @@ void main() {
           _as('a2', sectionLabel: null),
         ]);
       await _pump(tester, repo: repo);
-      await tester.tap(_chip('Asignaciones'));
+      await tester.tap(_chip('Cargos'));
       await tester.pumpAndSettle();
 
       expect(find.text('Cargo en club sin nombre'), findsOneWidget);
       expect(find.text('Consejero en Club Cargo'), findsOneWidget);
     });
 
-    testWidgets('decided cards show who approved and why it was rejected', (
-      tester,
-    ) async {
+    testWidgets('decided cards carry the result as a chip', (tester) async {
       final repo = _FakeRepo()
         ..serve(
           approved: [
@@ -480,26 +506,33 @@ void main() {
             _tr('r1',
                 status: _rejected,
                 reviewerName: 'Marta Revisa',
-                reviewComment: 'Falta el aval del director'),
+                reviewComment: 'Cupo lleno'),
             _tr('r2', status: _rejected, reviewerName: 'Marta Revisa'),
-            _tr('r3', status: _rejected, reviewComment: '   '),
+            _tr('r3',
+                status: _rejected,
+                reviewComment:
+                    'Un motivo demasiado largo para caber en el chip'),
           ],
         );
       await _pump(tester, repo: repo);
       await tester.tap(_chip('Resueltas'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Aprobada por Marta Revisa'), findsOneWidget);
-      expect(find.text('Aprobada'), findsOneWidget);
-      expect(find.text('Falta el aval del director'), findsOneWidget);
-      expect(find.text('Rechazada por Marta Revisa'), findsOneWidget);
-      expect(find.text('Rechazada'), findsOneWidget);
+      expect(find.byType(SupervisionStatusChip), findsNWidgets(5));
+      expect(find.text('Aprobada'), findsNWidgets(2));
+      // A short reason takes the chip; a missing or long one reads "Rechazada".
+      expect(find.text('Cupo lleno'), findsOneWidget);
+      expect(find.text('Rechazada'), findsNWidgets(2));
+      expect(find.text('Aprobada por Marta Revisa'), findsNothing);
+      expect(find.text('RESUELTAS RECIENTES'), findsOneWidget);
     });
 
-    testWidgets('a pending card has no outcome line', (tester) async {
+    testWidgets('a pending card has no result chip', (tester) async {
       final repo = _FakeRepo()..serve(transfers: [_tr('t1')]);
       await _pump(tester, repo: repo);
 
+      expect(find.byType(SupervisionStatusChip), findsNothing);
+      expect(find.text('POR REVISAR'), findsOneWidget);
       expect(find.textContaining('Aprobada'), findsNothing);
       expect(find.textContaining('Rechazada'), findsNothing);
     });
@@ -580,33 +613,33 @@ void main() {
       expect(_barButton('Reintentar'), findsNothing);
     });
 
-    testWidgets('empty states have four different titles', (tester) async {
+    testWidgets('empty states: one per kind while pending, one when resolved',
+        (tester) async {
       await _pump(tester);
 
       expect(find.text('Sin traslados por revisar'), findsOneWidget);
       expect(find.text('Cuando un club lo solicite, aparecerá aquí.'),
           findsOneWidget);
 
-      await tester.tap(_chip('Asignaciones'));
+      await tester.tap(_chip('Cargos'));
       await tester.pumpAndSettle();
       expect(find.text('Sin asignaciones por revisar'), findsOneWidget);
       expect(find.text('Sin traslados por revisar'), findsNothing);
 
       await tester.tap(_chip('Resueltas'));
       await tester.pumpAndSettle();
-      expect(find.text('Sin asignaciones resueltas'), findsOneWidget);
+      expect(find.text('Sin solicitudes resueltas'), findsOneWidget);
       expect(find.text('Aquí verás las solicitudes aprobadas y rechazadas.'),
           findsOneWidget);
 
       await tester.tap(_chip('Traslados'));
       await tester.pumpAndSettle();
-      expect(find.text('Sin traslados resueltos'), findsOneWidget);
-      expect(find.text('Sin asignaciones resueltas'), findsNothing);
+      expect(find.text('Sin traslados por revisar'), findsOneWidget);
     });
   });
 
   group('request sheet facts', () {
-    testWidgets('a pending transfer shows origin, destination, reason, date', (
+    testWidgets('a pending transfer shows the move, the reason and the date', (
       tester,
     ) async {
       final created = DateTime(2026, 3, 5);
@@ -617,18 +650,29 @@ void main() {
       await _pump(tester, repo: repo);
       await _openSheet(tester, 'Persona t1');
 
-      expect(find.text('Solicitud de traslado'), findsOneWidget);
-      expect(_row('Origen', 'Club Origen (Conquistadores)'), findsOneWidget);
-      expect(_row('Destino', 'Club Destino (Aventureros)'), findsOneWidget);
-      expect(_row('Motivo', 'Se muda de ciudad'), findsOneWidget);
-      expect(_row('Fecha', _date(created)), findsOneWidget);
+      expect(
+        find.text(
+            'Solicitud de traslado · ${intl.DateFormat.MMMd('es').format(created)}'),
+        findsOneWidget,
+      );
+      // «de → a» box: origin, strip, destination, each with its section.
+      expect(find.byType(SacMoveBox), findsOneWidget);
+      expect(find.text('Club Origen'), findsOneWidget);
+      expect(find.text('Club Destino'), findsOneWidget);
+      expect(find.text('CAMBIO A'), findsOneWidget);
+      expect(find.text('Conquistadores'), findsOneWidget);
+      expect(find.text('Aventureros'), findsOneWidget);
+      // The requester's reason is a neutral quote.
+      expect(find.byType(SupervisionQuote), findsOneWidget);
+      expect(find.text('Motivo de Persona'), findsOneWidget);
+      expect(find.text('Se muda de ciudad'), findsOneWidget);
       // Only decided requests carry a review group.
       expect(find.text('REVISIÓN'), findsNothing);
       expect(_rowLabel('Revisó'), findsNothing);
       expect(_rowLabel('Cargo'), findsNothing);
     });
 
-    testWidgets('blank optional rows are absent', (tester) async {
+    testWidgets('blank optional parts are absent', (tester) async {
       final repo = _FakeRepo()
         ..serve(transfers: [
           _tr('t1', reason: '  ', fromClub: null, fromSection: null),
@@ -636,10 +680,11 @@ void main() {
       await _pump(tester, repo: repo);
       await _openSheet(tester, 'Persona t1');
 
-      expect(_rowLabel('Motivo'), findsNothing);
-      expect(_rowLabel('Origen'), findsNothing);
-      expect(_rowLabel('Destino'), findsOneWidget);
-      expect(_rowLabel('Fecha'), findsNothing);
+      expect(find.byType(SupervisionQuote), findsNothing);
+      // No origin: only the destination, without the strip.
+      expect(find.text('CAMBIO A'), findsNothing);
+      expect(find.text('Club Destino'), findsOneWidget);
+      expect(find.text('Solicitud de traslado'), findsOneWidget);
     });
 
     testWidgets('a pending assignment shows role, club, requester, date', (
@@ -651,11 +696,15 @@ void main() {
           _as('a1', requestedBy: 'Luis Director', createdAt: created),
         ]);
       await _pump(tester, repo: repo);
-      await tester.tap(_chip('Asignaciones'));
+      await tester.tap(_chip('Cargos'));
       await tester.pumpAndSettle();
       await _openSheet(tester, 'Persona a1');
 
-      expect(find.text('Solicitud de cargo'), findsOneWidget);
+      expect(
+        find.text(
+            'Solicitud de cargo · ${intl.DateFormat.MMMd('es').format(created)}'),
+        findsOneWidget,
+      );
       expect(_row('Cargo', 'Consejero'), findsOneWidget);
       expect(_row('Club', 'Club Cargo (Aventureros)'), findsOneWidget);
       expect(_row('Solicitó', 'Luis Director'), findsOneWidget);
@@ -713,7 +762,7 @@ void main() {
       await _openSheet(tester, 'Persona t1');
 
       expect(_sheetOpen, findsOneWidget);
-      expect(_barButton('Aprobar'), findsNothing);
+      expect(_footer('Aprobar'), findsNothing);
       expect(_barButton('Rechazar'), findsNothing);
     });
 
@@ -724,8 +773,11 @@ void main() {
       await _pump(tester, repo: repo);
       await _openSheet(tester, 'Persona t1');
 
-      expect(_barButton('Aprobar'), findsOneWidget);
+      expect(_footer('Aprobar'), findsOneWidget);
       expect(_barButton('Rechazar'), findsOneWidget);
+      // Stacked: approve on top, reject under it as text.
+      expect(tester.getRect(_barButton('Rechazar')).top,
+          greaterThan(tester.getRect(_footer('Aprobar')).bottom - 1));
     });
 
     testWidgets('a decided request has no buttons even for the reviewer', (
@@ -738,7 +790,7 @@ void main() {
       await _openSheet(tester, 'Persona a1');
 
       expect(_sheetOpen, findsOneWidget);
-      expect(_barButton('Aprobar'), findsNothing);
+      expect(_footer('Aprobar'), findsNothing);
       expect(_barButton('Rechazar'), findsNothing);
     });
   });
@@ -751,15 +803,16 @@ void main() {
       final env = await _pump(tester, repo: repo);
       await _openSheet(tester, 'Persona t1');
 
-      await tester.tap(_barButton('Aprobar'));
+      await tester.tap(_footer('Aprobar'));
       await tester.pumpAndSettle();
-      expect(find.text('Aprobar traslado'), findsOneWidget);
+      // The footer button and the title of the decision sheet.
+      expect(find.text('Aprobar traslado'), findsNWidgets(2));
       expect(find.text('Comentario (opcional)'), findsOneWidget);
       // The decision sheet repeats what is being approved.
       expect(
         find.text(
             'De Club Origen (Conquistadores) a Club Destino (Aventureros)'),
-        findsNWidgets(2),
+        findsOneWidget,
       );
       await tester.tap(_confirm('Aprobar'));
       await tester.pumpAndSettle();
@@ -789,15 +842,15 @@ void main() {
     testWidgets('an assignment uses its own title and kind', (tester) async {
       final repo = _FakeRepo()..serve(assignments: [_as('a1')]);
       await _pump(tester, repo: repo);
-      await tester.tap(_chip('Asignaciones'));
+      await tester.tap(_chip('Cargos'));
       await tester.pumpAndSettle();
       await _openSheet(tester, 'Persona a1');
 
-      await tester.tap(_barButton('Aprobar'));
+      await tester.tap(_footer('Aprobar'));
       await tester.pumpAndSettle();
-      expect(find.text('Aprobar asignación'), findsOneWidget);
+      expect(find.text('Aprobar asignación'), findsNWidgets(2));
       expect(
-          find.text('Consejero en Club Cargo (Aventureros)'), findsNWidgets(2));
+          find.text('Consejero en Club Cargo (Aventureros)'), findsOneWidget);
       await tester.tap(_confirm('Aprobar'));
       await tester.pumpAndSettle();
 
@@ -831,13 +884,14 @@ void main() {
       await _pump(tester, repo: repo);
       await _openSheet(tester, 'Persona t1');
 
-      await tester.tap(_barButton('Aprobar'));
+      await tester.tap(_footer('Aprobar'));
       await tester.pumpAndSettle();
       await tester.tap(_barButton('Cancelar'));
       await tester.pumpAndSettle();
 
       expect(repo.reviews, isEmpty);
-      expect(find.text('Aprobar traslado'), findsNothing);
+      // Only the footer button is left.
+      expect(find.text('Aprobar traslado'), findsOneWidget);
       expect(_sheetOpen, findsOneWidget);
     });
 
@@ -851,7 +905,7 @@ void main() {
       await _pump(tester, repo: repo);
       await _openSheet(tester, 'Persona t1');
 
-      await tester.tap(_barButton('Aprobar'));
+      await tester.tap(_footer('Aprobar'));
       await tester.pumpAndSettle();
       await tester.tap(_confirm('Aprobar'));
       // The loading button animates forever: advance frames, never settle.
@@ -861,7 +915,7 @@ void main() {
       expect(repo.reviews, hasLength(1));
       expect(
           tester.widget<SacButton>(_barButton('Rechazar')).isEnabled, isFalse);
-      expect(tester.widget<SacButton>(_barButton('Aprobar')).isLoading, isTrue);
+      expect(tester.widget<SacButton>(_footer('Aprobar')).isLoading, isTrue);
 
       gate.complete(Right(_tr('t1', status: _approved)));
       await tester.pumpAndSettle();
@@ -917,7 +971,7 @@ void main() {
     testWidgets('an assignment rejection uses its own title', (tester) async {
       final repo = _FakeRepo()..serve(assignments: [_as('a1')]);
       await _pump(tester, repo: repo);
-      await tester.tap(_chip('Asignaciones'));
+      await tester.tap(_chip('Cargos'));
       await tester.pumpAndSettle();
       await _openSheet(tester, 'Persona a1');
 
@@ -956,7 +1010,7 @@ void main() {
         ..onReview =
             (_, __, ___) async => Left(_coded('REQUEST_ASSIGNMENT_NOT_FOUND'));
       await _pump(tester, repo: repo);
-      await tester.tap(_chip('Asignaciones'));
+      await tester.tap(_chip('Cargos'));
       await tester.pumpAndSettle();
       await _openSheet(tester, 'Persona a1');
 
@@ -974,7 +1028,7 @@ void main() {
         ..onReview = (_, __, ___) async =>
             Left(_coded('REQUEST_ROLE_SLOT_LIMIT_REACHED'));
       await _pump(tester, repo: repo);
-      await tester.tap(_chip('Asignaciones'));
+      await tester.tap(_chip('Cargos'));
       await tester.pumpAndSettle();
       await _openSheet(tester, 'Persona a1');
 
@@ -987,16 +1041,16 @@ void main() {
       expect(find.text('server says no'), findsNothing);
       expect(_sheetOpen, findsOneWidget);
       expect(find.text('Solicitud aprobada'), findsNothing);
-      final approve = tester.widget<SacButton>(_barButton('Aprobar'));
+      final approve = tester.widget<SacButton>(_footer('Aprobar'));
       expect(approve.isEnabled, isTrue);
       expect(approve.isLoading, isFalse);
       expect(
           tester.widget<SacButton>(_barButton('Rechazar')).isEnabled, isTrue);
 
       // Usable again: a second tap reaches the decision sheet.
-      await tester.tap(_barButton('Aprobar'));
+      await tester.tap(_footer('Aprobar'));
       await tester.pumpAndSettle();
-      expect(find.text('Aprobar asignación'), findsOneWidget);
+      expect(find.text('Aprobar asignación'), findsNWidgets(2));
     });
 
     testWidgets('an unknown code shows the server message inline', (
@@ -1012,7 +1066,7 @@ void main() {
 
       expect(find.text('server says no'), findsOneWidget);
       expect(_sheetOpen, findsOneWidget);
-      expect(tester.widget<SacButton>(_barButton('Aprobar')).isEnabled, isTrue);
+      expect(tester.widget<SacButton>(_footer('Aprobar')).isEnabled, isTrue);
     });
 
     testWidgets('a failure without a code shows the server message inline', (
@@ -1122,7 +1176,7 @@ void main() {
           tester,
         ) async {
           await _pump(tester, repo: repo(), size: narrow, textScale: scale);
-          await _tapChip(tester, 'Asignaciones');
+          await _tapChip(tester, 'Cargos');
 
           expectNoLayoutException(tester);
           expect(find.text('Persona a1'), findsOneWidget);
@@ -1162,7 +1216,7 @@ void main() {
     testWidgets('320 wide, text scale 1.0: assignment sheet does not overflow',
         (tester) async {
       await _pump(tester, repo: repo(), size: narrow);
-      await tester.tap(_chip('Asignaciones'));
+      await tester.tap(_chip('Cargos'));
       await tester.pumpAndSettle();
       await _openSheet(tester, 'Persona a1');
 
@@ -1185,7 +1239,7 @@ void main() {
 
       expectNoLayoutException(tester);
       expect(_sheetOpen, findsOneWidget);
-      expect(_barButton('Aprobar'), findsOneWidget);
+      expect(_footer('Aprobar'), findsOneWidget);
     });
 
     testWidgets(
@@ -1194,11 +1248,11 @@ void main() {
       final single = _FakeRepo()..serve(transfers: [_tr('t1')]);
       await _pump(tester, repo: single, size: narrow, textScale: 2.0);
       await _openSheet(tester, 'Persona t1');
-      await tester.tap(_barButton('Aprobar'));
+      await tester.tap(_footer('Aprobar'));
       await tester.pumpAndSettle();
 
       expectNoLayoutException(tester);
-      expect(find.text('Aprobar traslado'), findsOneWidget);
+      expect(find.text('Aprobar traslado'), findsNWidgets(2));
     });
   });
 
@@ -1217,7 +1271,8 @@ void main() {
         expect(data.flagsCollection.isButton, isTrue, reason: person);
         expect(data.getSemanticsData().hasAction(SemanticsAction.tap), isTrue,
             reason: person);
-        expect(data.getSemanticsData().label, contains('De Club Origen'));
+        expect(data.getSemanticsData().label,
+            contains('Club Origen › Club Destino'));
       }
       handle.dispose();
     });

@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
@@ -8,7 +9,8 @@ import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 /// Bottom sheet that collects the text of a supervision decision: the reason
 /// of a rejection or the optional comment of a review.
 ///
-/// Keyboard-safe. Returns the trimmed text when the user confirms (empty when
+/// Buttons are stacked: the primary on top (red when [destructive]), «Cancelar»
+/// under it. Keyboard-safe. Returns the trimmed text when the user confirms (empty when
 /// [minLength] is 0 and nothing was written) and `null` when they cancel or
 /// dismiss. A text shorter than [minLength] shows an inline error and keeps
 /// the sheet open, so the server never has to reject the length.
@@ -95,6 +97,8 @@ class _DecisionSheetState extends State<_DecisionSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+    // The primary says what it does: red when it rejects, accent otherwise.
     final confirm = widget.destructive
         ? SacButton.destructive(
             text: widget.confirmLabel,
@@ -102,9 +106,9 @@ class _DecisionSheetState extends State<_DecisionSheet> {
             labelMaxLines: 2,
             onPressed: _confirm,
           )
-        : SacButton.success(
+        : SacButton.primary(
             text: widget.confirmLabel,
-            icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+            icon: HugeIcons.strokeRoundedTick02,
             labelMaxLines: 2,
             onPressed: _confirm,
           );
@@ -136,18 +140,16 @@ class _DecisionSheetState extends State<_DecisionSheet> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: SacButton.outline(
-                            text: 'common.cancel'.tr(),
-                            labelMaxLines: 2,
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(child: confirm),
-                      ],
+                    confirm,
+                    const SizedBox(height: 8),
+                    SacButton(
+                      text: 'common.cancel'.tr(),
+                      variant: SacButtonVariant.ghost,
+                      fullWidth: true,
+                      backgroundColor: c.surfaceVariant,
+                      textColor: c.text,
+                      labelMaxLines: 2,
+                      onPressed: () => Navigator.pop(context),
                     ),
                   ],
                 ),

@@ -372,6 +372,8 @@ class RouteNames {
   static const String supervisionFolders = '/supervision/folders';
   static const String supervisionFolderDetailRoute =
       '/supervision/folders/:folderId';
+  static const String supervisionFolderSectionRoute =
+      '/supervision/folders/:folderId/sections/:sectionId';
   static const String supervisionRequests = '/supervision/requests';
   static const String supervisionOperations = '/supervision/operations';
   static const String supervisionClubs = '/supervision/clubs';
@@ -389,6 +391,8 @@ class RouteNames {
   // Helpers para supervisión
   static String supervisionFolderDetail(String folderId) =>
       '/supervision/folders/$folderId';
+  static String supervisionFolderSection(String folderId, String sectionId) =>
+      '/supervision/folders/$folderId/sections/$sectionId';
   static String supervisionClubDetail(String clubId) =>
       '/supervision/clubs/$clubId';
 

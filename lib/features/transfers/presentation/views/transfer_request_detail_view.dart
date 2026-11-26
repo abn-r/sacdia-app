@@ -9,8 +9,8 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_error_state.dart';
 import '../../../../core/widgets/sac_frosted_footer.dart';
-import '../../../../core/widgets/sac_list_row.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/widgets/sac_move_box.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../../core/widgets/sac_value_row.dart';
 import '../../../../core/widgets/status_progress/status_progress.dart';
@@ -169,47 +169,14 @@ class _MoveBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    final from = request.fromClubName?.trim();
-    return Column(
-      children: [
-        if (from != null && from.isNotEmpty) ...[
-          SacListRow(
-            leading: ClubTypeTile(clubTypeName: request.fromSectionName),
-            title: from,
-            subtitle: request.fromSectionName,
-          ),
-          Container(
-            height: 24,
-            color: c.surfaceVariant,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            child: Row(
-              children: [
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowDown01,
-                  size: 14,
-                  color: c.textTertiary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'transfers.detail.move_to'.tr().toUpperCase(),
-                  style: TextStyle(
-                    fontSize: SacFontSize.labelSmall,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.6,
-                    color: c.textTertiary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-        SacListRow(
-          leading: ClubTypeTile(clubTypeName: request.toSectionName),
-          title: transferDestination(request),
-          subtitle: request.toSectionName,
-        ),
-      ],
+    return SacMoveBox(
+      connector: 'transfers.detail.move_to'.tr(),
+      fromLeading: ClubTypeTile(clubTypeName: request.fromSectionName),
+      fromTitle: request.fromClubName,
+      fromSubtitle: request.fromSectionName,
+      toLeading: ClubTypeTile(clubTypeName: request.toSectionName),
+      toTitle: transferDestination(request),
+      toSubtitle: request.toSectionName,
     );
   }
 }
