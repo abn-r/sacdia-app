@@ -14,13 +14,17 @@ import 'package:sacdia_app/core/errors/forbidden.dart';
 import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
-import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
+import 'package:sacdia_app/core/widgets/sac_list_row.dart';
+import 'package:sacdia_app/core/widgets/sac_notice.dart';
 import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 import 'package:sacdia_app/core/widgets/status_progress/sac_grouped_section.dart';
+import 'package:sacdia_app/core/widgets/status_progress/sac_state_panel.dart';
 import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_order_offering.dart';
 import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_order_product.dart';
 import 'package:sacdia_app/features/supervision/domain/entities/supervision_camporee_orders.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_plain_row.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_segmented_control.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_status_chip.dart';
 
 import 'supervision_camporee_orders_test_harness.dart';
 import 'supervision_view_test_harness.dart';
@@ -39,9 +43,17 @@ Finder get _sheet => find.byType(BottomSheet);
 Finder _inSheet(Finder matching) =>
     find.descendant(of: _sheet, matching: matching);
 
-Finder get _save => _inSheet(find.byType(SacButton));
+Finder get _save => _inSheet(find.widgetWithText(SacButton, 'Guardar'));
 
-Finder _row(String title) => find.widgetWithText(SupervisionPlainRow, title);
+Finder _row(String title) => find.byWidgetPredicate(
+      (w) =>
+          (w is SacListRow && w.title == title) ||
+          (w is SupervisionPlainRow && w.title == title),
+    );
+
+/// The Pedidos / Insumos control (and its options).
+Finder get _segments =>
+    find.byWidgetPredicate((w) => w is SupervisionSegmentedControl);
 
 Finder _inRow(String title, String text) =>
     find.descendant(of: _row(title), matching: find.text(text));
@@ -59,7 +71,7 @@ Future<void> _toSupplies(WidgetTester tester) async {
   // its horizontal list: scroll the list, not the page.
   final width = tester.view.physicalSize.width / tester.view.devicePixelRatio;
   if (tester.getCenter(find.text('Insumos')).dx > width) {
-    await tester.drag(find.byType(SacFilterChip).first, const Offset(-300, 0));
+    await tester.drag(_segments, const Offset(-300, 0));
     await tester.pumpAndSettle();
   }
   await _tap(tester, find.text('Insumos'));
@@ -195,7 +207,7 @@ void main() {
         'catalog is never requested', (tester) async {
       final repo = await pumpOrdersView(tester, capabilities: _ordersOnly);
 
-      expect(find.byType(SacFilterChip), findsNothing);
+      expect(_segments, findsNothing);
       expect(find.text('Insumos'), findsNothing);
       expect(find.text('Pedidos habilitados'), findsOneWidget);
       expect(repo.orderConfigCalls, [7]);
@@ -207,7 +219,7 @@ void main() {
         'catalog once', (tester) async {
       final repo = await pumpOrdersView(tester);
 
-      expect(find.byType(SacFilterChip), findsNWidgets(2));
+      expect(_segments, findsOneWidget);
       expect(find.text('Pedidos'), findsOneWidget);
       expect(repo.supplyCatalogCalls, isEmpty);
 
@@ -251,7 +263,7 @@ void main() {
 
       expect(find.text('No se pudo cargar la configuración'), findsOneWidget);
       // The chips stay so the user can go back.
-      expect(find.byType(SacFilterChip), findsNWidgets(2));
+      expect(_segments, findsOneWidget);
 
       await _tap(tester, find.text('Reintentar'));
 
@@ -675,10 +687,8 @@ void main() {
       );
       // 2 on sale (Gorra, Playera) out of 4: the inactive offering and the
       // one outside the library do not count.
-      expect(find.descendant(of: section, matching: find.text('2')),
+      expect(find.descendant(of: section, matching: find.text('2 de 4')),
           findsOneWidget);
-      expect(
-          find.descendant(of: section, matching: find.text('4')), findsNothing);
     });
 
     testWidgets('row texts follow the offering and the sizes', (tester) async {
@@ -686,11 +696,11 @@ void main() {
 
       expect(_inRow('Gorra', 'En venta'), findsOneWidget);
       expect(_inRow('Gorra', SacMoney.fromCentavos(12050)), findsOneWidget);
-      expect(_inRow('Playera', 'En venta · tallas activas: 2'), findsOneWidget);
+      expect(_inRow('Playera', 'En venta · 2 tallas'), findsOneWidget);
       expect(_inRow('Playera', SacMoney.fromCentavos(8000)), findsOneWidget);
       expect(_inRow('Termo', 'No se ofrece'), findsOneWidget);
       expect(
-        _inRow('Chamarra', 'Sin tallas activas: no se puede ofrecer'),
+        _inRow('Chamarra', 'Sin tallas activas'),
         findsOneWidget,
       );
       // No price for what is not on sale.
@@ -725,7 +735,7 @@ void main() {
       await _openRow(tester, 'Termo');
 
       expect(_inSheet(find.text('Termo')), findsOneWidget);
-      expect(_inSheet(find.text('Ofrecer en este camporee')), findsOneWidget);
+      expect(_inSheet(find.text('Ofrecer')), findsOneWidget);
       expect(
           tester.widget<Switch>(_inSheet(find.byType(Switch))).value, isFalse);
       // The price field only exists while the switch is on.
@@ -937,8 +947,7 @@ void main() {
       );
       await pumpOrdersView(tester, repo: repo);
 
-      expect(_inRow('Sudadera', 'Sin tallas activas: no se puede ofrecer'),
-          findsOneWidget);
+      expect(_inRow('Sudadera', 'Sin tallas activas'), findsOneWidget);
       await _openRow(tester, 'Sudadera');
       expect(
           tester.widget<Switch>(_inSheet(find.byType(Switch))).value, isTrue);
@@ -1840,6 +1849,185 @@ void main() {
 
       expect(find.text('Seleccionar hora'), findsOneWidget);
       expectNoLayoutException(tester);
+    });
+  });
+
+  group('redesign: window panel, chips and footer', () {
+    Finder panel(String title) => find.descendant(
+          of: find.byType(SacStatePanel),
+          matching: find.text(title),
+        );
+
+    testWidgets('open window: panel says it and until when', (tester) async {
+      final closes = DateTime.now().add(const Duration(days: 5));
+      await pumpOrdersView(
+        tester,
+        repo: FakeOrdersRepo(
+          config: orderConfig(
+            ordersEnabled: true,
+            opensAt: DateTime.now().subtract(const Duration(days: 1)),
+            deadline: closes,
+          ),
+        ),
+      );
+
+      expect(panel('Pedidos abiertos'), findsOneWidget);
+      expect(
+        find.text('Los clubes pueden pedir hasta el ${_moment(closes)}.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('opening in the future: panel with the opening day', (
+      tester,
+    ) async {
+      final opens = DateTime.now().add(const Duration(days: 30));
+      await pumpOrdersView(
+        tester,
+        repo: FakeOrdersRepo(
+          config: orderConfig(ordersEnabled: true, opensAt: opens),
+        ),
+      );
+
+      expect(
+        panel(
+          'Los pedidos abren el ${intl.DateFormat.yMMMd('es').format(opens)}',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a past deadline reads «Pedidos cerrados»', (tester) async {
+      await pumpOrdersView(
+        tester,
+        repo: FakeOrdersRepo(
+          config: orderConfig(
+            ordersEnabled: true,
+            deadline: DateTime.now().subtract(const Duration(days: 1)),
+          ),
+        ),
+      );
+
+      expect(panel('Pedidos cerrados'), findsOneWidget);
+    });
+
+    testWidgets('disabled orders read «Pedidos deshabilitados»', (
+      tester,
+    ) async {
+      await pumpOrdersView(tester);
+
+      expect(panel('Pedidos deshabilitados'), findsOneWidget);
+    });
+
+    testWidgets('the window group has icon rows with the values at the end', (
+      tester,
+    ) async {
+      await pumpOrdersView(
+        tester,
+        repo: FakeOrdersRepo(
+          config: orderConfig(
+            ordersEnabled: true,
+            opensAt: _opens,
+            deadline: _closes,
+          ),
+        ),
+      );
+
+      expect(find.text('VENTANA DE PEDIDOS'), findsOneWidget);
+      expect(_inRow('Apertura', _moment(_opens)), findsOneWidget);
+      expect(_inRow('Cierre', _moment(_closes)), findsOneWidget);
+      expect(
+        find.descendant(
+          of: _row('Pedidos habilitados'),
+          matching: find.byType(Switch),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('product chips: on sale, no sizes, not offered', (
+      tester,
+    ) async {
+      await pumpOrdersView(tester, repo: _productsRepo());
+
+      expect(
+        find.descendant(
+          of: _row('Gorra'),
+          matching: find.byType(SupervisionStatusChip),
+        ),
+        findsOneWidget,
+      );
+      expect(_inRow('Chamarra', 'Sin tallas activas'), findsOneWidget);
+      expect(_inRow('Termo', 'No se ofrece'), findsOneWidget);
+    });
+
+    testWidgets('the web-panel note is an info callout', (tester) async {
+      await pumpOrdersView(tester, repo: _productsRepo());
+      await _scrollTo(tester, find.byType(SacNotice));
+
+      expect(
+        find.descendant(
+          of: find.byType(SacNotice),
+          matching: find.text(
+            'El catálogo de productos y sus tallas se administra en el '
+            'panel web.',
+          ),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the offering sheet shows the active sizes in its header', (
+      tester,
+    ) async {
+      await pumpOrdersView(tester, repo: _productsRepo());
+
+      await _openRow(tester, 'Playera');
+
+      expect(_inSheet(find.textContaining('2 tallas activas')), findsOneWidget);
+      expect(_inSheet(find.text('Ofrecer')), findsOneWidget);
+      expect(_inSheet(find.text('En este camporee')), findsOneWidget);
+    });
+
+    testWidgets('the sheet keeps Guardar and Cancelar outside the scroll', (
+      tester,
+    ) async {
+      await pumpOrdersView(tester, repo: _productsRepo());
+      await _openRow(tester, 'Termo');
+
+      final scroll = _inSheet(find.byType(SingleChildScrollView));
+      expect(
+        find.descendant(of: scroll, matching: find.text('Guardar')),
+        findsNothing,
+      );
+      expect(
+        find.descendant(of: scroll, matching: find.text('Cancelar')),
+        findsNothing,
+      );
+      expect(_save, findsOneWidget);
+
+      await _tap(tester, _inSheet(find.text('Cancelar')));
+
+      expect(_sheet, findsNothing);
+    });
+
+    testWidgets('inactive supply rows are dimmed and say «Inactivo»', (
+      tester,
+    ) async {
+      final repo = FakeOrdersRepo()
+        ..catalog = supplyCatalog(
+          slots: [supplySlot('s1', label: 'Cena', active: false)],
+          products: [supplyProduct('i1', name: 'Leña', active: false)],
+        );
+      await pumpOrdersView(tester, repo: repo);
+      await _toSupplies(tester);
+
+      expect(_inRow('Cena', 'Inactivo'), findsOneWidget);
+      expect(_inRow('Leña', 'Por kg · Inactivo'), findsOneWidget);
+      expect(
+        find.ancestor(of: _row('Cena'), matching: find.byType(Opacity)),
+        findsWidgets,
+      );
     });
   });
 }
