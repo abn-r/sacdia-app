@@ -450,7 +450,7 @@ void main() {
       expect(find.text('64%'), findsOneWidget);
       // No current medal: the points stand alone.
       expect(find.text('Club Sin Medalla'), findsOneWidget);
-      expect(find.text('12,5 de 500 pts'), findsOneWidget);
+      expect(find.text('12.5 de 500 pts'), findsOneWidget);
       expect(find.text('2%'), findsOneWidget);
     });
 
@@ -690,7 +690,7 @@ void main() {
       expect(_inSheet(find.text('5 de 5 pts')), findsOneWidget);
       expect(_inSheet(find.text('100%')), findsOneWidget);
       expect(_inSheet(find.text('Proyectos')), findsOneWidget);
-      expect(_inSheet(find.text('7,5 de 15 pts')), findsOneWidget);
+      expect(_inSheet(find.text('7.5 de 15 pts')), findsOneWidget);
       expect(_inSheet(find.text('40%')), findsOneWidget);
       expect(_inSheet(find.text('DE DÓNDE VIENEN LOS PUNTOS')), findsNothing);
     });

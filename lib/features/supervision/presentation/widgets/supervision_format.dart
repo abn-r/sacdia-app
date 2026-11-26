@@ -4,14 +4,26 @@ import 'package:intl/intl.dart' as intl;
 String? _localeTag(BuildContext context) =>
     Localizations.maybeLocaleOf(context)?.toLanguageTag();
 
+/// Locale for numbers. Spanish groups thousands the Mexican way ("1,240"),
+/// like money (`SacMoney`) and the annual folder: "1.240" reads as a decimal
+/// in Mexico. Other languages keep their own grouping.
+String? supervisionNumberLocale(BuildContext context) {
+  final locale = Localizations.maybeLocaleOf(context);
+  if (locale == null) return null;
+  return locale.languageCode == 'es' ? 'es_MX' : locale.toLanguageTag();
+}
+
 /// Whole number with the locale's grouping ("1,240").
 String supervisionCount(BuildContext context, num value) =>
-    intl.NumberFormat.decimalPattern(_localeTag(context)).format(value.round());
+    intl.NumberFormat.decimalPattern(supervisionNumberLocale(context))
+        .format(value.round());
 
 /// Points: whole when they are whole, one decimal otherwise.
 String supervisionPoints(BuildContext context, double value) {
   final whole = value == value.roundToDouble();
-  final format = intl.NumberFormat.decimalPattern(_localeTag(context))
+  final format = intl.NumberFormat.decimalPattern(
+    supervisionNumberLocale(context),
+  )
     ..minimumFractionDigits = 0
     ..maximumFractionDigits = whole ? 0 : 1;
   return format.format(value);

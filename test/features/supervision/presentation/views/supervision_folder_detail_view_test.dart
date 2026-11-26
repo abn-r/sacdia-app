@@ -265,7 +265,7 @@ void main() {
             ));
       await _pump(tester, repo: repo);
 
-      expect(_row('Puntos', value: '1.200 de 3.000 pts'), findsOneWidget);
+      expect(_row('Puntos', value: '1,200 de 3,000 pts'), findsOneWidget);
       expect(_row('Avance', value: '0%'), findsOneWidget);
     });
 

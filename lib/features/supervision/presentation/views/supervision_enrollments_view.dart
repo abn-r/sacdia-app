@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:sacdia_app/core/utils/money_format.dart';
 import 'package:sacdia_app/core/errors/forbidden.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
@@ -558,7 +559,7 @@ class _EnrollmentFacts extends StatelessWidget {
       row(
         'fee',
         enrollment.hasFee && enrollment.feeAmount != null
-            ? intl.NumberFormat('#,##0.##', locale).format(enrollment.feeAmount)
+            ? SacMoney.format(enrollment.feeAmount!)
             : 'supervision.enrollments.fee_none'.tr(),
       ),
     ];

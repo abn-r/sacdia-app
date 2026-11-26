@@ -445,13 +445,13 @@ void main() {
       expect(find.text('150'), findsOneWidget);
     });
 
-    testWidgets('large numbers are grouped by the Spanish locale', (
+    testWidgets('large numbers are grouped the Mexican way', (
       tester,
     ) async {
       final d = dashboard(summary: metrics(peopleActive: 1234567));
       await _pump(tester, repo: _repoWith(d));
 
-      expect(find.text('1.234.567'), findsOneWidget);
+      expect(find.text('1,234,567'), findsOneWidget);
     });
   });
 
