@@ -28,6 +28,7 @@ import 'package:sacdia_app/features/supervision/domain/entities/supervision_fold
 import 'package:sacdia_app/features/supervision/presentation/providers/supervision_folders_providers.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_decision_sheet.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_folder_labels.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_format.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_messages.dart';
 
 const double _kMaxContentWidth = 640;
@@ -205,8 +206,10 @@ String? _placeLine(SupervisionFolderDetail folder) {
   return line.isEmpty ? null : line;
 }
 
-String _points(int earned, int max) =>
-    'supervision.folders.points_of'.tr(args: ['$earned', '$max']);
+String _points(BuildContext context, int earned, int max) =>
+    'supervision.folders.points_of'.tr(
+      args: [supervisionCount(context, earned), supervisionCount(context, max)],
+    );
 
 // ── Summary ─────────────────────────────────────────────────────────────────
 
@@ -218,10 +221,7 @@ class _FolderSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.maybeLocaleOf(context)?.toString();
-    final percent = intl.NumberFormat.decimalPercentPattern(
-      locale: locale,
-      decimalDigits: 0,
-    ).format((folder.progressPercentage / 100).clamp(0.0, 1.0));
+    final percent = supervisionPercent(folder.progressPercentage);
     SacValueRow row(String key, String value) => SacValueRow(
           label: 'supervision.folders.$key'.tr(),
           value: value,
@@ -236,7 +236,7 @@ class _FolderSummary extends StatelessWidget {
         row('status', folderStatusLabel(folder.status)),
         row(
           'points',
-          _points(folder.totalEarnedPoints, folder.totalMaxPoints),
+          _points(context, folder.totalEarnedPoints, folder.totalMaxPoints),
         ),
         row('progress', percent),
         if (folder.localFieldName.trim().isNotEmpty)
@@ -283,7 +283,7 @@ class _SectionsList extends StatelessWidget {
                       _needsAttention(section.status) ? FontWeight.w600 : null,
                 ),
               ),
-              TextSpan(text: ' · ${_sectionPoints(section)}'),
+              TextSpan(text: ' · ${_sectionPoints(context, section)}'),
             ],
             onTap: () => onOpen(section),
           ),
@@ -297,10 +297,11 @@ bool _needsAttention(SupervisionSectionStatus status) =>
     status == SupervisionSectionStatus.submitted ||
     status == SupervisionSectionStatus.preapprovedLf;
 
-String _sectionPoints(SupervisionFolderSection section) =>
+String _sectionPoints(BuildContext context, SupervisionFolderSection section) =>
     section.earnedPoints == null
-        ? 'supervision.folders.points_max'.tr(args: ['${section.maxPoints}'])
-        : _points(section.earnedPoints!, section.maxPoints);
+        ? 'supervision.folders.points_max'
+            .tr(args: [supervisionCount(context, section.maxPoints)])
+        : _points(context, section.earnedPoints!, section.maxPoints);
 
 // ── Section sheet ───────────────────────────────────────────────────────────
 
@@ -567,7 +568,7 @@ class _SectionSheetState extends ConsumerState<_SectionSheet> {
           SacSheetHeader(
             title: current.name,
             subtitle:
-                '${sectionStatusLabel(current.status)} · ${_sectionPoints(current)}',
+                '${sectionStatusLabel(current.status)} · ${_sectionPoints(context, current)}',
           ),
           Flexible(
             child: SingleChildScrollView(
@@ -640,7 +641,10 @@ class _SectionBody extends StatelessWidget {
 
     final evaluationRows = [
       if (section.earnedPoints != null)
-        row('points', _points(section.earnedPoints!, section.maxPoints)),
+        row(
+          'points',
+          _points(context, section.earnedPoints!, section.maxPoints),
+        ),
       if (has(section.evaluationNotes))
         row('evaluation_notes', section.evaluationNotes!),
       if (has(section.lfApproverName))
