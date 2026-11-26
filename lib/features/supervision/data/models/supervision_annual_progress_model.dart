@@ -53,20 +53,24 @@ class SupervisionAnnualProgressModel {
   }
 
   /// `GET /annual-rankings/territory-summary`: `{id, name, clubs_count,
-  /// configured}` per territory; rows without an id are dropped. A field the
-  /// server leaves out or sends malformed stays null (unknown), never 0/true.
+  /// configured, gold_or_better_count}` per territory; rows without an id are
+  /// dropped. A field the server leaves out or sends malformed stays null
+  /// (unknown), never 0/true. `gold_or_better_count` is null on purpose while
+  /// the nightly job has not computed the year yet.
   static List<SupervisionTerritoryOption> parseTerritorySummary(Object? raw) {
     final options = <SupervisionTerritoryOption>[];
     for (final json in _maps(raw)) {
       final id = _int(json['id']);
       if (id == null) continue;
       final configured = json['configured'];
+      final gold = _int(json['gold_or_better_count']);
       options.add(
         SupervisionTerritoryOption(
           id: id,
           name: _text(json['name']),
           clubsCount: _int(json['clubs_count']),
           configured: configured is bool ? configured : null,
+          goldOrBetterCount: gold == null || gold < 0 ? null : gold,
         ),
       );
     }

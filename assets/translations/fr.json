@@ -7965,7 +7965,8 @@
       "top_tier": "Détient déjà la médaille la plus haute",
       "unconfigured": "Non configuré",
       "clubs_count": "{} clubs",
-      "clubs_count_one": "{} club"
+      "clubs_count_one": "{} club",
+      "gold_or_better": "{} au niveau Or ou plus"
     },
     "union_camporees": {
       "title": "Camporee d'union",

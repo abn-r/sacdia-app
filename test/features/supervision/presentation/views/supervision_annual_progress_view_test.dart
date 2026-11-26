@@ -161,6 +161,42 @@ void main() {
       expect(toneOf('Unión Este'), SacTone.warning);
     });
 
+    testWidgets(
+        'unions add «N con Oro o más» when the server computed it, also for 0',
+        (tester) async {
+      final repo = FakeProgressRepo()
+        ..onUnions = (_) async => Right([
+              territoryOption(1, 'Unión Norte',
+                  clubsCount: 8, configured: true, goldOrBetterCount: 3),
+              territoryOption(2, 'Unión Sur',
+                  clubsCount: 5, configured: true, goldOrBetterCount: 0),
+            ]);
+      await _pump(tester, repo: repo);
+
+      expect(find.text('8 clubes · 3 con Oro o más'), findsOneWidget);
+      expect(find.text('5 clubes · 0 con Oro o más'), findsOneWidget);
+    });
+
+    testWidgets(
+        'the gold count is left out when it is unknown, the territory is not '
+        'configured or it has no clubs', (tester) async {
+      final repo = FakeProgressRepo()
+        ..onUnions = (_) async => Right([
+              territoryOption(1, 'Unión Norte',
+                  clubsCount: 8, configured: true),
+              territoryOption(2, 'Unión Este',
+                  clubsCount: 6, configured: false, goldOrBetterCount: 0),
+              territoryOption(3, 'Unión Oeste',
+                  clubsCount: 0, configured: true, goldOrBetterCount: 0),
+            ]);
+      await _pump(tester, repo: repo);
+
+      expect(find.text('8 clubes'), findsOneWidget);
+      expect(find.text('6 clubes · Sin configurar'), findsOneWidget);
+      expect(find.text('0 clubes'), findsOneWidget);
+      expect(find.textContaining('con Oro o más'), findsNothing);
+    });
+
     testWidgets('names only (an older server) draw no second line', (
       tester,
     ) async {

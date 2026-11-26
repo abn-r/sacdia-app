@@ -282,7 +282,7 @@ Cuarta persona sin club de la app, junto a pastor, coordinación y solo tutor. F
 | Operación | `/supervision/operations` | `analytics.operations_dashboard` | Baja de nivel con `?union_id=` / `?local_field_id=` en la misma ruta |
 | Clubes | `/supervision/clubs`, `/clubs/:clubId` | `clubs.view_territory` | Solo lectura |
 | Informes mensuales | `/supervision/reports` | `reports.view_territory` | Cumplimiento por club y PDF; el id del informe es UUID (`String`) |
-| Progreso anual | `/supervision/annual-progress` | `annual_progress.view_territory` | División → unión → campo local por query; los niveles leen `GET /annual-rankings/territory-summary` (clubes y configurado; con 404 vuelve a los catálogos); medalla por club; nunca «ranking» ni posiciones |
+| Progreso anual | `/supervision/annual-progress` | `annual_progress.view_territory` | División → unión → campo local por query; los niveles leen `GET /annual-rankings/territory-summary` (clubes, configurado y «N con Oro o más», que solo se muestra si el servidor lo calculó: `null` nunca se lee como 0; con 404 vuelve a los catálogos); medalla por club; nunca «ranking» ni posiciones |
 | Camporee de unión: aprobaciones | `/supervision/union-camporees`, `/:camporeeId/approvals` | `union_camporees.approve_registrations` | Solo Unión. La fila del hub sigue esta capacidad (es la de la lista) |
 | Camporee de unión: pedidos e insumos | `/supervision/union-camporees/:camporeeId/orders` | `camporee_orders.configure_offering` (+ `camporee_supplies.configure` para insumos) | Solo Unión |
 
