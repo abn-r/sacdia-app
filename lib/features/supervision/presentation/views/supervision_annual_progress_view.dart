@@ -6,26 +6,21 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/errors/forbidden.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
-import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
-import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
-import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
-import 'package:sacdia_app/core/widgets/sac_tweened_bar.dart';
-import 'package:sacdia_app/core/widgets/sac_value_row.dart';
 import 'package:sacdia_app/core/widgets/status_progress/sac_grouped_section.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/supervision/domain/entities/supervision_annual_progress.dart';
 import 'package:sacdia_app/features/supervision/presentation/providers/supervision_annual_progress_providers.dart';
-import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_format.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_messages.dart';
-import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_plain_row.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_progress_parts.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_progress_sheet.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_scroll.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_segmented_control.dart';
 import 'package:sacdia_app/providers/catalogs_provider.dart';
-import 'package:sacdia_app/shared/models/catalogs/club_type_model.dart';
 
 const String _kDivisionLevel = 'division';
 const String _kUnionLevel = 'union';
@@ -85,9 +80,15 @@ class _SupervisionAnnualProgressViewState
               ref.watch(supervisionLocalFieldsProvider(unionId)).value,
               localFieldId,
             );
+      final yearName =
+          ref.watch(supervisionProgressYearProvider).value?.name.trim() ?? '';
+      // «Progreso anual · 2026»: the year is part of the subtitle.
+      final yearLine = yearName.isEmpty ? ownTitle : '$ownTitle · $yearName';
       if (name != null) {
         title = name;
-        subtitle = ownTitle;
+        subtitle = yearLine;
+      } else if (yearName.isNotEmpty) {
+        subtitle = yearLine;
       }
       body = _ClubsBody(
         localFieldId: localFieldId,
@@ -242,8 +243,8 @@ class _TerritoryList extends ConsumerWidget {
             dividerIndent: 16,
             children: [
               for (final option in options)
-                SupervisionPlainRow(
-                  title: option.name,
+                SupervisionTerritoryRow(
+                  option: option,
                   onTap: () => context.push(routeFor(option)),
                 ),
             ],
@@ -269,7 +270,6 @@ class _ClubsBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.sac;
     final yearAsync = ref.watch(supervisionProgressYearProvider);
     final typesAsync = ref.watch(clubTypesProvider);
     final year = yearAsync.value;
@@ -361,20 +361,22 @@ class _ClubsBody extends ConsumerWidget {
         ),
       );
     } else {
-      list = SacGroupedSection(
-        label: 'supervision.annual_progress.clubs_title'.tr(),
-        dividerIndent: 16,
+      list = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final club in progress.clubs)
-            SupervisionPlainRow(
-              title: club.clubName,
-              subtitle: _clubLine(context, club),
-              trailing: SupervisionRowValue(
-                supervisionPercent(club.progressPercentage),
-              ),
-              footer: _Bar(fraction: club.progressPercentage / 100),
-              onTap: () => _showClub(context, club, type.name),
-            ),
+          SupervisionTierBox(clubs: progress.clubs),
+          SacGroupedSection(
+            label: 'supervision.annual_progress.clubs_title'.tr(),
+            dividerIndent: 64,
+            children: [
+              for (final club in progress.clubs)
+                SupervisionClubProgressRow(
+                  club: club,
+                  onTap: () => showSupervisionClubProgressSheet(
+                      context, club, type.name),
+                ),
+            ],
+          ),
         ],
       );
     }
@@ -385,224 +387,15 @@ class _ClubsBody extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (types.length > 1)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: _ClubTypeChips(
-                types: types,
-                selected: type.clubTypeId,
-                onSelected: onClubType,
-              ),
+            SupervisionSegmentedControl<int>(
+              selected: type.clubTypeId,
+              onChanged: onClubType,
+              segments: [
+                for (final t in types)
+                  SupervisionSegment(value: t.clubTypeId, label: t.name),
+              ],
             ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-            child: Text(
-              year.name.trim().isEmpty
-                  ? 'supervision.annual_progress.title'.tr()
-                  : year.name,
-              style: TextStyle(
-                fontSize: SacFontSize.bodySmall,
-                height: 1.3,
-                color: c.textTertiary,
-              ),
-            ),
-          ),
           list,
-        ],
-      ),
-    );
-  }
-}
-
-/// "Oro · 320 de 500 pts", or the points alone before the first medal.
-String _clubLine(BuildContext context, SupervisionClubProgress club) {
-  final tier = club.currentTier?.name.trim() ?? '';
-  return [
-    if (tier.isNotEmpty) tier,
-    'supervision.annual_progress.points_of'.tr(
-      args: [
-        supervisionPoints(context, club.currentPoints),
-        supervisionPoints(context, club.maxPoints),
-      ],
-    ),
-  ].join(' · ');
-}
-
-class _ClubTypeChips extends StatelessWidget {
-  const _ClubTypeChips({
-    required this.types,
-    required this.selected,
-    required this.onSelected,
-  });
-
-  final List<ClubTypeModel> types;
-  final int selected;
-  final ValueChanged<int> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: SacFilterChip.barHeight,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: types.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final type = types[index];
-          return Center(
-            child: SacFilterChip(
-              label: type.name,
-              selected: type.clubTypeId == selected,
-              onTap: () => onSelected(type.clubTypeId),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _Bar extends StatelessWidget {
-  const _Bar({required this.fraction});
-
-  final double fraction;
-
-  @override
-  Widget build(BuildContext context) {
-    return ExcludeSemantics(
-      child: SacTweenedBar(
-        value: fraction,
-        color: SacAccent.of(context).color,
-        backgroundColor: context.sac.surfaceVariant,
-      ),
-    );
-  }
-}
-
-// ── One club: where its points come from ────────────────────────────────────
-
-void _showClub(
-  BuildContext context,
-  SupervisionClubProgress club,
-  String clubTypeName,
-) {
-  showSacSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    builder: (_) => _ClubSheet(club: club, clubTypeName: clubTypeName),
-  );
-}
-
-class _ClubSheet extends StatelessWidget {
-  const _ClubSheet({required this.club, required this.clubTypeName});
-
-  final SupervisionClubProgress club;
-  final String clubTypeName;
-
-  @override
-  Widget build(BuildContext context) {
-    final current = club.currentTier?.name.trim() ?? '';
-    final next = club.nextTier;
-    final nextName = next?.name.trim() ?? '';
-    final toReach = next?.pointsToReach;
-
-    String points(double earned, double max) =>
-        'supervision.annual_progress.points_of'.tr(
-          args: [
-            supervisionPoints(context, earned),
-            supervisionPoints(context, max),
-          ],
-        );
-
-    Widget component(SupervisionProgressComponent item) => SupervisionPlainRow(
-          title: item.label,
-          subtitle: points(item.earnedPoints, item.maxPoints),
-          trailing: SupervisionRowValue(
-            supervisionPercent(item.progressPercentage),
-          ),
-          footer: _Bar(fraction: item.progressPercentage / 100),
-        );
-
-    // Axes group the components; a configuration without axes lists them flat.
-    final axes = club.axes.where((axis) => axis.components.isNotEmpty).toList();
-
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(context).height * 0.9,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SacSheetHeader(title: club.clubName, subtitle: clubTypeName),
-          Flexible(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.only(
-                bottom: 24 + MediaQuery.paddingOf(context).bottom,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SacGroupedSection(
-                    label: 'supervision.annual_progress.summary_title'.tr(),
-                    dividerIndent: 16,
-                    // A count of rows says nothing here.
-                    action: const SizedBox.shrink(),
-                    children: [
-                      SacValueRow(
-                        label: 'supervision.annual_progress.progress'.tr(),
-                        value: supervisionPercent(club.progressPercentage),
-                      ),
-                      SacValueRow(
-                        label: 'supervision.annual_progress.points'.tr(),
-                        value: points(club.currentPoints, club.maxPoints),
-                      ),
-                      SacValueRow(
-                        label: 'supervision.annual_progress.current_medal'.tr(),
-                        value: current.isEmpty
-                            ? 'supervision.annual_progress.no_medal'.tr()
-                            : current,
-                      ),
-                      if (nextName.isNotEmpty)
-                        SacValueRow(
-                          label: 'supervision.annual_progress.next_medal'.tr(),
-                          value: toReach == null || toReach <= 0
-                              ? nextName
-                              : 'supervision.annual_progress.next_medal_value'
-                                  .tr(
-                                  args: [
-                                    nextName,
-                                    supervisionPoints(context, toReach),
-                                  ],
-                                ),
-                        ),
-                    ],
-                  ),
-                  if (axes.isNotEmpty)
-                    for (final axis in axes)
-                      SacGroupedSection(
-                        label: axis.label,
-                        dividerIndent: 16,
-                        action: const SizedBox.shrink(),
-                        children: [
-                          for (final item in axis.components) component(item),
-                        ],
-                      )
-                  else if (club.components.isNotEmpty)
-                    SacGroupedSection(
-                      label:
-                          'supervision.annual_progress.components_title'.tr(),
-                      dividerIndent: 16,
-                      action: const SizedBox.shrink(),
-                      children: [
-                        for (final item in club.components) component(item),
-                      ],
-                    ),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
     );

@@ -7,13 +7,16 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/forbidden.dart';
-import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
+import 'package:sacdia_app/core/widgets/sac_list_row.dart';
 import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
+import 'package:sacdia_app/core/widgets/status_progress/sac_grouped_section.dart';
 import 'package:sacdia_app/features/supervision/domain/entities/supervision_club.dart';
 import 'package:sacdia_app/features/supervision/presentation/views/supervision_clubs_view.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_club_list_parts.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_identity_tiles.dart';
 
 import 'supervision_territory_test_harness.dart';
 import 'supervision_view_test_harness.dart';
@@ -41,6 +44,12 @@ FakeClubsRepo _repoWith(List<SupervisionClubListItem> items) =>
     FakeClubsRepo()..onClubs = (_) async => Right(clubPage(items));
 
 Finder _chip(String label) => find.widgetWithText(SacFilterChip, label);
+
+Finder _row(String name) => find.widgetWithText(SacListRow, name);
+
+/// Count drawn on a filter chip, or null when it has none.
+int? _chipCount(WidgetTester tester, String label) =>
+    tester.widget<SacFilterChip>(_chip(label)).count;
 
 void main() {
   setUpAll(initSupervisionViewTests);
@@ -157,8 +166,8 @@ void main() {
     });
   });
 
-  group('cards', () {
-    testWidgets('show name, place, local field and active sections', (
+  group('rows', () {
+    testWidgets('show name, place and the logos of the active sections', (
       tester,
     ) async {
       final repo = _repoWith([
@@ -179,9 +188,20 @@ void main() {
 
       expect(find.text('Club Orión'), findsOneWidget);
       expect(find.text('Iglesia Central · Distrito 4'), findsOneWidget);
-      expect(find.text('Asociación Norte'), findsOneWidget);
-      expect(find.text('Conquistadores · Aventureros'), findsOneWidget);
-      expect(find.textContaining('Guías Mayores'), findsNothing);
+      // The local field is the group, not a line of the row.
+      expect(find.text('ASOCIACIÓN NORTE'), findsOneWidget);
+      final logos = find.descendant(
+        of: _row('Club Orión'),
+        matching: find.byType(SupervisionClubTypeLogo),
+      );
+      expect(
+        tester
+            .widgetList<SupervisionClubTypeLogo>(logos)
+            .map((l) => l.typeName),
+        ['Conquistadores', 'Aventureros'],
+      );
+      expect(find.byType(SupervisionMonogram), findsOneWidget);
+      expect(find.text('CL'), findsOneWidget);
       expect(find.text('Inactivo'), findsNothing);
     });
 
@@ -193,10 +213,16 @@ void main() {
       ]);
       await _pump(tester, repo: repo);
 
-      expect(find.text('Sin secciones activas'), findsNWidgets(2));
+      expect(find.text('Sin secciones activas'), findsNothing);
+      expect(
+        find.textContaining('Sin secciones activas'),
+        findsNWidgets(2),
+      );
     });
 
-    testWidgets('an inactive club carries the «Inactivo» mark', (tester) async {
+    testWidgets('an inactive club is dimmed and carries the «Inactivo» chip', (
+      tester,
+    ) async {
       final repo = _repoWith([
         clubItem(1, name: 'Club Activo'),
         clubItem(2, name: 'Club Cerrado', active: false),
@@ -204,6 +230,26 @@ void main() {
       await _pump(tester, repo: repo);
 
       expect(find.text('Inactivo'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: _row('Club Cerrado'),
+          matching: find.text('Inactivo'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<SupervisionMonogram>(find.descendant(
+              of: _row('Club Cerrado'),
+              matching: find.byType(SupervisionMonogram),
+            ))
+            .dimmed,
+        isTrue,
+      );
+      // An inactive club still opens its summary.
+      await tester.tap(find.text('Club Cerrado'));
+      await tester.pumpAndSettle();
+      expect(find.text('club:2'), findsOneWidget);
     });
 
     testWidgets('blank church and district hide the place line', (
@@ -215,26 +261,143 @@ void main() {
       await _pump(tester, repo: repo);
 
       expect(find.textContaining(' · Distrito'), findsNothing);
-      expect(find.text('Asociación Norte'), findsNothing);
+      expect(find.text('ASOCIACIÓN NORTE'), findsNothing);
+      // A club with no local field falls under the generic «Clubes» group.
+      expect(find.text('CLUBES'), findsOneWidget);
       expect(find.text('Club 1'), findsOneWidget);
     });
 
-    testWidgets('the total line shows the server total', (tester) async {
-      final repo = FakeClubsRepo()
-        ..onClubs =
-            (_) async => Right(clubPage([clubItem(1), clubItem(2)], total: 2));
-      await _pump(tester, repo: repo);
-
-      expect(find.text('Clubes: 2'), findsOneWidget);
-    });
-
-    testWidgets('tapping a card pushes the club detail', (tester) async {
+    testWidgets('tapping a row pushes the club detail', (tester) async {
       await _pump(tester, repo: _repoWith([clubItem(42, name: 'Club Sirio')]));
 
       await tester.tap(find.text('Club Sirio'));
       await tester.pumpAndSettle();
 
       expect(find.text('club:42'), findsOneWidget);
+    });
+  });
+
+  group('grouping by local field', () {
+    test('sorts by field then name and keeps the server order on ties', () {
+      final groups = groupSupervisionClubsByField([
+        clubItem(1, name: 'Zeta', localField: 'Sur'),
+        clubItem(2, name: 'Beta', localField: 'Norte'),
+        clubItem(3, name: 'Alfa', localField: 'Sur'),
+        clubItem(4, name: 'Beta', localField: 'Norte'),
+        clubItem(5, name: 'Alfa', localField: 'Norte'),
+      ]);
+
+      expect(groups.map((g) => g.localFieldName), ['Norte', 'Sur']);
+      expect(groups[0].clubs.map((c) => c.id), [5, 2, 4]);
+      expect(groups[1].clubs.map((c) => c.id), [3, 1]);
+    });
+
+    testWidgets('one section per field with its club count', (tester) async {
+      final repo = _repoWith([
+        clubItem(1, name: 'Orión', localField: 'Asociación del Golfo'),
+        clubItem(2, name: 'Vega', localField: 'Misión Istmo'),
+        clubItem(3, name: 'Diamantes', localField: 'Asociación del Golfo'),
+      ]);
+      await _pump(tester, repo: repo);
+
+      expect(find.byType(SacGroupedSection), findsNWidgets(2));
+      expect(find.text('ASOCIACIÓN DEL GOLFO'), findsOneWidget);
+      expect(find.text('MISIÓN ISTMO'), findsOneWidget);
+      final golfo = find.ancestor(
+        of: find.text('ASOCIACIÓN DEL GOLFO'),
+        matching: find.byType(SacGroupedSection),
+      );
+      expect(
+        find.descendant(of: golfo, matching: find.text('2')),
+        findsOneWidget,
+      );
+      // Sorted by name inside the field.
+      expect(
+        tester.getTopLeft(find.text('Diamantes')).dy,
+        lessThan(tester.getTopLeft(find.text('Orión')).dy),
+      );
+    });
+
+    testWidgets('with more pages to load the group counts are hidden', (
+      tester,
+    ) async {
+      final gate = Completer<SupervisionClubPage>();
+      final repo = FakeClubsRepo()
+        ..onClubs = (call) async => call.page == 1
+            ? Right(
+                clubPage([clubItem(1), clubItem(2)], total: 3, hasMore: true))
+            : Right(await gate.future);
+      // The footer spinner never settles while page 2 is pending.
+      await _pump(tester, repo: repo, settle: false);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      final section = find.byType(SacGroupedSection);
+      expect(section, findsOneWidget);
+      expect(
+        find.descendant(of: section, matching: find.text('2')),
+        findsNothing,
+      );
+
+      gate.complete(clubPage([clubItem(3)], page: 2, total: 3));
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(of: section, matching: find.text('3')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a club that arrives later joins its field group', (
+      tester,
+    ) async {
+      final repo = FakeClubsRepo()
+        ..onClubs = (call) async => call.page == 1
+            ? Right(clubPage(
+                [
+                  clubItem(1, name: 'Orión', localField: 'Sur'),
+                  clubItem(2, name: 'Vega', localField: 'Norte'),
+                ],
+                total: 3,
+                hasMore: true,
+              ))
+            : Right(clubPage(
+                [clubItem(3, name: 'Diamantes', localField: 'Sur')],
+                page: 2,
+                total: 3,
+              ));
+      await _pump(tester, repo: repo);
+
+      expect(find.byType(SacGroupedSection), findsNWidgets(2));
+      final sur = find.ancestor(
+        of: find.text('SUR'),
+        matching: find.byType(SacGroupedSection),
+      );
+      expect(
+        find.descendant(of: sur, matching: find.text('Diamantes')),
+        findsOneWidget,
+      );
+    });
+  });
+
+  group('filter counts', () {
+    testWidgets('only the selected chip shows the server total', (
+      tester,
+    ) async {
+      final repo = FakeClubsRepo()
+        ..onClubs = (call) async => Right(
+              clubPage([clubItem(1), clubItem(2)],
+                  total:
+                      call.filter == SupervisionClubActiveFilter.all ? 21 : 19),
+            );
+      await _pump(tester, repo: repo);
+
+      expect(_chipCount(tester, 'Todos'), 21);
+      expect(_chipCount(tester, 'Activos'), isNull);
+      expect(_chipCount(tester, 'Inactivos'), isNull);
+
+      await tester.tap(_chip('Activos'));
+      await tester.pumpAndSettle();
+      expect(_chipCount(tester, 'Activos'), 19);
+      expect(_chipCount(tester, 'Todos'), isNull);
     });
   });
 
@@ -362,7 +525,7 @@ void main() {
       expect(find.text('Club 1'), findsOneWidget);
       expect(find.text('Club 2'), findsOneWidget);
       expect(find.text('Club 3'), findsOneWidget);
-      expect(find.text('Clubes: 3'), findsOneWidget);
+      expect(_chipCount(tester, 'Todos'), 3);
     });
 
     testWidgets('a failed page keeps the items and offers a retry', (
@@ -447,21 +610,14 @@ void main() {
       expectNoLayoutException(tester);
     });
 
-    testWidgets('on a tablet the cards are at most 640 wide', (tester) async {
+    testWidgets('on a tablet the groups are at most 640 wide', (tester) async {
       await _pump(
         tester,
         repo: _repoWith([clubItem(1, name: 'Club Orión')]),
         size: const Size(1024, 1000),
       );
 
-      final width = tester
-          .getSize(
-            find.ancestor(
-              of: find.text('Club Orión'),
-              matching: find.byType(SacCard),
-            ),
-          )
-          .width;
+      final width = tester.getSize(find.byType(SacGroupedSection)).width;
       expect(width, lessThanOrEqualTo(640));
     });
   });

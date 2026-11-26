@@ -52,6 +52,27 @@ class SupervisionAnnualProgressModel {
     return options;
   }
 
+  /// `GET /annual-rankings/territory-summary`: `{id, name, clubs_count,
+  /// configured}` per territory; rows without an id are dropped. A field the
+  /// server leaves out or sends malformed stays null (unknown), never 0/true.
+  static List<SupervisionTerritoryOption> parseTerritorySummary(Object? raw) {
+    final options = <SupervisionTerritoryOption>[];
+    for (final json in _maps(raw)) {
+      final id = _int(json['id']);
+      if (id == null) continue;
+      final configured = json['configured'];
+      options.add(
+        SupervisionTerritoryOption(
+          id: id,
+          name: _text(json['name']),
+          clubsCount: _int(json['clubs_count']),
+          configured: configured is bool ? configured : null,
+        ),
+      );
+    }
+    return options;
+  }
+
   static SupervisionProgressTier? tryParseTier(Object? raw) {
     final json = _map(raw);
     if (json == null) return null;

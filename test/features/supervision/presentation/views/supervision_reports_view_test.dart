@@ -11,17 +11,19 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/errors/forbidden.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart' show HugeIconData;
-import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
-import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
+import 'package:sacdia_app/core/widgets/sac_list_row.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
+import 'package:sacdia_app/core/widgets/sac_tone.dart';
 import 'package:sacdia_app/features/supervision/domain/entities/supervision_report.dart';
 import 'package:sacdia_app/features/supervision/presentation/providers/supervision_reports_providers.dart';
 import 'package:sacdia_app/features/supervision/presentation/views/supervision_reports_view.dart';
-import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_scroll.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_segmented_control.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_summary_box.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_status_chip.dart';
 
 import 'supervision_reports_progress_test_harness.dart';
 import 'supervision_view_test_harness.dart';
@@ -73,7 +75,13 @@ FakeReportsRepo _repoWith(
   return repo;
 }
 
-Finder _chip(String label) => find.widgetWithText(SacFilterChip, label);
+/// A segment of the «Por club | Informes» control (label plus its count).
+Finder _tab(String label) => find.descendant(
+      of: find.byWidgetPredicate((w) => w is SupervisionSegmentedControl),
+      matching: find.textContaining(label),
+    );
+
+Finder _row(String title) => find.widgetWithText(SacListRow, title);
 
 Finder _icon(HugeIconData icon) =>
     find.byWidgetPredicate((w) => w is HugeIcon && w.icon == icon);
@@ -103,7 +111,7 @@ Future<void> _pullToRefresh(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
-String _shortDate(DateTime d) => DateFormat.yMMMd('es').format(d);
+String _dayMonth(DateTime d) => DateFormat.MMMd('es').format(d);
 
 void main() {
   setUpAll(initSupervisionViewTests);
@@ -140,36 +148,25 @@ void main() {
       expect(find.text('Informes mensuales'), findsOneWidget);
     });
 
-    testWidgets('month, sentence and due date start at the same gutter', (
+    testWidgets('the month sits in the top bar and the box below it', (
       tester,
     ) async {
-      final due = DateTime(2026, 11, 10);
       await _pump(
         tester,
         repo: _repoWith([
-          period(
-            2026,
-            10,
-            dueAt: due,
-            counts: counts(expected: 3, submitted: 1, overdue: 2),
-          ),
+          period(2026, 10, counts: counts(expected: 3, submitted: 1)),
         ]),
       );
 
-      final width = tester.getSize(find.byType(Scaffold)).width;
-      final column = width > kSupervisionMaxContentWidth
-          ? kSupervisionMaxContentWidth
-          : width;
-      final gutter = (width - column) / 2 + 24;
-      final month = tester.getTopLeft(find.text('Octubre de 2026')).dx;
-      final sentence =
-          tester.getTopLeft(find.textContaining('Entregados: 1 de 3')).dx;
-      final dueLine =
-          tester.getTopLeft(find.textContaining(_shortDate(due))).dx;
-
-      expect(month, gutter);
-      expect(sentence, gutter);
-      expect(dueLine, gutter);
+      expect(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.text('Octubre de 2026'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byType(SupervisionSummaryBox), findsOneWidget);
+      expect(find.text('Entregados'), findsOneWidget);
     });
 
     testWidgets('default period skips newer months with nothing expected', (
@@ -198,7 +195,7 @@ void main() {
       expect(find.text('Noviembre de 2026'), findsOneWidget);
     });
 
-    testWidgets('sentence shows delivered, overdue and pending counts', (
+    testWidgets('the box shows delivered of expected, percent and legend', (
       tester,
     ) async {
       await _pump(
@@ -212,15 +209,14 @@ void main() {
         ]),
       );
 
-      expect(
-        find.text('Entregados: 2 de 5 · Vencidos: 1 · Pendientes: 2'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('2 de 5'), findsOneWidget);
+      expect(find.textContaining('40%'), findsOneWidget);
+      expect(find.textContaining('Entregados 2'), findsOneWidget);
+      expect(find.textContaining('Pendientes 2'), findsOneWidget);
+      expect(find.textContaining('Vencidos 1'), findsOneWidget);
     });
 
-    testWidgets('hides overdue and pending when they are zero', (
-      tester,
-    ) async {
+    testWidgets('the legend leaves out the zero parts', (tester) async {
       await _pump(
         tester,
         repo: _repoWith([
@@ -228,12 +224,13 @@ void main() {
         ]),
       );
 
-      expect(find.text('Entregados: 5 de 5'), findsOneWidget);
-      expect(find.textContaining('Vencidos'), findsNothing);
-      expect(find.textContaining('Pendientes'), findsNothing);
+      expect(find.textContaining('5 de 5'), findsOneWidget);
+      expect(find.textContaining('Entregados 5'), findsOneWidget);
+      expect(find.textContaining('Vencidos '), findsNothing);
+      expect(find.textContaining('Pendientes '), findsNothing);
     });
 
-    testWidgets('shows only the overdue count when nothing is pending', (
+    testWidgets('shows only the overdue part when nothing is pending', (
       tester,
     ) async {
       await _pump(
@@ -244,8 +241,9 @@ void main() {
         ]),
       );
 
-      expect(find.text('Entregados: 4 de 5 · Vencidos: 1'), findsOneWidget);
-      expect(find.textContaining('Pendientes'), findsNothing);
+      expect(find.textContaining('4 de 5'), findsOneWidget);
+      expect(find.textContaining('Vencidos 1'), findsOneWidget);
+      expect(find.textContaining('Pendientes '), findsNothing);
     });
 
     testWidgets('says nothing was expected when the expected count is 0', (
@@ -256,8 +254,9 @@ void main() {
         repo: _repoWith([period(2026, 10)], clubs: const []),
       );
 
-      expect(find.text('Sin informes esperados'), findsOneWidget);
-      expect(find.textContaining('Entregados'), findsNothing);
+      expect(find.textContaining('Sin informes esperados'), findsOneWidget);
+      // Only the box label: no legend.
+      expect(find.textContaining('Entregados '), findsNothing);
     });
 
     testWidgets('formats big counts with grouping', (tester) async {
@@ -269,10 +268,12 @@ void main() {
       );
 
       // Spanish groups thousands the Mexican way.
-      expect(find.text('Entregados: 1,000 de 1,234,567'), findsOneWidget);
+      expect(find.textContaining('1,000 de 1,234,567'), findsOneWidget);
     });
 
-    testWidgets('shows the due date when the period has one', (tester) async {
+    testWidgets('shows the deadline as «límite» in the box when it has one', (
+      tester,
+    ) async {
       final due = DateTime(2026, 10, 31);
       await _pump(
         tester,
@@ -281,18 +282,16 @@ void main() {
         ]),
       );
 
-      expect(find.text('Fecha límite: ${_shortDate(due)}'), findsOneWidget);
+      expect(find.text('límite ${_dayMonth(due)}'), findsOneWidget);
     });
 
-    testWidgets('omits the due date line when the period has none', (
-      tester,
-    ) async {
+    testWidgets('omits the deadline when the period has none', (tester) async {
       await _pump(
         tester,
         repo: _repoWith([period(2026, 10, counts: counts(expected: 3))]),
       );
 
-      expect(find.textContaining('Fecha límite'), findsNothing);
+      expect(find.textContaining('límite'), findsNothing);
     });
 
     testWidgets('header uses the totals of the compliance page once loaded', (
@@ -310,7 +309,7 @@ void main() {
             );
       await _pump(tester, repo: repo);
 
-      expect(find.text('Entregados: 4 de 4'), findsOneWidget);
+      expect(find.textContaining('4 de 4'), findsOneWidget);
     });
   });
 
@@ -355,8 +354,10 @@ void main() {
       expect(oct, lessThan(sep));
       expect(sep, lessThan(aug));
       // Each month carries its own compliance line.
-      expect(inSheet('Entregados: 4 de 4'), findsOneWidget);
-      expect(inSheet('Entregados: 1 de 2 · Vencidos: 1'), findsOneWidget);
+      expect(inSheet('4 de 4 entregados'), findsOneWidget);
+      expect(inSheet('1 de 2 entregados · Vencidos: 1'), findsOneWidget);
+      // The year of the periods under the title.
+      expect(inSheet('Año eclesiástico 2026'), findsOneWidget);
     });
 
     testWidgets('the sheet checks only the current month', (tester) async {
@@ -409,7 +410,7 @@ void main() {
       expect(find.text('Elige un mes'), findsNothing);
       expect(find.text('Septiembre de 2026'), findsOneWidget);
       expect(find.text('Octubre de 2026'), findsNothing);
-      expect(find.text('Entregados: 4 de 4'), findsOneWidget);
+      expect(find.textContaining('4 de 4'), findsOneWidget);
       expect(repo.complianceCalls.last.period, (year: 2026, month: 9));
       expect(repo.complianceCalls.last.page, 1);
     });
@@ -456,18 +457,18 @@ void main() {
   });
 
   group('clubs tab', () {
-    testWidgets('is the default tab and does not request the reports', (
+    testWidgets('is the default tab; the reports load once for its count', (
       tester,
     ) async {
       final repo = _repoWith([period(2026, 10, counts: counts(expected: 3))]);
       await _pump(tester, repo: repo);
 
-      expect(repo.reportCalls, isEmpty);
       expect(repo.complianceCalls, hasLength(1));
       expect(repo.complianceCalls.single.page, 1);
+      expect(repo.reportCalls, hasLength(1));
     });
 
-    testWidgets('cards show name, sections and local field, and compliance', (
+    testWidgets('rows show name, sections, local field and the «x de y» chip', (
       tester,
     ) async {
       final repo = _repoWith(
@@ -496,28 +497,101 @@ void main() {
         find.text('Aventureros, Conquistadores · Asociación Norte'),
         findsOneWidget,
       );
-      expect(find.text('Entregados: 2 de 3 · Pendientes: 1'), findsOneWidget);
+      expect(
+        find.descendant(of: _row('Club Orión'), matching: find.text('2 de 3')),
+        findsOneWidget,
+      );
       expect(find.text('Club Sin Campo'), findsOneWidget);
       expect(find.text('Guías Mayores'), findsOneWidget);
-      expect(find.text('Entregados: 1 de 1'), findsOneWidget);
+      expect(
+        find.descendant(
+            of: _row('Club Sin Campo'), matching: find.text('1 de 1')),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('a club with overdue reports lists them last', (tester) async {
+    testWidgets('groups: «Con vencidos», «Pendientes» and «Al día», in order', (
+      tester,
+    ) async {
       final repo = _repoWith(
         [period(2026, 10, counts: counts(expected: 3))],
         clubs: [
           clubCompliance(
             1,
+            name: 'Club Al Día',
+            counts: counts(expected: 2, submitted: 2),
+          ),
+          clubCompliance(
+            2,
+            name: 'Club Pendiente',
+            counts: counts(expected: 2, submitted: 1, pending: 1),
+          ),
+          clubCompliance(
+            3,
+            name: 'Club Vencido',
             counts: counts(expected: 4, submitted: 1, pending: 1, overdue: 2),
           ),
         ],
       );
       await _pump(tester, repo: repo);
 
-      expect(
-        find.text('Entregados: 1 de 4 · Pendientes: 1 · Vencidos: 2'),
-        findsOneWidget,
+      final overdue = tester.getTopLeft(find.text('CON VENCIDOS')).dy;
+      final pending = tester.getTopLeft(find.text('PENDIENTES')).dy;
+      final upToDate = tester.getTopLeft(find.text('AL DÍA')).dy;
+      expect(overdue, lessThan(pending));
+      expect(pending, lessThan(upToDate));
+      // Overdue wins over pending for a club that has both.
+      final vencido = tester.getTopLeft(find.text('Club Vencido')).dy;
+      expect(vencido, greaterThan(overdue));
+      expect(vencido, lessThan(pending));
+    });
+
+    testWidgets('chip tone: overdue error, pending warning, up to date success',
+        (tester) async {
+      final repo = _repoWith(
+        [period(2026, 10, counts: counts(expected: 3))],
+        clubs: [
+          clubCompliance(1,
+              name: 'A', counts: counts(expected: 2, submitted: 0, overdue: 2)),
+          clubCompliance(2,
+              name: 'B', counts: counts(expected: 2, submitted: 1, pending: 1)),
+          clubCompliance(3,
+              name: 'C', counts: counts(expected: 2, submitted: 2)),
+        ],
       );
+      await _pump(tester, repo: repo);
+
+      SacTone toneOf(String club) => tester
+          .widget<SupervisionStatusChip>(find.descendant(
+            of: _row(club),
+            matching: find.byType(SupervisionStatusChip),
+          ))
+          .tone;
+      expect(toneOf('A'), SacTone.error);
+      expect(toneOf('B'), SacTone.warning);
+      expect(toneOf('C'), SacTone.success);
+    });
+
+    testWidgets('the segmented control shows the club and report counts', (
+      tester,
+    ) async {
+      final repo = _repoWith([period(2026, 10, counts: counts(expected: 3))]);
+      repo.onCompliance = (_) async => Right(
+            compliancePage(
+              [clubCompliance(1)],
+              totals: counts(expected: 3),
+              total: 21,
+            ),
+          );
+      repo.onReports =
+          (_) async => Right(reportPage([report('r1')], total: 25));
+      await _pump(tester, repo: repo);
+
+      final control = tester.widget<SupervisionSegmentedControl<Object?>>(
+        find.byWidgetPredicate((w) => w is SupervisionSegmentedControl),
+      );
+      expect(control.segments.map((s) => s.label), ['Por club', 'Informes']);
+      expect(control.segments.map((s) => s.count), [21, 25]);
     });
 
     testWidgets('a club expecting nothing says so', (tester) async {
@@ -527,7 +601,9 @@ void main() {
       );
       await _pump(tester, repo: repo);
 
-      expect(find.text('Sin informes esperados'), findsWidgets);
+      // Its own group, last, not «al día»: nothing was due.
+      expect(find.text('SIN INFORMES ESPERADOS'), findsOneWidget);
+      expect(find.text('AL DÍA'), findsNothing);
     });
 
     testWidgets('shows the empty state when no club had reports expected', (
@@ -650,7 +726,7 @@ void main() {
       FakeReportsRepo repo,
     ) async {
       await _pump(tester, repo: repo);
-      await tester.tap(_chip('Informes'));
+      await tester.tap(_tab('Informes'));
       await tester.pumpAndSettle();
       return repo;
     }
@@ -661,14 +737,14 @@ void main() {
       return repo;
     }
 
-    testWidgets('requests the reports of the month only when opened', (
+    testWidgets('requests the reports of the month once, not per tab tap', (
       tester,
     ) async {
       final repo = repoWithReports([report('r1')]);
       await _pump(tester, repo: repo);
-      expect(repo.reportCalls, isEmpty);
+      expect(repo.reportCalls, hasLength(1));
 
-      await tester.tap(_chip('Informes'));
+      await tester.tap(_tab('Informes'));
       await tester.pumpAndSettle();
 
       expect(repo.reportCalls, hasLength(1));
@@ -676,7 +752,7 @@ void main() {
       expect(repo.reportCalls.single.page, 1);
     });
 
-    testWidgets('cards show club, type and field, and the status text', (
+    testWidgets('rows show club, type, local field group and the status chip', (
       tester,
     ) async {
       final sent = DateTime(2026, 11, 3, 10);
@@ -703,14 +779,45 @@ void main() {
       await openReports(tester, repo);
 
       expect(find.text('Club Enviado'), findsOneWidget);
-      expect(find.text('Conquistadores · Asociación Norte'), findsWidgets);
-      expect(find.text('Enviado el ${_shortDate(sent)}'), findsOneWidget);
+      // The local field is the group; the row keeps the club type.
+      expect(find.text('ASOCIACIÓN NORTE'), findsOneWidget);
+      expect(find.text('Conquistadores'), findsWidgets);
+      expect(find.text('Enviado el ${_dayMonth(sent)}'), findsOneWidget);
       expect(find.text('Enviado'), findsOneWidget);
       expect(find.text('Generado, sin enviar'), findsOneWidget);
-      expect(find.text('Aventureros · Asociación Norte'), findsOneWidget);
+      expect(find.text('Aventureros'), findsOneWidget);
       expect(find.text('Borrador, sin PDF'), findsOneWidget);
-      // No local field: the type stands alone.
-      expect(find.text('Conquistadores'), findsOneWidget);
+      // A report with no local field falls in a group of its own, last.
+      expect(find.text('INFORMES'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('INFORMES')).dy,
+        greaterThan(tester.getTopLeft(find.text('Club Enviado')).dy),
+      );
+    });
+
+    testWidgets('status chips follow the club side: info, accent, warning', (
+      tester,
+    ) async {
+      final repo = repoWithReports([
+        report('r1',
+            clubName: 'Club Enviado', submittedAt: DateTime(2026, 11, 3)),
+        report('r2',
+            clubName: 'Club Generado',
+            status: SupervisionReportStatus.generated),
+        report('r3',
+            clubName: 'Club Borrador', status: SupervisionReportStatus.draft),
+      ]);
+      await openReports(tester, repo);
+
+      SacTone toneOf(String club) => tester
+          .widget<SupervisionStatusChip>(find.descendant(
+            of: _row(club),
+            matching: find.byType(SupervisionStatusChip),
+          ))
+          .tone;
+      expect(toneOf('Club Enviado'), SacTone.info);
+      expect(toneOf('Club Generado'), SacTone.accent);
+      expect(toneOf('Club Borrador'), SacTone.warning);
     });
 
     testWidgets('a nameless club falls back to the generic label', (
@@ -722,7 +829,7 @@ void main() {
       expect(find.text('Club sin nombre'), findsOneWidget);
     });
 
-    testWidgets('a draft card is not tappable and has no PDF icon', (
+    testWidgets('a draft row is not tappable and has no PDF tile', (
       tester,
     ) async {
       final repo = repoWithReports([
@@ -735,8 +842,8 @@ void main() {
       ]);
       await openReports(tester, repo);
 
-      final draft = find.widgetWithText(SacCard, 'Club Borrador');
-      expect(tester.widget<SacCard>(draft).onTap, isNull);
+      final draft = _row('Club Borrador');
+      expect(tester.widget<SacListRow>(draft).onTap, isNull);
       expect(
         find.descendant(
           of: draft,
@@ -749,8 +856,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(repo.pdfCalls, isEmpty);
 
-      final sent = find.widgetWithText(SacCard, 'Club Enviado');
-      expect(tester.widget<SacCard>(sent).onTap, isNotNull);
+      final sent = _row('Club Enviado');
+      expect(tester.widget<SacListRow>(sent).onTap, isNotNull);
       expect(
         find.descendant(
           of: sent,
@@ -819,7 +926,7 @@ void main() {
       expect(find.text('Club Uno'), findsOneWidget);
     });
 
-    testWidgets('switching back to Clubes shows the compliance cards again', (
+    testWidgets('switching back to «Por club» shows the compliance again', (
       tester,
     ) async {
       final repo = repoWithReports([report('r1', clubName: 'Club Informe')]);
@@ -832,7 +939,7 @@ void main() {
       await openReports(tester, repo);
       expect(find.text('Club Informe'), findsOneWidget);
 
-      await tester.tap(_chip('Clubes'));
+      await tester.tap(_tab('Por club'));
       await tester.pumpAndSettle();
 
       expect(find.text('Club Cumplimiento'), findsOneWidget);
@@ -846,7 +953,7 @@ void main() {
       FakeReportsRepo repo,
     ) async {
       await _pump(tester, repo: repo);
-      await tester.tap(_chip('Informes'));
+      await tester.tap(_tab('Informes'));
       await tester.pumpAndSettle();
       return repo;
     }
@@ -881,7 +988,7 @@ void main() {
       final repo = repoWithReport();
       repo.onPdf = (_) async => Right(await gate.future);
       await openReports(tester, repo);
-      expect(_icon(HugeIcons.strokeRoundedPdf01), findsOneWidget);
+      expect(_icon(HugeIcons.strokeRoundedArrowRight01), findsOneWidget);
       expect(find.byType(SacLoadingSmall), findsNothing);
 
       await tester.tap(find.text('Club Orión'));
@@ -889,9 +996,10 @@ void main() {
       await tester.tap(find.text('Club Orión'));
       await tester.pump();
 
+      // The spinner takes the place of the chevron, on the row.
       expect(repo.pdfCalls, hasLength(1));
       expect(find.byType(SacLoadingSmall), findsOneWidget);
-      expect(_icon(HugeIcons.strokeRoundedPdf01), findsNothing);
+      expect(_icon(HugeIcons.strokeRoundedArrowRight01), findsNothing);
 
       gate.complete('/tmp/informe.pdf');
       await tester.pumpAndSettle();
@@ -916,9 +1024,9 @@ void main() {
       );
       expect(find.byType(SacPdfViewer), findsNothing);
       expect(find.byType(SacLoadingSmall), findsNothing);
-      expect(_icon(HugeIcons.strokeRoundedPdf01), findsOneWidget);
+      expect(_icon(HugeIcons.strokeRoundedArrowRight01), findsOneWidget);
 
-      // The card is free again: a second tap asks again.
+      // The row is free again: a second tap asks again.
       await tester.tap(find.text('Club Orión'));
       await tester.pumpAndSettle();
       expect(repo.pdfCalls, hasLength(2));
@@ -949,7 +1057,7 @@ void main() {
 
       expect(find.text('Aún no hay meses que revisar'), findsOneWidget);
       expect(repo.complianceCalls, isEmpty);
-      expect(_chip('Clubes'), findsNothing);
+      expect(_tab('Por club'), findsNothing);
     });
 
     testWidgets('a periods error shows the error state and retry reloads', (
@@ -993,7 +1101,8 @@ void main() {
 
       expect(repo.periodsCalls, 2);
       expect(repo.complianceCalls, hasLength(2));
-      expect(repo.reportCalls, isEmpty);
+      // The reports feed the tab count: they reload with the rest.
+      expect(repo.reportCalls, hasLength(2));
       expect(find.text('Octubre de 2026'), findsOneWidget);
     });
 
@@ -1002,7 +1111,7 @@ void main() {
     ) async {
       final repo = _repoWith([period(2026, 10, counts: counts(expected: 3))]);
       await _pump(tester, repo: repo, size: _short);
-      await tester.tap(_chip('Informes'));
+      await tester.tap(_tab('Informes'));
       await tester.pumpAndSettle();
       expect(repo.reportCalls, hasLength(1));
 
@@ -1080,7 +1189,10 @@ void main() {
         textScale: 2.0,
       );
 
-      await _scrollTo(tester, find.textContaining('Club de Conquistadores'));
+      await tester.drag(
+          find.byType(CustomScrollView).first, const Offset(0, -900));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Club de Conquistadores'), findsWidgets);
       expectNoLayoutException(tester);
     });
 
@@ -1108,8 +1220,8 @@ void main() {
         size: _narrow,
         textScale: 2.0,
       );
-      await _scrollTo(tester, _chip('Informes'));
-      await tester.tap(_chip('Informes'));
+      await _scrollTo(tester, _tab('Informes'));
+      await tester.tap(_tab('Informes'));
       await tester.pumpAndSettle();
       await _scrollTo(tester, find.text('$_longName 3'));
 
@@ -1136,6 +1248,8 @@ void main() {
       repo.onCompliance = (_) async => const Left(kBoom);
       await _pump(tester, repo: repo, size: _narrow, textScale: 2.0);
 
+      // The big box and control come first at this scale: scroll to it.
+      await _scrollTo(tester, find.text('No se pudieron cargar los informes'));
       expect(find.text('No se pudieron cargar los informes'), findsOneWidget);
       expectNoLayoutException(tester);
     });

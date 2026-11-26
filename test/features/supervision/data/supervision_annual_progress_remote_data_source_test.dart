@@ -30,11 +30,104 @@ void _fail(
 const _query = (localFieldId: 3, clubTypeId: 2, yearId: 9);
 
 void main() {
-  group('catalogs', () {
-    test('getUnions sends divisionId and filters by division_id', () async {
+  group('territory summary (new server)', () {
+    test('getUnions asks the summary with division_id and parses the rows',
+        () async {
+      final uris = <Uri>[];
+      final ds = _ds((o, h) {
+        uris.add(o.uri);
+        h.resolve(Response<Object>(requestOptions: o, statusCode: 200, data: {
+          'status': 'success',
+          'data': [
+            {'id': 1, 'name': 'Unión A', 'clubs_count': 8, 'configured': true},
+            {'id': 2, 'name': 'Unión B', 'clubs_count': 0, 'configured': false},
+            {'name': 'Sin id', 'clubs_count': 3},
+          ],
+        }));
+      });
+
+      final unions = await ds.getUnions(5);
+
+      expect(uris, hasLength(1));
+      expect(uris.single.path, '/api/v1/annual-rankings/territory-summary');
+      expect(uris.single.queryParameters, {'division_id': '5'});
+      expect(unions.map((e) => e.id), [1, 2]);
+      expect(unions[0].name, 'Unión A');
+      expect(unions[0].clubsCount, 8);
+      expect(unions[0].configured, isTrue);
+      expect(unions[1].clubsCount, 0);
+      expect(unions[1].configured, isFalse);
+    });
+
+    test('getLocalFields asks the summary with union_id', () async {
       late Uri uri;
       final ds = _ds((o, h) {
         uri = o.uri;
+        h.resolve(Response<Object>(requestOptions: o, statusCode: 200, data: {
+          'status': 'success',
+          'data': [
+            {
+              'id': 10,
+              'name': 'Campo X',
+              'clubs_count': 6,
+              'configured': false
+            },
+          ],
+        }));
+      });
+
+      final fields = await ds.getLocalFields(4);
+
+      expect(uri.path, '/api/v1/annual-rankings/territory-summary');
+      expect(uri.queryParameters, {'union_id': '4'});
+      expect(fields.single.id, 10);
+      expect(fields.single.configured, isFalse);
+    });
+
+    test('missing or malformed count and flag stay unknown, never 0 or true',
+        () async {
+      final ds = _ds((o, h) {
+        h.resolve(Response<Object>(requestOptions: o, statusCode: 200, data: {
+          'data': [
+            {'id': 1, 'name': 'A'},
+            {'id': 2, 'name': 'B', 'clubs_count': 'x', 'configured': 'yes'},
+          ],
+        }));
+      });
+
+      final unions = await ds.getUnions(5);
+
+      expect(unions.map((e) => e.clubsCount), [null, null]);
+      expect(unions.map((e) => e.configured), [null, null]);
+    });
+
+    test('a 403 on the summary is a forbidden failure, not a fallback',
+        () async {
+      final paths = <String>[];
+      final ds = _ds((o, h) {
+        paths.add(o.uri.path);
+        _fail(o, h, 403, {'code': 'GUARD_PERMISSION_DENIED', 'message': 'No'});
+      });
+      final repo =
+          SupervisionAnnualProgressRepositoryImpl(remoteDataSource: ds);
+
+      final result = await repo.getUnions(5);
+
+      final failure = result.fold<Failure>((f) => f, (_) => throw 'no');
+      expect(isForbiddenFailure(failure), isTrue);
+      expect(paths, ['/api/v1/annual-rankings/territory-summary']);
+    });
+  });
+
+  group('catalogs (fallback on an old server: summary answers 404)', () {
+    test('getUnions falls back to divisionId and filters by division_id',
+        () async {
+      final uris = <Uri>[];
+      final ds = _ds((o, h) {
+        uris.add(o.uri);
+        if (o.uri.path.endsWith('/territory-summary')) {
+          return _fail(o, h, 404, {'message': 'Cannot GET'});
+        }
         h.resolve(Response<Object>(requestOptions: o, statusCode: 200, data: [
           {'union_id': 1, 'name': 'A', 'country_id': 1, 'division_id': 5},
           {'union_id': 2, 'name': 'B', 'country_id': 1, 'division_id': 6},
@@ -42,16 +135,26 @@ void main() {
         ]));
       });
       final unions = await ds.getUnions(5);
-      expect(uri.path, '/api/v1/catalogs/unions');
-      expect(uri.queryParameters, {'divisionId': '5'});
+      expect(uris.map((u) => u.path), [
+        '/api/v1/annual-rankings/territory-summary',
+        '/api/v1/catalogs/unions',
+      ]);
+      expect(uris.last.queryParameters, {'divisionId': '5'});
       expect(unions.map((e) => e.id), [1, 3]);
       expect(unions.first.name, 'A');
+      // Names only: nothing invented about the clubs.
+      expect(unions.first.clubsCount, isNull);
+      expect(unions.first.configured, isNull);
     });
 
-    test('getLocalFields sends unionId and filters by union_id', () async {
-      late Uri uri;
+    test('getLocalFields falls back to unionId and filters by union_id',
+        () async {
+      final uris = <Uri>[];
       final ds = _ds((o, h) {
-        uri = o.uri;
+        uris.add(o.uri);
+        if (o.uri.path.endsWith('/territory-summary')) {
+          return _fail(o, h, 404, {'message': 'Cannot GET'});
+        }
         h.resolve(Response<Object>(requestOptions: o, statusCode: 200, data: [
           {'local_field_id': 10, 'name': 'X', 'union_id': 4},
           {'local_field_id': 11, 'name': 'Y', 'union_id': 8},
@@ -59,9 +162,25 @@ void main() {
         ]));
       });
       final fields = await ds.getLocalFields(4);
-      expect(uri.path, '/api/v1/catalogs/local-fields');
-      expect(uri.queryParameters, {'unionId': '4'});
+      expect(uris.last.path, '/api/v1/catalogs/local-fields');
+      expect(uris.last.queryParameters, {'unionId': '4'});
       expect(fields.map((e) => e.id), [10, 12]);
+    });
+
+    test('a failing catalogs call after the fallback is still a failure',
+        () async {
+      final ds = _ds((o, h) {
+        if (o.uri.path.endsWith('/territory-summary')) {
+          return _fail(o, h, 404, {'message': 'Cannot GET'});
+        }
+        _fail(o, h, 500, {'message': 'boom'});
+      });
+      final repo =
+          SupervisionAnnualProgressRepositoryImpl(remoteDataSource: ds);
+
+      final result = await repo.getUnions(5);
+
+      expect(result.isLeft(), isTrue);
     });
 
     test('403 outside the territory is a forbidden failure', () async {

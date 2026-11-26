@@ -1,27 +1,20 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/errors/forbidden.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
-import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
-import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_skeleton.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
-import 'package:sacdia_app/core/widgets/sac_tweened_bar.dart';
-import 'package:sacdia_app/core/widgets/sac_value_row.dart';
-import 'package:sacdia_app/core/widgets/status_progress/sac_grouped_section.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/supervision/domain/entities/supervision_operations.dart';
 import 'package:sacdia_app/features/supervision/presentation/providers/supervision_operations_providers.dart';
-import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_format.dart';
-import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_plain_row.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_breadcrumb.dart';
+import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_operations_sections.dart';
 import 'package:sacdia_app/features/supervision/presentation/widgets/supervision_scroll.dart';
 
 /// Indicators of a territory and of what sits right below it.
@@ -96,7 +89,13 @@ class SupervisionOperationsView extends ConsumerWidget {
         onRefresh: refresh,
         child: _Dashboard(
           dashboard: dashboard,
-          showPath: !query.isOwnScope,
+          crumbs: query.isOwnScope
+              ? const []
+              : _crumbsFor(
+                  context,
+                  dashboard,
+                  user?.authorization?.territory?.level,
+                ),
           canOpenClubs: hasCapability(user, 'clubs.view_territory'),
         ),
       );
@@ -135,49 +134,41 @@ String? _levelLabel(SupervisionTerritoryLevel? level) => switch (level) {
 class _Dashboard extends StatelessWidget {
   const _Dashboard({
     required this.dashboard,
-    required this.showPath,
+    required this.crumbs,
     required this.canOpenClubs,
   });
 
   final SupervisionOperationsDashboard dashboard;
-  final bool showPath;
+
+  /// Path of the drilled-in territory; empty at the actor's own level.
+  final List<SupervisionCrumb> crumbs;
   final bool canOpenClubs;
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
     final summary = dashboard.summary;
-    final period = dashboard.period;
-    // Where this territory hangs from: every level above it.
-    final parents = [
-      for (final node in dashboard.scope.path)
-        if (node.id != dashboard.scope.id ||
-            node.level != dashboard.scope.level)
-          node.name.trim(),
-    ].where((name) => name.isNotEmpty).toList();
-    final yearLabel = _yearLabel(period);
+    final yearLabel = _yearLabel(dashboard.period);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (showPath && parents.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-            child: Text(
-              parents.join(' › '),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: SacFontSize.bodyMedium,
-                height: 1.3,
-                color: c.textSecondary,
-              ),
-            ),
+        if (crumbs.isNotEmpty)
+          SupervisionBreadcrumb(
+            crumbs: crumbs,
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
           ),
-        _Indicators(summary: summary, period: period),
+        SupervisionOperationsReportsBox(
+          summary: summary,
+          period: dashboard.period,
+        ),
+        SupervisionOperationsFigures(summary: summary),
         if (dashboard.children.isNotEmpty)
-          _Children(children: dashboard.children, canOpenClubs: canOpenClubs),
-        _PeriodFacts(summary: summary),
+          SupervisionOperationsChildren(
+            children: dashboard.children,
+            canOpenClubs: canOpenClubs,
+          ),
+        SupervisionOperationsPeriodFacts(summary: summary),
         if (yearLabel != null)
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
@@ -204,359 +195,56 @@ String? _yearLabel(SupervisionOperationsPeriod period) {
   return '$start-$end';
 }
 
-// ── The four figures a supervisor reads first ───────────────────────────────
-
-class _Indicators extends StatelessWidget {
-  const _Indicators({required this.summary, required this.period});
-
-  final SupervisionOperationsMetrics summary;
-  final SupervisionOperationsPeriod period;
-
-  @override
-  Widget build(BuildContext context) {
-    final clubs = summary.operationalClubs + summary.nonOperationalClubs;
-    final month = period.hasReportingMonth
-        ? supervisionMonthName(context, period.reportMonth!)
-        : null;
-    final coverage = summary.reportsCoveragePct;
-    final rate = summary.operationalRatePct;
-
-    return SacGroupedSection(
-      label: 'supervision.operations.indicators_title'.tr(),
-      dividerIndent: 16,
-      // A count of rows says nothing here.
-      action: const SizedBox.shrink(),
-      children: [
-        SupervisionPlainRow(
-          title: 'supervision.operations.reports'.tr(),
-          subtitleSpans: [
-            if (month == null)
-              TextSpan(text: 'supervision.operations.reports_none'.tr())
-            else if (summary.reportsExpected == 0)
-              TextSpan(
-                text: 'supervision.operations.reports_not_expected'
-                    .tr(args: [month]),
-              )
-            else
-              _span(
-                context,
-                'supervision.operations.reports_caption'.tr(
-                  args: [
-                    supervisionCount(context, summary.reportsSubmitted),
-                    supervisionCount(context, summary.reportsExpected),
-                    month,
-                  ],
-                ),
-                strong: summary.reportsNotSubmitted > 0,
-              ),
-          ],
-          trailing: SupervisionRowValue(
-            coverage == null || month == null
-                ? '—'
-                : supervisionPercent(coverage),
-          ),
-          footer: coverage == null || month == null
-              ? null
-              : _Bar(fraction: coverage / 100),
-        ),
-        SupervisionPlainRow(
-          title: 'supervision.operations.clubs'.tr(),
-          subtitleSpans: [
-            if (summary.nonOperationalClubs > 0)
-              _span(
-                context,
-                'supervision.operations.clubs_gap'.tr(
-                  args: [
-                    supervisionCount(context, summary.nonOperationalClubs),
-                  ],
-                ),
-                strong: true,
-              )
-            else if (clubs > 0)
-              TextSpan(text: 'supervision.operations.clubs_all'.tr()),
-          ],
-          trailing: SupervisionRowValue(
-            supervisionCount(context, summary.operationalClubs),
-            suffix: 'supervision.operations.of_total'
-                .tr(args: [supervisionCount(context, clubs)]),
-          ),
-          footer: rate == null ? null : _Bar(fraction: rate / 100),
-        ),
-        SupervisionPlainRow(
-          title: 'supervision.operations.people'.tr(),
-          subtitle: 'supervision.operations.people_caption'.tr(
-            args: [supervisionCount(context, summary.accountsActive)],
-          ),
-          trailing: SupervisionRowValue(
-            supervisionCount(context, summary.peopleActive),
-          ),
-        ),
-        SupervisionPlainRow(
-          title: 'supervision.operations.classes'.tr(),
-          subtitle: 'supervision.operations.classes_caption'.tr(
-            args: [supervisionCount(context, summary.classDistinctPeople)],
-          ),
-          trailing: SupervisionRowValue(
-            supervisionCount(context, summary.classEnrollments),
-          ),
-          // The breakdown by class is one tap away, not on the dashboard.
-          onTap: summary.classes.any((item) => item.enrollmentCount > 0)
-              ? () => _showClasses(context, summary.classes)
-              : null,
-        ),
-      ],
-    );
-  }
-}
-
-/// A caption part; [strong] marks the part that needs attention.
-TextSpan _span(BuildContext context, String text, {bool strong = false}) {
-  return TextSpan(
-    text: text,
-    style: strong
-        ? TextStyle(color: context.sac.text, fontWeight: FontWeight.w500)
-        : null,
-  );
-}
-
-class _Bar extends StatelessWidget {
-  const _Bar({required this.fraction});
-
-  final double fraction;
-
-  @override
-  Widget build(BuildContext context) {
-    return ExcludeSemantics(
-      child: SacTweenedBar(
-        value: fraction,
-        color: SacAccent.of(context).color,
-        backgroundColor: context.sac.surfaceVariant,
-      ),
-    );
-  }
-}
-
-// ── One level down ──────────────────────────────────────────────────────────
-
-class _Children extends StatelessWidget {
-  const _Children({required this.children, required this.canOpenClubs});
-
-  final List<SupervisionOperationsChild> children;
-  final bool canOpenClubs;
-
-  @override
-  Widget build(BuildContext context) {
-    final label = switch (children.first.level) {
-      SupervisionTerritoryLevel.division =>
-        'supervision.operations.children_division',
-      SupervisionTerritoryLevel.union =>
-        'supervision.operations.children_union',
-      SupervisionTerritoryLevel.localField =>
-        'supervision.operations.children_local_field',
-      _ => 'supervision.operations.children_club',
-    };
-    return SacGroupedSection(
-      label: label.tr(),
-      dividerIndent: 16,
-      children: [
-        for (final child in children)
-          SupervisionPlainRow(
-            title: child.name,
-            subtitleSpans: child.level == SupervisionTerritoryLevel.club
-                ? _clubSpans(context, child.metrics)
-                : _territorySpans(context, child.metrics),
-            onTap: _onTap(context, child),
-          ),
-      ],
-    );
-  }
-
-  VoidCallback? _onTap(BuildContext context, SupervisionOperationsChild child) {
-    final String? route = switch (child.level) {
-      SupervisionTerritoryLevel.division =>
-        RouteNames.supervisionOperationsScope(divisionId: child.id),
-      SupervisionTerritoryLevel.union =>
-        RouteNames.supervisionOperationsScope(unionId: child.id),
-      SupervisionTerritoryLevel.localField =>
-        RouteNames.supervisionOperationsScope(localFieldId: child.id),
-      SupervisionTerritoryLevel.club =>
-        canOpenClubs ? RouteNames.supervisionClubDetail('${child.id}') : null,
+/// Position of a level in the drill-down: division, union, local field.
+int? _depthOf(SupervisionTerritoryLevel? level) => switch (level) {
+      SupervisionTerritoryLevel.division => 0,
+      SupervisionTerritoryLevel.union => 1,
+      SupervisionTerritoryLevel.localField => 2,
       _ => null,
     };
-    return route == null ? null : () => context.push(route);
-  }
-}
 
-const TextSpan _dot = TextSpan(text: ' · ');
+/// Same ladder for the actor's own territory (`authorization.territory.level`).
+/// A level above the divisions (`all`) sits one step over the first one.
+int _ownDepth(String? level) => switch (level) {
+      'division' => 0,
+      'union' => 1,
+      'local_field' => 2,
+      _ => -1,
+    };
 
-List<TextSpan> _territorySpans(
+/// Ancestors the actor can climb back to, then the territory on screen.
+///
+/// Opening a row pushes this same screen one level down, so the screen of an
+/// ancestor is [current depth - ancestor depth] pops away. Levels above the
+/// actor's own territory are not on the stack and are left out.
+List<SupervisionCrumb> _crumbsFor(
   BuildContext context,
-  SupervisionOperationsMetrics m,
+  SupervisionOperationsDashboard dashboard,
+  String? ownLevel,
 ) {
-  final clubs = m.operationalClubs + m.nonOperationalClubs;
-  final coverage = m.reportsCoveragePct;
-  return [
-    if (coverage == null)
-      TextSpan(text: 'supervision.operations.child_reports_none'.tr())
-    else
-      _span(
-        context,
-        'supervision.operations.child_reports'
-            .tr(args: [supervisionPercent(coverage)]),
-        strong: m.reportsNotSubmitted > 0,
-      ),
-    _dot,
-    _span(
-      context,
-      'supervision.operations.child_operational'.tr(
-        args: [
-          supervisionCount(context, m.operationalClubs),
-          supervisionCount(context, clubs),
-        ],
-      ),
-      strong: m.nonOperationalClubs > 0,
-    ),
-  ];
-}
-
-List<TextSpan> _clubSpans(
-  BuildContext context,
-  SupervisionOperationsMetrics m,
-) {
-  final inactive = m.nonOperationalClubs > 0;
-  return [
-    if (m.reportsExpected == 0)
-      TextSpan(text: 'supervision.operations.child_reports_none'.tr())
-    else
-      _span(
-        context,
-        'supervision.operations.child_club_reports'.tr(
-          args: [
-            supervisionCount(context, m.reportsSubmitted),
-            supervisionCount(context, m.reportsExpected),
-          ],
+  final scope = dashboard.scope;
+  final currentDepth = _depthOf(scope.level);
+  final ownDepth = _ownDepth(ownLevel);
+  final crumbs = <SupervisionCrumb>[];
+  if (currentDepth != null) {
+    for (final node in scope.path) {
+      final depth = _depthOf(node.level);
+      final name = node.name.trim();
+      if (depth == null || name.isEmpty || depth >= currentDepth) continue;
+      // The first screen of the stack is the actor's own territory.
+      if (depth < ownDepth) continue;
+      final pops = currentDepth - depth;
+      crumbs.add(
+        SupervisionCrumb(
+          label: name,
+          onTap: () {
+            var left = pops;
+            Navigator.of(context).popUntil((route) => left-- <= 0);
+          },
         ),
-        strong: m.reportsNotSubmitted > 0,
-      ),
-    _dot,
-    _span(
-      context,
-      (inactive
-              ? 'supervision.operations.child_club_inactive'
-              : 'supervision.operations.child_club_active')
-          .tr(),
-      strong: inactive,
-    ),
-  ];
-}
-
-// ── The rest of the period ──────────────────────────────────────────────────
-
-class _PeriodFacts extends StatelessWidget {
-  const _PeriodFacts({required this.summary});
-
-  final SupervisionOperationsMetrics summary;
-
-  @override
-  Widget build(BuildContext context) {
-    SacValueRow row(String key, int value) => SacValueRow(
-          label: 'supervision.operations.$key'.tr(),
-          value: supervisionCount(context, value),
-        );
-    final review = summary.honorsPendingReview;
-    final approved = summary.honorsApproved;
-    return SacGroupedSection(
-      label: 'supervision.operations.period_title'.tr(),
-      dividerIndent: 16,
-      action: const SizedBox.shrink(),
-      children: [
-        row('clubs_registered', summary.clubsTotal),
-        row('sections_active', summary.operationalSections),
-        row('activities', summary.activitiesRegistered),
-        // A past year has no honors figures: the rows leave, not a dash.
-        if (summary.honorsAvailable && review != null)
-          row('honors_review', review),
-        if (summary.honorsAvailable && approved != null)
-          row('honors_approved', approved),
-      ],
-    );
-  }
-}
-
-// ── Enrollments by class ────────────────────────────────────────────────────
-
-void _showClasses(
-  BuildContext context,
-  List<SupervisionClassEnrollments> classes,
-) {
-  showSacSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    builder: (_) => _ClassesSheet(classes: classes),
-  );
-}
-
-class _ClassesSheet extends StatelessWidget {
-  const _ClassesSheet({required this.classes});
-
-  final List<SupervisionClassEnrollments> classes;
-
-  @override
-  Widget build(BuildContext context) {
-    // Server order is club type, then the order of the classes.
-    final byType = <int, List<SupervisionClassEnrollments>>{};
-    for (final item in classes) {
-      if (item.enrollmentCount <= 0) continue;
-      byType.putIfAbsent(item.clubTypeId, () => []).add(item);
+      );
     }
-
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(context).height * 0.9,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SacSheetHeader(
-            title: 'supervision.operations.classes_sheet_title'.tr(),
-            showClose: true,
-          ),
-          Flexible(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.only(
-                bottom: 24 + MediaQuery.paddingOf(context).bottom,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (final group in byType.values)
-                    SacGroupedSection(
-                      label: group.first.clubTypeName,
-                      dividerIndent: 16,
-                      // The eyebrow total is people enrolled, not rows.
-                      count: group.fold<int>(
-                        0,
-                        (sum, item) => sum + item.enrollmentCount,
-                      ),
-                      children: [
-                        for (final item in group)
-                          SacValueRow(
-                            label: item.className,
-                            value: supervisionCount(
-                              context,
-                              item.enrollmentCount,
-                            ),
-                          ),
-                      ],
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
+  if (crumbs.isEmpty) return const [];
+  return [...crumbs, SupervisionCrumb(label: scope.name.trim())];
 }

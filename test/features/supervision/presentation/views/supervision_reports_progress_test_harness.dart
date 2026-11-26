@@ -204,8 +204,18 @@ EcclesiasticalYearModel progressYear({String name = '2025-2026'}) =>
 const kConquistadores = ClubTypeModel(clubTypeId: 2, name: 'Conquistadores');
 const kAventureros = ClubTypeModel(clubTypeId: 1, name: 'Aventureros');
 
-SupervisionTerritoryOption territoryOption(int id, String name) =>
-    SupervisionTerritoryOption(id: id, name: name);
+SupervisionTerritoryOption territoryOption(
+  int id,
+  String name, {
+  int? clubsCount,
+  bool? configured,
+}) =>
+    SupervisionTerritoryOption(
+      id: id,
+      name: name,
+      clubsCount: clubsCount,
+      configured: configured,
+    );
 
 SupervisionProgressComponent component(
   String key, {
@@ -225,11 +235,15 @@ SupervisionProgressComponent component(
 SupervisionProgressAxis axis(
   String key, {
   String? label,
+  double earned = 0,
+  double max = 0,
   List<SupervisionProgressComponent> components = const [],
 }) =>
     SupervisionProgressAxis(
       key: key,
       label: label ?? 'Eje $key',
+      earnedPoints: earned,
+      maxPoints: max,
       components: components,
     );
 

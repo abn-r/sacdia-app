@@ -1,14 +1,29 @@
 import 'package:equatable/equatable.dart';
 
 /// A union or local field the actor can pick.
+///
+/// [clubsCount] and [configured] come from
+/// `GET /annual-rankings/territory-summary`; they stay null when the server
+/// is older than that endpoint (names only, from the catalogs).
 class SupervisionTerritoryOption extends Equatable {
-  const SupervisionTerritoryOption({required this.id, this.name = ''});
+  const SupervisionTerritoryOption({
+    required this.id,
+    this.name = '',
+    this.clubsCount,
+    this.configured,
+  });
 
   final int id;
   final String name;
 
+  /// Clubs under this territory; null when the server did not say.
+  final int? clubsCount;
+
+  /// False: it has no annual configuration yet. Null: not known.
+  final bool? configured;
+
   @override
-  List<Object?> get props => [id, name];
+  List<Object?> get props => [id, name, clubsCount, configured];
 }
 
 class SupervisionProgressTier extends Equatable {
