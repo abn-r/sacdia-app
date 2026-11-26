@@ -24,6 +24,9 @@ List<Map<String, dynamic>> _maps(Object? v) => v is List
     ? v.map(_map).whereType<Map<String, dynamic>>().toList()
     : const [];
 
+/// Sort key of a section whose club type the server did not send.
+const int _kNoClubType = 1 << 30;
+
 class SupervisionReportModel {
   const SupervisionReportModel._();
 
@@ -72,8 +75,16 @@ class SupervisionReportModel {
     if (json == null) return null;
     final id = _int(json['club_id']);
     if (id == null) return null;
+    // By club type, like every other list of sections; a section with no
+    // type id goes last and the server order breaks ties.
+    final sections = _maps(json['sections']).indexed.toList()
+      ..sort((a, b) {
+        final byType = (_int(a.$2['club_type_id']) ?? _kNoClubType)
+            .compareTo(_int(b.$2['club_type_id']) ?? _kNoClubType);
+        return byType != 0 ? byType : a.$1.compareTo(b.$1);
+      });
     final names = <String>[];
-    for (final s in _maps(json['sections'])) {
+    for (final (_, s) in sections) {
       final name = _str(s['club_type_name']);
       if (name != null && !names.contains(name)) names.add(name);
     }

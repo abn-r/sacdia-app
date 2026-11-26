@@ -67,8 +67,18 @@ class SupervisionClubModel {
     );
   }
 
-  static List<SupervisionClubSection> _sections(Object? v) =>
-      _maps(v).map(_section).whereType<SupervisionClubSection>().toList();
+  /// By club type (Aventureros, Conquistadores, Guías Mayores), so every
+  /// club lists its sections the same way; the server order breaks ties.
+  static List<SupervisionClubSection> _sections(Object? v) {
+    final parsed =
+        _maps(v).map(_section).whereType<SupervisionClubSection>().toList();
+    final indexed = parsed.indexed.toList()
+      ..sort((a, b) {
+        final byType = a.$2.clubTypeId.compareTo(b.$2.clubTypeId);
+        return byType != 0 ? byType : a.$1.compareTo(b.$1);
+      });
+    return [for (final entry in indexed) entry.$2];
+  }
 
   /// Null only when the item has no usable id.
   static SupervisionClubListItem? tryParseListItem(Object? raw) {

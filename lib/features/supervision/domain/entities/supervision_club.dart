@@ -26,8 +26,8 @@ class SupervisionClubSection extends Equatable {
       [id, clubTypeId, typeName, active, soulsTarget, phone, email];
 }
 
-/// Type names of the active sections, in server order, no blanks, no
-/// duplicates.
+/// Type names of the active sections, in the order of the list (the model
+/// sorts it by club type), no blanks, no duplicates.
 List<String> _activeSectionNames(List<SupervisionClubSection> sections) {
   final seen = <String>{};
   return [
