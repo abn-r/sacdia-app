@@ -16,6 +16,7 @@ import '../../../../core/widgets/sac_empty_state.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../../core/widgets/status_progress/status_progress.dart';
 import '../../../../providers/catalogs_provider.dart';
+import '../../../dashboard/presentation/widgets/clubless_home_header.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/investiture_request_error_keys.dart';
 import '../../domain/entities/investiture_request.dart';
@@ -30,8 +31,15 @@ const _i18n = 'investiture_requests.authorizer';
 /// Solicitudes de investidura que el usuario puede autorizar (pastor del
 /// distrito, director o subdirector del Campo). Es el inicio del pastor sin
 /// club y una entrada del acceso rápido de `director-lf`/`assistant-lf`.
+///
+/// Como inicio ([asHome], lo pasa `DashboardView`) lleva el encabezado de
+/// saludo del dashboard en lugar de la barra superior; como ruta normal
+/// conserva la barra con su flecha.
 class AuthorizerRequestsView extends ConsumerWidget {
-  const AuthorizerRequestsView({super.key});
+  const AuthorizerRequestsView({super.key, this.asHome = false});
+
+  /// Se dibuja como inicio del pastor sin club (saludo + título, sin barra).
+  final bool asHome;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -43,34 +51,57 @@ class AuthorizerRequestsView extends ConsumerWidget {
     );
     final yearAsync = ref.watch(currentEcclesiasticalYearProvider);
     final year = yearAsync.value;
+    final header =
+        asHome ? ClubLessHomeHeader(sectionTitle: tr('$_i18n.title')) : null;
 
     final Widget body;
     if (!allowed) {
-      body = InvestitureMessageState(
-        title: tr('$_i18n.restricted_title'),
-        body: tr('$_i18n.restricted_body'),
-        icon: HugeIcons.strokeRoundedLockKey,
+      body = _withHeader(
+        header,
+        InvestitureMessageState(
+          title: tr('$_i18n.restricted_title'),
+          body: tr('$_i18n.restricted_body'),
+          icon: HugeIcons.strokeRoundedLockKey,
+        ),
       );
     } else if (year == null) {
       if (yearAsync.hasError) {
-        body = InvestitureMessageState.loadError(
-          title: tr('$_i18n.load_error_title'),
-          error: yearAsync.error,
-          onRetry: () => ref.invalidate(currentEcclesiasticalYearProvider),
+        body = _withHeader(
+          header,
+          InvestitureMessageState.loadError(
+            title: tr('$_i18n.load_error_title'),
+            error: yearAsync.error,
+            onRetry: () => ref.invalidate(currentEcclesiasticalYearProvider),
+          ),
         );
       } else {
-        body = yearAsync.isLoading
-            ? const InvestitureListSkeleton()
-            : InvestitureMessageState(
-                title: tr('$_i18n.no_year_title'),
-                body: tr('$_i18n.no_year_body'),
-                icon: HugeIcons.strokeRoundedCalendar03,
-              );
+        body = _withHeader(
+          header,
+          yearAsync.isLoading
+              ? const InvestitureListSkeleton()
+              : InvestitureMessageState(
+                  title: tr('$_i18n.no_year_title'),
+                  body: tr('$_i18n.no_year_body'),
+                  icon: HugeIcons.strokeRoundedCalendar03,
+                ),
+        );
       }
     } else {
       body = _RequestsBody(
         yearId: year.ecclesiasticalYearId,
         yearName: year.name.trim(),
+        header: header,
+      );
+    }
+
+    if (asHome) {
+      return Scaffold(
+        backgroundColor: c.canvas,
+        body: SafeArea(
+          bottom: false,
+          // Sin barra superior: los scrolls no reservan hueco para ella.
+          child: SacFrostedInsetOverride(inset: 0, child: body),
+        ),
       );
     }
 
@@ -83,11 +114,26 @@ class AuthorizerRequestsView extends ConsumerWidget {
   }
 }
 
+/// El saludo del inicio encima de un estado que no hace scroll.
+Widget _withHeader(Widget? header, Widget child) => header == null
+    ? child
+    : Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [header, Expanded(child: child)],
+      );
+
 class _RequestsBody extends ConsumerWidget {
-  const _RequestsBody({required this.yearId, required this.yearName});
+  const _RequestsBody({
+    required this.yearId,
+    required this.yearName,
+    this.header,
+  });
 
   final int yearId;
   final String yearName;
+
+  /// Saludo del inicio: primer elemento del scroll y ya lleva el título.
+  final Widget? header;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -113,6 +159,7 @@ class _RequestsBody extends ConsumerWidget {
             context,
             refresh,
             [
+              if (header != null) header!,
               const SizedBox(height: 48),
               SacEmptyState(
                 title: tr('$_i18n.no_districts_title'),
@@ -122,13 +169,16 @@ class _RequestsBody extends ConsumerWidget {
             ],
           );
         }
-        return InvestitureMessageState.loadError(
-          title: tr('$_i18n.load_error_title'),
-          error: error,
-          onRetry: refresh,
+        return _withHeader(
+          header,
+          InvestitureMessageState.loadError(
+            title: tr('$_i18n.load_error_title'),
+            error: error,
+            onRetry: refresh,
+          ),
         );
       }
-      return const InvestitureListSkeleton();
+      return _withHeader(header, const InvestitureListSkeleton());
     }
 
     final waiting = _sorted(requests.where(_hasPeopleWaiting));
@@ -148,21 +198,24 @@ class _RequestsBody extends ConsumerWidget {
     ].join(' · ');
 
     return _scrollable(context, refresh, [
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Semantics(
-          header: true,
-          child: Text(
-            tr('$_i18n.title'),
-            style: TextStyle(
-              fontSize: SacFontSize.displayMedium,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.5,
-              color: c.text,
+      if (header != null)
+        header!
+      else
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Semantics(
+            header: true,
+            child: Text(
+              tr('$_i18n.title'),
+              style: TextStyle(
+                fontSize: SacFontSize.displayMedium,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.5,
+                color: c.text,
+              ),
             ),
           ),
         ),
-      ),
       if (subtitle.isNotEmpty)
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 2, 20, 0),

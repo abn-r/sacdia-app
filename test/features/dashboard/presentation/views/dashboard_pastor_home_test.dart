@@ -1,11 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/dashboard/domain/entities/dashboard_summary.dart';
 import 'package:sacdia_app/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:sacdia_app/features/dashboard/presentation/views/dashboard_view.dart';
+import 'package:sacdia_app/features/dashboard/presentation/widgets/welcome_header.dart';
 import 'package:sacdia_app/features/investiture_requests/presentation/views/authorizer_requests_view.dart';
 
 import '../../../investiture_requests/fake_investiture_requests_repository.dart';
@@ -85,6 +87,9 @@ void main() {
     );
 
     expect(find.byType(AuthorizerRequestsView), findsOneWidget);
+    // Como inicio: saludo del dashboard + título, sin barra superior.
+    expect(find.byType(WelcomeHeader), findsOneWidget);
+    expect(find.byType(SacTopBar), findsNothing);
     expect(find.text('Autorizaciones'), findsOneWidget);
     expect(find.text('Club Alfa'), findsOneWidget);
     // Nada del inicio de un miembro: ni acceso rápido ni resumen del club.

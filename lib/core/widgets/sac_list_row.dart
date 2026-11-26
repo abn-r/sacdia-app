@@ -3,10 +3,10 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../animations/motion_tokens.dart';
 import '../theme/app_theme.dart';
-import '../theme/sac_accent.dart';
 import '../theme/sac_colors.dart';
 import '../utils/icon_helper.dart';
 import 'sac_pressable.dart';
+import 'sac_tone.dart';
 
 /// One row inside a [SacGroupedSection]: a leading avatar or icon, a title,
 /// one line under it and a chevron when it opens something.
@@ -17,6 +17,7 @@ class SacListRow extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.subtitleSpans,
+    this.subtitleWidget,
     this.subtitleColor,
     this.titleColor,
     this.trailing,
@@ -32,6 +33,10 @@ class SacListRow extends StatelessWidget {
   /// Subtitle in parts, when one part needs its own color. Wins over
   /// [subtitle].
   final List<TextSpan>? subtitleSpans;
+
+  /// Free-form second line (icon plus text, a loading bone). Wins over
+  /// [subtitleSpans] and [subtitle]; the caller owns its style.
+  final Widget? subtitleWidget;
   final Color? subtitleColor;
   final Color? titleColor;
   final Widget? trailing;
@@ -65,7 +70,11 @@ class SacListRow extends StatelessWidget {
                       color: titleColor ?? c.text,
                     ),
                   ),
-                  if (subtitleSpans != null && subtitleSpans!.isNotEmpty) ...[
+                  if (subtitleWidget != null) ...[
+                    const SizedBox(height: 2),
+                    subtitleWidget!,
+                  ] else if (subtitleSpans != null &&
+                      subtitleSpans!.isNotEmpty) ...[
                     const SizedBox(height: 2),
                     Text.rich(
                       TextSpan(children: subtitleSpans),
@@ -127,30 +136,35 @@ class SacListRow extends StatelessWidget {
   }
 }
 
-/// Square icon tile in the accent tone (or in red for a destructive row).
+/// Square icon tile tinted by [tone] (accent by default, or red for a
+/// destructive row).
 class SacListRowIcon extends StatelessWidget {
-  const SacListRowIcon(this.icon, {super.key, this.destructive = false});
+  const SacListRowIcon(
+    this.icon, {
+    super.key,
+    this.destructive = false,
+    this.tone = SacTone.accent,
+  });
 
   final HugeIconData icon;
+
+  /// Same as `tone: SacTone.error`; wins over [tone].
   final bool destructive;
+  final SacTone tone;
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    final accent = SacAccent.of(context);
+    final palette =
+        SacTonePalette.of(context, destructive ? SacTone.error : tone);
     return Container(
       width: 36,
       height: 36,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: destructive ? c.errorContainer : accent.light,
+        color: palette.container,
         borderRadius: BorderRadius.circular(AppTheme.radiusXS),
       ),
-      child: HugeIcon(
-        icon: icon,
-        size: 19,
-        color: destructive ? c.onErrorContainer : accent.color,
-      ),
+      child: HugeIcon(icon: icon, size: 19, color: palette.onContainer),
     );
   }
 }

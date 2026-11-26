@@ -85,6 +85,43 @@ void main() {
       );
     });
 
+    test('territory.name is parsed, trimmed, and absent or blank is null', () {
+      expect(
+        UserModel.fromCustomApi(_me({
+          'territory': {
+            'level': 'union',
+            'union_id': 3,
+            'name': '  Unión Sur '
+          },
+        })).authorization!.territory!.name,
+        'Unión Sur',
+      );
+      for (final raw in <Object?>[null, '   ', 7]) {
+        expect(
+          UserModel.fromCustomApi(_me({
+            'territory': {'level': 'union', 'union_id': 3, 'name': raw},
+          })).authorization!.territory!.name,
+          isNull,
+        );
+      }
+      expect(
+        UserModel.fromCustomApi(_me({
+          'territory': {'level': 'union', 'union_id': 3},
+        })).authorization!.territory!.name,
+        isNull,
+      );
+    });
+
+    test('territory.name survives toJson/fromJson', () {
+      final user = UserModel.fromCustomApi(_me({
+        'territory': {'level': 'division', 'division_id': 1, 'name': 'Div'},
+      }));
+      expect(
+        UserModel.fromJson(user.toJson()).authorization!.territory!.name,
+        'Div',
+      );
+    });
+
     test('toJson/fromJson keeps capabilities, territory and roles', () {
       final user = UserModel.fromCustomApi(_me({
         'capabilities': ['coordination.hub_view'],

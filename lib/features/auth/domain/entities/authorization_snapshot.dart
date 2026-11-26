@@ -91,15 +91,20 @@ class AuthorizationTerritory extends Equatable {
   final int? unionId;
   final int? localFieldId;
 
+  /// Nombre del territorio (`authorization.territory.name`); nulo si el
+  /// servidor no lo informa (versiones anteriores).
+  final String? name;
+
   const AuthorizationTerritory({
     required this.level,
     this.divisionId,
     this.unionId,
     this.localFieldId,
+    this.name,
   });
 
   @override
-  List<Object?> get props => [level, divisionId, unionId, localFieldId];
+  List<Object?> get props => [level, divisionId, unionId, localFieldId, name];
 }
 
 class AuthorizationSnapshot extends Equatable {

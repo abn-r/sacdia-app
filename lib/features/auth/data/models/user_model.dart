@@ -422,17 +422,20 @@ class UserModel extends UserEntity {
   }
 
   /// `authorization.territory`: `{level, division_id, union_id,
-  /// local_field_id}`. Ausente, malformado o sin `level` es nulo.
+  /// local_field_id, name?}`. Ausente, malformado o sin `level` es nulo.
   static AuthorizationTerritory? _parseTerritory(dynamic value) {
     if (value is! Map) return null;
     final level = value['level']?.toString().trim().toLowerCase();
     if (level == null || level.isEmpty) return null;
     int? id(dynamic raw) => int.tryParse(raw?.toString() ?? '');
+    final rawName = value['name'];
+    final name = rawName is String ? rawName.trim() : '';
     return AuthorizationTerritory(
       level: level,
       divisionId: id(value['division_id']),
       unionId: id(value['union_id']),
       localFieldId: id(value['local_field_id']),
+      name: name.isEmpty ? null : name,
     );
   }
 
@@ -490,6 +493,8 @@ class UserModel extends UserEntity {
               'division_id': authorization.territory!.divisionId,
               'union_id': authorization.territory!.unionId,
               'local_field_id': authorization.territory!.localFieldId,
+              if (authorization.territory!.name != null)
+                'name': authorization.territory!.name,
             },
       'assignable_global_roles': authorization.assignableGlobalRoles,
     };

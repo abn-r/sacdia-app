@@ -12,6 +12,10 @@ import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_stat_tile.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
+import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/features/dashboard/presentation/widgets/welcome_header.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/coordinator_club.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/coordinator_scope.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/evidence_review_item.dart';
@@ -120,8 +124,41 @@ final _compliance = ReportCompliance(
       const ReportCounts(expected: 13, submitted: 10, pending: 1, overdue: 2),
 );
 
+class _FakeAuthNotifier extends AuthNotifier {
+  _FakeAuthNotifier(this.user);
+
+  final UserEntity user;
+
+  @override
+  Future<UserEntity?> build() async => user;
+}
+
+/// Coordinador; sin concesiones de club es el inicio, con una es la pestaña.
+UserEntity _coordinator({bool withClub = false}) => UserEntity(
+      id: 'u1',
+      email: 'u1@example.com',
+      name: 'Mateo Herrera',
+      authorization: AuthorizationSnapshot(
+        effectivePermissions: const ['clubs:read'],
+        capabilities: const ['coordination.hub_view'],
+        activeAssignmentId: withClub ? 'a1' : null,
+        clubAssignments: withClub
+            ? const [
+                AuthorizationGrant(
+                  assignmentId: 'a1',
+                  roleName: 'counselor',
+                  clubId: 1,
+                  sectionId: 4,
+                  status: 'active',
+                ),
+              ]
+            : const [],
+      ),
+    );
+
 Future<void> _pumpHub(
   WidgetTester tester, {
+  UserEntity? user,
   FutureOr<CoordinatorScope> Function()? scope,
   FutureOr<SlaDashboard> Function()? sla,
   FutureOr<List<EvidenceReviewItem>> Function()? pending,
@@ -169,6 +206,8 @@ Future<void> _pumpHub(
   await tester.pumpWidget(
     testProviderScope(
       overrides: [
+        if (user != null)
+          authNotifierProvider.overrideWith(() => _FakeAuthNotifier(user)),
         coordinatorScopeProvider
             .overrideWith((ref) async => (scope ?? () => _scope)()),
         slaDashboardProvider.overrideWith((ref) async => (sla ?? () => _sla)()),
@@ -250,6 +289,51 @@ void main() {
         coordinatorScopeSubtitle(const CoordinatorScope(isCoordinator: true)),
         isNull,
       );
+    });
+  });
+
+  group('home without a club', () {
+    testWidgets(
+        'swaps the top bar for the greeting header with the scope line '
+        'and the section title', (tester) async {
+      await _pumpHub(tester, user: _coordinator());
+
+      expect(find.byType(WelcomeHeader), findsOneWidget);
+      expect(find.byType(SacTopBar), findsNothing);
+      expect(find.text('Mateo!'), findsOneWidget);
+      expect(find.text('Coordinación'), findsOneWidget);
+      expect(find.text('2 clubes · Distrito Norte'), findsOneWidget);
+    });
+
+    testWidgets('keeps the greeting above the empty state', (tester) async {
+      await _pumpHub(
+        tester,
+        user: _coordinator(),
+        scope: () => const CoordinatorScope(isCoordinator: true),
+      );
+
+      expect(find.byType(WelcomeHeader), findsOneWidget);
+      expect(find.byType(SacEmptyState), findsOneWidget);
+    });
+
+    testWidgets('keeps the greeting above the error state', (tester) async {
+      await _pumpHub(
+        tester,
+        user: _coordinator(),
+        scope: () => throw Exception('boom: 500'),
+      );
+
+      expect(find.byType(WelcomeHeader), findsOneWidget);
+      expect(find.byType(SacErrorState), findsOneWidget);
+    });
+
+    testWidgets('a coordinator with a club keeps the top bar (it is a tab)',
+        (tester) async {
+      await _pumpHub(tester, user: _coordinator(withClub: true));
+
+      expect(find.byType(SacTopBar), findsOneWidget);
+      expect(find.byType(WelcomeHeader), findsNothing);
+      expect(find.text('Mateo!'), findsNothing);
     });
   });
 
