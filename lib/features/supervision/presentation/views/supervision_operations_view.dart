@@ -247,7 +247,7 @@ class _Indicators extends StatelessWidget {
                     month,
                   ],
                 ),
-                strong: summary.reportsMissing > 0,
+                strong: summary.reportsNotSubmitted > 0,
               ),
           ],
           trailing: SupervisionRowValue(
@@ -403,7 +403,7 @@ List<TextSpan> _territorySpans(
         context,
         'supervision.operations.child_reports'
             .tr(args: [supervisionPercent(coverage)]),
-        strong: m.reportsMissing > 0,
+        strong: m.reportsNotSubmitted > 0,
       ),
     _dot,
     _span(
@@ -436,7 +436,7 @@ List<TextSpan> _clubSpans(
             supervisionCount(context, m.reportsExpected),
           ],
         ),
-        strong: m.reportsMissing > 0,
+        strong: m.reportsNotSubmitted > 0,
       ),
     _dot,
     _span(

@@ -5,6 +5,7 @@ import 'package:sacdia_app/features/supervision/domain/entities/supervision_oper
 Map<String, dynamic> _metrics({
   int total = 10,
   int missing = 0,
+  int drafts = 0,
   int nonOp = 0,
   Map<String, dynamic>? queues,
   Object? attribution = 'current_affiliation',
@@ -45,9 +46,9 @@ Map<String, dynamic> _metrics({
       },
       'monthly_reports': {
         'expected_sections': 20,
-        'submitted_sections': 10,
-        'draft_sections': 3,
-        'generated_sections': 2,
+        'submitted_sections': 20 - missing - drafts,
+        'draft_sections': drafts,
+        'generated_sections': 0,
         'missing_sections': missing,
         'coverage_pct': 50,
       },
@@ -76,6 +77,7 @@ Map<String, dynamic> _child(
   int id,
   String name, {
   int missing = 0,
+  int drafts = 0,
   int nonOp = 0,
   Map<String, dynamic>? queues,
   Object? level = 'union',
@@ -84,7 +86,12 @@ Map<String, dynamic> _child(
       'id': id,
       'name': name,
       'level': level,
-      ..._metrics(missing: missing, nonOp: nonOp, queues: queues),
+      ..._metrics(
+        missing: missing,
+        drafts: drafts,
+        nonOp: nonOp,
+        queues: queues,
+      ),
     };
 
 void main() {
@@ -238,8 +245,9 @@ void main() {
       expect(m.pendingTotal, 5);
     });
 
-    test('children: gaps first, then missing, non-operational, pending, name',
-        () {
+    test(
+        'children: gaps first, then not delivered, non-operational, pending, '
+        'name', () {
       const none = {
         'role_assignments_pending': 0,
         'transfers_pending': 0,
@@ -257,9 +265,11 @@ void main() {
           _child(6, 'gap nonop 2', nonOp: 2, queues: none),
           _child(7, 'Beta ok pending',
               queues: {...none, 'transfers_pending': 9}),
+          // A draft is not delivered either.
+          _child(8, 'gap draft 2', drafts: 2, queues: none),
         ],
       });
-      expect(d.children.map((c) => c.id), [5, 4, 6, 3, 7, 2, 1]);
+      expect(d.children.map((c) => c.id), [5, 8, 4, 6, 3, 7, 2, 1]);
     });
   });
 }

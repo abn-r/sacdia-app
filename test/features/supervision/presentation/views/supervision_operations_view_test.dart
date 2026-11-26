@@ -55,8 +55,110 @@ bool _isTappable(WidgetTester tester, String title) => find
     .evaluate()
     .isNotEmpty;
 
+/// Weight of the span that carries [text], wherever it is drawn.
+FontWeight? _spanWeight(WidgetTester tester, String text) {
+  for (final rich in tester.widgetList<RichText>(find.byType(RichText))) {
+    FontWeight? weight;
+    var found = false;
+    rich.text.visitChildren((span) {
+      if (span is TextSpan && span.text == text) {
+        found = true;
+        weight = span.style?.fontWeight;
+        return false;
+      }
+      return true;
+    });
+    if (found) return weight;
+  }
+  fail('No span with the text "$text"');
+}
+
 void main() {
   setUpAll(initSupervisionViewTests);
+
+  group('reports not delivered', () {
+    test('counts drafts and generated ones, not only the never started', () {
+      final m = metrics(
+        reportsExpected: 4,
+        reportsSubmitted: 1,
+        reportsMissing: 0,
+        nonOperationalClubs: 0,
+      );
+
+      expect(m.reportsNotSubmitted, 3);
+      expect(m.hasGap, isTrue);
+    });
+
+    test('is never negative and everything delivered is no gap', () {
+      final m = metrics(
+        reportsExpected: 2,
+        reportsSubmitted: 3,
+        reportsMissing: 0,
+        nonOperationalClubs: 0,
+      );
+
+      expect(m.reportsNotSubmitted, 0);
+      expect(m.hasGap, isFalse);
+    });
+
+    testWidgets('the reports caption reads darker with a draft pending', (
+      tester,
+    ) async {
+      final d = dashboard(
+        summary: metrics(
+          reportsExpected: 4,
+          reportsSubmitted: 1,
+          reportsMissing: 0,
+        ),
+      );
+      await _pump(tester, repo: _repoWith(d));
+
+      expect(
+        _spanWeight(tester, '1 de 4 secciones · octubre'),
+        FontWeight.w500,
+      );
+    });
+
+    testWidgets('the reports caption stays quiet with everything delivered', (
+      tester,
+    ) async {
+      final d = dashboard(
+        summary: metrics(
+          reportsExpected: 4,
+          reportsSubmitted: 4,
+          reportsMissing: 0,
+        ),
+      );
+      await _pump(tester, repo: _repoWith(d));
+
+      expect(_spanWeight(tester, '4 de 4 secciones · octubre'), isNull);
+    });
+
+    testWidgets('a club with a draft pending reads darker in the list', (
+      tester,
+    ) async {
+      final d = dashboard(
+        level: _localField,
+        children: [
+          opsChild(
+            11,
+            'Club Orión',
+            _club,
+            m: metrics(
+              reportsExpected: 3,
+              reportsSubmitted: 1,
+              reportsMissing: 0,
+              nonOperationalClubs: 0,
+              operationalClubs: 1,
+            ),
+          ),
+        ],
+      );
+      await _pump(tester, repo: _repoWith(d));
+
+      expect(_spanWeight(tester, 'Informes: 1 de 3'), FontWeight.w500);
+    });
+  });
 
   group('load states', () {
     testWidgets('shows the skeleton, then the content', (tester) async {

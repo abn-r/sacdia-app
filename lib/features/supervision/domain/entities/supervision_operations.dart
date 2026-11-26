@@ -176,7 +176,14 @@ class SupervisionOperationsMetrics extends Equatable {
   /// Sum of the five queues, a null queue counting as 0.
   final int pendingTotal;
 
-  bool get hasGap => reportsMissing > 0 || nonOperationalClubs > 0;
+  /// Expected reports not delivered yet: never started, still a draft or
+  /// generated without sending. `reportsMissing` only counts the first kind.
+  int get reportsNotSubmitted {
+    final gap = reportsExpected - reportsSubmitted;
+    return gap > 0 ? gap : 0;
+  }
+
+  bool get hasGap => reportsNotSubmitted > 0 || nonOperationalClubs > 0;
 
   static const SupervisionOperationsMetrics empty =
       SupervisionOperationsMetrics(
