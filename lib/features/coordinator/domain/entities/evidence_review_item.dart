@@ -75,18 +75,30 @@ class EvidenceFile extends Equatable {
     this.mimeType,
   });
 
+  static const _imageExtensions = {'.jpg', '.jpeg', '.png', '.webp'};
+
+  /// Extension of the file, from the URL path or else the file name. A
+  /// signed URL ends in its query ("photo.jpg?X-Amz-Signature=..."), so the
+  /// raw URL never ends in ".jpg".
+  String get _extension {
+    String ext(String path) {
+      final dot = path.lastIndexOf('.');
+      final slash = path.lastIndexOf('/');
+      return dot > slash ? path.substring(dot).toLowerCase() : '';
+    }
+
+    final fromUrl = ext(Uri.tryParse(url)?.path ?? url);
+    return fromUrl.isNotEmpty ? fromUrl : ext(name ?? '');
+  }
+
   bool get isImage {
     final mt = mimeType?.toLowerCase() ?? '';
-    return mt.startsWith('image/') ||
-        url.toLowerCase().endsWith('.jpg') ||
-        url.toLowerCase().endsWith('.jpeg') ||
-        url.toLowerCase().endsWith('.png') ||
-        url.toLowerCase().endsWith('.webp');
+    return mt.startsWith('image/') || _imageExtensions.contains(_extension);
   }
 
   bool get isPdf {
     return (mimeType?.toLowerCase().contains('pdf') ?? false) ||
-        url.toLowerCase().endsWith('.pdf');
+        _extension == '.pdf';
   }
 
   @override

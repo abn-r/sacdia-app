@@ -296,7 +296,7 @@ void main() {
         ),
       );
 
-      expect(find.text('1.234.567'), findsOneWidget);
+      expect(find.text('1,234,567'), findsOneWidget);
     });
 
     testWidgets('null overview shows the note and no figures group', (
@@ -335,7 +335,7 @@ void main() {
 
       expect(find.text('SECCIONES'), findsOneWidget);
       expect(find.text('Conquistadores'), findsOneWidget);
-      expect(find.text('Meta de miembros: 1.500'), findsOneWidget);
+      expect(find.text('Meta de miembros: 1,500'), findsOneWidget);
       expect(find.text('Aventureros'), findsOneWidget);
       expect(find.text('Inactiva'), findsOneWidget);
       expect(find.text('Inactiva · Meta de miembros: 20'), findsOneWidget);

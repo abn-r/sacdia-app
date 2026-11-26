@@ -268,14 +268,8 @@ void main() {
         ]),
       );
 
-      final grouped = NumberFormat.decimalPattern('es');
-      expect(
-        find.text(
-          'Entregados: ${grouped.format(1000)} de ${grouped.format(1234567)}',
-        ),
-        findsOneWidget,
-      );
-      expect(grouped.format(1234567), isNot('1234567'));
+      // Spanish groups thousands the Mexican way.
+      expect(find.text('Entregados: 1,000 de 1,234,567'), findsOneWidget);
     });
 
     testWidgets('shows the due date when the period has one', (tester) async {

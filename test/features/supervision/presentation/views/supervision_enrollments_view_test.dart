@@ -580,8 +580,7 @@ void main() {
       await _pump(tester, repo: repo);
       await _openSheet(tester, 'Club 1');
 
-      final expected = intl.NumberFormat('#,##0.##', 'es').format(1500);
-      expect(_row('Cuota', expected), findsOneWidget);
+      expect(_row('Cuota', r'$1,500.00'), findsOneWidget);
       expect(_rowLabel('Cuota'), findsOneWidget);
     });
 
