@@ -7967,7 +7967,8 @@
       "top_tier": "Already holds the top medal",
       "unconfigured": "Not configured",
       "clubs_count": "{} clubs",
-      "clubs_count_one": "{} club"
+      "clubs_count_one": "{} club",
+      "gold_or_better": "{} with Gold or higher"
     },
     "union_camporees": {
       "title": "Union camporee",

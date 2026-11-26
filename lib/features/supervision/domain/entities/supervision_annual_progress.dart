@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 /// A union or local field the actor can pick.
 ///
-/// [clubsCount] and [configured] come from
+/// [clubsCount], [configured] and [goldOrBetterCount] come from
 /// `GET /annual-rankings/territory-summary`; they stay null when the server
 /// is older than that endpoint (names only, from the catalogs).
 class SupervisionTerritoryOption extends Equatable {
@@ -11,6 +11,7 @@ class SupervisionTerritoryOption extends Equatable {
     this.name = '',
     this.clubsCount,
     this.configured,
+    this.goldOrBetterCount,
   });
 
   final int id;
@@ -22,8 +23,13 @@ class SupervisionTerritoryOption extends Equatable {
   /// False: it has no annual configuration yet. Null: not known.
   final bool? configured;
 
+  /// Clubs with at least one section at gold or better. Null: the server has
+  /// not computed it yet for the year, or does not send it. Never read as 0.
+  final int? goldOrBetterCount;
+
   @override
-  List<Object?> get props => [id, name, clubsCount, configured];
+  List<Object?> get props =>
+      [id, name, clubsCount, configured, goldOrBetterCount];
 }
 
 class SupervisionProgressTier extends Equatable {

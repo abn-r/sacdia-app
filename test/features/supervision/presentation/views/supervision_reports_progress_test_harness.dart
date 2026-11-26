@@ -209,12 +209,14 @@ SupervisionTerritoryOption territoryOption(
   String name, {
   int? clubsCount,
   bool? configured,
+  int? goldOrBetterCount,
 }) =>
     SupervisionTerritoryOption(
       id: id,
       name: name,
       clubsCount: clubsCount,
       configured: configured,
+      goldOrBetterCount: goldOrBetterCount,
     );
 
 SupervisionProgressComponent component(

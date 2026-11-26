@@ -101,6 +101,30 @@ void main() {
       expect(unions.map((e) => e.configured), [null, null]);
     });
 
+    test(
+        'the gold-or-better count is read as sent; null, missing, malformed '
+        'or negative stays unknown, never 0', () async {
+      final ds = _ds((o, h) {
+        h.resolve(Response<Object>(requestOptions: o, statusCode: 200, data: {
+          'data': [
+            {'id': 1, 'name': 'A', 'gold_or_better_count': 3},
+            {'id': 2, 'name': 'B', 'gold_or_better_count': 0},
+            {'id': 3, 'name': 'C', 'gold_or_better_count': null},
+            {'id': 4, 'name': 'D'},
+            {'id': 5, 'name': 'E', 'gold_or_better_count': 'x'},
+            {'id': 6, 'name': 'F', 'gold_or_better_count': -1},
+          ],
+        }));
+      });
+
+      final unions = await ds.getUnions(5);
+
+      expect(
+        unions.map((e) => e.goldOrBetterCount),
+        [3, 0, null, null, null, null],
+      );
+    });
+
     test('a 403 on the summary is a forbidden failure, not a fallback',
         () async {
       final paths = <String>[];

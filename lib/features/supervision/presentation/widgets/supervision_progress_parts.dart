@@ -272,8 +272,12 @@ class SupervisionAxisBar extends StatelessWidget {
 // ── Union / local field pickers ─────────────────────────────────────────────
 
 /// A union or local field: tinted building icon, name and what the server
-/// says about it («8 clubes», or «Sin configurar» in warning). With names
-/// only (an older server) there is no second line.
+/// says about it («8 clubes · 3 con Oro o más», or «Sin configurar» in
+/// warning). With names only (an older server) there is no second line.
+///
+/// The gold count shows only when the server computed it (never a null read
+/// as 0), the territory has clubs and it is configured: without an annual
+/// configuration no club can hold a medal, so the number would say nothing.
 class SupervisionTerritoryRow extends StatelessWidget {
   const SupervisionTerritoryRow({
     super.key,
@@ -296,6 +300,11 @@ class SupervisionTerritoryRow extends StatelessWidget {
                 ? 'supervision.annual_progress.clubs_count_one'
                 : 'supervision.annual_progress.clubs_count')
             .tr(args: [supervisionCount(context, count)]);
+    final gold = option.goldOrBetterCount;
+    final goldText = gold == null || unconfigured || count == null || count == 0
+        ? null
+        : 'supervision.annual_progress.gold_or_better'
+            .tr(args: [supervisionCount(context, gold)]);
     final style = TextStyle(
       fontSize: SacFontSize.bodyMedium,
       height: 1.3,
@@ -313,6 +322,7 @@ class SupervisionTerritoryRow extends StatelessWidget {
               TextSpan(
                 children: [
                   if (countText != null) TextSpan(text: countText),
+                  if (goldText != null) TextSpan(text: ' · $goldText'),
                   if (countText != null && unconfigured)
                     const TextSpan(text: ' · '),
                   if (unconfigured)
