@@ -20,6 +20,7 @@ import '../../../../core/network/network_info.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../../providers/storage_provider.dart';
 import '../../data/datasources/auth_remote_data_source.dart';
+import '../../data/models/user_model.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/authorization_snapshot.dart';
 import '../../domain/entities/delete_account_reauth.dart';
@@ -366,6 +367,17 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     unawaited(_exitActing(notice: ActingNotice.accessRevoked));
   }
 
+  /// Territorio guardado por `_cacheUser`; ilegible o ausente es nulo (el
+  /// inicio cae a la etiqueta del nivel, como con un servidor sin territorio).
+  AuthorizationTerritory? _decodeCachedTerritory(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return null;
+    try {
+      return UserModel.parseTerritory(jsonDecode(raw));
+    } catch (_) {
+      return null;
+    }
+  }
+
   List<String> _decodeCachedPermissions(String? rawPermissions) {
     if (rawPermissions == null || rawPermissions.trim().isEmpty) {
       return const [];
@@ -458,6 +470,9 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     );
     final cachedAuthorizationFetchedAt =
         await secureStorage.read(AppConstants.cachedAuthorizationFetchedAt);
+    final cachedTerritory = _decodeCachedTerritory(
+      await secureStorage.read(AppConstants.cachedAuthorizationTerritory),
+    );
     final prefs = ref.read(sharedPreferencesProvider);
 
     AppLogger.i('Token encontrado, validando con /auth/me', tag: _tag);
@@ -528,13 +543,16 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
                 clubAssignments: [cachedGrant],
                 activeAssignmentId: cachedAssignmentId,
                 capabilities: cachedCapabilities,
+                territory: cachedTerritory,
               );
             } else if (cachedCapabilities.isNotEmpty) {
               // Sin club activo (pastor, coordinador, tutor sin club) las
               // capacidades globales siguen decidiendo el inicio y las
-              // pestañas.
+              // pestañas, y el territorio pone su nombre en el inicio de
+              // supervisión.
               cachedAuthorization = AuthorizationSnapshot(
                 capabilities: cachedCapabilities,
+                territory: cachedTerritory,
               );
             }
             AppLogger.i(
@@ -657,6 +675,18 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       );
     } else {
       secureStorage.delete(AppConstants.cachedAuthorizationCapabilities);
+    }
+    // Territorio: sin red, el inicio de supervisión sigue diciendo de qué
+    // unión o división es. Solo se guarda lo que el servidor mandó.
+    final territoryJson =
+        UserModel.territoryToJson(user.authorization?.territory);
+    if (territoryJson != null) {
+      secureStorage.write(
+        AppConstants.cachedAuthorizationTerritory,
+        jsonEncode(territoryJson),
+      );
+    } else {
+      secureStorage.delete(AppConstants.cachedAuthorizationTerritory);
     }
     // Lo restaurado de caché no renueva su marca de tiempo: solo una
     // respuesta fresca de `/auth/me`.
@@ -1789,6 +1819,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     secureStorage.delete(AppConstants.cachedActiveSectionId);
     secureStorage.delete(AppConstants.cachedActiveClubTypeId);
     secureStorage.delete(AppConstants.cachedAuthorizationCapabilities);
+    secureStorage.delete(AppConstants.cachedAuthorizationTerritory);
     secureStorage.delete(AppConstants.cachedAuthorizationFetchedAt);
 
     final prefs = ref.read(sharedPreferencesProvider);
@@ -1861,6 +1892,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         secureStorage.delete(AppConstants.cachedActiveSectionId);
         secureStorage.delete(AppConstants.cachedActiveClubTypeId);
         secureStorage.delete(AppConstants.cachedAuthorizationCapabilities);
+        secureStorage.delete(AppConstants.cachedAuthorizationTerritory);
         secureStorage.delete(AppConstants.cachedAuthorizationFetchedAt);
 
         return true;

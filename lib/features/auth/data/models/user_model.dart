@@ -421,6 +421,24 @@ class UserModel extends UserEntity {
     );
   }
 
+  /// Lectura y escritura del territorio en el mismo formato que `/auth/me`.
+  /// Públicas para la caché sin red de `AuthNotifier`.
+  static AuthorizationTerritory? parseTerritory(dynamic value) =>
+      _parseTerritory(value);
+
+  static Map<String, dynamic>? territoryToJson(
+    AuthorizationTerritory? territory,
+  ) =>
+      territory == null
+          ? null
+          : {
+              'level': territory.level,
+              'division_id': territory.divisionId,
+              'union_id': territory.unionId,
+              'local_field_id': territory.localFieldId,
+              if (territory.name != null) 'name': territory.name,
+            };
+
   /// `authorization.territory`: `{level, division_id, union_id,
   /// local_field_id, name?}`. Ausente, malformado o sin `level` es nulo.
   static AuthorizationTerritory? _parseTerritory(dynamic value) {
@@ -486,16 +504,7 @@ class UserModel extends UserEntity {
         'assignment_id': authorization.activeAssignmentId,
       },
       'capabilities': authorization.capabilities,
-      'territory': authorization.territory == null
-          ? null
-          : {
-              'level': authorization.territory!.level,
-              'division_id': authorization.territory!.divisionId,
-              'union_id': authorization.territory!.unionId,
-              'local_field_id': authorization.territory!.localFieldId,
-              if (authorization.territory!.name != null)
-                'name': authorization.territory!.name,
-            },
+      'territory': territoryToJson(authorization.territory),
       'assignable_global_roles': authorization.assignableGlobalRoles,
     };
   }
