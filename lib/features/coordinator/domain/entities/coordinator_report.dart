@@ -22,7 +22,8 @@ class CoordinatorReport {
   /// Raw backend status: draft | generated | submitted.
   final String status;
 
-  /// Absent: the monthly admin list exposes club_name only.
+  /// `club_id` of the monthly admin list: the club of the report's section.
+  /// Null when the section has no club or the server is older than the field.
   final int? clubId;
   final String? clubName;
   final int? clubTypeId;
@@ -43,9 +44,9 @@ class CoordinatorReport {
 
 /// Matches report rows to the compliance clubs.
 ///
-/// Monthly rows only carry the club name and club type, so they match by
-/// name, and only when that name is unique among [clubs], so an ambiguous
-/// name never shows another club's PDF.
+/// A row matches by its `club_id`. Without one (an older server, or a section
+/// with no club) it falls back to the club name, and only when that name is
+/// unique among [clubs], so an ambiguous name never shows another club's PDF.
 Map<int, List<CoordinatorReport>> groupReportsByClub(
   List<ClubReportCompliance> clubs,
   List<CoordinatorReport> reports,
