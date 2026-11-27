@@ -4,7 +4,7 @@ import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
-import 'package:sacdia_app/core/theme/sac_accent.dart';
+import 'package:sacdia_app/core/widgets/sac_tone.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
@@ -164,7 +164,7 @@ class WelcomeHeader extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: SacAccent.of(context).light,
+                  color: SacTonePalette.of(context, SacTone.accent).container,
                   width: 2,
                 ),
               ),
@@ -204,15 +204,18 @@ class _AvatarFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The accent tone is theme-aware: the pastel in light, a tint over the
+    // dark surface in dark (the pastel glares there).
+    final tone = SacTonePalette.of(context, SacTone.accent);
     return Container(
-      color: SacAccent.of(context).light,
+      color: tone.container,
       alignment: Alignment.center,
       child: Text(
         initial.isNotEmpty ? initial[0].toUpperCase() : 'U',
         style: TextStyle(
           fontSize: SacFontSize.headlineSmall,
           fontWeight: FontWeight.w700,
-          color: SacAccent.of(context).color,
+          color: tone.onContainer,
         ),
       ),
     );

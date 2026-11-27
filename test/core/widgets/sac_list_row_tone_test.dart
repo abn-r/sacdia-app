@@ -12,8 +12,11 @@ Widget _host(Widget child) => MaterialApp(
       home: Scaffold(body: child),
     );
 
+// Keyed by accent: without a new MaterialApp the theme change animates and
+// the first frame still carries the previous accent.
 Widget _darkHost(Widget child, {SacAccent accent = SacAccent.logoBlue}) =>
     MaterialApp(
+      key: ValueKey(accent.id),
       theme: AppTheme.buildDark(accent),
       home: Scaffold(body: child),
     );
@@ -66,8 +69,9 @@ void main() {
     expect(tile.computeLuminance(), lessThan(0.1));
   });
 
-  testWidgets('in dark every accent keeps its icon readable on the tile',
+  testWidgets('in dark every accent reads on its tile at text contrast (4.5:1)',
       (tester) async {
+    final seen = <Color>{};
     for (final accent in SacAccent.catalog) {
       await tester.pumpWidget(
         _darkHost(
@@ -75,16 +79,21 @@ void main() {
           accent: accent,
         ),
       );
-      final palette = SacTonePalette.of(
-        tester.element(find.byType(SacListRowIcon)),
-        SacTone.accent,
-      );
+      final context = tester.element(find.byType(SacListRowIcon));
+      // The theme really is this accent's, not the previous one's.
+      expect(SacAccent.of(context).id, accent.id);
+      final palette = SacTonePalette.of(context, SacTone.accent);
+      seen.add(palette.container);
       expect(
         _contrast(palette.onContainer, palette.container),
-        greaterThanOrEqualTo(3),
+        greaterThanOrEqualTo(4.5),
         reason: accent.id,
       );
+      expect(palette.container.computeLuminance(), lessThan(0.1),
+          reason: accent.id);
     }
+    // Different accents give different tiles: the loop is not measuring one.
+    expect(seen.length, greaterThan(1));
   });
 
   testWidgets('SacListRowIcon destructive keeps the error tint',
