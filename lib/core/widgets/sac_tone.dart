@@ -26,12 +26,18 @@ class SacTonePalette {
           // `accent.light` is a pastel and glares on the dark theme. Same
           // recipe as SacBadge primary (DESIGN-SYSTEM §6.2): the accent
           // tinted over the dark surface, with a foreground that reads on it.
+          final container = Color.alphaBlend(
+            accent.color.withValues(alpha: 0.2),
+            c.surface,
+          );
           return SacTonePalette(
-            container: Color.alphaBlend(
-              accent.color.withValues(alpha: 0.2),
-              c.surface,
+            container: container,
+            // `forHighContrast` reaches 4.5:1 against black; the tile is
+            // lighter than black, so lift it until it reads on the tile too.
+            onContainer: _liftUntilReadable(
+              accent.forHighContrast(Brightness.dark).color,
+              container,
             ),
-            onContainer: accent.forHighContrast(Brightness.dark).color,
             solid: accent.color,
           );
         }
@@ -71,6 +77,26 @@ class SacTonePalette {
           solid: c.error,
         );
     }
+  }
+
+  /// Lightens [color], keeping its hue, until it reaches 4.5:1 (WCAG AA for
+  /// text) against [background]. For foregrounds on a dark container.
+  static Color _liftUntilReadable(Color color, Color background) {
+    var hsl = HSLColor.fromColor(color);
+    for (var i = 0; i < 24; i++) {
+      final next = hsl.toColor();
+      if (_contrast(next, background) >= 4.5) return next;
+      hsl = hsl.withLightness((hsl.lightness + 0.03).clamp(0.0, 0.95));
+    }
+    return hsl.toColor();
+  }
+
+  static double _contrast(Color a, Color b) {
+    final la = a.computeLuminance();
+    final lb = b.computeLuminance();
+    final hi = la > lb ? la : lb;
+    final lo = la > lb ? lb : la;
+    return (hi + 0.05) / (lo + 0.05);
   }
 
   /// Tinted background (icon tile, chip).
