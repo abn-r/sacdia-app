@@ -241,6 +241,101 @@ void main() {
       );
     }, timeout: const Timeout(Duration(seconds: 15)));
 
+    test(
+        'a session restored from the cache with nothing but capabilities is '
+        'a server that does not answer, not an account without a role',
+        () async {
+      // What the offline restore builds for an account without a club
+      // (supervision, coordination, pastor): capabilities only.
+      const restored = UserEntity(
+        id: 'test-id',
+        email: 'test@test.com',
+        postRegisterComplete: true,
+        authorization: AuthorizationSnapshot(
+          capabilities: ['supervision.app_view'],
+        ),
+        authorizationStale: true,
+      );
+      expect(AppBootstrapNotifier.hasNoAssignedRole(restored), isFalse);
+
+      final container = await _makeContainer(restored);
+
+      final state = await container.read(appBootstrapProvider.future);
+      expect(state, isA<AppBootstrapError>());
+      expect(
+        (state as AppBootstrapError).kind,
+        AppBootstrapErrorKind.serverUnreachable,
+      );
+      expect(state.message, 'core.bootstrap.server_unreachable');
+    }, timeout: const Timeout(Duration(seconds: 15)));
+
+    test(
+        'a session restored from the cache without any snapshot is also a '
+        'server that does not answer', () async {
+      const restored = UserEntity(
+        id: 'test-id',
+        email: 'test@test.com',
+        postRegisterComplete: true,
+        authorizationStale: true,
+      );
+
+      final container = await _makeContainer(restored);
+
+      final state = await container.read(appBootstrapProvider.future);
+      expect(
+        (state as AppBootstrapError).kind,
+        AppBootstrapErrorKind.serverUnreachable,
+      );
+    }, timeout: const Timeout(Duration(seconds: 15)));
+
+    test(
+        'retry() keeps the session when the server still does not answer: '
+        'no sign-out', () async {
+      const restored = UserEntity(
+        id: 'test-id',
+        email: 'test@test.com',
+        postRegisterComplete: true,
+        authorization: AuthorizationSnapshot(
+          capabilities: ['supervision.app_view'],
+        ),
+        authorizationStale: true,
+      );
+      final fakeAuth = _MutableFakeAuthNotifier(restored);
+      final container = await _makeFullContainer(fakeAuth);
+
+      await container.read(appBootstrapProvider.future);
+      await container.read(appBootstrapProvider.notifier).retry();
+
+      final state = container.read(appBootstrapProvider).value;
+      expect(state, isA<AppBootstrapError>());
+      expect(
+        (state! as AppBootstrapError).kind,
+        AppBootstrapErrorKind.serverUnreachable,
+      );
+      // The cached session is still there for the next attempt.
+      expect(container.read(authNotifierProvider).value, isNotNull);
+    }, timeout: const Timeout(Duration(seconds: 20)));
+
+    test('retry() enters once the server answers again', () async {
+      const restored = UserEntity(
+        id: 'test-id',
+        email: 'test@test.com',
+        postRegisterComplete: true,
+        authorizationStale: true,
+      );
+      final fakeAuth = _MutableFakeAuthNotifier(restored);
+      final container = await _makeFullContainer(fakeAuth);
+
+      await container.read(appBootstrapProvider.future);
+      fakeAuth.user = _buildValidUser();
+      await container.read(appBootstrapProvider.notifier).retry();
+
+      expect(
+        container.read(appBootstrapProvider).value,
+        isA<AppBootstrapReady>(),
+      );
+    }, timeout: const Timeout(Duration(seconds: 20)));
+
     test('retry() succeeds when auth becomes valid', () async {
       final invalidUser = _buildUser(); // empty permissions
       final fakeAuth = _MutableFakeAuthNotifier(invalidUser);

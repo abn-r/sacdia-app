@@ -5182,7 +5182,8 @@
     "bootstrap": {
       "unexpected_session_error": "Unexpected error verifying session",
       "permissions_load_failed": "We could not load your permissions",
-      "no_role_assigned": "Your account does not have a role yet. Ask your club director to assign one."
+      "no_role_assigned": "Your account does not have a role yet. Ask your club director to assign one.",
+      "server_unreachable": "We could not reach the server. Check your connection and try again."
     },
     "dialog": {
       "cancel": "Cancel"

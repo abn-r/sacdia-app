@@ -58,6 +58,12 @@ enum AppBootstrapErrorKind {
   /// `/auth/me` answered with an authorization snapshot that has no grants
   /// and no permissions: the account simply has no role yet. Not a failure.
   noRole,
+
+  /// `/auth/me` did not answer and the session was restored from the cache
+  /// ([UserEntity.authorizationStale]). The cache cannot say whether the
+  /// account has a role, so this is a connection problem, never "no role".
+  /// A retry that still cannot reach the server keeps the session.
+  serverUnreachable,
 }
 
 /// Auto-retries exhausted — splash shows retry button.
@@ -152,6 +158,7 @@ class AppBootstrapNotifier extends AsyncNotifier<AppBootstrapState> {
     }
 
     AppLogger.w('Auto-retries exhausted', tag: _tag);
+    if (lastUser.authorizationStale) return _serverUnreachable();
     if (hasNoAssignedRole(lastUser)) {
       return AppBootstrapError(
         tr('core.bootstrap.no_role_assigned'),
@@ -165,12 +172,21 @@ class AppBootstrapNotifier extends AsyncNotifier<AppBootstrapState> {
     );
   }
 
+  AppBootstrapError _serverUnreachable() => AppBootstrapError(
+        tr('core.bootstrap.server_unreachable'),
+        _autoRetryCount,
+        kind: AppBootstrapErrorKind.serverUnreachable,
+      );
+
   /// True when `/auth/me` delivered an authorization snapshot that is empty:
   /// no global roles, no club assignments and no permissions. A null snapshot
   /// means it was not loaded (e.g. offline without cache) — that is a load
-  /// failure, not "no role".
+  /// failure, not "no role". A snapshot restored from the cache is not the
+  /// server's answer either: it only carries capabilities for an account
+  /// without a club, so it looks empty while the account does have a role.
   @visibleForTesting
   static bool hasNoAssignedRole(UserEntity user) {
+    if (user.authorizationStale) return false;
     final auth = user.authorization;
     if (auth == null) return false;
     return auth.globalGrants.isEmpty &&
@@ -201,7 +217,10 @@ class AppBootstrapNotifier extends AsyncNotifier<AppBootstrapState> {
   }
 
   /// Manual retry triggered by splash "Reintentar" button.
-  /// One attempt — if it fails, nuclear reset and redirect to login.
+  /// One attempt — if it fails, nuclear reset and redirect to login. The
+  /// exception is a server that still does not answer: the session came from
+  /// the cache and is kept, because signing the user out would leave them
+  /// unable to sign in again until the server is back.
   Future<void> retry() async {
     AppLogger.d('Manual retry triggered', tag: _tag);
     state = const AsyncLoading();
@@ -214,6 +233,11 @@ class AppBootstrapNotifier extends AsyncNotifier<AppBootstrapState> {
       if (user != null && _isValidAuthorization(user)) {
         _autoRetryCount = 0;
         state = const AsyncData(AppBootstrapReady());
+        return;
+      }
+      if (user != null && user.authorizationStale) {
+        AppLogger.w('Manual retry: server still unreachable', tag: _tag);
+        state = AsyncData(_serverUnreachable());
         return;
       }
     } finally {

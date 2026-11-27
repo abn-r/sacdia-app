@@ -41,9 +41,12 @@ class SacTonePalette {
             solid: accent.color,
           );
         }
+        // `accent.dark` is the shade built to read on `accent.light` (4.5:1
+        // or more for every accent); `accent.color` on it drops to 1.4:1 with
+        // the lighter accents. Same pairing as SacBadge primary.
         return SacTonePalette(
           container: accent.light,
-          onContainer: accent.color,
+          onContainer: accent.dark,
           solid: accent.color,
         );
       case SacTone.success:

@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
+import 'package:sacdia_app/core/widgets/sac_tone.dart';
 
 /// Centered avatar of the edit profile screen with a camera badge and the
 /// "Change photo" text button. Avatar, badge and button all call [onTap].
@@ -70,7 +71,10 @@ class EditProfileAvatar extends StatelessWidget {
                         child: CircularProgressIndicator(
                           strokeWidth: 3,
                           color: accent.color,
-                          backgroundColor: accent.light,
+                          // Track of the ring: theme-aware, like the tile.
+                          backgroundColor:
+                              SacTonePalette.of(context, SacTone.accent)
+                                  .container,
                         ),
                       ),
                     ClipOval(
@@ -135,15 +139,21 @@ class _Photo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = SacAccent.of(context);
+    final tone = SacTonePalette.of(context, SacTone.accent);
+    // Light keeps its soft `accent.surface`; in dark that pastel glares, so
+    // the circle takes the accent tint over the dark surface.
+    final background = Theme.of(context).brightness == Brightness.dark
+        ? tone.container
+        : accent.surface;
     final initials = ColoredBox(
-      color: accent.surface,
+      color: background,
       child: Center(
         child: Text(
           name.trim().isNotEmpty ? name.trim()[0].toUpperCase() : 'U',
           style: TextStyle(
             fontSize: SacFontSize.metricSmall,
             fontWeight: FontWeight.w700,
-            color: accent.color,
+            color: tone.onContainer,
           ),
         ),
       ),
@@ -155,7 +165,7 @@ class _Photo extends StatelessWidget {
       fit: BoxFit.cover,
       memCacheWidth: 276,
       memCacheHeight: 276,
-      placeholder: (_, __) => ColoredBox(color: accent.surface),
+      placeholder: (_, __) => ColoredBox(color: background),
       errorWidget: (_, __, ___) => initials,
     );
   }

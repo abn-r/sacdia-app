@@ -49,13 +49,14 @@ void main() {
     expect(find.text('0'), findsNothing);
   });
 
-  testWidgets('in light the avatar fallback keeps the accent pastel',
-      (tester) async {
+  testWidgets(
+      'in light the avatar fallback keeps the accent pastel, with the '
+      'initial in the shade that reads on it', (tester) async {
     await pumpHeader(tester, unreadCount: 0, theme: AppTheme.lightTheme);
     final accent = SacAccent.of(tester.element(find.text('A')));
 
     expect(fallbackOf(tester).color, accent.light);
-    expect(initialColorOf(tester), accent.color);
+    expect(initialColorOf(tester), accent.dark);
   });
 
   testWidgets(

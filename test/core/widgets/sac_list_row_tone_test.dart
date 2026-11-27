@@ -96,6 +96,32 @@ void main() {
     expect(seen.length, greaterThan(1));
   });
 
+  testWidgets(
+      'in light every accent reads on its pastel tile at text contrast '
+      '(4.5:1)', (tester) async {
+    for (final accent in SacAccent.catalog) {
+      await tester.pumpWidget(
+        MaterialApp(
+          key: ValueKey('light-${accent.id}'),
+          theme: AppTheme.buildLight(accent),
+          home: const Scaffold(
+            body: SacListRowIcon(HugeIcons.strokeRoundedFolder01),
+          ),
+        ),
+      );
+      final context = tester.element(find.byType(SacListRowIcon));
+      expect(SacAccent.of(context).id, accent.id);
+      final palette = SacTonePalette.of(context, SacTone.accent);
+      expect(palette.container, accent.light, reason: accent.id);
+      expect(palette.onContainer, accent.dark, reason: accent.id);
+      expect(
+        _contrast(palette.onContainer, palette.container),
+        greaterThanOrEqualTo(4.5),
+        reason: accent.id,
+      );
+    }
+  });
+
   testWidgets('SacListRowIcon destructive keeps the error tint',
       (tester) async {
     await tester.pumpWidget(
