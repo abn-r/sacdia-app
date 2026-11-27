@@ -480,6 +480,54 @@ void main() {
       expect(repo.meCalls - calls, 1);
     });
 
+    test(
+        'an account without a club restores its territory, so the '
+        'supervision home keeps its name offline', () async {
+      final storage = FakeSecureStorage();
+      storage.write(AppConstants.cachedUserId, 'adult-1');
+      storage.write(AppConstants.cachedUserEmail, 'adult-1@example.com');
+      storage.write(
+        AppConstants.cachedAuthorizationCapabilities,
+        jsonEncode(['supervision.app_view']),
+      );
+      storage.write(
+        AppConstants.cachedAuthorizationTerritory,
+        jsonEncode({
+          'level': 'union',
+          'division_id': 2,
+          'union_id': 20,
+          'local_field_id': null,
+          'name': 'Unión Norte',
+        }),
+      );
+      final repo = _Repo(const Left(NetworkFailure(message: 'offline')));
+      final c = await build(repo, storage: storage);
+
+      final user = c.read(authNotifierProvider).value!;
+      expect(user.authorizationStale, isTrue);
+      expect(
+        user.authorization!.territory,
+        const AuthorizationTerritory(
+          level: 'union',
+          divisionId: 2,
+          unionId: 20,
+          name: 'Unión Norte',
+        ),
+      );
+    });
+
+    test('an unreadable cached territory restores as none, not a crash',
+        () async {
+      final storage = cachedSession();
+      storage.write(AppConstants.cachedAuthorizationTerritory, '{not json');
+      final repo = _Repo(const Left(NetworkFailure(message: 'offline')));
+      final c = await build(repo, storage: storage);
+
+      final user = c.read(authNotifierProvider).value!;
+      expect(user.authorizationStale, isTrue);
+      expect(user.authorization!.territory, isNull);
+    });
+
     test('a session without cached capabilities restores with none (deny)',
         () async {
       final storage = cachedSession();
@@ -514,15 +562,60 @@ void main() {
       );
     });
 
-    test('expiring the session deletes both keys', () async {
+    test('a fresh /auth/me caches the territory; one without it clears it',
+        () async {
+      const territory = AuthorizationTerritory(
+        level: 'union',
+        divisionId: 2,
+        unionId: 20,
+        name: 'Unión Norte',
+      );
       final storage = FakeSecureStorage();
-      final repo = _Repo(Right(_me()));
+      final repo = _Repo(Right(_me(territory: territory)));
       final c = await build(repo, storage: storage);
+
+      expect(
+        jsonDecode(
+          (await storage.read(AppConstants.cachedAuthorizationTerritory))!,
+        ),
+        {
+          'level': 'union',
+          'division_id': 2,
+          'union_id': 20,
+          'local_field_id': null,
+          'name': 'Unión Norte',
+        },
+      );
+
+      repo.me = Right(_me(capabilities: const ['club.staff_mode']));
+      await c
+          .read(authNotifierProvider.notifier)
+          .refreshAuthorization(minInterval: Duration.zero);
+
+      expect(
+        await storage.read(AppConstants.cachedAuthorizationTerritory),
+        isNull,
+      );
+    });
+
+    test('expiring the session deletes the cached keys', () async {
+      const territory = AuthorizationTerritory(level: 'union', unionId: 20);
+      final storage = FakeSecureStorage();
+      final repo = _Repo(Right(_me(territory: territory)));
+      final c = await build(repo, storage: storage);
+      expect(
+        await storage.read(AppConstants.cachedAuthorizationTerritory),
+        isNotNull,
+      );
 
       c.read(authNotifierProvider.notifier).expireSession();
 
       expect(
         await storage.read(AppConstants.cachedAuthorizationCapabilities),
+        isNull,
+      );
+      expect(
+        await storage.read(AppConstants.cachedAuthorizationTerritory),
         isNull,
       );
       expect(

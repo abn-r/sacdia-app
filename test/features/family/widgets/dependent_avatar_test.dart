@@ -34,6 +34,25 @@ void main() {
   Color initialOf(WidgetTester tester) =>
       tester.widget<Text>(find.text('A')).style!.color!;
 
+  testWidgets('the initial grows with the circle', (tester) async {
+    double initialSizeAt(double size) =>
+        tester.widget<Text>(find.text('A')).style!.fontSize!;
+
+    for (final size in const [36.0, 42.0, 64.0]) {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: Scaffold(body: DependentAvatar(name: 'Ana', size: size)),
+        ),
+      );
+      expect(
+        initialSizeAt(size),
+        closeTo(size * kDependentAvatarInitialRatio, 0.001),
+        reason: '$size',
+      );
+    }
+  });
+
   testWidgets('in light the circle is the accent pastel', (tester) async {
     await pump(tester, AppTheme.lightTheme);
     final accent = SacAccent.of(tester.element(find.text('A')));

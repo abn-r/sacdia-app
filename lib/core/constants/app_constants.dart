@@ -114,6 +114,10 @@ class AppConstants {
       'cached_authorization_capabilities';
   static const String cachedAuthorizationFetchedAt =
       'cached_authorization_fetched_at';
+  // Territorio del actor (`authorization.territory`, JSON con el formato de
+  // `/auth/me`): sin red, el inicio de supervisión sigue mostrando su nombre.
+  static const String cachedAuthorizationTerritory =
+      'cached_authorization_territory';
 
   // Biometric auth (SharedPreferences)
   // MVP: opt-in only, boolean flag + ISO-8601 enrolledAt; no biometric data stored.
