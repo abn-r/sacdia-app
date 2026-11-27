@@ -242,26 +242,63 @@ void main() {
     }, timeout: const Timeout(Duration(seconds: 15)));
 
     test(
-        'a session restored from the cache with nothing but capabilities is '
-        'a server that does not answer, not an account without a role',
-        () async {
-      // What the offline restore builds for an account without a club
-      // (supervision, coordination, pastor): capabilities only.
-      const restored = UserEntity(
+        'an account without a club restored from the cache enters offline '
+        'with its capabilities (supervision, coordination, pastor)', () async {
+      // What the offline restore builds for an account without a club:
+      // capabilities only, no club grant and no permissions.
+      for (final capability in const [
+        'supervision.app_view',
+        'coordination.hub_view',
+        'admin_panel.pastor_only',
+      ]) {
+        final restored = UserEntity(
+          id: 'test-id',
+          email: 'test@test.com',
+          postRegisterComplete: true,
+          authorization: AuthorizationSnapshot(capabilities: [capability]),
+          authorizationStale: true,
+        );
+        expect(AppBootstrapNotifier.hasNoAssignedRole(restored), isFalse);
+
+        final container = await _makeContainer(restored);
+
+        final state = await container.read(appBootstrapProvider.future);
+        expect(state, isA<AppBootstrapReady>(), reason: capability);
+      }
+    });
+
+    test(
+        'the same capabilities-only snapshot from a live answer does not '
+        'enter: only the offline restore gets that pass', () async {
+      const live = UserEntity(
         id: 'test-id',
         email: 'test@test.com',
         postRegisterComplete: true,
         authorization: AuthorizationSnapshot(
           capabilities: ['supervision.app_view'],
         ),
+      );
+
+      final container = await _makeContainer(live);
+
+      final state = await container.read(appBootstrapProvider.future);
+      expect(state, isA<AppBootstrapError>());
+    }, timeout: const Timeout(Duration(seconds: 15)));
+
+    test(
+        'a cached session without capabilities (an account without any role) '
+        'still does not enter offline', () async {
+      const restored = UserEntity(
+        id: 'test-id',
+        email: 'test@test.com',
+        postRegisterComplete: true,
+        authorization: AuthorizationSnapshot(),
         authorizationStale: true,
       );
-      expect(AppBootstrapNotifier.hasNoAssignedRole(restored), isFalse);
 
       final container = await _makeContainer(restored);
 
       final state = await container.read(appBootstrapProvider.future);
-      expect(state, isA<AppBootstrapError>());
       expect(
         (state as AppBootstrapError).kind,
         AppBootstrapErrorKind.serverUnreachable,
@@ -295,9 +332,6 @@ void main() {
         id: 'test-id',
         email: 'test@test.com',
         postRegisterComplete: true,
-        authorization: AuthorizationSnapshot(
-          capabilities: ['supervision.app_view'],
-        ),
         authorizationStale: true,
       );
       final fakeAuth = _MutableFakeAuthNotifier(restored);
