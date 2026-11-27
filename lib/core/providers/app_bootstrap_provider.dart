@@ -211,6 +211,13 @@ class AppBootstrapNotifier extends AsyncNotifier<AppBootstrapState> {
     if (user.mode == AccountMode.teenPending) return true;
     final auth = user.authorization;
     if (auth == null) return false;
+    // Sin conexión, una cuenta sin club (supervisión, coordinación, pastor)
+    // solo restaura de la caché sus capacidades: no tiene permisos de club ni
+    // concesión activa que guardar. Con las capacidades el inicio y las
+    // pestañas se deciden igual que en línea, y toda escritura queda bloqueada
+    // hasta que `/auth/me` responda (`AuthorizationStaleInterceptor`). Una
+    // cuenta sin ningún rol no tiene capacidades y no entra.
+    if (user.authorizationStale && auth.capabilities.isNotEmpty) return true;
     if (auth.effectivePermissions.isEmpty) return false;
     if (auth.resolvedRoleNames.isEmpty) return false;
     return true;
