@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_profile_image.dart';
+import '../../../../core/widgets/sac_tone.dart';
 
 /// Avatar circular de un menor: foto si existe, si no la inicial de su nombre.
 class DependentAvatar extends StatelessWidget {
@@ -19,13 +19,15 @@ class DependentAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = SacAccent.of(context);
+    // Theme-aware: the accent pastel in light, a tint over the dark surface
+    // in dark (the pastel glares there).
+    final tone = SacTonePalette.of(context, SacTone.accent);
     final initial = name.trim().isEmpty ? '?' : name.trim()[0].toUpperCase();
     final fallback = Center(
       child: Text(
         initial,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: accent.color,
+              color: tone.onContainer,
               fontWeight: FontWeight.w700,
             ),
       ),
@@ -37,7 +39,7 @@ class DependentAvatar extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: accent.light,
+          color: tone.container,
           border: Border.all(color: context.sac.border),
         ),
         clipBehavior: Clip.antiAlias,
