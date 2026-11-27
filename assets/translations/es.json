@@ -5182,7 +5182,8 @@
     "bootstrap": {
       "unexpected_session_error": "Error inesperado al verificar sesión",
       "permissions_load_failed": "No pudimos cargar tus permisos",
-      "no_role_assigned": "Tu cuenta todavía no tiene un rol asignado. Pide al director de tu club que te asigne uno."
+      "no_role_assigned": "Tu cuenta todavía no tiene un rol asignado. Pide al director de tu club que te asigne uno.",
+      "server_unreachable": "No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo."
     },
     "dialog": {
       "cancel": "Cancelar"

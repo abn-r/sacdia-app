@@ -83,18 +83,24 @@ class _SplashViewState extends ConsumerState<SplashView>
     String message, {
     AppBootstrapErrorKind kind = AppBootstrapErrorKind.loadFailed,
   }) {
-    // "No role yet" is an account state, not a failure: neutral icon/color.
-    final isNoRole = kind == AppBootstrapErrorKind.noRole;
+    // "No role yet" is an account state and an unreachable server is a
+    // connection state: neither is a failure of the account, so both take a
+    // neutral color and an icon that says which one it is.
+    final icon = switch (kind) {
+      AppBootstrapErrorKind.noRole => HugeIcons.strokeRoundedUserLock01,
+      AppBootstrapErrorKind.serverUnreachable =>
+        HugeIcons.strokeRoundedWifiOff01,
+      AppBootstrapErrorKind.loadFailed => HugeIcons.strokeRoundedAlert02,
+    };
+    final isFailure = kind == AppBootstrapErrorKind.loadFailed;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         HugeIcon(
-          icon: isNoRole
-              ? HugeIcons.strokeRoundedUserLock01
-              : HugeIcons.strokeRoundedAlert02,
-          color: isNoRole
-              ? context.sac.textSecondary
-              : Theme.of(context).colorScheme.error,
+          icon: icon,
+          color: isFailure
+              ? Theme.of(context).colorScheme.error
+              : context.sac.textSecondary,
           size: 40,
         ),
         const SizedBox(height: 12),

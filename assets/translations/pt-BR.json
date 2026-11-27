@@ -5180,7 +5180,8 @@
     "bootstrap": {
       "unexpected_session_error": "Erro inesperado ao verificar sessão",
       "permissions_load_failed": "Não foi possível carregar suas permissões",
-      "no_role_assigned": "Sua conta ainda não tem um cargo atribuído. Peça ao diretor do seu clube para atribuir um."
+      "no_role_assigned": "Sua conta ainda não tem um cargo atribuído. Peça ao diretor do seu clube para atribuir um.",
+      "server_unreachable": "Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente."
     },
     "dialog": {
       "cancel": "Cancelar"
